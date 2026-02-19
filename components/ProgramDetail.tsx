@@ -82,22 +82,22 @@ const SessionCard: React.FC<{
         return Math.max(1, Math.min(10, score));
     };
 
-    // Calcular Promedio de Fatiga de la Sesión
-    const averageFatigue = useMemo(() => {
-        if (exercisesToDisplay.length === 0 || exerciseList.length === 0) return 0;
-        let totalFatigue = 0;
-        let validExercises = 0;
-        
-        exercisesToDisplay.forEach(ex => {
-            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
-            if (info) {
-                totalFatigue += calculateIntrinsicFatigue(info);
-                validExercises += 1;
-            }
-        });
-        
-        return validExercises > 0 ? Math.round((totalFatigue / validExercises) * 10) / 10 : 0;
-    }, [exercisesToDisplay, exerciseList]);
+        // Calcular Promedio de Fatiga de la Sesión
+        const averageFatigue = useMemo(() => {
+            if (exercisesToDisplay.length === 0 || exerciseList.length === 0) return 0;
+            let totalFatigue = 0;
+            let validExercises = 0;
+            
+            exercisesToDisplay.forEach((ex: any) => {
+                const info = exerciseList.find((e: any) => e.id === ex.exerciseDbId || e.name === ex.name);
+                if (info) {
+                    totalFatigue += calculateIntrinsicFatigue(info);
+                    validExercises += 1;
+                }
+            });
+            
+            return validExercises > 0 ? Math.round((totalFatigue / validExercises) * 10) / 10 : 0;
+        }, [exercisesToDisplay, exerciseList]);
 
     const getFatigueColor = (score: number) => {
         if (score === 0) return 'bg-zinc-800 text-zinc-500';

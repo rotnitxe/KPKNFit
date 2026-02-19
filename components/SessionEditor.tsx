@@ -339,6 +339,7 @@ export const AdvancedExercisePickerModal: React.FC<{
     };
 
     // MOTOR DE FATIGA CIENTÍFICO (Verro Score Normalizado)
+    const normalizeToTenScale = (val: number) => Math.min(10, Math.max(1, Math.round(val / 3)));
     const calculateIntrinsicFatigue = (ex: ExerciseMuscleInfo) => {
         // Simulamos una serie estándar (10 reps @ RPE 8) para medir el costo intrínseco
         const points = calculateSetStress({ targetReps: 10, targetRPE: 8 }, ex, 90);
@@ -519,10 +520,10 @@ export const AdvancedExercisePickerModal: React.FC<{
                                                         <div className="space-y-2">
                                                             <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Aporte (1 Serie Efectiva)</span>
                                                             <div className="space-y-1">
-                                                                {Object.entries(groupedMuscles).map(([muscle, maxVal], idx) => (
+                                                            {Object.entries(groupedMuscles).map(([muscle, maxVal], idx) => (
                                                                     <div key={idx} className="flex justify-between items-center text-[10px]">
                                                                         <span className="font-bold text-zinc-300">{muscle}</span>
-                                                                        <span className="text-zinc-400 font-mono">+{maxVal.toFixed(1)}</span>
+                                                                        <span className="text-zinc-400 font-mono">+{(maxVal as number).toFixed(1)}</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -866,7 +867,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                             {exercise.sets.map((set, setIndex) => {
                                 const isAmrap = set.isAmrap || set.intensityMode === 'amrap';
                                 // Calculamos carga estimada si aplica
-                                let estimatedLoad = null;
+                                let estimatedLoad: number | null = null;
                                 if (exercise.trainingMode === 'percent' && exercise.reference1RM && set.targetPercentageRM) {
                                     estimatedLoad = Math.round((exercise.reference1RM * set.targetPercentageRM) / 100);
                                 }
@@ -1078,6 +1079,14 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const [openColorPickerIndex, setOpenColorPickerIndex] = useState<number | null>(null);
     const [collapsedParts, setCollapsedParts] = useState<Record<string, boolean>>({});
 
+    // Estados para Selección Múltiple y Triggers
+    const [selectedExerciseIds, setSelectedExerciseIds] = useState<Set<string>>(new Set());
+    const [bulkScope, setBulkScope] = useState<'session' | 'manual'>('manual');
+    const lastSaveTrigger = useRef(saveTrigger);
+    const lastAddTrigger = useRef(addExerciseTrigger);
+    const infoRef = useRef(existingSessionInfo);
+    useEffect(() => { infoRef.current = existingSessionInfo; }, [existingSessionInfo]);
+
     // --- NUEVO: MOTOR DE BÚFER SEMANAL ---
     // Cargamos TODA la semana si venimos de un programa
     const [weekSessions, setWeekSessions] = useState<Session[]>(() => {
@@ -1108,6 +1117,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const session = useMemo(() => weekSessions.find(s => s.id === activeSessionId) || weekSessions[0], [weekSessions, activeSessionId]);
 
     const [selectedDays, setSelectedDays] = useState<number[]>(() => session.assignedDays?.length ? session.assignedDays : (session.dayOfWeek !== undefined ? [session.dayOfWeek] : []));
+    const selectedDaysRef = useRef(selectedDays);
+    useEffect(() => { selectedDaysRef.current = selectedDays; }, [selectedDays]);
     
     const sessionRef = useRef(session);
     const weekSessionsRef = useRef(weekSessions);
