@@ -74,51 +74,70 @@ const SessionAugeDashboard: React.FC<{
     currentSession: Session; 
     weekSessions: Session[];
     exerciseList: ExerciseMuscleInfo[];
-}> = ({ currentSession, weekSessions, exerciseList = [] }) => { // <--- PROTECCIÓN AQUÍ
-    const [viewMode, setViewMode] = useState<'volume' | 'drain'>('volume');
+}> = ({ currentSession, weekSessions, exerciseList = [] }) => {
+    const [viewMode, setViewMode] = useState<'volume' | 'drain' | 'ranking'>('volume');
     const [context, setContext] = useState<'session' | 'week'>('session');
 
-    // Motor Unificado AUGE
-    const { hyperStats, globalDrain, sessionAlerts, weeklyAlerts } = useMemo(() => {
+    const scrollToExercise = (exId: string) => {
+        const el = document.getElementById(`exercise-card-${exId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    const { hyperStats, globalDrain, sessionAlerts, weeklyAlerts, exerciseRanking } = useMemo(() => {
         const hyperMap: Record<string, number> = {};
         const weeklyHyperMap: Record<string, number> = {};
         let totalCns = 0; let totalSpinal = 0;
         let weeklyCns = 0; let weeklySpinal = 0;
+        const ranking: { id: string, name: string, fatigue: number, isCurrentSession: boolean }[] = [];
 
         const processExercises = (exercises: any[], isCurrentSession: boolean) => {
             exercises.forEach(ex => {
-                const info: any = exerciseList.find((e: any) => e.id === ex.exerciseDbId || e.name === ex.name);
+                const info = exerciseList.find((e: any) => e.id === ex.exerciseDbId || e.name === ex.name);
                 if (!info) return;
                 const augeMetrics = getDynamicAugeMetrics(info, ex.name);
-                const validSets = ex.sets?.filter((s: any) => s.type !== 'warmup') || [];
+                const validSets = ex.sets?.filter((s: any) => (s as any).type !== 'warmup') || [];
+
+                let exFatigueScore = 0;
 
                 validSets.forEach((set: any) => {
                     const stress = calculateSetStress(set, info, ex.restTime || 90);
                     let loadMult = 1.0;
-                    if (ex.trainingMode === 'percent' && set.targetPercentageRM && set.targetPercentageRM >= 85) loadMult = 1.2;
-                    if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap' || (set.targetRPE && set.targetRPE >= 10)) loadMult *= 1.5;
+                    
+                    const reps = set.targetReps || 10;
+                    if (reps <= 3) loadMult *= 1.4; 
+                    else if (reps > 15) loadMult *= 1.15; 
+
+                    let rpe = set.targetRPE || 8;
+                    if (set.intensityMode === 'rir' && set.targetRIR !== undefined) rpe = 10 - set.targetRIR;
+                    if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap') rpe = 11;
+
+                    if (rpe >= 10) loadMult *= Math.pow((rpe/10), 1.5); 
 
                     const cnsHit = (stress * (augeMetrics.cnc / 5.0) * loadMult);
                     const spinalHit = calculateSpinalScore(set, info);
 
+                    exFatigueScore += cnsHit + (spinalHit * 0.05);
+
                     weeklyCns += cnsHit; weeklySpinal += spinalHit;
                     if (isCurrentSession) { totalCns += cnsHit; totalSpinal += spinalHit; }
 
-                    info.involvedMuscles.forEach(m => {
+                    info.involvedMuscles.forEach((m: any) => {
                         const parent = normalizeMuscleGroup(m.muscle);
                         const hyperFactor = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.0; 
                         weeklyHyperMap[parent] = (weeklyHyperMap[parent] || 0) + hyperFactor;
                         if (isCurrentSession) hyperMap[parent] = (hyperMap[parent] || 0) + hyperFactor;
                     });
                 });
+
+                if (exFatigueScore > 0) {
+                    ranking.push({ id: ex.id, name: ex.name, fatigue: exFatigueScore, isCurrentSession });
+                }
             });
         };
 
-        // Procesar sesión actual
         const currentExercises = [...(currentSession.exercises || []), ...(currentSession.parts?.flatMap(p => p.exercises) || [])];
         processExercises(currentExercises, true);
 
-        // Procesar resto de la semana
         weekSessions.forEach(s => {
             if (s.id !== currentSession.id) {
                 const sEx = [...(s.exercises || []), ...(s.parts?.flatMap(p => p.exercises) || [])];
@@ -127,36 +146,37 @@ const SessionAugeDashboard: React.FC<{
         });
 
         const sortMap = (map: Record<string, number>) => Object.entries(map).map(([muscle, volume]) => ({ muscle, volume: Math.round(volume * 10) / 10 })).filter(item => item.volume > 0).sort((a, b) => b.volume - a.volume);
-        const sessionStats = sortMap(hyperMap);
-        const weeklyStats = sortMap(weeklyHyperMap);
+        
+        ranking.sort((a, b) => b.fatigue - a.fatigue);
 
         return { 
-            hyperStats: context === 'session' ? sessionStats : weeklyStats, 
+            hyperStats: context === 'session' ? sortMap(hyperMap) : sortMap(weeklyHyperMap), 
             globalDrain: context === 'session' ? { cns: totalCns, spinal: totalSpinal } : { cns: weeklyCns, spinal: weeklySpinal },
-            sessionAlerts: sessionStats.filter(h => h.volume > 6),
-            weeklyAlerts: weeklyStats.filter(h => h.volume > 18) // Umbral Semanal de Sobreentrenamiento
+            sessionAlerts: sortMap(hyperMap).filter(h => h.volume > 6),
+            weeklyAlerts: sortMap(weeklyHyperMap).filter(h => h.volume > 18),
+            exerciseRanking: context === 'session' ? ranking.filter(r => r.isCurrentSession) : ranking
         };
     }, [currentSession, weekSessions, exerciseList, context]);
 
     return (
         <div className="p-4 border border-[#222] rounded-xl bg-[#0a0a0a] mb-6 shadow-2xl">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#222]">
-                 <div className="flex gap-4">
-                    <button onClick={() => setViewMode('volume')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 ${viewMode === 'volume' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><TargetIcon size={12}/> Estímulo</button>
-                    <button onClick={() => setViewMode('drain')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 ${viewMode === 'drain' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ActivityIcon size={12}/> Fatiga</button>
+                 <div className="flex gap-4 overflow-x-auto hide-scrollbar">
+                    <button onClick={() => setViewMode('volume')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'volume' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><TargetIcon size={12}/> Estímulo</button>
+                    <button onClick={() => setViewMode('drain')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'drain' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ActivityIcon size={12}/> Fatiga</button>
+                    <button onClick={() => setViewMode('ranking')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'ranking' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><LayersIcon size={12}/> Ranking</button>
                  </div>
                  <ToggleSwitch checked={context === 'week'} onChange={(c) => setContext(c ? 'week' : 'session')} label={context === 'week' ? 'Semana' : 'Sesión'} size="sm" isBlackAndWhite={true} />
             </div>
 
-            {/* ALERTAS CRÍTICAS */}
             {viewMode === 'volume' && context === 'week' && weeklyAlerts.length > 0 && (
                 <div className="mb-4 space-y-2 animate-fade-in">
                     {weeklyAlerts.map(alert => (
                         <div key={alert.muscle} className="bg-red-950/30 border border-red-900/50 p-3 rounded-lg flex gap-2 items-start">
                             <FlameIcon size={16} className="text-red-500 shrink-0 mt-0.5 animate-pulse" />
                             <p className="text-[10px] text-red-200 leading-relaxed">
-                                <strong className="font-bold text-red-400 uppercase tracking-wide">Peligro de Sobreentrenamiento: {alert.muscle} ({alert.volume} series semanales).</strong><br/>
-                                Has superado el límite biológico recuperable (~18 series). Estás generando daño sin hipertrofia. Usa el Roadmap superior para ir a otra sesión de esta semana y reducir su volumen.
+                                <strong className="font-bold text-red-400 uppercase tracking-wide">Peligro: {alert.muscle} ({alert.volume} series).</strong><br/>
+                                Has superado el límite recuperable (~18). Estás generando daño sin hipertrofia. Reduce el volumen semanal.
                             </p>
                         </div>
                     ))}
@@ -169,15 +189,14 @@ const SessionAugeDashboard: React.FC<{
                         <div key={alert.muscle} className="bg-orange-950/30 border border-orange-900/50 p-2 rounded-lg flex gap-2 items-start">
                             <InfoIcon size={14} className="text-orange-500 shrink-0 mt-0.5" />
                             <p className="text-[9px] text-orange-200 leading-tight">
-                                <strong className="font-bold text-orange-400">Volumen Basura Intra-Sesión en {alert.muscle}.</strong> 
-                                 Tras la 6ta serie el estímulo decae drásticamente. Considera mover este ejercicio a otro día.
+                                <strong className="font-bold text-orange-400">Volumen Basura en {alert.muscle}.</strong> 
+                                 Tras la 6ta serie el estímulo decae. Considera mover este ejercicio.
                             </p>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* BARRAS DE ESTADÍSTICAS */}
             {viewMode === 'volume' ? (
                 <div className="animate-fade-in space-y-2">
                      <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 space-y-2">
@@ -195,7 +214,7 @@ const SessionAugeDashboard: React.FC<{
                         )}) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">Sin datos de volumen</p>}
                      </div>
                 </div>
-            ) : (
+            ) : viewMode === 'drain' ? (
                 <div className="space-y-4 animate-fade-in">
                      <div className="grid grid-cols-2 gap-4">
                         <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
@@ -217,6 +236,23 @@ const SessionAugeDashboard: React.FC<{
                             </div>
                         </div>
                     </div>
+                </div>
+            ) : (
+                <div className="animate-fade-in space-y-2">
+                     <p className="text-[9px] text-zinc-500 uppercase font-bold mb-2">Ranking de impacto sistémico</p>
+                     <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 space-y-2">
+                        {exerciseRanking.length > 0 ? exerciseRanking.map((rank, idx) => (
+                            <button key={`${rank.id}-${idx}`} onClick={() => scrollToExercise(rank.id)} className="w-full flex justify-between items-center group bg-[#111] hover:bg-[#222] p-2 rounded-lg transition-colors border border-transparent hover:border-white/10 text-left">
+                                <span className="text-[10px] font-bold text-white truncate pr-2 flex-1"><span className="text-zinc-600 mr-2">{idx + 1}.</span>{rank.name}</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-16 h-1 bg-black rounded-full overflow-hidden">
+                                        <div className="h-full bg-red-500 transition-all" style={{ width: `${Math.min(100, (rank.fatigue / (exerciseRanking[0]?.fatigue || 1)) * 100)}%` }}></div>
+                                    </div>
+                                    <span className="text-[9px] font-mono text-zinc-400 w-8 text-right">{rank.fatigue.toFixed(0)}</span>
+                                </div>
+                            </button>
+                        )) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">No hay ejercicios evaluables</p>}
+                     </div>
                 </div>
             )}
         </div>
@@ -351,6 +387,10 @@ export const AdvancedExercisePickerModal: React.FC<{
         return { color: 'bg-red-500', text: 'text-red-500', label: 'Alta' };
     };
 
+    const getAugeIndexes = (exName: string, exInfo: ExerciseMuscleInfo) => {
+        return getDynamicAugeMetrics(exInfo, exName);
+    };
+
     useEffect(() => {
         if (isOpen) setTimeout(() => inputRef.current?.focus(), 50);
         else { setSearch(''); setActiveCategory(null); setTooltipExId(null); }
@@ -403,7 +443,8 @@ export const AdvancedExercisePickerModal: React.FC<{
     return (
         <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden animate-in fade-in duration-200">
             <div className="absolute inset-0" onClick={onClose} />
-            <div className="bg-zinc-950 border border-white/10 shadow-2xl relative z-10 flex flex-col w-full max-w-lg max-h-[85vh] rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Se agrega min-h-[60vh] para evitar saltos bruscos de tamaño */}
+            <div className="bg-zinc-950 border border-white/10 shadow-2xl relative z-10 flex flex-col w-full max-w-lg min-h-[60vh] max-h-[85vh] rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
                 
                 {/* Cabecera Dark Premium */}
                 <div className="p-4 border-b border-white/5 bg-black/50 backdrop-blur-lg shrink-0 flex flex-col gap-3">
@@ -529,13 +570,18 @@ export const AdvancedExercisePickerModal: React.FC<{
                                                         </div>
                                                         
                                                         <div className="space-y-2 border-l border-white/10 pl-4">
-                                                            <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest block">Análisis de Fatiga</span>
-                                                            <div className="bg-black border border-white/5 p-2 rounded-lg">
-                                                                <div className="flex items-center justify-between mb-1">
-                                                                    <span className="text-[10px] font-bold text-white">Impacto en Batería</span>
-                                                                    <div className={`w-2 h-2 rounded-full ${fatigueUI.color}`}></div>
-                                                                </div>
-                                                                <p className="text-[9px] text-zinc-400">Castigo inherente estimado (RIR 2) hacia SNC y articulaciones: <strong className={fatigueUI.text}>{fatigueScore}/10</strong>.</p>
+                                                            <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest block">Índices AUGE</span>
+                                                            <div className="bg-black border border-white/5 p-2 rounded-lg grid grid-cols-1 gap-1.5">
+                                                                {(() => {
+                                                                    const { efc, ssc, cnc } = getAugeIndexes(ex.name, ex);
+                                                                    return (
+                                                                        <>
+                                                                            <div className="flex justify-between items-center"><span className="text-[9px] text-zinc-400">Metabólico (EFC)</span><span className="text-[10px] font-mono text-white">{efc.toFixed(1)}</span></div>
+                                                                            <div className="flex justify-between items-center"><span className="text-[9px] text-zinc-400">Neural (CNC)</span><span className="text-[10px] font-mono text-white">{cnc.toFixed(1)}</span></div>
+                                                                            <div className="flex justify-between items-center"><span className="text-[9px] text-zinc-400">Espinal (SSC)</span><span className="text-[10px] font-mono text-red-400">{ssc.toFixed(1)}</span></div>
+                                                                        </>
+                                                                    )
+                                                                })()}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -676,19 +722,37 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     const augeMetrics = useMemo(() => getDynamicAugeMetrics(exerciseInfo, exercise.name), [exerciseInfo, exercise.name]);
     
     const localDrain = useMemo(() => {
-        let cns = 0, spinal = 0;
+        let rawCns = 0, rawSpinal = 0;
         const muscles: Record<string, number> = {};
         
-        exercise.sets.forEach(set => {
-             if (set.type === 'warmup') return;
-             const stress = calculateSetStress(set, exerciseInfo, exercise.restTime || 90);
+        exercise.sets.forEach((set, idx) => {
+            if ((set as any).type === 'warmup') return;
              
-             let loadMult = 1.0;
-             if (exercise.trainingMode === 'percent' && set.targetPercentageRM && set.targetPercentageRM >= 85) loadMult = 1.2;
-             if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap' || (set.targetRPE && set.targetRPE >= 10)) loadMult *= 1.5;
+             // 1. Detección RIR/RPE/Fallo
+             let rpe = set.targetRPE || 8;
+             if (set.intensityMode === 'rir' && set.targetRIR !== undefined) rpe = 10 - set.targetRIR;
+             if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap') rpe = 11; // Fallo real
+             
+             // 2. Curva de repeticiones
+             let reps = set.targetReps || 10;
+             let repMult = 1.0;
+             if (reps <= 3) repMult = 1.4; // Altas cargas SNC
+             else if (reps > 15) repMult = 1.15; // Metabólico
 
-             cns += stress * (augeMetrics.cnc / 5.0) * loadMult;
-             spinal += calculateSpinalScore(set, exerciseInfo);
+             // 3. Crecimiento Exponencial (Fallo y Volumen Basura)
+             let fatigueExp = 1.0;
+             if (rpe >= 10) fatigueExp = Math.pow((rpe/10), 1.6); // Fallo dispara exponencialmente
+             
+             // Castigo por series (Volumen Basura intra-ejercicio a partir de la 6ta)
+             if (idx >= 5) fatigueExp *= Math.pow(1.3, idx - 4);
+
+             const stress = calculateSetStress({ ...set, targetRPE: rpe }, exerciseInfo, exercise.restTime || 90) * repMult * fatigueExp;
+             
+             rawCns += stress * (augeMetrics.cnc / 5.0);
+             
+             // Estrés Espinal conectado
+             const setSpinal = calculateSpinalScore({ ...set, targetRPE: rpe }, exerciseInfo);
+             rawSpinal += setSpinal * fatigueExp;
 
              exerciseInfo?.involvedMuscles.forEach(m => {
                  const mName = normalizeMuscleGroup(m.muscle);
@@ -697,9 +761,19 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
              });
         });
         
-        // Ordenamos para mostrar los 2 músculos más drenados
-        const topMuscles = Object.entries(muscles).sort((a, b) => b[1] - a[1]).slice(0, 2);
-        return { cns, spinal, topMuscles };
+        // Conversión a escala 1-10 para la UI
+        const toTen = (val: number, maxExpected: number) => Math.min(10, Math.max(0, (val / maxExpected) * 10));
+        
+        // Asumimos máximos esperados por EJERCICIO para normalizar a 10
+        const cns10 = toTen(rawCns, 60); 
+        const spinal10 = exerciseInfo?.axialLoadFactor ? toTen(rawSpinal, 800) : 0;
+        
+        const topMuscles = Object.entries(muscles)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 2)
+            .map(([m, val]) => [m, toTen(val, 50)] as [string, number]);
+
+        return { cns: cns10, spinal: spinal10, topMuscles };
     }, [exercise.sets, exerciseInfo, augeMetrics, exercise.restTime, exercise.trainingMode]);
 
     return (
@@ -715,8 +789,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                 </div>
             )}
             
-            <details ref={ref} className={`relative flex-grow w-full border-b border-white/10 bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''}`} open={defaultOpen}>
-                {infoModalExercise && <ExerciseInfoModal exercise={infoModalExercise} onClose={() => setInfoModalExercise(null)} muscleHierarchy={useAppContext().muscleHierarchy} />}
+            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b border-white/10 bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''}`} open={defaultOpen}>
                 
                 <summary className="py-4 px-2 flex items-center gap-3 cursor-pointer list-none hover:bg-zinc-900 transition-colors rounded-lg group">
                     <div className="flex items-center gap-3 flex-grow min-w-0">
@@ -1112,12 +1185,16 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const [modifiedSessionIds, setModifiedSessionIds] = useState<Set<string>>(new Set());
     const [isMultiSaveModalOpen, setIsMultiSaveModalOpen] = useState(false);
 
+    // NUEVOS ESTADOS ROADMAP Y GUARDADO
+    const [emptyDaySelected, setEmptyDaySelected] = useState<number | null>(null);
+    const [isCopyToModalOpen, setIsCopyToModalOpen] = useState(false);
+    const [copyToTargetDay, setCopyToTargetDay] = useState<number | null>(null);
+    const [applyToWholeBlock, setApplyToWholeBlock] = useState(false);
+    const [isSingleSaveModalOpen, setIsSingleSaveModalOpen] = useState(false);
+    const [blockScopeSelection, setBlockScopeSelection] = useState<Record<string, boolean>>({});
+
     // Derivamos la "sesión actual" del búfer en tiempo real
     const session = useMemo(() => weekSessions.find(s => s.id === activeSessionId) || weekSessions[0], [weekSessions, activeSessionId]);
-
-    const [selectedDays, setSelectedDays] = useState<number[]>(() => session.assignedDays?.length ? session.assignedDays : (session.dayOfWeek !== undefined ? [session.dayOfWeek] : []));
-    const selectedDaysRef = useRef(selectedDays);
-    useEffect(() => { selectedDaysRef.current = selectedDays; }, [selectedDays]);
     
     const sessionRef = useRef(session);
     const weekSessionsRef = useRef(weekSessions);
@@ -1145,47 +1222,66 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const handleDayClick = (dayValue: number, daySessions: Session[]) => {
         if (daySessions.length > 0) {
             setActiveSessionId(daySessions[0].id);
-            setSelectedDays(daySessions[0].assignedDays?.length ? daySessions[0].assignedDays : (daySessions[0].dayOfWeek !== undefined ? [daySessions[0].dayOfWeek] : []));
+            setEmptyDaySelected(null);
         } else {
-            // Crear sesión en blanco para ese día
-            const newSession: Session = {
-                id: crypto.randomUUID(),
-                name: `Sesión Día ${dayValue}`,
-                dayOfWeek: dayValue,
-                exercises: [],
-                parts: [{ id: crypto.randomUUID(), name: 'Bloque Principal', exercises: [] }]
-            };
-            setWeekSessions(prev => [...prev, newSession]);
-            setActiveSessionId(newSession.id);
-            setSelectedDays([dayValue]);
-            setModifiedSessionIds(prev => new Set(prev).add(newSession.id));
-            setIsDirty(true);
+            setEmptyDaySelected(dayValue);
+            setActiveSessionId('empty');
         }
+    };
+
+    const handleCreateFirstSession = (dayValue: number) => {
+        const newSession: Session = {
+            id: crypto.randomUUID(),
+            name: `Sesión Día ${dayValue}`,
+            dayOfWeek: dayValue,
+            exercises: [],
+            parts: [{ id: crypto.randomUUID(), name: 'Principal', exercises: [] }]
+        };
+        setWeekSessions(prev => [...prev, newSession]);
+        setActiveSessionId(newSession.id);
+        setEmptyDaySelected(null);
+        setModifiedSessionIds(prev => new Set(prev).add(newSession.id));
+        setIsDirty(true);
+    };
+
+    const executeCopyToDay = (mode: 'replace' | 'add') => {
+        if (copyToTargetDay === null) return;
+        const newSession = JSON.parse(JSON.stringify(sessionRef.current));
+        newSession.id = crypto.randomUUID();
+        newSession.dayOfWeek = copyToTargetDay;
+        
+        setWeekSessions(prev => {
+            if (mode === 'replace') {
+                return [...prev.filter(s => s.dayOfWeek !== copyToTargetDay), newSession];
+            } else {
+                return [...prev, newSession];
+            }
+        });
+        setModifiedSessionIds(prev => new Set(prev).add(newSession.id));
+        setIsDirty(true);
+        setIsCopyToModalOpen(false);
+        setCopyToTargetDay(null);
+        setActiveSessionId(newSession.id);
+        setEmptyDaySelected(null);
+        addToast("Sesión copiada exitosamente", "success");
     };
 
     const executeFinalSave = async (sessionsToSave: Session[]) => {
         const currentOnSave = onSaveRef.current;
         const currentInfo = infoRef.current;
 
-        // Aseguramos que la sesión actual tiene los días correctos asignados antes de guardar
-        const currentSessionId = sessionRef.current.id;
         const finalSessions = sessionsToSave.map(s => {
-            if (s.id === currentSessionId) {
-                const sCopy = { ...s };
-                if (selectedDaysRef.current.length > 0) {
-                    sCopy.dayOfWeek = selectedDaysRef.current[0];
-                    sCopy.assignedDays = selectedDaysRef.current;
-                } else { sCopy.dayOfWeek = undefined; sCopy.assignedDays = []; }
-                return sCopy;
+            const sCopy = { ...s };
+            // Inyectamos bandera temporal para el AppContext
+            if (applyToWholeBlock || blockScopeSelection[s.id]) {
+                (sCopy as any)._applyToBlock = true;
             }
-            return s;
+            return sCopy;
         });
 
         if (currentInfo) {
-            // CRÍTICO: Si es solo 1 sesión, la sacamos del array para que AppContext no explote.
-            // Si son varias (Bulk Save), enviamos el array y asumimos que AppContext lo manejará (o solo guardará la primera si no está actualizado).
             const payload = finalSessions.length === 1 ? finalSessions[0] : finalSessions;
-            // @ts-ignore - Ignoramos error de tipo temporalmente para compatibilidad
+            // @ts-ignore
             currentOnSave(payload, currentInfo.programId, currentInfo.macroIndex, currentInfo.mesoIndex, currentInfo.weekId);
        } else {
             currentOnSave(finalSessions[0]); 
@@ -1193,21 +1289,22 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         await storageService.remove(SESSION_DRAFT_KEY);
         setIsDirty(false);
         setIsMultiSaveModalOpen(false);
+        setIsSingleSaveModalOpen(false);
     };
 
     const handleSave = useCallback(async () => {
-        if (!sessionRef.current.name || !sessionRef.current.name.trim()) {
+        if (activeSessionId !== 'empty' && (!sessionRef.current.name || !sessionRef.current.name.trim())) {
             addToast("La sesión debe tener un nombre antes de guardar.", "danger"); return;
         }
 
-        // Si el usuario modificó más de 1 sesión gracias al Roadmap Semanal
         if (modifiedIdsRef.current.size > 1 && existingSessionInfo) {
             setIsMultiSaveModalOpen(true);
+        } else if (existingSessionInfo && existingSessionInfo.macroIndex !== undefined) {
+            setIsSingleSaveModalOpen(true);
         } else {
-            // Guardado normal único
             executeFinalSave([sessionRef.current]);
         }
-    }, [addToast, existingSessionInfo]);
+    }, [activeSessionId, addToast, existingSessionInfo]);
 
     useEffect(() => {
         if (saveTrigger !== lastSaveTrigger.current) {
@@ -1216,20 +1313,6 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         }
     }, [saveTrigger, handleSave]);
 
-    const toggleDaySelection = (dayValue: number) => {
-        setSelectedDays(prev => {
-            if (prev.includes(dayValue)) {
-                return prev.filter(d => d !== dayValue);
-            } else {
-                if (prev.length >= 3) {
-                    addToast("Máximo 3 días por sesión.", "suggestion");
-                    return prev;
-                }
-                return [...prev, dayValue].sort((a, b) => a - b);
-            }
-        });
-        setIsDirty(true);
-    };
 
     const togglePartCollapse = (partId: string) => {
         setCollapsedParts(prev => ({
@@ -1354,85 +1437,161 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                         <button onClick={() => setIsBgModalOpen(true)} className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-all text-zinc-400"><ImageIcon size={16} /></button>
                     </div>
                     
-                    {/* Day Selector (Minimalist) */}
+                    {/* ACCIONES DE SESIÓN (Copiar) */}
                     <div className="flex items-center gap-3 pt-1">
                          <div className="flex items-center gap-3">
-                            <button onClick={() => setUseCustomLabel(!useCustomLabel)} className="text-[9px] font-black text-zinc-500 uppercase flex items-center gap-1 hover:text-white transition-colors tracking-widest"><ClockIcon size={12}/> {useCustomLabel ? 'Etiqueta' : 'Asignación'}</button>
-                            {useCustomLabel ? (
+                            <button onClick={() => setUseCustomLabel(!useCustomLabel)} className="text-[9px] font-black text-zinc-500 uppercase flex items-center gap-1 hover:text-white transition-colors tracking-widest"><ClockIcon size={12}/> {useCustomLabel ? 'Etiqueta' : 'Día Libre'}</button>
+                            {useCustomLabel && (
                                 <input type="text" value={session.scheduleLabel || ''} onChange={(e) => updateSession(d => { d.scheduleLabel = e.target.value; d.dayOfWeek = undefined; })} placeholder="Ej: Día 1..." className="bg-transparent text-white text-xs font-bold border-b border-zinc-700 focus:border-white focus:ring-0 p-0 w-24"/>
-                            ) : (
-                                <div className="flex gap-1">
-                                    {orderedDays.map(day => (
-                                        <button 
-                                            key={day.value}
-                                            onClick={() => toggleDaySelection(day.value)}
-                                            className={`w-5 h-5 rounded flex items-center justify-center text-[9px] font-black border transition-all ${selectedDays.includes(day.value) ? 'bg-white text-black border-white' : 'bg-black text-zinc-600 border-zinc-800 hover:border-zinc-500'}`}
-                                        >
-                                            {day.label.charAt(0)}
-                                        </button>
-                                    ))}
-                                </div>
+                            )}
+                            {activeSessionId !== 'empty' && (
+                                <button onClick={() => setIsCopyToModalOpen(true)} className="px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/20 rounded text-[9px] font-black uppercase text-white transition-colors flex items-center gap-1 ml-4"><LayersIcon size={12}/> Copiar A...</button>
                             )}
                         </div>
                     </div>
                  </div>
             </div>
 
-            {/* --- MODAL MULTI-SAVE (Smart Save) --- */}
-            <Modal isOpen={isMultiSaveModalOpen} onClose={() => setIsMultiSaveModalOpen(false)} title="Guardado Semanal">
+            {/* MODAL COPIAR A */}
+            <Modal isOpen={isCopyToModalOpen} onClose={() => { setIsCopyToModalOpen(false); setCopyToTargetDay(null); }} title="Copiar Sesión">
                 <div className="p-2 space-y-4">
-                    <p className="text-sm text-zinc-300">Has realizado ajustes en múltiples sesiones de esta semana. ¿Deseas aplicar todos los cambios?</p>
-                    <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden">
-                        {weekSessions.filter(s => modifiedSessionIds.has(s.id)).map(s => (
-                            <div key={s.id} className="flex items-center gap-3 p-3 border-b border-[#222] last:border-0">
-                                <CheckIcon size={16} className="text-white"/>
-                                <div>
-                                    <span className="text-xs font-bold text-white block">{s.name}</span>
-                                    <span className="text-[9px] text-zinc-500 uppercase tracking-widest block">{s.dayOfWeek !== undefined ? orderedDays.find(d => d.value === s.dayOfWeek)?.label : 'Sin Día'}</span>
-                                </div>
-                            </div>
+                    <p className="text-sm text-zinc-300">Selecciona el día de destino para copiar <strong className="text-white">{session.name}</strong>:</p>
+                    <div className="grid grid-cols-4 gap-2">
+                        {orderedDays.map(day => (
+                            <button key={`copy-${day.value}`} onClick={() => setCopyToTargetDay(day.value)} className={`p-2 rounded border text-xs font-bold transition-all ${copyToTargetDay === day.value ? 'bg-white text-black border-white' : 'bg-black text-zinc-400 border-zinc-700 hover:border-zinc-500'}`}>
+                                {day.label.slice(0, 3)}
+                            </button>
                         ))}
                     </div>
+                    {copyToTargetDay !== null && (
+                        <div className="pt-4 border-t border-[#222]">
+                            {weekSessions.some(s => s.dayOfWeek === copyToTargetDay) ? (
+                                <div className="space-y-3">
+                                    <p className="text-xs text-orange-400 font-bold">¡Atención! Este día ya tiene sesiones programadas.</p>
+                                    <div className="flex gap-2">
+                                        <Button variant="secondary" onClick={() => executeCopyToDay('replace')} className="flex-1 !py-2 !text-[10px] !bg-red-900/20 !text-red-400 !border-red-900/50">Reemplazar Todo</Button>
+                                        <Button onClick={() => executeCopyToDay('add')} className="flex-1 !py-2 !text-[10px]">Añadir como Extra</Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <Button onClick={() => executeCopyToDay('add')} className="w-full">Confirmar Copia</Button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </Modal>
+
+            {/* MODAL GUARDADO ÚNICO */}
+            <Modal isOpen={isSingleSaveModalOpen} onClose={() => setIsSingleSaveModalOpen(false)} title="Confirmar Cambios">
+                <div className="p-2 space-y-4">
+                    <p className="text-sm text-zinc-300">Vas a guardar los cambios en <strong className="text-white">{session.name}</strong>.</p>
+                    {existingSessionInfo?.macroIndex !== undefined && (
+                        <label className="flex items-center gap-3 p-3 bg-zinc-900/50 border border-white/10 rounded-xl cursor-pointer hover:bg-zinc-800/50 transition-colors">
+                            <input type="checkbox" checked={applyToWholeBlock} onChange={e => setApplyToWholeBlock(e.target.checked)} className="rounded border-zinc-700 text-white focus:ring-0 bg-black w-4 h-4" />
+                            <div className="flex flex-col">
+                                <span className="text-xs font-bold text-white uppercase">Aplicar a todo el bloque</span>
+                                <span className="text-[10px] text-zinc-500">Aplica este cambio para este día en todas las semanas restantes.</span>
+                            </div>
+                        </label>
+                    )}
                     <div className="flex gap-2 pt-2">
-                        <Button variant="secondary" onClick={() => executeFinalSave([session])} className="flex-1 !py-3 !text-[10px]">Solo Actual</Button>
-                        <Button onClick={() => executeFinalSave(weekSessions.filter(s => modifiedSessionIds.has(s.id)))} className="flex-1 !py-3 !text-[10px] bg-white text-black">Guardar Todo</Button>
+                        <Button variant="secondary" onClick={() => setIsSingleSaveModalOpen(false)} className="flex-1">Cancelar</Button>
+                        <Button onClick={() => executeFinalSave([session])} className="flex-1 bg-white text-black">Guardar</Button>
                     </div>
                 </div>
             </Modal>
 
-            {/* --- ROADMAP SEMANAL (Navegación Intra-Semana) --- */}
-            {existingSessionInfo && (
-                <div className="bg-black border-b border-[#222] px-6 py-5 flex items-center justify-between relative overflow-hidden flex-shrink-0">
-                    <div className="absolute top-1/2 left-8 right-8 h-[2px] bg-[#222] -translate-y-1/2 z-0"></div>
-                    {orderedDays.map(day => {
-                        const daySessions = weekSessions.filter(s => s.dayOfWeek === day.value);
-                        const isActive = daySessions.some(s => s.id === activeSessionId);
-                        const hasSession = daySessions.length > 0;
-                        const isModified = daySessions.some(s => modifiedSessionIds.has(s.id));
-                        
-                        return (
-                            <button 
-                                key={day.value} 
-                                onClick={() => handleDayClick(day.value, daySessions)}
-                                className="relative z-10 flex flex-col items-center gap-2 group outline-none"
-                            >
-                                <div className={`w-4 h-4 rounded-full border-4 transition-all duration-300 relative ${isActive ? 'bg-white border-white scale-125 shadow-[0_0_15px_rgba(255,255,255,0.4)]' : hasSession ? 'bg-[#222] border-black hover:bg-[#444]' : 'bg-black border-[#222] hover:border-[#444]'}`}>
-                                    {isModified && !isActive && <div className="absolute -top-2 -right-2 w-2 h-2 bg-orange-500 rounded-full"></div>}
+            {/* MODAL MULTI-SAVE */}
+            <Modal isOpen={isMultiSaveModalOpen} onClose={() => setIsMultiSaveModalOpen(false)} title="Guardado Múltiple Semanal">
+                <div className="p-2 space-y-4">
+                    <p className="text-sm text-zinc-300">Has ajustado múltiples sesiones. Selecciona cómo aplicar los cambios:</p>
+                    <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden max-h-60 overflow-y-auto custom-scrollbar">
+                        {weekSessions.filter(s => modifiedSessionIds.has(s.id)).map(s => (
+                            <div key={s.id} className="flex flex-col gap-2 p-3 border-b border-[#222] last:border-0">
+                                <div className="flex items-center gap-3">
+                                    <CheckIcon size={16} className="text-white"/>
+                                    <div>
+                                        <span className="text-xs font-bold text-white block">{s.name}</span>
+                                        <span className="text-[9px] text-zinc-500 uppercase tracking-widest block">{s.dayOfWeek !== undefined ? orderedDays.find(d => d.value === s.dayOfWeek)?.label : 'Sin Día'}</span>
+                                    </div>
                                 </div>
-                                <span className={`text-[9px] font-black uppercase tracking-widest absolute -bottom-5 transition-colors ${isActive ? 'text-white' : hasSession ? 'text-zinc-500' : 'text-zinc-700'}`}>{day.label.slice(0,3)}</span>
-                            </button>
-                        )
-                    })}
+                                {existingSessionInfo?.macroIndex !== undefined && (
+                                    <label className="flex items-center gap-2 pl-7 cursor-pointer mt-1">
+                                        <input type="checkbox" checked={blockScopeSelection[s.id] || false} onChange={e => setBlockScopeSelection(prev => ({...prev, [s.id]: e.target.checked}))} className="rounded border-zinc-700 text-white focus:ring-0 bg-black w-3 h-3" />
+                                        <span className="text-[9px] text-zinc-400 font-bold uppercase">Aplicar a todo el bloque</span>
+                                    </label>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                        <Button variant="secondary" onClick={() => executeFinalSave([session])} className="flex-1 !py-3 !text-[10px]">Solo Sesión Actual</Button>
+                        <Button onClick={() => executeFinalSave(weekSessions.filter(s => modifiedSessionIds.has(s.id)))} className="flex-1 !py-3 !text-[10px] bg-white text-black">Guardar Seleccionadas</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* --- ROADMAP SEMANAL (Navegación Intra-Semana y Multi-Sesión) --- */}
+            {existingSessionInfo && (
+                <div className="flex flex-col border-b border-[#222] flex-shrink-0 bg-black">
+                    <div className="px-6 py-5 flex items-center justify-between relative overflow-hidden">
+                        <div className="absolute top-1/2 left-8 right-8 h-[2px] bg-[#222] -translate-y-1/2 z-0"></div>
+                        {orderedDays.map(day => {
+                            const daySessions = weekSessions.filter(s => s.dayOfWeek === day.value);
+                            const isActive = daySessions.some(s => s.id === activeSessionId) || emptyDaySelected === day.value;
+                            const hasSession = daySessions.length > 0;
+                            const isModified = daySessions.some(s => modifiedSessionIds.has(s.id));
+                            
+                            return (
+                                <button 
+                                    key={day.value} 
+                                    onClick={() => handleDayClick(day.value, daySessions)}
+                                    className="relative z-10 flex flex-col items-center gap-2 group outline-none"
+                                >
+                                    <div className={`w-4 h-4 rounded-full border-4 transition-all duration-300 relative ${isActive ? 'bg-white border-white scale-125 shadow-[0_0_15px_rgba(255,255,255,0.4)]' : hasSession ? 'bg-[#222] border-black hover:bg-[#444]' : 'bg-black border-[#222] hover:border-[#444]'}`}>
+                                        {isModified && !isActive && <div className="absolute -top-2 -right-2 w-2 h-2 bg-orange-500 rounded-full"></div>}
+                                    </div>
+                                    <span className={`text-[9px] font-black uppercase tracking-widest absolute -bottom-5 transition-colors ${isActive ? 'text-white' : hasSession ? 'text-zinc-500' : 'text-zinc-700'}`}>{day.label.slice(0,3)}</span>
+                                </button>
+                            )
+                        })}
+                    </div>
+                    {/* TABS MULTI-SESIÓN PARA EL DÍA SELECCIONADO */}
+                    {activeSessionId !== 'empty' && weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).length > 1 && (
+                        <div className="flex px-4 gap-2 overflow-x-auto hide-scrollbar pb-2">
+                            {weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).map((s, idx) => (
+                                <button 
+                                    key={s.id} 
+                                    onClick={() => setActiveSessionId(s.id)} 
+                                    className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap transition-colors border ${activeSessionId === s.id ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500'}`}
+                                >
+                                    {s.name || `Sesión ${idx + 1}`}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* --- MAIN CONTENT (Scroll Fix Applied Here) --- */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-8 bg-black">
-                
-                {/* Dashboard AUGE Toggle */}
-                <div className="relative">
+                {activeSessionId === 'empty' ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center space-y-4 pt-20">
+                        <LayersIcon size={48} className="text-zinc-800" />
+                        <div>
+                            <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Día libre de entrenamiento</p>
+                            <p className="text-xs text-zinc-600 mt-1">No hay ninguna sesión programada para este día.</p>
+                        </div>
+                        <Button onClick={() => handleCreateFirstSession(emptyDaySelected!)} className="mt-4">
+                            Crear Primera Sesión
+                        </Button>
+                    </div>
+                ) : (
+                    <>
+                        {/* Dashboard AUGE Toggle */}
+                        <div className="relative">
                     <button onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)} className="w-full flex items-center justify-between p-3 border border-white/10 rounded-xl bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors group">
-                        <span className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest group-hover:text-white"><ActivityIcon size={12} /> Ecosistema AUGE (Estímulo vs Fatiga)</span>
+                        <span className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest group-hover:text-white"><ActivityIcon size={12} /> ESTÍMULO VS FATIGA</span>
                         <ChevronRightIcon size={14} className={`text-zinc-500 transition-transform ${isAnalysisExpanded ? 'rotate-90' : ''}`} />
                     </button>
                     <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isAnalysisExpanded ? 'opacity-100 max-h-[1000px] mt-2' : 'opacity-0 max-h-0'}`}>
@@ -1520,6 +1679,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                         </Button>
                     </div>
                 </div>
+                </>
+                )}
             </div>
         </div>
     );
