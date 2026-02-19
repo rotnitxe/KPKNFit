@@ -8,7 +8,6 @@ import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, roundWe
 import Modal from './ui/Modal';
 import BackgroundEditorModal from './SessionBackgroundModal';
 import { useAppContext } from '../contexts/AppContext';
-import ExerciseInfoModal from './ExerciseInfoModal';
 import { storageService } from '../services/storageService';
 import { useImageGradient } from '../utils/colorUtils';
 import { calculatePredictedSessionDrain, calculateSetStress, calculateSpinalScore, getDynamicAugeMetrics } from '../services/fatigueService';

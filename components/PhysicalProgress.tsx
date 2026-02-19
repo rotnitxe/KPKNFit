@@ -10,7 +10,6 @@ import ErrorBoundary from './ui/ErrorBoundary';
 
 // Import sub-components
 import WeeklyFatigueCard from './WeeklyFatigueCard';
-import RelativeStrengthCard from './RelativeStrengthCard';
 import PersonalRecordsView from './PersonalRecordsView';
 import IPFPointsCard from './IPFPointsCard';
 import PowerliftingDashboard from './PowerliftingDashboard';
@@ -55,20 +54,6 @@ const PhysicalProgress: React.FC = () => {
                 </div>
             )}
             
-            {activeTab === 'fuerza' && (
-                <div className="space-y-6">
-                    <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Gestión de Carga</h2>
-                    <ErrorBoundary><WeeklyFatigueCard /></ErrorBoundary>
-                    <ErrorBoundary><InjuryRiskAlerts history={history} /></ErrorBoundary>
-                    
-                    <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4 mt-8">Rendimiento Máximo</h2>
-                    <ErrorBoundary><PersonalRecordsView programs={programs} history={history} settings={settings} /></ErrorBoundary>
-                    <ErrorBoundary><PerformanceHighlightsWidget /></ErrorBoundary>
-                    <ErrorBoundary><IPFPointsCard /></ErrorBoundary>
-                    <ErrorBoundary><RelativeStrengthCard /></ErrorBoundary>
-                    <ErrorBoundary><PowerliftingDashboard /></ErrorBoundary>
-                </div>
-            )}
 
             {activeTab === 'cuerpo' && (
                 <div className="space-y-6">

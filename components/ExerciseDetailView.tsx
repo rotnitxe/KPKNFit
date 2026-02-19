@@ -9,7 +9,6 @@ import { ExerciseLink } from './ExerciseLink';
 import { InfoTooltip } from './ui/InfoTooltip';
 import ImageSearchModal from './ImageSearchModal';
 import SkeletonLoader from './ui/SkeletonLoader';
-import { MuscleActivationView } from './ExerciseInfoModal';
 import Card from './ui/Card';
 
 // --- Sub-components ---
@@ -457,12 +456,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                     </div>
                 </div>
 
-                {exercise.involvedMuscles && exercise.involvedMuscles.length > 0 && (
-                    <div className="glass-card p-4">
-                        <h3 className="font-bold text-lg text-white mb-3">Activación Muscular</h3>
-                        <MuscleActivationView involvedMuscles={exercise.involvedMuscles} muscleHierarchy={muscleHierarchy} />
-                    </div>
-                )}
+                
                 
                 <KinesiologyAnalysis exercise={exercise} />
 

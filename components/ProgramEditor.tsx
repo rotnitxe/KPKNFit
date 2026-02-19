@@ -2,7 +2,6 @@
 // components/ProgramEditor.tsx
 import ProgramAdherenceWidget from './ProgramAdherenceWidget'; 
 import ExerciseHistoryWidget from './ExerciseHistoryWidget'; 
-import RelativeStrengthCard from './RelativeStrengthCard';
 import { calculateWeeklyVolume, normalizeMuscleGroup, calculateUnifiedMuscleVolume } from '../services/volumeCalculator';
 import FeedbackInsights from './FeedbackInsights';
 import SessionAuditAlerts from './SessionAuditAlerts';
