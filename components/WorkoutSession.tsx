@@ -4,9 +4,13 @@ import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, Exercis
 import Button from './ui/Button';
 import { ClockIcon, ChevronRightIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, LayersIcon } from './icons'; 
 import { playSound } from '../services/soundService';
-import { hapticImpact, ImpactStyle, hapticNotification, NotificationType } from '../services/hapticsService';
+import { hapticImpact as _hapticImpact, ImpactStyle, hapticNotification as _hapticNotification, NotificationType } from '../services/hapticsService';
 import { calculateBrzycki1RM, getWeightSuggestionForSet, roundWeight, calculateWeightFrom1RM } from '../utils/calculations';
 import { useAppDispatch, useAppState, useAppContext } from '../contexts/AppContext';
+
+// Bypass de TypeScript: Adaptador para que los strings literales sean aceptados como Enums de Capacitor
+const hapticImpact = (style?: any) => _hapticImpact(style);
+const hapticNotification = (type?: any) => _hapticNotification(type);
 import { calculateSpinalScore } from '../services/fatigueService';
 import FinishWorkoutModal from './FinishWorkoutModal';
 import ExerciseHistoryModal from './ExerciseHistoryModal';

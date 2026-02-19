@@ -72,6 +72,8 @@ const defaultSettings: Settings = {
     legVolumeMultiplier: 1.0,
     torsoVolumeMultiplier: 1.0,
     synergistFactor: 0.3,
+    augeEnableNutritionTracking: true,
+    augeEnableSleepTracking: true,
   },
   smartSleepEnabled: true,
   sleepTargetHours: 8,

@@ -9,7 +9,10 @@ import { calculatePlates } from '../utils/plateCalculator';
 import { roundWeight, calculateBrzycki1RM, getWeightSuggestionForSet, isMachineOrCableExercise } from '../utils/calculations';
 import { useAppDispatch, useAppState } from '../contexts/AppContext';
 import SubstituteExerciseSheet from './SubstituteExerciseSheet';
-import { hapticImpact, ImpactStyle } from '../services/hapticsService';
+import { hapticImpact as _hapticImpact, ImpactStyle } from '../services/hapticsService';
+
+// Bypass de TypeScript: Adaptador para que los strings literales sean aceptados como Enums
+const hapticImpact = (style?: any) => _hapticImpact(style);
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     if (dateString && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {

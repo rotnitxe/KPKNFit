@@ -302,25 +302,25 @@ export const analyzeExerciseMuscles = async (exerciseName: string, _settings: Se
 };
 
 export const getCoachChatResponseStream = async function* (prompt: string, messages: ChatMessage[], programs: Program[], history: WorkoutLog[], _settings: Settings, sessionContext?: Session | OngoingWorkoutState) {
-     const client = getClient();
-     const systemInstruction = `Eres "Prime Coach", un entrenador de fitness servicial, experto y alentador. Responde en español y en formato Markdown. Contexto: ${JSON.stringify({programs: programs.map(p=>p.name), history: history.slice(-5).map(l=>l.sessionName)})}`;
-     const allMessages: Content[] = [...messages.slice(-10), { role: 'user', parts: [{ text: prompt }] }];
-     const resultStream = await makeGenerateContentStreamRequest(client, { parts: allMessages as any }, { config: { systemInstruction }}, 'gemini-3-flash-preview');
-     for await (const chunk of resultStream) {
-         // Guidelines: Access .text property directly
-         yield { text: chunk.text || '' };
-     }
+    const client = getClient();
+    const systemInstruction = `Eres "Prime Coach", un entrenador de fitness servicial, experto y alentador. Responde en español y en formato Markdown. Contexto: ${JSON.stringify({programs: (programs || []).map(p=>p.name), history: (history || []).slice(-5).map(l=>l.sessionName)})}`;
+    const allMessages: Content[] = [...(messages || []).slice(-10), { role: 'user', parts: [{ text: prompt }] }];
+    const resultStream = await makeGenerateContentStreamRequest(client, { parts: allMessages as any }, { config: { systemInstruction }}, 'gemini-3-flash-preview');
+    for await (const chunk of resultStream) {
+        // Guidelines: Access .text property directly
+        yield { text: chunk.text || '' };
+    }
 };
 
 export const getPhysicalProgressChatResponseStream = async function*(prompt: string, messages: ChatMessage[], bodyProgress: BodyProgressLog[], nutritionLogs: NutritionLog[], _settings: Settings) {
-     const client = getClient();
-     const systemInstruction = `Eres un coach de nutrición. Responde en español. Contexto: ${JSON.stringify({bodyProgress: bodyProgress.slice(-5), nutrition: nutritionLogs.slice(-5)})}`;
-     const allMessages: Content[] = [...messages.slice(-10), { role: 'user', parts: [{ text: prompt }] }];
-     const resultStream = await makeGenerateContentStreamRequest(client, { parts: allMessages as any }, { config: { systemInstruction }}, 'gemini-3-flash-preview');
-     for await (const chunk of resultStream) {
-         // Guidelines: Access .text property directly
-         yield { text: chunk.text || '' };
-     }
+    const client = getClient();
+    const systemInstruction = `Eres un coach de nutrición. Responde en español. Contexto: ${JSON.stringify({bodyProgress: (bodyProgress || []).slice(-5), nutrition: (nutritionLogs || []).slice(-5)})}`;
+    const allMessages: Content[] = [...(messages || []).slice(-10), { role: 'user', parts: [{ text: prompt }] }];
+    const resultStream = await makeGenerateContentStreamRequest(client, { parts: allMessages as any }, { config: { systemInstruction }}, 'gemini-3-flash-preview');
+    for await (const chunk of resultStream) {
+        // Guidelines: Access .text property directly
+        yield { text: chunk.text || '' };
+    }
 };
 
 export const generateSpeech = async (text: string, settings: Settings): Promise<string | null> => {
@@ -371,7 +371,7 @@ export const searchGoogleImages = async (...args: any): Promise<any> => throwNot
 export const estimateSFR = async (...args: any): Promise<any> => throwNotImplemented('estimateSFR');
 export const createAndPopulateFoodItem = async (...args: any): Promise<any> => throwNotImplemented('createAndPopulateFoodItem');
 export const generateKinesiologyAnalysis = async (...args: any): Promise<any> => throwNotImplemented('generateKinesiologyAnalysis');
-export const getPeriodizationCoachStream = async function* (...args: any): AsyncGenerator<GenerateContentResponse> { yield { text: 'Not implemented' }; };
+export const getPeriodizationCoachStream = async function* (...args: any): AsyncGenerator<GenerateContentResponse> { yield { text: 'Not implemented' } as any; };
 export const batchGenerateExercises = async (...args: any): Promise<any> => throwNotImplemented('batchGenerateExercises');
 export const generatePerformanceAnalysis = async (...args: any): Promise<any> => throwNotImplemented('generatePerformanceAnalysis');
 export const generateWeekFromPrompt = async (...args: any): Promise<any> => throwNotImplemented('generateWeekFromPrompt');

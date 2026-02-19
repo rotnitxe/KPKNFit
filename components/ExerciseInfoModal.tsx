@@ -26,14 +26,14 @@ export const MuscleActivationView: React.FC<{
     }, [muscleHierarchy]);
     
     const groupedByParent = useMemo(() => {
-        const groups: Record<string, { role: 'primary' | 'secondary' | 'stabilizer'; children: typeof involvedMuscles; activation: number }> = {};
+        const groups: Record<string, { role: 'primary' | 'secondary' | 'stabilizer'; children: any[]; activation: number }> = {};
         
         // Defensive check to ensure involvedMuscles is an array before processing
         if (!Array.isArray(involvedMuscles)) {
             return [];
         }
 
-        involvedMuscles.forEach(muscleInfo => {
+        (involvedMuscles as any[]).forEach((muscleInfo: any) => {
             if (!muscleInfo) return; // Defensive check for malformed data
             const parent = childToParentMap.get(muscleInfo.muscle) || muscleInfo.muscle;
             if (!groups[parent]) {

@@ -173,9 +173,9 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                         directExercises: uniqueDirectExercises,
                         indirectExercises: uniqueIndirectExercises,
                         frequency: Math.max(...relevantData.map(d => d.frequency)),
-                        avgRestDays: 0, 
-                        avgIFI: 0,
-                        recoveryStatus: 'Ok'
+                        avgRestDays: null, 
+                        avgIFI: null,
+                        recoveryStatus: 'N/A'
                     };
                 }
                 // Marcar como procesados

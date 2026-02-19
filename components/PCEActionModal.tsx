@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useAppContext } from '../AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../contexts/AppContext';
 
 export const PCEActionModal: React.FC = () => {
     const [pceData, setPceData] = useState<any>(null);
-    const { updateSettings, addToast } = useAppContext();
-    // Asumimos que usas react-router para la navegación a tu SessionEditor
-    const navigate = useNavigate(); 
+    const { settings, setSettings, addToast, navigateTo } = useAppContext();
 
     useEffect(() => {
         const handleTrigger = (e: any) => setPceData(e.detail);
@@ -18,7 +15,7 @@ export const PCEActionModal: React.FC = () => {
 
     const handleAcceptDiet = () => {
         if (pceData.suggestedCalories) {
-            updateSettings({ dailyCalorieGoal: pceData.suggestedCalories });
+            setSettings({ ...settings, dailyCalorieGoal: pceData.suggestedCalories });
             addToast(`Meta ajustada a ${pceData.suggestedCalories} kcal por hoy para máxima reparación.`, 'success');
         }
     };
@@ -29,7 +26,7 @@ export const PCEActionModal: React.FC = () => {
             addToast('Sesión de mañana cancelada. Día de descanso obligatorio establecido.', 'success');
         } else {
             // Llevamos al usuario al editor de la sesión de mañana
-            navigate('/session-editor'); 
+            navigateTo('session-editor'); 
         }
         setPceData(null); // Cierra el modal
     };

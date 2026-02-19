@@ -1,6 +1,6 @@
 
-import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog } from '../types';
-import { calculateSetStress } from './fatigueService';
+import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog, NutritionLog } from '../types';
+import { calculateSetStress, getDynamicAugeMetrics } from './fatigueService';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
 
@@ -99,7 +99,7 @@ const calculateUserWorkCapacity = (history: WorkoutLog[], muscleName: string, ex
             if (involvement) {
                 // Sumar estrés ponderado por participación
                 const stress = ex.sets.reduce((acc, s) => acc + calculateSetStress(s, info, 90), 0);
-                totalStress += (stress * involvement.activation);
+                totalStress += (stress * (involvement.activation ?? 1));
             }
         });
     });
@@ -125,7 +125,8 @@ export const calculateMuscleBattery = (
     muscleHierarchy: MuscleHierarchy,
     postSessionFeedback: PostSessionFeedback[] = [],
     waterLogs: WaterLog[] = [],
-    dailyWellbeingLogs: DailyWellbeingLog[] = []
+    dailyWellbeingLogs: DailyWellbeingLog[] = [],
+    nutritionLogs: NutritionLog[] = []
 ) => {
     const now = Date.now();
     
@@ -368,7 +369,7 @@ export const calculateMuscleBattery = (
 
 // --- CORE: CÁLCULO DE SNC (ROBUSTO Y HUMANO) ---
 
-export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: SleepLog[], dailyWellbeingLogs: DailyWellbeingLog[], settings?: Settings) => {
+export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: SleepLog[], dailyWellbeingLogs: DailyWellbeingLog[], exerciseList: ExerciseMuscleInfo[], settings?: Settings) => {
     const now = Date.now();
     const last7DaysLogs = history.filter(l => (now - new Date(l.date).getTime()) < 7 * 24 * 3600 * 1000);
     

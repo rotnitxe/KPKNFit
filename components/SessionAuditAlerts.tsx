@@ -67,7 +67,7 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
     const alerts: { type: 'warning' | 'error' | 'info'; msg: string }[] = [];
     
     // 2. Validar Techo de Sesión (Límite de Hipertrofia)
-    Object.entries(sessionVolume).forEach(([muscle, vol]) => {
+    (Object.entries(sessionVolume) as [string, number][]).forEach(([muscle, vol]) => {
         const check = validateSessionVolume(vol, muscle);
         if (!check.isValid && check.message) {
              alerts.push({ type: 'error', msg: check.message });
@@ -77,7 +77,7 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
     });
 
     // 3. Monitor de Integridad AUGE (Volumen Marginal Invisible)
-    Object.entries(marginalFatigue).forEach(([muscle, fatigueVol]) => {
+    (Object.entries(marginalFatigue) as [string, number][]).forEach(([muscle, fatigueVol]) => {
         const hyperVol = sessionVolume[muscle] || 0;
         // Si hay alta fatiga (equiv. a ~8+ series de estabilizador) pero nulo/bajo estímulo hipertrófico
         if (fatigueVol >= 2.5 && hyperVol <= 0.5) {

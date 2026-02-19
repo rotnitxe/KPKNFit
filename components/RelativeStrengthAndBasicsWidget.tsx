@@ -14,7 +14,7 @@ interface Props {
 }
 
 export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSessions }) => {
-    const { history, settings, updateSettings, exerciseList } = useAppContext();
+    const { history, settings, setSettings, exerciseList } = useAppContext();
     const bodyWeight = settings.userVitals?.weight || 0;
 
     // Estados
@@ -37,8 +37,8 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
 
     const handleSaveWeight = () => {
         const w = parseFloat(bwInput);
-        if (w > 0 && updateSettings) {
-            updateSettings({ ...settings, userVitals: { ...(settings.userVitals || {}), weight: w } });
+        if (w > 0 && setSettings) {
+            setSettings({ ...settings, userVitals: { ...(settings.userVitals || {}), weight: w } });
             setIsSaved(true);
             setTimeout(() => { setIsSaved(false); setIsEditingBw(false); }, 1200);
         }
@@ -56,7 +56,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
         let bestVar = { name: '', rm: 0, type: patternType };
 
         history.forEach(log => {
-            (log.completedExercises || log.exercises || []).forEach((ex: any) => {
+            (log.completedExercises || (log as any).exercises || []).forEach((ex: any) => {
                 const name = (ex.exerciseName || ex.name).toLowerCase();
                 if (patternType === 'bench' && !name.includes('press')) return;
                 const maxRm = ex.sets.reduce((max: number, s: any) => {
@@ -79,7 +79,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
     const findExactBestLift = (exactName: string) => {
         let best = { name: exactName, rm: 0 };
         history.forEach(log => {
-            (log.completedExercises || log.exercises || []).forEach((ex: any) => {
+            (log.completedExercises || (log as any).exercises || []).forEach((ex: any) => {
                 if ((ex.exerciseName || ex.name) === exactName) {
                     const maxRm = ex.sets.reduce((max: number, s: any) => {
                         if (s.weight && (s.completedReps || s.reps)) {
@@ -102,7 +102,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
         const sumo = findBestLift(PATTERNS.deadlift.pl_sumo, [], 'deadlift_sumo');
         const vars = findBestLift([], PATTERNS.deadlift.vars, 'deadlift_conv');
 
-        const slides = [];
+        const slides: any[] = [];
         
         // Si tiene convencional, lo agrega
         if (conv.rm > 0) slides.push({ title: 'Peso Muerto Conv.', stats: conv, iconType: 'deadlift_conv' });
@@ -228,7 +228,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
     };
     
     // COMPONENTE DE FILA (PERSONALIZADOS)
-    const CustomListRow = ({ exName }: { exName: string }) => {
+    const CustomListRow: React.FC<{ exName: string }> = ({ exName }) => {
         const stats = findExactBestLift(exName);
         const hasWeight = bodyWeight > 0;
         const rm = Math.round(stats.rm);

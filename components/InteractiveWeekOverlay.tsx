@@ -22,9 +22,7 @@ export default function InteractiveWeekOverlay({ week, weekTitle, onClose, onSav
             id: crypto.randomUUID(),
             name: 'Nueva Sesión',
             dayOfWeek: dayIndex,
-            exercises: [],
-            muscleGroups: [],
-            isCompleted: false
+            exercises: []
         };
         setLocalSessions([...localSessions, newSession]);
     };

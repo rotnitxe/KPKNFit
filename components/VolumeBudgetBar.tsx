@@ -11,7 +11,7 @@ const VolumeBudgetBar: React.FC<VolumeBudgetBarProps> = ({ currentVolume, recomm
     const { minSets, maxSets, optimalSets, type } = recommendation;
     
     // Filtramos solo los músculos que tienen volumen activo
-    const activeMuscles = Object.entries(currentVolume)
+    const activeMuscles = (Object.entries(currentVolume) as [string, number][])
         .filter(([_, vol]) => vol > 0)
         .sort((a, b) => b[1] - a[1]); // Ordenar por volumen descendente
 

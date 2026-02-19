@@ -7,6 +7,7 @@ import Button from './ui/Button';
 import { SessionEditor } from './SessionEditor';
 import { hapticImpact, ImpactStyle } from '../services/hapticsService';
 
+
 interface WorkoutEditorModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -34,7 +35,7 @@ const WorkoutEditorModal: React.FC<WorkoutEditorModalProps> = ({ isOpen, onClose
     const confirmSave = (mode: 'temp' | 'permanent') => {
         if (!pendingSession) return;
 
-        hapticImpact(ImpactStyle.Medium);
+        hapticImpact(ImpactStyle.Medium as any);
 
         // 1. Update current ongoing workout state
         onSave(pendingSession);

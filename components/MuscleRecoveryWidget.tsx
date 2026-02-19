@@ -275,7 +275,7 @@ const MuscleRecoveryWidget: React.FC = () => {
             return { muscleId: muscleName, muscleName: muscleName, ...status } as any;
         });
         statuses.sort((a: any, b: any) => a.recoveryScore - b.recoveryScore);
-        const pages = [];
+        const pages: any[] = [];
         for (let i = 0; i < statuses.length; i += ITEMS_PER_PAGE) { pages.push(statuses.slice(i, i + ITEMS_PER_PAGE)); }
         return pages;
     }, [history, exerciseList, isAppLoading, sleepLogs, settings, postSessionFeedback, muscleHierarchy]);
