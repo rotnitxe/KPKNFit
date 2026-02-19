@@ -88,7 +88,7 @@ const SessionAugeDashboard: React.FC<{
 
         const processExercises = (exercises: any[], isCurrentSession: boolean) => {
             exercises.forEach(ex => {
-                const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+                const info: any = exerciseList.find((e: any) => e.id === ex.exerciseDbId || e.name === ex.name);
                 if (!info) return;
                 const augeMetrics = getDynamicAugeMetrics(info, ex.name);
                 const validSets = ex.sets?.filter((s: any) => s.type !== 'warmup') || [];
