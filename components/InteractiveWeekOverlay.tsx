@@ -1,117 +1,134 @@
-// components/InteractiveWeekOverlay.tsx
 import React, { useState } from 'react';
 import { ProgramWeek, Session } from '../types';
-import { XIcon, DumbbellIcon, PlusIcon, TrashIcon, CheckCircleIcon, EditIcon } from './icons';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { DragHandleIcon, XIcon, CheckIcon } from './icons';
+import { getOrderedDaysOfWeek } from '../utils/calculations';
+import { useAppContext } from '../contexts/AppContext';
 
-interface InteractiveWeekOverlayProps {
+interface Props {
     week: ProgramWeek;
     weekTitle: string;
     onClose: () => void;
     onSave: (updatedWeek: ProgramWeek) => void;
 }
 
-// Días de la semana, iniciando en Domingo
-const DAYS_OF_WEEK = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onSave }) => {
+    const { settings } = useAppContext();
+    const startOn = settings?.startWeekOn ?? 1; // 1 = Lunes
+    const days = getOrderedDaysOfWeek(startOn);
 
-export default function InteractiveWeekOverlay({ week, weekTitle, onClose, onSave }: InteractiveWeekOverlayProps) {
-    const [localSessions, setLocalSessions] = useState<Session[]>(JSON.parse(JSON.stringify(week.sessions || [])));
-    const [weekName, setWeekName] = useState(week.name);
+    const [sessionsState, setSessionsState] = useState<Session[]>(week.sessions || []);
 
-    const handleAddSession = (dayIndex: number) => {
-        const newSession: Session = {
-            id: crypto.randomUUID(),
-            name: 'Nueva Sesión',
-            dayOfWeek: dayIndex,
-            exercises: []
-        };
-        setLocalSessions([...localSessions, newSession]);
-    };
+    const onDragEnd = (result: DropResult) => {
+        const { source, destination, draggableId } = result;
+        if (!destination) return;
+        if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
-    const handleRemoveSession = (sessionId: string) => {
-        setLocalSessions(localSessions.filter(s => s.id !== sessionId));
-    };
+        const sessionToMove = sessionsState.find(s => s.id === draggableId);
+        if (!sessionToMove) return;
 
-    const handleUpdateSessionName = (sessionId: string, newName: string) => {
-        setLocalSessions(localSessions.map(s => s.id === sessionId ? { ...s, name: newName } : s));
-    };
+        const newDayValue = parseInt(destination.droppableId.replace('day-', ''));
 
-    const handleSave = () => {
-        onSave({ ...week, name: weekName, sessions: localSessions });
-        onClose();
+        const updatedSessions = sessionsState.map(s => {
+            if (s.id === draggableId) return { ...s, dayOfWeek: newDayValue };
+            return s;
+        });
+
+        setSessionsState(updatedSessions);
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl overflow-y-auto font-sans flex flex-col">
-            {/* Cabecera del Overlay */}
-            <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex justify-between items-center">
-                <div>
-                    <span className="text-yellow-400 text-[10px] font-black uppercase tracking-widest block mb-1">Editor de Split Semanal</span>
-                    <input 
-                        value={weekName} 
-                        onChange={(e) => setWeekName(e.target.value)} 
-                        className="bg-transparent text-2xl font-black text-white uppercase tracking-tighter focus:outline-none w-full"
-                    />
+        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex flex-col items-center p-4 sm:p-6 overflow-hidden animate-in fade-in duration-300">
+            
+            {/* BOTÓN CERRAR (Pequeño, esquina superior derecha) */}
+            <button 
+                onClick={onClose} 
+                className="absolute top-6 right-6 z-50 p-2.5 bg-zinc-900 border border-white/10 rounded-full text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all shadow-lg"
+                title="Cerrar sin guardar"
+            >
+                <XIcon size={14}/>
+            </button>
+
+            {/* CONTENEDOR PRINCIPAL */}
+            <div className="w-full max-w-4xl flex flex-col h-full relative">
+                
+                {/* TÍTULO CON SU PROPIO ESPACIO */}
+                <div className="w-full flex flex-col items-center justify-center pt-8 pb-6 shrink-0 border-b border-white/5">
+                    <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-1">Editor de Split</span>
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tight text-center px-4 w-full break-words leading-tight">
+                        Distribución: {week.name || weekTitle}
+                    </h2>
+                    <p className="text-[10px] text-zinc-400 mt-2 font-bold max-w-xs text-center">Arrastra las sesiones para reorganizar tu semana.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white">
-                        <XIcon size={20} />
-                    </button>
-                    <button onClick={handleSave} className="px-6 py-3 bg-white text-black rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                        <CheckCircleIcon size={16} /> Guardar Split
-                    </button>
-                </div>
-            </div>
 
-            {/* Contenido: Grid de 7 Días */}
-            <div className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-                    {DAYS_OF_WEEK.map((dayName, dayIndex) => {
-                        const daySessions = localSessions.filter(s => s.dayOfWeek === dayIndex);
-                        const isRestDay = daySessions.length === 0;
-
-                        return (
-                            <div key={dayIndex} className={`bg-[#111] border rounded-3xl p-4 flex flex-col h-[400px] transition-all duration-300 ${isRestDay ? 'border-white/5' : 'border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)]'}`}>
-                                <div className="text-center mb-6 pb-4 border-b border-white/5">
-                                    <h3 className={`text-sm font-black uppercase tracking-widest ${isRestDay ? 'text-gray-600' : 'text-white'}`}>{dayName}</h3>
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto space-y-3 hide-scrollbar">
-                                    {isRestDay ? (
-                                        <div className="h-full flex flex-col items-center justify-center opacity-30 select-none">
-                                            <span className="text-4xl mb-2">😴</span>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Descanso</p>
-                                        </div>
-                                    ) : (
-                                        daySessions.map(session => (
-                                            <div key={session.id} className="bg-black border border-white/10 rounded-2xl p-3 relative group">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <DumbbellIcon size={14} className="text-yellow-400 shrink-0 mt-1" />
-                                                    <button onClick={() => handleRemoveSession(session.id)} className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <TrashIcon size={14} />
-                                                    </button>
+                {/* GRID DE DÍAS (Tarjetas compactas) */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar w-full py-6 pr-2">
+                    <DragDropContext onDragEnd={onDragEnd}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pb-24">
+                            {days.map(day => {
+                                const daySessions = sessionsState.filter(s => s.dayOfWeek === day.value);
+                                
+                                return (
+                                    <Droppable key={`day-${day.value}`} droppableId={`day-${day.value}`}>
+                                        {(provided: any, snapshot: any) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.droppableProps}
+                                                className={`bg-[#0a0a0a] border rounded-2xl p-3 transition-colors min-h-[120px] flex flex-col
+                                                    ${snapshot.isDraggingOver ? 'border-white/40 bg-[#111]' : 'border-[#222]'}`}
+                                            >
+                                                <div className="flex items-center gap-2 mb-3 shrink-0">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${daySessions.length > 0 ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-600'}`}>
+                                                        {day.label.substring(0,3).toUpperCase()}
+                                                    </div>
+                                                    <span className="text-[11px] font-bold text-zinc-400 uppercase">{day.label}</span>
                                                 </div>
-                                                <input 
-                                                    value={session.name}
-                                                    onChange={(e) => handleUpdateSessionName(session.id, e.target.value)}
-                                                    className="bg-transparent text-xs font-black text-white focus:outline-none w-full uppercase mb-2"
-                                                    placeholder="Nombre Sesión"
-                                                />
-                                                <button className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center gap-1 text-[9px] font-black text-gray-400 uppercase tracking-widest transition-colors mt-2">
-                                                    <EditIcon size={10} /> Editar Ejercicios
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
 
-                                <button onClick={() => handleAddSession(dayIndex)} className="mt-4 w-full py-3 border-2 border-dashed border-white/10 hover:border-white/30 rounded-2xl flex items-center justify-center gap-2 text-gray-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all">
-                                    <PlusIcon size={14} /> Añadir
-                                </button>
-                            </div>
-                        );
-                    })}
+                                                <div className="flex-1 flex flex-col gap-2">
+                                                    {daySessions.map((session, index) => (
+                                                        <Draggable key={session.id} draggableId={session.id} index={index}>
+                                                        {(provided: any, snapshot: any) => (
+                                                            <div
+                                                                ref={provided.innerRef}
+                                                                    {...provided.draggableProps}
+                                                                    {...provided.dragHandleProps}
+                                                                    className={`bg-zinc-900 border border-white/5 rounded-xl p-3 flex items-center justify-between group shadow-sm transition-all
+                                                                        ${snapshot.isDragging ? 'shadow-[0_10px_30px_rgba(0,0,0,0.8)] scale-105 border-white/20 z-50' : 'hover:border-white/20'}`}
+                                                                >
+                                                                    <div className="flex-1 pr-2 truncate">
+                                                                        <h4 className="text-[11px] font-black text-white uppercase truncate">{session.name}</h4>
+                                                                        <span className="text-[9px] text-zinc-500 font-bold">{(session.exercises || []).length} ejs.</span>
+                                                                    </div>
+                                                                    <DragHandleIcon size={14} className="text-zinc-600 cursor-grab shrink-0"/>
+                                                                </div>
+                                                            )}
+                                                        </Draggable>
+                                                    ))}
+                                                    {provided.placeholder}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Droppable>
+                                );
+                            })}
+                        </div>
+                    </DragDropContext>
                 </div>
+                
+                {/* BOTÓN FLOTANTE "GUARDAR" (FAB BLANCO) */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
+                    <button 
+                        onClick={() => onSave({ ...week, sessions: sessionsState })}
+                        className="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(255,255,255,0.3)] hover:scale-110 active:scale-95 transition-all"
+                        title="Guardar Split Semanal"
+                    >
+                        <CheckIcon size={32} strokeWidth={3} />
+                    </button>
+                </div>
+
             </div>
         </div>
     );
-}
+};
+
+export default InteractiveWeekOverlay;

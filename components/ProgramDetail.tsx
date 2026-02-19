@@ -124,11 +124,6 @@ const SessionCard: React.FC<{
                             {dayName ? dayName.substring(0, 3).toUpperCase() : index + 1}
                         </div>
                         <div>
-                            {dayName && (
-                                <span className="text-[9px] text-blue-400 font-bold uppercase tracking-widest mb-0.5 block">
-                                    {dayName}
-                                </span>
-                            )}
                             <h4 className="text-sm font-black text-white uppercase tracking-tight leading-none mb-1">{session.name}</h4>
                             <div className="flex items-center gap-3 text-[10px] text-zinc-500 font-medium">
                                 <span className="flex items-center gap-1"><DumbbellIcon size={10}/> {exercisesToDisplay.length} Ejercicios</span>
@@ -218,7 +213,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
     // Agregamos handleUpdateProgram, addToast y handleStartWorkout
     const { history, settings, handleEditSession, handleBack, handleAddSession, isOnline, exerciseList, muscleHierarchy, handleStartProgram, handlePauseProgram, handleEditProgram, handleUpdateProgram, addToast, handleStartWorkout } = useAppContext();    
     const [activeTab, setActiveTab] = useState<'training' | 'metrics'>('training');
-    const [subView, setSubView] = useState<'weekly' | 'macrocycle'>('weekly'); // <-- NUEVO TOGGLE
+    const [subView, setSubView] = useState<'weekly' | 'macrocycle'>('weekly'); 
     const [editingWeekInfo, setEditingWeekInfo] = useState<{ 
         macroIndex: number; 
         blockIndex: number; 
@@ -226,14 +221,17 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
         weekIndex: number; 
         week: ProgramWeek;
         isSimple: boolean;
-    } | null>(null); // <-- NUEVO ESTADO PARA EL OVERLAY
+    } | null>(null); 
 
     const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
 
     // --- ESTADO ---
-    const [showAdvancedTransition, setShowAdvancedTransition] = useState(false); // Modal para transición a avanzado
+    const [showAdvancedTransition, setShowAdvancedTransition] = useState(false);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
+    const [expandedRoadmapBlocks, setExpandedRoadmapBlocks] = useState<string[]>([]); // Para plegar/desplegar roadmap sin deseleccionar
+    const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+    const [newEventData, setNewEventData] = useState({ title: '', repeatEveryXCycles: 1, calculatedWeek: 0, type: 'Test 1RM' });
     const [showCyclicHistory, setShowCyclicHistory] = useState(false);
     const [selectedMusclePos, setSelectedMusclePos] = useState<{muscle: string, x: number, y: number} | null>(null);
 
@@ -409,9 +407,19 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                         {program.name}
                     </h1>
                     <div className="flex items-center gap-4 text-xs text-zinc-300 font-medium">
-                        <span className="flex items-center gap-1"><UserBadgeIcon size={12}/> {program.author || 'KPKN Coach'}</span>
-                        <span>•</span>
-                        <span>{program.macrocycles.length} Macrociclos</span>
+                        {program.author && program.author.trim() !== '' && (
+                            <>
+                                <span className="flex items-center gap-1"><UserBadgeIcon size={12}/> {program.author}</span>
+                                <span>•</span>
+                            </>
+                        )}
+                        <span className="uppercase font-bold tracking-widest text-[10px] text-zinc-400">
+                            {program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1)
+                                ? ((program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length || 0) > 1 
+                                    ? `${program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length} Semanas` 
+                                    : 'Simple')
+                                : `${program.macrocycles.length} ${program.macrocycles.length === 1 ? 'Macrociclo' : 'Macrociclos'}`}
+                        </span>
                     </div>
                 </div>
 
@@ -499,11 +507,11 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                     return (
                         <div className="animate-fade-in space-y-0">
                             
-                            {/* TOGGLE VISTA SEMANAL / MACROCICLO (SIEMPRE VISIBLE AHORA) */}
-                            <div className="bg-[#050505] border-b border-white/10 p-4 flex justify-center sticky top-0 z-40">
-                                <div className="flex bg-zinc-900 border border-white/10 p-1 rounded-xl shadow-lg">
-                                    <button onClick={() => setSubView('weekly')} className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${subView === 'weekly' ? 'bg-white text-black shadow-md' : 'text-zinc-500 hover:text-white'}`}>Vista Semanal</button>
-                                    <button onClick={() => setSubView('macrocycle')} className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${subView === 'macrocycle' ? 'bg-white text-black shadow-md' : 'text-zinc-500 hover:text-white'}`}>Macrociclo (Roadmap)</button>
+                            {/* TOGGLE VISTA SEMANAL / MACROCICLO (No sticky, minimalista) */}
+                            <div className="flex justify-center pt-8 pb-4 relative z-40 bg-black border-b border-white/5">
+                                <div className="flex bg-zinc-900/60 border border-white/5 p-1 rounded-full shadow-inner">
+                                    <button onClick={() => setSubView('weekly')} className={`px-6 py-2 text-[9px] font-black uppercase tracking-widest rounded-full transition-all ${subView === 'weekly' ? 'bg-white text-black shadow-sm' : 'text-zinc-500 hover:text-white'}`}>Semanal</button>
+                                    <button onClick={() => setSubView('macrocycle')} className={`px-6 py-2 text-[9px] font-black uppercase tracking-widest rounded-full transition-all ${subView === 'macrocycle' ? 'bg-white text-black shadow-sm' : 'text-zinc-500 hover:text-white'}`}>Macrociclo</button>
                                 </div>
                             </div>
 
@@ -717,36 +725,52 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
 
                                                         return (
                                                             <div key={block.id} className="flex items-center shrink-0">
-                                                                {/* 1. BOTÓN DEL BLOQUE (Blanco Puro + Plegable) */}
-                                                                <button 
-                                                                    onClick={(e) => {
-                                                                        // Permite plegar el bloque si ya está seleccionado
-                                                                        setSelectedBlockId(prev => prev === block.id ? null : block.id);
-                                                                        if (block.id !== selectedBlockId) {
+                                                                {/* 1. BOTÓN DEL BLOQUE */}
+                                                                <div className="flex items-center">
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            // Solo selecciona el bloque, NO lo pliega.
+                                                                            setSelectedBlockId(block.id);
+                                                                            if (!expandedRoadmapBlocks.includes(block.id)) {
+                                                                                setExpandedRoadmapBlocks(prev => [...prev, block.id]);
+                                                                            }
                                                                             const target = e.currentTarget;
                                                                             setTimeout(() => {
                                                                                 target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                                                                             }, 250); 
-                                                                        }
-                                                                    }}
-                                                                    className="group flex flex-col items-center justify-center flex-shrink-0 focus:outline-none relative"
-                                                                >
-                                                                    <div className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 z-20 font-black
-                                                                        ${isCurrent 
-                                                                            ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
-                                                                            : isSelected 
-                                                                                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
-                                                                                : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:bg-zinc-800 hover:text-white shadow-none' 
-                                                                        }`}
+                                                                        }}
+                                                                        className="group flex flex-col items-center justify-center flex-shrink-0 focus:outline-none relative"
                                                                     >
-                                                                        <span className="text-base">{idx + 1}</span>
-                                                                    </div>
-                                                                </button>
+                                                                        <div className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 z-20 font-black
+                                                                            ${isCurrent 
+                                                                                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
+                                                                                : isSelected 
+                                                                                    ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
+                                                                                    : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:bg-zinc-800 hover:text-white shadow-none' 
+                                                                            }`}
+                                                                        >
+                                                                            <span className="text-base">{idx + 1}</span>
+                                                                        </div>
+                                                                    </button>
+                                                                    
+                                                                    {/* BOTÓN CHEVRON INDEPENDIENTE PARA PLEGAR/DESPLEGAR EL TIMELINE */}
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setExpandedRoadmapBlocks(prev => 
+                                                                                prev.includes(block.id) ? prev.filter(id => id !== block.id) : [...prev, block.id]
+                                                                            );
+                                                                        }}
+                                                                        className="w-5 h-8 flex items-center justify-center text-zinc-600 hover:text-white transition-colors ml-1"
+                                                                    >
+                                                                        {expandedRoadmapBlocks.includes(block.id) || (isSelected && !expandedRoadmapBlocks.includes(block.id) && expandedRoadmapBlocks.push(block.id)) ? <ChevronDownIcon size={12} className="rotate-90"/> : <ChevronDownIcon size={12} className="-rotate-90"/>}
+                                                                    </button>
+                                                                </div>
 
                                                                 {/* 2. EFECTO ACORDEÓN DE SEMANAS (Plano y monocromático) */}
                                                                 <div 
                                                                     className={`flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] 
-                                                                        ${isSelected ? 'max-w-[1000px] opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0'}`}
+                                                                        ${expandedRoadmapBlocks.includes(block.id) ? 'max-w-[1000px] opacity-100 ml-1' : 'max-w-0 opacity-0 ml-0'}`}
                                                                 >
                                                                     <div className="w-3 h-[2px] bg-zinc-800 shrink-0 mr-3" />
                                                                     <div className="flex items-center gap-2 bg-zinc-950 p-1.5 rounded-full border border-white/5">
@@ -988,30 +1012,43 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                         // =========================================================
                                         <div className="px-2 sm:px-4 py-6 w-full max-w-5xl mx-auto animate-slide-up space-y-8 pb-32">
                                             
+                                            {/* BARRA DE PROGRESO DE EVENTOS GLOBALES */}
+                                            {program.events && program.events.length > 0 && (
+                                                <div className="relative w-full h-1.5 bg-zinc-900 rounded-full mb-2 border border-white/5">
+                                                    {program.events.map((e, idx) => {
+                                                        const totalW = isCyclic ? (e.repeatEveryXCycles || 1) * ((program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length) || 1) : (program.macrocycles[0]?.blocks?.flatMap(b=>b.mesocycles?.flatMap(m=>m.weeks || []) || [])?.length || 1);
+                                                        const pos = isCyclic ? 100 : Math.min(100, ((e.calculatedWeek + 1) / Math.max(1, totalW)) * 100);
+                                                        return (
+                                                            <div key={`marker-${idx}`} style={{left: `${isCyclic ? 100 : pos}%`}} className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_10px_white] ${isCyclic ? 'right-0 -translate-x-full' : '-translate-x-1/2'}`}></div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
                                             {/* PANEL DE FECHAS CLAVES Y EVENTOS */}
-                                            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-4 shadow-lg">
-                                            <div className="flex justify-between items-center mb-3">
-                                                    <h3 className="text-xs font-black text-white uppercase flex items-center gap-2 tracking-widest">
-                                                        <CalendarIcon size={14} className="text-yellow-400"/> Eventos y Fechas Clave
+                                            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5 shadow-lg">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h3 className="text-[10px] font-black text-white uppercase flex items-center gap-2 tracking-widest">
+                                                        <CalendarIcon size={14} className="text-white"/> Hoja de Ruta (Eventos)
                                                     </h3>
-                                                    <button onClick={() => addToast("La gestión completa de eventos estará disponible pronto.", "suggestion")} className="text-[9px] font-black uppercase tracking-widest text-black bg-white px-3 py-1.5 rounded-lg hover:bg-zinc-200 transition-colors">
-                                                        Añadir Evento
+                                                    <button onClick={() => setIsEventModalOpen(true)} className="text-[9px] font-black uppercase tracking-widest text-black bg-white px-4 py-2 rounded-lg hover:bg-zinc-200 transition-colors">
+                                                        Nuevo Evento
                                                     </button>
                                                 </div>
-                                                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                                                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
                                                     {program.events && program.events.length > 0 ? (
                                                         program.events.map((e, idx) => (
-                                                            <div key={idx} className="shrink-0 w-40 bg-black/60 border border-white/5 rounded-xl p-3 flex flex-col justify-between hover:border-yellow-400/50 transition-colors">
-                                                                <span className="text-[8px] text-yellow-500 font-black uppercase tracking-widest mb-1">{e.repeatEveryXCycles ? 'Evento Cíclico' : 'Fecha Clave'}</span>
-                                                                <span className="text-[11px] font-bold text-white truncate">{e.title}</span>
-                                                                <span className="text-[9px] text-zinc-500 mt-1">
+                                                            <div key={idx} className="shrink-0 w-44 bg-[#111] border border-white/10 rounded-xl p-4 flex flex-col justify-between group">
+                                                                <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest mb-1">{e.repeatEveryXCycles ? 'Evento Cíclico' : 'Fecha Clave'}</span>
+                                                                <span className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">{e.title}</span>
+                                                                <span className="text-[9px] text-zinc-400 mt-2 font-bold bg-white/5 self-start px-2 py-1 rounded">
                                                                     {e.repeatEveryXCycles ? `Cada ${e.repeatEveryXCycles} ciclos` : `Semana ${e.calculatedWeek + 1}`}
                                                                 </span>
                                                             </div>
                                                         ))
                                                     ) : (
-                                                        <div className="w-full text-center py-4 border border-dashed border-white/10 rounded-xl bg-black/20">
-                                                            <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">No hay eventos programados.</p>
+                                                        <div className="w-full text-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20">
+                                                            <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Aún no hay eventos programados.</p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -1106,7 +1143,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)] shrink-0"></div>
                                                                                             <input 
                                                                                                 className="bg-transparent border-none p-0 text-[11px] font-black text-white uppercase truncate flex-1 focus:ring-0"
-                                                                                                value={isCyclic ? 'Ciclo Cíclico' : meso.name}
+                                                                                                value={isCyclic ? 'Semanas Cíclicas' : meso.name}
                                                                                                 disabled={isCyclic}
                                                                                                 onChange={(e) => {
                                                                                                     if (isCyclic) return;
@@ -1423,14 +1460,68 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                     />
                 )}
 
-                {/* MODAL TRANSICIÓN A PROGRAMA AVANZADO */}
-                {showAdvancedTransition && (
-                    <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowAdvancedTransition(false)}>
-                        <div className="bg-zinc-950 border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl relative" onClick={e => e.stopPropagation()}>
-                            <button onClick={() => setShowAdvancedTransition(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors bg-zinc-900 rounded-full p-1.5"><XIcon size={16}/></button>
+                {/* MODAL DE EVENTOS */}
+                {isEventModalOpen && (
+                    <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setIsEventModalOpen(false)}>
+                        <div className="bg-[#0a0a0a] border border-[#222] w-full max-w-sm rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setIsEventModalOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors bg-zinc-900 rounded-full p-1.5"><XIcon size={14}/></button>
+                            <h2 className="text-lg font-black text-white uppercase mb-4 tracking-tight flex items-center gap-2"><CalendarIcon size={18} className="text-white"/> Programar Evento</h2>
                             
-                            <h2 className="text-xl font-black text-white uppercase mb-2 flex items-center gap-2"><ActivityIcon className="text-blue-500"/> Transición a Avanzado</h2>
-                            <p className="text-[10px] text-zinc-400 mb-6 font-bold leading-relaxed">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1 block">Nombre del Evento</label>
+                                    <input type="text" value={newEventData.title} onChange={e => setNewEventData({...newEventData, title: e.target.value})} placeholder="Ej: Prueba 1RM" className="w-full bg-[#111] border border-[#222] rounded-xl p-3 text-white text-xs font-bold focus:border-white focus:ring-0" />
+                                </div>
+                                {program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1) ? (
+                                    <div>
+                                        <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1 block">¿Cada cuántos ciclos ocurrirá?</label>
+                                        <div className="flex items-center gap-3">
+                                            <input type="number" min="1" value={newEventData.repeatEveryXCycles} onChange={e => setNewEventData({...newEventData, repeatEveryXCycles: parseInt(e.target.value) || 1})} className="w-24 bg-[#111] border border-[#222] rounded-xl p-3 text-white text-center text-xs font-bold focus:border-white focus:ring-0" />
+                                            <span className="text-[10px] text-zinc-400 font-bold uppercase">Ciclos</span>
+                                        </div>
+                                        <p className="text-[9px] text-zinc-500 mt-2 leading-relaxed">El evento ocurrirá automáticamente cada vez que completes esta cantidad de ciclos (repetir semanas).</p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1 block">¿En qué semana exacta ocurrirá?</label>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] text-zinc-400 font-bold uppercase">Semana</span>
+                                            <input type="number" min="1" value={newEventData.calculatedWeek + 1} onChange={e => setNewEventData({...newEventData, calculatedWeek: (parseInt(e.target.value) || 1) - 1})} className="w-24 bg-[#111] border border-[#222] rounded-xl p-3 text-white text-center text-xs font-bold focus:border-white focus:ring-0" />
+                                        </div>
+                                    </div>
+                                )}
+                                <button onClick={() => {
+                                    if(!newEventData.title.trim()) { addToast("Ponle un nombre al evento", "danger"); return; }
+                                    const updated = JSON.parse(JSON.stringify(program));
+                                    if(!updated.events) updated.events = [];
+                                    const isCyclic = program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
+                                    updated.events.push({
+                                        id: crypto.randomUUID(),
+                                        title: newEventData.title,
+                                        type: newEventData.type,
+                                        date: new Date().toISOString(),
+                                        calculatedWeek: isCyclic ? 0 : newEventData.calculatedWeek,
+                                        repeatEveryXCycles: isCyclic ? newEventData.repeatEveryXCycles : undefined
+                                    });
+                                    if(handleUpdateProgram) handleUpdateProgram(updated);
+                                    setIsEventModalOpen(false);
+                                    addToast("Evento programado exitosamente", "success");
+                                }} className="w-full bg-white text-black font-black uppercase tracking-widest text-[10px] py-3 rounded-xl mt-2 hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                                    Guardar Evento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL TRANSICIÓN A PROGRAMA AVANZADO (DISEÑO SOBRIO CENTRADO) */}
+                {showAdvancedTransition && (
+                    <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setShowAdvancedTransition(false)}>
+                        <div className="bg-[#0a0a0a] border border-[#222] w-full max-w-md rounded-3xl p-8 shadow-2xl relative animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setShowAdvancedTransition(false)} className="absolute top-5 right-5 text-zinc-500 hover:text-white transition-colors bg-zinc-900 rounded-full p-2"><XIcon size={14}/></button>
+                            
+                            <h2 className="text-xl font-black text-white uppercase mb-2 flex items-center gap-2"><ActivityIcon className="text-white"/> Transición a Avanzado</h2>
+                            <p className="text-[10px] text-zinc-400 mb-8 font-bold leading-relaxed pr-4">
                                 Estás a punto de convertir tu bucle cíclico en una <span className="text-white">Periodización por Bloques</span>. Podrás agregar múltiples bloques (Acumulación, Intensificación, etc.) y eventos con fechas clave específicas.
                                 <br/><br/>
                                 <span className="text-yellow-500">⚠️ Nota:</span> Si tenías eventos cíclicos, se mantendrán pero ahora su lógica pasará a calcularse en base a todo el macrociclo lineal.
