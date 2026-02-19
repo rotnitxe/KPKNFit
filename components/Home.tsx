@@ -195,7 +195,8 @@ const AugeStatusWidget: React.FC = () => {
 // --- MAIN HOME COMPONENT ---
 const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
     const { programs, history, activeProgramState, dailyWellbeingLogs, settings } = useAppState();
-    const { handleStartWorkout, navigateTo, setIsStartWorkoutModalOpen } = useAppDispatch();
+    // Añadimos handleStartProgram para poder activar programas desde la Home
+    const { handleStartWorkout, navigateTo, setIsStartWorkoutModalOpen, handleStartProgram } = useAppDispatch();
 
     const todayStr = new Date().toISOString().split('T')[0];
     const currentDayOfWeek = new Date().getDay();
@@ -205,21 +206,23 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
     const todaySessions = useMemo(() => {
         if (!activeProgram || !activeProgramState) return [];
         const mIdx = activeProgramState.currentMacrocycleIndex || 0;
-        const macro = activeProgram.macrocycles[mIdx];
+        const macro = activeProgram.macrocycles?.[mIdx];
         if (!macro) return [];
 
         let activeWeek: ProgramWeek | null = null;
         let mesoIdxTotal = 0;
+        
+        // Protecciones agresivas contra arrays nulos o indefinidos (Crash Prevention)
         for (const block of (macro.blocks || [])) {
-            for (const meso of block.mesocycles) {
-                const week = meso.weeks.find(w => w.id === activeProgramState.currentWeekId);
+            for (const meso of (block.mesocycles || [])) {
+                const week = (meso.weeks || []).find(w => w.id === activeProgramState.currentWeekId);
                 if (week) { activeWeek = week; break; }
                 mesoIdxTotal++;
             }
             if (activeWeek) break;
         }
 
-        if (!activeWeek) return [];
+        if (!activeWeek || !activeWeek.sessions) return [];
 
         return activeWeek.sessions
             .filter(s => s.dayOfWeek === currentDayOfWeek)
@@ -300,8 +303,41 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                             </div>
                         </div>
                     </>
+                ) : programs.length > 0 ? (
+                    // NUEVO ESTADO: HAY PROGRAMAS PERO NINGUNO ACTIVO
+                    <div className="w-full pt-4 pb-10 animate-fade-in space-y-6">
+                        <div className="text-center mb-6">
+                            <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-lg">Selecciona un Programa</h2>
+                            <p className="text-zinc-400 text-xs mt-2 font-medium">Tienes programas creados. Activa uno para comenzar.</p>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {programs.map(prog => (
+                                <div key={prog.id} className="bg-[#111] border border-[#222] p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden group hover:border-white/20 transition-colors">
+                                    <div className="relative z-10 flex justify-between items-center">
+                                        <div>
+                                            <h3 className="text-lg font-black text-white uppercase tracking-tight truncate max-w-[200px]">{prog.name}</h3>
+                                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                                                {prog.macrocycles?.length || 0} Fases • {prog.mode || 'Estándar'}
+                                            </p>
+                                        </div>
+                                        <Button onClick={() => { handleStartProgram(prog.id); navigateTo('home'); }} className="!py-2 !px-4 !text-[10px] !bg-white !text-black hover:scale-105 transition-transform shrink-0">
+                                            Activar
+                                        </Button>
+                                    </div>
+                                    <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                                        <TargetIcon size={80} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <Button onClick={() => navigateTo('program-editor')} variant="secondary" className="w-full !py-4 !text-xs !font-black !rounded-2xl border-dashed border-[#333] text-zinc-400 hover:text-white mt-4 bg-transparent">
+                            <PlusIcon className="mr-2" size={16} /> CREAR OTRO PROGRAMA
+                        </Button>
+                    </div>
                 ) : (
-                    // ESTADO VACÍO ORIGINAL 
+                    // ESTADO VACÍO ORIGINAL (CERO PROGRAMAS)
                     <div className="text-center w-full pt-2 pb-10">
                         <div className="w-full flex justify-center mb-6 animate-fade-in"><CaupolicanIcon size={200} color="white" /></div>
                         <h3 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-lg leading-[0.9]">CREA TU PRIMER<br/><span className="text-[var(--text-color)]">PROGRAMA DE</span><br/>ENTRENAMIENTO</h3>
