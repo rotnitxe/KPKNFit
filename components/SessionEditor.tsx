@@ -1245,6 +1245,18 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const [sessionHistory, setSessionHistory] = useState<Session[]>([]);
     
     const [applyToWholeBlock, setApplyToWholeBlock] = useState(false);
+
+    // Escuchador para conectar con la TabBar nativa de App.tsx
+    useEffect(() => {
+        const openRules = () => setIsRulesModalOpen(true);
+        const openHistory = () => setIsHistoryModalOpen(true);
+        window.addEventListener('openSessionRules', openRules);
+        window.addEventListener('openSessionHistory', openHistory);
+        return () => {
+            window.removeEventListener('openSessionRules', openRules);
+            window.removeEventListener('openSessionHistory', openHistory);
+        };
+    }, []);
     const [isSingleSaveModalOpen, setIsSingleSaveModalOpen] = useState(false);
     const [blockScopeSelection, setBlockScopeSelection] = useState<Record<string, boolean>>({});
 
@@ -1813,27 +1825,6 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 </div>
                 </>
                 )}
-            </div>
-
-            {/* TABBAR CONTEXTUAL INFERIOR */}
-            <div className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/10 p-3 pb-safe flex justify-between items-center z-[100] gap-2 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
-                <button onClick={onCancel} className="flex flex-col items-center justify-center gap-1 w-14 text-zinc-500 hover:text-white transition-colors">
-                    <XIcon size={20}/>
-                    <span className="text-[8px] font-black uppercase tracking-widest">Cerrar</span>
-                </button>
-                <button onClick={() => setIsRulesModalOpen(true)} className="flex flex-col items-center justify-center gap-1 w-14 text-zinc-500 hover:text-white transition-colors">
-                    <SettingsIcon size={20}/>
-                    <span className="text-[8px] font-black uppercase tracking-widest">Reglas</span>
-                </button>
-                
-                <button onClick={handleSave} className="flex-1 bg-white text-black rounded-2xl py-3 text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-[1.02] transition-transform mx-2">
-                    Guardar
-                </button>
-
-                <button onClick={() => setIsHistoryModalOpen(true)} className="flex flex-col items-center justify-center gap-1 w-14 text-zinc-500 hover:text-white transition-colors">
-                    <ClockIcon size={20}/>
-                    <span className="text-[8px] font-black uppercase tracking-widest">Historial</span>
-                </button>
             </div>
         </div>
     );

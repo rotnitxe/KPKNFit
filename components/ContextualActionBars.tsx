@@ -149,7 +149,7 @@ export const EditorActionBar: React.FC<{ context: 'session-editor' | 'log-workou
     const slots = Array(5).fill(null);
     slots[0] = { action: actions.onCancelEditPress, icon: XCircleIcon, label: 'Cerrar', className: 'hover:text-red-400' };
     
-    let centralAction;
+    let centralAction: (() => void) | undefined;
     let CentralIcon = CheckCircleIcon;
     let centralLabel = 'Guardar';
     let isSuccessLook = true;
@@ -162,15 +162,15 @@ export const EditorActionBar: React.FC<{ context: 'session-editor' | 'log-workou
         centralAction = actions.onSaveSessionPress; 
         CentralIcon = CheckCircleIcon; 
         centralLabel = 'Guardar';
+        // Inyectamos botones custom para Sesión Editor usando Eventos Globales
+        slots[1] = { action: () => window.dispatchEvent(new Event('openSessionRules')), icon: SettingsIcon, label: 'Reglas', className: 'hover:text-white' };
+        slots[3] = { action: () => window.dispatchEvent(new Event('openSessionHistory')), icon: ClockIcon, label: 'Historial', className: 'hover:text-white' };
+        slots[4] = { action: actions.onAddExercisePress, icon: PlusCircleIcon, label: 'Añadir', className: 'hover:text-white' };
     }
     else if (context === 'program-editor') { 
         centralAction = actions.onSaveProgramPress; 
         CentralIcon = CheckCircleIcon;
         centralLabel = 'Confirmar';
-    }
-
-    if (context === 'session-editor') {
-        slots[4] = { action: actions.onAddExercisePress, icon: PlusCircleIcon, label: 'Añadir', className: 'hover:text-white' };
     }
 
     const handleAction = (e: React.MouseEvent, action?: () => void) => {
@@ -179,17 +179,26 @@ export const EditorActionBar: React.FC<{ context: 'session-editor' | 'log-workou
         if (action) action();
     }
 
+    const renderSlot = (slot: any) => {
+        if (!slot) return <div className="flex-1"/>;
+        const Icon = slot.icon;
+        return (
+            <button onClick={(e) => handleAction(e, slot.action)} className={`flex flex-col items-center justify-center h-full transition-colors active:scale-90 ${slot.className || ''}`}>
+                <Icon size={24}/>
+                <span className="text-[8px] mt-1 font-black uppercase tracking-widest">{slot.label}</span>
+            </button>
+        );
+    };
+
     return (
         <div className="grid grid-cols-5 items-center h-full text-slate-300 px-4 w-full min-w-[320px]">
-            <button onClick={(e) => handleAction(e, slots[0].action)} className={`flex flex-col items-center justify-center h-full transition-colors active:scale-90 ${slots[0].className || ''}`}>
-                <XCircleIcon size={24}/>
-                <span className="text-[8px] mt-1 font-black uppercase tracking-widest">{slots[0].label}</span>
-            </button>
-            <div className="flex-1"/>
-            <div className="flex justify-center items-center h-full">
+            {renderSlot(slots[0])}
+            {renderSlot(slots[1])}
+            
+            <div className="flex justify-center items-center h-full relative z-20">
                 <button 
                     onClick={(e) => handleAction(e, centralAction)} 
-                    className={`w-16 h-16 rounded-full flex flex-col items-center justify-center text-white transition-all active:scale-95 border-4 border-slate-950 shadow-2xl relative z-20
+                    className={`w-16 h-16 rounded-full flex flex-col items-center justify-center text-white transition-all active:scale-95 border-4 border-slate-950 shadow-2xl relative
                         ${isSuccessLook 
                             ? 'bg-[#064e3b] border-[#10b981]/30 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]' 
                             : 'bg-gradient-to-br from-primary-color to-purple-600 shadow-[0_10px_25px_rgba(var(--primary-color-rgb),0.4)]'}
@@ -198,13 +207,9 @@ export const EditorActionBar: React.FC<{ context: 'session-editor' | 'log-workou
                     <CentralIcon size={32} className={isSuccessLook ? 'text-[#10b981]' : ''} strokeWidth={3} />
                 </button>
             </div>
-            <div className="flex-1"/>
-            {slots[4] ? (
-                 <button onClick={(e) => handleAction(e, slots[4].action)} className={`flex flex-col items-center justify-center h-full transition-colors active:scale-90 ${slots[4].className || ''}`}>
-                    <PlusCircleIcon size={24}/>
-                    <span className="text-[8px] mt-1 font-black uppercase tracking-widest">{slots[4].label}</span>
-                </button>
-            ) : <div className="flex-1"/>}
+
+            {renderSlot(slots[3])}
+            {renderSlot(slots[4])}
         </div>
     );
 };
