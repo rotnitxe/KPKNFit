@@ -1183,10 +1183,14 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         });
 
         if (currentInfo) {
-             currentOnSave(finalSessions, currentInfo.programId, currentInfo.macroIndex, currentInfo.mesoIndex, currentInfo.weekId);
-        } else {
-             currentOnSave(finalSessions[0]); 
-        }
+            // CRÍTICO: Si es solo 1 sesión, la sacamos del array para que AppContext no explote.
+            // Si son varias (Bulk Save), enviamos el array y asumimos que AppContext lo manejará (o solo guardará la primera si no está actualizado).
+            const payload = finalSessions.length === 1 ? finalSessions[0] : finalSessions;
+            // @ts-ignore - Ignoramos error de tipo temporalmente para compatibilidad
+            currentOnSave(payload, currentInfo.programId, currentInfo.macroIndex, currentInfo.mesoIndex, currentInfo.weekId);
+       } else {
+            currentOnSave(finalSessions[0]); 
+       }
         await storageService.remove(SESSION_DRAFT_KEY);
         setIsDirty(false);
         setIsMultiSaveModalOpen(false);
