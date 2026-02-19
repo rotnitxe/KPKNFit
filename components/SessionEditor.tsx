@@ -75,7 +75,7 @@ const SessionAugeDashboard: React.FC<{
     currentSession: Session; 
     weekSessions: Session[];
     exerciseList: ExerciseMuscleInfo[];
-}> = ({ currentSession, weekSessions, exerciseList }) => {
+}> = ({ currentSession, weekSessions, exerciseList = [] }) => { // <--- PROTECCIÓN AQUÍ
     const [viewMode, setViewMode] = useState<'volume' | 'drain'>('volume');
     const [context, setContext] = useState<'session' | 'week'>('session');
 
@@ -586,7 +586,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     hideAddSetButton?: boolean;
 }>((props, ref) => {
     const { exercise, onExerciseChange, onSetChange, onAddSet, onRemoveSet, onRemoveExercise, onReorder, isFirst, isLast, defaultOpen = true, categoryColor, onLinkNext, onUnlink, isInSuperset, isSupersetLast, isSelectionMode, isSelected, onToggleSelect, hideAddSetButton } = props;
-    const { exerciseList, openCustomExerciseEditor, setOnExerciseCreated, settings } = useAppContext();
+    const { exerciseList = [], openCustomExerciseEditor, setOnExerciseCreated, settings } = useAppContext();
     const [infoModalExercise, setInfoModalExercise] = useState<ExerciseMuscleInfo | null>(null);
     const [activeAutocomplete, setActiveAutocomplete] = useState(false);
     const [isWarmupModalOpen, setIsWarmupModalOpen] = useState(false);
@@ -1073,7 +1073,7 @@ const SupersetManagementBlock: React.FC<{
 };
 
 const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel, existingSessionInfo, isOnline, settings, saveTrigger, addExerciseTrigger, exerciseList }) => {
-    const { isDirty, setIsDirty, addToast, programs } = useAppContext();
+    const { isDirty, setIsDirty, addToast, programs = [] } = useAppContext(); // <--- PROTECCIÓN 1
     const [isBgModalOpen, setIsBgModalOpen] = useState(false);
     const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(false);
     const [openColorPickerIndex, setOpenColorPickerIndex] = useState<number | null>(null);
@@ -1090,7 +1090,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     // --- NUEVO: MOTOR DE BÚFER SEMANAL ---
     // Cargamos TODA la semana si venimos de un programa
     const [weekSessions, setWeekSessions] = useState<Session[]>(() => {
-        if (existingSessionInfo) {
+        if (existingSessionInfo && programs && programs.length > 0) { // <--- PROTECCIÓN 2
             const prog = programs.find(p => p.id === existingSessionInfo.programId);
             if (prog) {
                 for (const mac of prog.macrocycles) {
