@@ -1,0 +1,18 @@
+# Cursor & IDEs
+.cursor/
+.vscode/
+.idea/
+*.log
+.DS_Store
+
+# Dependencias y Build
+node_modules/
+dist/
+www/
+build/
+.env
+.env.local
+
+# Capacitor / Mobile
+ios/
+android/
