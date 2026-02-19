@@ -241,17 +241,23 @@ const SessionAugeDashboard: React.FC<{
                 <div className="animate-fade-in space-y-2">
                      <p className="text-[9px] text-zinc-500 uppercase font-bold mb-2">Ranking de impacto sistémico</p>
                      <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 space-y-2">
-                        {exerciseRanking.length > 0 ? exerciseRanking.map((rank, idx) => (
-                            <button key={`${rank.id}-${idx}`} onClick={() => scrollToExercise(rank.id)} className="w-full flex justify-between items-center group bg-[#111] hover:bg-[#222] p-2 rounded-lg transition-colors border border-transparent hover:border-white/10 text-left">
-                                <span className="text-[10px] font-bold text-white truncate pr-2 flex-1"><span className="text-zinc-600 mr-2">{idx + 1}.</span>{rank.name}</span>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-16 h-1 bg-black rounded-full overflow-hidden">
-                                        <div className="h-full bg-red-500 transition-all" style={{ width: `${Math.min(100, (rank.fatigue / (exerciseRanking[0]?.fatigue || 1)) * 100)}%` }}></div>
+                        {exerciseRanking.length > 0 ? exerciseRanking.map((rank, idx) => {
+                            // Protección División por cero y valores atípicos
+                            const maxFatigue = exerciseRanking[0]?.fatigue > 0 ? exerciseRanking[0].fatigue : 1;
+                            const percentage = Math.min(100, Math.max(0, (rank.fatigue / maxFatigue) * 100));
+
+                            return (
+                                <button key={`${rank.id}-${idx}`} onClick={() => scrollToExercise(rank.id)} className="w-full flex justify-between items-center group bg-[#111] hover:bg-[#222] p-2 rounded-lg transition-colors border border-transparent hover:border-white/10 text-left">
+                                    <span className="text-[10px] font-bold text-white truncate pr-2 flex-1"><span className="text-zinc-600 mr-2">{idx + 1}.</span>{rank.name}</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-16 h-1 bg-black rounded-full overflow-hidden">
+                                            <div className="h-full bg-red-500 transition-all" style={{ width: `${percentage}%` }}></div>
+                                        </div>
+                                        <span className="text-[9px] font-mono text-zinc-400 w-8 text-right">{rank.fatigue.toFixed(0)}</span>
                                     </div>
-                                    <span className="text-[9px] font-mono text-zinc-400 w-8 text-right">{rank.fatigue.toFixed(0)}</span>
-                                </div>
-                            </button>
-                        )) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">No hay ejercicios evaluables</p>}
+                                </button>
+                            );
+                        }) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">No hay ejercicios evaluables</p>}
                      </div>
                 </div>
             )}
@@ -725,8 +731,11 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
         let rawCns = 0, rawSpinal = 0;
         const muscles: Record<string, number> = {};
         
-        exercise.sets.forEach((set, idx) => {
-            if ((set as any).type === 'warmup') return;
+        // Protección robusta: Si sets no existe o no es array, iteramos un array vacío
+        const safeSets = Array.isArray(exercise.sets) ? exercise.sets : [];
+        
+        safeSets.forEach((set, idx) => {
+            if ((set as any)?.type === 'warmup') return;
              
              // 1. Detección RIR/RPE/Fallo
              let rpe = set.targetRPE || 8;
@@ -1244,11 +1253,37 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         setIsDirty(true);
     };
 
+    // Función robusta para evitar colisiones de IDs en React Keys y Base de Datos
+    const generateSafeSessionClone = (originalSession: Session, targetDay: number): Session => {
+        const clone = JSON.parse(JSON.stringify(originalSession));
+        clone.id = crypto.randomUUID();
+        clone.dayOfWeek = targetDay;
+        clone.scheduleLabel = undefined; // Limpiamos etiquetas específicas
+        
+        if (clone.exercises) {
+            clone.exercises = clone.exercises.map((ex: any) => ({
+                ...ex,
+                id: crypto.randomUUID(),
+                sets: Array.isArray(ex.sets) ? ex.sets.map((set: any) => ({ ...set, id: crypto.randomUUID() })) : []
+            }));
+        }
+        if (clone.parts) {
+            clone.parts = clone.parts.map((part: any) => ({
+                ...part,
+                id: crypto.randomUUID(),
+                exercises: Array.isArray(part.exercises) ? part.exercises.map((ex: any) => ({
+                    ...ex,
+                    id: crypto.randomUUID(),
+                    sets: Array.isArray(ex.sets) ? ex.sets.map((set: any) => ({ ...set, id: crypto.randomUUID() })) : []
+                })) : []
+            }));
+        }
+        return clone;
+    };
+
     const executeCopyToDay = (mode: 'replace' | 'add') => {
         if (copyToTargetDay === null) return;
-        const newSession = JSON.parse(JSON.stringify(sessionRef.current));
-        newSession.id = crypto.randomUUID();
-        newSession.dayOfWeek = copyToTargetDay;
+        const newSession = generateSafeSessionClone(sessionRef.current, copyToTargetDay);
         
         setWeekSessions(prev => {
             if (mode === 'replace') {
