@@ -1075,7 +1075,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!ongoingWorkout) return;
         const program = programs.find(p => p.id === ongoingWorkout.programId);
         if (!program) return;
-        let sessionInfo;
+        
+        // AÑADIDO: Tipado explícito para evitar el error 'any' implícito
+        let sessionInfo: { 
+            session: Session; 
+            programId: string; 
+            macroIndex: number; 
+            mesoIndex: number; 
+            weekId: string; 
+        } | undefined;
+
         program.macrocycles.forEach((macro, macroIndex) => {
             if (sessionInfo) return;
             let mesoCount = 0;
@@ -1093,6 +1102,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 mesoCount += block.mesocycles.length;
             });
         });
+        
         if (sessionInfo) {
             setEditingWorkoutSessionInfo(sessionInfo);
             setIsWorkoutEditorOpen(true);

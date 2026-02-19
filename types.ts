@@ -1197,7 +1197,7 @@ export interface AppContextDispatch {
     handleDeleteProgram: (programId: string) => void;
     handleAddSession: (programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleEditSession: (programId: string, macroIndex: number, mesoIndex: number, weekId: string, sessionId: string) => void;
-    handleSaveSession: (session: Session, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
+    handleSaveSession: (session: Session | Session[], programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleUpdateSessionInProgram: (session: Session, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleDeleteSession: (sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleCopySessionsToMeso: (programId: string, macroIndex: number, mesoIndex: number) => void;

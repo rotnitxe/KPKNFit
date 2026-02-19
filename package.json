@@ -2,6 +2,7 @@
   "name": "yourprime-v2",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Un creador y seguidor de rutinas de gimnasio inteligente.",
   "scripts": {
     "postinstall": "chmod +x node_modules/.bin/esbuild",
@@ -37,9 +38,11 @@
   "devDependencies": {
     "@capacitor/android": "^6.0.0",
     "@capacitor/cli": "^6.0.0",
-    "typescript": "^5.5.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "cpx2": "^4.2.0",
     "esbuild": "^0.20.2",
-    "cpx2": "^4.2.0"
+    "typescript": "^5.5.2"
   },
   "overrides": {
     "@capacitor-community/keep-awake": {

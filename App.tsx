@@ -311,8 +311,8 @@ export const App: React.FC = () => {
                 if (!program) return <div className="text-center pt-24 text-slate-400">Programa no encontrado.</div>;
                 return <ProgramDetail program={program} history={history} settings={settings} isOnline={isOnline} onLogWorkout={handleLogWorkout} onEditProgram={handleEditProgram} onEditSession={handleEditSession} onDeleteSession={handleDeleteSession} onAddSession={handleAddSession} onDeleteProgram={handleDeleteProgram} onUpdateProgram={handleUpdateProgram} />;
             }
-             case 'program-editor': {
-                const programToEdit = editingProgramId ? programs.find(p => p.id === editingProgramId) : null;
+            case 'program-editor': {
+                const programToEdit = editingProgramId ? (programs.find(p => p.id === editingProgramId) || null) : null;
                 return <ProgramEditor onSave={handleSaveProgram} onCancel={handleBack} existingProgram={programToEdit} isOnline={isOnline} saveTrigger={saveProgramTrigger} />;
             }
             case 'session-editor': {
@@ -344,7 +344,7 @@ export const App: React.FC = () => {
                         session: session || { id: sessionId || crypto.randomUUID(), name: 'Nueva Sesión', description: '', exercises: [], warmup: [] },
                         programId, macroIndex, mesoIndex, weekId, sessionId
                     };
-                    return <SessionEditor onSave={handleSaveSession} onCancel={handleBack} existingSessionInfo={sessionInfoForEditor} isOnline={isOnline} settings={settings} saveTrigger={saveSessionTrigger} addExerciseTrigger={addExerciseTrigger} exerciseList={exerciseList} />;
+                    return <SessionEditor onSave={(sessions, pId, mac, mes, wId) => handleSaveSession(sessions, pId || programId, mac ?? macroIndex, mes ?? mesoIndex, wId || weekId)} onCancel={handleBack} existingSessionInfo={sessionInfoForEditor} isOnline={isOnline} settings={settings} saveTrigger={saveSessionTrigger} addExerciseTrigger={addExerciseTrigger} exerciseList={exerciseList} />;
                 }
                 return null;
             }

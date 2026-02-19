@@ -1,4 +1,3 @@
-
 // components/ActivityHeatmap.tsx
 import React, { useMemo, useRef, useEffect } from 'react';
 import { WorkoutLog, Settings } from '../types';
@@ -13,12 +12,12 @@ interface DayInfo {
     date: Date;
     level: number;
     isToday: boolean;
-  }
-  
-  interface MonthPosition {
+}
+
+interface MonthPosition {
     month: string;
     startColumn: number;
-  }
+}
 
 const ActivityCalendar: React.FC<ActivityHeatmapProps> = ({ history, settings }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -34,24 +33,25 @@ const ActivityCalendar: React.FC<ActivityHeatmapProps> = ({ history, settings })
         const activityByDate: Record<string, number> = {};
         let maxVolume = 0;
 
-        history.forEach(log => {
+        const days: DayInfo[] = [];
+        const monthPositions: MonthPosition[] = [];
+        let lastMonth = -1;
+
+        history.forEach((log: WorkoutLog) => {
             const date = new Date(log.date);
             date.setHours(0, 0, 0, 0);
             const dateStr = date.toISOString().split('T')[0];
-            // Ensure completedExercises exists
+            
             const exercises = log.completedExercises || [];
-            const volume = exercises.reduce((total, ex) =>
-                total + ex.sets.reduce((setTotal, s) => setTotal + (s.weight || 0) * (s.completedReps || 0), 0),
+            const volume = exercises.reduce((total: number, ex: any) =>
+                total + ex.sets.reduce((setTotal: number, s: any) => setTotal + (s.weight || 0) * (s.completedReps || 0), 0),
             0);
+            
             activityByDate[dateStr] = (activityByDate[dateStr] || 0) + volume;
             if (activityByDate[dateStr] > maxVolume) {
                 maxVolume = activityByDate[dateStr];
             }
         });
-
-        const days: DayInfo[] = [];
-        const monthPositions: MonthPosition[] = [];
-        let lastMonth = -1;
 
         for (let i = 0; i <= dayCount; i++) {
             const currentDate = new Date(startDate);
