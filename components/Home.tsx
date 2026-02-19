@@ -26,13 +26,13 @@ const Progress1RMWidget: React.FC<{ history: WorkoutLog[] }> = ({ history }) => 
     const exerciseData = useMemo(() => {
         const data: Record<string, {date: string, rm: number, rpe: number}[]> = {};
         history.forEach(log => {
-            log.exercises.forEach(ex => {
-                const validSets = ex.sets.filter(s => s.weight > 0 && s.reps > 0);
+            (log.completedExercises || []).forEach((ex: any) => {
+                const validSets = (ex.sets || []).filter((s: any) => s.weight > 0 && s.completedReps > 0);
                 if (validSets.length > 0) {
-                    const maxRM = Math.max(...validSets.map(s => calculateBrzycki1RM(s.weight, s.reps)));
-                    const avgRPE = validSets.reduce((acc, s) => acc + (s.rpe || s.completedRPE || 8), 0) / validSets.length;
-                    if (!data[ex.name]) data[ex.name] = [];
-                    data[ex.name].push({ date: log.date, rm: maxRM, rpe: avgRPE });
+                    const maxRM = Math.max(...validSets.map((s: any) => calculateBrzycki1RM(s.weight, s.completedReps)));
+                    const avgRPE = validSets.reduce((acc: number, s: any) => acc + (s.completedRPE || s.rpe || 8), 0) / validSets.length;
+                    if (!data[ex.exerciseName]) data[ex.exerciseName] = [];
+                    data[ex.exerciseName].push({ date: log.date, rm: maxRM, rpe: avgRPE });
                 }
             });
         });
@@ -139,10 +139,26 @@ const Progress1RMWidget: React.FC<{ history: WorkoutLog[] }> = ({ history }) => 
 
 // --- WIDGET AUGE (Panel Biológico Compacto + Acordeón) ---
 const AugeStatusWidget: React.FC = () => {
-    const { history, settings, sleepLogs, dailyWellbeingLogs } = useAppState();
+    const { history, settings, sleepLogs, dailyWellbeingLogs, exerciseList } = useAppState();
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const cnsBattery = useMemo(() => Math.max(0, 100 - calculateSystemicFatigue(history, settings, new Date())), [history, settings]);
+    const cnsBattery = useMemo(() => {
+        try {
+            // Ajuste de firma según el error: (history, sleepLogs, settings, date, exerciseList)
+            // Usamos cast a any para que la llamada sea flexible ante cambios en recoveryService
+            const fatigueRes = (calculateSystemicFatigue as any)(history, sleepLogs || [], settings, new Date(), exerciseList) || 0;
+            
+            const fatigueVal = typeof fatigueRes === 'number' 
+                ? fatigueRes 
+                : (fatigueRes?.totalSystemicFatigue || fatigueRes?.cnsFatigue || fatigueRes?.cnsDrain || 0);
+                
+            return Math.max(0, Math.min(100, 100 - fatigueVal));
+        } catch (e) {
+            console.error("Error calculando SNC:", e);
+            return 100; // Fallback seguro para evitar pantalla negra
+        }
+    }, [history, settings, exerciseList, sleepLogs]);
+    
     const readiness = useMemo(() => calculateDailyReadiness(sleepLogs, dailyWellbeingLogs, settings, cnsBattery), [sleepLogs, dailyWellbeingLogs, settings, cnsBattery]);
 
     return (
