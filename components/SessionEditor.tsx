@@ -2,7 +2,7 @@
 // components/SessionEditor.tsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Session, Exercise, ExerciseSet, Settings, ExerciseMuscleInfo, WarmupSetDefinition, CoverStyle, SessionBackground } from '../types';
-import { PlusIcon, TrashIcon, SparklesIcon, StarIcon, ArrowDownIcon, ArrowUpIcon, InfoIcon, ChevronRightIcon, XIcon, ImageIcon, BarChartIcon, LinkIcon, ZapIcon, DragHandleIcon, CheckIcon, ClockIcon, TargetIcon, FlameIcon, ActivityIcon, PaletteIcon, LayersIcon, RefreshCwIcon, SearchIcon, DumbbellIcon } from './icons';
+import { PlusIcon, TrashIcon, SparklesIcon, StarIcon, ArrowDownIcon, ArrowUpIcon, InfoIcon, ChevronRightIcon, XIcon, ImageIcon, BarChartIcon, LinkIcon, ZapIcon, DragHandleIcon, CheckIcon, ClockIcon, TargetIcon, FlameIcon, ActivityIcon, PaletteIcon, LayersIcon, RefreshCwIcon, SearchIcon, DumbbellIcon, SettingsIcon, AlertTriangleIcon } from './icons';
 import Button from './ui/Button';
 import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, roundWeight, getOrderedDaysOfWeek } from '../utils/calculations';
 import Modal from './ui/Modal';
@@ -83,8 +83,10 @@ const SessionAugeDashboard: React.FC<{
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
+    const [showFatigueInfo, setShowFatigueInfo] = useState(false);
+
     const { hyperStats, globalDrain, sessionAlerts, weeklyAlerts, exerciseRanking } = useMemo(() => {
-        const hyperMap: Record<string, number> = {};
+        const hyperMap: Record<string, { vol: number, fail: number }> = {};
         const weeklyHyperMap: Record<string, number> = {};
         let totalCns = 0; let totalSpinal = 0;
         let weeklyCns = 0; let weeklySpinal = 0;
@@ -125,12 +127,16 @@ const SessionAugeDashboard: React.FC<{
                         const parent = normalizeMuscleGroup(m.muscle);
                         const hyperFactor = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.0; 
                         weeklyHyperMap[parent] = (weeklyHyperMap[parent] || 0) + hyperFactor;
-                        if (isCurrentSession) hyperMap[parent] = (hyperMap[parent] || 0) + hyperFactor;
+                        if (isCurrentSession) {
+                            if (!hyperMap[parent]) hyperMap[parent] = { vol: 0, fail: 0 };
+                            hyperMap[parent].vol += hyperFactor;
+                            if (rpe >= 9.5) hyperMap[parent].fail += hyperFactor;
+                        }
                     });
                 });
 
                 if (exFatigueScore > 0) {
-                    ranking.push({ id: ex.id, name: ex.name, fatigue: exFatigueScore, isCurrentSession });
+                    ranking.push({ id: ex.id, name: ex.name, fatigue: Math.min(10, (exFatigueScore / 60) * 10), isCurrentSession });
                 }
             });
         };
@@ -145,28 +151,51 @@ const SessionAugeDashboard: React.FC<{
             }
         });
 
-        const sortMap = (map: Record<string, number>) => Object.entries(map).map(([muscle, volume]) => ({ muscle, volume: Math.round(volume * 10) / 10 })).filter(item => item.volume > 0).sort((a, b) => b.volume - a.volume);
+        const sortMap = (map: Record<string, { vol: number, fail: number }>) => Object.entries(map)
+            .map(([muscle, data]) => ({ muscle, volume: Math.round(data.vol * 10) / 10, failRatio: data.vol > 0 ? data.fail / data.vol : 0 }))
+            .filter(item => item.volume > 0).sort((a, b) => b.volume - a.volume);
         
+        const sortedHyper = sortMap(hyperMap);
         ranking.sort((a, b) => b.fatigue - a.fatigue);
 
+        // Lógica Dinámica de Volumen Basura
+        const dynamicSessionAlerts = sortedHyper.map(m => {
+            let threshold = 6;
+            if (m.failRatio >= 0.8) threshold = 4; // Muy estricto si todo es al fallo
+            else if (m.failRatio <= 0.3) threshold = 8; // Más permisivo si hay RIR
+            return { ...m, threshold };
+        }).filter(m => m.volume > m.threshold);
+
         return { 
-            hyperStats: context === 'session' ? sortMap(hyperMap) : sortMap(weeklyHyperMap), 
-            globalDrain: context === 'session' ? { cns: totalCns, spinal: totalSpinal } : { cns: weeklyCns, spinal: weeklySpinal },
-            sessionAlerts: sortMap(hyperMap).filter(h => h.volume > 6),
-            weeklyAlerts: sortMap(weeklyHyperMap).filter(h => h.volume > 18),
+            hyperStats: context === 'session' ? sortedHyper : Object.entries(weeklyHyperMap).map(([m,v]) => ({muscle:m, volume: Math.round(v*10)/10})).sort((a,b)=>b.volume-a.volume), 
+            globalDrain: { 
+                cns: Math.min(10, ((context === 'session' ? totalCns : weeklyCns) / (context === 'session' ? 150 : 600)) * 10), 
+                spinal: Math.min(10, ((context === 'session' ? totalSpinal : weeklySpinal) / (context === 'session' ? 1000 : 4000)) * 10) 
+            },
+            sessionAlerts: dynamicSessionAlerts,
+            weeklyAlerts: Object.entries(weeklyHyperMap).map(([m,v]) => ({muscle:m, volume:v})).filter(h => h.volume > 16),
             exerciseRanking: context === 'session' ? ranking.filter(r => r.isCurrentSession) : ranking
         };
     }, [currentSession, weekSessions, exerciseList, context]);
 
+    // Exportar alertas al padre de forma segura
+    useEffect(() => {
+        // @ts-ignore - Inyección directa al scope del padre mediante evento DOM o prop si existiera
+        const ev = new CustomEvent('augeAlertsUpdated', { detail: sessionAlerts });
+        window.dispatchEvent(ev);
+    }, [sessionAlerts]);
+
     return (
         <div className="p-4 border border-[#222] rounded-xl bg-[#0a0a0a] mb-6 shadow-2xl">
+            <div className="flex justify-end mb-3">
+                <ToggleSwitch checked={context === 'week'} onChange={(c) => setContext(c ? 'week' : 'session')} label={context === 'week' ? 'Contexto: Semana' : 'Contexto: Sesión'} size="sm" isBlackAndWhite={true} />
+            </div>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#222]">
-                 <div className="flex gap-4 overflow-x-auto hide-scrollbar">
+                 <div className="flex gap-4 overflow-x-auto hide-scrollbar w-full">
                     <button onClick={() => setViewMode('volume')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'volume' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><TargetIcon size={12}/> Estímulo</button>
                     <button onClick={() => setViewMode('drain')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'drain' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ActivityIcon size={12}/> Fatiga</button>
                     <button onClick={() => setViewMode('ranking')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'ranking' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><LayersIcon size={12}/> Ranking</button>
                  </div>
-                 <ToggleSwitch checked={context === 'week'} onChange={(c) => setContext(c ? 'week' : 'session')} label={context === 'week' ? 'Semana' : 'Sesión'} size="sm" isBlackAndWhite={true} />
             </div>
 
             {viewMode === 'volume' && context === 'week' && weeklyAlerts.length > 0 && (
@@ -209,30 +238,39 @@ const SessionAugeDashboard: React.FC<{
                                 <div className="flex-1 mx-2 h-1.5 bg-[#111] rounded-full overflow-hidden">
                                     <div className={`h-full transition-all ${isDanger ? 'bg-red-500' : 'bg-white'}`} style={{ width: `${Math.min(100, (stat.volume / maxScale) * 100)}%` }}></div>
                                 </div>
-                                <span className="text-[10px] font-mono font-bold text-white w-6 text-right">{stat.volume}</span>
+                                <span className="text-[10px] font-mono font-bold text-white text-right whitespace-nowrap">{stat.volume} series</span>
                             </div>
                         )}) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">Sin datos de volumen</p>}
                      </div>
                 </div>
             ) : viewMode === 'drain' ? (
-                <div className="space-y-4 animate-fade-in">
+                <div className="space-y-4 animate-fade-in relative">
+                     <button onClick={() => setShowFatigueInfo(!showFatigueInfo)} className="absolute -top-10 right-0 text-zinc-500 hover:text-white"><InfoIcon size={16}/></button>
+                     {showFatigueInfo && (
+                         <div className="bg-zinc-900 p-3 rounded-lg border border-white/10 text-[9px] text-zinc-300 mb-4 animate-fade-in leading-relaxed">
+                             <strong className="text-white">Escala de Fatiga (1 al 10):</strong><br/>
+                             <span className="text-green-400">1-3:</span> Baja fatiga sistémica. Fácil recuperación.<br/>
+                             <span className="text-yellow-400">4-7:</span> Fatiga moderada/alta. Estímulo óptimo.<br/>
+                             <span className="text-red-400">8-10:</span> Drenaje extremo. Requiere descanso prolongado.
+                         </div>
+                     )}
                      <div className="grid grid-cols-2 gap-4">
                         <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-[9px] font-black uppercase text-zinc-500">Drenaje SNC {context === 'week' && '(Semanal)'}</span>
-                                <span className="text-xs font-mono font-bold text-white">{globalDrain.cns.toFixed(1)}</span>
+                                <span className="text-[9px] font-black uppercase text-zinc-500">SNC {context === 'week' && '(Semanal)'}</span>
+                                <span className={`text-xs font-mono font-bold ${globalDrain.cns >= 8 ? 'text-red-500' : globalDrain.cns >= 4 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.cns.toFixed(1)}/10</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
-                                <div className={`h-full transition-all ${globalDrain.cns > (context === 'week' ? 500 : 150) ? 'bg-red-500' : 'bg-orange-500'}`} style={{ width: `${Math.min(100, (globalDrain.cns / (context === 'week' ? 600 : 150)) * 100)}%` }}></div>
+                                <div className={`h-full transition-all ${globalDrain.cns >= 8 ? 'bg-red-500' : globalDrain.cns >= 4 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.cns * 10}%` }}></div>
                             </div>
                         </div>
                         <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-[9px] font-black uppercase text-zinc-500">Estrés Espinal {context === 'week' && '(Semanal)'}</span>
-                                <span className="text-xs font-mono font-bold text-white">{globalDrain.spinal.toFixed(0)}</span>
+                                <span className="text-[9px] font-black uppercase text-zinc-500">Espinal {context === 'week' && '(Semanal)'}</span>
+                                <span className={`text-xs font-mono font-bold ${globalDrain.spinal >= 8 ? 'text-red-500' : globalDrain.spinal >= 4 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.spinal.toFixed(1)}/10</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
-                                <div className={`h-full transition-all ${globalDrain.spinal > (context === 'week' ? 3000 : 1000) ? 'bg-red-500' : 'bg-white'}`} style={{ width: `${Math.min(100, (globalDrain.spinal / (context === 'week' ? 4000 : 1500)) * 100)}%` }}></div>
+                                <div className={`h-full transition-all ${globalDrain.spinal >= 8 ? 'bg-red-500' : globalDrain.spinal >= 4 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.spinal * 10}%` }}></div>
                             </div>
                         </div>
                     </div>
@@ -328,8 +366,9 @@ export const AdvancedExercisePickerModal: React.FC<{
     onSelect: (exercise: ExerciseMuscleInfo) => void;
     onCreateNew: () => void;
     exerciseList: ExerciseMuscleInfo[];
-}> = ({ isOpen, onClose, onSelect, onCreateNew, exerciseList }) => {
-    const [search, setSearch] = useState('');
+    initialSearch?: string;
+}> = ({ isOpen, onClose, onSelect, onCreateNew, exerciseList, initialSearch }) => {
+    const [search, setSearch] = useState(initialSearch || '');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
     const [tooltipExId, setTooltipExId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -398,9 +437,12 @@ export const AdvancedExercisePickerModal: React.FC<{
     };
 
     useEffect(() => {
-        if (isOpen) setTimeout(() => inputRef.current?.focus(), 50);
+        if (isOpen) {
+            if (initialSearch) setSearch(initialSearch);
+            setTimeout(() => inputRef.current?.focus(), 50);
+        }
         else { setSearch(''); setActiveCategory(null); setTooltipExId(null); }
-    }, [isOpen]);
+    }, [isOpen, initialSearch]);
 
     const handleSort = (key: 'name' | 'muscle' | 'fatigue') => {
         if (sortKey === key) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -539,19 +581,16 @@ export const AdvancedExercisePickerModal: React.FC<{
                                     return (
                                         <div key={ex.id} className="w-full bg-black rounded-xl border border-white/5 hover:border-white/20 transition-all flex flex-col">
                                             <div className="flex items-center justify-between px-2 py-1">
-                                                <button onClick={() => onSelect(ex)} className="flex-1 text-left py-2 px-2 grid grid-cols-[2fr_1fr_1fr] gap-2 items-center group">
-                                                    <div className="flex flex-col truncate pr-2">
-                                                        <span className={`font-bold text-xs truncate ${topTier ? 'text-yellow-400' : 'text-white'}`}>
-                                                            {topTier && '★ '}{ex.name}
-                                                        </span>
-                                                        <span className="text-[9px] text-zinc-500 uppercase font-bold mt-0.5 truncate">{ex.equipment}</span>
-                                                    </div>
-                                                    <div className="text-[10px] text-zinc-400 font-bold truncate">
-                                                        {primaryMuscle}
-                                                    </div>
-                                                    <div className="flex items-center justify-end gap-1.5">
-                                                        <div className={`w-2 h-2 rounded-full ${fatigueUI.color} shadow-[0_0_8px_currentColor]`}></div>
-                                                        <span className="text-[10px] font-black text-white">{fatigueScore}<span className="text-zinc-600">/10</span></span>
+                                            <button onClick={() => onSelect(ex)} className="flex-1 text-left py-2 px-3 flex flex-col group">
+                                                    <span className={`font-bold text-[13px] leading-tight mb-1.5 break-words ${topTier ? 'text-yellow-400' : 'text-white'}`}>
+                                                        {topTier && '★ '}{ex.name}
+                                                    </span>
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <span className="text-[9px] text-zinc-500 uppercase font-bold truncate">{ex.equipment} • {primaryMuscle}</span>
+                                                        <div className="flex items-center gap-1.5 shrink-0">
+                                                            <div className={`w-2 h-2 rounded-full ${fatigueUI.color} shadow-[0_0_8px_currentColor]`}></div>
+                                                            <span className="text-[10px] font-black text-white">{fatigueScore}<span className="text-zinc-600">/10</span></span>
+                                                        </div>
                                                     </div>
                                                 </button>
                                                 <button onClick={(e) => { e.stopPropagation(); setTooltipExId(tooltipExId === ex.id ? null : ex.id); }} className={`p-2 transition-colors ${tooltipExId === ex.id ? 'text-blue-400' : 'text-zinc-600 hover:text-white'}`}>
@@ -821,6 +860,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                             
                             <AdvancedExercisePickerModal
                                 isOpen={isAdvancedPickerOpen}
+                                initialSearch={exercise.name}
                                 onClose={() => setIsAdvancedPickerOpen(false)}
                                 exerciseList={exerciseList}
                                 onSelect={(sugg) => {
@@ -1194,10 +1234,16 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const [modifiedSessionIds, setModifiedSessionIds] = useState<Set<string>>(new Set());
     const [isMultiSaveModalOpen, setIsMultiSaveModalOpen] = useState(false);
 
-    // NUEVOS ESTADOS ROADMAP Y GUARDADO
+    // NUEVOS ESTADOS ROADMAP, GUARDADO Y REGLAS
     const [emptyDaySelected, setEmptyDaySelected] = useState<number | null>(null);
-    const [isCopyToModalOpen, setIsCopyToModalOpen] = useState(false);
-    const [copyToTargetDay, setCopyToTargetDay] = useState<number | null>(null);
+    const [globalSessionAlerts, setGlobalSessionAlerts] = useState<{ muscle: string; volume: number; threshold: number; failRatio: number; }[]>([]);
+    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [transferMode, setTransferMode] = useState<'export'|'import'>('export');
+    const [transferTargetId, setTransferTargetId] = useState<string>('');
+    const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [sessionHistory, setSessionHistory] = useState<Session[]>([]);
+    
     const [applyToWholeBlock, setApplyToWholeBlock] = useState(false);
     const [isSingleSaveModalOpen, setIsSingleSaveModalOpen] = useState(false);
     const [blockScopeSelection, setBlockScopeSelection] = useState<Record<string, boolean>>({});
@@ -1220,6 +1266,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             if (s.id === activeSessionId) {
                 const draft = JSON.parse(JSON.stringify(s));
                 updater(draft);
+                setSessionHistory(hist => [...hist.slice(-15), JSON.parse(JSON.stringify(draft))]);
                 return draft;
             }
             return s;
@@ -1279,26 +1326,6 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             }));
         }
         return clone;
-    };
-
-    const executeCopyToDay = (mode: 'replace' | 'add') => {
-        if (copyToTargetDay === null) return;
-        const newSession = generateSafeSessionClone(sessionRef.current, copyToTargetDay);
-        
-        setWeekSessions(prev => {
-            if (mode === 'replace') {
-                return [...prev.filter(s => s.dayOfWeek !== copyToTargetDay), newSession];
-            } else {
-                return [...prev, newSession];
-            }
-        });
-        setModifiedSessionIds(prev => new Set(prev).add(newSession.id));
-        setIsDirty(true);
-        setIsCopyToModalOpen(false);
-        setCopyToTargetDay(null);
-        setActiveSessionId(newSession.id);
-        setEmptyDaySelected(null);
-        addToast("Sesión copiada exitosamente", "success");
     };
 
     const executeFinalSave = async (sessionsToSave: Session[]) => {
@@ -1472,47 +1499,97 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                         <button onClick={() => setIsBgModalOpen(true)} className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-all text-zinc-400"><ImageIcon size={16} /></button>
                     </div>
                     
-                    {/* ACCIONES DE SESIÓN (Copiar) */}
+                    {/* ACCIONES DE SESIÓN (Transferir) */}
                     <div className="flex items-center gap-3 pt-1">
                          <div className="flex items-center gap-3">
-                            <button onClick={() => setUseCustomLabel(!useCustomLabel)} className="text-[9px] font-black text-zinc-500 uppercase flex items-center gap-1 hover:text-white transition-colors tracking-widest"><ClockIcon size={12}/> {useCustomLabel ? 'Etiqueta' : 'Día Libre'}</button>
-                            {useCustomLabel && (
-                                <input type="text" value={session.scheduleLabel || ''} onChange={(e) => updateSession(d => { d.scheduleLabel = e.target.value; d.dayOfWeek = undefined; })} placeholder="Ej: Día 1..." className="bg-transparent text-white text-xs font-bold border-b border-zinc-700 focus:border-white focus:ring-0 p-0 w-24"/>
-                            )}
                             {activeSessionId !== 'empty' && (
-                                <button onClick={() => setIsCopyToModalOpen(true)} className="px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/20 rounded text-[9px] font-black uppercase text-white transition-colors flex items-center gap-1 ml-4"><LayersIcon size={12}/> Copiar A...</button>
+                                <button onClick={() => setIsTransferModalOpen(true)} className="px-4 py-1.5 bg-white text-black hover:scale-105 rounded-lg text-[10px] font-black uppercase transition-all flex items-center gap-1"><LayersIcon size={14}/> Transferir / Recibir</button>
                             )}
                         </div>
                     </div>
                  </div>
             </div>
 
-            {/* MODAL COPIAR A */}
-            <Modal isOpen={isCopyToModalOpen} onClose={() => { setIsCopyToModalOpen(false); setCopyToTargetDay(null); }} title="Copiar Sesión">
+            {/* MODALES DE ACCIÓN CONTEXTUAL */}
+            <Modal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} title="Transferencia de Sesión">
                 <div className="p-2 space-y-4">
-                    <p className="text-sm text-zinc-300">Selecciona el día de destino para copiar <strong className="text-white">{session.name}</strong>:</p>
-                    <div className="grid grid-cols-4 gap-2">
-                        {orderedDays.map(day => (
-                            <button key={`copy-${day.value}`} onClick={() => setCopyToTargetDay(day.value)} className={`p-2 rounded border text-xs font-bold transition-all ${copyToTargetDay === day.value ? 'bg-white text-black border-white' : 'bg-black text-zinc-400 border-zinc-700 hover:border-zinc-500'}`}>
-                                {day.label.slice(0, 3)}
+                    <div className="flex gap-2 mb-4 bg-zinc-900 p-1 rounded-xl">
+                        <button onClick={() => setTransferMode('export')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${transferMode === 'export' ? 'bg-white text-black' : 'text-zinc-500'}`}>Exportar (Copiar a...)</button>
+                        <button onClick={() => setTransferMode('import')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${transferMode === 'import' ? 'bg-white text-black' : 'text-zinc-500'}`}>Importar (Recibir de...)</button>
+                    </div>
+                    <p className="text-xs text-zinc-300">Selecciona la sesión de {transferMode === 'export' ? 'destino' : 'origen'}:</p>
+                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scrollbar">
+                        {weekSessions.filter(s => s.id !== activeSessionId).map(s => (
+                            <button key={s.id} onClick={() => setTransferTargetId(s.id)} className={`p-3 text-left rounded-xl border text-xs font-bold transition-all ${transferTargetId === s.id ? 'bg-blue-500/20 border-blue-500 text-white' : 'bg-black border-zinc-800 text-zinc-400 hover:border-zinc-500'}`}>
+                                {s.name || `Sesión Día ${s.dayOfWeek}`}<br/>
+                                <span className="text-[9px] text-zinc-500 font-normal">{s.parts?.reduce((acc, p) => acc + p.exercises.length, 0) || 0} Ejercicios</span>
                             </button>
                         ))}
                     </div>
-                    {copyToTargetDay !== null && (
-                        <div className="pt-4 border-t border-[#222]">
-                            {weekSessions.some(s => s.dayOfWeek === copyToTargetDay) ? (
-                                <div className="space-y-3">
-                                    <p className="text-xs text-orange-400 font-bold">¡Atención! Este día ya tiene sesiones programadas.</p>
-                                    <div className="flex gap-2">
-                                        <Button variant="secondary" onClick={() => executeCopyToDay('replace')} className="flex-1 !py-2 !text-[10px] !bg-red-900/20 !text-red-400 !border-red-900/50">Reemplazar Todo</Button>
-                                        <Button onClick={() => executeCopyToDay('add')} className="flex-1 !py-2 !text-[10px]">Añadir como Extra</Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <Button onClick={() => executeCopyToDay('add')} className="w-full">Confirmar Copia</Button>
-                            )}
+                    {transferTargetId && (
+                        <div className="pt-4 mt-2 border-t border-white/10">
+                            <Button onClick={() => {
+                                const targetSession = weekSessions.find(s => s.id === transferTargetId);
+                                if (!targetSession) return;
+                                if (transferMode === 'export') {
+                                    setWeekSessions(prev => prev.map(s => s.id === transferTargetId ? { ...s, parts: [...(s.parts || []), ...JSON.parse(JSON.stringify(session.parts || []))] } : s));
+                                    setModifiedSessionIds(prev => new Set(prev).add(transferTargetId));
+                                } else {
+                                    updateSession(draft => { draft.parts = [...(draft.parts || []), ...JSON.parse(JSON.stringify(targetSession.parts || []))]; });
+                                }
+                                setIsTransferModalOpen(false);
+                                addToast("Transferencia completada", "success");
+                            }} className="w-full">Confirmar Transferencia</Button>
                         </div>
                     )}
+                </div>
+            </Modal>
+
+            <Modal isOpen={isRulesModalOpen} onClose={() => setIsRulesModalOpen(false)} title="Reglas y Métricas Macro">
+                <div className="p-2 space-y-6">
+                    <p className="text-xs text-zinc-400 leading-relaxed">Aplica reglas masivas a todos los ejercicios de esta sesión para ahorrar tiempo.</p>
+                    <div className="bg-zinc-900 border border-white/10 p-4 rounded-xl space-y-4">
+                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest">Sobreescribir Series y Repeticiones</h4>
+                        <div className="grid grid-cols-3 gap-2">
+                            <div><label className="text-[9px] text-zinc-500 uppercase font-bold">Series</label><input type="number" id="macroSets" defaultValue={3} className="w-full bg-black border border-zinc-800 text-white rounded p-2 text-center text-xs"/></div>
+                            <div><label className="text-[9px] text-zinc-500 uppercase font-bold">Reps</label><input type="number" id="macroReps" defaultValue={10} className="w-full bg-black border border-zinc-800 text-white rounded p-2 text-center text-xs"/></div>
+                            <div><label className="text-[9px] text-zinc-500 uppercase font-bold">RPE</label><input type="number" id="macroRPE" defaultValue={8} className="w-full bg-black border border-zinc-800 text-white rounded p-2 text-center text-xs"/></div>
+                        </div>
+                        <Button onClick={() => {
+                            const sets = parseInt((document.getElementById('macroSets') as HTMLInputElement).value);
+                            const reps = parseInt((document.getElementById('macroReps') as HTMLInputElement).value);
+                            const rpe = parseFloat((document.getElementById('macroRPE') as HTMLInputElement).value);
+                            updateSession(draft => {
+                                draft.parts?.forEach(p => p.exercises.forEach(ex => {
+                                    ex.sets = Array.from({length: sets}).map(() => ({ id: crypto.randomUUID(), targetReps: reps, targetRPE: rpe, intensityMode: 'rpe' }));
+                                }));
+                            });
+                            setIsRulesModalOpen(false);
+                            addToast("Métricas aplicadas a toda la sesión", "success");
+                        }} className="w-full !py-2 !text-[10px]">Aplicar a toda la Sesión</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} title="Historial de Cambios">
+                <div className="p-2 space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                    {sessionHistory.length === 0 ? <p className="text-xs text-zinc-500">No hay cambios recientes.</p> : sessionHistory.map((hist, idx) => (
+                        <button key={idx} onClick={() => {
+                            setWeekSessions(prev => prev.map(s => s.id === activeSessionId ? JSON.parse(JSON.stringify(hist)) : s));
+                            setIsHistoryModalOpen(false);
+                            addToast("Sesión restaurada", "success");
+                        }} className="w-full text-left p-3 bg-zinc-900 border border-white/5 hover:border-white/20 rounded-xl text-xs flex justify-between items-center group">
+                            <span className="text-white font-bold group-hover:text-blue-400">Estado anterior #{sessionHistory.length - idx}</span>
+                            <span className="text-[10px] text-zinc-500 uppercase">Restaurar</span>
+                        </button>
+                    )).reverse()}
+                </div>
+            </Modal>
+
+            {/* MODAL GUARDADO ÚNICO */}
+            <Modal isOpen={isSingleSaveModalOpen} onClose={() => setIsSingleSaveModalOpen(false)} title="Confirmar Cambios">
+                <div className="p-2 space-y-4">
+                    <p className="text-sm text-zinc-300">Selecciona el día de destino para copiar <strong className="text-white">{session.name}</strong>:</p>
                 </div>
             </Modal>
 
@@ -1609,7 +1686,27 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             )}
 
             {/* --- MAIN CONTENT (Scroll Fix Applied Here) --- */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-8 bg-black">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-8 bg-black pb-32"
+                 ref={(el) => {
+                     if (el && !el.getAttribute('data-listener')) {
+                         window.addEventListener('augeAlertsUpdated', (e: any) => setGlobalSessionAlerts(e.detail));
+                         el.setAttribute('data-listener', 'true');
+                     }
+                 }}
+            >
+                {/* ALERTA CRÍTICA DE VOLUMEN BASURA */}
+                {activeSessionId !== 'empty' && globalSessionAlerts && globalSessionAlerts.length > 0 && (
+                    <div className="bg-red-950/80 border-l-4 border-red-500 p-4 rounded-r-xl shadow-2xl flex items-start gap-3 animate-slide-up sticky top-0 z-30 backdrop-blur-md">
+                        <AlertTriangleIcon className="text-red-500 shrink-0 mt-0.5" size={24} />
+                        <div>
+                            <h4 className="text-red-400 font-black uppercase tracking-widest text-[10px]">Alerta de Volumen Basura</h4>
+                            <p className="text-[10px] text-red-200 mt-1 leading-relaxed">
+                                Has superado el umbral de hipertrofia. <strong className="text-white">{globalSessionAlerts.map((a: any) => `${a.muscle} (${a.volume.toFixed(1)} s)`).join(', ')}</strong>. Continuar agregando series generará fatiga sin resultados.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {activeSessionId === 'empty' ? (
                     <div className="flex flex-col items-center justify-center h-full text-center space-y-4 pt-20">
                         <LayersIcon size={48} className="text-zinc-800" />
@@ -1716,6 +1813,27 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 </div>
                 </>
                 )}
+            </div>
+
+            {/* TABBAR CONTEXTUAL INFERIOR */}
+            <div className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/10 p-3 pb-safe flex justify-between items-center z-[100] gap-2 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
+                <button onClick={onCancel} className="flex flex-col items-center justify-center gap-1 w-14 text-zinc-500 hover:text-white transition-colors">
+                    <XIcon size={20}/>
+                    <span className="text-[8px] font-black uppercase tracking-widest">Cerrar</span>
+                </button>
+                <button onClick={() => setIsRulesModalOpen(true)} className="flex flex-col items-center justify-center gap-1 w-14 text-zinc-500 hover:text-white transition-colors">
+                    <SettingsIcon size={20}/>
+                    <span className="text-[8px] font-black uppercase tracking-widest">Reglas</span>
+                </button>
+                
+                <button onClick={handleSave} className="flex-1 bg-white text-black rounded-2xl py-3 text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-[1.02] transition-transform mx-2">
+                    Guardar
+                </button>
+
+                <button onClick={() => setIsHistoryModalOpen(true)} className="flex flex-col items-center justify-center gap-1 w-14 text-zinc-500 hover:text-white transition-colors">
+                    <ClockIcon size={20}/>
+                    <span className="text-[8px] font-black uppercase tracking-widest">Historial</span>
+                </button>
             </div>
         </div>
     );
