@@ -258,7 +258,16 @@ export interface Program {
     isPublic?: boolean;
     tags?: string[];
     background?: any; 
-    events?: { id?: string, title: string, type: string, date: string, endDate?: string, calculatedWeek: number, createMacrocycle?: boolean }[];
+    events?: { 
+        id?: string; 
+        title: string; 
+        type: string; 
+        date: string; 
+        endDate?: string; 
+        calculatedWeek: number; 
+        createMacrocycle?: boolean;
+        repeatEveryXCycles?: number; // Nueva propiedad para eventos cíclicos (Programas Simples)
+    }[];
     exerciseGoals?: Record<string, number>;
     
     // --- CONFIGURACIÓN TÉCNICA Y MOTOR LÓGICO ---

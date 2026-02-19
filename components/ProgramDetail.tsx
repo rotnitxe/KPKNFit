@@ -11,8 +11,9 @@ import {
     ClockIcon, 
     ArrowLeftIcon,
     SettingsIcon,
-    PlusIcon,       // NUEVO
-    UserBadgeIcon   // NUEVO
+    PlusIcon,
+    UserBadgeIcon,
+    TrashIcon // Añadimos TrashIcon para poder eliminar bloques/semanas
 } from './icons'; 
 import { useAppContext } from '../contexts/AppContext';
 import { WorkoutVolumeAnalysis } from './WorkoutVolumeAnalysis';
@@ -48,6 +49,7 @@ interface ProgramDetailProps {
     onAddSession?: any;
     onDeleteProgram?: any;
     onUpdateProgram?: any;
+    onStartWorkout?: any; // Añadido para corregir error 2339
 }
 
 // --- COMPONENTE TARJETA DE SESIÓN (movido antes del principal) ---
@@ -152,7 +154,8 @@ const SessionCard: React.FC<{
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            onEdit();
+                            // CRÍTICO: Aseguramos que onEdit apunte al SessionEditor correctamente
+                            onEdit(); 
                         }}
                         className="w-12 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-colors"
                         title="Editar Sesión"
@@ -190,7 +193,7 @@ const SessionCard: React.FC<{
                                         <span className="text-[9px] text-zinc-600 bg-black/50 px-1.5 py-0.5 rounded">{(exercise.sets || []).length} sets</span>
                                     </div>
                                     <div className="pl-3 border-l border-white/10">
-                                        {(exercise.sets || []).slice(0, 1).map((set, sIdx) => (
+                                        {(exercise.sets || []).slice(0, 1).map((set: any, sIdx: number) => (
                                             <p key={sIdx} className="text-[9px] text-zinc-500">
                                                 {set.targetReps} reps {set.targetRPE ? `@ RPE ${set.targetRPE}` : ''}
                                                 {(exercise.sets || []).length > 1 && <span className="italic ml-1">(+ {(exercise.sets || []).length - 1} más)</span>}
@@ -344,7 +347,10 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
 
     const weeklyAdherence = useMemo(() => {
         return currentWeeks.map((week, idx) => {
-            const logs = programLogs.filter(l => l.weekId === week.id);
+            // Corrección Error 2339: Filtramos logs buscando si el sessionId del log está en la semana actual
+            const weekSessionIds = new Set(week.sessions.map(s => s.id));
+            const logs = programLogs.filter(l => weekSessionIds.has(l.sessionId));
+            
             const completed = new Set(logs.map(l => l.sessionId)).size;
             const planned = week.sessions.length;
             const pct = planned > 0 ? Math.round((completed / planned) * 100) : 0;
@@ -770,12 +776,14 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                 >
                                                                     <div className="w-3 h-[2px] bg-zinc-800 shrink-0 mr-3" />
                                                                     <div className="flex items-center gap-2 bg-zinc-950 p-1.5 rounded-full border border-white/5">
-                                                                        {currentWeeks.map((week, wIdx) => {
+                                                                    {currentWeeks.map((week, wIdx) => {
                                                                             const isWeekSelected = week.id === selectedWeekId;
-                                                                            // Detectar si la semana contiene un evento clave
-                                                                            const hasEvent = week.sessions.some(s => {
-                                                                                try { const d = JSON.parse(s.description||'{}'); return !!d.type; } catch(e){return false;}
-                                                                            });
+                                                                            
+                                                                            // LÓGICA DE EVENTOS INTEGRADA: 1. Fechas clave específicas | 2. Eventos cíclicos (cada X ciclos)
+                                                                            const hasEvent = (program.events || []).some(e => 
+                                                                                e.calculatedWeek === wIdx || 
+                                                                                (e.repeatEveryXCycles && (wIdx + 1) % (e.repeatEveryXCycles * currentWeeks.length) === 0)
+                                                                            );
                                                                             
                                                                             return (
                                                                                 <button
@@ -1013,9 +1021,17 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                     <div key={macro.id} className="relative space-y-6">
                                                         {/* Cabecera del Macrociclo */}
                                                         <div className="flex justify-between items-center bg-[#0a0a0a] p-5 rounded-3xl border border-white/10 shadow-2xl relative z-10">
-                                                            <div className="flex items-center gap-4">
-                                                                <span className="bg-white/10 text-white text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest">Macro {macroIndex + 1}</span>
-                                                                <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">{macro.name}</h2>
+                                                            <div className="flex items-center gap-4 flex-1">
+                                                                <span className="bg-white/10 text-white text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest shrink-0">Macro {macroIndex + 1}</span>
+                                                                <input 
+                                                                    className="bg-transparent border-none p-0 text-xl md:text-2xl font-black text-white uppercase tracking-tight focus:ring-0 w-full"
+                                                                    value={macro.name}
+                                                                    onChange={(e) => {
+                                                                        const updated = JSON.parse(JSON.stringify(program));
+                                                                        updated.macrocycles[macroIndex].name = e.target.value;
+                                                                        if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                    }}
+                                                                />
                                                             </div>
                                                             <div className="text-right hidden sm:block pr-2">
                                                                 <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest block">{totalMacroWeeks}</span>
@@ -1029,48 +1045,152 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                 <div key={block.id} className="relative group">
                                                                     <div className="absolute -left-[29px] md:-left-[45px] top-8 w-4 h-4 rounded-full border-2 border-white/30 bg-[#050505] group-hover:border-blue-500 transition-colors"></div>
                                                                     <div className="bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:border-white/30 transition-all shadow-xl">
-                                                                        <div className="p-5 border-b border-white/5 bg-white/[0.02]">
-                                                                            <span className="bg-white/10 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider mb-2 inline-block">Bloque {blockIndex + 1}</span>
-                                                                            <h3 className="text-lg font-black text-white uppercase tracking-tight">{block.name}</h3>
+                                                                        <div className="p-5 border-b border-white/5 bg-white/[0.02] flex justify-between items-start">
+                                                                            <div className="flex-1">
+                                                                                <span className="bg-white/10 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider mb-2 inline-block">Bloque {blockIndex + 1}</span>
+                                                                                <input 
+                                                                                    className="bg-transparent border-none p-0 text-lg font-black text-white uppercase tracking-tight focus:ring-0 w-full block"
+                                                                                    value={block.name}
+                                                                                    onChange={(e) => {
+                                                                                        const updated = JSON.parse(JSON.stringify(program));
+                                                                                        updated.macrocycles[macroIndex].blocks[blockIndex].name = e.target.value;
+                                                                                        if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                            <button 
+                                                                                onClick={() => {
+                                                                                    if(window.confirm('¿Eliminar este bloque y todo su contenido?')) {
+                                                                                        const updated = JSON.parse(JSON.stringify(program));
+                                                                                        updated.macrocycles[macroIndex].blocks.splice(blockIndex, 1);
+                                                                                        if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                    }
+                                                                                }}
+                                                                                className="p-2 text-zinc-600 hover:text-red-500 transition-colors"
+                                                                            >
+                                                                                <TrashIcon size={14}/>
+                                                                            </button>
                                                                         </div>
-                                                                        <div className="p-5 bg-[#0a0a0a] space-y-6">
+                                                                        <div className="p-5 bg-[#0a0a0a] space-y-8 pb-10">
                                                                             {(block.mesocycles || []).map((meso, mesoIndex) => (
-                                                                                <div key={meso.id} className="space-y-4">
+                                                                                <div key={meso.id} className="space-y-5">
+                                                                                    {/* Header del Ciclo / Mesociclo */}
                                                                                     <div className="flex items-center gap-3 border-b border-white/5 pb-3">
                                                                                         <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"></div>
-                                                                                        <h4 className="text-xs font-black text-white uppercase truncate flex-1">{meso.name}</h4>
-                                                                                        <span className="bg-black text-[9px] text-gray-400 border border-white/10 rounded-lg px-2 py-1 uppercase font-bold">{meso.goal}</span>
+                                                                                        <input 
+                                                                                            className="bg-transparent border-none p-0 text-xs font-black text-white uppercase truncate flex-1 focus:ring-0"
+                                                                                            value={meso.name}
+                                                                                            onChange={(e) => {
+                                                                                                const updated = JSON.parse(JSON.stringify(program));
+                                                                                                updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].name = e.target.value;
+                                                                                                if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                            }}
+                                                                                        />
+                                                                                        <select 
+                                                                                            className="bg-black text-[9px] text-gray-400 border border-white/10 rounded-lg px-2 py-1 uppercase font-bold outline-none"
+                                                                                            value={meso.goal}
+                                                                                            onChange={(e) => {
+                                                                                                const updated = JSON.parse(JSON.stringify(program));
+                                                                                                updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].goal = e.target.value;
+                                                                                                if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                            }}
+                                                                                        >
+                                                                                            {['Acumulación', 'Intensificación', 'Realización', 'Descarga', 'Custom'].map(g => <option key={g} value={g}>{g}</option>)}
+                                                                                        </select>
+                                                                                        <button 
+                                                                                            onClick={() => {
+                                                                                                const updated = JSON.parse(JSON.stringify(program));
+                                                                                                const m = updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex];
+                                                                                                if(!m.weeks) m.weeks = [];
+                                                                                                m.weeks.push({ id: crypto.randomUUID(), name: `Semana ${m.weeks.length + 1}`, sessions: [] });
+                                                                                                if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                            }}
+                                                                                            className="p-1 text-zinc-500 hover:text-white transition-colors"
+                                                                                            title="Añadir Semana"
+                                                                                        >
+                                                                                            <PlusIcon size={14}/>
+                                                                                        </button>
                                                                                     </div>
-                                                                                    {/* Splits de Semanas */}
+                                                                                    
+                                                                                    {/* Carrusel de Semanas (Arreglo de Scroll y Edición de Nombre) */}
                                                                                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                                                                                         {(meso.weeks || []).map((week, weekIndex) => {
                                                                                             const weekPattern = Array(7).fill('Descanso');
                                                                                             week.sessions.forEach(s => {
-                                                                                                if (s.dayOfWeek >= 0 && s.dayOfWeek < 7) weekPattern[s.dayOfWeek] = s.name;
+                                                                                                // Corrección Error 18048: Guarda contra undefined
+                                                                                                if (s.dayOfWeek !== undefined && s.dayOfWeek >= 0 && s.dayOfWeek < 7) {
+                                                                                                    weekPattern[s.dayOfWeek] = s.name;
+                                                                                                }
                                                                                             });
                                                                                             return (
-                                                                                                <button 
-                                                                                                    key={week.id} 
-                                                                                                    onClick={() => setEditingWeekInfo({ macroIndex, blockIndex, mesoIndex, weekIndex, week, isSimple: false })} 
-                                                                                                    className="bg-[#161616] border border-white/5 rounded-xl p-3 flex flex-col justify-between h-24 relative overflow-hidden group/week hover:border-blue-500 hover:bg-[#1a1a1a] transition-all text-left cursor-pointer"
-                                                                                                >
-                                                                                                    <div className="flex justify-between items-start z-10 w-full mb-1">
-                                                                                                        <span className="text-[10px] font-black text-gray-400 uppercase truncate group-hover/week:text-white transition-colors">{week.name || `Semana ${weekIndex + 1}`}</span>
-                                                                                                        <EditIcon size={12} className="text-blue-500 opacity-0 group-hover/week:opacity-100 transition-opacity" />
+                                                                                                <div key={week.id} className="shrink-0 w-44 h-28 relative group/week">
+                                                                                                    <div 
+                                                                                                        onClick={() => setEditingWeekInfo({ macroIndex, blockIndex, mesoIndex, weekIndex, week, isSimple: false })} 
+                                                                                                        className="w-full h-full bg-[#161616] border border-white/5 rounded-xl p-3 flex flex-col justify-between hover:border-blue-500 hover:bg-[#1a1a1a] transition-all text-left cursor-pointer shadow-lg"
+                                                                                                    >
+                                                                                                        <div className="z-10 w-full">
+                                                                                                            <input 
+                                                                                                                className="bg-transparent border-none p-0 text-[10px] font-black text-gray-400 uppercase truncate w-full focus:ring-0 focus:text-white"
+                                                                                                                value={week.name}
+                                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                                onChange={(e) => {
+                                                                                                                    const updated = JSON.parse(JSON.stringify(program));
+                                                                                                                    updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].weeks[weekIndex].name = e.target.value;
+                                                                                                                    if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                                                }}
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                        <div className="flex gap-0.5 h-1.5 w-full mt-auto z-10">
+                                                                                                            {weekPattern.map((d, dIdx) => (
+                                                                                                                <div key={dIdx} className={`flex-1 rounded-sm ${d.toLowerCase() === 'descanso' ? 'bg-white/5' : 'bg-white group-hover/week:bg-blue-500 transition-colors'}`}></div>
+                                                                                                            ))}
+                                                                                                        </div>
                                                                                                     </div>
-                                                                                                    <div className="flex gap-0.5 h-1.5 w-full mt-auto z-10">
-                                                                                                        {weekPattern.map((d, dIdx) => (
-                                                                                                            <div key={dIdx} className={`flex-1 rounded-sm ${d.toLowerCase() === 'descanso' ? 'bg-white/5' : 'bg-white group-hover/week:bg-blue-500 transition-colors'}`}></div>
-                                                                                                        ))}
-                                                                                                    </div>
-                                                                                                </button>
+                                                                                                    <button 
+                                                                                                        onClick={(e) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            if(window.confirm('¿Borrar semana?')) {
+                                                                                                                const updated = JSON.parse(JSON.stringify(program));
+                                                                                                                updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].weeks.splice(weekIndex, 1);
+                                                                                                                if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                                            }
+                                                                                                        }}
+                                                                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover/week:opacity-100 transition-opacity z-20 shadow-xl"
+                                                                                                    >
+                                                                                                        <XIcon size={10}/>
+                                                                                                    </button>
+                                                                                                </div>
                                                                                             );
                                                                                         })}
                                                                                     </div>
                                                                                 </div>
                                                                             ))}
+                                                                            
+                                                                            {/* Botón Añadir Ciclo */}
+                                                                            <button 
+                                                                                onClick={() => {
+                                                                                    const updated = JSON.parse(JSON.stringify(program));
+                                                                                    updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles.push({ id: crypto.randomUUID(), name: 'Nuevo Ciclo', goal: 'Acumulación', weeks: [] });
+                                                                                    if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                }}
+                                                                                className="w-full py-4 bg-zinc-900/50 border border-dashed border-white/10 rounded-2xl text-[10px] font-black uppercase text-zinc-500 hover:text-white hover:border-white/30 transition-all flex items-center justify-center gap-2"
+                                                                            >
+                                                                                <PlusIcon size={14}/> Añadir Ciclo / Mesociclo
+                                                                            </button>
                                                                         </div>
                                                                     </div>
+                                                                    
+                                                                    {/* Botón Añadir Bloque (Aparece después de cada bloque) */}
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            const updated = JSON.parse(JSON.stringify(program));
+                                                                            updated.macrocycles[macroIndex].blocks.splice(blockIndex + 1, 0, { id: crypto.randomUUID(), name: 'Nuevo Bloque', mesocycles: [] });
+                                                                            if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                        }}
+                                                                        className="w-full py-4 my-4 bg-zinc-950 border-2 border-dashed border-white/5 rounded-[2rem] text-[9px] font-black uppercase tracking-widest text-zinc-800 hover:text-blue-500 hover:border-blue-500/30 transition-all flex items-center justify-center gap-3 group"
+                                                                    >
+                                                                        <PlusIcon size={14}/> Añadir Bloque Extra
+                                                                    </button>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -1155,7 +1275,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                             </button>
                                         </div>
 
-                                        <CaupolicanBody data={visualizerData} isPowerlifting={program.mode === 'powerlifting'} focusedMuscle={focusedMuscle} discomforts={programDiscomforts} onMuscleClick={(muscle, x, y) => setSelectedMusclePos({ muscle, x, y })} />
+                                        <CaupolicanBody data={visualizerData as any} isPowerlifting={program.mode === 'powerlifting'} focusedMuscle={focusedMuscle} discomforts={programDiscomforts} onMuscleClick={(muscle, x, y) => setSelectedMusclePos({ muscle, x, y })} />
 
                                         {programDiscomforts.length > 0 && (
                                             <div className="mt-6 w-full max-w-[280px]">

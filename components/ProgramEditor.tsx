@@ -1740,24 +1740,29 @@ const handleCreate = () => {
                  }
              }
 
-        } else {
-            const newMacro: Macrocycle = { id: crypto.randomUUID(), name: 'Macrociclo Principal', blocks: [] };
-            const newBlock: Block = { id: crypto.randomUUID(), name: 'Fase General', mesocycles: [] };
-            const newMeso: Mesocycle = { id: crypto.randomUUID(), name: 'Ciclo', goal: 'Acumulación', weeks: [] };
-            
-            const maxEventWeek = wizardEvents.length > 0 ? Math.max(...wizardEvents.map(e => e.calculatedWeek)) : 0;
-            const finalWeeksCount = Math.max(wizardSimpleWeeks, maxEventWeek + 1);
-
-            for (let i = 0; i < finalWeeksCount; i++) {
-                newMeso.weeks.push({ 
-                    id: crypto.randomUUID(), 
-                    name: template.id === 'simple-2' ? `Semana ${i+1} (${i % 2 === 0 ? 'A' : 'B'})` : `Semana ${i+1}`,
-                    sessions: generateSessionsForWeek(`w${i}`, i), 
-                    variant: template.id === 'simple-2' ? (i % 2 === 0 ? 'A' : 'B') : 'A' 
-                });
+            } else {
+                // LÓGICA REFINADA: PROGRAMA SIMPLE (CÍCLICO)
+                const newMacro: Macrocycle = { id: crypto.randomUUID(), name: 'Macrociclo Cíclico', blocks: [] };
+                const newBlock: Block = { id: crypto.randomUUID(), name: 'BLOQUE CÍCLICO', mesocycles: [] };
+                const newMeso: Mesocycle = { id: crypto.randomUUID(), name: 'Ciclo Base', goal: 'Custom', weeks: [] };
+                
+                // Si es A/B son solo 2 semanas. Si es lineal simple, lo que diga el wizard.
+                const isAB = template.id === 'simple-2';
+                const finalWeeksCount = isAB ? 2 : wizardSimpleWeeks;
+    
+                for (let i = 0; i < finalWeeksCount; i++) {
+                    newMeso.weeks.push({ 
+                        id: crypto.randomUUID(), 
+                        name: isAB ? `Semana ${i === 0 ? 'A' : 'B'}` : `Semana ${i+1}`,
+                        sessions: generateSessionsForWeek(`w${i}`, i), 
+                        variant: isAB ? (i === 0 ? 'A' : 'B') : 'A' 
+                    });
+                }
+                newBlock.mesocycles.push(newMeso); 
+                newMacro.blocks = [newBlock]; 
+                newProgram.macrocycles.push(newMacro);
+                newProgram.structure = 'simple';
             }
-            newBlock.mesocycles.push(newMeso); newMacro.blocks!.push(newBlock); newProgram.macrocycles.push(newMacro);
-        }
         
         newProgram.events = wizardEvents.map(e => ({ id: crypto.randomUUID(), title: e.title, type: e.type, date: e.date, endDate: e.endDate, calculatedWeek: e.calculatedWeek, createMacrocycle: e.createMacrocycle }));
         onSave(newProgram);
