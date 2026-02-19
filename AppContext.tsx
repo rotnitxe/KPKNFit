@@ -1,4 +1,3 @@
-
 // AppContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
@@ -33,7 +32,6 @@ import { cacheService } from './services/cacheService';
 import { calculateCompletedSessionStress } from './services/fatigueService';
 import { storageService } from './services/storageService';
 
-
 const AppStateContext = createContext<AppContextState | undefined>(undefined);
 const AppDispatchContext = createContext<AppContextDispatch | undefined>(undefined);
 
@@ -44,9 +42,8 @@ const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     return new Date().toISOString();
 };
 
-
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    // --- STATE MANAGEMENT ---
+    // --- 1. TODOS LOS ESTADOS (useState, useLocalStorage, hooks personalizados) ---
     const [view, setView] = useState<View>('home');
     const [historyStack, setHistoryStack] = useState<{ view: View; data?: any }[]>([{ view: 'home' }]);
 
@@ -88,23 +85,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const { unlockedAchievements, checkAndUnlock } = useAchievements();
     const { exerciseList, setExerciseList, isDbLoading, addOrUpdateCustomExercise, exportExerciseDatabase, importExerciseDatabase } = useExerciseDatabase();
-    
+
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [installPromptEvent, setInstallPromptEvent] = useState<any>(null);
     const [toasts, setToasts] = useState<ToastData[]>([]);
 
-    // Detectar cambios de conexión en tiempo real
-    useEffect(() => {
-        const handleOnline = () => setIsOnline(true);
-        const handleOffline = () => setIsOnline(false);
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
-        return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-        };
-    }, []);
-    
     // --- MODAL & SHEET STATES ---
     const [isBodyLogModalOpen, setIsBodyLogModalOpen] = useState(false);
     const [isNutritionLogModalOpen, setIsNutritionLogModalOpen] = useState(false);
@@ -126,8 +111,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [isSpecialSessionModalOpen, setIsSpecialSessionModalOpen] = useState(false);
     const [specialSessionData, setSpecialSessionData] = useState<any | null>(null);
     const [pendingNavigation, setPendingNavigation] = useState<AppContextState['pendingNavigation']>(null);
-
-    const [pendingNavigation, setPendingNavigation] = useState<AppContextState['pendingNavigation']>(null);
     const [foodItemToAdd_to_pantry, setFoodItemToAdd_to_pantry] = useState<FoodItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeSubTabs, setActiveSubTabs] = useState<AppContextState['activeSubTabs']>({});
@@ -137,14 +120,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Global Voice State
     const [isGlobalVoiceActive, setIsGlobalVoiceActive] = useState(false);
 
-
     // --- EDITING & VIEWING STATES (ID-BASED) ---
     const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
     const [editingProgramId, setEditingProgramId] = useState<string | null>(null);
     const [editingSessionInfo, setEditingSessionInfo] = useState<{ programId: string; macroIndex: number; mesoIndex: number; weekId: string; sessionId?: string; } | null>(null);
     const [loggingSessionInfo, setLoggingSessionInfo] = useState<{ programId: string; sessionId: string } | null>(null);
     const [viewingSessionInfo, setViewingSessionInfo] = useState<{ programId: string; sessionId: string; } | null>(null);
-    const [activeSession, setActiveSession] = useState<Session | null>(null); // For live workout only
+    const [activeSession, setActiveSession] = useState<Session | null>(null);
     const [viewingExerciseId, setViewingExerciseId] = useState<string | null>(null);
     const [viewingFoodId, setViewingFoodId] = useState<string | null>(null);
     const [viewingMuscleGroupId, setViewingMuscleGroupId] = useState<string | null>(null);
@@ -170,19 +152,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const restTimerInterval = useRef<number | null>(null);
     const [isDirty, setIsDirty] = useState(false);
 
+    // Google Drive hook (debe estar después de los estados que necesita, como settings y addToast, pero addToast se define después)
+    const drive = useGoogleDrive({
+        settings, addToast: (msg, type, title, duration) => addToast(msg, type, title, duration), // addToast se definirá después, pero pasamos la función que todavía no existe. Para evitarlo, definimos un placeholder o movemos el drive después de addToast. Lo mejor es mover la definición de drive después de addToast.
+        onLoad: (data: any) => {
+            if (data.programs && data.programs.length > 0) setPrograms(data.programs);
+            if (data.history && data.history.length > 0) setHistory(data.history);
+            if (data.settings && Object.keys(data.settings).length > 0) setSettings(data.settings);
+            if (data['body-progress'] && data['body-progress'].length > 0) setBodyProgress(data['body-progress']);
+            addToast('Datos sincronizados desde la nube.', 'success');
+        }
+    });
+
     const isAppLoading = isSettingsLoading || isProgramsLoading || isHistoryLoading || isSkippedLoading || isBodyProgressLoading || isNutritionLogsLoading || isDbLoading || isPantryLoading || isWaterLogsLoading || isOngoingLoading;
 
-    // --- TOASTS ---
+    // --- 2. DETECTAR CAMBIOS DE CONEXIÓN (useEffect) ---
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    // --- 3. TODOS LOS CALLBACKS (useCallback) en orden de dependencia ---
+
+    // TOASTS
     const addToast = useCallback((message: string, type: ToastData['type'] = 'success', title?: string, duration?: number) => {
         const id = Date.now();
         setToasts(prev => [...prev, { id, message, type, title, duration }]);
-    }, []);
+    }, [setToasts]);
+
     const removeToast = useCallback((id: number) => {
         setToasts(prev => prev.filter(t => t.id !== id));
-    }, []);
+    }, [setToasts]);
 
-
-    // --- RECOMENDACIONES ---
+    // RECOMENDACIONES
     const addRecommendationTrigger = useCallback((trigger: Omit<RecommendationTrigger, 'id' | 'date' | 'actionTaken'>) => {
         const newTrigger: RecommendationTrigger = {
             ...trigger,
@@ -197,8 +205,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setRecommendationTriggers(prev => prev.map(t => t.id === id ? { ...t, actionTaken: true } : t));
     }, [setRecommendationTriggers]);
 
-
-    // --- SLEEP TRACKING ---
+    // SLEEP TRACKING
     const handleLogSleep = useCallback((action: 'start' | 'end') => {
         if (action === 'start') {
             setSleepStartTime(Date.now());
@@ -223,7 +230,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     date: new Date(endTime).toISOString().split('T')[0],
                 };
 
-                setSleepLogs(prev => [...prev, newLog].slice(-100)); // Keep last 100 sleep logs
+                setSleepLogs(prev => [...prev, newLog].slice(-100));
                 setSleepStartTime(null);
                 addToast(`Dormiste ${durationHours.toFixed(1)} horas. ¡A por el día!`, 'success');
             }
@@ -235,14 +242,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setPendingQuestionnaires(prev => prev.filter(q => q.logId !== feedback.logId));
         addToast("Gracias por tu feedback.", "success");
     }, [setPostSessionFeedback, setPendingQuestionnaires, addToast]);
-    
-    // --- WATER LOGGING ---
+
+    // WATER LOGGING
     const handleLogWater = useCallback((amountMl: number) => {
         setWaterLogs(prev => [...prev, { id: crypto.randomUUID(), date: new Date().toISOString(), amountMl }]);
         addToast(`Añadidos ${amountMl}ml de agua.`, "success");
     }, [setWaterLogs, addToast]);
 
-    // --- DAILY WELLBEING ---
+    // DAILY WELLBEING
     const handleLogDailyWellbeing = useCallback((data: Omit<DailyWellbeingLog, 'id'>) => {
         const newLog: DailyWellbeingLog = { ...data, id: crypto.randomUUID() };
         setDailyWellbeingLogs(prev => {
@@ -252,8 +259,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addToast("Bienestar diario registrado.", "success");
     }, [setDailyWellbeingLogs, addToast]);
 
-
-    // --- TASKS ---
+    // TASKS
     const addTask = useCallback((task: Omit<Task, 'id' | 'completed' | 'generatedBy'>) => {
         const newTask: Task = {
             id: crypto.randomUUID(),
@@ -263,15 +269,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
         setTasks(prev => [newTask, ...prev]);
     }, [setTasks]);
-    
+
     const addAITasks = useCallback((tasks: Omit<Task, 'id' | 'completed'>[]) => {
-        const newTasks: Task[] = tasks.map(t => ({...t, id: crypto.randomUUID(), completed: false}));
+        const newTasks: Task[] = tasks.map(t => ({ ...t, id: crypto.randomUUID(), completed: false }));
         setTasks(prev => [...newTasks, ...prev]);
     }, [setTasks]);
 
-
     const toggleTask = useCallback((taskId: string) => {
-        setTasks(prev => prev.map(task => 
+        setTasks(prev => prev.map(task =>
             task.id === taskId ? { ...task, completed: !task.completed, completedDate: !task.completed ? new Date().toISOString() : undefined } : task
         ));
     }, [setTasks]);
@@ -280,6 +285,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setTasks(prev => prev.filter(task => task.id !== taskId));
     }, [setTasks]);
 
+    // EXERCISE CREATION
     const createAndAddExerciseToDB = useCallback(async (exerciseName: string): Promise<ExerciseMuscleInfo | null> => {
         addToast(`Creando "${exerciseName}" en YourLab...`, "suggestion", "IA en Progreso");
         try {
@@ -304,38 +310,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return null;
         }
     }, [settings, addOrUpdateCustomExercise, addToast]);
-    
+
     const batchAddExercises = useCallback((newExercises: ExerciseMuscleInfo[]) => {
         setExerciseList(prev => {
-          const existingNames = new Set(prev.map(ex => ex.name.toLowerCase()));
-          const nonDuplicates = newExercises.filter(
-            newEx => !existingNames.has(newEx.name.toLowerCase())
-          );
-    
-          if (nonDuplicates.length > 0) {
-            addToast(`${nonDuplicates.length} nuevos ejercicios añadidos a YourLab!`, 'success');
-          } else if (newExercises.length > 0) {
-            addToast('Todos los ejercicios sugeridos ya existen en tu base de datos.', 'suggestion');
-          }
-          return [...prev, ...nonDuplicates];
+            const existingNames = new Set(prev.map(ex => ex.name.toLowerCase()));
+            const nonDuplicates = newExercises.filter(
+                newEx => !existingNames.has(newEx.name.toLowerCase())
+            );
+
+            if (nonDuplicates.length > 0) {
+                addToast(`${nonDuplicates.length} nuevos ejercicios añadidos a YourLab!`, 'success');
+            } else if (newExercises.length > 0) {
+                addToast('Todos los ejercicios sugeridos ya existen en tu base de datos.', 'suggestion');
+            }
+            return [...prev, ...nonDuplicates];
         });
     }, [setExerciseList, addToast]);
 
-    // --- GOOGLE DRIVE BLINDADO ---
-    const drive = useGoogleDrive({
-        settings, addToast,
-        onLoad: (data: any) => {
-            if (data.programs && data.programs.length > 0) setPrograms(data.programs);
-            if (data.history && data.history.length > 0) setHistory(data.history);
-            if (data.settings && Object.keys(data.settings).length > 0) setSettings(prev => ({...prev, ...data.settings}));
-            if (data['body-progress'] && data['body-progress'].length > 0) setBodyProgress(data['body-progress']);
-            if (data['nutrition-logs'] && data['nutrition-logs'].length > 0) setNutritionLogs(data['nutrition-logs']);
-            if (data['skipped-logs'] && data['skipped-logs'].length > 0) setSkippedLogs(data['skipped-logs']);
-            addToast('Datos sincronizados desde la nube.', 'success');
-        }
-    });
-
-    // --- NAVIGATION ---
+    // NAVIGATION
     const navigateTo = useCallback((newView: View, data?: any, options?: { replace?: boolean }) => {
         const stateToPush = { view: newView, data };
         if (options?.replace) {
@@ -343,14 +335,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
             setHistoryStack(prev => [...prev, stateToPush]);
         }
-        
+
         setActiveProgramId(null); setEditingProgramId(null); setEditingSessionInfo(null);
         setLoggingSessionInfo(null); setViewingSessionInfo(null); setViewingExerciseId(null); setViewingMuscleGroupId(null);
         setViewingBodyPartId(null); setViewingChainId(null); setViewingMuscleCategoryName(null);
         setViewingFoodId(null);
 
         if (data) {
-            switch(newView) {
+            switch (newView) {
                 case 'program-detail': setActiveProgramId(data.programId); break;
                 case 'program-editor': setEditingProgramId(data.programId || null); break;
                 case 'session-editor': setEditingSessionInfo(data); break;
@@ -365,8 +357,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
         }
         setView(newView);
-    }, []);
-    
+    }, [setHistoryStack, setView, setActiveProgramId, setEditingProgramId, setEditingSessionInfo, setLoggingSessionInfo, setViewingSessionInfo, setViewingExerciseId, setViewingMuscleGroupId, setViewingBodyPartId, setViewingChainId, setViewingMuscleCategoryName, setViewingFoodId]);
+
     const handleBack = useCallback(() => {
         if (historyStack.length <= 1) return;
 
@@ -380,7 +372,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setViewingFoodId(null);
 
         if (previousState.data) {
-            switch(previousState.view) {
+            switch (previousState.view) {
                 case 'program-detail': setActiveProgramId(previousState.data.programId); break;
                 case 'program-editor': setEditingProgramId(previousState.data.programId || null); break;
                 case 'session-editor': setEditingSessionInfo(previousState.data); break;
@@ -394,14 +386,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 case 'food-detail': setViewingFoodId(previousState.data.foodId); break;
             }
         }
-        
+
         setView(previousState.view);
-    }, [historyStack]);
-    
-    // --- CRUD: Programs ---
-    const handleCreateProgram = () => navigateTo('program-editor');
-    const handleEditProgram = (programId: string) => navigateTo('program-editor', { programId });
-    
+    }, [historyStack, setHistoryStack, setView, setActiveProgramId, setEditingProgramId, setEditingSessionInfo, setLoggingSessionInfo, setViewingSessionInfo, setViewingExerciseId, setViewingMuscleGroupId, setViewingBodyPartId, setViewingChainId, setViewingMuscleCategoryName, setViewingFoodId]);
+
+    // CRUD: Programs
+    const handleCreateProgram = useCallback(() => navigateTo('program-editor'), [navigateTo]);
+    const handleEditProgram = useCallback((programId: string) => navigateTo('program-editor', { programId }), [navigateTo]);
+
     const handleSaveProgram = useCallback((program: Program) => {
         const newlyCreated = !programs.some(p => p.id === program.id);
         setPrograms(prev => {
@@ -421,19 +413,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addToast("Programa guardado.", "success");
     }, [programs, setPrograms, checkAndUnlock, addToast, navigateTo]);
 
-    const handleSelectProgram = (program: Program) => {
+    const handleSelectProgram = useCallback((program: Program) => {
         navigateTo('program-detail', { programId: program.id });
-    };
+    }, [navigateTo]);
 
-    const handleDeleteProgram = (programId: string) => {
-        if(window.confirm('¿Seguro que quieres eliminar este programa? Se perderán todos los datos asociados.')) {
+    const handleDeleteProgram = useCallback((programId: string) => {
+        if (window.confirm('¿Seguro que quieres eliminar este programa? Se perderán todos los datos asociados.')) {
             setPrograms(prev => prev.filter(p => p.id !== programId));
             setHistory(prev => prev.filter(h => h.programId !== programId));
             navigateTo('home', undefined, { replace: true });
         }
-    };
-    
-    // --- Active Program Management ---
+    }, [setPrograms, setHistory, navigateTo]);
+
+    // Active Program Management
     const handleStartProgram = useCallback((programId: string) => {
         const program = programs.find(p => p.id === programId);
         if (!program) {
@@ -480,26 +472,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const handleRestartProgram = useCallback(() => {
         if (activeProgramState) {
             if (window.confirm("¿Seguro que quieres reiniciar el progreso de este programa? Se perderá tu posición actual.")) {
-                handleStartProgram(activeProgramState.programId); // Re-use the start logic
+                handleStartProgram(activeProgramState.programId);
             }
         }
     }, [activeProgramState, handleStartProgram]);
-    
 
-    // --- CRUD: Sessions ---
-    const handleAddSession = (programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
-        navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId }); // No sessionId for new session
-    };
-    const handleEditSession = (programId: string, macroIndex: number, mesoIndex: number, weekId: string, sessionId: string) => {
+    // CRUD: Sessions
+    const handleAddSession = useCallback((programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
+        navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId });
+    }, [navigateTo]);
+
+    const handleEditSession = useCallback((programId: string, macroIndex: number, mesoIndex: number, weekId: string, sessionId: string) => {
         navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, sessionId });
-    };
+    }, [navigateTo]);
 
     const handleUpdateSessionInProgram = useCallback((session: Session, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
         setPrograms(prevPrograms => {
             const newPrograms = JSON.parse(JSON.stringify(prevPrograms));
             const program = newPrograms.find((p: Program) => p.id === programId);
             if (!program) return prevPrograms;
-    
+
             const macro = program.macrocycles[macroIndex];
             if (macro) {
                 let mesoCount = 0;
@@ -511,12 +503,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         if (week) {
                             const sessionIndex = week.sessions.findIndex((s: Session) => s.id === session.id);
                             if (sessionIndex > -1) {
-                                week.sessions[sessionIndex] = session; // Update existing
+                                week.sessions[sessionIndex] = session;
                             } else {
-                                week.sessions.push(session); // Add new
+                                week.sessions.push(session);
                             }
                         }
-                        return newPrograms; // Exit after finding and updating
+                        return newPrograms;
                     }
                     mesoCount += block.mesocycles.length;
                 }
@@ -525,14 +517,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return prevPrograms;
         });
     }, [setPrograms]);
-    
-    const handleSaveSession = useCallback((session: Session, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
-        handleUpdateSessionInProgram(session, programId, macroIndex, mesoIndex, weekId);
+
+    const handleSaveSession = useCallback((sessionOrSessions: Session | Session[], programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
+        if (Array.isArray(sessionOrSessions)) {
+            sessionOrSessions.forEach(session => {
+                handleUpdateSessionInProgram(session, programId, macroIndex, mesoIndex, weekId);
+            });
+        } else {
+            handleUpdateSessionInProgram(sessionOrSessions, programId, macroIndex, mesoIndex, weekId);
+        }
         handleBack();
     }, [handleUpdateSessionInProgram, handleBack]);
 
-    const handleDeleteSession = (sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
-         if(window.confirm('¿Seguro que quieres eliminar esta sesión?')) {
+    const handleDeleteSession = useCallback((sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
+        if (window.confirm('¿Seguro que quieres eliminar esta sesión?')) {
             setPrograms(prevPrograms => {
                 const newPrograms = JSON.parse(JSON.stringify(prevPrograms));
                 const program = newPrograms.find((p: Program) => p.id === programId);
@@ -549,7 +547,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             if (week) {
                                 week.sessions = week.sessions.filter((s: Session) => s.id !== sessionId);
                             }
-                            return newPrograms; // Exit after finding and deleting
+                            return newPrograms;
                         }
                         mesoCount += block.mesocycles.length;
                     }
@@ -557,18 +555,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 return newPrograms;
             });
         }
-    };
-    
-    // --- WORKOUT LOGIC ---
+    }, [setPrograms]);
+
+    // WORKOUT LOGIC
     const onCancelWorkout = useCallback(() => {
         if (window.confirm('¿Estás seguro de que quieres cancelar el entrenamiento? No se guardará el progreso.')) {
             setOngoingWorkout(null);
             setActiveSession(null);
             setView('home');
             setHistoryStack([{ view: 'home' }]);
-            if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.WARNING);
+            if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.WARNING as any);
         }
-    }, [setOngoingWorkout, settings.hapticFeedbackEnabled]);
+    }, [setOngoingWorkout, setActiveSession, setView, setHistoryStack, settings.hapticFeedbackEnabled]);
 
     const handleStartWorkout = useCallback(async (session: Session, program: Program, weekVariant?: 'A' | 'B' | 'C' | 'D', location?: { macroIndex: number, mesoIndex: number, weekId: string }, isLowEnergyMental?: boolean) => {
         let sessionToStart = session;
@@ -589,23 +587,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 const modifiedSessionData = plan.modifiedSessions.find(s => s.id === session.id);
                 if (modifiedSessionData) {
                     const originalSessionClone = JSON.parse(JSON.stringify(session));
-                    
+
                     originalSessionClone.exercises = originalSessionClone.exercises.map((originalEx: Exercise) => {
                         const modifiedEx = modifiedSessionData.exercises.find((ex: any) => ex.id === originalEx.id);
                         if (!modifiedEx) return originalEx;
-            
+
                         const updatedSets = originalEx.sets.map((originalSet: ExerciseSet) => {
                             const modifiedSet = modifiedEx.sets.find((s: any) => s.id === originalSet.id);
                             return modifiedSet ? { ...originalSet, ...modifiedSet } : originalSet;
                         });
-            
+
                         const newSets = modifiedEx.sets.filter((ms: any) => !originalEx.sets.some((os: ExerciseSet) => os.id === ms.id));
-            
+
                         return { ...originalEx, ...modifiedEx, sets: [...updatedSets, ...newSets] };
                     });
-                    
+
                     sessionToStart = { ...originalSessionClone, ...modifiedSessionData, exercises: originalSessionClone.exercises };
-            
+
                     sessionToStart.exercises.forEach((ex: Exercise) => {
                         if (ex.trainingMode === 'percent' && ex.calculated1RM) {
                             ex.sets.forEach((set: ExerciseSet) => {
@@ -635,13 +633,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 addToast("Coach IA no disponible. Cargando sesión original.", "suggestion");
             }
         }
-        
+
         const startWorkoutFlow = (sessionToBegin: Session, readiness?: OngoingWorkoutState['readiness']) => {
             const activeMode = weekVariant || 'A';
             const exercisesForMode = (activeMode === 'A' || !(sessionToBegin as any)[`session${activeMode}`])
                 ? (sessionToBegin.parts && sessionToBegin.parts.length > 0 ? sessionToBegin.parts.flatMap(p => p.exercises) : sessionToBegin.exercises)
                 : ((sessionToBegin as any)[`session${activeMode}`].parts && (sessionToBegin as any)[`session${activeMode}`].parts.length > 0 ? (sessionToBegin as any)[`session${activeMode}`].parts.flatMap((p: any) => p.exercises) : (sessionToBegin as any)[`session${activeMode}`].exercises);
-            
+
             const newState: OngoingWorkoutState = {
                 programId: program.id,
                 session: sessionToBegin,
@@ -658,13 +656,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 macroIndex: location?.macroIndex,
                 mesoIndex: location?.mesoIndex,
                 weekId: location?.weekId,
-                isLowEnergyMental: isLowEnergyMental || false, 
+                isLowEnergyMental: isLowEnergyMental || false,
             };
             setOngoingWorkout(newState);
             setActiveSession(sessionToBegin);
             navigateTo('workout');
-            if (settings.hapticFeedbackEnabled) hapticImpact(ImpactStyle.Heavy);
+            if (settings.hapticFeedbackEnabled) hapticImpact(ImpactStyle.Heavy as any);
         };
+
+        setPendingWorkoutAfterBriefing(null);
 
         if (settings.readinessCheckEnabled && !ongoingWorkout) {
             setPendingWorkoutForReadinessCheck({ session: sessionToStart, program, weekVariant, location });
@@ -672,7 +672,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
             startWorkoutFlow(sessionToStart, ongoingWorkout?.readiness);
         }
-    }, [addToast, settings, history, setOngoingWorkout, navigateTo, ongoingWorkout, setPendingWorkoutForReadinessCheck, setIsReadinessModalOpen]);
+    }, [addToast, settings, history, setOngoingWorkout, setActiveSession, navigateTo, ongoingWorkout, setPendingWorkoutForReadinessCheck, setIsReadinessModalOpen]);
 
     const handleUpdateExerciseRepDebt = useCallback((exerciseDbId: string, debtUpdate: Record<string, number>) => {
         setExerciseList(prev => prev.map(ex => {
@@ -689,18 +689,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }));
     }, [setExerciseList]);
 
-    const handleContinueFromReadiness = (data: any) => {
+    const handleContinueFromReadiness = useCallback((data: any) => {
         if (pendingWorkoutForReadinessCheck) {
             const { session, program, weekVariant, location } = pendingWorkoutForReadinessCheck;
             const readinessScore = Math.round(((data.sleepQuality + (6 - data.stressLevel) + (6 - data.doms) + data.motivation) / 20) * 100);
             const readinessData = { ...data, readinessScore };
-            
+
             const start = () => {
                 const activeMode = weekVariant || 'A';
                 const exercisesForMode = (activeMode === 'A' || !(session as any)[`session${activeMode}`])
                     ? (session.parts && session.parts.length > 0 ? session.parts.flatMap(p => p.exercises) : session.exercises)
                     : ((session as any)[`session${activeMode}`].parts && (session as any)[`session${activeMode}`].parts.length > 0 ? (session as any)[`session${activeMode}`].parts.flatMap((p: any) => p.exercises) : (session as any)[`session${activeMode}`].exercises);
-                
+
                 const newState: OngoingWorkoutState = {
                     programId: program.id,
                     session,
@@ -721,20 +721,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 setOngoingWorkout(newState);
                 setActiveSession(session);
                 navigateTo('workout');
-                if (settings.hapticFeedbackEnabled) hapticImpact(ImpactStyle.Heavy);
+                if (settings.hapticFeedbackEnabled) hapticImpact(ImpactStyle.Heavy as any);
             };
             start();
         }
         setIsReadinessModalOpen(false);
         setPendingWorkoutForReadinessCheck(null);
-    };
+    }, [pendingWorkoutForReadinessCheck, setOngoingWorkout, setActiveSession, navigateTo, settings.hapticFeedbackEnabled]);
 
     const handleContinueWorkoutAfterBriefing = useCallback(() => {
         if (!pendingWorkoutAfterBriefing) return;
-        
+
         const { session, program, weekVariant, location } = pendingWorkoutAfterBriefing;
         const readinessData = ongoingWorkout?.readiness;
-    
+        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.WARNING as any);
         const activeMode = weekVariant || 'A';
         const exercisesForMode = (activeMode === 'A' || !(session as any)[`session${activeMode}`])
             ? (session.parts && session.parts.length > 0 ? session.parts.flatMap(p => p.exercises) : session.exercises)
@@ -761,21 +761,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setOngoingWorkout(newState);
         setActiveSession(session);
         navigateTo('workout');
-        if (settings.hapticFeedbackEnabled) hapticImpact(ImpactStyle.Heavy);
-    
+        if (settings.hapticFeedbackEnabled) hapticImpact(ImpactStyle.Heavy as any);
+
         setPendingWorkoutAfterBriefing(null);
         setPendingCoachBriefing(null);
-    }, [pendingWorkoutAfterBriefing, ongoingWorkout, setOngoingWorkout, navigateTo, settings.hapticFeedbackEnabled, setPendingCoachBriefing, setPendingWorkoutAfterBriefing]);
+    }, [pendingWorkoutAfterBriefing, ongoingWorkout, setOngoingWorkout, setActiveSession, navigateTo, settings.hapticFeedbackEnabled]);
 
     const handleFinishWorkout = useCallback((
-        completedExercises: CompletedExercise[], 
-        duration: number, 
-        notes?: string, 
-        discomforts?: string[], 
-        fatigue?: number, 
-        clarity?: number, 
-        logDate?: string, 
-        photoUri?: string, 
+        completedExercises: CompletedExercise[],
+        duration: number,
+        notes?: string,
+        discomforts?: string[],
+        fatigue?: number,
+        clarity?: number,
+        logDate?: string,
+        photoUri?: string,
         planDeviations?: PlanDeviation[],
         focus?: number,
         pump?: number,
@@ -784,14 +784,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         planAdherenceTags?: string[]
     ) => {
         if (!ongoingWorkout) return;
-        
+
         const logId = crypto.randomUUID();
         const sessionStressScore = calculateCompletedSessionStress(completedExercises, exerciseList);
 
         // --- SISTEMA AUGE: TRIGGER DE PROTOCOLO DE COMPENSACIÓN (PCE) INTERACTIVO ---
         if (sessionStressScore > 200) {
-            // 1. Calcular hora promedio de despertar (Cronobiología)
-            let avgWakeHour = 7; 
+            let avgWakeHour = 7;
             let avgWakeMinute = 0;
             if (sleepLogs && sleepLogs.length > 0) {
                 const recentLogs = sleepLogs.slice(0, 5);
@@ -801,26 +800,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 avgWakeHour = Math.floor(avgMinutesTotal / 60);
                 avgWakeMinute = avgMinutesTotal % 60;
             }
-            
-            // 2. Calcular hora exacta de ir a dormir (9 horas de retroceso)
+
             let suggestedSleepHour = (avgWakeHour - 9 + 24) % 24;
             const pad = (n: number) => n.toString().padStart(2, '0');
             const suggestedSleepTime = `${pad(suggestedSleepHour)}:${pad(avgWakeMinute)}`;
             const wakeTimeStr = `${pad(avgWakeHour)}:${pad(avgWakeMinute)}`;
 
-            // 3. Empaquetar datos y disparar evento global para levantar el Modal
             const pceData = {
                 score: Math.round(sessionStressScore),
                 suggestedCalories: settings.dailyCalorieGoal ? settings.dailyCalorieGoal + 350 : null,
                 suggestedSleepTime,
                 wakeTimeStr,
-                isExtreme: sessionStressScore > 350 // Umbral para cancelar el día vs solo reducir carga
+                isExtreme: sessionStressScore > 350
             };
-            
-            // Retraso de 1.5 segundos para dejar que la animación de "Entrenamiento Finalizado" termine y no interrumpir la UX
+
             setTimeout(() => {
                 window.dispatchEvent(new CustomEvent('auge-pce-triggered', { detail: pceData }));
-            }, 1500); 
+            }, 1500);
         }
 
         const newLog: Omit<WorkoutLog, 'id'> & { id: string } = {
@@ -848,7 +844,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             planAdherenceTags,
             sessionStressScore,
         };
-        
+
         const validationResult = WorkoutLogSchema.safeParse(newLog);
 
         if (!validationResult.success) {
@@ -859,7 +855,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         const validatedLog = validationResult.data;
 
-        // PRIORITIZE CLEARING STATE TO AVOID UI GLITCHES
         setOngoingWorkout(null);
         setActiveSession(null);
         setIsFinishModalOpen(false);
@@ -883,7 +878,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
             saveLog(validatedLog);
         }
-        
+
         completedExercises.forEach(ex => {
             if (!ex.exerciseDbId) return;
             const exerciseInfo = exerciseList.find(e => e.id === ex.exerciseDbId);
@@ -896,7 +891,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             originalExercise.sets.forEach(originalSet => {
                 const debtContextKey = getRepDebtContextKey(originalSet);
                 const historicalDebt = (exerciseInfo.repDebtHistory || {})[debtContextKey] || 0;
-                
+
                 const completedSet = ex.sets.find(cs => cs.id.startsWith(originalSet.id));
                 const completedReps = completedSet?.completedReps;
                 const targetReps = originalSet.targetReps;
@@ -909,10 +904,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             });
 
             if (Object.keys(debtUpdate).length > 0) {
-                 handleUpdateExerciseRepDebt(ex.exerciseDbId, debtUpdate);
+                handleUpdateExerciseRepDebt(ex.exerciseDbId, debtUpdate);
             }
         });
-        
+
         const finishedProgram = programs.find(p => p.id === ongoingWorkout.programId);
         if (finishedProgram?.carpeDiemEnabled) {
             const weekId = getWeekId(new Date(), settings.startWeekOn);
@@ -921,10 +916,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         navigateTo('home', undefined, { replace: true });
         playSound('session-complete-sound');
-        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS);
-    }, [ongoingWorkout, programs, settings, history, setHistory, checkAndUnlock, setOngoingWorkout, setIsFinishModalOpen, navigateTo, addToast, isOnline, setSyncQueue, exerciseList, handleUpdateExerciseRepDebt]);
-    
-     const handleSaveLoggedWorkout = useCallback((log: WorkoutLog) => {
+        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS as any);
+    }, [ongoingWorkout, programs, settings, history, setHistory, setOngoingWorkout, setActiveSession, setIsFinishModalOpen, checkAndUnlock, addToast, isOnline, setSyncQueue, exerciseList, handleUpdateExerciseRepDebt, navigateTo, sleepLogs]);
+
+    const handleSaveLoggedWorkout = useCallback((log: WorkoutLog) => {
         const newHistory = [...history, log];
         setHistory(newHistory);
         try {
@@ -937,10 +932,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         handleBack();
         addToast("Entrenamiento registrado con éxito.", "success");
-        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS);
+        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS as any);
     }, [history, setHistory, checkAndUnlock, handleBack, addToast, settings.hapticFeedbackEnabled]);
 
-    // --- Other handlers ---
+    // Other handlers
     const handleUpdateExercise1RM = useCallback((exerciseDbId: string | undefined, exerciseName: string, weight: number, reps: number, testDate?: string, machineBrand?: string) => {
         if (!exerciseDbId) return;
         const new1RM = calculateBrzycki1RM(weight, reps);
@@ -961,14 +956,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     last1RMTestDate: testDate
                 };
                 playSound('new-pr-sound');
-                hapticNotification(NotificationType.SUCCESS);
+                hapticNotification(NotificationType.SUCCESS as any);
                 addToast(`¡Nuevo PR en ${exerciseName}! ${weight}${settings.weightUnit} x ${reps} reps`, 'achievement');
                 return newList;
             }
             return prevList;
         });
-    }, [setExerciseList, addToast, settings.weightUnit, hapticNotification]);
-    
+    }, [setExerciseList, addToast, settings.weightUnit]);
+
     const handleUpdateExerciseBrandPR = useCallback((exerciseDbId: string, brand: string, pr: { weight: number, reps: number, e1rm: number }) => {
         setExerciseList(prev => prev.map(ex => {
             if (ex.id === exerciseDbId) {
@@ -988,23 +983,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const openCustomExerciseEditor = useCallback((data?: CustomExerciseModalData) => {
         setEditingCustomExerciseData(data || null);
         setIsCustomExerciseEditorOpen(true);
-    }, []);
+    }, [setEditingCustomExerciseData, setIsCustomExerciseEditorOpen]);
 
     const closeCustomExerciseEditor = useCallback(() => {
         setIsCustomExerciseEditorOpen(false);
         setEditingCustomExerciseData(null);
-    }, []);
-    
+    }, [setIsCustomExerciseEditorOpen, setEditingCustomExerciseData]);
+
     const openFoodEditor = useCallback((data?: { food?: FoodItem; preFilledName?: string }) => {
         setEditingFoodData(data || null);
         setIsFoodEditorOpen(true);
-    }, []);
+    }, [setEditingFoodData, setIsFoodEditorOpen]);
 
     const closeFoodEditor = useCallback(() => {
         setIsFoodEditorOpen(false);
         setEditingFoodData(null);
-    }, []);
-    
+    }, [setIsFoodEditorOpen, setEditingFoodData]);
+
     const addOrUpdateFoodItem = useCallback((food: FoodItem) => {
         setFoodDatabase(prev => {
             const index = prev.findIndex(f => f.id === food.id);
@@ -1020,33 +1015,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const openMuscleListEditor = useCallback((categoryName: string, type: 'bodyPart' | 'special') => {
         setEditingCategoryInfo({ name: categoryName, type });
         setIsMuscleListEditorOpen(true);
-    }, []);
-    
+    }, [setEditingCategoryInfo, setIsMuscleListEditorOpen]);
+
     const closeMuscleListEditor = useCallback(() => {
         setIsMuscleListEditorOpen(false);
         setEditingCategoryInfo(null);
-    }, []);
+    }, [setIsMuscleListEditorOpen, setEditingCategoryInfo]);
 
     const handleStartRest = useCallback((duration: number, exerciseName: string) => {
         if (restTimerInterval.current) clearInterval(restTimerInterval.current);
-        
+
         const key = Date.now();
         const endTime = Date.now() + duration * 1000;
-        
+
         setRestTimer({ duration, remaining: duration, key, exerciseName, endTime });
-        
+
         restTimerInterval.current = window.setInterval(() => {
             setRestTimer(currentTimer => {
                 if (currentTimer && currentTimer.key === key) {
                     const newRemaining = Math.max(0, Math.round((currentTimer.endTime - Date.now()) / 1000));
-                    
+
                     if (newRemaining <= 0) {
                         clearInterval(restTimerInterval.current!);
                         if (currentTimer.remaining > 0) {
                             playSound('rest-timer-sound');
                             if (settings.hapticFeedbackEnabled) {
-                                hapticNotification(NotificationType.SUCCESS);
-                                setTimeout(() => hapticImpact(ImpactStyle.Medium), 150);
+                                hapticNotification(NotificationType.SUCCESS as any);
+                                setTimeout(() => hapticImpact(ImpactStyle.Medium as any), 150);
                             }
                         }
                         setTimeout(() => setRestTimer(t => t?.key === key ? null : t), 3000);
@@ -1069,12 +1064,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const newRemaining = Math.max(0, currentTimer.remaining + amountInSeconds);
             return { ...currentTimer, remaining: newRemaining, endTime: newEndTime };
         });
-    }, []);
-    
+    }, [setRestTimer]);
+
     const handleSkipRestTimer = useCallback(() => {
         if (restTimerInterval.current) clearInterval(restTimerInterval.current);
         setRestTimer(null);
-    }, []);
+    }, [setRestTimer]);
 
     const handleModifyWorkout = useCallback(() => {
         if (!ongoingWorkout) return;
@@ -1082,15 +1077,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!program) return;
         let sessionInfo;
         program.macrocycles.forEach((macro, macroIndex) => {
-            if(sessionInfo) return;
+            if (sessionInfo) return;
             let mesoCount = 0;
             (macro.blocks || []).forEach(block => {
                 if (sessionInfo) return;
                 block.mesocycles.forEach((meso, mesoIndex) => {
-                    if(sessionInfo) return;
+                    if (sessionInfo) return;
                     meso.weeks.forEach(week => {
-                        if(sessionInfo) return;
-                        if(week.sessions.some(s => s.id === ongoingWorkout.session.id)) {
+                        if (sessionInfo) return;
+                        if (week.sessions.some(s => s.id === ongoingWorkout.session.id)) {
                             sessionInfo = { session: ongoingWorkout.session, programId: program.id, macroIndex, mesoIndex: mesoCount + mesoIndex, weekId: week.id };
                         }
                     });
@@ -1105,13 +1100,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             addToast("No se pudo encontrar la sesión original para modificar.", "danger");
         }
     }, [ongoingWorkout, programs, addToast]);
-    
+
     const handleSaveModifiedWorkout = useCallback((session: Session) => {
         setOngoingWorkout(prev => prev ? ({ ...prev, session }) : null);
         setIsWorkoutEditorOpen(false);
         setEditingWorkoutSessionInfo(null);
         addToast("Sesión en curso modificada.", "success");
-    }, [setOngoingWorkout, addToast]);
+    }, [setOngoingWorkout, setIsWorkoutEditorOpen, setEditingWorkoutSessionInfo, addToast]);
 
     const handleSaveBodyLog = useCallback((log: BodyProgressLog) => {
         setBodyProgress(prev => [...prev, log]);
@@ -1138,12 +1133,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const openAddPantryItemModal = useCallback((foodItem: FoodItem) => {
         setFoodItemToAdd_to_pantry(foodItem);
         setIsAddPantryItemModalOpen(true);
-    }, []);
+    }, [setFoodItemToAdd_to_pantry, setIsAddPantryItemModalOpen]);
 
     const closeAddPantryItemModal = useCallback(() => {
         setIsAddPantryItemModalOpen(false);
         setFoodItemToAdd_to_pantry(null);
-    }, []);
+    }, [setIsAddPantryItemModalOpen, setFoodItemToAdd_to_pantry]);
 
     const handleCopySessionsToMeso = useCallback((programId: string, macroIndex: number, mesoIndex: number) => {
         setPrograms(prev => {
@@ -1171,6 +1166,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         _setBodyLabAnalysis(analysis);
     }, [_setBodyLabAnalysis]);
 
+    // --- 4. VALORES DEL CONTEXTO ---
     const stateValue: AppContextState = {
         view, historyStack, programs, history, skippedLogs, settings, bodyProgress, nutritionLogs, pantryItems, tasks,
         exercisePlaylists, muscleGroupData, muscleHierarchy, exerciseList, foodDatabase, unlockedAchievements,
@@ -1196,13 +1192,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sleepLogs,
         sleepStartTime,
         isGlobalVoiceActive,
-        recommendationTriggers, 
-        waterLogs, 
-        isMenuOpen, 
+        recommendationTriggers,
+        waterLogs,
+        isMenuOpen,
     };
 
     const dispatchValue: AppContextDispatch = {
-        setPrograms, setHistory, setSkippedLogs, setSettings, setBodyProgress, setNutritionLogs, setPantryItems, 
+        setPrograms, setHistory, setSkippedLogs, setSettings, setBodyProgress, setNutritionLogs, setPantryItems,
         addOrUpdatePantryItem, setTasks, addTask, addAITasks, toggleTask, deleteTask,
         setExercisePlaylists, addOrUpdatePlaylist: (playlist) => setExercisePlaylists(prev => {
             const index = prev.findIndex(p => p.id === playlist.id);
@@ -1213,10 +1209,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
             return [...prev, playlist];
         }),
-        deletePlaylist: (playlistId) => setExercisePlaylists(prev => prev.filter(p => p.id !== playlistId)), 
-        setMuscleGroupData, updateMuscleGroupInfo: (id, data) => setMuscleGroupData(prev => prev.map(m => m.id === id ? {...m, ...data} : m)), 
-        setMuscleHierarchy, 
-        renameMuscleCategory: () => {}, renameMuscleGroup: () => {},
+        deletePlaylist: (playlistId) => setExercisePlaylists(prev => prev.filter(p => p.id !== playlistId)),
+        setMuscleGroupData, updateMuscleGroupInfo: (id, data) => setMuscleGroupData(prev => prev.map(m => m.id === id ? { ...m, ...data } : m)),
+        setMuscleHierarchy,
+        renameMuscleCategory: () => { }, renameMuscleGroup: () => { },
         updateCategoryMuscles: (categoryName, newMuscles, type) => setMuscleHierarchy(prev => {
             const newHierarchy = JSON.parse(JSON.stringify(prev));
             if (type === 'bodyPart') newHierarchy.bodyPartHierarchy[categoryName] = newMuscles;
@@ -1250,16 +1246,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         handleUpdateExerciseInProgram: (programId, sessionId, exerciseId, updatedExercise) => {
             setPrograms(prev => {
                 const newPrograms = JSON.parse(JSON.stringify(prev));
-                for (const prog of newPrograms) { if (prog.id === programId) {
-                    for (const macro of prog.macrocycles) { for (const block of (macro.blocks || [])) {
-                        for (const meso of block.mesocycles) { for (const week of meso.weeks) {
-                            for (const session of week.sessions) { if (session.id === sessionId) {
-                                const exIndex = session.exercises.findIndex((ex: Exercise) => ex.id === exerciseId);
-                                if (exIndex > -1) { session.exercises[exIndex] = updatedExercise; return newPrograms; }
-                            }}
-                        }}
-                    }}
-                }}
+                for (const prog of newPrograms) {
+                    if (prog.id === programId) {
+                        for (const macro of prog.macrocycles) {
+                            for (const block of (macro.blocks || [])) {
+                                for (const meso of block.mesocycles) {
+                                    for (const week of meso.weeks) {
+                                        for (const session of week.sessions) {
+                                            if (session.id === sessionId) {
+                                                const exIndex = session.exercises.findIndex((ex: Exercise) => ex.id === exerciseId);
+                                                if (exIndex > -1) {
+                                                    session.exercises[exIndex] = updatedExercise;
+                                                    return newPrograms;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 return prev;
             });
         },
