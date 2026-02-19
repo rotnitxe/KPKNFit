@@ -1,0 +1,211 @@
+
+// utils/calculations.ts
+import { Exercise, ExerciseSet, Settings, WorkoutLog, ExerciseMuscleInfo } from '../types';
+
+export const REP_TO_PERCENT_1RM: { [key: number]: number } = {
+    1: 100, 2: 95, 3: 93, 4: 90, 5: 87, 6: 85, 7: 83, 8: 80, 9: 77, 10: 75,
+    11: 73, 12: 70, 13: 68, 14: 67, 15: 65,
+};
+
+export const rpeToRir = (rpe: number): number => Math.max(0, 10 - Math.max(0, rpe));
+export const rirToRpe = (rir: number): number => Math.max(0, 10 - Math.max(0, rir));
+
+export const calculateBrzycki1RM = (weight: number, reps: number, isAmrap: boolean = false): number => {
+  if (!weight || weight <= 0 || !reps || reps <= 0) return 0;
+  if (reps === 1) return weight;
+  const effectiveReps = Math.min(reps, 30);
+  let e1rm = weight * (36 / (37 - effectiveReps));
+  if (isAmrap && reps > 3) e1rm = e1rm * 1.025;
+  return parseFloat(e1rm.toFixed(1));
+};
+
+export const calculateWeightFrom1RM = (e1rm: number, reps: number): number => {
+  if (reps <= 0 || e1rm <= 0) return 0;
+  if (reps === 1) return e1rm;
+  const effectiveReps = Math.min(reps, 30);
+  return Math.max(0, e1rm * ((37 - effectiveReps) / 36));
+};
+
+export const getOrderedDaysOfWeek = (startWeekOn: number) => {
+    const days = [
+        { label: 'Domingo', value: 0 },
+        { label: 'Lunes', value: 1 },
+        { label: 'Martes', value: 2 },
+        { label: 'Miércoles', value: 3 },
+        { label: 'Jueves', value: 4 },
+        { label: 'Viernes', value: 5 },
+        { label: 'Sábado', value: 6 }
+    ];
+    const startIndex = days.findIndex(d => d.value === startWeekOn);
+    return [...days.slice(startIndex), ...days.slice(0, startIndex)];
+};
+
+export const getWeekId = (date: Date, startWeekOn: number): string => {
+    const d = new Date(date.getTime());
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay();
+    let diff = day - startWeekOn;
+    if (diff < 0) diff += 7;
+    d.setDate(d.getDate() - diff);
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+};
+
+export const formatLargeNumber = (num: number): string => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 10000) return `${(num / 1000).toFixed(0)}k`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+    return num.toLocaleString('es-ES');
+};
+
+export const roundWeight = (weight: number, unit: 'kg' | 'lbs') => {
+    if (!weight || weight <= 0) return 0;
+    const step = unit === 'kg' ? 1.25 : 2.5;
+    const rounded = Math.round(weight / step) * step;
+    return parseFloat(rounded.toFixed(1)); // Máximo un decimal como pidió el usuario
+};
+
+// Fixed calculateIPFGLPoints to handle wider gender strings
+export const calculateIPFGLPoints = (totalLifted: number, bodyWeight: number, options: { gender: string; equipment: 'classic' | 'equipped'; lift: 'total' | 'bench' | 'squat' | 'deadlift'; weightUnit: 'kg' | 'lbs'; }): number => {
+    if (!totalLifted || totalLifted <= 0 || !bodyWeight || bodyWeight <= 0) return 0;
+    const { gender, equipment, weightUnit } = options;
+    const genderKey = (gender === 'female' || gender === 'transfemale') ? 'female' : 'male';
+    let bwInKg = weightUnit === 'lbs' ? bodyWeight * 0.45359237 : bodyWeight;
+    const totalInKg = weightUnit === 'lbs' ? totalLifted * 0.45359237 : totalLifted;
+    if (genderKey === 'male' && bwInKg < 40) bwInKg = 40;
+    if (genderKey === 'female' && bwInKg < 35) bwInKg = 35;
+    const COEFFS = {
+        male: { 'equipped-total': { A: 1236.25115, B: 1449.21864, C: 0.01644 }, 'classic-total': { A: 1199.72839, B: 1025.18162, C: 0.00921 } },
+        female: { 'equipped-total': { A: 758.63878, B: 949.31382, C: 0.02435 }, 'classic-total': { A: 610.32796, B: 1045.59282, C: 0.03048 } }
+    };
+    const liftKey = `${equipment}-total`; 
+    const coeffs = (COEFFS[genderKey] as any)[liftKey];
+    if (!coeffs) return 0;
+    const { A, B, C } = coeffs;
+    const denominator = A - B * Math.exp(-C * bwInKg);
+    if (denominator === 0) return 0;
+    const coefficient = 100 / denominator;
+    return parseFloat((coefficient * totalInKg).toFixed(2));
+};
+
+export const calculateFFMI = (heightCm: number, weightKg: number, bodyFatPercent: number) => {
+    if (!heightCm || heightCm <= 0 || !weightKg || weightKg <= 0 || bodyFatPercent === undefined || bodyFatPercent < 0) return null;
+    const heightM = heightCm / 100;
+    const leanBodyMass = weightKg * (1 - (bodyFatPercent / 100));
+    const ffmi = leanBodyMass / (heightM * heightM);
+    const normalizedFfmi = ffmi + 6.1 * (1.8 - heightM);
+    let interpretation = 'Novato';
+    if (normalizedFfmi >= 26) interpretation = 'Superior/Elite';
+    else if (normalizedFfmi >= 22) interpretation = 'Excelente';
+    else if (normalizedFfmi >= 20) interpretation = 'Promedio';
+    return { ffmi: ffmi.toFixed(1), normalizedFfmi: normalizedFfmi.toFixed(1), interpretation, leanBodyMass: leanBodyMass.toFixed(1) };
+};
+
+export const getWeightSuggestionForSet = (
+    exercise: Exercise,
+    exerciseInfo: ExerciseMuscleInfo | undefined,
+    setIndex: number,
+    completedSetsForExercise: { reps?: number, weight: number, machineBrand?: string }[],
+    settings: Settings,
+    history: WorkoutLog[],
+    selectedTag?: string,
+    currentSession1RMOverride?: number
+): number | undefined => {
+    const set = exercise.sets[setIndex];
+    const reference1RM = currentSession1RMOverride || exerciseInfo?.calculated1RM || exercise.reference1RM;
+
+    if (exercise.trainingMode === 'percent' && reference1RM && set.targetPercentageRM) {
+        const weight = (reference1RM * set.targetPercentageRM) / 100;
+        return roundWeight(weight, settings.weightUnit);
+    }
+    
+    if (setIndex === 0) {
+        const currentTagName = selectedTag || 'Base';
+        let lastPerfWeight = 0;
+        for (let i = history.length - 1; i >= 0; i--) {
+            const log = history[i];
+            const completedEx = log.completedExercises.find(ce => ce.exerciseDbId === exercise.exerciseDbId || ce.exerciseName === exercise.name);
+            if (completedEx && (completedEx.machineBrand || 'Base') === currentTagName) {
+                lastPerfWeight = completedEx.sets[0]?.weight || 0;
+                break;
+            }
+        }
+        if (lastPerfWeight > 0) return roundWeight(lastPerfWeight, settings.weightUnit);
+    } else {
+        const prevSetCompleted = completedSetsForExercise[setIndex - 1];
+        if (prevSetCompleted?.weight) return roundWeight(prevSetCompleted.weight, settings.weightUnit);
+    }
+
+    if (reference1RM) {
+        const rpe = set.targetRPE || 8;
+        const reps = set.targetReps || 8;
+        const weight = calculateWeightFrom1RM(reference1RM, reps + (10 - rpe));
+        return roundWeight(weight, settings.weightUnit);
+    }
+    return undefined;
+};
+
+export const getEffectiveRepsForRM = (set: ExerciseSet): number | undefined => {
+    const reps = set.targetReps;
+    if (reps) {
+        if (set.intensityMode === 'failure') return reps;
+        if (set.targetRIR !== undefined) return reps + set.targetRIR;
+        if (set.targetRPE !== undefined) return reps + (10 - set.targetRPE);
+    }
+    return undefined;
+};
+
+export const estimatePercent1RM = (repsToFailure: number): number | undefined => {
+    const roundedReps = Math.round(repsToFailure);
+    if (REP_TO_PERCENT_1RM[roundedReps]) {
+        return REP_TO_PERCENT_1RM[roundedReps];
+    }
+    if (repsToFailure > 15) {
+        return Math.round(100 / (1 + (repsToFailure / 30)));
+    }
+    return undefined;
+};
+
+export const calculateStreak = (history: WorkoutLog[], settings: Settings): { streak: number } => {
+    if (!history || history.length === 0) return { streak: 0 };
+    const sortedHistory = [...history].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const logsByWeek: Record<string, number> = {};
+    sortedHistory.forEach(log => {
+        const weekId = getWeekId(new Date(log.date), settings.startWeekOn);
+        logsByWeek[weekId] = (logsByWeek[weekId] || 0) + 1;
+    });
+    let currentStreak = 0;
+    const today = new Date();
+    const currentWeekId = getWeekId(today, settings.startWeekOn);
+    const prevWeek = new Date(today);
+    prevWeek.setDate(prevWeek.getDate() - 7);
+    const prevWeekId = getWeekId(prevWeek, settings.startWeekOn);
+    if (!logsByWeek[currentWeekId] && !logsByWeek[prevWeekId]) return { streak: 0 };
+    let checkDate = new Date(today);
+    if (!logsByWeek[currentWeekId]) checkDate = prevWeek;
+    while (true) {
+        const wId = getWeekId(checkDate, settings.startWeekOn);
+        if (logsByWeek[wId] && logsByWeek[wId] >= 3) {
+            currentStreak++;
+            checkDate.setDate(checkDate.getDate() - 7);
+        } else break;
+    }
+    return { streak: currentStreak };
+};
+
+export const getRepDebtContextKey = (set: ExerciseSet): string => {
+    return `reps-${set.targetReps || 0}-rpe-${set.targetRPE || 'x'}-rir-${set.targetRIR || 'x'}`;
+};
+
+export const isMachineOrCableExercise = (exerciseInfo: ExerciseMuscleInfo | undefined): boolean => {
+    if (!exerciseInfo) return false;
+    return exerciseInfo.equipment === 'Máquina' || exerciseInfo.equipment === 'Polea';
+};
+
+export const calculateDynamicLoad = (baseWeight: number, factor: number): number => {
+    return parseFloat((baseWeight * factor).toFixed(1));
+};
+
+export const calculateDynamicRatio = (current: number, reference: number): number => {
+    if (reference === 0) return 1;
+    return current / reference;
+}

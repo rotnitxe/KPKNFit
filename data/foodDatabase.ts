@@ -1,0 +1,138 @@
+// data/foodDatabase.ts
+import { FoodItem } from '../types';
+
+export const FOOD_DATABASE: FoodItem[] = [
+    // --- Alimentos Genéricos ---
+    { id: 'gen001', name: 'Manzana', servingSize: 100, unit: 'g', calories: 52, protein: 0.3, carbs: 14, fats: 0.2 },
+    { id: 'gen002', name: 'Plátano', servingSize: 100, unit: 'g', calories: 89, protein: 1.1, carbs: 23, fats: 0.3 },
+    { id: 'gen003', name: 'Pechuga de Pollo (cruda)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 165, protein: 31, carbs: 0, fats: 3.6 },
+    { id: 'gen004', name: 'Pechuga de Pollo (cocida)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 195, protein: 30, carbs: 0, fats: 7.8 },
+    { id: 'gen005', name: 'Arroz Blanco (cocido)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 130, protein: 2.7, carbs: 28, fats: 0.3 },
+    { id: 'gen006', name: 'Arroz Integral (cocido)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 111, protein: 2.6, carbs: 23, fats: 0.9 },
+    { id: 'gen007', name: 'Huevo Entero (cocido)', servingSize: 50, unit: 'g', calories: 77, protein: 6.3, carbs: 0.6, fats: 5.3 },
+    { id: 'gen008', name: 'Clara de Huevo', servingSize: 100, unit: 'g', calories: 52, protein: 11, carbs: 0.7, fats: 0.2 },
+    { id: 'gen009', name: 'Salmón (crudo)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 208, protein: 20, carbs: 0, fats: 13 },
+    { id: 'gen010', name: 'Carne Molida 90/10 (cocida)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 217, protein: 26, carbs: 0, fats: 11 },
+    { id: 'gen011', name: 'Avena en Hojuelas (cruda)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 389, protein: 16.9, carbs: 66, fats: 6.9 },
+    { id: 'gen012', name: 'Lentejas (cocidas)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 116, protein: 9, carbs: 20, fats: 0.4 },
+    { id: 'gen013', name: 'Garbanzos (cocidos)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 139, protein: 7, carbs: 26, fats: 2.4 },
+    { id: 'gen014', name: 'Palta (Aguacate)', servingSize: 100, unit: 'g', calories: 160, protein: 2, carbs: 9, fats: 15 },
+    { id: 'gen015', name: 'Aceite de Oliva', servingSize: 100, unit: 'ml', calories: 884, protein: 0, carbs: 0, fats: 100 },
+    { id: 'gen016', name: 'Leche Entera', brand: 'Genérico', servingSize: 100, unit: 'ml', calories: 61, protein: 3.2, carbs: 4.8, fats: 3.3 },
+    { id: 'gen017', name: 'Yogurt Griego Natural', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 97, protein: 9, carbs: 3.9, fats: 5 },
+    { id: 'gen018', name: 'Queso Cottage', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 98, protein: 11, carbs: 3.4, fats: 4.3 },
+    { id: 'gen019', name: 'Pan Blanco', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 265, protein: 9, carbs: 49, fats: 3.2 },
+    { id: 'gen020', name: 'Pan Integral', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 247, protein: 13, carbs: 41, fats: 3.4 },
+    { id: 'gen021', name: 'Papa (cocida)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 87, protein: 1.9, carbs: 20, fats: 0.1 },
+    { id: 'gen022', name: 'Brócoli (cocido)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 35, protein: 2.4, carbs: 7.2, fats: 0.4 },
+    { id: 'gen023', name: 'Espinaca (cruda)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 23, protein: 2.9, carbs: 3.6, fats: 0.4 },
+    { id: 'gen024', name: 'Zanahoria (cruda)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 41, protein: 0.9, carbs: 10, fats: 0.2 },
+    { id: 'gen025', name: 'Almendras', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 579, protein: 21, carbs: 22, fats: 49 },
+    { id: 'gen026', name: 'Tomate', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 18, protein: 0.9, carbs: 3.9, fats: 0.2 },
+    { id: 'gen027', name: 'Cebolla', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 40, protein: 1.1, carbs: 9, fats: 0.1 },
+    { id: 'gen028', name: 'Lomo de Cerdo (cocido)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 242, protein: 27, carbs: 0, fats: 14 },
+    { id: 'gen029', name: 'Atún en lata (en agua)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 116, protein: 26, carbs: 0, fats: 1 },
+    { id: 'gen030', name: 'Quinoa (cocida)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 120, protein: 4.4, carbs: 21, fats: 1.9 },
+    { id: 'gen031', name: 'Porotos negros (cocidos)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 132, protein: 8.9, carbs: 24, fats: 0.5 },
+    { id: 'gen032', name: 'Frutillas', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 32, protein: 0.7, carbs: 8, fats: 0.3 },
+    { id: 'gen033', name: 'Naranja', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 47, protein: 0.9, carbs: 12, fats: 0.1 },
+    { id: 'gen034', name: 'Mantequilla de maní', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 588, protein: 25, carbs: 20, fats: 50 },
+    { id: 'gen035', name: 'Posta Rosada (cocida)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 205, protein: 36, carbs: 0, fats: 6 },
+    { id: 'gen036', name: 'Pimentón Rojo', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 31, protein: 1, carbs: 6, fats: 0.3 },
+    { id: 'gen037', name: 'Pepino', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 15, protein: 0.7, carbs: 3.6, fats: 0.1 },
+    { id: 'gen038', name: 'Champiñones (crudos)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 22, protein: 3.1, carbs: 3.3, fats: 0.3 },
+    { id: 'gen039', name: 'Nueces', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 654, protein: 15, carbs: 14, fats: 65 },
+
+    // --- Productos Chilenos Específicos ---
+
+    // Lácteos y Yogures
+    { id: 'cl001', name: 'Yogurt Protein+ Natural', brand: 'Soprole', servingSize: 155, unit: 'g', calories: 121, protein: 15, carbs: 14, fats: 0 },
+    { id: 'cl002', name: 'Yogurt Griego Natural', brand: 'Quillayes', servingSize: 100, unit: 'g', calories: 118, protein: 8.5, carbs: 5.5, fats: 7 },
+    { id: 'cl003', name: 'Leche Descremada', brand: 'Colun', servingSize: 200, unit: 'ml', calories: 70, protein: 6.6, carbs: 10, fats: 0.2 },
+    { id: 'cl004', name: 'Quesillo', brand: 'Colun', servingSize: 100, unit: 'g', calories: 108, protein: 15, carbs: 2, fats: 4.5 },
+    { id: 'cl005', name: 'Yogurt Batido Vainilla', brand: 'Soprole', servingSize: 125, unit: 'g', calories: 109, protein: 3.8, carbs: 19, fats: 2 },
+    { id: 'cl006', name: 'Postre Uno Sabor Chocolate', brand: 'Soprole', servingSize: 140, unit: 'g', calories: 120, protein: 3.1, carbs: 22, fats: 2.2 },
+    { id: 'cl007', name: 'Leche Proteica Chocolate', brand: 'Loncoleche', servingSize: 200, unit: 'ml', calories: 150, protein: 15, carbs: 16, fats: 2.6 },
+    { id: 'cl008', name: 'Yogurt Natural Sin Endulzar', brand: 'Danone', servingSize: 150, unit: 'g', calories: 90, protein: 6, carbs: 8, fats: 3.8 },
+    { id: 'cl009', name: 'Queso Fresco', brand: 'Lider', servingSize: 100, unit: 'g', calories: 260, protein: 20, carbs: 2, fats: 19 },
+    { id: 'cl010', name: 'Manjar', brand: 'Soprole', servingSize: 100, unit: 'g', calories: 315, protein: 7, carbs: 58, fats: 6 },
+
+    // Panes y Galletas
+    { id: 'cl011', name: 'Pan de Molde Integral', brand: 'Fuchs', servingSize: 100, unit: 'g', calories: 235, protein: 9.7, carbs: 41, fats: 3.5 },
+    { id: 'cl012', name: 'Galletas de Soda', brand: 'McKay', servingSize: 100, unit: 'g', calories: 420, protein: 10, carbs: 75, fats: 8 },
+    { id: 'cl013', name: 'Galletas Criollitas', brand: 'McKay', servingSize: 100, unit: 'g', calories: 455, protein: 9, carbs: 70, fats: 15 },
+    { id: 'cl014', name: 'Pan Marraqueta', brand: 'Panadería Local', servingSize: 100, unit: 'g', calories: 277, protein: 8, carbs: 58, fats: 1.5 },
+    { id: 'cl015', name: 'Pan Hallulla', brand: 'Panadería Local', servingSize: 100, unit: 'g', calories: 305, protein: 7.5, carbs: 55, fats: 6 },
+    { id: 'cl016', name: 'Galletas de Avena', brand: 'Quaker', servingSize: 40, unit: 'g', calories: 160, protein: 3, carbs: 27, fats: 4.5 },
+    { id: 'cl017', name: 'Pan de Molde Blanco', brand: 'Ideal', servingSize: 50, unit: 'g', calories: 130, protein: 4, carbs: 25, fats: 1.5 },
+    { id: 'cl018', name: 'Tortilla de Trigo', brand: 'Ideal', servingSize: 40, unit: 'g', calories: 120, protein: 3.2, carbs: 22, fats: 2.1 },
+    { id: 'cl019', name: 'Galletas de Agua', brand: 'Costa', servingSize: 100, unit: 'g', calories: 410, protein: 10, carbs: 78, fats: 5 },
+
+    // Pastas y Arroces
+    { id: 'cl020', name: 'Arroz Grado 1', brand: 'Tucapel', servingSize: 100, unit: 'g', calories: 350, protein: 7, carbs: 79, fats: 0.5 },
+    { id: 'cl021', name: 'Fideos Espirales', brand: 'Carozzi', servingSize: 100, unit: 'g', calories: 356, protein: 12, carbs: 73, fats: 1.5 },
+    { id: 'cl022', name: 'Tallarines N°5', brand: 'Trattoria', servingSize: 100, unit: 'g', calories: 355, protein: 12.5, carbs: 72, fats: 1.5 },
+    { id: 'cl023', name: 'Quinoa', brand: 'Lider', servingSize: 100, unit: 'g', calories: 368, protein: 14, carbs: 64, fats: 6 },
+    { id: 'cl024', name: 'Cuscús', brand: 'Carozzi', servingSize: 100, unit: 'g', calories: 376, protein: 13, carbs: 77, fats: 0.6 },
+
+    // Carnes y Embutidos
+    { id: 'cl030', name: 'Pechuga de Pavo Cocida', brand: 'Sopraval', servingSize: 100, unit: 'g', calories: 109, protein: 22, carbs: 1, fats: 1.5 },
+    { id: 'cl031', name: 'Vienesa Tradicional', brand: 'San Jorge', servingSize: 50, unit: 'g', calories: 140, protein: 5.5, carbs: 2, fats: 12 },
+    { id: 'cl032', name: 'Chorizo', brand: 'La Preferida', servingSize: 100, unit: 'g', calories: 350, protein: 15, carbs: 2, fats: 31 },
+    { id: 'cl033', name: 'Hamburguesa Vacuno', brand: 'La Crianza', servingSize: 100, unit: 'g', calories: 250, protein: 19, carbs: 0, fats: 19 },
+    { id: 'cl034', name: 'Jamón Pierna Acanelado', brand: 'PF', servingSize: 100, unit: 'g', calories: 115, protein: 18, carbs: 2, fats: 4 },
+    { id: 'cl035', name: 'Longaniza', brand: 'PF', servingSize: 100, unit: 'g', calories: 380, protein: 14, carbs: 1, fats: 36 },
+    { id: 'cl036', name: 'Salchichón Cerveza', brand: 'Montina', servingSize: 100, unit: 'g', calories: 280, protein: 12, carbs: 4, fats: 24 },
+    
+    // Bebidas y Jugos
+    { id: 'cl040', name: 'Bebida Gaseosa Normal', brand: 'Coca-Cola', servingSize: 350, unit: 'ml', calories: 149, protein: 0, carbs: 37, fats: 0 },
+    { id: 'cl041', name: 'Jugo Néctar Durazno', brand: 'Andina Del Valle', servingSize: 200, unit: 'ml', calories: 104, protein: 0.2, carbs: 26, fats: 0 },
+    { id: 'cl042', name: 'Bebida Isotónica', brand: 'Gatorade', servingSize: 500, unit: 'ml', calories: 120, protein: 0, carbs: 30, fats: 0 },
+    { id: 'cl043', name: 'Milo (en polvo)', brand: 'Nestlé', servingSize: 20, unit: 'g', calories: 80, protein: 2.5, carbs: 15, fats: 1 },
+    { id: 'cl044', name: 'Kem Piña', brand: 'Kem', servingSize: 350, unit: 'ml', calories: 160, protein: 0, carbs: 40, fats: 0 },
+    { id: 'cl045', name: 'Agua Mineral con Gas', brand: 'Cachantun', servingSize: 500, unit: 'ml', calories: 0, protein: 0, carbs: 0, fats: 0 },
+
+    // Snacks y Dulces
+    { id: 'cl050', name: 'Papas Fritas Corte Americano', brand: 'Lays', servingSize: 100, unit: 'g', calories: 532, protein: 6.5, carbs: 52, fats: 33 },
+    { id: 'cl051', name: 'Super 8', brand: 'Nestlé', servingSize: 29, unit: 'g', calories: 140, protein: 1.5, carbs: 19, fats: 6.5 },
+    { id: 'cl052', name: 'Sahne-Nuss', brand: 'Nestlé', servingSize: 25, unit: 'g', calories: 141, protein: 2.8, carbs: 12, fats: 9 },
+    { id: 'cl053', name: 'Ramitas de Queso', brand: 'Evercrisp', servingSize: 100, unit: 'g', calories: 510, protein: 8, carbs: 60, fats: 26 },
+    { id: 'cl054', name: 'Chocman', brand: 'Costa', servingSize: 32, unit: 'g', calories: 125, protein: 1.5, carbs: 20, fats: 4.5 },
+    { id: 'cl055', name: 'Gatolate', brand: 'Costa', servingSize: 22, unit: 'g', calories: 110, protein: 1, carbs: 15, fats: 5 },
+    { id: 'cl056', name: 'Mantecol', brand: 'Mantecol', servingSize: 25, unit: 'g', calories: 135, protein: 3.5, carbs: 11, fats: 8.5 },
+    { id: 'cl057', name: 'Triton Vainilla', brand: 'McKay', servingSize: 30, unit: 'g', calories: 150, protein: 1.8, carbs: 21, fats: 6.5 },
+    { id: 'cl058', name: 'Alfajor', brand: 'Havanna', servingSize: 55, unit: 'g', calories: 200, protein: 3, carbs: 28, fats: 9 },
+    { id: 'cl059', name: 'Cheezels', brand: 'Evercrisp', servingSize: 100, unit: 'g', calories: 520, protein: 5, carbs: 62, fats: 28 },
+    
+    // Marcas Propias de Supermercados
+    { id: 'cl060', name: 'Atún Lomitos en Agua', brand: 'Lider', servingSize: 100, unit: 'g', calories: 116, protein: 26, carbs: 0, fats: 1 },
+    { id: 'cl061', name: 'Avena Instantánea', brand: 'Tottus', servingSize: 50, unit: 'g', calories: 180, protein: 6, carbs: 32, fats: 3 },
+    { id: 'cl062', name: 'Barra de Proteína Chocolate', brand: 'Jumbo', servingSize: 45, unit: 'g', calories: 170, protein: 15, carbs: 18, fats: 5 },
+    { id: 'cl063', name: 'Manjar', brand: 'Lider', servingSize: 20, unit: 'g', calories: 65, protein: 1.2, carbs: 12, fats: 1.3 },
+    { id: 'cl064', name: 'Queso Gauda Laminado', brand: 'Acuenta', servingSize: 25, unit: 'g', calories: 90, protein: 6, carbs: 0.5, fats: 7 },
+    { id: 'cl065', name: 'Porotos negros en conserva', brand: 'Tottus', servingSize: 100, unit: 'g', calories: 85, protein: 5, carbs: 15, fats: 0.4 },
+    { id: 'cl066', name: 'Jurel tipo Salmón en lata', brand: 'San José', servingSize: 100, unit: 'g', calories: 150, protein: 22, carbs: 0, fats: 7 },
+
+    // --- Productos Internacionales ---
+    { id: 'int001', name: 'Whey Protein Gold Standard Chocolate', brand: 'Optimum Nutrition', servingSize: 30.4, unit: 'g', calories: 120, protein: 24, carbs: 3, fats: 1 },
+    { id: 'int002', name: 'Creatina Monohidratada', brand: 'MyProtein', servingSize: 5, unit: 'g', calories: 0, protein: 0, carbs: 0, fats: 0 },
+    { id: 'int003', name: 'Barra de Proteína', brand: 'Quest', servingSize: 60, unit: 'g', calories: 200, protein: 21, carbs: 22, fats: 9 },
+    { id: 'int004', name: 'Bebida Energética Sin Azúcar', brand: 'Monster', servingSize: 473, unit: 'ml', calories: 10, protein: 0, carbs: 6, fats: 0 },
+    { id: 'int005', name: 'Nutella', brand: 'Ferrero', servingSize: 100, unit: 'g', calories: 539, protein: 6.3, carbs: 57.5, fats: 30.9 },
+    { id: 'int006', name: 'Pringles Original', brand: 'Pringles', servingSize: 100, unit: 'g', calories: 536, protein: 4, carbs: 51, fats: 33 },
+    { id: 'int007', name: 'Harina de Almendras', brand: 'Bob\'s Red Mill', servingSize: 28, unit: 'g', calories: 160, protein: 6, carbs: 6, fats: 14 },
+    { id: 'int008', name: 'Tofu Extra Firme', brand: 'Nasoya', servingSize: 85, unit: 'g', calories: 80, protein: 8, carbs: 2, fats: 4.5 },
+    { id: 'int009', name: 'Salsa Sriracha', brand: 'Huy Fong', servingSize: 5, unit: 'g', calories: 5, protein: 0, carbs: 1, fats: 0 },
+    { id: 'int010', name: 'Avena Instantánea Maple & Brown Sugar', brand: 'Quaker', servingSize: 43, unit: 'g', calories: 160, protein: 4, carbs: 33, fats: 2.5 },
+
+    // --- Comidas Preparadas (Estimaciones Genéricas) ---
+    { id: 'meal001', name: 'Ensalada César con Pollo', brand: 'Comida', servingSize: 350, unit: 'g', calories: 450, protein: 30, carbs: 15, fats: 30 },
+    { id: 'meal002', name: 'Lasaña de Carne', brand: 'Comida', servingSize: 300, unit: 'g', calories: 400, protein: 25, carbs: 35, fats: 18 },
+    { id: 'meal003', name: 'Sopa de Lentejas', brand: 'Comida', servingSize: 400, unit: 'g', calories: 350, protein: 18, carbs: 55, fats: 5 },
+    { id: 'meal004', name: 'Completo Italiano', brand: 'Comida', servingSize: 250, unit: 'g', calories: 550, protein: 15, carbs: 45, fats: 35 },
+    { id: 'meal005', name: 'Cazuela de Vacuno', brand: 'Comida', servingSize: 500, unit: 'g', calories: 480, protein: 35, carbs: 40, fats: 20 },
+    { id: 'meal006', name: 'Pastel de Choclo', brand: 'Comida', servingSize: 350, unit: 'g', calories: 600, protein: 25, carbs: 60, fats: 30 },
+    { id: 'meal007', name: 'Empanada de Pino (horno)', brand: 'Comida', servingSize: 200, unit: 'g', calories: 450, protein: 18, carbs: 40, fats: 25 },
+    { id: 'meal008', name: 'Pizza (1 trozo)', brand: 'Comida', servingSize: 150, unit: 'g', calories: 350, protein: 15, carbs: 40, fats: 15 },
+    { id: 'meal009', name: 'Sushi (8 piezas California Roll)', brand: 'Comida', servingSize: 250, unit: 'g', calories: 300, protein: 10, carbs: 55, fats: 5 },
+];

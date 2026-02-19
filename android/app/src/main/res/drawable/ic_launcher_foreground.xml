@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Resplandor leve (Radial Gradient) -->
+    <path
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0">
+        <aapt:attr name="android:fillColor">
+            <gradient 
+                android:centerX="54"
+                android:centerY="54"
+                android:gradientRadius="40"
+                android:type="radial">
+                <item android:offset="0" android:color="#66488AFF" />
+                <item android:offset="1" android:color="#00488AFF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Estrella principal -->
+    <path
+        android:fillColor="#488AFF"
+        android:pathData="M54,28 L63.5,49 H86 L68,62.5 L75,84 L54,70.5 L33,84 L40,62.5 L22,49 H44.5 Z" />
+</vector>

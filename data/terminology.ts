@@ -1,0 +1,40 @@
+// data/terminology.ts
+export const TERMINOLOGY: Record<string, string> = {
+    // Categorías de Ejercicio
+    'Fuerza': 'Entrenamiento enfocado en levantar el máximo peso posible, generalmente con bajas repeticiones (1-6).',
+    'Hipertrofia': 'Entrenamiento orientado al crecimiento muscular, usualmente con repeticiones moderadas (6-15) y un alto volumen.',
+    'Resistencia': 'Entrenamiento enfocado en la capacidad de realizar un movimiento durante un período prolongado, con altas repeticiones (15+) o tiempo bajo tensión.',
+    'Potencia': 'Entrenamiento que combina fuerza y velocidad para generar movimientos explosivos. Crucial para el rendimiento deportivo.',
+    'Movilidad': 'Entrenamiento enfocado en mejorar el rango de movimiento activo de las articulaciones, combinando flexibilidad y fuerza.',
+    'Pliometría': 'Ejercicios que implican saltos y movimientos explosivos para desarrollar potencia. Se basan en el ciclo de estiramiento-acortamiento muscular.',
+    // Tipos de Ejercicio
+    'Básico': 'Ejercicios compuestos que involucran múltiples articulaciones y grupos musculares (ej. Sentadilla, Press de Banca). Son la base de la fuerza.',
+    'Accesorio': 'Ejercicios que complementan a los básicos, a menudo trabajando músculos más pequeños o desde diferentes ángulos.',
+    'Aislamiento': 'Ejercicios que se enfocan en un solo músculo o grupo muscular, minimizando la participación de otros.',
+    // Tipos de Fuerza
+    'Empuje': 'Movimientos que alejan una carga del cuerpo (ej. Press de Banca, Press Militar).',
+    'Tirón': 'Movimientos que acercan una carga al cuerpo (ej. Dominadas, Remos).',
+    'Bisagra': 'Movimiento de flexión y extensión de la cadera con una columna neutra (ej. Peso Muerto, Hip Thrust).',
+    'Sentadilla': 'Movimiento de flexión de cadera, rodilla y tobillo para bajar el centro de gravedad (ej. Sentadilla Trasera, Zancadas).',
+    'Rotación': 'Movimientos que implican girar el torso (ej. Leñadores).',
+    'Anti-Rotación': 'Ejercicios que entrenan la capacidad del core para resistir fuerzas de rotación (ej. Press Pallof).',
+    // Trenes y Cadenas
+    'Tren Superior': 'Ejercicios que se enfocan en la parte superior del cuerpo: pecho, espalda, hombros, brazos.',
+    'Tren Inferior': 'Ejercicios que se enfocan en la parte inferior del cuerpo: cuádriceps, isquiotibiales, glúteos, gemelos.',
+    'Cuerpo Completo': 'Ejercicios que involucran de forma significativa tanto el tren superior como el inferior.',
+    'Cadena Anterior': 'Músculos en la parte frontal del cuerpo (pectorales, cuádriceps, abdominales, deltoides anterior).',
+    'Cadena Posterior': 'Músculos en la parte posterior del cuerpo (isquiotibiales, glúteos, espalda, deltoides posterior).',
+    'FFMI Normalizado': 'El Índice de Masa Libre de Grasa (FFMI) es una medida de musculatura ajustada por altura. La versión normalizada ajusta para estaturas diferentes a 1.80m, ofreciendo una comparación más precisa. Un valor más alto indica mayor masa muscular.',
+    'ACWR': 'El Ratio de Carga Aguda:Crónica (ACWR) mide tu fatiga sistémica. Compara tu carga de entrenamiento de los últimos 7 días (Aguda) con tu carga promedio de los últimos 28 días (Crónica). Un ratio entre 0.8 y 1.3 es la "zona segura" para progresar. Por encima de 1.5, el riesgo de lesión o sobreentrenamiento aumenta significativamente.',
+    'Carga Articular': 'Mide el estrés mecánico total sobre tus articulaciones y tejidos conectivos. Se compone del Tonelaje (magnitud de la carga) y el IMR (calidad de la carga).',
+    'Tonelaje': 'La carga de trabajo absoluta (Peso x Reps x Series). Mide el estrés mecánico bruto total que has movido. Un tonelaje alto implica un gran estrés acumulado en las articulaciones.',
+    'IMR': 'La Intensidad Media Relativa (IMR) mide la "calidad" del estrés. Es el peso promedio que moviste en una sesión, expresado como un porcentaje de tu 1RM. Un IMR alto (ej. >85%) indica un estrés de compresión máximo en las articulaciones, típico del entrenamiento de fuerza máxima.',
+    'Repeticiones Totales': 'Suma total de repeticiones realizadas para un levantamiento específico en la semana (Σ Series x Reps). Es una medida cruda del volumen total y se usa para monitorear el Volumen Mínimo Efectivo (MEV) y el Volumen Máximo Recuperable (MRV).',
+    'Series Efectivas': 'Número de series realizadas con una intensidad suficientemente alta para estimular la adaptación (RPE ≥ 6 o RIR ≤ 4). Esta es la métrica de volumen más importante para la hipertrofia y la fuerza.',
+    'Ratios de Balance': 'Comparación entre el 1RM de levantamientos secundarios y principales para detectar desequilibrios de fuerza. Por ejemplo, un Press Militar débil puede limitar tu Press de Banca.',
+    'IPF GL Points': 'Un sistema de puntuación utilizado en powerlifting para comparar la fuerza de levantadores de diferentes pesos corporales y géneros. La fórmula ajusta tu 1RM (o total) según tu peso corporal, permitiendo una comparación objetiva.',
+    'Sesiones Semanales': 'Número total de entrenamientos completados en la semana actual (según el día de inicio que hayas configurado).',
+    'Volumen Semanal': 'Carga total levantada esta semana (Σ Peso x Reps). Es un indicador clave del estrés mecánico total impuesto a tu cuerpo.',
+    'Minutos Semanales': 'Tiempo total de entrenamiento acumulado en la semana actual. Un indicador de tu dedicación y tiempo bajo tensión.',
+    'Racha Semanal': 'Número de semanas consecutivas en las que has completado 3 o más entrenamientos. ¡Un gran indicador de tu consistencia!',
+};
