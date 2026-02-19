@@ -27,7 +27,6 @@ import { RelativeStrengthAndBasicsWidget } from './RelativeStrengthAndBasicsWidg
 import { getOrderedDaysOfWeek } from '../utils/calculations';
 import InteractiveWeekOverlay from './InteractiveWeekOverlay'; // <-- NUEVO OVERLAY
 
-
 const getDayName = (dayIndex: number, startWeekOn: number): string => {
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     // Ajustamos el índice según cuándo empieza tu semana (0=Domingo, 1=Lunes)
@@ -50,6 +49,167 @@ interface ProgramDetailProps {
     onDeleteProgram?: any;
     onUpdateProgram?: any;
 }
+
+// --- COMPONENTE TARJETA DE SESIÓN (movido antes del principal) ---
+const SessionCard: React.FC<{ 
+    session: Session; 
+    index: number; 
+    onStart: () => void;
+    onEdit: () => void;
+    dayName?: string;
+    exerciseList?: ExerciseMuscleInfo[];
+}> = ({ session, index, onStart, onEdit, dayName, exerciseList = [] }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const exercisesToDisplay: any[] = session.parts && session.parts.length > 0 
+        ? session.parts.flatMap(p => p.exercises || []) 
+        : (session.exercises || []);
+
+    const totalSets = exercisesToDisplay.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0);
+
+    // Algoritmo de Fatiga Intrínseca (1-10)
+    const calculateIntrinsicFatigue = (exInfo: ExerciseMuscleInfo) => {
+        let score = 5;
+        const isMultiJoint = exInfo.involvedMuscles.filter(m => m.role === 'primary').length > 1 || exInfo.involvedMuscles.length > 2;
+        const equip = exInfo.equipment?.toLowerCase() || '';
+        const isMachine = equip.includes('máquina') || equip.includes('maquina') || equip.includes('polea');
+        const isFreeWeight = equip.includes('barra') || equip.includes('mancuerna');
+
+        if (isMultiJoint) score += 3;
+        else score -= 1;
+        if (isMachine) score += 2;
+        if (isFreeWeight) score -= 1;
+
+        return Math.max(1, Math.min(10, score));
+    };
+
+    // Calcular Promedio de Fatiga de la Sesión
+    const averageFatigue = useMemo(() => {
+        if (exercisesToDisplay.length === 0 || exerciseList.length === 0) return 0;
+        let totalFatigue = 0;
+        let validExercises = 0;
+        
+        exercisesToDisplay.forEach(ex => {
+            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+            if (info) {
+                totalFatigue += calculateIntrinsicFatigue(info);
+                validExercises += 1;
+            }
+        });
+        
+        return validExercises > 0 ? Math.round((totalFatigue / validExercises) * 10) / 10 : 0;
+    }, [exercisesToDisplay, exerciseList]);
+
+    const getFatigueColor = (score: number) => {
+        if (score === 0) return 'bg-zinc-800 text-zinc-500';
+        if (score <= 3) return 'bg-emerald-500 text-emerald-950 shadow-[0_0_10px_rgba(16,185,129,0.5)]';
+        if (score <= 7) return 'bg-yellow-400 text-yellow-950 shadow-[0_0_10px_rgba(250,204,21,0.5)]';
+        return 'bg-red-500 text-red-950 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
+    };
+
+    const getFatigueLabel = (score: number) => {
+        if (score === 0) return 'Sin Datos';
+        if (score <= 3) return 'Fatiga Baja';
+        if (score <= 7) return 'Fatiga Moderada';
+        return 'Fatiga Alta';
+    };
+
+    return (
+        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden mb-3 hover:bg-zinc-900/60 transition-colors">
+            <div className="p-4">
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex gap-4 items-center">
+                        <div className="w-10 h-10 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center text-xs font-black text-white">
+                            {dayName ? dayName.substring(0, 3).toUpperCase() : index + 1}
+                        </div>
+                        <div>
+                            {dayName && (
+                                <span className="text-[9px] text-blue-400 font-bold uppercase tracking-widest mb-0.5 block">
+                                    {dayName}
+                                </span>
+                            )}
+                            <h4 className="text-sm font-black text-white uppercase tracking-tight leading-none mb-1">{session.name}</h4>
+                            <div className="flex items-center gap-3 text-[10px] text-zinc-500 font-medium">
+                                <span className="flex items-center gap-1"><DumbbellIcon size={10}/> {exercisesToDisplay.length} Ejercicios</span>
+                                <span className="flex items-center gap-1"><ClockIcon size={10}/> ~{totalSets * 3} min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className={`p-2 rounded-full transition-colors ${isExpanded ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-white'}`}
+                    >
+                        {isExpanded ? <ChevronUpIcon size={18} /> : <ChevronDownIcon size={18} />}
+                    </button>
+                </div>
+
+                <div className="flex gap-2">
+                    <button 
+                        onClick={onStart}
+                        className="flex-1 bg-white text-black text-[10px] font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors shadow-lg"
+                    >
+                        <PlayIcon size={12} fill="black" /> INICIAR
+                    </button>
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit();
+                        }}
+                        className="w-12 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-colors"
+                        title="Editar Sesión"
+                    >
+                        <EditIcon size={16} />
+                    </button>
+                </div>
+            </div>
+
+            {isExpanded && (
+                <div className="bg-black/20 border-t border-white/5 p-4 space-y-4 animate-slide-down">
+                    
+                    {/* BARRA DE FATIGA PROMEDIO */}
+                    {averageFatigue > 0 && (
+                        <div className="flex items-center justify-between bg-zinc-950 border border-white/5 rounded-xl p-3">
+                            <div className="flex items-center gap-2">
+                                <ActivityIcon size={16} className={averageFatigue > 7 ? 'text-red-500' : averageFatigue > 3 ? 'text-yellow-400' : 'text-emerald-500'} />
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Impacto Estimado</span>
+                                    <span className="text-xs font-bold text-white">{getFatigueLabel(averageFatigue)}</span>
+                                </div>
+                            </div>
+                            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${getFatigueColor(averageFatigue)} font-black text-sm`}>
+                                {Math.round(averageFatigue)}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="space-y-3">
+                        {exercisesToDisplay.length > 0 ? (
+                            exercisesToDisplay.map((exercise: any, idx: number) => (
+                                <div key={idx}>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-xs font-bold text-zinc-300">{idx + 1}. {exercise.name}</span>
+                                        <span className="text-[9px] text-zinc-600 bg-black/50 px-1.5 py-0.5 rounded">{(exercise.sets || []).length} sets</span>
+                                    </div>
+                                    <div className="pl-3 border-l border-white/10">
+                                        {(exercise.sets || []).slice(0, 1).map((set, sIdx) => (
+                                            <p key={sIdx} className="text-[9px] text-zinc-500">
+                                                {set.targetReps} reps {set.targetRPE ? `@ RPE ${set.targetRPE}` : ''}
+                                                {(exercise.sets || []).length > 1 && <span className="italic ml-1">(+ {(exercise.sets || []).length - 1} más)</span>}
+                                            </p>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-4">
+                                <p className="text-[10px] text-zinc-500 italic">No hay ejercicios agregados a esta sesión.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, onEdit, isActive }) => {
     // Agregamos handleUpdateProgram, addToast y handleStartWorkout
@@ -192,10 +352,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
         });
     }, [currentWeeks, programLogs]);
 
-return (
-        /* SOLUCIÓN SCROLL: Usamos h-screen + overflow-y-auto para que este contenedor tenga su propia barra de scroll */
+    return (
         <div className="fixed inset-0 z-[100] bg-black text-white overflow-y-auto custom-scrollbar">
-            
             {/* --- 1. PORTADA / HEADER --- */}
             <div className="relative h-80 w-full shrink-0">
                 {/* Imagen de Fondo */}
@@ -345,9 +503,9 @@ return (
                             )}
 
                             {isCyclic ? (
-                                /* ========================================================= */
-                                /* VISTA CÍCLICA (Futurista para programas de 1 semana)      */
-                                /* ========================================================= */
+                                // =========================================================
+                                // VISTA CÍCLICA (Futurista para programas de 1 semana)      
+                                // =========================================================
                                 <div className="px-4 py-12 flex flex-col items-center">
                                     <div className="relative mb-8">
                                         {/* Anillos concéntricos animados de fondo */}
@@ -375,7 +533,7 @@ return (
 
                                     <div className="w-full max-w-md">
                                         {showCyclicHistory ? (
-                                            /* HISTORIAL CÍCLICO */
+                                            // HISTORIAL CÍCLICO
                                             <div className="space-y-4 animate-slide-up">
                                                 <div className="flex items-center gap-3 mb-6">
                                                     <div className="h-px bg-white/10 flex-1"></div>
@@ -394,12 +552,13 @@ return (
                                                             <ActivityIcon size={16} className="text-emerald-500" />
                                                         </div>
                                                         <div className="space-y-2 border-t border-white/5 pt-3">
-                                                        {log.completedExercises.map((ex, i) => (
-                                                            <div key={i} className="flex justify-between items-center text-[11px]">
-                                                                <span className="text-zinc-400 truncate pr-2 flex-1">{ex.exerciseName}</span>
-                                                                <span className="text-zinc-300 font-bold bg-black/50 px-2 py-1 rounded-md shadow-inner">{ex.sets.length} {ex.sets.length === 1 ? 'set' : 'sets'}</span>
-                                                            </div>
-                                                        ))}
+                                                            {log.completedExercises.map((ex, i) => (
+                                                                <div key={i} className="flex justify-between items-center text-[11px]">
+                                                                    <span className="text-zinc-400 truncate pr-2 flex-1">{ex.exerciseName}</span>
+                                                                    <span className="text-zinc-300 font-bold bg-black/50 px-2 py-1 rounded-md shadow-inner">{ex.sets.length} {ex.sets.length === 1 ? 'set' : 'sets'}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )) : (
                                                     <div className="text-center py-10 bg-zinc-900/20 rounded-3xl border border-dashed border-white/10">
@@ -408,7 +567,7 @@ return (
                                                 )}
                                             </div>
                                         ) : (
-                                            /* PLAN CÍCLICO (Avanzado con Días de la Semana y Edición) */
+                                            // PLAN CÍCLICO (Avanzado con Días de la Semana y Edición)
                                             <div className="space-y-3 animate-slide-up">
                                                 <div className="flex items-center gap-3 mb-6">
                                                     <div className="h-px bg-white/10 flex-1"></div>
@@ -496,9 +655,7 @@ return (
                                                                         ) : (
                                                                             <button 
                                                                                 onClick={() => {
-                                                                                    if (selectedBlock && handleconst ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, onEdit, isActive }) => {
-                                                                                        // Agregamos handleUpdateProgram y addToast
-                                                                                        const { history, settings, handleEditSession, handleBack, handleAddSession, isOnline, exerciseList, muscleHierarchy, handleStartProgram, handlePauseProgram, handleEditProgram, handleUpdateProgram, addToast } = useAppContext();AddSession) {
+                                                                                    if (selectedBlock && handleAddSession) {
                                                                                         handleAddSession(program.id, selectedBlock.macroIndex, cyclicWeek.mesoIndex, cyclicWeek.id);
                                                                                     }
                                                                                 }}
@@ -556,370 +713,368 @@ return (
                                 </div>
 
                             ) : (
-                                /* ========================================================= */
-                                /* VISTA POR BLOQUES (Roadmap Moderno con resplandores)      */
-                                /* ========================================================= */
+                                // =========================================================
+                                // VISTA POR BLOQUES (Roadmap Moderno con resplandores)      
+                                // =========================================================
                                 <>
                                     {subView === 'weekly' ? (
                                         <div className="animate-fade-in">
                                             {/* TÍTULO DINÁMICO (Píldora Minimalista y Plana) */}
-                                    <div className="pt-6 pb-2 bg-black flex justify-center items-center z-40 relative">
-                                        <div className="bg-zinc-950 border border-white/10 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
-                                            <span className="text-[10px] font-bold text-white uppercase tracking-wider">{selectedBlock?.name || `Bloque ${selectedBlockIndex + 1}`}</span>
-                                            <span className="text-zinc-700 font-black">/</span>
-                                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Semana {selectedWeekIndex}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* ROADMAP INTEGRADO (Acordeón Horizontal Minimalista) */}
-                                    <div className="relative border-b border-white/5 bg-black">
-                                        <div className="w-full overflow-x-auto no-scrollbar flex items-center px-6 pt-6 pb-8 relative z-10 scroll-smooth">
-                                            {roadmapBlocks.map((block, idx) => {
-                                                const isSelected = block.id === selectedBlockId;
-                                                const isCurrent = block.id === activeBlockId;
-
-                                                return (
-                                                    <div key={block.id} className="flex items-center shrink-0">
-                                                        {/* 1. BOTÓN DEL BLOQUE (Blanco Puro + Plegable) */}
-                                                        <button 
-                                                            onClick={(e) => {
-                                                                // Permite plegar el bloque si ya está seleccionado
-                                                                setSelectedBlockId(prev => prev === block.id ? null : block.id);
-                                                                if (block.id !== selectedBlockId) {
-                                                                    const target = e.currentTarget;
-                                                                    setTimeout(() => {
-                                                                        target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                                                                    }, 250); 
-                                                                }
-                                                            }}
-                                                            className="group flex flex-col items-center justify-center flex-shrink-0 focus:outline-none relative"
-                                                        >
-                                                            <div className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 z-20 font-black
-                                                                ${isCurrent 
-                                                                    ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
-                                                                    : isSelected 
-                                                                        ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
-                                                                        : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:bg-zinc-800 hover:text-white shadow-none' 
-                                                                }`}
-                                                            >
-                                                                <span className="text-base">{idx + 1}</span>
-                                                            </div>
-                                                        </button>
-
-                                                        {/* 2. EFECTO ACORDEÓN DE SEMANAS (Plano y monocromático) */}
-                                                        <div 
-                                                            className={`flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] 
-                                                                ${isSelected ? 'max-w-[1000px] opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0'}`}
-                                                        >
-                                                            <div className="w-3 h-[2px] bg-zinc-800 shrink-0 mr-3" />
-                                                            <div className="flex items-center gap-2 bg-zinc-950 p-1.5 rounded-full border border-white/5">
-                                                                {currentWeeks.map((week, wIdx) => {
-                                                                    const isWeekSelected = week.id === selectedWeekId;
-                                                                    // Detectar si la semana contiene un evento clave
-                                                                    const hasEvent = week.sessions.some(s => {
-                                                                        try { const d = JSON.parse(s.description||'{}'); return !!d.type; } catch(e){return false;}
-                                                                    });
-                                                                    
-                                                                    return (
-                                                                        <button
-                                                                            key={week.id}
-                                                                            onClick={() => setSelectedWeekId(week.id)}
-                                                                            className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all duration-300 relative
-                                                                                ${isWeekSelected 
-                                                                                    ? (hasEvent ? 'bg-yellow-400 text-black scale-110 shadow-[0_0_20px_rgba(250,204,21,0.6)]' : 'bg-white text-black scale-110 shadow-sm') 
-                                                                                    : (hasEvent ? 'bg-yellow-400/20 text-yellow-500 border border-yellow-400/50 hover:bg-yellow-400 hover:text-black animate-pulse-slow' : 'bg-transparent text-zinc-500 hover:text-white hover:bg-zinc-800')
-                                                                                }`}
-                                                                            title={hasEvent ? 'Día D / Fecha Clave' : ''}
-                                                                        >
-                                                                            {hasEvent && !isWeekSelected && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></div>}
-                                                                            {wIdx + 1}
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* 3. LÍNEA CONECTORA */}
-                                                        {idx < roadmapBlocks.length - 1 && (
-                                                            <div className="w-8 h-[2px] bg-zinc-800/80 shrink-0 mx-3" />
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                        <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-black to-transparent pointer-events-none z-30" />
-                                        <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-l from-black to-transparent pointer-events-none z-30" />
-                                    </div>
-
-                                    {/* CONTENIDO DEL BLOQUE */}
-                                    <div className="px-4 pb-10 pt-6 space-y-3">
-                                        {isPastBlock ? (
-                                            /* ------------------------------------------------ */
-                                            /* HISTORIAL DEL BLOQUE PASADO (Diseño Acordeón)    */
-                                            /* ------------------------------------------------ */
-                                            <div className="animate-fade-in">
-                                                <div className="bg-emerald-950/20 border border-emerald-500/10 rounded-3xl p-6 text-center mb-8 relative overflow-hidden shadow-2xl">
-                                                    <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none" />
-                                                    <ActivityIcon size={32} className="text-emerald-500 mx-auto mb-3" />
-                                                    <h3 className="text-lg font-black text-white uppercase tracking-tight">Bloque Superado</h3>
-                                                    <p className="text-xs text-zinc-400 mt-2">Este bloque ya pertenece a tu historial de progreso.</p>
+                                            <div className="pt-6 pb-2 bg-black flex justify-center items-center z-40 relative">
+                                                <div className="bg-zinc-950 border border-white/10 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
+                                                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">{selectedBlock?.name || `Bloque ${selectedBlockIndex + 1}`}</span>
+                                                    <span className="text-zinc-700 font-black">/</span>
+                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Semana {selectedWeekIndex}</span>
                                                 </div>
-                                                
-                                                <div className="space-y-6">
-                                                    {currentWeeks.map((week, wIdx) => {
-                                                        const logsForWeek = programLogs.filter(log => log.weekId === week.id);
-                                                        if (logsForWeek.length === 0) return null;
-                                                        
+                                            </div>
+
+                                            {/* ROADMAP INTEGRADO (Acordeón Horizontal Minimalista) */}
+                                            <div className="relative border-b border-white/5 bg-black">
+                                                <div className="w-full overflow-x-auto no-scrollbar flex items-center px-6 pt-6 pb-8 relative z-10 scroll-smooth">
+                                                    {roadmapBlocks.map((block, idx) => {
+                                                        const isSelected = block.id === selectedBlockId;
+                                                        const isCurrent = block.id === activeBlockId;
+
                                                         return (
-                                                            <div key={week.id} className="bg-zinc-900/30 rounded-[2rem] p-5 border border-white/5">
-                                                                <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                                                                    Semana {wIdx + 1}
-                                                                </h4>
-                                                                <div className="space-y-3">
-                                                                    {logsForWeek.map(log => (
-                                                                        <div key={log.id} className="bg-black/50 p-4 rounded-2xl border border-white/5 shadow-inner">
-                                                                            <div className="flex justify-between items-center mb-3 pb-3 border-b border-white/5">
-                                                                                <div>
-                                                                                    <div className="text-xs font-black text-white uppercase tracking-tight">{log.sessionName || 'Sesión General'}</div>
-                                                                                    <div className="text-[9px] text-zinc-500 font-bold tracking-widest mt-1">{new Date(log.date).toLocaleDateString()}</div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="space-y-2">
-                                                                                {log.exercises.map((ex, exIdx) => {
-                                                                                    // Buscar el peso máximo utilizado en este ejercicio
-                                                                                    const maxWeight = Math.max(...(ex.sets?.map(s => s.weight || 0) || [0]));
-                                                                                    return (
-                                                                                        <div key={exIdx} className="flex justify-between items-center text-[11px]">
-                                                                                            <span className="text-zinc-400 truncate pr-2 flex-1">{ex.name}</span>
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                <span className="text-zinc-500 font-bold">{ex.sets?.length || 0} sets</span>
-                                                                                                {maxWeight > 0 && (
-                                                                                                    <span className="text-emerald-400 font-black bg-emerald-950/50 px-2 py-0.5 rounded shadow-sm">
-                                                                                                        {maxWeight}kg max
-                                                                                                    </span>
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    );
-                                                                                })}
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
+                                                            <div key={block.id} className="flex items-center shrink-0">
+                                                                {/* 1. BOTÓN DEL BLOQUE (Blanco Puro + Plegable) */}
+                                                                <button 
+                                                                    onClick={(e) => {
+                                                                        // Permite plegar el bloque si ya está seleccionado
+                                                                        setSelectedBlockId(prev => prev === block.id ? null : block.id);
+                                                                        if (block.id !== selectedBlockId) {
+                                                                            const target = e.currentTarget;
+                                                                            setTimeout(() => {
+                                                                                target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                                                                            }, 250); 
+                                                                        }
+                                                                    }}
+                                                                    className="group flex flex-col items-center justify-center flex-shrink-0 focus:outline-none relative"
+                                                                >
+                                                                    <div className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 z-20 font-black
+                                                                        ${isCurrent 
+                                                                            ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
+                                                                            : isSelected 
+                                                                                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
+                                                                                : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:bg-zinc-800 hover:text-white shadow-none' 
+                                                                        }`}
+                                                                    >
+                                                                        <span className="text-base">{idx + 1}</span>
+                                                                    </div>
+                                                                </button>
+
+                                                                {/* 2. EFECTO ACORDEÓN DE SEMANAS (Plano y monocromático) */}
+                                                                <div 
+                                                                    className={`flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] 
+                                                                        ${isSelected ? 'max-w-[1000px] opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0'}`}
+                                                                >
+                                                                    <div className="w-3 h-[2px] bg-zinc-800 shrink-0 mr-3" />
+                                                                    <div className="flex items-center gap-2 bg-zinc-950 p-1.5 rounded-full border border-white/5">
+                                                                        {currentWeeks.map((week, wIdx) => {
+                                                                            const isWeekSelected = week.id === selectedWeekId;
+                                                                            // Detectar si la semana contiene un evento clave
+                                                                            const hasEvent = week.sessions.some(s => {
+                                                                                try { const d = JSON.parse(s.description||'{}'); return !!d.type; } catch(e){return false;}
+                                                                            });
+                                                                            
+                                                                            return (
+                                                                                <button
+                                                                                    key={week.id}
+                                                                                    onClick={() => setSelectedWeekId(week.id)}
+                                                                                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all duration-300 relative
+                                                                                        ${isWeekSelected 
+                                                                                            ? (hasEvent ? 'bg-yellow-400 text-black scale-110 shadow-[0_0_20px_rgba(250,204,21,0.6)]' : 'bg-white text-black scale-110 shadow-sm') 
+                                                                                            : (hasEvent ? 'bg-yellow-400/20 text-yellow-500 border border-yellow-400/50 hover:bg-yellow-400 hover:text-black animate-pulse-slow' : 'bg-transparent text-zinc-500 hover:text-white hover:bg-zinc-800')
+                                                                                        }`}
+                                                                                    title={hasEvent ? 'Día D / Fecha Clave' : ''}
+                                                                                >
+                                                                                    {hasEvent && !isWeekSelected && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></div>}
+                                                                                    {wIdx + 1}
+                                                                                </button>
+                                                                            );
+                                                                        })}
+                                                                    </div>
                                                                 </div>
+
+                                                                {/* 3. LÍNEA CONECTORA */}
+                                                                {idx < roadmapBlocks.length - 1 && (
+                                                                    <div className="w-8 h-[2px] bg-zinc-800/80 shrink-0 mx-3" />
+                                                                )}
                                                             </div>
                                                         );
                                                     })}
                                                 </div>
+                                                <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-black to-transparent pointer-events-none z-30" />
+                                                <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-l from-black to-transparent pointer-events-none z-30" />
                                             </div>
-                                        ) : (
-                                            /* ------------------------------------------------ */
-                                            /* LISTA DE SESIONES NORMALES (Futuras / Actuales)  */
-                                            /* ------------------------------------------------ */
-                                            (() => {
-                                                const selectedWeek = currentWeeks.find(w => w.id === selectedWeekId);
-                                                if (!selectedWeekId || !selectedWeek) return (
-                                                    <div className="py-12 text-center border border-dashed border-white/10 rounded-3xl opacity-50">
-                                                        <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Selecciona un bloque y semana</p>
-                                                    </div>
-                                                );
 
-                                                const sessionsForWeek = selectedWeek.sessions || [];
-                                                
-                                                // 1. Determinar el número total de días a renderizar
-                                                const maxDayAssigned = sessionsForWeek.reduce((max: number, s: any) => Math.max(max, s.dayOfWeek || 0), 0);
-                                                
-                                                const isStandardWeek = maxDayAssigned <= 6; // JS usa 0 a 6 para los días de la semana
-                                                const startOn = settings?.startWeekOn ?? 1; // 1 = Lunes
-                                                
-                                                // Utilizamos la función utilitaria para reordenar los días según preferencia extrayendo solo el valor numérico
-                                                const daysArray = isStandardWeek 
-                                                    ? getOrderedDaysOfWeek(startOn).map(d => d.value) 
-                                                    : Array.from({ length: maxDayAssigned + 1 }, (_, i) => i);
-
-                                                return (
-                                                    <div className="space-y-5">
-                                                        {daysArray.map(dayNum => {
-                                                            // Agrupamos TODAS las sesiones correspondientes a este número de día
-                                                            const daySessions = sessionsForWeek.filter((s: any) => s.dayOfWeek === dayNum);
-                                                            
-                                                            let dayTitle = '';
-                                                            let daySubtitle = '';
-                                                            let dayAbbrev = '';
-                                                
-                                                            // 2. Lógica para nombrar el día
-                                                            if (isStandardWeek) {
-                                                                // dayNum ahora es directamente el índice nativo de JS (0-6)
-                                                                const daysNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-                                                                const dayName = daysNames[dayNum]; 
-                                                                dayTitle = dayName;
-                                                                dayAbbrev = dayName.substring(0, 3).toUpperCase();
-                                                                daySubtitle = daySessions.length > 0 ? 'Día de Entrenamiento' : 'Descanso / Recuperación';
-                                                            } else {
-                                                                dayTitle = `Día ${dayNum}`;
-                                                                dayAbbrev = `D${dayNum}`;
-                                                                daySubtitle = daySessions.length > 0 ? 'Entrenamiento' : 'Descanso';
-                                                            }
-
-                                                            return (
-                                                                <div key={`day-group-${dayNum}`} className="bg-zinc-900/30 border border-white/5 rounded-[2rem] p-4 relative overflow-hidden">
-                                                                    {/* ENCABEZADO DEL DÍA */}
-                                                                    <div className="flex items-center justify-between mb-4">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black border ${daySessions.length > 0 ? 'bg-blue-900/20 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-black border-zinc-800 text-zinc-600'}`}>
-                                                                                {dayAbbrev}
-                                                                            </div>
-                                                                            <div>
-                                                                                <h4 className={`text-sm font-black uppercase tracking-wider ${daySessions.length > 0 ? 'text-white' : 'text-zinc-500'}`}>
-                                                                                    {dayTitle}
-                                                                                </h4>
-                                                                                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{daySubtitle}</p>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        {/* BOTÓN CREAR SESIÓN */}
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                if (selectedBlock && handleAddSession) {
-                                                                                    handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
-                                                                                }
-                                                                            }}
-                                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/30 transition-all shadow-sm"
-                                                                            title={`Añadir sesión al ${dayTitle}`}
-                                                                        >
-                                                                            <PlusIcon size={14} />
-                                                                            <span className="hidden sm:inline">Crear</span>
-                                                                        </button>
-                                                                    </div>
-
-                                                                    {/* TARJETAS DE SESIONES ASIGNADAS A ESTE DÍA */}
-                                                                    {daySessions.length > 0 ? (
+                                            {/* CONTENIDO DEL BLOQUE */}
+                                            <div className="px-4 pb-10 pt-6 space-y-3">
+                                                {isPastBlock ? (
+                                                    // ------------------------------------------------
+                                                    // HISTORIAL DEL BLOQUE PASADO (Diseño Acordeón)    
+                                                    // ------------------------------------------------
+                                                    <div className="animate-fade-in">
+                                                        <div className="bg-emerald-950/20 border border-emerald-500/10 rounded-3xl p-6 text-center mb-8 relative overflow-hidden shadow-2xl">
+                                                            <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none" />
+                                                            <ActivityIcon size={32} className="text-emerald-500 mx-auto mb-3" />
+                                                            <h3 className="text-lg font-black text-white uppercase tracking-tight">Bloque Superado</h3>
+                                                            <p className="text-xs text-zinc-400 mt-2">Este bloque ya pertenece a tu historial de progreso.</p>
+                                                        </div>
+                                                        
+                                                        <div className="space-y-6">
+                                                            {currentWeeks.map((week, wIdx) => {
+                                                                const logsForWeek = programLogs.filter((log: any) => log.weekId === week.id || week.sessions.some(s => s.id === log.sessionId));
+                                                                if (logsForWeek.length === 0) return null;
+                                                                
+                                                                return (
+                                                                    <div key={week.id} className="bg-zinc-900/30 rounded-[2rem] p-5 border border-white/5">
+                                                                        <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                                                                            Semana {wIdx + 1}
+                                                                        </h4>
                                                                         <div className="space-y-3">
-                                                                            {daySessions.map((session: any, idx: number) => (
-                                                                                <SessionCard 
-                                                                                    key={session.id} 
-                                                                                    session={session} 
-                                                                                    index={idx} 
-                                                                                    dayName={dayTitle} // <-- Esto hace que aparezca el nombre del día en la tarjeta
-                                                                                    exerciseList={exerciseList}
-                                                                                    onStart={() => {
-                                                                                        handleStartWorkout(session, program, undefined, { macroIndex: selectedBlock?.macroIndex || 0, mesoIndex: selectedWeek?.mesoIndex || 0, weekId: selectedWeek?.id || '' });
-                                                                                    }}
-                                                                                    onEdit={() => onEditSessionClick(session)} 
-                                                                                />
+                                                                            {logsForWeek.map((log: any) => (
+                                                                                <div key={log.id} className="bg-black/50 p-4 rounded-2xl border border-white/5 shadow-inner">
+                                                                                    <div className="flex justify-between items-center mb-3 pb-3 border-b border-white/5">
+                                                                                        <div>
+                                                                                            <div className="text-xs font-black text-white uppercase tracking-tight">{log.sessionName || 'Sesión General'}</div>
+                                                                                            <div className="text-[9px] text-zinc-500 font-bold tracking-widest mt-1">{new Date(log.date).toLocaleDateString()}</div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="space-y-2">
+                                                                                        {(log.completedExercises || []).map((ex: any, exIdx: number) => {
+                                                                                            const maxWeight = Math.max(...(ex.sets?.map((s: any) => s.weight || 0) || [0]));
+                                                                                            return (
+                                                                                                <div key={exIdx} className="flex justify-between items-center text-[11px]">
+                                                                                                    <span className="text-zinc-400 truncate pr-2 flex-1">{ex.exerciseName || ex.name}</span>
+                                                                                                    <div className="flex items-center gap-2">
+                                                                                                        <span className="text-zinc-500 font-bold">{ex.sets?.length || 0} sets</span>
+                                                                                                        {maxWeight > 0 && (
+                                                                                                            <span className="text-emerald-400 font-black bg-emerald-950/50 px-2 py-0.5 rounded shadow-sm">
+                                                                                                                {maxWeight}kg max
+                                                                                                            </span>
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                </div>
                                                                             ))}
                                                                         </div>
-                                                                    ) : (
-                                                                        /* ESTADO VACÍO CON BOTÓN PARA AÑADIR SESIÓN AL DÍA */
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                if (selectedBlock && handleAddSession) {
-                                                                                    handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
-                                                                                }
-                                                                            }}
-                                                                            className="w-full h-14 rounded-2xl bg-black/50 border border-dashed border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/30 transition-all group"
-                                                                        >
-                                                                            <PlusIcon size={16} className="text-zinc-600 group-hover:text-white mr-2 transition-colors" />
-                                                                            <span className="text-[10px] font-bold text-zinc-600 group-hover:text-white uppercase tracking-widest transition-colors">Añadir sesión a {dayTitle}</span>
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                        
-                                                        {/* BOTÓN GENERAL PARA AÑADIR SESIÓN EXTRA */}
-                                                        <button 
-                                                            onClick={() => {
-                                                                const selectedWeek = currentWeeks.find(w => w.id === selectedWeekId);
-                                                                if (selectedBlock && selectedWeek && handleAddSession) {
-                                                                    handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
-                                                                }
-                                                            }}
-                                                            className="w-full py-4 mt-4 bg-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors shadow-lg"
-                                                        >
-                                                            <PlusIcon size={16} /> Añadir Nueva Sesión
-                                                        </button>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
                                                     </div>
-                                                );
-                                            })()
-                                        )}
-                                    </div>
-                                    </div>
+                                                ) : (
+                                                    // ------------------------------------------------
+                                                    // LISTA DE SESIONES NORMALES (Futuras / Actuales)  
+                                                    // ------------------------------------------------
+                                                    (() => {
+                                                        const selectedWeek = currentWeeks.find(w => w.id === selectedWeekId);
+                                                        if (!selectedWeekId || !selectedWeek) return (
+                                                            <div className="py-12 text-center border border-dashed border-white/10 rounded-3xl opacity-50">
+                                                                <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Selecciona un bloque y semana</p>
+                                                            </div>
+                                                        );
+
+                                                        const sessionsForWeek = selectedWeek.sessions || [];
+                                                        
+                                                        // 1. Determinar el número total de días a renderizar
+                                                        const maxDayAssigned = sessionsForWeek.reduce((max: number, s: any) => Math.max(max, s.dayOfWeek || 0), 0);
+                                                        
+                                                        const isStandardWeek = maxDayAssigned <= 6; // JS usa 0 a 6 para los días de la semana
+                                                        const startOn = settings?.startWeekOn ?? 1; // 1 = Lunes
+                                                        
+                                                        // Utilizamos la función utilitaria para reordenar los días según preferencia extrayendo solo el valor numérico
+                                                        const daysArray = isStandardWeek 
+                                                            ? getOrderedDaysOfWeek(startOn).map(d => d.value) 
+                                                            : Array.from({ length: maxDayAssigned + 1 }, (_, i) => i);
+
+                                                        return (
+                                                            <div className="space-y-5">
+                                                                {daysArray.map(dayNum => {
+                                                                    // Agrupamos TODAS las sesiones correspondientes a este número de día
+                                                                    const daySessions = sessionsForWeek.filter((s: any) => s.dayOfWeek === dayNum);
+                                                                    
+                                                                    let dayTitle = '';
+                                                                    let daySubtitle = '';
+                                                                    let dayAbbrev = '';
+                                                        
+                                                                    // 2. Lógica para nombrar el día
+                                                                    if (isStandardWeek) {
+                                                                        // dayNum ahora es directamente el índice nativo de JS (0-6)
+                                                                        const daysNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                                                                        const dayName = daysNames[dayNum]; 
+                                                                        dayTitle = dayName;
+                                                                        dayAbbrev = dayName.substring(0, 3).toUpperCase();
+                                                                        daySubtitle = daySessions.length > 0 ? 'Día de Entrenamiento' : 'Descanso / Recuperación';
+                                                                    } else {
+                                                                        dayTitle = `Día ${dayNum}`;
+                                                                        dayAbbrev = `D${dayNum}`;
+                                                                        daySubtitle = daySessions.length > 0 ? 'Entrenamiento' : 'Descanso';
+                                                                    }
+
+                                                                    return (
+                                                                        <div key={`day-group-${dayNum}`} className="bg-zinc-900/30 border border-white/5 rounded-[2rem] p-4 relative overflow-hidden">
+                                                                            {/* ENCABEZADO DEL DÍA */}
+                                                                            <div className="flex items-center justify-between mb-4">
+                                                                                <div className="flex items-center gap-3">
+                                                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black border ${daySessions.length > 0 ? 'bg-blue-900/20 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-black border-zinc-800 text-zinc-600'}`}>
+                                                                                        {dayAbbrev}
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <h4 className={`text-sm font-black uppercase tracking-wider ${daySessions.length > 0 ? 'text-white' : 'text-zinc-500'}`}>
+                                                                                            {dayTitle}
+                                                                                        </h4>
+                                                                                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{daySubtitle}</p>
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                {/* BOTÓN CREAR SESIÓN */}
+                                                                                <button 
+                                                                                    onClick={() => {
+                                                                                        if (selectedBlock && handleAddSession) {
+                                                                                            handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
+                                                                                        }
+                                                                                    }}
+                                                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/30 transition-all shadow-sm"
+                                                                                >
+                                                                                    <PlusIcon size={14} />
+                                                                                    <span className="hidden sm:inline">Crear</span>
+                                                                                </button>
+                                                                            </div>
+
+                                                                            {/* TARJETAS DE SESIONES ASIGNADAS A ESTE DÍA */}
+                                                                            {daySessions.length > 0 ? (
+                                                                                <div className="space-y-3">
+                                                                                    {daySessions.map((session: any, idx: number) => (
+                                                                                        <SessionCard 
+                                                                                            key={session.id} 
+                                                                                            session={session} 
+                                                                                            index={idx} 
+                                                                                            dayName={dayTitle} // <-- Esto hace que aparezca el nombre del día en la tarjeta
+                                                                                            exerciseList={exerciseList}
+                                                                                            onStart={() => {
+                                                                                                handleStartWorkout(session, program, undefined, { macroIndex: selectedBlock?.macroIndex || 0, mesoIndex: selectedWeek?.mesoIndex || 0, weekId: selectedWeek?.id || '' });
+                                                                                            }}
+                                                                                            onEdit={() => onEditSessionClick(session)} 
+                                                                                        />
+                                                                                    ))}
+                                                                                </div>
+                                                                            ) : (
+                                                                                // ESTADO VACÍO CON BOTÓN PARA AÑADIR SESIÓN AL DÍA
+                                                                                <button 
+                                                                                    onClick={() => {
+                                                                                        if (selectedBlock && handleAddSession) {
+                                                                                            handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
+                                                                                        }
+                                                                                    }}
+                                                                                    className="w-full h-14 rounded-2xl bg-black/50 border border-dashed border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/30 transition-all group"
+                                                                                >
+                                                                                    <PlusIcon size={16} className="text-zinc-600 group-hover:text-white mr-2 transition-colors" />
+                                                                                    <span className="text-[10px] font-bold text-zinc-600 group-hover:text-white uppercase tracking-widest transition-colors">Añadir sesión a {dayTitle}</span>
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                                
+                                                                {/* BOTÓN GENERAL PARA AÑADIR SESIÓN EXTRA */}
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        const selectedWeek = currentWeeks.find(w => w.id === selectedWeekId);
+                                                                        if (selectedBlock && selectedWeek && handleAddSession) {
+                                                                            handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
+                                                                        }
+                                                                    }}
+                                                                    className="w-full py-4 mt-4 bg-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors shadow-lg"
+                                                                >
+                                                                    <PlusIcon size={16} /> Añadir Nueva Sesión
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })()
+                                                )}
+                                            </div>
+                                        </div>
                                     ) : (
-                                        /* ========================================================= */
-                                        /* VISTA DE MACROCICLO (JERÁRQUICA - ESTÉTICA WIZARD)        */
-                                        /* ========================================================= */
+                                        // =========================================================
+                                        // VISTA DE MACROCICLO (JERÁRQUICA - ESTÉTICA WIZARD)        
+                                        // =========================================================
                                         <div className="px-4 py-8 w-full max-w-5xl mx-auto animate-slide-up space-y-12">
                                             {(program.macrocycles || []).map((macro, macroIndex) => {
                                                 const macroWeeks = (macro.blocks || []).flatMap(b => b.mesocycles.flatMap(me => me.weeks));
                                                 const totalMacroWeeks = macroWeeks.length;
                                                 
                                                 return (
-                                                <div key={macro.id} className="relative space-y-6">
-                                                    {/* Cabecera del Macrociclo */}
-                                                    <div className="flex justify-between items-center bg-[#0a0a0a] p-5 rounded-3xl border border-white/10 shadow-2xl relative z-10">
-                                                        <div className="flex items-center gap-4">
-                                                            <span className="bg-white/10 text-white text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest">Macro {macroIndex + 1}</span>
-                                                            <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">{macro.name}</h2>
+                                                    <div key={macro.id} className="relative space-y-6">
+                                                        {/* Cabecera del Macrociclo */}
+                                                        <div className="flex justify-between items-center bg-[#0a0a0a] p-5 rounded-3xl border border-white/10 shadow-2xl relative z-10">
+                                                            <div className="flex items-center gap-4">
+                                                                <span className="bg-white/10 text-white text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest">Macro {macroIndex + 1}</span>
+                                                                <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">{macro.name}</h2>
+                                                            </div>
+                                                            <div className="text-right hidden sm:block pr-2">
+                                                                <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest block">{totalMacroWeeks}</span>
+                                                                <span className="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Semanas Totales</span>
+                                                            </div>
                                                         </div>
-                                                        <div className="text-right hidden sm:block pr-2">
-                                                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest block">{totalMacroWeeks}</span>
-                                                            <span className="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Semanas Totales</span>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    {/* Bloques */}
-                                                    <div className="space-y-8 pl-6 md:pl-10 border-l-2 border-white/10 relative">
-                                                        {(macro.blocks || []).map((block, blockIndex) => (
-                                                            <div key={block.id} className="relative group">
-                                                                <div className="absolute -left-[29px] md:-left-[45px] top-8 w-4 h-4 rounded-full border-2 border-white/30 bg-[#050505] group-hover:border-blue-500 transition-colors"></div>
-                                                                <div className="bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:border-white/30 transition-all shadow-xl">
-                                                                    <div className="p-5 border-b border-white/5 bg-white/[0.02]">
-                                                                        <span className="bg-white/10 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider mb-2 inline-block">Bloque {blockIndex + 1}</span>
-                                                                        <h3 className="text-lg font-black text-white uppercase tracking-tight">{block.name}</h3>
-                                                                    </div>
-                                                                    <div className="p-5 bg-[#0a0a0a] space-y-6">
-                                                                        {(block.mesocycles || []).map((meso, mesoIndex) => (
-                                                                            <div key={meso.id} className="space-y-4">
-                                                                                <div className="flex items-center gap-3 border-b border-white/5 pb-3">
-                                                                                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"></div>
-                                                                                    <h4 className="text-xs font-black text-white uppercase truncate flex-1">{meso.name}</h4>
-                                                                                    <span className="bg-black text-[9px] text-gray-400 border border-white/10 rounded-lg px-2 py-1 uppercase font-bold">{meso.goal}</span>
+                                                        
+                                                        {/* Bloques */}
+                                                        <div className="space-y-8 pl-6 md:pl-10 border-l-2 border-white/10 relative">
+                                                            {(macro.blocks || []).map((block, blockIndex) => (
+                                                                <div key={block.id} className="relative group">
+                                                                    <div className="absolute -left-[29px] md:-left-[45px] top-8 w-4 h-4 rounded-full border-2 border-white/30 bg-[#050505] group-hover:border-blue-500 transition-colors"></div>
+                                                                    <div className="bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:border-white/30 transition-all shadow-xl">
+                                                                        <div className="p-5 border-b border-white/5 bg-white/[0.02]">
+                                                                            <span className="bg-white/10 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider mb-2 inline-block">Bloque {blockIndex + 1}</span>
+                                                                            <h3 className="text-lg font-black text-white uppercase tracking-tight">{block.name}</h3>
+                                                                        </div>
+                                                                        <div className="p-5 bg-[#0a0a0a] space-y-6">
+                                                                            {(block.mesocycles || []).map((meso, mesoIndex) => (
+                                                                                <div key={meso.id} className="space-y-4">
+                                                                                    <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+                                                                                        <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"></div>
+                                                                                        <h4 className="text-xs font-black text-white uppercase truncate flex-1">{meso.name}</h4>
+                                                                                        <span className="bg-black text-[9px] text-gray-400 border border-white/10 rounded-lg px-2 py-1 uppercase font-bold">{meso.goal}</span>
+                                                                                    </div>
+                                                                                    {/* Splits de Semanas */}
+                                                                                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                                                                                        {(meso.weeks || []).map((week, weekIndex) => {
+                                                                                            const weekPattern = Array(7).fill('Descanso');
+                                                                                            week.sessions.forEach(s => {
+                                                                                                if (s.dayOfWeek >= 0 && s.dayOfWeek < 7) weekPattern[s.dayOfWeek] = s.name;
+                                                                                            });
+                                                                                            return (
+                                                                                                <button 
+                                                                                                    key={week.id} 
+                                                                                                    onClick={() => setEditingWeekInfo({ macroIndex, blockIndex, mesoIndex, weekIndex, week, isSimple: false })} 
+                                                                                                    className="bg-[#161616] border border-white/5 rounded-xl p-3 flex flex-col justify-between h-24 relative overflow-hidden group/week hover:border-blue-500 hover:bg-[#1a1a1a] transition-all text-left cursor-pointer"
+                                                                                                >
+                                                                                                    <div className="flex justify-between items-start z-10 w-full mb-1">
+                                                                                                        <span className="text-[10px] font-black text-gray-400 uppercase truncate group-hover/week:text-white transition-colors">{week.name || `Semana ${weekIndex + 1}`}</span>
+                                                                                                        <EditIcon size={12} className="text-blue-500 opacity-0 group-hover/week:opacity-100 transition-opacity" />
+                                                                                                    </div>
+                                                                                                    <div className="flex gap-0.5 h-1.5 w-full mt-auto z-10">
+                                                                                                        {weekPattern.map((d, dIdx) => (
+                                                                                                            <div key={dIdx} className={`flex-1 rounded-sm ${d.toLowerCase() === 'descanso' ? 'bg-white/5' : 'bg-white group-hover/week:bg-blue-500 transition-colors'}`}></div>
+                                                                                                        ))}
+                                                                                                    </div>
+                                                                                                </button>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
                                                                                 </div>
-                                                                                {/* Splits de Semanas */}
-                                                                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                                                                                    {(meso.weeks || []).map((week, weekIndex) => {
-                                                                                        const weekPattern = Array(7).fill('Descanso');
-                                                                                        week.sessions.forEach(s => {
-                                                                                            if (s.dayOfWeek >= 0 && s.dayOfWeek < 7) weekPattern[s.dayOfWeek] = s.name;
-                                                                                        });
-                                                                                        return (
-                                                                                            <button 
-                                                                                                key={week.id} 
-                                                                                                onClick={() => setEditingWeekInfo({ macroIndex, blockIndex, mesoIndex, weekIndex, week, isSimple: false })} 
-                                                                                                className="bg-[#161616] border border-white/5 rounded-xl p-3 flex flex-col justify-between h-24 relative overflow-hidden group/week hover:border-blue-500 hover:bg-[#1a1a1a] transition-all text-left cursor-pointer"
-                                                                                            >
-                                                                                                <div className="flex justify-between items-start z-10 w-full mb-1">
-                                                                                                    <span className="text-[10px] font-black text-gray-400 uppercase truncate group-hover/week:text-white transition-colors">{week.name || `Semana ${weekIndex + 1}`}</span>
-                                                                                                    <EditIcon size={12} className="text-blue-500 opacity-0 group-hover/week:opacity-100 transition-opacity" />
-                                                                                                </div>
-                                                                                                <div className="flex gap-0.5 h-1.5 w-full mt-auto z-10">
-                                                                                                    {weekPattern.map((d, dIdx) => (
-                                                                                                        <div key={dIdx} className={`flex-1 rounded-sm ${d.toLowerCase() === 'descanso' ? 'bg-white/5' : 'bg-white group-hover/week:bg-blue-500 transition-colors'}`}></div>
-                                                                                                    ))}
-                                                                                                </div>
-                                                                                            </button>
-                                                                                        );
-                                                                                    })}
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        ))}
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
                                                 );
                                             })}
                                         </div>
@@ -929,7 +1084,6 @@ return (
                         </div>
                     );
                 })()}
-
 
                 {/* B) PESTAÑA MÉTRICAS */}
                 {activeTab === 'metrics' && (
@@ -1084,7 +1238,6 @@ return (
                                     </div>
                                 </div>
                             )}
-
                         </div>
                     </div>
                 )}
@@ -1115,167 +1268,6 @@ return (
                     />
                 )}
             </div>
-        </div>
-    );
-};
-
-// --- COMPONENTE TARJETA DE SESIÓN ---
-const SessionCard: React.FC<{ 
-    session: Session; 
-    index: number; 
-    onStart: () => void;
-    onEdit: () => void;
-    dayName?: string;
-    exerciseList?: ExerciseMuscleInfo[];
-}> = ({ session, index, onStart, onEdit, dayName, exerciseList = [] }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const exercisesToDisplay = session.parts && session.parts.length > 0 
-        ? session.parts.flatMap(p => p.exercises || []) 
-        : (session.exercises || []);
-
-    const totalSets = exercisesToDisplay.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0);
-
-    // Algoritmo de Fatiga Intrínseca (1-10)
-    const calculateIntrinsicFatigue = (exInfo: ExerciseMuscleInfo) => {
-        let score = 5;
-        const isMultiJoint = exInfo.involvedMuscles.filter(m => m.role === 'primary').length > 1 || exInfo.involvedMuscles.length > 2;
-        const equip = exInfo.equipment?.toLowerCase() || '';
-        const isMachine = equip.includes('máquina') || equip.includes('maquina') || equip.includes('polea');
-        const isFreeWeight = equip.includes('barra') || equip.includes('mancuerna');
-
-        if (isMultiJoint) score += 3;
-        else score -= 1;
-        if (isMachine) score += 2;
-        if (isFreeWeight) score -= 1;
-
-        return Math.max(1, Math.min(10, score));
-    };
-
-    // Calcular Promedio de Fatiga de la Sesión
-    const averageFatigue = useMemo(() => {
-        if (exercisesToDisplay.length === 0 || exerciseList.length === 0) return 0;
-        let totalFatigue = 0;
-        let validExercises = 0;
-        
-        exercisesToDisplay.forEach(ex => {
-            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
-            if (info) {
-                totalFatigue += calculateIntrinsicFatigue(info);
-                validExercises += 1;
-            }
-        });
-        
-        return validExercises > 0 ? Math.round((totalFatigue / validExercises) * 10) / 10 : 0;
-    }, [exercisesToDisplay, exerciseList]);
-
-    const getFatigueColor = (score: number) => {
-        if (score === 0) return 'bg-zinc-800 text-zinc-500';
-        if (score <= 3) return 'bg-emerald-500 text-emerald-950 shadow-[0_0_10px_rgba(16,185,129,0.5)]';
-        if (score <= 7) return 'bg-yellow-400 text-yellow-950 shadow-[0_0_10px_rgba(250,204,21,0.5)]';
-        return 'bg-red-500 text-red-950 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
-    };
-
-    const getFatigueLabel = (score: number) => {
-        if (score === 0) return 'Sin Datos';
-        if (score <= 3) return 'Fatiga Baja';
-        if (score <= 7) return 'Fatiga Moderada';
-        return 'Fatiga Alta';
-    };
-
-    return (
-        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden mb-3 hover:bg-zinc-900/60 transition-colors">
-            <div className="p-4">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="flex gap-4 items-center">
-                        <div className="w-10 h-10 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center text-xs font-black text-white">
-                            {dayName ? dayName.substring(0, 3).toUpperCase() : index + 1}
-                        </div>
-                        <div>
-                            {dayName && (
-                                <span className="text-[9px] text-blue-400 font-bold uppercase tracking-widest mb-0.5 block">
-                                    {dayName}
-                                </span>
-                            )}
-                            <h4 className="text-sm font-black text-white uppercase tracking-tight leading-none mb-1">{session.name}</h4>
-                            <div className="flex items-center gap-3 text-[10px] text-zinc-500 font-medium">
-                                <span className="flex items-center gap-1"><DumbbellIcon size={10}/> {exercisesToDisplay.length} Ejercicios</span>
-                                <span className="flex items-center gap-1"><ClockIcon size={10}/> ~{totalSets * 3} min</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className={`p-2 rounded-full transition-colors ${isExpanded ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-white'}`}
-                    >
-                        {isExpanded ? <ChevronUpIcon size={18} /> : <ChevronDownIcon size={18} />}
-                    </button>
-                </div>
-
-                <div className="flex gap-2">
-                    <button 
-                        onClick={onStart}
-                        className="flex-1 bg-white text-black text-[10px] font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors shadow-lg"
-                    >
-                        <PlayIcon size={12} fill="black" /> INICIAR
-                    </button>
-                    <button 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit();
-                        }}
-                        className="w-12 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-colors"
-                        title="Editar Sesión"
-                    >
-                        <EditIcon size={16} />
-                    </button>
-                </div>
-            </div>
-
-            {isExpanded && (
-                <div className="bg-black/20 border-t border-white/5 p-4 space-y-4 animate-slide-down">
-                    
-                    {/* BARRA DE FATIGA PROMEDIO */}
-                    {averageFatigue > 0 && (
-                        <div className="flex items-center justify-between bg-zinc-950 border border-white/5 rounded-xl p-3">
-                            <div className="flex items-center gap-2">
-                                <ActivityIcon size={16} className={averageFatigue > 7 ? 'text-red-500' : averageFatigue > 3 ? 'text-yellow-400' : 'text-emerald-500'} />
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Impacto Estimado</span>
-                                    <span className="text-xs font-bold text-white">{getFatigueLabel(averageFatigue)}</span>
-                                </div>
-                            </div>
-                            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${getFatigueColor(averageFatigue)} font-black text-sm`}>
-                                {Math.round(averageFatigue)}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="space-y-3">
-                        {exercisesToDisplay.length > 0 ? (
-                            exercisesToDisplay.map((exercise, idx) => (
-                                <div key={idx}>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-xs font-bold text-zinc-300">{idx + 1}. {exercise.name}</span>
-                                        <span className="text-[9px] text-zinc-600 bg-black/50 px-1.5 py-0.5 rounded">{(exercise.sets || []).length} sets</span>
-                                    </div>
-                                    <div className="pl-3 border-l border-white/10">
-                                        {(exercise.sets || []).slice(0, 1).map((set, sIdx) => (
-                                            <p key={sIdx} className="text-[9px] text-zinc-500">
-                                                {set.targetReps} reps {set.targetRPE ? `@ RPE ${set.targetRPE}` : ''}
-                                                {(exercise.sets || []).length > 1 && <span className="italic ml-1">(+ {(exercise.sets || []).length - 1} más)</span>}
-                                            </p>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-4">
-                                <p className="text-[10px] text-zinc-500 italic">No hay ejercicios agregados a esta sesión.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
