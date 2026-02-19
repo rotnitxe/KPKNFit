@@ -791,6 +791,11 @@ const InlineSessionCreator: React.FC<{
                 <CustomExerciseEditorModal
                     isOpen={isCustomExerciseModalOpen}
                     onClose={() => setIsCustomExerciseModalOpen(false)}
+                    isOnline={true}
+                    onSave={(newEx) => {
+                        addExerciseFromPicker(newEx as any);
+                        setIsCustomExerciseModalOpen(false);
+                    }}
                 />
             )}
 
@@ -847,7 +852,7 @@ const InlineSessionCreator: React.FC<{
 
                         <SessionAuditAlerts 
                                 sessionExercises={sessionData?.exercises || []}
-                                allExercisesDB={exerciseList}
+                                allExercisesDB={exerciseList as any}
                         />
                             <div className="overflow-x-auto custom-scrollbar pb-2">
                                 <div className="min-w-[350px]">
@@ -1134,8 +1139,8 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
       Object.values(detailedSessions).forEach((session: any) => {
         if (!session.exercises) return;
 
-          session.exercises.forEach(ex => {
-              // 1. INTENTO DE BÚSQUEDA 1: Por ID exacto
+            session.exercises.forEach((ex: any) => {
+            // 1. INTENTO DE BÚSQUEDA 1: Por ID exacto
               let exInfo = exerciseList.find(e => e.id === ex.exerciseDbId);
 
               // 2. INTENTO DE BÚSQUEDA 2: Por Nombre (Limpiando acentos y mayúsculas)
@@ -1754,7 +1759,7 @@ const handleCreate = () => {
             newBlock.mesocycles.push(newMeso); newMacro.blocks!.push(newBlock); newProgram.macrocycles.push(newMacro);
         }
         
-        newProgram.events = wizardEvents.map(e => ({ id: crypto.randomUUID(), title: e.title, type: e.type, date: e.date, endDate: e.endDate }));
+        newProgram.events = wizardEvents.map(e => ({ id: crypto.randomUUID(), title: e.title, type: e.type, date: e.date, endDate: e.endDate, calculatedWeek: e.calculatedWeek, createMacrocycle: e.createMacrocycle }));
         onSave(newProgram);
         if (autoActivate && handleStartProgram) { 
             handleStartProgram(newProgram.id); 
@@ -2943,7 +2948,7 @@ const handleCreate = () => {
 
                                 {/* KPKN Feedback Loop: Barra de Volumen Inteligente */}
                                 <VolumeBudgetBar 
-                                    currentVolume={currentWeeklyVolume} 
+                                    currentVolume={Object.fromEntries(Object.entries(currentWeeklyVolume).map(([k, v]) => [k, v.total]))} 
                                     recommendation={volumeLimits} 
                                 />
                                     
