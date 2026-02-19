@@ -9,6 +9,17 @@ interface ActivityHeatmapProps {
   settings: Settings;
 }
 
+interface DayInfo {
+    date: Date;
+    level: number;
+    isToday: boolean;
+  }
+  
+  interface MonthPosition {
+    month: string;
+    startColumn: number;
+  }
+
 const ActivityCalendar: React.FC<ActivityHeatmapProps> = ({ history, settings }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -38,8 +49,8 @@ const ActivityCalendar: React.FC<ActivityHeatmapProps> = ({ history, settings })
             }
         });
 
-        const days = [];
-        const monthPositions = [];
+        const days: DayInfo[] = [];
+        const monthPositions: MonthPosition[] = [];
         let lastMonth = -1;
 
         for (let i = 0; i <= dayCount; i++) {
