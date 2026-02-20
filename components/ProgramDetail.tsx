@@ -58,9 +58,10 @@ const SessionCard: React.FC<{
     index: number; 
     onStart: () => void;
     onEdit: () => void;
+    onDelete?: () => void;          // <-- NUEVA PROPIEDAD
     dayName?: string;
     exerciseList?: ExerciseMuscleInfo[];
-}> = ({ session, index, onStart, onEdit, dayName, exerciseList = [] }) => {
+}> = ({ session, index, onStart, onEdit, onDelete, dayName, exerciseList = [] }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const exercisesToDisplay: any[] = session.parts && session.parts.length > 0 
         ? session.parts.flatMap(p => p.exercises || []) 
@@ -227,8 +228,7 @@ const SessionCard: React.FC<{
     );
 };
 
-const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, onEdit, isActive }) => {
-    // Agregamos handleUpdateProgram, addToast y handleStartWorkout
+const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, onEdit, isActive, onDeleteSession }) => {
     const { history, settings, handleEditSession, handleBack, handleAddSession, isOnline, exerciseList, muscleHierarchy, handleStartProgram, handlePauseProgram, handleEditProgram, handleUpdateProgram, addToast, handleStartWorkout } = useAppContext();    
     const [activeTab, setActiveTab] = useState<'training' | 'metrics'>('training');
     const [subView, setSubView] = useState<'weekly' | 'macrocycle'>('weekly'); 
@@ -979,12 +979,17 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                                             key={session.id} 
                                                                                             session={session} 
                                                                                             index={idx} 
-                                                                                            dayName={dayTitle} // <-- Esto hace que aparezca el nombre del día en la tarjeta
+                                                                                            dayName={dayTitle}
                                                                                             exerciseList={exerciseList}
                                                                                             onStart={() => {
                                                                                                 handleStartWorkout(session, program, undefined, { macroIndex: selectedBlock?.macroIndex || 0, mesoIndex: selectedWeek?.mesoIndex || 0, weekId: selectedWeek?.id || '' });
                                                                                             }}
                                                                                             onEdit={() => onEditSessionClick(session)} 
+                                                                                            onDelete={() => {
+                                                                                                if (window.confirm('¿Eliminar esta sesión?')) {
+                                                                                                    onDeleteSession(session.id, program.id, selectedBlock!.macroIndex, selectedWeek!.mesoIndex, selectedWeek!.id);
+                                                                                                }
+                                                                                            }}
                                                                                         />
                                                                                     ))}
                                                                                 </div>

@@ -1474,13 +1474,27 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                 setIsComplex(complexMode);
                 
                 // Si es un borrador, restaurar el paso del wizard y los datos
-                if (initialData.isDraft && initialData.lastSavedStep !== undefined) {
+                if (initialData.isDraft && initialData.lastSavedStep !== undefined && initialData.draftData) {
                     setWizardStep(initialData.lastSavedStep);
-                    // Aquí también deberías restaurar otros estados como selectedSplit, detailedSessions, etc.
-                    // Esto depende de cómo hayas guardado esos datos en el programa.
-                    // Por ejemplo, si guardaste selectedSplit.id en una propiedad como draftSplitId, lo restaurarías.
-                    // Como no se ha definido ese almacenamiento, esto queda pendiente de implementación.
-                    // Por ahora, solo restauramos el paso.
+                    const draft = initialData.draftData;
+                    
+                    if (draft.selectedSplitId) {
+                        const split = SPLIT_TEMPLATES.find(s => s.id === draft.selectedSplitId);
+                        if (split) setSelectedSplit(split);
+                    }
+                    if (draft.detailedSessions) setDetailedSessions(draft.detailedSessions);
+                    if (draft.wizardEvents) setWizardEvents(draft.wizardEvents);
+                    if (draft.blockSplits) {
+                        const restoredBlockSplits: Record<number, SplitTemplate> = {};
+                        Object.entries(draft.blockSplits).forEach(([key, id]) => {
+                            const split = SPLIT_TEMPLATES.find(s => s.id === id);
+                            if (split) restoredBlockSplits[Number(key)] = split;
+                        });
+                        setBlockSplits(restoredBlockSplits);
+                    }
+                    if (draft.splitMode) setSplitMode(draft.splitMode);
+                    if (draft.startDay !== undefined) setStartDay(draft.startDay);
+                    if (draft.cycleDuration !== undefined) setCycleDuration(draft.cycleDuration);
                 }
 
                 if (initialData.background?.style) {
@@ -1777,8 +1791,17 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             newProgram.events = wizardEvents.map(e => ({ id: crypto.randomUUID(), title: e.title, type: e.type, date: e.date, endDate: e.endDate, calculatedWeek: e.calculatedWeek, createMacrocycle: e.createMacrocycle, repeatEveryXCycles: e.repeatEveryXCycles }));
         
             if (isDraft) {
-            newProgram.isDraft = true;
+                newProgram.isDraft = true;
                 newProgram.lastSavedStep = wizardStep;
+                newProgram.draftData = {
+                    selectedSplitId: selectedSplit?.id,
+                    detailedSessions: detailedSessions,
+                    wizardEvents: wizardEvents,
+                    blockSplits: Object.fromEntries(Object.entries(blockSplits).map(([k, v]) => [k, v.id])), // <-- guarda solo IDs
+                    splitMode: splitMode,
+                    startDay: startDay,
+                    cycleDuration: cycleDuration,
+                };
             }
     
             onSave(newProgram);

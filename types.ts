@@ -287,6 +287,15 @@ export interface Program {
     carpeDiemEnabled?: boolean;
     isDraft?: boolean;
     lastSavedStep?: number;
+    draftData?: {
+        selectedSplitId?: string;
+        detailedSessions?: Record<number, Session>;
+        wizardEvents?: { id?: string, title: string, type: string, date: string, endDate?: string, calculatedWeek: number, createMacrocycle?: boolean, repeatEveryXCycles?: number }[];
+        blockSplits?: Record<number, string>;   // <-- AHORA GUARDA EL ID DEL SPLIT
+        splitMode?: 'global' | 'per_block';
+        startDay?: number;
+        cycleDuration?: number;
+    };
 }
 
 export interface Macrocycle {
