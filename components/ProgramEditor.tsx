@@ -1063,7 +1063,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
   const [splitPattern, setSplitPattern] = useState<string[]>(Array(7).fill('Descanso'));
 
   // Lógica de Roadmap Dinámico (Fechas Clave y Semanas)
-  const [wizardSimpleWeeks, setWizardSimpleWeeks] = useState(4); 
+  const [wizardSimpleWeeks, setWizardSimpleWeeks] = useState(1); 
 
   const [blockDurations, setBlockDurations] = useState<number[]>([4, 4, 4, 3, 1]); 
   
@@ -1096,10 +1096,10 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
   
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [wizardCurrentStep, setWizardCurrentStep] = useState(1);
-  const [wizardEvents, setWizardEvents] = useState<{ id?: string, title: string, type: string, date: string, endDate?: string, calculatedWeek: number, createMacrocycle?: boolean }[]>([]);
+  const [wizardEvents, setWizardEvents] = useState<{ id?: string, title: string, type: string, date: string, endDate?: string, calculatedWeek: number, createMacrocycle?: boolean, repeatEveryXCycles?: number }[]>([]);
     
    // Estado para el overlay de edición de semanas
-  const [editingWeekInfo, setEditingWeekInfo] = useState<{ 
+  const [editingWeekInfo, setEditingWeekInfo] = useState<{
         macroIndex: number; 
         blockIndex: number; 
         mesoIndex: number; 
@@ -1640,9 +1640,9 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
       }
       setWizardStep(1);
   };
-const handleCreate = () => {
-        const template = TEMPLATES.find(t => t.id === selectedTemplateId)!;
-        const totalWeeks = template.weeks; // Para modos simples
+  const handleCreate = (isDraft: boolean = false) => {
+    const template = TEMPLATES.find(t => t.id === selectedTemplateId)!;
+    const totalWeeks = template.weeks; // Para modos simples
 
        const newProgram: Program = { 
             id: crypto.randomUUID(), 
@@ -1746,9 +1746,9 @@ const handleCreate = () => {
                 const newBlock: Block = { id: crypto.randomUUID(), name: 'BLOQUE CÍCLICO', mesocycles: [] };
                 const newMeso: Mesocycle = { id: crypto.randomUUID(), name: 'Ciclo Base', goal: 'Custom', weeks: [] };
                 
-                // Si es A/B son solo 2 semanas. Si es lineal simple, lo que diga el wizard.
+                // Si es un programa simple, el ciclo es estrictamente de las semanas definidas por el usuario en el template (1 o 2)
                 const isAB = template.id === 'simple-2';
-                const finalWeeksCount = isAB ? 2 : wizardSimpleWeeks;
+                const finalWeeksCount = template.weeks;
     
                 for (let i = 0; i < finalWeeksCount; i++) {
                     newMeso.weeks.push({ 
@@ -1764,14 +1764,24 @@ const handleCreate = () => {
                 newProgram.structure = 'simple';
             }
         
-        newProgram.events = wizardEvents.map(e => ({ id: crypto.randomUUID(), title: e.title, type: e.type, date: e.date, endDate: e.endDate, calculatedWeek: e.calculatedWeek, createMacrocycle: e.createMacrocycle }));
-        onSave(newProgram);
-        if (autoActivate && handleStartProgram) { 
-            handleStartProgram(newProgram.id); 
-        } else { 
-            addToast("Programa creado con éxito.", "success"); 
-        }
-  };
+            newProgram.events = wizardEvents.map(e => ({ id: crypto.randomUUID(), title: e.title, type: e.type, date: e.date, endDate: e.endDate, calculatedWeek: e.calculatedWeek, createMacrocycle: e.createMacrocycle, repeatEveryXCycles: e.repeatEveryXCycles }));
+        
+            if (isDraft) {
+            newProgram.isDraft = true;
+                newProgram.lastSavedStep = wizardStep;
+            }
+    
+            onSave(newProgram);
+            
+            if (isDraft) {
+                addToast("Borrador guardado con éxito.", "success");
+                onCancel(); // Salir al guardar borrador para volver a la vista de programas
+            } else if (autoActivate && handleStartProgram) { 
+                handleStartProgram(newProgram.id); 
+            } else { 
+                addToast("Programa creado con éxito.", "success"); 
+            }
+      };
     
 
   const getDayLabel = (offset: number) => { const dayIndex = (startDay + offset) % 7; return daysOfWeek.find(d => d.value === dayIndex)?.label || `Día ${offset + 1}`; };
@@ -2130,16 +2140,20 @@ const handleCreate = () => {
             {/* Header / Title - Common for both steps */}
             <div className="pt-8 pb-4 px-6 bg-black flex-shrink-0 z-20 border-b border-white/5">
                  <div className="relative max-w-md mx-auto text-center">
-                     <div className="flex justify-between items-center mb-2">
-                        {wizardStep > 0 && (
+                 <div className="flex justify-between items-center mb-2">
+                        {wizardStep > 0 ? (
                             <button onClick={() => setWizardStep(prev => prev - 1)} className="text-gray-500 hover:text-white transition-colors">
                                 <ArrowUpIcon size={20} className="-rotate-90"/>
                             </button>
+                        ) : (
+                            <button onClick={onCancel} className="text-gray-500 hover:text-red-500 transition-colors" title="Salir del Wizard">
+                                <XIcon size={20}/>
+                            </button>
                         )}
                         <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex-1 text-center">
-                            {wizardStep === 0 ? 'Paso 1: Estructura' : wizardStep === 1 ? 'Paso 2: Roadmap' : 'Paso 3: Diseño'}
+                            {wizardStep === 0 ? 'Paso 1: Estructura' : 'Paso 2: Roadmap y Sesiones'}
                         </h2>
-                        {wizardStep === 1 && <div className="w-5" />} {/* Spacer */}
+                        {wizardStep > 0 && <div className="w-5" />} {/* Spacer */}
                      </div>
                      <input
                         ref={nameInputRef}
@@ -2574,7 +2588,7 @@ const handleCreate = () => {
                         </div>
                     )}
 
-                    {/* === PASO 1: VISTA PREVIA DEL PROGRAMA FINAL (BARRA RESTAURADA) === */}
+                    {/* === PASO 1: ROADMAP Y PREPARACIÓN DE SESIONES (FUSIONADOS) === */}
                     {wizardStep === 1 && (
                         <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in-up">
                             
@@ -2587,7 +2601,11 @@ const handleCreate = () => {
                                 <ArrowLeftIcon size={18} />
                             </button>
                             <button 
-                                onClick={onCancel} 
+                                onClick={() => {
+                                    if (window.confirm('¿Seguro que quieres salir? Perderás los cambios no guardados.')) {
+                                        onCancel();
+                                    }
+                                }}  
                                 className="fixed top-4 right-4 z-[220] p-2.5 rounded-full bg-black/40 text-gray-400 border border-white/10 backdrop-blur-md hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all shadow-lg"
                                 title="Cancelar y salir"
                             >
@@ -2595,296 +2613,340 @@ const handleCreate = () => {
                             </button>
 
                             {/* CONTENEDOR DE SCROLL UNIFICADO */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar pb-40">
 
-                                {/* --- HEADER Y GESTOR DE FECHAS CLAVES (Timeline Global) --- */}
+                                {/* --- SECCIÓN 1: GESTOR ESTRICTO DE FECHAS CLAVE VS EVENTOS --- */}
                                 <div className="px-6 pt-16 pb-6 bg-[#050505] border-b border-white/5 relative z-20">
-                                <div className="flex flex-col gap-5">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none">Roadmap y Fechas Clave</h3>
-                                        <div className="text-right">
-                                            <span className="text-[9px] text-gray-500 font-mono uppercase block">Semanas Totales</span>
-                                            <div className="text-xl font-black text-white leading-none mt-1">
-                                                {selectedTemplateId === 'power-complex' ? blockDurations.reduce((a,b)=>a+b,0) : Math.max(wizardSimpleWeeks, ...wizardEvents.map(e=>e.calculatedWeek + 1), 1)}
+                                    <div className="flex flex-col gap-5 max-w-4xl mx-auto">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none flex items-center gap-2">
+                                                <CalendarIcon size={20} className="text-white"/>
+                                                {selectedTemplateId.includes('complex') ? 'Fechas Clave y Roadmap' : 'Eventos Cíclicos'}
+                                            </h3>
+                                            <div className="text-right">
+                                                <span className="text-[9px] text-gray-500 font-mono uppercase block">Semanas Base</span>
+                                                <div className="text-xl font-black text-white leading-none mt-1">
+                                                    {selectedTemplateId === 'power-complex' ? blockDurations.reduce((a,b)=>a+b,0) : wizardSimpleWeeks}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    {/* Creador de Fechas Clave */}
-                                    <div className="bg-[#111] border border-white/10 rounded-2xl p-4 flex flex-col gap-3 shadow-xl">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            <input type="text" id="wz-ev-title" placeholder="Nombre (Ej: Torneo Nacional)" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-lg p-3 outline-none uppercase tracking-widest" />
-                                            <select id="wz-ev-type" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-lg p-3 outline-none cursor-pointer">
-                                                <option value="powerlifting_comp">🏆 Competición PL</option>
-                                                <option value="bodybuilding_comp">✨ Tarima Culturismo</option>
-                                                <option value="1rm_test">🎯 Test 1RM</option>
-                                                <option value="admission_test">🏅 Prueba Física</option>
-                                                <option value="vacation">🌴 Vacaciones / Viaje</option>
-                                                <option value="exams">📚 Semana de Exámenes</option>
-                                            </select>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex flex-col flex-1">
-                                                <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1 ml-1">Desde</span>
-                                                <input type="date" id="wz-ev-date" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-lg p-2.5 outline-none w-full" />
-                                            </div>
-                                            <div className="flex flex-col flex-1">
-                                                <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1 ml-1">Hasta (Opc.)</span>
-                                                <input type="date" id="wz-ev-end" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-lg p-2.5 outline-none w-full" />
-                                            </div>
-                                            <button onClick={() => {
-                                                const titleEl = document.getElementById('wz-ev-title') as HTMLInputElement;
-                                                const tEl = document.getElementById('wz-ev-type') as HTMLSelectElement;
-                                                const dEl = document.getElementById('wz-ev-date') as HTMLInputElement;
-                                                const eEl = document.getElementById('wz-ev-end') as HTMLInputElement;
-                                                const divMacroEl = document.getElementById('wz-ev-macro') as HTMLInputElement;
-                                                
-                                                const title = titleEl.value;
-                                                const t = tEl.value;
-                                                const d = dEl.value;
-                                                const e = eEl?.value || '';
-                                                const divMacro = divMacroEl?.checked || false;
-                                                
-                                                const editId = titleEl.dataset.editId;
 
-                                                if (d) {
-                                                    const diffWeeks = Math.max(0, Math.ceil((new Date(d).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 7)));
+                                        {/* Explicación Pedagógica de la Diferencia */}
+                                        <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl flex gap-3 shadow-sm">
+                                            <InfoIcon size={20} className="text-blue-400 shrink-0 mt-0.5" />
+                                            <p className="text-[10px] text-blue-200 leading-relaxed font-medium">
+                                                {selectedTemplateId.includes('complex') 
+                                                    ? <><strong className="text-white">Estás en un Programa Avanzado.</strong> Aquí usas <strong>Fechas Clave</strong>: Hitos únicos en tu línea de tiempo (como un torneo, toma de marcas o vacaciones) que te permiten organizar y cortar tus bloques de forma lineal.</>
+                                                    : <><strong className="text-white">Estás en un Programa Simple.</strong> Aquí usas <strong>Eventos Cíclicos</strong>: Acciones que se repiten sistemáticamente cada cierta cantidad de ciclos (ej. Prueba de 1RM cada 4 vueltas) en tu bucle infinito.</>}
+                                            </p>
+                                        </div>
+                                        
+                                        {/* Creador Inteligente (Se adapta según el tipo de programa) */}
+                                        <div className="bg-[#111] border border-white/10 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <input type="text" id="wz-ev-title" placeholder="Nombre (Ej: Test de Fuerza)" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-xl p-3 outline-none uppercase tracking-widest focus:border-white" />
+                                                <select id="wz-ev-type" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-xl p-3 outline-none cursor-pointer focus:border-white">
+                                                    <option value="1rm_test">🎯 Test 1RM</option>
+                                                    <option value="powerlifting_comp">🏆 Competición PL</option>
+                                                    <option value="bodybuilding_comp">✨ Tarima Culturismo</option>
+                                                    <option value="admission_test">🏅 Prueba Física</option>
+                                                    {selectedTemplateId.includes('complex') && <option value="vacation">🌴 Vacaciones / Viaje</option>}
+                                                    {selectedTemplateId.includes('complex') && <option value="exams">📚 Semana de Exámenes</option>}
+                                                </select>
+                                            </div>
+
+                                            <div className="flex items-end gap-3">
+                                                {selectedTemplateId.includes('complex') ? (
+                                                    // INPUTS PARA PROGRAMA AVANZADO (FECHAS EXACTAS)
+                                                    <>
+                                                        <div className="flex flex-col flex-1">
+                                                            <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1 ml-1">Fecha de Inicio</span>
+                                                            <input type="date" id="wz-ev-date" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-xl p-3 outline-none w-full focus:border-white" />
+                                                        </div>
+                                                        <div className="flex flex-col flex-1">
+                                                            <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1 ml-1">Fecha Fin (Opcional)</span>
+                                                            <input type="date" id="wz-ev-end" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-xl p-3 outline-none w-full focus:border-white" />
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    // INPUTS PARA PROGRAMA SIMPLE (FRECUENCIA DE CICLOS)
+                                                    <div className="flex flex-col flex-1">
+                                                        <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1 ml-1">Frecuencia del Evento</span>
+                                                        <div className="flex items-center gap-3 bg-black border border-white/10 rounded-xl p-1 pr-4">
+                                                            <span className="pl-3 text-[10px] text-gray-400 font-bold uppercase">Repetir cada</span>
+                                                            <input type="number" id="wz-ev-cycles" defaultValue="4" min="1" className="bg-zinc-900 border border-white/5 text-xs font-black text-white rounded-lg p-2 outline-none w-16 text-center focus:border-white" />
+                                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Ciclos</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <button onClick={() => {
+                                                    const titleEl = document.getElementById('wz-ev-title') as HTMLInputElement;
+                                                    const tEl = document.getElementById('wz-ev-type') as HTMLSelectElement;
+                                                    const isComplex = selectedTemplateId.includes('complex');
                                                     
-                                                    if (editId) {
-                                                        setWizardEvents(wizardEvents.map(ev => ev.id === editId ? { ...ev, title: title || 'Evento', type: t, date: d, endDate: e, calculatedWeek: diffWeeks, createMacrocycle: divMacro } : ev));
-                                                        titleEl.dataset.editId = ''; // Salir de modo edición
+                                                    const title = titleEl.value;
+                                                    const type = tEl.value;
+                                                    const editId = titleEl.dataset.editId;
+
+                                                    if (isComplex) {
+                                                        const dEl = document.getElementById('wz-ev-date') as HTMLInputElement;
+                                                        const eEl = document.getElementById('wz-ev-end') as HTMLInputElement;
+                                                        const divMacroEl = document.getElementById('wz-ev-macro') as HTMLInputElement;
+                                                        const d = dEl.value;
+                                                        
+                                                        if (!d) { addToast('Selecciona la fecha de inicio', 'danger'); return; }
+                                                        const diffWeeks = Math.max(0, Math.ceil((new Date(d).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 7)));
+                                                        
+                                                        const newEv = { id: editId || crypto.randomUUID(), title: title || 'Evento', type, date: d, endDate: eEl?.value, calculatedWeek: diffWeeks, createMacrocycle: divMacroEl?.checked };
+                                                        
+                                                        if (editId) setWizardEvents(wizardEvents.map(ev => ev.id === editId ? newEv : ev));
+                                                        else setWizardEvents([...wizardEvents, newEv]);
+                                                        
+                                                        dEl.value = ''; if(eEl) eEl.value = ''; if(divMacroEl) divMacroEl.checked = false;
                                                     } else {
-                                                        setWizardEvents([...wizardEvents, { id: crypto.randomUUID(), title: title || 'Evento', type: t, date: d, endDate: e, calculatedWeek: diffWeeks, createMacrocycle: divMacro }]);
+                                                        const cEl = document.getElementById('wz-ev-cycles') as HTMLInputElement;
+                                                        const cycles = parseInt(cEl.value) || 4;
+                                                        
+                                                        const newEv = { id: editId || crypto.randomUUID(), title: title || 'Evento', type, date: new Date().toISOString(), calculatedWeek: 0, repeatEveryXCycles: cycles };
+                                                        
+                                                        if (editId) setWizardEvents(wizardEvents.map(ev => ev.id === editId ? newEv : ev));
+                                                        else setWizardEvents([...wizardEvents, newEv]);
+                                                        
+                                                        cEl.value = '4';
                                                     }
                                                     
-                                                    // Vaciamos el formulario por defecto al agregar o editar
                                                     titleEl.value = '';
-                                                    dEl.value = '';
-                                                    if (eEl) eEl.value = '';
-                                                    if (divMacroEl) divMacroEl.checked = false;
-                                                    
-                                                    addToast('Evento guardado en el Roadmap', 'success');
-                                                } else {
-                                                    addToast('Selecciona la fecha de inicio', 'danger');
-                                                }
-                                            }} className="bg-white text-black p-3 rounded-xl hover:scale-105 transition-transform mt-4 flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                                                <PlusIcon size={16}/>
-                                            </button>
+                                                    titleEl.dataset.editId = '';
+                                                    addToast('Agregado al Roadmap', 'success');
+                                                }} className="bg-white text-black p-3 rounded-xl hover:scale-105 transition-transform flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)] shrink-0 h-[46px] w-[46px]">
+                                                    <PlusIcon size={18}/>
+                                                </button>
+                                            </div>
+                                            
+                                            {/* Checkbox Macrociclos (Solo Avanzado) */}
+                                            {selectedTemplateId.includes('complex') && (
+                                                <div className="flex items-center gap-2 mt-1 ml-1">
+                                                    <input type="checkbox" id="wz-ev-macro" className="accent-blue-500 w-3 h-3 bg-black border-white/20 rounded cursor-pointer" />
+                                                    <label htmlFor="wz-ev-macro" className="text-[9px] font-bold text-gray-400 uppercase tracking-widest cursor-pointer hover:text-white transition-colors">
+                                                        Crear Macrociclo exclusivo ("Road to...") con esta fecha
+                                                    </label>
+                                                </div>
+                                            )}
                                         </div>
-                                        {/* CHECKBOX PARA DIVIDIR MACROCICLOS */}
-                                        {selectedTemplateId.includes('complex') && (
-                                            <div className="flex items-center gap-2 mt-1 ml-1">
-                                                <input type="checkbox" id="wz-ev-macro" className="accent-blue-500 w-3 h-3 bg-black border-white/20 rounded cursor-pointer" />
-                                                <label htmlFor="wz-ev-macro" className="text-[9px] font-bold text-gray-400 uppercase tracking-widest cursor-pointer hover:text-white transition-colors">
-                                                    Crear Macrociclo exclusivo ("Road to...")
-                                                </label>
+                                        
+                                        {/* BARRAS VISUALES (LINEAL vs CIRCULAR) */}
+                                        {wizardEvents.length > 0 && (
+                                            <div className="mt-8 border-t border-white/5 pt-8">
+                                                {selectedTemplateId.includes('complex') ? (
+                                                    // TIMELINE LINEAL (AVANZADO)
+                                                    <div className="relative mb-6 h-8">
+                                                        {(() => {
+                                                            const totalProgramWeeks = blockDurations.reduce((a,b)=>a+b,0);
+                                                            const maxEventWeek = Math.max(...wizardEvents.map(e => e.calculatedWeek + 1));
+                                                            const displayMaxWeeks = Math.max(12, totalProgramWeeks + 2, maxEventWeek + 2);
+                                                            const currentProgressPct = Math.min(100, (totalProgramWeeks / displayMaxWeeks) * 100);
+
+                                                            return (
+                                                                <div className="w-full h-full relative">
+                                                                    <div className="absolute top-1/2 left-0 right-0 h-1.5 -translate-y-1/2 bg-white/5 rounded-full"></div>
+                                                                    <div className="absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full transition-all duration-500 ease-out bg-white shadow-[0_0_15px_rgba(255,255,255,0.4)]" style={{ width: `${currentProgressPct}%` }}></div>
+                                                                    
+                                                                    <div className="absolute top-1/2 w-1 h-4 bg-white -translate-y-1/2 z-10 shadow-[0_0_10px_white]" style={{ left: `${currentProgressPct}%`, transform: 'translate(-50%, -50%)' }}>
+                                                                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-black text-white bg-black/80 px-2 py-0.5 rounded border border-white/20 whitespace-nowrap">
+                                                                            {totalProgramWeeks} W
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {wizardEvents.map((ev, i) => (
+                                                                        <TimelineEventCircle
+                                                                            key={ev.id || i}
+                                                                            ev={ev}
+                                                                            displayMaxWeeks={displayMaxWeeks}
+                                                                            totalProgramWeeks={totalProgramWeeks}
+                                                                            maxEventWeek={maxEventWeek}
+                                                                            onEdit={(editEv) => {
+                                                                                const titleEl = document.getElementById('wz-ev-title') as HTMLInputElement;
+                                                                                if (titleEl) { titleEl.value = editEv.title; titleEl.dataset.editId = editEv.id; }
+                                                                                addToast('Editando fecha clave...', 'success');
+                                                                            }}
+                                                                            onUpdateWeek={(updatedEv, newWeek) => {
+                                                                                const newDate = new Date(); newDate.setDate(newDate.getDate() + (newWeek * 7));
+                                                                                setWizardEvents(wizardEvents.map(e => e.id === updatedEv.id ? { ...e, calculatedWeek: newWeek, date: newDate.toISOString().split('T')[0] } : e));
+                                                                            }}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                ) : (
+                                                    // DIAGRAMA CIRCULAR (SIMPLE)
+                                                    <div className="relative w-full flex justify-center py-6">
+                                                        <div className="relative w-48 h-48 flex items-center justify-center">
+                                                            {/* Círculo animado de fondo representando el ciclo infinito */}
+                                                            <svg className="absolute inset-0 w-full h-full text-white/20 animate-[spin_8s_linear_infinite]" viewBox="0 0 100 100">
+                                                                <defs>
+                                                                    <marker id="arrowHead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                                                                        <path d="M 0 0 L 10 5 L 0 10 z" className="fill-white/50" />
+                                                                    </marker>
+                                                                </defs>
+                                                                <path d="M 50 10 A 40 40 0 0 1 90 50" fill="none" stroke="currentColor" strokeWidth="3" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
+                                                                <path d="M 50 90 A 40 40 0 0 1 10 50" fill="none" stroke="currentColor" strokeWidth="3" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
+                                                            </svg>
+                                                            
+                                                            {/* Centro Cíclico */}
+                                                            <div className="absolute inset-0 flex items-center justify-center flex-col z-0">
+                                                                <RefreshCwIcon size={24} className="text-white/30 mb-1" />
+                                                                <span className="text-[8px] font-black uppercase tracking-widest text-white/40 text-center">Bucle<br/>Base</span>
+                                                            </div>
+
+                                                            {/* Nodos de Eventos (Distanciados en el círculo) */}
+                                                            {wizardEvents.map((ev, i) => {
+                                                                const angle = (i * (360 / wizardEvents.length)) * (Math.PI / 180);
+                                                                const radius = 80; // Distancia desde el centro (radio un poco mayor al SVG)
+                                                                const x = Math.cos(angle) * radius;
+                                                                const y = Math.sin(angle) * radius;
+
+                                                                return (
+                                                                    <div 
+                                                                        key={ev.id || i} 
+                                                                        onClick={() => {
+                                                                            const titleEl = document.getElementById('wz-ev-title') as HTMLInputElement;
+                                                                            if (titleEl) { titleEl.value = ev.title; titleEl.dataset.editId = ev.id; }
+                                                                            addToast('Editando evento cíclico...', 'success');
+                                                                        }}
+                                                                        className="absolute z-10 flex flex-col items-center cursor-pointer group"
+                                                                        style={{ transform: `translate(${x}px, ${y}px)` }}
+                                                                    >
+                                                                        <div className="w-10 h-10 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.6)] group-hover:scale-110 group-hover:bg-blue-400 transition-all">
+                                                                            <TargetIcon size={16} className="text-white"/>
+                                                                        </div>
+                                                                        <div className="absolute top-12 bg-black/95 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/20 flex flex-col items-center min-w-max shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                                            <span className="text-[10px] font-black text-white uppercase">{ev.title}</span>
+                                                                            <span className="text-[8px] text-blue-300 font-bold uppercase tracking-widest mt-0.5">Cada {ev.repeatEveryXCycles} Ciclos</span>
+                                                                        </div>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Botones rápidos para eliminar */}
+                                                <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                                                    {wizardEvents.map((ev, i) => (
+                                                        <div key={i} className="bg-white/5 border border-white/10 text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full flex items-center gap-2">
+                                                            {ev.title}
+                                                            <button onClick={() => setWizardEvents(wizardEvents.filter(e => e.id !== ev.id))} className="text-zinc-500 hover:text-red-500 transition-colors"><XIcon size={12}/></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
-                                    
-                                    {/* Lista de Eventos Creados */}
-                                    {wizardEvents.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {wizardEvents.map((ev, i) => (
-                                                <div key={i} className="bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full flex items-center gap-2">
-                                                    Semana {ev.calculatedWeek + 1} - {ev.title} {ev.createMacrocycle ? '(Macro)' : ''}
-                                                    <button onClick={() => setWizardEvents(wizardEvents.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors"><XIcon size={10}/></button>
+                                </div>
+
+                                {/* --- SECCIÓN 2: EDICIÓN DE SESIONES (HEREDADO DE MACROCICLO) --- */}
+                                <div className="px-6 py-12 bg-[#050505]">
+                                    <div className="max-w-4xl mx-auto space-y-6">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                                                    <DumbbellIcon size={20}/>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                                <div>
+                                                    <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none">Diseña tus sesiones</h3>
+                                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Configura el entrenamiento base</p>
+                                                </div>
+                                            </div>
 
-                                    {/* Timeline Visual (Barra de Progreso Dinámica) */}
-                                    <div className="relative mt-8 mb-6 h-8">
-                                        {(() => {
-                                            const totalProgramWeeks = selectedTemplateId.includes('complex') ? blockDurations.slice(0, wizardComplexBlocks.length).reduce((a,b)=>a+b,0) : wizardSimpleWeeks;
-                                            const maxEventWeek = wizardEvents.length > 0 ? Math.max(...wizardEvents.map(e => e.calculatedWeek + 1)) : 0;
-                                            
-                                            // Escala máxima para tener espacio visual
-                                            const displayMaxWeeks = Math.max(12, totalProgramWeeks + 2, maxEventWeek + 2);
-                                            const currentProgressPct = Math.min(100, (totalProgramWeeks / displayMaxWeeks) * 100);
-
-                                            return (
-                                                <div className="w-full h-full relative">
-                                                    {/* Track Base */}
-                                                    <div className="absolute top-1/2 left-0 right-0 h-1.5 -translate-y-1/2 bg-white/5 rounded-full"></div>
-                                                    
-                                                    {/* Progreso */}
-                                                    <div className="absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full transition-all duration-500 ease-out bg-white shadow-[0_0_15px_rgba(255,255,255,0.4)]" style={{ width: `${currentProgressPct}%` }}></div>
-
-                                                    {/* Indicador de Posición del Programa */}
-                                                    <div className="absolute top-1/2 w-1 h-4 bg-white -translate-y-1/2 z-10 shadow-[0_0_10px_white] transition-all duration-500" style={{ left: `${currentProgressPct}%`, transform: 'translate(-50%, -50%)' }}>
-                                                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-black text-white bg-black/80 px-2 py-0.5 rounded border border-white/20 whitespace-nowrap transition-all duration-500">
-                                                            {totalProgramWeeks} W
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Fechas Clave (Draggable & Editable) */}
-                                                    {wizardEvents.map((ev, i) => (
-                                                        <TimelineEventCircle
-                                                            key={ev.id || i}
-                                                            ev={ev}
-                                                            displayMaxWeeks={displayMaxWeeks}
-                                                            totalProgramWeeks={totalProgramWeeks}
-                                                            maxEventWeek={maxEventWeek}
-                                                            onEdit={(editEv) => {
-                                                                const titleEl = document.getElementById('wz-ev-title') as HTMLInputElement;
-                                                                const tEl = document.getElementById('wz-ev-type') as HTMLSelectElement;
-                                                                const dEl = document.getElementById('wz-ev-date') as HTMLInputElement;
-                                                                const eEl = document.getElementById('wz-ev-end') as HTMLInputElement;
-                                                                const divMacroEl = document.getElementById('wz-ev-macro') as HTMLInputElement;
-                                                                
-                                                                if (titleEl) { titleEl.value = editEv.title; titleEl.dataset.editId = editEv.id; }
-                                                                if (tEl) tEl.value = editEv.type;
-                                                                if (dEl) dEl.value = editEv.date;
-                                                                if (eEl) eEl.value = editEv.endDate || '';
-                                                                if (divMacroEl) divMacroEl.checked = editEv.createMacrocycle || false;
-                                                                addToast('Editando evento...', 'success');
-                                                            }}
-                                                            onUpdateWeek={(updatedEv, newWeek) => {
-                                                                // Convertir la nueva semana deslizada en fecha real
-                                                                const newDate = new Date();
-                                                                newDate.setDate(newDate.getDate() + (newWeek * 7));
-                                                                const dateString = newDate.toISOString().split('T')[0];
-                                                                
-                                                                setWizardEvents(wizardEvents.map(e => e.id === updatedEv.id ? { ...e, calculatedWeek: newWeek, date: dateString } : e));
-                                                            }}
-                                                        />
+                                            {/* Selector de Bloques (Solo Avanzado) */}
+                                            {selectedTemplateId === 'power-complex' && (
+                                                <div className="flex bg-[#111] p-1 rounded-full border border-white/10 shrink-0">
+                                                    {POWER_BLOCK_NAMES.map((name, idx) => (
+                                                        <button
+                                                            key={name}
+                                                            onClick={() => handleSwitchBlockEdit(idx)}
+                                                            className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap
+                                                                ${activeBlockEdit === idx ? 'bg-white text-black shadow-md' : 'text-zinc-500 hover:text-white'}
+                                                            `}
+                                                        >
+                                                            {name}
+                                                        </button>
                                                     ))}
                                                 </div>
-                                            );
-                                        })()}
+                                            )}
+                                        </div>
+
+                                        {/* Widget de Volumen */}
+                                        <VolumeBudgetBar currentVolume={Object.fromEntries(Object.entries(currentWeeklyVolume).map(([k, v]) => [k, v.total]))} recommendation={volumeLimits} />
+
+                                        {/* Barra de Herramientas Contextual (Aplicar a todos) */}
+                                        {selectedTemplateId === 'power-complex' && splitMode === 'per_block' && (
+                                            <div className="flex justify-end">
+                                                <div className="flex items-center gap-3 bg-[#111] px-4 py-2 rounded-full border border-white/10 shadow-sm transition-colors duration-300">
+                                                    <span className={`text-[9px] font-bold uppercase tracking-wider transition-colors ${applyToAllBlocks ? 'text-white' : 'text-zinc-500'}`}>
+                                                        Aplicar a bloques con split: <span className="text-zinc-300">({blockSplits[activeBlockEdit]?.name || 'Actual'})</span>
+                                                    </span>
+                                                    <ToggleSwitch checked={applyToAllBlocks} onChange={setApplyToAllBlocks} size="sm" />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Lista Creadora de Sesiones (Las mismas del Macrociclo) */}
+                                        <div className="space-y-3">
+                                            {splitPattern.map((label, index) => {
+                                                const dayLabel = getDayLabel(index);
+                                                const isRest = label.toLowerCase() === 'descanso';
+                                                return (
+                                                    <InlineSessionCreator
+                                                        key={index}
+                                                        dayLabel={dayLabel}
+                                                        sessionName={label}
+                                                        isRest={isRest}
+                                                        sessionData={detailedSessions[index]}
+                                                        onRename={(name) => handleRenameSession(index, name)}
+                                                        onUpdateSession={(s) => handleUpdateSessionSmart(index, s)}
+                                                        onMoveUp={() => handleMoveSession(index, 'up')}
+                                                        onMoveDown={() => handleMoveSession(index, 'down')}
+                                                        isFirst={index === 0}
+                                                        isLast={index === cycleDuration - 1}
+                                                        exerciseList={exerciseList}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> {/* CIERRE CONTENEDOR SCROLL */}
 
-                            {/* Área de Scroll Principal */}
-                            <div className="p-6 pb-40">
-                                <div className="max-w-4xl mx-auto space-y-6 relative">
-                                    <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-yellow-400/50 via-white/10 to-transparent z-0"></div>
+                            {/* --- FOOTER FLOTANTE (BOTONES FINALES) --- */}
+                            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-40 flex flex-col items-center gap-4 pointer-events-none">
+                                <div className="pointer-events-auto flex items-center gap-3 bg-black/80 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 shadow-xl">
+                                    <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Activar al guardar</span>
+                                    <ToggleSwitch checked={autoActivate} onChange={setAutoActivate} size="sm" />
+                                </div>
 
-                                {/* --- KPKN FEEDBACK LOOP: ANÁLISIS PREVIO --- */}
-                                        {existingProgram && (
-                                            <FeedbackInsights 
-                                                feedbackHistory={postSessionFeedback || []}
-                                                activeMuscles={['Pectoral', 'Espalda', 'Cuádriceps', 'Isquiosurales', 'Hombros']} // Idealmente dinámico, pero esto sirve de base
-                                            />
-                                        )}
-                                        {/* ------------------------------------------- */}
-
-                                    {selectedTemplateId.includes('complex') ? (
-                                        // === VISTA COMPLEJA (PL O CULTURISMO) ===
-                                        wizardComplexBlocks.map((blockName, idx) => {
-                                            const currentDuration = blockDurations[idx];
-                                            const mesoType = idx === 3 ? 'Realización' : (idx === 4 ? 'Descarga' : (idx === 1 ? 'Intensificación' : 'Acumulación'));
-                                            
-                                            // LÓGICA DE SPLIT (CORREGIDA)
-                                            const actualSplit = (splitMode === 'per_block' ? blockSplits[idx] : selectedSplit) || selectedSplit;
-                                            const splitName = actualSplit?.name || 'Sin Asignar';
-                                            const currentPattern = actualSplit?.pattern || Array(7).fill('Descanso');
-
-                                            return (
-                                                <div key={idx} className="relative z-10 pl-16 group">
-                                                    <div className={`absolute left-[19px] top-8 w-4 h-4 rounded-full border-2 bg-[#050505] transition-colors duration-300 ${idx === 4 ? 'border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' : 'border-white/30 group-hover:border-yellow-400 group-hover:bg-yellow-400'}`}></div>
-
-                                                    <div className="bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:border-white/30 transition-all duration-300 shadow-lg">
-                                                        <div className="p-5 border-b border-white/5 flex flex-wrap justify-between items-center gap-4 bg-white/[0.02]">
-                                                            <div>
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <span className="bg-white/10 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">Bloque {idx + 1}</span>
-                                                                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{mesoType}</span>
-                                                                </div>
-                                                                <h4 className="font-black text-2xl text-white uppercase tracking-tight">{blockName}</h4>
-                                                            </div>
-
-                                                            <div className="flex items-center gap-1 bg-black/40 p-1.5 rounded-xl border border-white/10">
-                                                                <button onClick={() => { const newDurations = [...blockDurations]; if (newDurations[idx] > 1) { newDurations[idx]--; setBlockDurations(newDurations); } }} className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-white/20 rounded-lg text-white transition-colors"><span className="text-xl font-medium leading-none mb-1">-</span></button>
-                                                                <div className="px-3 text-center min-w-[60px]">
-                                                                    <span className="block text-lg font-black text-white leading-none">{currentDuration}</span>
-                                                                    <span className="text-[8px] font-bold text-gray-500 uppercase">Semanas</span>
-                                                                </div>
-                                                                <button onClick={() => { const newDurations = [...blockDurations]; if (newDurations[idx] < 12) { newDurations[idx]++; setBlockDurations(newDurations); } }} className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-white/20 rounded-lg text-white transition-colors"><span className="text-xl font-medium leading-none mb-1">+</span></button>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="p-5 bg-[#0a0a0a]">
-                                                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                                                                {Array.from({ length: currentDuration }).map((_, wIdx) => (
-                                                                    <div key={wIdx} className="bg-[#161616] border border-white/5 rounded-xl p-3 flex flex-col justify-between h-24 relative overflow-hidden group/week hover:border-white/20 transition-colors">
-                                                                        <div className="flex justify-between items-start z-10">
-                                                                            <span className="text-[10px] font-black text-gray-500 uppercase">Sem {wIdx + 1}</span>
-                                                                        </div>
-                                                                        
-                                                                        {/* Visualización del Split Real de ESTE Bloque */}
-                                                                        <div className="flex gap-0.5 h-1.5 w-full mt-auto z-10">
-                                                                            {currentPattern.map((d, dIdx) => (
-                                                                                <div key={dIdx} className={`flex-1 rounded-sm ${d.toLowerCase() === 'descanso' ? 'bg-white/10' : (idx === 3 ? 'bg-yellow-400' : 'bg-white')}`}></div>
-                                                                            ))}
-                                                                        </div>
-
-                                                                        <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-transparent opacity-0 group-hover/week:opacity-100 transition-opacity"></div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                            <div className="mt-4 pt-3 border-t border-white/5 text-[10px] text-gray-400 font-medium flex justify-between items-center">
-                                                                <div className="flex items-center gap-2">
-                                                                    <LayersIcon size={12}/>
-                                                                    <span>Split Base: <span className="text-white font-bold">{splitName}</span></span>
-                                                                </div>
-                                                                {idx === 3 && <span className="text-yellow-400 font-bold uppercase tracking-widest text-[9px]">Peaking Phase</span>}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    ) : (
-                                        // === VISTA SIMPLE (Ciclo Recurrente) ===
-                                        <div className="pl-16 relative">
-                                             <div className="absolute left-[19px] top-8 w-4 h-4 rounded-full border-2 border-white bg-[#050505] z-10"></div>
-                                             
-                                             <div className="bg-[#111] border border-white/10 rounded-3xl overflow-hidden p-8 text-center">
-                                                <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full mb-6">
-                                                    <RefreshCwIcon size={16} className="text-white"/>
-                                                    <span className="text-xs font-bold text-white uppercase tracking-wider">Ciclo Recurrente</span>
-                                                </div>
-                                                <h2 className="text-4xl font-black text-white uppercase mb-2">
-                                                    {TEMPLATES.find(t => t.id === selectedTemplateId)?.weeks} {TEMPLATES.find(t => t.id === selectedTemplateId)?.weeks === 1 ? 'Semana' : 'Semanas'}
-                                                </h2>
-                                                <p className="text-sm text-gray-500 mb-8">Estructura base con split: <span className="text-white font-bold">{selectedSplit?.name}</span></p>
-                                                
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                                                    {Array.from({ length: TEMPLATES.find(t => t.id === selectedTemplateId)?.weeks || 1 }).map((_, i) => (
-                                                        <div key={i} className="bg-black border border-white/10 rounded-2xl p-4 flex items-center gap-4 text-left">
-                                                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-sm font-black text-white">
-                                                                {selectedTemplateId === 'simple-2' ? (i===0?'A':'B') : (i+1)}
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="text-sm font-bold text-white uppercase">Semana {selectedTemplateId === 'simple-2' ? (i===0?'A':'B') : 'Estándar'}</h4>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                             </div>
-                                        </div>
-                                    )}
+                                <div className="flex gap-3 pointer-events-auto">
+                                    <button 
+                                        onClick={() => handleCreate(true)} 
+                                        className="bg-zinc-900 text-zinc-400 px-6 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:text-white hover:bg-zinc-800 transition-colors border border-white/10 shadow-lg"
+                                    >
+                                        Guardar Borrador
+                                    </button>
+                                    <button 
+                                        onClick={() => handleCreate(false)} 
+                                        className="bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-transparent hover:border-black"
+                                    >
+                                        <SaveIcon size={16}/>
+                                        <span>Crear Programa Final</span>
+                                    </button>
                                 </div>
                             </div>
-                            </div> {/* CIERRE DEL CONTENEDOR DE SCROLL UNIFICADO */}
-
-                             {/* Footer de Acción Fijo */}
-                             <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-30 flex justify-center pointer-events-none">
-                                <button 
-                                    onClick={() => setWizardStep(2)} 
-                                    className="pointer-events-auto bg-white text-black px-12 py-4 rounded-full font-black text-sm uppercase tracking-widest shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:scale-105 active:scale-95 transition-all flex items-center gap-3 animate-pulse-slow"
-                                >
-                                    Confirmar y Diseñar Sesiones <ArrowDownIcon size={18} className="-rotate-90"/>
-                                </button>
-                             </div>
                         </div>
                     )}
 
-                    {/* === PASO 2: EDITOR DE SESIONES (OPTIMIZADO) === */}
                     {wizardStep === 2 && (
                         <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in">
                             
@@ -3004,14 +3066,22 @@ const handleCreate = () => {
                                     <ToggleSwitch checked={autoActivate} onChange={setAutoActivate} size="sm" />
                                 </div>
 
-                                {/* Botón Principal */}
-                                <button 
-                                    onClick={handleCreate} 
-                                    className="pointer-events-auto bg-white text-black px-12 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center gap-3 border border-transparent hover:border-black"
-                                >
-                                    <SaveIcon size={16}/>
-                                    <span>Crear Programa Final</span>
-                                </button>
+                                <div className="flex gap-3 pointer-events-auto">
+                                    <button 
+                                        onClick={() => handleCreate(true)} 
+                                        className="bg-zinc-900 text-zinc-400 px-6 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:text-white hover:bg-zinc-800 transition-colors border border-white/10"
+                                    >
+                                        Guardar Borrador
+                                    </button>
+                                    {/* Botón Principal */}
+                                    <button 
+                                        onClick={() => handleCreate(false)} 
+                                        className="bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-transparent hover:border-black"
+                                    >
+                                        <SaveIcon size={16}/>
+                                        <span>Crear Programa</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

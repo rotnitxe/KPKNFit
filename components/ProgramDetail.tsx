@@ -119,9 +119,9 @@ const SessionCard: React.FC<{
         <div className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden mb-3 hover:bg-zinc-900/60 transition-colors">
             <div className="p-4">
                 <div className="flex justify-between items-start mb-4">
-                    <div className="flex gap-4 items-center">
+                <div className="flex gap-4 items-center">
                         <div className="w-10 h-10 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center text-xs font-black text-white">
-                            {dayName ? dayName.substring(0, 3).toUpperCase() : index + 1}
+                            {index + 1}
                         </div>
                         <div>
                             <h4 className="text-sm font-black text-white uppercase tracking-tight leading-none mb-1">{session.name}</h4>
@@ -1012,46 +1012,109 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                         // =========================================================
                                         <div className="px-2 sm:px-4 py-6 w-full max-w-5xl mx-auto animate-slide-up space-y-8 pb-32">
                                             
-                                            {/* BARRA DE PROGRESO DE EVENTOS GLOBALES */}
-                                            {program.events && program.events.length > 0 && (
-                                                <div className="relative w-full h-1.5 bg-zinc-900 rounded-full mb-2 border border-white/5">
-                                                    {program.events.map((e, idx) => {
-                                                        const totalW = isCyclic ? (e.repeatEveryXCycles || 1) * ((program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length) || 1) : (program.macrocycles[0]?.blocks?.flatMap(b=>b.mesocycles?.flatMap(m=>m.weeks || []) || [])?.length || 1);
-                                                        const pos = isCyclic ? 100 : Math.min(100, ((e.calculatedWeek + 1) / Math.max(1, totalW)) * 100);
-                                                        return (
-                                                            <div key={`marker-${idx}`} style={{left: `${isCyclic ? 100 : pos}%`}} className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_10px_white] ${isCyclic ? 'right-0 -translate-x-full' : '-translate-x-1/2'}`}></div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-
-                                            {/* PANEL DE FECHAS CLAVES Y EVENTOS */}
+                                            {/* BARRA VISUAL (LINEAL O CIRCULAR) DEPENDIENDO DEL TIPO DE PROGRAMA */}
                                             <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5 shadow-lg">
                                                 <div className="flex justify-between items-center mb-4">
                                                     <h3 className="text-[10px] font-black text-white uppercase flex items-center gap-2 tracking-widest">
-                                                        <CalendarIcon size={14} className="text-white"/> Hoja de Ruta (Eventos)
+                                                        <CalendarIcon size={14} className="text-white"/> {isCyclic ? 'Roadmap Cíclico' : 'Fechas Claves y Eventos'}
                                                     </h3>
                                                     <button onClick={() => setIsEventModalOpen(true)} className="text-[9px] font-black uppercase tracking-widest text-black bg-white px-4 py-2 rounded-lg hover:bg-zinc-200 transition-colors">
-                                                        Nuevo Evento
+                                                        Nuevo {isCyclic ? 'Evento' : 'Hito'}
                                                     </button>
                                                 </div>
-                                                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                                                    {program.events && program.events.length > 0 ? (
-                                                        program.events.map((e, idx) => (
-                                                            <div key={idx} className="shrink-0 w-44 bg-[#111] border border-white/10 rounded-xl p-4 flex flex-col justify-between group">
-                                                                <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest mb-1">{e.repeatEveryXCycles ? 'Evento Cíclico' : 'Fecha Clave'}</span>
-                                                                <span className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">{e.title}</span>
-                                                                <span className="text-[9px] text-zinc-400 mt-2 font-bold bg-white/5 self-start px-2 py-1 rounded">
-                                                                    {e.repeatEveryXCycles ? `Cada ${e.repeatEveryXCycles} ciclos` : `Semana ${e.calculatedWeek + 1}`}
-                                                                </span>
+                                                
+                                                {program.events && program.events.length > 0 ? (
+                                                    isCyclic ? (
+                                                        // DIAGRAMA CIRCULAR PARA PROGRAMAS SIMPLES
+                                                        <div className="relative w-full flex justify-center py-6">
+                                                            <div className="relative w-48 h-48 flex items-center justify-center">
+                                                                {/* Círculo animado */}
+                                                                <svg className="absolute inset-0 w-full h-full text-white/20 animate-[spin_8s_linear_infinite]" viewBox="0 0 100 100">
+                                                                    <defs>
+                                                                        <marker id="arrowHead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                                                                            <path d="M 0 0 L 10 5 L 0 10 z" className="fill-white/50" />
+                                                                        </marker>
+                                                                    </defs>
+                                                                    <path d="M 50 10 A 40 40 0 0 1 90 50" fill="none" stroke="currentColor" strokeWidth="3" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
+                                                                    <path d="M 50 90 A 40 40 0 0 1 10 50" fill="none" stroke="currentColor" strokeWidth="3" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
+                                                                </svg>
+                                                                
+                                                                {/* Centro */}
+                                                                <div className="absolute inset-0 flex items-center justify-center flex-col z-0">
+                                                                    <span className="text-[8px] font-black uppercase tracking-widest text-white/40 text-center">Bucle<br/>Base</span>
+                                                                </div>
+
+                                                                {/* Nodos de Eventos */}
+                                                                {(program.events || []).map((ev, i) => {
+                                                                    const safeEvents = program.events || [];
+                                                                    const angle = (i * (360 / safeEvents.length)) * (Math.PI / 180);
+                                                                    const radius = 80;
+                                                                    const x = Math.cos(angle) * radius;
+                                                                    const y = Math.sin(angle) * radius;
+
+                                                                    return (
+                                                                        <div 
+                                                                            key={ev.id || i} 
+                                                                            onClick={() => {
+                                                                                // Pre-poblar el modal de edición
+                                                                                setNewEventData({ title: ev.title, repeatEveryXCycles: ev.repeatEveryXCycles || 1, calculatedWeek: ev.calculatedWeek || 0, type: ev.type || '1rm_test' });
+                                                                                setIsEventModalOpen(true);
+                                                                            }}
+                                                                            className="absolute z-10 flex flex-col items-center cursor-pointer group"
+                                                                            style={{ transform: `translate(${x}px, ${y}px)` }}
+                                                                        >
+                                                                            <div className="w-10 h-10 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.6)] group-hover:scale-110 group-hover:bg-blue-400 transition-all">
+                                                                                <span className="text-[10px] font-bold text-white uppercase">{ev.repeatEveryXCycles}C</span>
+                                                                            </div>
+                                                                            <div className="absolute top-12 bg-black/95 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/20 flex flex-col items-center min-w-max shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                                                <span className="text-[10px] font-black text-white uppercase">{ev.title}</span>
+                                                                                <span className="text-[8px] text-blue-300 font-bold uppercase tracking-widest mt-0.5">Cada {ev.repeatEveryXCycles} Ciclos</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    )
+                                                                })}
                                                             </div>
-                                                        ))
-                                                    ) : (
-                                                        <div className="w-full text-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20">
-                                                            <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Aún no hay eventos programados.</p>
                                                         </div>
-                                                    )}
-                                                </div>
+                                                    ) : (
+                                                        // BARRA LINEAL PARA PROGRAMAS AVANZADOS
+                                                        <div className="mt-4">
+                                                            <div className="relative w-full h-1.5 bg-zinc-900 rounded-full mb-6 border border-white/5">
+                                                                {program.events.map((e, idx) => {
+                                                                    const totalW = (program.macrocycles[0]?.blocks?.flatMap(b=>b.mesocycles?.flatMap(m=>m.weeks || []) || [])?.length || 1);
+                                                                    const pos = Math.min(100, ((e.calculatedWeek + 1) / Math.max(1, totalW)) * 100);
+                                                                    return (
+                                                                        <div 
+                                                                            key={`marker-${idx}`} 
+                                                                            style={{left: `${pos}%`}} 
+                                                                            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)] -translate-x-1/2 cursor-pointer hover:scale-150 transition-transform"
+                                                                            onClick={() => {
+                                                                                setNewEventData({ title: e.title, repeatEveryXCycles: e.repeatEveryXCycles || 1, calculatedWeek: e.calculatedWeek || 0, type: e.type || '1rm_test' });
+                                                                                setIsEventModalOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8px] font-black text-white bg-black/80 px-2 py-0.5 rounded border border-white/20 whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity">{e.title}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                                                                {(program.events || []).map((e, idx) => (
+                                                                    <div key={idx} className="shrink-0 w-44 bg-[#111] border border-white/10 rounded-xl p-4 flex flex-col justify-between group">
+                                                                        <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest mb-1">Fecha Clave</span>
+                                                                        <span className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">{e.title}</span>
+                                                                        <span className="text-[9px] text-zinc-400 mt-2 font-bold bg-white/5 self-start px-2 py-1 rounded">
+                                                                            Semana {e.calculatedWeek + 1}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                ) : (
+                                                    <div className="w-full text-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20">
+                                                        <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Aún no hay eventos programados.</p>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {(program.macrocycles || []).map((macro, macroIndex) => {
@@ -1528,15 +1591,16 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                             </p>
 
                             <div className="space-y-3">
-                                <button onClick={() => {
+                            <button onClick={() => {
                                     const updated = JSON.parse(JSON.stringify(program));
                                     updated.structure = 'complex';
+                                    updated.events = []; // ELIMINAR EVENTOS AL CAMBIAR DE MODO
                                     updated.macrocycles[0].name = "Macrociclo Principal";
                                     updated.macrocycles[0].blocks[0].name = "Bloque de Inicio";
                                     updated.macrocycles[0].blocks.push({ id: crypto.randomUUID(), name: 'Nuevo Bloque', mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación', weeks: [] }] });
                                     if(handleUpdateProgram) handleUpdateProgram(updated);
                                     setShowAdvancedTransition(false);
-                                    addToast("Programa actualizado a Periodización Compleja", "success");
+                                    addToast("Programa actualizado. Los eventos cíclicos se han borrado.", "success");
                                 }} className="w-full text-left p-4 rounded-2xl bg-zinc-900/50 border border-white/10 hover:border-blue-500 hover:bg-blue-900/10 transition-all group">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0"><PlusIcon size={14}/></div>
@@ -1550,6 +1614,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                 <button onClick={() => {
                                     const updated = JSON.parse(JSON.stringify(program));
                                     updated.structure = 'complex';
+                                    updated.events = []; // ELIMINAR EVENTOS AL CAMBIAR DE MODO
                                     updated.macrocycles[0].name = "Macrociclo de Fuerza";
                                     updated.macrocycles[0].blocks[0].name = "Bloque de Acumulación";
                                     updated.macrocycles[0].blocks.push({ 
@@ -1558,7 +1623,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                     });
                                     if(handleUpdateProgram) handleUpdateProgram(updated);
                                     setShowAdvancedTransition(false);
-                                    addToast("Programa convertido con plantilla de fuerza", "success");
+                                    addToast("Programa convertido con plantilla de fuerza. Eventos borrados.", "success");
                                 }} className="w-full text-left p-4 rounded-2xl bg-zinc-900/50 border border-white/10 hover:border-yellow-500 hover:bg-yellow-900/10 transition-all group opacity-80 hover:opacity-100">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center shrink-0"><DumbbellIcon size={14}/></div>

@@ -285,6 +285,8 @@ export interface Program {
         prs?: boolean;
     };
     carpeDiemEnabled?: boolean;
+    isDraft?: boolean;
+    lastSavedStep?: number;
 }
 
 export interface Macrocycle {

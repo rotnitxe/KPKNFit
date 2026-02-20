@@ -337,7 +337,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                                                 {prog.macrocycles?.length || 0} Fases • {prog.mode || 'Estándar'}
                                             </p>
                                         </div>
-                                        <Button onClick={() => { handleStartProgram(prog.id); navigateTo('home'); }} className="!py-2 !px-4 !text-[10px] !bg-white !text-black hover:scale-105 transition-transform shrink-0">
+                                        <Button onClick={() => { handleStartProgram(prog.id); navigateTo('program-detail', { programId: prog.id }); }} className="!py-2 !px-4 !text-[10px] !bg-white !text-black hover:scale-105 transition-transform shrink-0">
                                             Activar
                                         </Button>
                                     </div>
