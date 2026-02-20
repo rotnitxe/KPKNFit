@@ -88,8 +88,8 @@ const SessionAugeDashboard: React.FC<{
     const { hyperStats, globalDrain, sessionAlerts, weeklyAlerts, exerciseRanking } = useMemo(() => {
         const hyperMap: Record<string, { vol: number, fail: number }> = {};
         const weeklyHyperMap: Record<string, number> = {};
-        let totalCns = 0; let totalSpinal = 0;
-        let weeklyCns = 0; let weeklySpinal = 0;
+        let totalCns = 0; let totalSpinal = 0; let totalMuscular = 0;
+        let weeklyCns = 0; let weeklySpinal = 0; let weeklyMuscular = 0;
         const ranking: { id: string, name: string, fatigue: number, isCurrentSession: boolean }[] = [];
 
         const processExercises = (exercises: any[], isCurrentSession: boolean) => {
@@ -119,9 +119,10 @@ const SessionAugeDashboard: React.FC<{
                     const spinalHit = calculateSpinalScore(set, info);
 
                     exFatigueScore += cnsHit + (spinalHit * 0.05);
+                    const muscularHit = (stress * (augeMetrics.efc / 5.0));
 
-                    weeklyCns += cnsHit; weeklySpinal += spinalHit;
-                    if (isCurrentSession) { totalCns += cnsHit; totalSpinal += spinalHit; }
+                    weeklyCns += cnsHit; weeklySpinal += spinalHit; weeklyMuscular += muscularHit;
+                    if (isCurrentSession) { totalCns += cnsHit; totalSpinal += spinalHit; totalMuscular += muscularHit; }
 
                     info.involvedMuscles.forEach((m: any) => {
                         const parent = normalizeMuscleGroup(m.muscle);
@@ -169,8 +170,9 @@ const SessionAugeDashboard: React.FC<{
         return { 
             hyperStats: context === 'session' ? sortedHyper : Object.entries(weeklyHyperMap).map(([m,v]) => ({muscle:m, volume: Math.round(v*10)/10})).sort((a,b)=>b.volume-a.volume), 
             globalDrain: { 
-                cns: Math.min(10, ((context === 'session' ? totalCns : weeklyCns) / (context === 'session' ? 150 : 600)) * 10), 
-                spinal: Math.min(10, ((context === 'session' ? totalSpinal : weeklySpinal) / (context === 'session' ? 1000 : 4000)) * 10) 
+                cns: Math.min(100, ((context === 'session' ? totalCns : weeklyCns) / (context === 'session' ? 150 : 600)) * 100), 
+                spinal: Math.min(100, ((context === 'session' ? totalSpinal : weeklySpinal) / (context === 'session' ? 1000 : 4000)) * 100),
+                muscular: Math.min(100, ((context === 'session' ? totalMuscular : weeklyMuscular) / (context === 'session' ? 80 : 320)) * 100)
             },
             sessionAlerts: dynamicSessionAlerts,
             weeklyAlerts: Object.entries(weeklyHyperMap).map(([m,v]) => ({muscle:m, volume:v})).filter(h => h.volume > 16),
@@ -254,23 +256,32 @@ const SessionAugeDashboard: React.FC<{
                              <span className="text-red-400">8-10:</span> Drenaje extremo. Requiere descanso prolongado.
                          </div>
                      )}
-                     <div className="grid grid-cols-2 gap-4">
+                     <div className="grid grid-cols-3 gap-3">
                         <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-[9px] font-black uppercase text-zinc-500">SNC {context === 'week' && '(Semanal)'}</span>
-                                <span className={`text-xs font-mono font-bold ${globalDrain.cns >= 8 ? 'text-red-500' : globalDrain.cns >= 4 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.cns.toFixed(1)}/10</span>
+                                <span className="text-[9px] font-black uppercase text-zinc-500">MSC</span>
+                                <span className={`text-xs font-mono font-bold ${globalDrain.muscular >= 80 ? 'text-red-500' : globalDrain.muscular >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.muscular.toFixed(0)}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
-                                <div className={`h-full transition-all ${globalDrain.cns >= 8 ? 'bg-red-500' : globalDrain.cns >= 4 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.cns * 10}%` }}></div>
+                                <div className={`h-full transition-all ${globalDrain.muscular >= 80 ? 'bg-red-500' : globalDrain.muscular >= 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.muscular}%` }}></div>
                             </div>
                         </div>
                         <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-[9px] font-black uppercase text-zinc-500">Espinal {context === 'week' && '(Semanal)'}</span>
-                                <span className={`text-xs font-mono font-bold ${globalDrain.spinal >= 8 ? 'text-red-500' : globalDrain.spinal >= 4 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.spinal.toFixed(1)}/10</span>
+                                <span className="text-[9px] font-black uppercase text-zinc-500">SNC</span>
+                                <span className={`text-xs font-mono font-bold ${globalDrain.cns >= 80 ? 'text-red-500' : globalDrain.cns >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.cns.toFixed(0)}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
-                                <div className={`h-full transition-all ${globalDrain.spinal >= 8 ? 'bg-red-500' : globalDrain.spinal >= 4 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.spinal * 10}%` }}></div>
+                                <div className={`h-full transition-all ${globalDrain.cns >= 80 ? 'bg-red-500' : globalDrain.cns >= 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.cns}%` }}></div>
+                            </div>
+                        </div>
+                        <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-[9px] font-black uppercase text-zinc-500">ESP</span>
+                                <span className={`text-xs font-mono font-bold ${globalDrain.spinal >= 80 ? 'text-red-500' : globalDrain.spinal >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.spinal.toFixed(0)}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
+                                <div className={`h-full transition-all ${globalDrain.spinal >= 80 ? 'bg-red-500' : globalDrain.spinal >= 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.spinal}%` }}></div>
                             </div>
                         </div>
                     </div>
@@ -674,8 +685,9 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     isSelected?: boolean;
     onToggleSelect?: () => void;
     hideAddSetButton?: boolean;
+    isJunkVolumeCulprit?: boolean;
 }>((props, ref) => {
-    const { exercise, onExerciseChange, onSetChange, onAddSet, onRemoveSet, onRemoveExercise, onReorder, isFirst, isLast, defaultOpen = true, categoryColor, onLinkNext, onUnlink, isInSuperset, isSupersetLast, isSelectionMode, isSelected, onToggleSelect, hideAddSetButton } = props;
+    const { exercise, onExerciseChange, onSetChange, onAddSet, onRemoveSet, onRemoveExercise, onReorder, isFirst, isLast, defaultOpen = true, categoryColor, onLinkNext, onUnlink, isInSuperset, isSupersetLast, isSelectionMode, isSelected, onToggleSelect, hideAddSetButton, isJunkVolumeCulprit } = props;
     const { exerciseList = [], openCustomExerciseEditor, setOnExerciseCreated, settings } = useAppContext();
     const [infoModalExercise, setInfoModalExercise] = useState<ExerciseMuscleInfo | null>(null);
     const [activeAutocomplete, setActiveAutocomplete] = useState(false);
@@ -809,19 +821,17 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
              });
         });
         
-        // Conversión a escala 1-10 para la UI
-        const toTen = (val: number, maxExpected: number) => Math.min(10, Math.max(0, (val / maxExpected) * 10));
+        // Conversión a porcentaje para la UI (1-100%)
+        const toPct = (val: number, maxExpected: number) => Math.min(100, Math.max(0, (val / maxExpected) * 100));
         
-        // Asumimos máximos esperados por EJERCICIO para normalizar a 10
-        const cns10 = toTen(rawCns, 60); 
-        const spinal10 = exerciseInfo?.axialLoadFactor ? toTen(rawSpinal, 800) : 0;
-        
-        const topMuscles = Object.entries(muscles)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 2)
-            .map(([m, val]) => [m, toTen(val, 50)] as [string, number]);
+        const topMusclesList = Object.entries(muscles).sort((a, b) => b[1] - a[1]).slice(0, 2);
+        const topMuscleVal = topMusclesList.length > 0 ? topMusclesList[0][1] : 0;
 
-        return { cns: cns10, spinal: spinal10, topMuscles };
+        const cnsPct = toPct(rawCns, 60); 
+        const spinalPct = exerciseInfo?.axialLoadFactor ? toPct(rawSpinal, 800) : 0;
+        const muscularPctValue = toPct(topMuscleVal, 50);
+        
+        return { cns: cnsPct, spinal: spinalPct, muscular: muscularPctValue };
     }, [exercise.sets, exerciseInfo, augeMetrics, exercise.restTime, exercise.trainingMode]);
 
     return (
@@ -837,8 +847,12 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                 </div>
             )}
             
-            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b border-white/10 bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''}`} open={defaultOpen}>
-                
+            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''} ${isJunkVolumeCulprit ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-white/10'}`} open={defaultOpen}>
+                {isJunkVolumeCulprit && (
+                    <div className="absolute top-0 right-2 bg-red-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-b-lg shadow-lg z-10 animate-pulse">
+                        Volumen Basura
+                    </div>
+                )}
                 <summary className="py-4 px-2 flex items-center gap-3 cursor-pointer list-none hover:bg-zinc-900 transition-colors rounded-lg group">
                     <div className="flex items-center gap-3 flex-grow min-w-0">
                         <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExerciseChange('isStarTarget', !exercise.isStarTarget); }} className={`transition-colors flex-shrink-0 ${exercise.isStarTarget ? 'text-white' : 'text-zinc-700 group-hover:text-zinc-500'}`}>
@@ -954,23 +968,19 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                             <div className="flex justify-between items-center border-b border-white/5 pb-1 mb-1">
                                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1"><ActivityIcon size={10}/> Drenaje Predictivo Local</span>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">SNC</span><span className="text-[8px] text-white font-mono">{localDrain.cns.toFixed(1)}</span></div>
-                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className="h-full bg-orange-500 transition-all duration-300" style={{width: `${Math.min(100, localDrain.cns * 3)}%`}}></div></div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">MSC</span><span className={`text-[8px] font-mono ${localDrain.muscular > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.muscular.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.muscular > 80 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{width: `${localDrain.muscular}%`}}></div></div>
                                 </div>
-                                {(exerciseInfo?.axialLoadFactor ?? 0) > 0 && (
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">ESPINAL</span><span className="text-[8px] text-white font-mono">{localDrain.spinal.toFixed(0)}</span></div>
-                                        <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className="h-full bg-red-500 transition-all duration-300" style={{width: `${Math.min(100, localDrain.spinal / 4)}%`}}></div></div>
-                                    </div>
-                                )}
-                                {localDrain.topMuscles.map(([m, val]) => (
-                                    <div key={m}>
-                                        <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400 truncate pr-1 uppercase">{m}</span><span className="text-[8px] text-white font-mono">{val.toFixed(1)}</span></div>
-                                        <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className="h-full bg-white transition-all duration-300" style={{width: `${Math.min(100, val * 4)}%`}}></div></div>
-                                    </div>
-                                ))}
+                                <div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">SNC</span><span className={`text-[8px] font-mono ${localDrain.cns > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.cns.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.cns > 80 ? 'bg-red-500' : 'bg-yellow-500'}`} style={{width: `${localDrain.cns}%`}}></div></div>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">ESP</span><span className={`text-[8px] font-mono ${localDrain.spinal > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.spinal.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.spinal > 80 ? 'bg-red-500' : 'bg-orange-500'}`} style={{width: `${localDrain.spinal}%`}}></div></div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1086,7 +1096,8 @@ const SupersetManagementBlock: React.FC<{
     isSelectionMode: boolean;
     onUnlink: (partIdx: number, exIdx: number) => void;
     onLinkNext: (partIdx: number, exIdx: number) => void;
-}> = ({ exercises, onUpdateSession, partIndex, partColor, onReorderExercise, onToggleSelect, selectedIds, isSelectionMode, onUnlink, onLinkNext }) => {
+    culpritIds?: Set<string>;
+}> = ({ exercises, onUpdateSession, partIndex, partColor, onReorderExercise, onToggleSelect, selectedIds, isSelectionMode, onUnlink, onLinkNext, culpritIds }) => {
     
     // Derived state: Number of rounds is determined by the max sets of any exercise in the group
     const rounds = useMemo(() => Math.max(...exercises.map(e => e.ex.sets.length)), [exercises]);
@@ -1173,6 +1184,7 @@ const SupersetManagementBlock: React.FC<{
                         isLast={false} // Logic handled by parent usually but less critical here
                         isSelectionMode={isSelectionMode} 
                         isSelected={selectedIds.has(ex.id)} 
+                        isJunkVolumeCulprit={culpritIds?.has(ex.id)}
                         onToggleSelect={() => onToggleSelect(ex.id)}
                         hideAddSetButton={true} // Hide individual add set
                     />
@@ -1237,7 +1249,57 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     // NUEVOS ESTADOS ROADMAP, GUARDADO Y REGLAS
     const [emptyDaySelected, setEmptyDaySelected] = useState<number | null>(null);
     const [globalSessionAlerts, setGlobalSessionAlerts] = useState<{ muscle: string; volume: number; threshold: number; failRatio: number; }[]>([]);
+    const [notifiedAlerts, setNotifiedAlerts] = useState<Set<string>>(new Set());
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+
+    // Derivamos la "sesión actual" del búfer en tiempo real aquí arriba para que la lógica de volumen basura la pueda leer
+    const session = useMemo(() => weekSessions.find(s => s.id === activeSessionId) || weekSessions[0], [weekSessions, activeSessionId]);
+
+    useEffect(() => {
+        globalSessionAlerts.forEach(alert => {
+            if (!notifiedAlerts.has(alert.muscle)) {
+                addToast(`¡Cuidado! Volumen basura detectado en ${alert.muscle}. Revisa la tarjeta roja.`, "danger");
+                setNotifiedAlerts(prev => new Set(prev).add(alert.muscle));
+            }
+        });
+    }, [globalSessionAlerts, notifiedAlerts, addToast]);
+
+    const culpritExerciseIds = useMemo(() => {
+        const culprits = new Set<string>();
+        const volMap: Record<string, number> = {};
+        
+        const allEx = [...(session?.exercises || [])];
+        (session?.parts || []).forEach(p => allEx.push(...p.exercises));
+        
+        allEx.forEach(ex => {
+            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+            if (!info) return;
+            
+            let isCulprit = false;
+            const validSetsCount = ex.sets?.filter(s => (s as any).type !== 'warmup').length || 0;
+            if (validSetsCount === 0) return;
+
+            info.involvedMuscles.forEach(m => {
+                const parent = normalizeMuscleGroup(m.muscle);
+                const hyperFactor = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.0;
+                const addedVol = hyperFactor * validSetsCount;
+                
+                const alert = globalSessionAlerts.find(a => a.muscle === parent);
+                const threshold = alert ? alert.threshold : 6; 
+                
+                if ((volMap[parent] || 0) + addedVol > threshold) {
+                    if ((volMap[parent] || 0) <= threshold) {
+                        isCulprit = true;
+                    }
+                }
+                volMap[parent] = (volMap[parent] || 0) + addedVol;
+            });
+            
+            if (isCulprit) culprits.add(ex.id);
+        });
+        
+        return culprits;
+    }, [session, globalSessionAlerts, exerciseList]);
     const [transferMode, setTransferMode] = useState<'export'|'import'>('export');
     const [transferTargetId, setTransferTargetId] = useState<string>('');
     const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
@@ -1259,9 +1321,6 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, []);
     const [isSingleSaveModalOpen, setIsSingleSaveModalOpen] = useState(false);
     const [blockScopeSelection, setBlockScopeSelection] = useState<Record<string, boolean>>({});
-
-    // Derivamos la "sesión actual" del búfer en tiempo real
-    const session = useMemo(() => weekSessions.find(s => s.id === activeSessionId) || weekSessions[0], [weekSessions, activeSessionId]);
     
     const sessionRef = useRef(session);
     const weekSessionsRef = useRef(weekSessions);
@@ -1800,11 +1859,12 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                                                     isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'}
                                                     onUnlink={handleUnlink}
                                                     onLinkNext={handleLinkWithNext}
+                                                    culpritIds={culpritExerciseIds}
                                                 />
                                             )
                                         } else {
                                             const { ex, index: ei } = group;
-                                            return <MemoizedExerciseCard key={ex.id} exercise={ex} categoryColor={part.color} isInSuperset={false} onExerciseChange={(f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei] as any)[f] = v; else d.parts![pi].exercises[ei] = {...d.parts![pi].exercises[ei], ...f}; }); }} onSetChange={(si, f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei].sets[si] as any)[f] = v; else d.parts![pi].exercises[ei].sets[si] = {...d.parts![pi].exercises[ei].sets[si], ...f}; }); }} onAddSet={() => updateSession(d => { d.parts![pi].exercises[ei].sets.push({ id: crypto.randomUUID(), targetReps: 8, intensityMode: 'rpe', targetRPE: 8 }); })} onRemoveSet={(si) => updateSession(d => { d.parts![pi].exercises[ei].sets.splice(si, 1); })} onRemoveExercise={() => updateSession(d => { d.parts![pi].exercises.splice(ei, 1); })} onReorder={(dir) => handleReorderExercise(pi, ei, dir)} onLinkNext={() => handleLinkWithNext(pi, ei)} isFirst={pi === 0 && ei === 0} isLast={pi === (session.parts?.length || 0) - 1 && ei === part.exercises.length - 1} isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'} isSelected={selectedExerciseIds.has(ex.id)} onToggleSelect={() => handleToggleSelectExercise(ex.id)}/>
+                                            return <MemoizedExerciseCard key={ex.id} exercise={ex} categoryColor={part.color} isInSuperset={false} isJunkVolumeCulprit={culpritExerciseIds.has(ex.id)} onExerciseChange={(f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei] as any)[f] = v; else d.parts![pi].exercises[ei] = {...d.parts![pi].exercises[ei], ...f}; }); }} onSetChange={(si, f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei].sets[si] as any)[f] = v; else d.parts![pi].exercises[ei].sets[si] = {...d.parts![pi].exercises[ei].sets[si], ...f}; }); }} onAddSet={() => updateSession(d => { d.parts![pi].exercises[ei].sets.push({ id: crypto.randomUUID(), targetReps: 8, intensityMode: 'rpe', targetRPE: 8 }); })} onRemoveSet={(si) => updateSession(d => { d.parts![pi].exercises[ei].sets.splice(si, 1); })} onRemoveExercise={() => updateSession(d => { d.parts![pi].exercises.splice(ei, 1); })} onReorder={(dir) => handleReorderExercise(pi, ei, dir)} onLinkNext={() => handleLinkWithNext(pi, ei)} isFirst={pi === 0 && ei === 0} isLast={pi === (session.parts?.length || 0) - 1 && ei === part.exercises.length - 1} isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'} isSelected={selectedExerciseIds.has(ex.id)} onToggleSelect={() => handleToggleSelectExercise(ex.id)}/>
                                         }
                                     })}
                                     

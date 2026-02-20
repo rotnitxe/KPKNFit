@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ProgramWeek, Session } from '../types';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { DragHandleIcon, XIcon, CheckIcon } from './icons';
+import { DragHandleIcon, XIcon, CheckIcon, EditIcon, TrashIcon, PlusIcon } from './icons';
 import { getOrderedDaysOfWeek } from '../utils/calculations';
 import { useAppContext } from '../contexts/AppContext';
 
@@ -10,14 +10,32 @@ interface Props {
     weekTitle: string;
     onClose: () => void;
     onSave: (updatedWeek: ProgramWeek) => void;
+    onEditSession?: (sessionId: string, intermediateWeek: ProgramWeek) => void;
 }
 
-const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onSave }) => {
+const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onSave, onEditSession }) => {
     const { settings } = useAppContext();
     const startOn = settings?.startWeekOn ?? 1; // 1 = Lunes
     const days = getOrderedDaysOfWeek(startOn);
 
     const [sessionsState, setSessionsState] = useState<Session[]>(week.sessions || []);
+
+    const handleDeleteSession = (sessionId: string) => {
+        if (window.confirm("¿Eliminar esta sesión?")) {
+            setSessionsState(prev => prev.filter(s => s.id !== sessionId));
+        }
+    };
+
+    const handleEditSession = (sessionId: string) => {
+        if (onEditSession) {
+            onEditSession(sessionId, { ...week, sessions: sessionsState });
+        }
+    };
+
+    const handleAddSessionToDay = (dayValue: number) => {
+        const newSession: Session = { id: crypto.randomUUID(), name: 'Nueva Sesión', dayOfWeek: dayValue, exercises: [] };
+        setSessionsState(prev => [...prev, newSession]);
+    };
 
     const onDragEnd = (result: DropResult) => {
         const { source, destination, draggableId } = result;
@@ -77,11 +95,20 @@ const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onS
                                                 className={`bg-[#0a0a0a] border rounded-2xl p-3 transition-colors min-h-[120px] flex flex-col
                                                     ${snapshot.isDraggingOver ? 'border-white/40 bg-[#111]' : 'border-[#222]'}`}
                                             >
-                                                <div className="flex items-center gap-2 mb-3 shrink-0">
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${daySessions.length > 0 ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-600'}`}>
-                                                        {day.label.substring(0,3).toUpperCase()}
+                                                <div className="flex items-center justify-between mb-3 shrink-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${daySessions.length > 0 ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-600'}`}>
+                                                            {day.label.substring(0,3).toUpperCase()}
+                                                        </div>
+                                                        <span className="text-[11px] font-bold text-zinc-400 uppercase">{day.label}</span>
                                                     </div>
-                                                    <span className="text-[11px] font-bold text-zinc-400 uppercase">{day.label}</span>
+                                                    <button 
+                                                        onClick={() => handleAddSessionToDay(day.value)}
+                                                        className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-colors border border-white/10 shadow-sm"
+                                                        title={`Añadir sesión al ${day.label}`}
+                                                    >
+                                                        <PlusIcon size={12}/>
+                                                    </button>
                                                 </div>
 
                                                 <div className="flex-1 flex flex-col gap-2">
@@ -99,7 +126,25 @@ const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onS
                                                                         <h4 className="text-[11px] font-black text-white uppercase truncate">{session.name}</h4>
                                                                         <span className="text-[9px] text-zinc-500 font-bold">{(session.exercises || []).length} ejs.</span>
                                                                     </div>
-                                                                    <DragHandleIcon size={14} className="text-zinc-600 cursor-grab shrink-0"/>
+                                                                    <div className="flex items-center gap-1 shrink-0">
+                                                                        <button 
+                                                                            onClick={() => handleEditSession(session.id)}
+                                                                            className="p-1.5 bg-black/50 rounded text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
+                                                                            title="Editar Sesión"
+                                                                        >
+                                                                            <EditIcon size={12}/>
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => handleDeleteSession(session.id)}
+                                                                            className="p-1.5 bg-black/50 rounded text-zinc-500 hover:text-red-500 hover:bg-red-500/20 transition-colors"
+                                                                            title="Eliminar Sesión"
+                                                                        >
+                                                                            <TrashIcon size={12}/>
+                                                                        </button>
+                                                                        <div {...provided.dragHandleProps} className="p-1.5 text-zinc-600 hover:text-white cursor-grab">
+                                                                            <DragHandleIcon size={14} />
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                         </Draggable>

@@ -28,6 +28,31 @@ import { RelativeStrengthAndBasicsWidget } from './RelativeStrengthAndBasicsWidg
 import { getOrderedDaysOfWeek } from '../utils/calculations';
 import InteractiveWeekOverlay from './InteractiveWeekOverlay'; // <-- NUEVO OVERLAY
 
+const getAbsoluteWeekIndex = (programData: Program, targetBlockId: string, targetWeekId: string) => {
+    let abs = 0;
+    for (const macro of programData.macrocycles) {
+        for (const block of (macro.blocks || [])) {
+            for (const meso of block.mesocycles) {
+                for (const week of meso.weeks) {
+                    if (block.id === targetBlockId && week.id === targetWeekId) return abs;
+                    abs++;
+                }
+            }
+        }
+    }
+    return abs;
+};
+
+const checkWeekHasEvent = (programData: Program, absIndex: number) => {
+    return (programData.events || []).some(e => {
+        if (e.repeatEveryXCycles) {
+            const cycleLength = programData.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length || 1;
+            return ((absIndex + 1) % (e.repeatEveryXCycles * cycleLength)) === 0;
+        }
+        return e.calculatedWeek === absIndex;
+    });
+};
+
 const getDayName = (dayIndex: number, startWeekOn: number): string => {
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     // Ajustamos el índice según cuándo empieza tu semana (0=Domingo, 1=Lunes)
@@ -607,8 +632,26 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                     <div className="h-px bg-white/10 flex-1"></div>
                                                 </div>
                                                 
+                                                {/* SELECTOR DE SEMANAS CÍCLICAS PARA PROGRAMAS SIMPLES A/B */}
+                                                {currentWeeks.length > 1 && (
+                                                    <div className="flex flex-col items-center gap-3 mb-6 w-full animate-fade-in">
+                                                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Semana del Bucle</span>
+                                                        <div className="flex gap-2 overflow-x-auto no-scrollbar w-full justify-center pb-2">
+                                                            {currentWeeks.map((w, idx) => (
+                                                                <button 
+                                                                    key={w.id} 
+                                                                    onClick={() => setSelectedWeekId(w.id)}
+                                                                    className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${w.id === selectedWeekId ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)] scale-105' : 'bg-zinc-900 border border-white/10 text-zinc-500 hover:bg-zinc-800 hover:text-white'}`}
+                                                                >
+                                                                    {w.name || `Semana ${idx + 1}`}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 {(() => {
-                                                    const cyclicWeek = currentWeeks[0];
+                                                    const cyclicWeek = currentWeeks.find(w => w.id === selectedWeekId) || currentWeeks[0];
                                                     if (!cyclicWeek) return null;
                                                     const sessionsForWeek = cyclicWeek.sessions || [];
                                                     
@@ -728,11 +771,18 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                         <div className="animate-fade-in">
                                             {/* TÍTULO DINÁMICO (Píldora Minimalista y Plana) */}
                                             <div className="pt-6 pb-2 bg-black flex justify-center items-center z-40 relative">
-                                                <div className="bg-zinc-950 border border-white/10 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
-                                                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">{selectedBlock?.name || `Bloque ${selectedBlockIndex + 1}`}</span>
-                                                    <span className="text-zinc-700 font-black">/</span>
-                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Semana {selectedWeekIndex}</span>
-                                                </div>
+                                                {(() => {
+                                                    const absIdx = selectedWeekId && selectedBlock ? getAbsoluteWeekIndex(program, selectedBlock.id, selectedWeekId) : -1;
+                                                    const isEventWeek = absIdx >= 0 && checkWeekHasEvent(program, absIdx);
+                                                    return (
+                                                        <div className={`px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm border ${isEventWeek ? 'bg-yellow-900/20 border-yellow-500/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]' : 'bg-zinc-950 border-white/10'}`}>
+                                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isEventWeek ? 'text-yellow-400' : 'text-white'}`}>{selectedBlock?.name || `Bloque ${selectedBlockIndex + 1}`}</span>
+                                                            <span className="text-zinc-700 font-black">/</span>
+                                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isEventWeek ? 'text-yellow-200' : 'text-zinc-400'}`}>Semana {selectedWeekIndex}</span>
+                                                            {isEventWeek && <span className="ml-2 bg-yellow-400 text-black text-[8px] px-2 py-0.5 rounded-full font-black tracking-widest uppercase shadow-md">Evento</span>}
+                                                        </div>
+                                                    )
+                                                })()}
                                             </div>
 
                                             {/* ROADMAP INTEGRADO (Acordeón Horizontal Minimalista) */}
@@ -782,7 +832,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                         }}
                                                                         className="w-5 h-8 flex items-center justify-center text-zinc-600 hover:text-white transition-colors ml-1"
                                                                     >
-                                                                        {expandedRoadmapBlocks.includes(block.id) || (isSelected && !expandedRoadmapBlocks.includes(block.id) && expandedRoadmapBlocks.push(block.id)) ? <ChevronDownIcon size={12} className="rotate-90"/> : <ChevronDownIcon size={12} className="-rotate-90"/>}
+                                                                        {expandedRoadmapBlocks.includes(block.id) ? <ChevronDownIcon size={12} className="rotate-90"/> : <ChevronDownIcon size={12} className="-rotate-90"/>}
                                                                     </button>
                                                                 </div>
 
@@ -793,14 +843,11 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                 >
                                                                     <div className="w-3 h-[2px] bg-zinc-800 shrink-0 mr-3" />
                                                                     <div className="flex items-center gap-2 bg-zinc-950 p-1.5 rounded-full border border-white/5">
-                                                                    {currentWeeks.map((week, wIdx) => {
+                                                                    {block.mesocycles.flatMap(m => m.weeks).map((week, wIdx) => {
                                                                             const isWeekSelected = week.id === selectedWeekId;
                                                                             
-                                                                            // LÓGICA DE EVENTOS INTEGRADA: 1. Fechas clave específicas | 2. Eventos cíclicos (cada X ciclos)
-                                                                            const hasEvent = (program.events || []).some(e => 
-                                                                                e.calculatedWeek === wIdx || 
-                                                                                (e.repeatEveryXCycles && (wIdx + 1) % (e.repeatEveryXCycles * currentWeeks.length) === 0)
-                                                                            );
+                                                                            const absIdx = getAbsoluteWeekIndex(program, block.id, week.id);
+                                                                            const hasEvent = checkWeekHasEvent(program, absIdx);
                                                                             
                                                                             return (
                                                                                 <button
@@ -1301,10 +1348,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                                             });
                                                                                             
                                                                                             // Lógica de Eventos
-                                                                                            const hasEvent = (program.events || []).some(e => 
-                                                                                                e.calculatedWeek === weekIndex || 
-                                                                                                (e.repeatEveryXCycles && (weekIndex + 1) % (e.repeatEveryXCycles * meso.weeks.length) === 0)
-                                                                                            );
+                                                                                            const absIdx = getAbsoluteWeekIndex(program, block.id, week.id);
+                                                                                            const hasEvent = checkWeekHasEvent(program, absIdx);
 
                                                                                             return (
                                                                                                 <div key={week.id} className="shrink-0 w-32 h-[5.5rem] relative group/week">
@@ -1559,6 +1604,31 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                 addToast("Split semanal guardado en el programa.", "success");
                             }
                             setEditingWeekInfo(null);
+                        }}
+                        onEditSession={(sessionId, intermediateWeek) => {
+                            // Guarda el estado intermedio y luego redirige a la edición de la sesión
+                            const updatedProgram = JSON.parse(JSON.stringify(program));
+                            if (editingWeekInfo.isSimple) {
+                                if (updatedProgram.macrocycles[0]?.blocks[0]?.mesocycles[0]) {
+                                    updatedProgram.macrocycles[0].blocks[0].mesocycles[0].weeks[editingWeekInfo.weekIndex] = intermediateWeek;
+                                }
+                            } else {
+                                updatedProgram.macrocycles[editingWeekInfo.macroIndex].blocks[editingWeekInfo.blockIndex].mesocycles[editingWeekInfo.mesoIndex].weeks[editingWeekInfo.weekIndex] = intermediateWeek;
+                            }
+                            if (handleUpdateProgram) handleUpdateProgram(updatedProgram);
+                            setEditingWeekInfo(null);
+                            
+                            setTimeout(() => {
+                                if (handleEditSession) {
+                                    handleEditSession(
+                                        program.id, 
+                                        editingWeekInfo.isSimple ? 0 : editingWeekInfo.macroIndex, 
+                                        editingWeekInfo.isSimple ? 0 : editingWeekInfo.mesoIndex, 
+                                        editingWeekInfo.week.id, 
+                                        sessionId
+                                    );
+                                }
+                            }, 100);
                         }}
                     />
                 )}

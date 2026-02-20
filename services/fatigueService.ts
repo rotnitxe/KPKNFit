@@ -90,7 +90,14 @@ export const calculateSpinalScore = (set: any, info: ExerciseMuscleInfo | undefi
     const reps = set.completedReps || set.targetReps || set.reps || 0;
     const postureFactor = info?.postureFactor || 1.0;
     
-    let spinalScore = (weight * reps) * ssc * postureFactor;
+    let spinalScore = 0;
+    if (weight === 0) {
+        // Predicción para el editor donde aún no hay peso (basado en RPE)
+        const rpe = set.targetRPE || 8;
+        spinalScore = reps * ssc * 10 * (rpe / 8) * postureFactor;
+    } else {
+        spinalScore = (weight * reps) * ssc * postureFactor;
+    }
     
     // Añadir tonelaje axial de Dropsets
     if (set.dropSets) {
