@@ -149,13 +149,27 @@ const SessionCard: React.FC<{
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            // CRÍTICO: Aseguramos que onEdit apunte al SessionEditor correctamente
                             onEdit(); 
                         }}
                         className="w-12 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-colors"
                         title="Editar Sesión"
                     >
                         <EditIcon size={16} />
+                    </button>
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm('¿Eliminar esta sesión?')) {
+                                // Aquí deberías llamar a una función que elimine la sesión.
+                                // Por ahora, simulamos un toast de confirmación.
+                                // En una implementación real, necesitarías pasar una prop onDelete.
+                                console.log('Eliminar sesión', session.id);
+                            }
+                        }}
+                        className="w-12 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-500/30 transition-colors"
+                        title="Eliminar Sesión"
+                    >
+                        <TrashIcon size={16} />
                     </button>
                 </div>
             </div>
@@ -179,29 +193,33 @@ const SessionCard: React.FC<{
                         </div>
                     )}
 
-                    <div className="space-y-3">
-                        {exercisesToDisplay.length > 0 ? (
-                            exercisesToDisplay.map((exercise: any, idx: number) => (
-                                <div key={idx}>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-xs font-bold text-zinc-300">{idx + 1}. {exercise.name}</span>
-                                        <span className="text-[9px] text-zinc-600 bg-black/50 px-1.5 py-0.5 rounded">{(exercise.sets || []).length} sets</span>
+<div className="overflow-x-auto no-scrollbar">
+                        <div className="flex gap-3 pb-2">
+                            {exercisesToDisplay.length > 0 ? (
+                                exercisesToDisplay.map((exercise: any, idx: number) => (
+                                    <div key={idx} className="shrink-0 w-56 bg-zinc-800/40 border border-white/10 rounded-xl p-3">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-xs font-bold text-zinc-300 truncate max-w-[120px]">{exercise.name}</span>
+                                            <span className="text-[9px] text-zinc-400 bg-black/50 px-1.5 py-0.5 rounded whitespace-nowrap">{(exercise.sets || []).length} sets</span>
+                                        </div>
+                                        <div className="border-l border-white/10 pl-2">
+                                            {(exercise.sets || []).slice(0, 1).map((set: any, sIdx: number) => (
+                                                <p key={sIdx} className="text-[9px] text-zinc-400">
+                                                    {set.targetReps} reps {set.targetRPE ? `@ RPE ${set.targetRPE}` : ''}
+                                                </p>
+                            ))}
+                                            {(exercise.sets || []).length > 1 && (
+                                                <p className="text-[8px] text-zinc-600 italic mt-1">+ {(exercise.sets || []).length - 1} series más</p>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="pl-3 border-l border-white/10">
-                                        {(exercise.sets || []).slice(0, 1).map((set: any, sIdx: number) => (
-                                            <p key={sIdx} className="text-[9px] text-zinc-500">
-                                                {set.targetReps} reps {set.targetRPE ? `@ RPE ${set.targetRPE}` : ''}
-                                                {(exercise.sets || []).length > 1 && <span className="italic ml-1">(+ {(exercise.sets || []).length - 1} más)</span>}
-                                            </p>
-                                        ))}
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="shrink-0 w-full text-center py-4">
+                                    <p className="text-[10px] text-zinc-500 italic">No hay ejercicios</p>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-4">
-                                <p className="text-[10px] text-zinc-500 italic">No hay ejercicios agregados a esta sesión.</p>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -815,7 +833,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                             </div>
 
                                             {/* CONTENIDO DEL BLOQUE */}
-                                            <div className="px-4 pb-10 pt-6 space-y-3">
+                                            <div className="px-4 pb-24 pt-6 space-y-3">
                                                 {isPastBlock ? (
                                                     // ------------------------------------------------
                                                     // HISTORIAL DEL BLOQUE PASADO (Diseño Acordeón)    

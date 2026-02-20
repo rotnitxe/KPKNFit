@@ -1448,50 +1448,60 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
   // 4. EFECTOS (Inicialización y Guardado)
   // =================================================================
 
-  // Initialize for Editing
-  useEffect(() => {
-    const initializeEditor = async () => {
-        if (existingProgram) {
-            let initialData = JSON.parse(JSON.stringify(existingProgram));
-            let complexMode = isProgramComplex(existingProgram);
-            
-            setIsDirty(false);
-            const draft = await storageService.get<{ programData: Program; associatedId: string | null }>(PROGRAM_DRAFT_KEY);
-            if (draft) {
-                const draftAssociatedId = draft.associatedId;
-                const currentId = existingProgram?.id || null;
-                if (draftAssociatedId === currentId) {
-                    if (window.confirm('Se encontró un borrador no guardado. ¿Restaurar?')) {
-                        initialData = draft.programData;
-                        complexMode = isProgramComplex(initialData);
-                        setIsDirty(true);
-                    } else {
-                        await storageService.remove(PROGRAM_DRAFT_KEY);
+      // Initialize for Editing
+      useEffect(() => {
+        const initializeEditor = async () => {
+            if (existingProgram) {
+                let initialData = JSON.parse(JSON.stringify(existingProgram));
+                let complexMode = isProgramComplex(existingProgram);
+                
+                setIsDirty(false);
+                const draft = await storageService.get<{ programData: Program; associatedId: string | null }>(PROGRAM_DRAFT_KEY);
+                if (draft) {
+                    const draftAssociatedId = draft.associatedId;
+                    const currentId = existingProgram?.id || null;
+                    if (draftAssociatedId === currentId) {
+                        if (window.confirm('Se encontró un borrador no guardado. ¿Restaurar?')) {
+                            initialData = draft.programData;
+                            complexMode = isProgramComplex(initialData);
+                            setIsDirty(true);
+                        } else {
+                            await storageService.remove(PROGRAM_DRAFT_KEY);
+                        }
                     }
                 }
+                setProgram(initialData);
+                setIsComplex(complexMode);
+                
+                // Si es un borrador, restaurar el paso del wizard y los datos
+                if (initialData.isDraft && initialData.lastSavedStep !== undefined) {
+                    setWizardStep(initialData.lastSavedStep);
+                    // Aquí también deberías restaurar otros estados como selectedSplit, detailedSessions, etc.
+                    // Esto depende de cómo hayas guardado esos datos en el programa.
+                    // Por ejemplo, si guardaste selectedSplit.id en una propiedad como draftSplitId, lo restaurarías.
+                    // Como no se ha definido ese almacenamiento, esto queda pendiente de implementación.
+                    // Por ahora, solo restauramos el paso.
+                }
+
+                if (initialData.background?.style) {
+                    setCoverFilters(prev => ({
+                        ...prev,
+                        blur: initialData.background.style.blur || 0,
+                        brightness: Math.round((1 - (initialData.background.style.brightness || 0.6)) * 100),
+                    }));
+                }
+                if (initialData.coverStyle?.filters) {
+                    setCoverFilters(prev => ({
+                        ...prev,
+                        contrast: initialData.coverStyle.filters.contrast,
+                        saturation: initialData.coverStyle.filters.saturation,
+                        grayscale: initialData.coverStyle.filters.grayscale
+                    }));
+                }
             }
-            setProgram(initialData);
-            setIsComplex(complexMode);
-            
-            if (initialData.background?.style) {
-                setCoverFilters(prev => ({
-                    ...prev,
-                    blur: initialData.background.style.blur || 0,
-                    brightness: Math.round((1 - (initialData.background.style.brightness || 0.6)) * 100),
-                }));
-            }
-            if (initialData.coverStyle?.filters) {
-                setCoverFilters(prev => ({
-                    ...prev,
-                    contrast: initialData.coverStyle.filters.contrast,
-                    saturation: initialData.coverStyle.filters.saturation,
-                    grayscale: initialData.coverStyle.filters.grayscale
-                }));
-            }
-        }
-    };
-    initializeEditor();
-  }, [existingProgram, setIsDirty]);
+        };
+        initializeEditor();
+    }, [existingProgram, setIsDirty]);
 
 
   // EFECTO: Auto-scroll al bloque activo en el Paso 0
