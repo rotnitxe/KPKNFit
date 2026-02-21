@@ -53,11 +53,10 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
         hapticImpact(ImpactStyle.Light);
 
         // LÓGICA INTELIGENTE DE PROGRAMAS (TÚNEL HACIA PROGRAMA ACTIVO)
+        // Push 'programs' first so that Back from program-detail lands on the list
         if (view === 'programs' && activeProgramState && activeProgramState.status === 'active') {
+            navigate('programs');
             navigateTo('program-detail', { programId: activeProgramState.programId });
-            return;
-        } else if (view === 'programs' && programs.length === 1) {
-            navigateTo('program-detail', { programId: programs[0].id });
             return;
         }
 

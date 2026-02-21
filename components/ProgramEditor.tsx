@@ -1801,6 +1801,13 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
   // =================================================================
   // RENDER: DASHBOARD (EDIT MODE)
   // =================================================================
+  if (existingProgram && !program) {
+      return (
+          <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+      );
+  }
   if (existingProgram && program) {
       const simpleWeeks = program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks || [];
       const imageFilters = `contrast(${coverFilters.contrast}%) saturate(${coverFilters.saturation}%) grayscale(${coverFilters.grayscale}%)`;

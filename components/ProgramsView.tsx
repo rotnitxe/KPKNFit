@@ -39,9 +39,11 @@ const SwipeToDeleteCard: React.FC<{ children: React.ReactNode; onDelete: () => v
 
     return (
         <div className="relative overflow-hidden rounded-2xl mb-3">
-            <div className="absolute inset-0 bg-red-500/90 flex items-center justify-end px-6 rounded-2xl pointer-events-none">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </div>
+            {translateX < 0 && (
+                <div className="absolute inset-0 bg-red-500/90 flex items-center justify-end px-6 rounded-2xl pointer-events-none">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </div>
+            )}
             <div 
                 className="relative w-full h-full transition-transform duration-200"
                 style={{ transform: `translateX(${translateX}px)` }}
@@ -65,18 +67,7 @@ interface ProgramsViewProps {
 const ProgramsView: React.FC<ProgramsViewProps> = ({ programs, onSelectProgram, onCreateProgram, isOnline }) => {
   const { activeProgramState, handleDeleteProgram } = useAppContext();
   const activeProgramId = activeProgramState?.status === 'active' ? activeProgramState.programId : null;
-  const [isRedirecting, setIsRedirecting] = useState(false);
-
-  // Lógica de Túnel de Carga (Fallback)
-  useEffect(() => {
-    if (programs.length === 1 && activeProgramId === programs[0].id) {
-      setIsRedirecting(true);
-      const timer = setTimeout(() => {
-        onSelectProgram(programs[0]);
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [programs, activeProgramId, onSelectProgram]);
+  
 
   // Clasificación de programas
   const activeProgram = programs.find(p => p.id === activeProgramId);
