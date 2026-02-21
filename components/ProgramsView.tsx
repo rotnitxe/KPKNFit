@@ -1,8 +1,59 @@
 // components/ProgramsView.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Program } from '../types';
 import { PlayIcon, ChevronRightIcon, PlusIcon, DumbbellIcon, ActivityIcon, CalendarIcon, LayersIcon } from './icons';
-import { useAppState } from '../contexts/AppContext';
+import { useAppContext } from '../contexts/AppContext';
+
+// --- COMPONENTE SWIPE TO DELETE ---
+const SwipeToDeleteCard: React.FC<{ children: React.ReactNode; onDelete: () => void; }> = ({ children, onDelete }) => {
+    const [translateX, setTranslateX] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const startX = useRef(0);
+    const currentX = useRef(0);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        startX.current = e.touches[0].clientX;
+        setIsDragging(true);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isDragging) return;
+        const diff = e.touches[0].clientX - startX.current;
+        if (diff < 0) { // Solo permite deslizar hacia la izquierda
+            currentX.current = Math.max(diff, -100);
+            setTranslateX(currentX.current);
+        }
+    };
+
+    const handleTouchEnd = () => {
+        setIsDragging(false);
+        if (currentX.current <= -80) { // Umbral de eliminación
+            onDelete();
+            setTranslateX(0);
+            currentX.current = 0;
+        } else {
+            setTranslateX(0);
+            currentX.current = 0;
+        }
+    };
+
+    return (
+        <div className="relative overflow-hidden rounded-2xl mb-3">
+            <div className="absolute inset-0 bg-red-500/90 flex items-center justify-end px-6 rounded-2xl pointer-events-none">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </div>
+            <div 
+                className="relative w-full h-full transition-transform duration-200"
+                style={{ transform: `translateX(${translateX}px)` }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+            >
+                {children}
+            </div>
+        </div>
+    );
+};
 
 interface ProgramsViewProps {
   programs: Program[];
@@ -12,10 +63,11 @@ interface ProgramsViewProps {
 }
 
 const ProgramsView: React.FC<ProgramsViewProps> = ({ programs, onSelectProgram, onCreateProgram, isOnline }) => {
-  const { activeProgramId } = useAppState();
+  const { activeProgramState, handleDeleteProgram } = useAppContext();
+  const activeProgramId = activeProgramState?.status === 'active' ? activeProgramState.programId : null;
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // LOGICA DE TÚNEL INTELIGENTE: Si hay solo 1 programa y es el activo, redirigir automáticamente
+  // Lógica de Túnel de Carga (Fallback)
   useEffect(() => {
     if (programs.length === 1 && activeProgramId === programs[0].id) {
       setIsRedirecting(true);
@@ -25,15 +77,6 @@ const ProgramsView: React.FC<ProgramsViewProps> = ({ programs, onSelectProgram, 
       return () => clearTimeout(timer);
     }
   }, [programs, activeProgramId, onSelectProgram]);
-
-  if (isRedirecting) {
-    return (
-        <div className="min-h-[80vh] flex flex-col items-center justify-center">
-            <div className="w-10 h-10 border-4 border-zinc-800 border-t-white rounded-full animate-spin mb-4"></div>
-            <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest animate-pulse">Abriendo tu programa...</p>
-        </div>
-    );
-  }
 
   // Clasificación de programas
   const activeProgram = programs.find(p => p.id === activeProgramId);
@@ -124,26 +167,28 @@ const ProgramsView: React.FC<ProgramsViewProps> = ({ programs, onSelectProgram, 
                             </div>
                         )}
                         
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1">
                             {inactivePrograms.map(program => {
                                 const stats = getProgramStats(program);
                                 return (
-                                    <div key={program.id} onClick={() => onSelectProgram(program)} className="bg-zinc-900/40 border border-white/5 hover:bg-zinc-800/80 hover:border-white/20 transition-all rounded-2xl p-4 flex items-center justify-between cursor-pointer group">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-600 group-hover:text-white group-hover:border-white/30 group-hover:scale-105 transition-all shadow-sm">
-                                                <LayersIcon size={20} />
+                                    <SwipeToDeleteCard key={program.id} onDelete={() => handleDeleteProgram(program.id)}>
+                                        <div onClick={() => onSelectProgram(program)} className="bg-zinc-900/40 border border-white/5 hover:bg-zinc-800/80 hover:border-white/20 transition-all rounded-2xl p-4 flex items-center justify-between cursor-pointer group shadow-sm">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-600 group-hover:text-white group-hover:border-white/30 group-hover:scale-105 transition-all shadow-sm">
+                                                    <LayersIcon size={20} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-black text-white uppercase tracking-tight">{program.name}</h4>
+                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                                                        {stats.weeks} Semanas • {stats.sessions} Sesiones
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h4 className="text-sm font-black text-white uppercase tracking-tight">{program.name}</h4>
-                                                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
-                                                    {stats.weeks} Semanas • {stats.sessions} Sesiones
-                                                </p>
+                                            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black text-zinc-600 transition-colors">
+                                                <ChevronRightIcon size={16} />
                                             </div>
                                         </div>
-                                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black text-zinc-600 transition-colors">
-                                            <ChevronRightIcon size={16} />
-                                        </div>
-                                    </div>
+                                    </SwipeToDeleteCard>
                                 )
                             })}
                         </div>

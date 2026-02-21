@@ -228,10 +228,12 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
     useEffect(() => {
         if (analysisData === undefined) {
             handleCalculate();
-        } else {
+        } else if (analysisData) {
              setDisplayAnalysis(aggregateData(analysisData));
+        } else {
+             setDisplayAnalysis([]);
         }
-    }, [program, session, sessions, calculationMode, selectedItemId]);
+    }, [analysisData, program, session, sessions, calculationMode, selectedItemId]);
 
 
     return (

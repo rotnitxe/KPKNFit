@@ -463,11 +463,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveProgramState(prev => {
             if (prev && prev.status !== 'completed') {
                 addToast("¡Programa completado!", "achievement");
+                
+                // --- AUTO-TRANSICIÓN DE COLA ---
+                if (prev.queuedProgramId) {
+                    const nextProgram = programs.find(p => p.id === prev.queuedProgramId);
+                    if (nextProgram) {
+                        addToast(`Iniciando programa en cola: ${nextProgram.name}`, "suggestion");
+                        const firstWeekId = nextProgram.macrocycles[0]?.blocks?.[0]?.mesocycles[0]?.weeks[0]?.id;
+                        return {
+                            programId: prev.queuedProgramId,
+                            status: 'active',
+                            startDate: new Date().toISOString(),
+                            currentMacrocycleIndex: 0,
+                            currentBlockIndex: 0,
+                            currentMesocycleIndex: 0,
+                            currentWeekId: firstWeekId || '',
+                            firstSessionDate: undefined,
+                            queuedProgramId: undefined
+                        };
+                    }
+                }
                 return { ...prev, status: 'completed' };
             }
             return prev;
         });
-    }, [setActiveProgramState, addToast]);
+    }, [setActiveProgramState, addToast, programs]);
 
     const handleRestartProgram = useCallback(() => {
         if (activeProgramState) {
@@ -913,6 +933,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const weekId = getWeekId(new Date(), settings.startWeekOn);
             cacheService.remove(`carpe_diem_${finishedProgram.id}_${weekId}`);
         }
+
+        // --- ESTAMPADO DE CALENDARIO (Motor Avanzado) ---
+        // Sella la fecha de la primera sesión si aún no se ha hecho
+        setActiveProgramState(prev => {
+            if (prev && prev.programId === ongoingWorkout.programId && !prev.firstSessionDate) {
+                return { ...prev, firstSessionDate: validatedLog.date };
+            }
+            return prev;
+        });
+
+        navigateTo('home', undefined, { replace: true });
+        playSound('session-complete-sound');
+        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS as any);
 
         navigateTo('home', undefined, { replace: true });
         playSound('session-complete-sound');

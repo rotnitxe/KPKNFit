@@ -209,3 +209,57 @@ export const calculateDynamicRatio = (current: number, reference: number): numbe
     if (reference === 0) return 1;
     return current / reference;
 }
+
+export const resolveEventDate = (targetDate: Date, rules?: { avoidDaysOfWeek?: number[], avoidEndOfMonth?: boolean }): Date => {
+    let resolved = new Date(targetDate);
+    let safeGuard = 0;
+    while (safeGuard < 30) {
+        let hasConflict = false;
+        // Regla 1: Días de la semana prohibidos
+        if (rules?.avoidDaysOfWeek && rules.avoidDaysOfWeek.includes(resolved.getDay())) {
+            hasConflict = true;
+        }
+        // Regla 2: Fin de mes prohibido
+        if (rules?.avoidEndOfMonth) {
+            const lastDayOfMonth = new Date(resolved.getFullYear(), resolved.getMonth() + 1, 0).getDate();
+            if (resolved.getDate() >= lastDayOfMonth - 1) { // Evita los últimos 2 días del mes
+                hasConflict = true;
+            }
+        }
+        if (!hasConflict) break;
+        // Si hay conflicto, empujamos 1 día al futuro
+        resolved.setDate(resolved.getDate() + 1); 
+        safeGuard++;
+    }
+    return resolved;
+};
+
+export const calculateAdvancedProjections = (program: any, startDateString: string): any[] => {
+    const startDate = new Date(startDateString);
+    const projections: any[] = [];
+    let totalWeeks = 0;
+
+    program.macrocycles?.forEach((macro: any) => {
+        (macro.blocks || []).forEach((block: any) => {
+            block.mesocycles?.forEach((meso: any, mesoIdx: number) => {
+                totalWeeks += meso.weeks?.length || 0;
+                // Proyectar el final de este Bloque
+                if (mesoIdx === block.mesocycles.length - 1) {
+                    const projectedEnd = new Date(startDate);
+                    projectedEnd.setDate(projectedEnd.getDate() + (totalWeeks * 7));
+                    projections.push({
+                        type: 'block_end',
+                        name: `Fin de Bloque: ${block.name}`,
+                        date: projectedEnd.toISOString()
+                    });
+                }
+            });
+        });
+    });
+
+    const programEndDate = new Date(startDate);
+    programEndDate.setDate(programEndDate.getDate() + (totalWeeks * 7));
+    projections.push({ type: 'program_end', name: 'Fin del Programa', date: programEndDate.toISOString() });
+
+    return projections;
+};

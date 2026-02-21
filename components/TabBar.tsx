@@ -36,7 +36,7 @@ const NavButton: React.FC<{
 );
 
 const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions }) => {
-    const { programs, navigateTo } = useAppContext();
+    const { programs, navigateTo, activeProgramState } = useAppContext();
 
     // NUEVA CONFIGURACIÓN DE TABS
     const forceTabs = ['home', 'programs', 'nutrition', 'your-lab'];
@@ -52,8 +52,11 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
         playSound(activeView === view ? 'ui-click-sound' : 'tab-switch-sound');
         hapticImpact(ImpactStyle.Light);
 
-        // LÓGICA INTELIGENTE DE PROGRAMAS
-        if (view === 'programs' && programs.length === 1) {
+        // LÓGICA INTELIGENTE DE PROGRAMAS (TÚNEL HACIA PROGRAMA ACTIVO)
+        if (view === 'programs' && activeProgramState && activeProgramState.status === 'active') {
+            navigateTo('program-detail', { programId: activeProgramState.programId });
+            return;
+        } else if (view === 'programs' && programs.length === 1) {
             navigateTo('program-detail', { programId: programs[0].id });
             return;
         }

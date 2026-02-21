@@ -279,6 +279,7 @@ export interface Program {
         createMacrocycle?: boolean;
         repeatEveryXCycles?: number; // Nueva propiedad para eventos cíclicos (Programas Simples)
         sessions?: Session[]; // Soporte para sesiones exclusivas del evento
+        rules?: { avoidDaysOfWeek?: number[]; avoidEndOfMonth?: boolean; }; // NUEVO: Motor de reglas condicionales
     }[];
     exerciseGoals?: Record<string, number>;
     
@@ -869,6 +870,8 @@ export interface ActiveProgramState {
     programId: string;
     status: 'active' | 'paused' | 'completed';
     startDate: string;
+    firstSessionDate?: string; // NUEVO: Fecha en la que realmente se hizo la primera sesión
+    queuedProgramId?: string;  // NUEVO: ID del programa en cola para auto-transición
     currentMacrocycleIndex: number;
     currentBlockIndex: number;
     currentMesocycleIndex: number;
