@@ -36,6 +36,7 @@ import AthleteIDDashboard from './components/AthleteIDDashboard';
 import { ArrowLeftIcon, IdCardIcon } from './components/icons';
 
 // --- Static Imports for Performance ---
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import Home from './components/Home';
 // FIX: Cambiado a import por defecto para coincidir con el archivo ProgramDetail
 import ProgramDetail from './components/ProgramDetail';
@@ -284,14 +285,12 @@ export const App: React.FC = () => {
     // --- FIN VIP PASS ---
 
     // --- SISTEMA DE VERSIONES Y ESCUDO ANTI-CACHÉ ---
-    const APP_VERSION = "1.0.1"; // ⚠️ CAMBIA ESTE NÚMERO CADA VEZ QUE ME PIDAS UNA ACTUALIZACIÓN GRANDE
+    const APP_VERSION = "1.2.0";
     const [showUpdateModal, setShowUpdateModal] = useState(false);
 
     useEffect(() => {
         const storedVersion = localStorage.getItem('kpkn_version');
-        // Si ya había una versión instalada, y es distinta a la nueva, ¡es una actualización!
         if (storedVersion && storedVersion !== APP_VERSION) {
-            // ESCUDO ANTI-CACHÉ: Forzar limpieza profunda de la memoria del Service Worker
             if ('caches' in window) {
                 caches.keys().then(names => {
                     for (let name of names) caches.delete(name);
@@ -299,10 +298,30 @@ export const App: React.FC = () => {
             }
             setShowUpdateModal(true);
         }
-        // Guardar la versión actual silenciosamente
         localStorage.setItem('kpkn_version', APP_VERSION);
     }, []);
     // --- FIN SISTEMA DE VERSIONES ---
+
+    // --- CAJA NEGRA: Captura errores globales que ErrorBoundary no atrapa (async, event handlers) ---
+    useEffect(() => {
+        const handleGlobalError = (event: ErrorEvent) => {
+            const msg = `Error: ${event.message} (${event.filename}:${event.lineno})`;
+            console.error('KPKN Global Error:', msg);
+            addToast(msg, 'danger', 'Error del Sistema', 8000);
+        };
+        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+            const reason = event.reason?.message || event.reason?.toString() || 'Error desconocido';
+            console.error('KPKN Unhandled Rejection:', reason);
+            addToast(`Async: ${reason}`, 'danger', 'Error del Sistema', 8000);
+        };
+        window.addEventListener('error', handleGlobalError);
+        window.addEventListener('unhandledrejection', handleUnhandledRejection);
+        return () => {
+            window.removeEventListener('error', handleGlobalError);
+            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        };
+    }, [addToast]);
+    // --- FIN CAJA NEGRA ---
 
     const isTopLevelView = useMemo(() => ['home', 'nutrition', 'recovery', 'sleep', 'your-lab', 'progress', 'tasks'].includes(view), [view]);
     
@@ -501,7 +520,9 @@ export const App: React.FC = () => {
             
             <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar z-10 ${view === 'home' ? 'p-0' : 'pt-4'} pb-[100px]`}>
                 <div className={`${view === 'home' || view === 'sleep' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
-                    {renderView()}
+                    <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
+                        {renderView()}
+                    </ErrorBoundary>
                 </div>
             </main>
             
@@ -555,12 +576,15 @@ export const App: React.FC = () => {
                         <div className="bg-black/50 rounded-2xl p-5 mb-6 border border-white/5 space-y-3 relative z-10">
                             <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                                Novedades Recientes:
+                                Novedades v{APP_VERSION}:
                             </h3>
                             <ul className="text-[11px] text-zinc-300 space-y-2.5 font-bold">
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Caja Negra integrada para atrapar fallos del sistema en tiempo real.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>ADN Nativo activado: Gestos y navegación nivel sistema operativo.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>La pantalla ya no se apaga mientras entrenas.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-red-500 mt-0.5">•</span> <span>Caja Negra mejorada: errores se muestran en pantalla con botón de copiar en vez de pantalla negra.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Eliminar sesiones ahora funciona correctamente en todas las vistas.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Splits por bloque se respetan al crear programas avanzados.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Días de la semana se asignan correctamente al crear sesiones desde una vista semanal.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-yellow-500 mt-0.5">•</span> <span>Luces de jueceo movidas al entrenamiento en vivo (donde pertenecen).</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Vistas semanal y macrociclo sincronizadas correctamente entre bloques.</span></li>
                             </ul>
                         </div>
 

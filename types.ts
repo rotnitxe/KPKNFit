@@ -1101,7 +1101,7 @@ export interface AppContextState {
     aiNutritionPlan: AINutritionPlan | null;
     activeProgramId: string | null;
     editingProgramId: string | null;
-    editingSessionInfo: { programId: string; macroIndex: number; mesoIndex: number; weekId: string; sessionId?: string; } | null;
+    editingSessionInfo: { programId: string; macroIndex: number; mesoIndex: number; weekId: string; sessionId?: string; dayOfWeek?: number; } | null;
     activeSession: Session | null;
     loggingSessionInfo: { programId: string; sessionId: string } | null;
     viewingSessionInfo: { programId: string; sessionId: string; } | null;
