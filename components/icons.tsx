@@ -157,3 +157,23 @@ export const MaximizeIcon: React.FC<{ size?: number; className?: string }> = ({ 
         <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
     </svg>
 );
+
+// Añade esto en components/icons.tsx, junto con los demás iconos
+export const BatteryIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...props}
+    >
+      <rect x="2" y="7" width="16" height="10" rx="2" ry="2" />
+      <line x1="22" x2="22" y1="11" y2="13" />
+    </svg>
+  );
