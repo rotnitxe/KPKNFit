@@ -1677,12 +1677,14 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             macrocycles: [] 
         };
         
-        const generateSessionsForWeek = (weekId: string, globalWeekIndex: number): Session[] => {
+        const generateSessionsForWeek = (weekId: string, globalWeekIndex: number, patternOverride?: string[], sessionsOverride?: Record<number, Session>): Session[] => {
             const sessions: Session[] = [];
-            splitPattern.forEach((label, dayIndex) => {
+            const pattern = patternOverride || splitPattern;
+            const details = sessionsOverride || detailedSessions;
+            pattern.forEach((label, dayIndex) => {
                 if (label && label.toLowerCase() !== 'descanso' && label.trim() !== '') {
                     const assignedDay = (startDay + dayIndex) % 7; 
-                    const existingDetail = detailedSessions[dayIndex];
+                    const existingDetail = details[dayIndex];
                     if (existingDetail) {
                         sessions.push({ ...existingDetail, id: crypto.randomUUID(), dayOfWeek: assignedDay });
                     } else {
@@ -1697,16 +1699,26 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
              newProgram.description = `Preparación Avanzada de ${template.id === 'power-complex' ? 'Fuerza' : 'Hipertrofia'}.`;
              newProgram.mode = template.id === 'power-complex' ? 'powerlifting' : 'hypertrophy';
              
+             const allDesigns = { ...programDesigns, [activeBlockEdit]: detailedSessions };
+
              const blocks: Block[] = wizardComplexBlocks.map((name, index) => {
                  const duration = blockDurations[index] || 4;
                  const previousWeeks = blockDurations.slice(0, index).reduce((a, b) => a + b, 0);
                  
+                 let blockPattern: string[] | undefined;
+                 let blockSessions: Record<number, Session> | undefined;
+                 
+                 if (splitMode === 'per_block' && blockSplits[index]) {
+                     blockPattern = Array(cycleDuration).fill('Descanso').map((_, i) => blockSplits[index].pattern[i] || 'Descanso');
+                     blockSessions = allDesigns[index] || {};
+                 }
+
                  return {
                      id: crypto.randomUUID(), name: `Bloque ${name}`,
                      mesocycles: [{
                          id: crypto.randomUUID(), name: name, goal: index === wizardComplexBlocks.length - 1 ? 'Realización' : (index === 0 ? 'Acumulación' : 'Intensificación'),
                          weeks: Array.from({ length: duration }, (_, i) => ({
-                             id: crypto.randomUUID(), name: `Semana ${previousWeeks + i + 1}`, sessions: generateSessionsForWeek(`w${previousWeeks + i}`, previousWeeks + i)
+                             id: crypto.randomUUID(), name: `Semana ${previousWeeks + i + 1}`, sessions: generateSessionsForWeek(`w${previousWeeks + i}`, previousWeeks + i, blockPattern, blockSessions)
                          }))
                      }]
                  };

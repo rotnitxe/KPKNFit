@@ -123,7 +123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // --- EDITING & VIEWING STATES (ID-BASED) ---
     const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
     const [editingProgramId, setEditingProgramId] = useState<string | null>(null);
-    const [editingSessionInfo, setEditingSessionInfo] = useState<{ programId: string; macroIndex: number; mesoIndex: number; weekId: string; sessionId?: string; } | null>(null);
+    const [editingSessionInfo, setEditingSessionInfo] = useState<{ programId: string; macroIndex: number; mesoIndex: number; weekId: string; sessionId?: string; dayOfWeek?: number; } | null>(null);
     const [loggingSessionInfo, setLoggingSessionInfo] = useState<{ programId: string; sessionId: string } | null>(null);
     const [viewingSessionInfo, setViewingSessionInfo] = useState<{ programId: string; sessionId: string; } | null>(null);
     const [activeSession, setActiveSession] = useState<Session | null>(null);
@@ -533,8 +533,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, [activeProgramState, handleStartProgram]);
 
     // CRUD: Sessions
-    const handleAddSession = useCallback((programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
-        navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId });
+    const handleAddSession = useCallback((programId: string, macroIndex: number, mesoIndex: number, weekId: string, dayOfWeek?: number) => {
+        navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, dayOfWeek });
     }, [navigateTo]);
 
     const handleEditSession = useCallback((programId: string, macroIndex: number, mesoIndex: number, weekId: string, sessionId: string) => {
@@ -585,7 +585,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, [handleUpdateSessionInProgram, handleBack]);
 
     const handleDeleteSession = useCallback((sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
-        if (window.confirm('¿Seguro que quieres eliminar esta sesión?')) {
             setPrograms(prevPrograms => {
                 const newPrograms = JSON.parse(JSON.stringify(prevPrograms));
                 const program = newPrograms.find((p: Program) => p.id === programId);
@@ -609,7 +608,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 }
                 return newPrograms;
             });
-        }
     }, [setPrograms]);
 
     // WORKOUT LOGIC

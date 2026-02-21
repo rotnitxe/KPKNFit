@@ -402,7 +402,7 @@ export const App: React.FC = () => {
             }
             case 'session-editor': {
                 if (editingSessionInfo) {
-                    const { programId, macroIndex, mesoIndex, weekId, sessionId } = editingSessionInfo;
+                    const { programId, macroIndex, mesoIndex, weekId, sessionId, dayOfWeek } = editingSessionInfo;
                     const program = programs.find(p => p.id === programId);
                     if (!program) return <div className="text-center text-red-400 pt-12">Programa no encontrado.</div>;
 
@@ -425,8 +425,9 @@ export const App: React.FC = () => {
                         }
                     }
 
+                    const newSession = session || { id: sessionId || crypto.randomUUID(), name: 'Nueva Sesión', description: '', exercises: [], warmup: [], ...(dayOfWeek !== undefined ? { dayOfWeek } : {}) };
                     const sessionInfoForEditor = {
-                        session: session || { id: sessionId || crypto.randomUUID(), name: 'Nueva Sesión', description: '', exercises: [], warmup: [] },
+                        session: newSession,
                         programId, macroIndex, mesoIndex, weekId, sessionId
                     };
                     return <SessionEditor onSave={(sessions, pId, mac, mes, wId) => handleSaveSession(sessions, pId || programId, mac ?? macroIndex, mes ?? mesoIndex, wId || weekId)} onCancel={handleBack} existingSessionInfo={sessionInfoForEditor} isOnline={isOnline} settings={settings} saveTrigger={saveSessionTrigger} addExerciseTrigger={addExerciseTrigger} exerciseList={exerciseList} />;

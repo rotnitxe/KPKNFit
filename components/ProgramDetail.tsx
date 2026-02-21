@@ -182,21 +182,18 @@ const SessionCard: React.FC<{
                     >
                         <EditIcon size={16} />
                     </button>
-                    <button 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm('¿Eliminar esta sesión?')) {
-                                // Aquí deberías llamar a una función que elimine la sesión.
-                                // Por ahora, simulamos un toast de confirmación.
-                                // En una implementación real, necesitarías pasar una prop onDelete.
-                                console.log('Eliminar sesión', session.id);
-                            }
-                        }}
-                        className="w-12 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-500/30 transition-colors"
-                        title="Eliminar Sesión"
-                    >
-                        <TrashIcon size={16} />
-                    </button>
+                    {onDelete && (
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete();
+                            }}
+                            className="w-12 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-500/30 transition-colors"
+                            title="Eliminar Sesión"
+                        >
+                            <TrashIcon size={16} />
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -319,20 +316,30 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
         return current ? current.id : null;
     }, [activeProgramState, program.id, roadmapBlocks]);
 
-    // 2. Preparar datos de Semanas (¡ESTO ERA LO QUE FALTABA!)
+    // 2. Preparar datos de Semanas con mesoIndex ABSOLUTO dentro del macrociclo
     const currentWeeks = useMemo(() => {
         if (!selectedBlockId) return [];
         const block = roadmapBlocks.find(b => b.id === selectedBlockId);
         if (!block) return [];
         
-        return block.mesocycles.flatMap((meso, mesoIdx) => 
+        // Calcular offset: contar mesociclos de bloques anteriores en el mismo macrociclo
+        const macro = program.macrocycles[block.macroIndex];
+        let mesoOffset = 0;
+        if (macro) {
+            for (const b of (macro.blocks || [])) {
+                if (b.id === block.id) break;
+                mesoOffset += b.mesocycles.length;
+            }
+        }
+        
+        return block.mesocycles.flatMap((meso, localMesoIdx) => 
             meso.weeks.map(w => ({ 
                 ...w, 
                 mesoGoal: meso.goal,
-                mesoIndex: mesoIdx, 
+                mesoIndex: mesoOffset + localMesoIdx, 
             }))
         );
-    }, [selectedBlockId, roadmapBlocks]);
+    }, [selectedBlockId, roadmapBlocks, program.macrocycles]);
 
     // CÁLCULO DE DATOS PARA CAUPOLICÁN (NUEVO ALGORITMO UNIFICADO AVANZADO)
     const visualizerData = useMemo(() => {
@@ -347,14 +354,26 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
         }));
     }, [currentWeeks, exerciseList]);
 
-    // Inicializar selección
+    // Inicializar y validar selección: si el ID seleccionado ya no existe, resetear al primero disponible
     useEffect(() => {
-        if (roadmapBlocks.length > 0 && !selectedBlockId) setSelectedBlockId(roadmapBlocks[0].id);
+        if (roadmapBlocks.length > 0) {
+            if (!selectedBlockId || !roadmapBlocks.find(b => b.id === selectedBlockId)) {
+                setSelectedBlockId(roadmapBlocks[0].id);
+            }
+        } else {
+            setSelectedBlockId(null);
+        }
     }, [roadmapBlocks]);
 
     useEffect(() => {
-        if (currentWeeks.length > 0) setSelectedWeekId(currentWeeks[0].id);
-    }, [selectedBlockId, currentWeeks]); 
+        if (currentWeeks.length > 0) {
+            if (!selectedWeekId || !currentWeeks.find(w => w.id === selectedWeekId)) {
+                setSelectedWeekId(currentWeeks[0].id);
+            }
+        } else {
+            setSelectedWeekId(null);
+        }
+    }, [selectedBlockId, currentWeeks]);
 
     // Disparador del Tour de Onboarding
     useEffect(() => {
@@ -443,8 +462,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                 </button>
 
                 {/* Título e Info del Programa */}
-                <div className="absolute bottom-0 left-0 w-full p-6 z-20 space-y-2">
-                    <div className="flex items-center gap-2">
+                <div className="absolute bottom-0 left-0 w-full p-6 pr-[120px] z-20 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <span className="bg-white/10 backdrop-blur-md border border-white/20 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full text-white">
                             {program.mode === 'powerlifting' ? 'Powerlifting' : 'Hipertrofia'}
                         </span>
@@ -459,7 +478,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                             </span>
                         )}
                     </div>
-                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none text-shadow-lg">
+                    <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tighter leading-none text-shadow-lg line-clamp-2 break-words">
                         {program.name}
                     </h1>
                     <div className="flex items-center gap-4 text-xs text-zinc-300 font-medium">
@@ -783,7 +802,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                             <button 
                                                                                 onClick={() => {
                                                                                     if (selectedBlock && handleAddSession) {
-                                                                                        handleAddSession(program.id, selectedBlock.macroIndex, cyclicWeek.mesoIndex, cyclicWeek.id);
+                                                                                        handleAddSession(program.id, selectedBlock.macroIndex, cyclicWeek.mesoIndex, cyclicWeek.id, dayNum);
                                                                                     }
                                                                                 }}
                                                                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/30 transition-all shadow-sm"
@@ -805,7 +824,12 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                                         onStart={() => {
                                                                                             handleStartWorkout(session, program, undefined, { macroIndex: selectedBlock?.macroIndex || 0, mesoIndex: cyclicWeek?.mesoIndex || 0, weekId: cyclicWeek?.id || '' });
                                                                                         }}
-                                                                                        onEdit={() => onEditSessionClick(session)} 
+                                                                                        onEdit={() => onEditSessionClick(session)}
+                                                                                        onDelete={() => {
+                                                                                            if (window.confirm('¿Eliminar esta sesión?')) {
+                                                                                                onDeleteSession(session.id, program.id, selectedBlock!.macroIndex, cyclicWeek!.mesoIndex, cyclicWeek!.id);
+                                                                                            }
+                                                                                        }}
                                                                                     />
                                                                                 ))}
                                                                             </div>
@@ -813,7 +837,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                             <button 
                                                                                 onClick={() => {
                                                                                     if (selectedBlock && handleAddSession) {
-                                                                                        handleAddSession(program.id, selectedBlock.macroIndex, cyclicWeek.mesoIndex, cyclicWeek.id);
+                                                                                        handleAddSession(program.id, selectedBlock.macroIndex, cyclicWeek.mesoIndex, cyclicWeek.id, dayNum);
                                                                                     }
                                                                                 }}
                                                                                 className="w-full h-14 rounded-2xl bg-black/50 border border-dashed border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/30 transition-all group"
@@ -1051,7 +1075,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                                 <button 
                                                                                     onClick={() => {
                                                                                         if (selectedBlock && handleAddSession) {
-                                                                                            handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
+                                                                                            handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id, dayNum);
                                                                                         }
                                                                                     }}
                                                                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/30 transition-all shadow-sm"
@@ -1084,11 +1108,10 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                                     ))}
                                                                                 </div>
                                                                             ) : (
-                                                                                // ESTADO VACÍO CON BOTÓN PARA AÑADIR SESIÓN AL DÍA
                                                                                 <button 
                                                                                     onClick={() => {
                                                                                         if (selectedBlock && handleAddSession) {
-                                                                                            handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
+                                                                                            handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id, dayNum);
                                                                                         }
                                                                                     }}
                                                                                     className="w-full h-14 rounded-2xl bg-black/50 border border-dashed border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/30 transition-all group"

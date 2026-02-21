@@ -841,6 +841,35 @@ const SetDetails: React.FC<{
                 )}
             </div>
 
+            {exercise.isCompetitionLift && (
+                <div className="mx-2 mt-3 bg-yellow-950/30 border border-yellow-500/30 p-4 rounded-xl animate-fade-in">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest">Luces de Jueceo</span>
+                        {safeInputs.attemptResult === 'good' && <span className="text-[9px] font-black text-white bg-green-500/20 px-2 py-0.5 rounded">VÁLIDO</span>}
+                        {safeInputs.attemptResult === 'no-lift' && <span className="text-[9px] font-black text-white bg-red-500/20 px-2 py-0.5 rounded">NO LIFT</span>}
+                    </div>
+                    <div className="flex justify-center gap-4">
+                        {[0, 1, 2].map((judgeIdx) => {
+                            const lights = safeInputs.judgingLights || [null, null, null];
+                            const currentLight = lights[judgeIdx];
+                            const lightColor = currentLight === true ? 'bg-white shadow-[0_0_12px_white] scale-110' : currentLight === false ? 'bg-red-500 shadow-[0_0_12px_red] scale-110' : 'bg-zinc-800 border-2 border-zinc-600';
+                            return (
+                                <button key={judgeIdx} type="button" onClick={() => {
+                                    const newLights = [...(safeInputs.judgingLights || [null, null, null])] as [boolean|null, boolean|null, boolean|null];
+                                    newLights[judgeIdx] = newLights[judgeIdx] === null ? true : newLights[judgeIdx] === true ? false : null;
+                                    onInputChange('judgingLights' as any, newLights, isUnilateral ? activeSide : undefined);
+                                    const whites = newLights.filter(l => l === true).length;
+                                    const reds = newLights.filter(l => l === false).length;
+                                    const result = (whites + reds === 3) ? (whites >= 2 ? 'good' : 'no-lift') : 'pending';
+                                    onInputChange('attemptResult' as any, result, isUnilateral ? activeSide : undefined);
+                                }} className={`w-12 h-12 rounded-full transition-all duration-300 ${lightColor}`}></button>
+                            );
+                        })}
+                    </div>
+                    <p className="text-[8px] text-zinc-500 text-center mt-2">Toca: Gris → Blanco → Rojo → Gris</p>
+                </div>
+            )}
+
             {showFailedModal && (
                 <Modal isOpen={showFailedModal} onClose={() => setShowFailedModal(false)} title="Serie Fallida">
                     <div className="space-y-4 p-2">

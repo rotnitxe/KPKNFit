@@ -607,6 +607,8 @@ export interface SetInputState {
     discomfortLevel?: string;
     discomfortNotes?: string;
     tempo?: string;
+    judgingLights?: [boolean | null, boolean | null, boolean | null];
+    attemptResult?: 'good' | 'no-lift' | 'pending';
 }
 
 export interface UnilateralSetInputs {
@@ -1238,7 +1240,7 @@ export interface AppContextDispatch {
     handleSaveProgram: (program: Program) => void;
     handleUpdateProgram: (program: Program) => void;
     handleDeleteProgram: (programId: string) => void;
-    handleAddSession: (programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
+    handleAddSession: (programId: string, macroIndex: number, mesoIndex: number, weekId: string, dayOfWeek?: number) => void;
     handleEditSession: (programId: string, macroIndex: number, mesoIndex: number, weekId: string, sessionId: string) => void;
     handleSaveSession: (session: Session | Session[], programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleUpdateSessionInProgram: (session: Session, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
