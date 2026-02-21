@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
+  <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="referrer" content="no-referrer-when-downgrade">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <title>KPKN</title>
     <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
@@ -216,7 +222,71 @@
             pointer-events: auto;
         }
 
-        /* ... [Rest of styles] ... */
+        /* ========================================================= */
+        /* 📱 MOTOR DE EXPERIENCIA NATIVA (PWA a App Nativa)         */
+        /* ========================================================= */
+        
+        /* 1. Eliminar comportamientos web globales */
+        * {
+            -webkit-tap-highlight-color: transparent !important; /* Adiós al destello gris en Android al tocar botones */
+            -webkit-touch-callout: none; /* Adiós al menú de "Guardar imagen" en iOS al mantener presionado */
+            -webkit-user-select: none; /* Evita que los textos se pongan azules por selección accidental (iOS/Safari) */
+            -ms-user-select: none; /* Evita selección en Windows */
+            user-select: none; /* Estandar */
+        }
+
+        /* 2. EXCEPCIÓN CRÍTICA: Permitir escribir en los Inputs */
+        /* Si no hacemos esto, no podrás escribir nada en la app */
+        input, textarea, [contenteditable="true"] {
+            -webkit-user-select: auto !important;
+            -ms-user-select: auto !important;
+            user-select: auto !important;
+        }
+
+        /* 2.5 ADN Nativo Adicional: Prevención de Arrastre (Drag & Drop Fantasma) */
+        img, a, svg {
+            -webkit-user-drag: none !important; /* Evita que las imágenes sean arrastrables en Safari/Chrome */
+            -khtml-user-drag: none !important;
+            -moz-user-drag: none !important;
+            -o-user-drag: none !important;
+            /* La propiedad sin prefijo fue removida para evitar el warning del compilador */
+        }
+
+        /* 2.6 Prevención de reajuste automático de texto al rotar pantalla */
+        html {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+
+        /* 3. Ocultar scrollbars y blindar gestos horizontales */
+        .hide-scrollbar::-webkit-scrollbar,
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar,
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* ESTO PREVIENE QUE AL USAR EL CARRUSEL SE DISPARE EL "ATRÁS" DEL NAVEGADOR */
+        .no-scrollbar {
+            overscroll-behavior-x: contain; 
+            touch-action: pan-x pan-y; /* Ayuda a que el táctil diagonal no se trabe */
+        }
+
+        /* 4. Válvula de escape para textos copiables */
+        /* Usa className="selectable-text" en textos que el usuario SÍ deba poder copiar */
+        .selectable-text {
+            -webkit-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+
+        /* 5. Suavizar el desplazamiento interno */
+        html {
+            scroll-behavior: smooth;
+            overscroll-behavior-y: none; /* Evita el "efecto rebote" blanco del navegador al subir del tope */
+        }
     </style>
 <script>
     (function() {
