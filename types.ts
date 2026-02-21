@@ -267,6 +267,7 @@ export interface Program {
         calculatedWeek: number; 
         createMacrocycle?: boolean;
         repeatEveryXCycles?: number; // Nueva propiedad para eventos cíclicos (Programas Simples)
+        sessions?: Session[]; // Soporte para sesiones exclusivas del evento
     }[];
     exerciseGoals?: Record<string, number>;
     

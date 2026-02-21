@@ -273,6 +273,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
     const [showSimpleTransition, setShowSimpleTransition] = useState(false);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
     const [expandedRoadmapBlocks, setExpandedRoadmapBlocks] = useState<string[]>([]); // Para plegar/desplegar roadmap sin deseleccionar
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const [newEventData, setNewEventData] = useState({ title: '', repeatEveryXCycles: 1, calculatedWeek: 0, type: 'Test 1RM' });
@@ -632,18 +633,27 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                     <div className="h-px bg-white/10 flex-1"></div>
                                                 </div>
                                                 
-                                                {/* SELECTOR DE SEMANAS CÍCLICAS PARA PROGRAMAS SIMPLES A/B */}
-                                                {currentWeeks.length > 1 && (
+                                                {/* SELECTOR DE SEMANAS CÍCLICAS Y EVENTOS PARA PROGRAMAS SIMPLES */}
+                                                {(currentWeeks.length > 1 || (program.events && program.events.length > 0)) && (
                                                     <div className="flex flex-col items-center gap-3 mb-6 w-full animate-fade-in">
-                                                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Semana del Bucle</span>
+                                                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Plan de Acción</span>
                                                         <div className="flex gap-2 overflow-x-auto no-scrollbar w-full justify-center pb-2">
                                                             {currentWeeks.map((w, idx) => (
                                                                 <button 
                                                                     key={w.id} 
-                                                                    onClick={() => setSelectedWeekId(w.id)}
-                                                                    className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${w.id === selectedWeekId ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)] scale-105' : 'bg-zinc-900 border border-white/10 text-zinc-500 hover:bg-zinc-800 hover:text-white'}`}
+                                                                    onClick={() => { setSelectedWeekId(w.id); setSelectedEventId(null); }}
+                                                                    className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${w.id === selectedWeekId && !selectedEventId ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)] scale-105' : 'bg-zinc-900 border border-white/10 text-zinc-500 hover:bg-zinc-800 hover:text-white'}`}
                                                                 >
                                                                     {w.name || `Semana ${idx + 1}`}
+                                                                </button>
+                                                            ))}
+                                                            {(program.events || []).map((ev) => (
+                                                                <button 
+                                                                    key={ev.id} 
+                                                                    onClick={() => setSelectedEventId(ev.id || null)}
+                                                                    className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 ${ev.id === selectedEventId ? 'bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.5)] scale-105' : 'bg-yellow-900/20 border border-yellow-500/30 text-yellow-500 hover:bg-yellow-900/40'}`}
+                                                                >
+                                                                    <ActivityIcon size={12}/> {ev.title}
                                                                 </button>
                                                             ))}
                                                         </div>
@@ -651,6 +661,79 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                 )}
 
                                                 {(() => {
+                                                    // RENDERIZADO DE SEMANA DE EVENTO ESPECIAL
+                                                    if (selectedEventId) {
+                                                        const ev = program.events?.find(e => e.id === selectedEventId);
+                                                        if (!ev) return null;
+                                                        const sessionsForEvent = ev.sessions || [];
+                                                        
+                                                        return (
+                                                            <div className="space-y-5 text-left w-full animate-fade-in">
+                                                                <div className="bg-yellow-900/10 border border-yellow-500/20 rounded-[2rem] p-6 text-center">
+                                                                    <ActivityIcon size={24} className="text-yellow-500 mx-auto mb-2" />
+                                                                    <h4 className="text-lg font-black text-white uppercase">{ev.title}</h4>
+                                                                    <p className="text-[10px] text-zinc-400 mt-1">Semana Especial • Se activa cada {ev.repeatEveryXCycles} Ciclos</p>
+                                                                </div>
+                                                                
+                                                                <div className="bg-zinc-900/30 border border-white/5 rounded-[2rem] p-4 relative overflow-hidden">
+                                                                    <div className="flex items-center justify-between mb-4">
+                                                                        <div>
+                                                                            <h4 className="text-sm font-black uppercase tracking-wider text-white">Sesiones del Evento</h4>
+                                                                            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Planificación Exclusiva</p>
+                                                                        </div>
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                const updated = JSON.parse(JSON.stringify(program));
+                                                                                const targetEv = updated.events.find((e: any) => e.id === selectedEventId);
+                                                                                if(targetEv) {
+                                                                                    if(!targetEv.sessions) targetEv.sessions = [];
+                                                                                    targetEv.sessions.push({ id: crypto.randomUUID(), name: 'Sesión del Evento', exercises: [] });
+                                                                                    if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                }
+                                                                            }}
+                                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/30 transition-all shadow-sm"
+                                                                        >
+                                                                            <PlusIcon size={14} /> Crear
+                                                                        </button>
+                                                                    </div>
+                                                                    {sessionsForEvent.length > 0 ? (
+                                                                        <div className="space-y-3">
+                                                                            {sessionsForEvent.map((session: any, idx: number) => (
+                                                                                <SessionCard 
+                                                                                    key={session.id} 
+                                                                                    session={session} 
+                                                                                    index={idx} 
+                                                                                    dayName="Día Específico"
+                                                                                    exerciseList={exerciseList}
+                                                                                    onStart={() => handleStartWorkout(session, program)}
+                                                                                    onEdit={() => {
+                                                                                         // Para editar usa la lógica genérica o avisa que es especial
+                                                                                         addToast("Para editar sesiones de evento usa el Editor Avanzado de momento", "suggestion");
+                                                                                    }} 
+                                                                                    onDelete={() => {
+                                                                                        if(window.confirm('¿Eliminar sesión del evento?')) {
+                                                                                            const updated = JSON.parse(JSON.stringify(program));
+                                                                                            const targetEv = updated.events.find((e: any) => e.id === selectedEventId);
+                                                                                            if(targetEv) {
+                                                                                                targetEv.sessions = targetEv.sessions.filter((s:any) => s.id !== session.id);
+                                                                                                if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                            }
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="text-center py-8">
+                                                                            <p className="text-xs text-zinc-500 font-medium">No hay sesiones creadas para este evento especial.</p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    // Lógica original de semanas cíclicas
                                                     const cyclicWeek = currentWeeks.find(w => w.id === selectedWeekId) || currentWeeks[0];
                                                     if (!cyclicWeek) return null;
                                                     const sessionsForWeek = cyclicWeek.sessions || [];
@@ -811,13 +894,12 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                         className="group flex flex-col items-center justify-center flex-shrink-0 focus:outline-none relative"
                                                                     >
                                                                         <div className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 z-20 font-black
-                                                                            ${isCurrent 
+                                                                            ${isSelected 
                                                                                 ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
-                                                                                : isSelected 
-                                                                                    ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
-                                                                                    : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:bg-zinc-800 hover:text-white shadow-none' 
-                                                                            }`}
+                                                                                : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:bg-zinc-800 hover:text-white shadow-none' 
+                                                                            } ${isCurrent && !isSelected ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-black' : ''}`}
                                                                         >
+                                                                            {isCurrent && <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-black" title="Bloque Actual"></div>}
                                                                             <span className="text-base">{idx + 1}</span>
                                                                         </div>
                                                                     </button>
@@ -852,15 +934,15 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                             return (
                                                                                 <button
                                                                                     key={week.id}
-                                                                                    onClick={() => setSelectedWeekId(week.id)}
+                                                                                    onClick={() => { setSelectedWeekId(week.id); setSelectedEventId(null); }}
                                                                                     className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all duration-300 relative
-                                                                                        ${isWeekSelected 
-                                                                                            ? (hasEvent ? 'bg-yellow-400 text-black scale-110 shadow-[0_0_20px_rgba(250,204,21,0.6)]' : 'bg-white text-black scale-110 shadow-sm') 
-                                                                                            : (hasEvent ? 'bg-yellow-400/20 text-yellow-500 border border-yellow-400/50 hover:bg-yellow-400 hover:text-black animate-pulse-slow' : 'bg-transparent text-zinc-500 hover:text-white hover:bg-zinc-800')
+                                                                                        ${isWeekSelected && !selectedEventId
+                                                                                            ? 'bg-white text-black scale-110 shadow-sm'
+                                                                                            : 'bg-transparent text-zinc-500 hover:text-white hover:bg-zinc-800'
                                                                                         }`}
                                                                                     title={hasEvent ? 'Día D / Fecha Clave' : ''}
                                                                                 >
-                                                                                    {hasEvent && !isWeekSelected && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></div>}
+                                                                                    {hasEvent && <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${isWeekSelected && !selectedEventId ? 'bg-yellow-500' : 'bg-yellow-400 animate-pulse'}`}></div>}
                                                                                     {wIdx + 1}
                                                                                 </button>
                                                                             );
@@ -1707,7 +1789,16 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                     updated.events = []; // ELIMINAR EVENTOS AL CAMBIAR DE MODO
                                     updated.macrocycles[0].name = "Macrociclo Principal";
                                     updated.macrocycles[0].blocks[0].name = "Bloque de Inicio";
-                                    updated.macrocycles[0].blocks.push({ id: crypto.randomUUID(), name: 'Nuevo Bloque', mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación', weeks: [] }] });
+                                    updated.macrocycles[0].blocks.push({ 
+                                        id: crypto.randomUUID(), 
+                                        name: 'Nuevo Bloque', 
+                                        mesocycles: [{ 
+                                            id: crypto.randomUUID(), 
+                                            name: 'Fase Inicial', 
+                                            goal: 'Acumulación', 
+                                            weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }] 
+                                        }] 
+                                    });
                                     if(handleUpdateProgram) handleUpdateProgram(updated);
                                     setShowAdvancedTransition(false);
                                     addToast("Programa actualizado. Los eventos cíclicos se han borrado.", "success");
