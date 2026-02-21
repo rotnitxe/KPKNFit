@@ -219,6 +219,68 @@ export const App: React.FC = () => {
         setEditingSleepLog(null);
     }, [setSleepLogs]);
 
+    // --- LÓGICA DE PANTALLA SIEMPRE ENCENDIDA (WAKE LOCK) ---
+    const wakeLockRef = useRef<any>(null);
+
+    const requestWakeLock = useCallback(async () => {
+        if ('wakeLock' in navigator) {
+            try {
+                // Solicita el bloqueo de pantalla
+                wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+                console.log('Wake Lock activado: La pantalla no se apagará.');
+
+                // Si por alguna razón el sistema libera el bloqueo (ej. batería baja)
+                wakeLockRef.current.addEventListener('release', () => {
+                    console.log('Wake Lock liberado por el sistema.');
+                    wakeLockRef.current = null;
+                });
+            } catch (err: any) {
+                console.error(`Error al solicitar Wake Lock: ${err.name}, ${err.message}`);
+            }
+        } else {
+             console.warn('La API de Wake Lock no es compatible con este navegador.');
+        }
+    }, []);
+
+    useEffect(() => {
+        // Solicitar el bloqueo cuando la app inicia
+        requestWakeLock();
+
+        // Reactivar el bloqueo si el usuario sale y vuelve a entrar a la app (visibilidad)
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && wakeLockRef.current === null) {
+                requestWakeLock();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            // Liberar el bloqueo si el componente se desmonta
+            if (wakeLockRef.current) {
+                wakeLockRef.current.release()
+                    .then(() => { wakeLockRef.current = null; });
+            }
+        };
+    }, [requestWakeLock]);
+    // --- FIN LÓGICA WAKE LOCK ---
+
+    // --- SISTEMA DE VERSIONES Y NOVEDADES ---
+    const APP_VERSION = "1.0.1"; // ⚠️ CAMBIA ESTE NÚMERO CADA VEZ QUE ME PIDAS UNA ACTUALIZACIÓN GRANDE
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+
+    useEffect(() => {
+        const storedVersion = localStorage.getItem('kpkn_version');
+        // Si ya había una versión instalada, y es distinta a la nueva, ¡es una actualización!
+        if (storedVersion && storedVersion !== APP_VERSION) {
+            setShowUpdateModal(true);
+        }
+        // Guardar la versión actual silenciosamente
+        localStorage.setItem('kpkn_version', APP_VERSION);
+    }, []);
+    // --- FIN SISTEMA DE VERSIONES ---
+
     const isTopLevelView = useMemo(() => ['home', 'nutrition', 'recovery', 'sleep', 'your-lab', 'progress', 'tasks'].includes(view), [view]);
     
     const onMenuClick = useCallback(() => setIsMenuOpen(prev => !prev), [setIsMenuOpen]);
