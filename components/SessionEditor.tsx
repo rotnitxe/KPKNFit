@@ -555,9 +555,9 @@ export const AdvancedExercisePickerModal: React.FC<{
 
     return (
         <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden animate-in fade-in duration-200">
-            <div className="absolute inset-0" onClick={onClose} />
+            <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
             {/* Se agrega min-h-[60vh] para evitar saltos bruscos de tamaño */}
-            <div className="bg-zinc-950 border border-white/10 shadow-2xl relative z-10 flex flex-col w-full max-w-lg min-h-[60vh] max-h-[85vh] rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-zinc-950 border border-white/10 shadow-2xl relative z-10 flex flex-col w-full max-w-lg min-h-[60vh] max-h-[85vh] rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 
                 {/* Cabecera Dark Premium */}
                 <div className="p-4 border-b border-white/5 bg-black/50 backdrop-blur-lg shrink-0 flex flex-col gap-3">
@@ -760,6 +760,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     const [pendingAmrapSetIndex, setPendingAmrapSetIndex] = useState<number | null>(null);
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
     const [isAdvancedPickerOpen, setIsAdvancedPickerOpen] = useState(false); // Estado del modal avanzado
+    const [isDetailsOpen, setIsDetailsOpen] = useState(defaultOpen);
 
     // Efecto: Cálculo de 1RM Referencial
     useEffect(() => {
@@ -773,30 +774,32 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
         }
     }, [prWeight, prReps, rmInputMode, exercise.trainingMode]);
 
-    // Manejador Inteligente de Cambios en Sets
-    const handleSetChange = (setIndex: number, field: keyof ExerciseSet, value: any) => {
-        if ((field === 'intensityMode' && value === 'amrap') || (field === 'isAmrap' && value === true)) {
+    // Manejador Inteligente de Cambios en Sets (soporta campo+valor o objeto parcial)
+    const handleSetChange = (setIndex: number, fieldOrPartial: keyof ExerciseSet | Partial<ExerciseSet>, value?: any) => {
+        const isPartial = typeof fieldOrPartial === 'object';
+        const field = isPartial ? null : fieldOrPartial as keyof ExerciseSet;
+        const val = isPartial ? undefined : value;
+
+        if (!isPartial && ((field === 'intensityMode' && val === 'amrap') || (field === 'isAmrap' && val === true))) {
             setPendingAmrapSetIndex(setIndex);
-            return; 
+            return;
         }
-        
-        // Aplicamos el cambio primero
-        onSetChange(setIndex, field, value);
-        
-        // AUTO-CALCULO: Si estamos en modo %, y cambiamos Reps o Intensidad, recalculamos el %
-        if (exercise.trainingMode === 'percent') {
-            const currentSet = exercise.sets[setIndex];
-            // Simulamos el set actualizado
-            const updatedSet = { ...currentSet, [field]: value };
-            
-            // Solo recalculamos si los campos relevantes cambiaron
-            if (field === 'targetReps' || field === 'targetRPE' || field === 'targetRIR' || field === 'intensityMode') {
-                const repsToFailure = getEffectiveRepsForRM(updatedSet);
-                if (repsToFailure && repsToFailure > 0) {
-                    const percent = estimatePercent1RM(repsToFailure);
-                    if (percent && percent > 0) {
-                        // Actualizamos el % automáticamente
-                        onSetChange(setIndex, 'targetPercentageRM', percent);
+
+        if (isPartial) {
+            onSetChange(setIndex, fieldOrPartial as Partial<ExerciseSet>);
+        } else {
+            onSetChange(setIndex, field!, val);
+            // AUTO-CALCULO: Si estamos en modo %, y cambiamos Reps o Intensidad, recalculamos el %
+            if (exercise.trainingMode === 'percent') {
+                const currentSet = exercise.sets[setIndex];
+                const updatedSet = { ...currentSet, [field as keyof ExerciseSet]: val };
+                if (field === 'targetReps' || field === 'targetRPE' || field === 'targetRIR' || field === 'intensityMode') {
+                    const repsToFailure = getEffectiveRepsForRM(updatedSet);
+                    if (repsToFailure && repsToFailure > 0) {
+                        const percent = estimatePercent1RM(repsToFailure);
+                        if (percent && percent > 0) {
+                            onSetChange(setIndex, 'targetPercentageRM', percent);
+                        }
                     }
                 }
             }
@@ -834,6 +837,9 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
 
     const restLabel = isInSuperset && !isSupersetLast ? 'Transición (s)' : 'Descanso (s)';
 
+    // Sincronizar isDetailsOpen cuando defaultOpen cambia (ej. desde props)
+    useEffect(() => { setIsDetailsOpen(defaultOpen); }, [defaultOpen]);
+
     // --- MOTOR LOCAL AUGE 3.0 (Drenaje Predictivo en Vivo por Ejercicio) ---
     const localDrain = useMemo(() => {
         const tanks = calculatePersonalizedBatteryTanks(settings);
@@ -869,13 +875,13 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                 </div>
             )}
             
-            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''} ${isJunkVolumeCulprit ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-white/10'}`} open={defaultOpen}>
+            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''} ${isJunkVolumeCulprit ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-white/10'}`} open={isDetailsOpen}>
                 {isJunkVolumeCulprit && (
                     <div className="absolute top-0 right-2 bg-red-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-b-lg shadow-lg z-10 animate-pulse">
                         Volumen Basura
                     </div>
                 )}
-                <summary className="py-4 px-2 flex items-center gap-3 cursor-pointer list-none hover:bg-zinc-900 transition-colors rounded-lg group">
+                <summary className="py-4 px-2 flex items-center gap-3 cursor-pointer list-none hover:bg-zinc-900 transition-colors rounded-lg group" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) { e.preventDefault(); setIsDetailsOpen(prev => !prev); } }}>
                     <div className="flex items-center gap-3 flex-grow min-w-0">
                         <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExerciseChange('isStarTarget', !exercise.isStarTarget); }} className={`transition-colors flex-shrink-0 ${exercise.isStarTarget ? 'text-white' : 'text-zinc-700 group-hover:text-zinc-500'}`}>
                             <StarIcon size={18} filled={exercise.isStarTarget} />
@@ -1016,61 +1022,14 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                     </div>
 
                     <div className="w-full relative">
-                        {exercise.isCompetitionLift ? (
-                            // --- MODO COMPETICIÓN (Luces de Jueceo, Max 4 Intentos) ---
-                            <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x items-center">
-                                {exercise.sets.slice(0, 4).map((set, setIndex) => (
-                                    <div key={set.id} className="shrink-0 w-[220px] bg-zinc-900/80 border border-yellow-500/20 rounded-2xl p-4 snap-center relative shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-500">
-                                                {setIndex === 3 ? 'Récord / 4to' : `Intento ${setIndex + 1}`}
-                                            </span>
-                                            <button type="button" onClick={() => onRemoveSet(setIndex)} className="text-zinc-600 hover:text-red-500"><XIcon size={14}/></button>
-                                        </div>
-                                        
-                                        <div className="flex flex-col items-center mb-4">
-                                            <div className="flex items-baseline gap-1 bg-black px-4 py-2 rounded-xl border border-white/10">
-                                                <input type="number" value={set.weight || ''} onChange={e => handleSetChange(setIndex, 'weight', parseFloat(e.target.value))} className="w-16 text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white" placeholder="00.0"/>
-                                                <span className="text-xs text-zinc-500 font-bold">kg</span>
-                                            </div>
-                                        </div>
-
-                                        {/* LUCES DE JUECEO (3 Jueces) */}
-                                        <div className="flex flex-col items-center gap-2 bg-black/50 p-2 rounded-xl border border-white/5">
-                                            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Luces de Jueceo</span>
-                                            <div className="flex gap-3">
-                                                {[0, 1, 2].map((judgeIdx) => {
-                                                    const currentLight = set.judgingLights?.[judgeIdx];
-                                                    const lightColor = currentLight === true ? 'bg-white shadow-[0_0_10px_white]' : currentLight === false ? 'bg-red-500 shadow-[0_0_10px_red]' : 'bg-zinc-800 border border-zinc-700';
-                                                    return (
-                                                        <button key={judgeIdx} onClick={() => {
-                                                            const newLights = [...(set.judgingLights || [null, null, null])] as [boolean|null, boolean|null, boolean|null];
-                                                            // Toggle: Null -> White -> Red -> Null
-                                                            newLights[judgeIdx] = newLights[judgeIdx] === null ? true : newLights[judgeIdx] === true ? false : null;
-                                                            
-                                                            // Auto-calcular resultado del intento basado en mayoría
-                                                            const whites = newLights.filter(l => l === true).length;
-                                                            const reds = newLights.filter(l => l === false).length;
-                                                            const result = (whites + reds === 3) ? (whites >= 2 ? 'good' : 'no-lift') : 'pending';
-                                                            
-                                                            handleSetChange(setIndex, 'judgingLights', newLights);
-                                                            handleSetChange(setIndex, 'attemptResult', result);
-                                                        }} className={`w-8 h-8 rounded-full transition-all duration-300 ${lightColor}`}></button>
-                                                    )
-                                                })}
-                                            </div>
-                                            {set.attemptResult === 'good' && <span className="text-[9px] font-black text-white bg-green-500/20 px-2 py-0.5 rounded mt-1">VÁLIDO (Good Lift)</span>}
-                                            {set.attemptResult === 'no-lift' && <span className="text-[9px] font-black text-white bg-red-500/20 px-2 py-0.5 rounded mt-1">NULO (No Lift)</span>}
-                                        </div>
-                                    </div>
-                                ))}
-                                {exercise.sets.length < 4 && (
-                                     <button onClick={() => onAddSet()} className="shrink-0 w-16 h-32 border border-dashed border-zinc-700 rounded-2xl flex items-center justify-center text-zinc-600 hover:text-white hover:border-white transition-all"><PlusIcon size={24}/></button>
-                                )}
+                        {exercise.isCompetitionLift && (
+                            <div className="mb-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-center gap-2">
+                                <TrophyIcon size={14} className="text-yellow-500 shrink-0" />
+                                <span className="text-[9px] font-bold text-yellow-400 uppercase tracking-widest">Movimiento de Competición — Las luces de jueceo se activan al entrenar en vivo</span>
                             </div>
-                        ) : (
-                            // --- MODO STANDARD (Scroll Horizontal de Tarjetas) ---
-                            <div className="flex gap-2 overflow-x-auto pb-4 custom-scrollbar snap-x items-stretch">
+                        )}
+                        {/* --- MODO STANDARD (Scroll Horizontal de Tarjetas) --- */}
+                            <div className="flex gap-2 overflow-x-auto pb-8 custom-scrollbar snap-x items-stretch relative z-20 pointer-events-auto">
                                 {exercise.sets.map((set, setIndex) => {
                                     const isAmrap = set.isAmrap || set.intensityMode === 'amrap';
                                     let estimatedLoad: number | null = null;
@@ -1118,7 +1077,11 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                                     </div>
                                                 )}
                                                 
-                                                <button onClick={() => { const newVal = !isAmrap; handleSetChange(setIndex, 'isAmrap', newVal); handleSetChange(setIndex, 'intensityMode', newVal ? 'amrap' : 'rpe'); }} className={`p-2 rounded-lg ml-1 border ${isAmrap ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'bg-black border-zinc-800 text-zinc-600 hover:text-white'}`}><FlameIcon size={12} /></button>
+                                                <button type="button" onClick={() => {
+                                                    const newVal = !isAmrap;
+                                                    if (newVal) { setPendingAmrapSetIndex(setIndex); return; }
+                                                    handleSetChange(setIndex, { isAmrap: false, intensityMode: 'rpe' });
+                                                }} className={`p-2 rounded-lg ml-1 border ${isAmrap ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'bg-black border-zinc-800 text-zinc-600 hover:text-white'}`}><FlameIcon size={12} /></button>
                                             </div>
                                         </div>
                                     )
@@ -1130,7 +1093,6 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                     </div>
                                 )}
                             </div>
-                        )}
                     </div>
                 </div>
             </details>
@@ -1279,23 +1241,33 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     // --- NUEVO: MOTOR DE BÚFER SEMANAL ---
     // Cargamos TODA la semana si venimos de un programa
     const [weekSessions, setWeekSessions] = useState<Session[]>(() => {
-        if (existingSessionInfo && programs && programs.length > 0) { // <--- PROTECCIÓN 2
+        let sessions: Session[] = [];
+        if (existingSessionInfo && programs && programs.length > 0) {
             const prog = programs.find(p => p.id === existingSessionInfo.programId);
             if (prog) {
                 for (const mac of prog.macrocycles) {
                     for (const blk of (mac.blocks || [])) {
                         for (const mes of blk.mesocycles) {
-                            const w = mes.weeks.find(w => w.id === existingSessionInfo.weekId);
-                            if (w && w.sessions) return JSON.parse(JSON.stringify(w.sessions));
+                            const w = mes.weeks.find(we => we.id === existingSessionInfo.weekId);
+                            if (w && w.sessions) {
+                                sessions = JSON.parse(JSON.stringify(w.sessions));
+                                break;
+                            }
                         }
+                        if (sessions.length > 0) break;
                     }
+                    if (sessions.length > 0) break;
                 }
             }
         }
-        // Fallback: Si no hay semana, iniciamos con la sesión sola
-        const initial = JSON.parse(JSON.stringify(existingSessionInfo?.session || { id: crypto.randomUUID(), name: '', description: '', exercises: [], warmup: [] }));
-        if (!initial.parts) initial.parts = [{ id: crypto.randomUUID(), name: 'Principal', exercises: initial.exercises || [] }];
-        return [initial];
+        if (sessions.length === 0) {
+            const initial = JSON.parse(JSON.stringify(existingSessionInfo?.session || { id: crypto.randomUUID(), name: '', description: '', exercises: [], warmup: [] }));
+            if (!initial.parts) initial.parts = [{ id: crypto.randomUUID(), name: 'Principal', exercises: initial.exercises || [] }];
+            sessions = [initial];
+        }
+        // Asegurar dayOfWeek en todas las sesiones para que el roadmap filtre correctamente
+        const firstDay = getOrderedDaysOfWeek(settings.startWeekOn)[0]?.value ?? 1;
+        return sessions.map(s => (s.dayOfWeek === undefined ? { ...s, dayOfWeek: firstDay } : s));
     });
 
     const [activeSessionId, setActiveSessionId] = useState<string>(existingSessionInfo?.session.id || weekSessions[0].id);
@@ -1319,6 +1291,13 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             }
         });
     }, [globalSessionAlerts, notifiedAlerts, addToast]);
+
+    // Listener para alertas AUGE (con cleanup para evitar memory leaks)
+    useEffect(() => {
+        const handler = (e: Event & { detail?: any }) => setGlobalSessionAlerts(e.detail || []);
+        window.addEventListener('augeAlertsUpdated', handler);
+        return () => window.removeEventListener('augeAlertsUpdated', handler);
+    }, []);
 
     // ESTADO PARA ALERTAS DE CINETICA AVANZADA
     const [neuralAlerts, setNeuralAlerts] = useState<{type: string, message: string, severity: 'warning'|'critical'}[]>([]);
@@ -1630,16 +1609,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     // --- BLOQUE 1: REEMPLAZAR EL RETURN DEL COMPONENTE PRINCIPAL ---
     return (
-        <div className="fixed inset-0 z-[9999] flex flex-col bg-black text-white animate-slide-up">
-             {isBgModalOpen && <BackgroundEditorModal 
-                isOpen={isBgModalOpen} 
-                onClose={() => setIsBgModalOpen(false)} 
-                onSave={(bg, style) => updateSession(d => { d.background = bg; d.coverStyle = style; })} 
-                initialBackground={session.background} 
-                initialCoverStyle={session.coverStyle}
-                previewTitle={session.name} 
-                isOnline={isOnline}
-            />}
+        <div className="fixed inset-0 z-[9999] bg-black text-white animate-slide-up overflow-y-auto custom-scrollbar flex flex-col">
             
             {/* --- HEADER (High Contrast Black) --- */}
             <div className="relative flex-shrink-0 bg-black border-b border-white/20 z-20 min-h-[140px] pt-8">
@@ -1800,13 +1770,6 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             {/* MODAL GUARDADO ÚNICO */}
             <Modal isOpen={isSingleSaveModalOpen} onClose={() => setIsSingleSaveModalOpen(false)} title="Confirmar Cambios">
                 <div className="p-2 space-y-4">
-                    <p className="text-sm text-zinc-300">Selecciona el día de destino para copiar <strong className="text-white">{session.name}</strong>:</p>
-                </div>
-            </Modal>
-
-            {/* MODAL GUARDADO ÚNICO */}
-            <Modal isOpen={isSingleSaveModalOpen} onClose={() => setIsSingleSaveModalOpen(false)} title="Confirmar Cambios">
-                <div className="p-2 space-y-4">
                     <p className="text-sm text-zinc-300">Vas a guardar los cambios en <strong className="text-white">{session.name}</strong>.</p>
                     {existingSessionInfo?.macroIndex !== undefined && (
                         <label className="flex items-center gap-3 p-3 bg-zinc-900/50 border border-white/10 rounded-xl cursor-pointer hover:bg-zinc-800/50 transition-colors">
@@ -1897,15 +1860,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             )}
 
             {/* --- MAIN CONTENT (Scroll Fix Applied Here) --- */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-8 bg-black pb-32"
-                 ref={(el) => {
-                     if (el && !el.getAttribute('data-listener')) {
-                         window.addEventListener('augeAlertsUpdated', (e: any) => setGlobalSessionAlerts(e.detail));
-                         el.setAttribute('data-listener', 'true');
-                     }
-                 }}
-            >
-                {/* PANEL GAME DAY (MEET REPORT) */}
+            <div className="flex flex-col p-4 space-y-8 bg-black w-full min-h-max">
+                {/* PANEL GAME DAY (MEET PLANNING) */}
                 {session.isMeetDay && (
                     <div className="bg-gradient-to-br from-yellow-900/30 to-black border border-yellow-500/50 p-5 rounded-2xl shadow-[0_0_30px_rgba(250,204,21,0.15)] flex flex-col gap-4 animate-fade-in relative overflow-hidden">
                         <div className="absolute -right-10 -top-10 opacity-10 text-yellow-500"><TrophyIcon size={120} /></div>
@@ -1913,7 +1869,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                         <div className="flex justify-between items-center z-10">
                             <div>
                                 <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2"><TrophyIcon size={20} className="text-yellow-400"/> Game Day / Meet</h3>
-                                <p className="text-[10px] text-yellow-200/60 font-bold uppercase tracking-widest mt-1">Simulador de Competición</p>
+                                <p className="text-[10px] text-yellow-200/60 font-bold uppercase tracking-widest mt-1">Planificación de Competición</p>
                             </div>
                             <div className="flex items-center gap-2 bg-black border border-yellow-500/30 px-3 py-2 rounded-xl">
                                 <span className="text-[9px] text-zinc-400 uppercase font-bold">Pesaje (BW)</span>
@@ -1921,39 +1877,20 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                             </div>
                         </div>
 
-                        {/* Calculadora en Vivo (DOTS/Total) */}
-                        <div className="grid grid-cols-2 gap-3 z-10">
-                            <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex flex-col items-center">
-                                <span className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Total Proyectado</span>
-                                <span className="text-2xl font-black text-white">
-                                    {(() => {
-                                        let total = 0;
-                                        (session.parts || []).forEach(p => p.exercises.forEach(ex => {
-                                            if (ex.isCompetitionLift) {
-                                                // Busca el intento válido más pesado
-                                                const bestGoodLift = Math.max(...ex.sets.filter(s => s.attemptResult === 'good').map(s => s.weight || 0), 0);
-                                                total += bestGoodLift;
-                                            }
-                                        }));
-                                        return total;
-                                    })()} <span className="text-xs text-zinc-500">kg</span>
-                                </span>
-                            </div>
-                            <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex flex-col items-center">
-                                <span className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Puntos DOTS</span>
-                                <span className="text-2xl font-black text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
-                                    {(() => {
-                                        let total = 0;
-                                        (session.parts || []).forEach(p => p.exercises.forEach(ex => {
-                                            if (ex.isCompetitionLift) {
-                                                const bestGoodLift = Math.max(...ex.sets.filter(s => s.attemptResult === 'good').map(s => s.weight || 0), 0);
-                                                total += bestGoodLift;
-                                            }
-                                        }));
-                                        return calculateDOTS(total, session.meetBodyweight || 0, true);
-                                    })()}
-                                </span>
-                            </div>
+                        <div className="z-10 space-y-2">
+                            {(() => {
+                                const compLifts = (session.parts || []).flatMap(p => p.exercises.filter(ex => ex.isCompetitionLift));
+                                if (compLifts.length === 0) return (
+                                    <p className="text-[10px] text-zinc-500 text-center py-4">Marca ejercicios como "Movimiento de Competición" para planificar tus intentos.</p>
+                                );
+                                return compLifts.map((ex, i) => (
+                                    <div key={i} className="bg-black/50 border border-white/10 p-3 rounded-xl flex items-center justify-between">
+                                        <span className="text-xs font-bold text-white">{ex.name}</span>
+                                        <span className="text-[10px] font-black text-yellow-400">{ex.sets.length} intentos planificados</span>
+                                    </div>
+                                ));
+                            })()}
+                            <p className="text-[9px] text-zinc-500 text-center mt-2">Las luces de jueceo y el total se calculan en vivo durante la sesión de entrenamiento.</p>
                         </div>
                     </div>
                 )}
@@ -2078,7 +2015,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                                         }
                                     })}
                                     
-                                    <button onClick={() => handleAddExercise(pi)} className="w-full py-4 mt-4 border border-dashed border-white/20 hover:border-white text-zinc-500 hover:text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 group">
+                                    <button onClick={() => handleAddExercise(pi)} className="relative z-30 w-full py-4 mt-4 border border-dashed border-white/20 hover:border-white text-zinc-500 hover:text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 group">
                                         <div className="bg-white/10 p-1 rounded-full group-hover:bg-white group-hover:text-black transition-colors"><PlusIcon size={12}/></div>
                                         Añadir Ejercicio
                                     </button>
@@ -2087,19 +2024,20 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                         </div>
                     )})}
                     
-                    <div className="pt-8 mt-8 border-t border-white/10">
-                        <Button onClick={handleAddPart} className="w-full !py-4 font-black uppercase text-xs tracking-widest bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300">
+                    <div className="relative z-30 pt-8 mt-8 border-t border-white/10">
+                        <Button onClick={handleAddPart} className="w-full !py-4 font-black uppercase text-xs tracking-widest bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 shadow-xl">
                             <LayersIcon size={16} className="mr-2"/> Nueva Sección
                         </Button>
                     </div>
                 </div>
                 </>
                 )}
-                {/* --- BOTÓN GUARDAR FLOTANTE ESTILO BOTTOM SHEET --- */}
-                <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent pt-24 z-[10000] flex justify-center pointer-events-none">
+                
+                {/* --- BOTÓN GUARDAR ESTÁTICO (NO FLOTANTE NI BLOQUEANTE) --- */}
+                <div className="relative w-full p-6 mt-8 mb-12 bg-transparent z-50 flex justify-center">
                     <button 
                         onClick={handleSave} 
-                        className="pointer-events-auto w-full max-w-sm bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent hover:border-black"
+                        className="w-full max-w-sm bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent hover:border-black"
                     >
                         <CheckIcon size={18}/>
                         <span>Guardar Sesión</span>
