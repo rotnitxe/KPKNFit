@@ -7,6 +7,7 @@ import { DISCOMFORT_LIST } from '../data/discomfortList';
 import { CheckCircleIcon, ArrowUpIcon, ArrowDownIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, DumbbellIcon, ClockIcon } from './icons';
 import { useAppDispatch } from '../contexts/AppContext';
 import { shareElementAsImage } from '../services/shareService';
+import CaupolicanBackground from './social/CaupolicanBackground';
 
 interface FinishWorkoutModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ interface FinishWorkoutModalProps {
 const ENVIRONMENT_TAGS = ["Gimnasio Lleno", "Gimnasio Vacío", "Entrenando con Amigos", "Buena Música", "Distraído", "Con Prisa"];
 const PLAN_ADHERENCE_TAGS = ["Seguí el Plan", "Más Pesado", "Más Ligero", "Más Reps", "Menos Reps", "Cambié Ejercicios", "Añadí Ejercicios"];
 
-// --- HIDDEN WORKOUT SHARE CARD (Spotify Wrapped Style) ---
+// --- HIDDEN WORKOUT SHARE CARD (AURA ÉPICA) ---
 const WorkoutShareCard: React.FC<{
     date: string;
     duration: string;
@@ -28,48 +29,65 @@ const WorkoutShareCard: React.FC<{
     pump: number;
 }> = ({ date, duration, difficulty, pump }) => {
     return (
-        <div id="workout-summary-share-card" className="fixed top-0 left-[-2000px] w-[500px] h-[888px] bg-black text-white overflow-hidden pointer-events-none z-[-10]">
-             {/* Background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a] via-[#1e1b4b] to-black z-0" />
-            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.05) 75%, transparent 75%, transparent)', backgroundSize: '40px 40px' }}></div>
+        <div id="workout-summary-share-card" className="fixed top-0 left-[-2000px] w-[540px] h-[960px] bg-black text-white overflow-hidden pointer-events-none z-[-10] flex flex-col font-sans">
+             {/* Fondo Épico */}
+            <div className="absolute inset-0 z-0 opacity-40 mix-blend-luminosity scale-110 -translate-y-10">
+                <CaupolicanBackground />
+            </div>
             
-            <div className="relative z-10 flex flex-col h-full p-10 justify-between">
-                <div className="text-center pt-10">
-                     <p className="text-xl font-black text-white/50 uppercase tracking-[0.5em] mb-2">Entrenamiento</p>
-                     <h1 className="text-6xl font-black text-white leading-tight uppercase">Completado</h1>
-                     <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-blue-600 mx-auto mt-6"></div>
+            {/* Degradados para legibilidad */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-[#0a0a0a] z-0" />
+            
+            {/* Ruido Texturizado (Estilo Gritty) */}
+            <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+
+            <div className="relative z-10 flex flex-col h-full p-12 justify-between">
+                {/* Header (Logo + Fecha) */}
+                <div className="flex justify-between items-start">
+                    <div className="flex flex-col">
+                        <span className="text-[14px] font-black text-white/40 uppercase tracking-[0.4em] mb-1">Batalla Terminada</span>
+                        <span className="text-xl font-bold text-white uppercase tracking-widest">
+                            {new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                    </div>
+                    <div className="w-16 h-16 bg-white text-black flex items-center justify-center rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+                        <span className="font-black text-2xl tracking-tighter">KP</span>
+                    </div>
                 </div>
 
-                <div className="space-y-8">
-                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
-                        <div className="flex items-center gap-4 mb-2">
-                             <ClockIcon size={32} className="text-cyan-400" />
-                             <div>
-                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Duración</p>
-                                 <p className="text-4xl font-black text-white">{duration}<span className="text-xl ml-1">min</span></p>
-                             </div>
-                        </div>
+                {/* Main Impact Title */}
+                <div className="flex flex-col mt-auto mb-16">
+                     <h1 className="text-[5.5rem] font-black text-white leading-[0.85] uppercase tracking-tighter drop-shadow-2xl">
+                         DOMINA <br/>
+                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">LA DEBILIDAD</span>
+                     </h1>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                     <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
+                         <ClockIcon size={32} className="text-white/50 mb-3" />
+                         <p className="text-[3rem] font-black text-white leading-none">{duration}</p>
+                         <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Minutos</p>
                      </div>
                      
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl text-center">
-                             <p className="text-4xl font-black text-yellow-400">{difficulty}/10</p>
-                             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Dificultad</p>
-                        </div>
-                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl text-center">
-                             <p className="text-4xl font-black text-purple-400">{pump}/10</p>
-                             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Pump</p>
-                        </div>
+                     <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
+                         <ZapIcon size={32} className="text-yellow-500/80 mb-3" />
+                         <p className="text-[3rem] font-black text-yellow-400 leading-none">{difficulty}</p>
+                         <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Dificultad</p>
                      </div>
-                     
-                     <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-3xl p-6 text-center shadow-lg shadow-cyan-500/20">
-                          <p className="text-lg font-bold text-white italic">"El dolor de hoy es la fuerza de mañana."</p>
+
+                     <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
+                         <ActivityIcon size={32} className="text-red-500/80 mb-3" />
+                         <p className="text-[3rem] font-black text-red-400 leading-none">{pump}</p>
+                         <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Pump</p>
                      </div>
                 </div>
 
-                 <div className="text-center pb-4">
-                     <p className="text-sm font-bold text-slate-500 uppercase">{new Date(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                     <p className="text-xs font-black text-white/20 mt-2 uppercase tracking-widest">#YOURPRIME</p>
+                {/* Footer Quote */}
+                <div className="text-center pt-8 border-t border-white/10">
+                     <p className="text-2xl font-bold text-white italic tracking-wide">"El dolor de hoy es la fuerza de mañana."</p>
+                     <p className="text-sm font-black text-white/30 mt-4 uppercase tracking-[0.5em]">@YOURPRIME.APP</p>
                 </div>
             </div>
         </div>
@@ -230,10 +248,17 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full" placeholder="¿Algo que destacar hoy?"/>
             </div>
             <div className="flex gap-2 pt-4 border-t border-border-color">
-                <Button onClick={handleShare} variant="secondary" className="flex-1 !py-4" disabled={isSharing}>
-                    <LinkIcon size={20}/> {isSharing ? '...' : 'Compartir'}
+                <Button onClick={handleShare} variant="secondary" className="flex-1 !py-4 border-white/10 hover:border-white/30 hover:bg-white/5 transition-all" disabled={isSharing}>
+                    {isSharing ? (
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span className="text-[10px] tracking-widest">FORJANDO...</span>
+                        </div>
+                    ) : (
+                        <><LinkIcon size={18} className="text-white/70"/> <span className="text-[11px] tracking-widest">HISTORIA</span></>
+                    )}
                 </Button>
-                <Button onClick={handleFinishAttempt} variant="primary" className="flex-[2] !py-4 !text-base shadow-xl">
+                <Button onClick={handleFinishAttempt} variant="primary" className="flex-[2] !py-4 !text-base shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                     <CheckCircleIcon size={20}/> FINALIZAR
                 </Button>
             </div>
