@@ -267,6 +267,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
     } | null>(null); 
 
     const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
+    const [tourStep, setTourStep] = useState(0); // 0 = Tour inactivo
 
     // --- ESTADO ---
     const [showAdvancedTransition, setShowAdvancedTransition] = useState(false);
@@ -276,7 +277,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
     const [expandedRoadmapBlocks, setExpandedRoadmapBlocks] = useState<string[]>([]); // Para plegar/desplegar roadmap sin deseleccionar
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-    const [newEventData, setNewEventData] = useState({ title: '', repeatEveryXCycles: 1, calculatedWeek: 0, type: 'Test 1RM' });
+    const [newEventData, setNewEventData] = useState({ id: '', title: '', repeatEveryXCycles: 1, calculatedWeek: 0, type: 'Test 1RM' });
     const [showCyclicHistory, setShowCyclicHistory] = useState(false);
     const [selectedMusclePos, setSelectedMusclePos] = useState<{muscle: string, x: number, y: number} | null>(null);
 
@@ -354,6 +355,16 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
     useEffect(() => {
         if (currentWeeks.length > 0) setSelectedWeekId(currentWeeks[0].id);
     }, [selectedBlockId, currentWeeks]); 
+
+    // Disparador del Tour de Onboarding
+    useEffect(() => {
+        const tourSeen = localStorage.getItem(`kpkn_tour_seen_${program.id}`);
+        if (!tourSeen && program.id) {
+            // Pequeño retraso para que la vista cargue antes de lanzar el tour
+            const timer = setTimeout(() => setTourStep(1), 500);
+            return () => clearTimeout(timer);
+        }
+    }, [program.id]);
 
     // 3. Filtrar sesiones a mostrar
     const displayedSessions = useMemo(() => {
@@ -868,98 +879,69 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                 })()}
                                             </div>
 
-                                            {/* ROADMAP INTEGRADO (Acordeón Horizontal Minimalista) */}
-                                            <div className="relative border-b border-white/5 bg-black">
-                                                <div className="w-full overflow-x-auto no-scrollbar flex items-center px-6 pt-6 pb-8 relative z-10 scroll-smooth">
-                                                    {roadmapBlocks.map((block, idx) => {
-                                                        const isSelected = block.id === selectedBlockId;
-                                                        const isCurrent = block.id === activeBlockId;
-
-                                                        return (
-                                                            <div key={block.id} className="flex items-center shrink-0">
-                                                                {/* 1. BOTÓN DEL BLOQUE */}
-                                                                <div className="flex items-center">
-                                                                    <button 
-                                                                        onClick={(e) => {
-                                                                            // Solo selecciona el bloque, NO lo pliega.
-                                                                            setSelectedBlockId(block.id);
-                                                                            if (!expandedRoadmapBlocks.includes(block.id)) {
-                                                                                setExpandedRoadmapBlocks(prev => [...prev, block.id]);
-                                                                            }
-                                                                            const target = e.currentTarget;
-                                                                            setTimeout(() => {
-                                                                                target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                                                                            }, 250); 
-                                                                        }}
-                                                                        className="group flex flex-col items-center justify-center flex-shrink-0 focus:outline-none relative"
-                                                                    >
-                                                                        <div className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 z-20 font-black
-                                                                            ${isSelected 
-                                                                                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' 
-                                                                                : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:bg-zinc-800 hover:text-white shadow-none' 
-                                                                            } ${isCurrent && !isSelected ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-black' : ''}`}
-                                                                        >
-                                                                            {isCurrent && <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-black" title="Bloque Actual"></div>}
-                                                                            <span className="text-base">{idx + 1}</span>
-                                                                        </div>
-                                                                    </button>
-                                                                    
-                                                                    {/* BOTÓN CHEVRON INDEPENDIENTE PARA PLEGAR/DESPLEGAR EL TIMELINE */}
-                                                                    <button 
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setExpandedRoadmapBlocks(prev => 
-                                                                                prev.includes(block.id) ? prev.filter(id => id !== block.id) : [...prev, block.id]
-                                                                            );
-                                                                        }}
-                                                                        className="w-5 h-8 flex items-center justify-center text-zinc-600 hover:text-white transition-colors ml-1"
-                                                                    >
-                                                                        {expandedRoadmapBlocks.includes(block.id) ? <ChevronDownIcon size={12} className="rotate-90"/> : <ChevronDownIcon size={12} className="-rotate-90"/>}
-                                                                    </button>
-                                                                </div>
-
-                                                                {/* 2. EFECTO ACORDEÓN DE SEMANAS (Plano y monocromático) */}
-                                                                <div 
-                                                                    className={`flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] 
-                                                                        ${expandedRoadmapBlocks.includes(block.id) ? 'max-w-[1000px] opacity-100 ml-1' : 'max-w-0 opacity-0 ml-0'}`}
+                                            {/* NUEVO ROADMAP AVANZADO (Pestañas Sólidas de Bloques y Semanas) */}
+                                            <div className="bg-[#050505] border-b border-white/5 pb-5 pt-3 relative">
+                                                
+                                                {/* 1. Selector de Bloques */}
+                                                <div className="w-full overflow-x-auto no-scrollbar px-4 mb-4">
+                                                    <div className="flex gap-2 w-max pb-1">
+                                                        {roadmapBlocks.map((block, idx) => {
+                                                            const isSelected = block.id === selectedBlockId;
+                                                            const isCurrent = block.id === activeBlockId;
+                                                            return (
+                                                                <button 
+                                                                    key={block.id}
+                                                                    onClick={(e) => {
+                                                                        setSelectedBlockId(block.id);
+                                                                        e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                                                                    }}
+                                                                    className={`px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center gap-2 border
+                                                                        ${isSelected 
+                                                                            ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] scale-105' 
+                                                                            : 'bg-zinc-900 border-white/10 text-zinc-500 hover:text-white hover:bg-zinc-800 hover:border-white/30'
+                                                                        }`}
                                                                 >
-                                                                    <div className="w-3 h-[2px] bg-zinc-800 shrink-0 mr-3" />
-                                                                    <div className="flex items-center gap-2 bg-zinc-950 p-1.5 rounded-full border border-white/5">
-                                                                    {block.mesocycles.flatMap(m => m.weeks).map((week, wIdx) => {
-                                                                            const isWeekSelected = week.id === selectedWeekId;
-                                                                            
-                                                                            const absIdx = getAbsoluteWeekIndex(program, block.id, week.id);
-                                                                            const hasEvent = checkWeekHasEvent(program, absIdx);
-                                                                            
-                                                                            return (
-                                                                                <button
-                                                                                    key={week.id}
-                                                                                    onClick={() => { setSelectedWeekId(week.id); setSelectedEventId(null); }}
-                                                                                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all duration-300 relative
-                                                                                        ${isWeekSelected && !selectedEventId
-                                                                                            ? 'bg-white text-black scale-110 shadow-sm'
-                                                                                            : 'bg-transparent text-zinc-500 hover:text-white hover:bg-zinc-800'
-                                                                                        }`}
-                                                                                    title={hasEvent ? 'Día D / Fecha Clave' : ''}
-                                                                                >
-                                                                                    {hasEvent && <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${isWeekSelected && !selectedEventId ? 'bg-yellow-500' : 'bg-yellow-400 animate-pulse'}`}></div>}
-                                                                                    {wIdx + 1}
-                                                                                </button>
-                                                                            );
-                                                                        })}
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* 3. LÍNEA CONECTORA */}
-                                                                {idx < roadmapBlocks.length - 1 && (
-                                                                    <div className="w-8 h-[2px] bg-zinc-800/80 shrink-0 mx-3" />
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
+                                                                    {isCurrent && <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>}
+                                                                    Bloque {idx + 1}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 </div>
-                                                <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-black to-transparent pointer-events-none z-30" />
-                                                <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-l from-black to-transparent pointer-events-none z-30" />
+
+                                                {/* 2. Selector de Semanas del Bloque Activo */}
+                                                <div className="w-full overflow-x-auto no-scrollbar px-4">
+                                                    <div className="flex gap-2 w-max items-center">
+                                                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mr-2 flex items-center gap-1">
+                                                            <CalendarIcon size={12}/> Semanas:
+                                                        </span>
+                                                        <div className="flex gap-2 bg-zinc-900/50 p-1.5 rounded-full border border-white/5">
+                                                            {currentWeeks.map((week, wIdx) => {
+                                                                const isWeekSelected = week.id === selectedWeekId;
+                                                                const absIdx = selectedBlockId ? getAbsoluteWeekIndex(program, selectedBlockId, week.id) : -1;
+                                                                const hasEvent = checkWeekHasEvent(program, absIdx);
+
+                                                                return (
+                                                                    <button
+                                                                        key={week.id}
+                                                                        onClick={(e) => {
+                                                                            setSelectedWeekId(week.id);
+                                                                            e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                                                                        }}
+                                                                        className={`relative px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center min-w-[3rem]
+                                                                            ${isWeekSelected
+                                                                                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                                                                                : 'bg-transparent text-zinc-500 hover:text-white hover:bg-zinc-800'
+                                                                            }`}
+                                                                    >
+                                                                        {hasEvent && <div className={`absolute top-0 right-0 w-2 h-2 rounded-full ${isWeekSelected ? 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]' : 'bg-yellow-500/50'}`}></div>}
+                                                                        S{wIdx + 1}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             {/* CONTENIDO DEL BLOQUE */}
@@ -1171,9 +1153,14 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                     <h3 className="text-[10px] font-black text-white uppercase flex items-center gap-2 tracking-widest">
                                                         <CalendarIcon size={14} className="text-white"/> {isCyclic ? 'Roadmap Cíclico' : 'Fechas Claves y Eventos'}
                                                     </h3>
-                                                    <button onClick={() => setIsEventModalOpen(true)} className="text-[9px] font-black uppercase tracking-widest text-black bg-white px-4 py-2 rounded-lg hover:bg-zinc-200 transition-colors">
-                                                        Nuevo {isCyclic ? 'Evento' : 'Hito'}
-                                                    </button>
+                                                    {(!isCyclic || !(program.events && program.events.length >= 1)) && (
+                                                        <button onClick={() => {
+                                                            setNewEventData({ id: '', title: '', repeatEveryXCycles: 4, calculatedWeek: 0, type: '1rm_test' });
+                                                            setIsEventModalOpen(true);
+                                                        }} className="text-[9px] font-black uppercase tracking-widest text-black bg-white px-4 py-2 rounded-lg hover:bg-zinc-200 transition-colors">
+                                                            Nuevo {isCyclic ? 'Evento' : 'Hito'}
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 
                                                 {program.events && program.events.length > 0 ? (
@@ -1210,7 +1197,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                             key={ev.id || i} 
                                                                             onClick={() => {
                                                                                 // Pre-poblar el modal de edición
-                                                                                setNewEventData({ title: ev.title, repeatEveryXCycles: ev.repeatEveryXCycles || 1, calculatedWeek: ev.calculatedWeek || 0, type: ev.type || '1rm_test' });
+                                                                                setNewEventData({ id: ev.id || '', title: ev.title, repeatEveryXCycles: ev.repeatEveryXCycles || 1, calculatedWeek: ev.calculatedWeek || 0, type: ev.type || '1rm_test' });
                                                                                 setIsEventModalOpen(true);
                                                                             }}
                                                                             className="absolute z-10 flex flex-col items-center cursor-pointer group"
@@ -1241,7 +1228,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                             style={{left: `${pos}%`}} 
                                                                             className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)] -translate-x-1/2 cursor-pointer hover:scale-150 transition-transform"
                                                                             onClick={() => {
-                                                                                setNewEventData({ title: e.title, repeatEveryXCycles: e.repeatEveryXCycles || 1, calculatedWeek: e.calculatedWeek || 0, type: e.type || '1rm_test' });
+                                                                                setNewEventData({ id: e.id || '', title: e.title, repeatEveryXCycles: e.repeatEveryXCycles || 1, calculatedWeek: e.calculatedWeek || 0, type: e.type || '1rm_test' });
                                                                                 setIsEventModalOpen(true);
                                                                             }}
                                                                         >
@@ -1252,9 +1239,23 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                             </div>
                                                             <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
                                                                 {(program.events || []).map((e, idx) => (
-                                                                    <div key={idx} className="shrink-0 w-44 bg-[#111] border border-white/10 rounded-xl p-4 flex flex-col justify-between group">
+                                                                    <div key={idx} className="relative shrink-0 w-44 bg-[#111] border border-white/10 rounded-xl p-4 flex flex-col justify-between group hover:border-white/30 transition-colors">
+                                                                        <button 
+                                                                            onClick={(ev) => {
+                                                                                ev.stopPropagation();
+                                                                                if(window.confirm(`¿Eliminar la fecha clave: ${e.title}?`)) {
+                                                                                    const updated = JSON.parse(JSON.stringify(program));
+                                                                                    updated.events = updated.events.filter((evnt: any) => evnt.id !== e.id);
+                                                                                    if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                }
+                                                                            }}
+                                                                            className="absolute top-3 right-3 text-zinc-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 bg-black/50 rounded-full"
+                                                                            title="Eliminar Fecha Clave"
+                                                                        >
+                                                                            <TrashIcon size={12}/>
+                                                                        </button>
                                                                         <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest mb-1">Fecha Clave</span>
-                                                                        <span className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">{e.title}</span>
+                                                                        <span className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors pr-6">{e.title}</span>
                                                                         <span className="text-[9px] text-zinc-400 mt-2 font-bold bg-white/5 self-start px-2 py-1 rounded">
                                                                             Semana {e.calculatedWeek + 1}
                                                                         </span>
@@ -1745,25 +1746,52 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                         </div>
                                     </div>
                                 )}
-                                <button onClick={() => {
-                                    if(!newEventData.title.trim()) { addToast("Ponle un nombre al evento", "danger"); return; }
-                                    const updated = JSON.parse(JSON.stringify(program));
-                                    if(!updated.events) updated.events = [];
-                                    const isCyclic = program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
-                                    updated.events.push({
-                                        id: crypto.randomUUID(),
-                                        title: newEventData.title,
-                                        type: newEventData.type,
-                                        date: new Date().toISOString(),
-                                        calculatedWeek: isCyclic ? 0 : newEventData.calculatedWeek,
-                                        repeatEveryXCycles: isCyclic ? newEventData.repeatEveryXCycles : undefined
-                                    });
-                                    if(handleUpdateProgram) handleUpdateProgram(updated);
-                                    setIsEventModalOpen(false);
-                                    addToast("Evento programado exitosamente", "success");
-                                }} className="w-full bg-white text-black font-black uppercase tracking-widest text-[10px] py-3 rounded-xl mt-2 hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                                    Guardar Evento
-                                </button>
+                                <div className="flex gap-2 mt-2">
+                                    {newEventData.id && (
+                                        <button 
+                                            onClick={() => {
+                                                if(window.confirm('¿Eliminar este evento?')) {
+                                                    const updated = JSON.parse(JSON.stringify(program));
+                                                    updated.events = updated.events.filter((e: any) => e.id !== newEventData.id);
+                                                    if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                    setIsEventModalOpen(false);
+                                                }
+                                            }}
+                                            className="w-12 bg-red-500/10 border border-red-500/30 text-red-500 font-black uppercase tracking-widest text-[10px] py-3 rounded-xl hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center shrink-0"
+                                            title="Eliminar Evento"
+                                        >
+                                            <TrashIcon size={14}/>
+                                        </button>
+                                    )}
+                                    <button onClick={() => {
+                                        if(!newEventData.title.trim()) { addToast("Ponle un nombre al evento", "danger"); return; }
+                                        const updated = JSON.parse(JSON.stringify(program));
+                                        if(!updated.events) updated.events = [];
+                                        const isCyclic = program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
+                                        
+                                        const eventPayload = {
+                                            id: newEventData.id || crypto.randomUUID(),
+                                            title: newEventData.title,
+                                            type: newEventData.type,
+                                            date: new Date().toISOString(),
+                                            calculatedWeek: isCyclic ? 0 : newEventData.calculatedWeek,
+                                            repeatEveryXCycles: isCyclic ? newEventData.repeatEveryXCycles : undefined
+                                        };
+
+                                        if (newEventData.id) {
+                                            const index = updated.events.findIndex((e: any) => e.id === newEventData.id);
+                                            if (index !== -1) updated.events[index] = eventPayload;
+                                        } else {
+                                            updated.events.push(eventPayload);
+                                        }
+
+                                        if(handleUpdateProgram) handleUpdateProgram(updated);
+                                        setIsEventModalOpen(false);
+                                        addToast(newEventData.id ? "Evento actualizado" : "Evento programado exitosamente", "success");
+                                    }} className="flex-1 bg-white text-black font-black uppercase tracking-widest text-[10px] py-3 rounded-xl hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                                        Guardar Evento
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1889,13 +1917,69 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                 <p className="text-[9px] text-zinc-500 mt-1">{(week.sessions || []).length} sesiones programadas</p>
                                             </div>
                                         </div>
-                                    </button>
+                                        </button>
                                 ))}
                             </div>
                         </div>
                     </div>
                 )}
             </div>
+
+            {/* --- TOUR DE ONBOARDING --- */}
+            {tourStep > 0 && (
+                <div className="fixed inset-0 z-[9999] pointer-events-auto flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in px-4">
+                    <div className="bg-zinc-950 border border-white/10 rounded-[2rem] p-6 max-w-sm w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] relative text-center overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-400"></div>
+                        
+                        <div className="w-20 h-20 mx-auto bg-blue-900/20 rounded-full flex items-center justify-center mb-6 border border-blue-500/30 relative">
+                            {tourStep === 1 && <DumbbellIcon size={36} className="text-blue-400 animate-bounce-short" />}
+                            {tourStep === 2 && <CalendarIcon size={36} className="text-blue-400 animate-bounce-short" />}
+                            {tourStep === 3 && <ActivityIcon size={36} className="text-blue-400 animate-bounce-short" />}
+                        </div>
+                        
+                        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-3">
+                            {tourStep === 1 ? 'Bienvenido a tu Programa' : tourStep === 2 ? 'Gestión del Roadmap' : 'Métricas y Progreso'}
+                        </h3>
+                        
+                        <p className="text-xs text-zinc-400 leading-relaxed mb-8 font-medium h-[4.5rem]">
+                            {tourStep === 1 ? 'Este es el centro de mando de tu entrenamiento. Aquí podrás ver, iniciar y editar todas las sesiones programadas del día a día.' : 
+                             tourStep === 2 ? 'Usa la vista "Macrociclo" para editar la estructura y agregar hitos. La vista "Semanal" te permite navegar ágilmente por tus bloques y semanas.' : 
+                             'Revisa el impacto de fatiga corporal, el volumen acumulado y tus récords históricos en la pestaña "Métricas" arriba.'}
+                        </p>
+                        
+                        <div className="flex justify-between items-center w-full gap-4 border-t border-white/5 pt-5">
+                            <div className="flex gap-2">
+                                {[1,2,3].map(step => (
+                                    <div key={step} className={`w-2.5 h-2.5 rounded-full transition-colors ${tourStep === step ? 'bg-blue-500' : 'bg-white/10'}`}></div>
+                                ))}
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    if (tourStep < 3) {
+                                        setTourStep(prev => prev + 1);
+                                    } else {
+                                        setTourStep(0);
+                                        localStorage.setItem(`kpkn_tour_seen_${program.id}`, 'true');
+                                    }
+                                }}
+                                className="bg-white text-black px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                            >
+                                {tourStep < 3 ? 'Siguiente' : '¡A Entrenar!'}
+                            </button>
+                        </div>
+                        
+                        <button 
+                            onClick={() => {
+                                setTourStep(0);
+                                localStorage.setItem(`kpkn_tour_seen_${program.id}`, 'true');
+                            }}
+                            className="absolute top-4 right-4 p-2 text-zinc-600 hover:text-white transition-colors bg-zinc-900 rounded-full"
+                        >
+                            <XIcon size={14} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

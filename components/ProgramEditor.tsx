@@ -2548,11 +2548,11 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                             if ((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit) {
                                                 return "Selecciona un Split";
                                             }
-                                            return "Continuar al Roadmap";
+                                            return "Crear Programa";
                                         })()}
                                     </span>
                                     {/* Flecha condicional */}
-                                    <ArrowDownIcon size={16} className={`transition-all duration-300 ${
+                                    <SaveIcon size={16} className={`transition-all duration-300 ${
                                         ((selectedTemplateId === 'power-complex' && splitMode === 'per_block' && Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length) || 
                                         ((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit))
                                         ? 'opacity-0 w-0' : 'opacity-100 -rotate-90'

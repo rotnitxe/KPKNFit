@@ -31,13 +31,27 @@ export interface SessionEditorProps {
 const SESSION_DRAFT_KEY = 'session-editor-draft';
 const PRESET_PART_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1', '#1e293b', '#22d3ee', '#fb7185'];
 
-const UnlinkIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m18.84 12.25 1.72-1.71h0a5.003 5.003 0 0 0-7.07-7.07l-1.72 1.71"/>
-        <path d="m5.17 11.75-1.71 1.71a5.003 5.003 0 0 0 7.07 7.07l1.71-1.71"/>
-        <line x1="8" y1="2" x2="22" y2="16" />
+const UnlinkIcon: React.FC<{ size?: number; className?: string }> = ({ size = 20, className = '' }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="m18.84 12.25 1.72-1.71h0a5.003 5.003 0 0 0-7.07-7.07l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.003 5.003 0 0 0 7.07 7.07l1.71-1.71"/><line x1="8" y1="2" x2="22" y2="16" />
     </svg>
 );
+const WandIcon: React.FC<{ size?: number; className?: string }> = ({ size = 20, className = '' }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 5 4 4" /><path d="M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13" /><path d="m8 6 2-2" /><path d="m2 22 5.5-5.5" /><path d="m11 14 5.5-5.5" /><path d="m22 2-4 4" /><path d="m19 8 3-3" /></svg>
+);
+const TrophyIcon: React.FC<{ size?: number; className?: string }> = ({ size = 20, className = '' }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7c0 3.31 2.69 6 6 6s6-2.69 6-6V2Z" /></svg>
+);
+
+// FÓRMULA DOTS (Aproximación simplificada para cálculo en vivo rápido)
+const calculateDOTS = (total: number, bw: number, isMale: boolean = true) => {
+    if(!bw || bw <= 0 || !total) return 0;
+    // Simplificación de coeficientes para rendimiento en app móvil
+    const coeff = isMale 
+        ? (-0.000001093 * Math.pow(bw, 4) + 0.0007391293 * Math.pow(bw, 3) - 0.1918759221 * Math.pow(bw, 2) + 24.0900756 * bw - 307.75076)
+        : (-0.0000010706 * Math.pow(bw, 4) + 0.0005158568 * Math.pow(bw, 3) - 0.1126655495 * Math.pow(bw, 2) + 13.6175032 * bw - 57.96288);
+    return coeff > 0 ? Math.round((total * (500 / coeff)) * 100) / 100 : 0;
+};
 
 const AmrapSelectionModal: React.FC<{
     isOpen: boolean;
@@ -77,6 +91,7 @@ const SessionAugeDashboard: React.FC<{
 }> = ({ currentSession, weekSessions, exerciseList = [] }) => {
     const [viewMode, setViewMode] = useState<'volume' | 'drain' | 'ranking'>('volume');
     const [context, setContext] = useState<'session' | 'week'>('session');
+    const { settings } = useAppContext(); // Extraemos los límites calibrados del usuario
 
     const scrollToExercise = (exId: string) => {
         const el = document.getElementById(`exercise-card-${exId}`);
@@ -86,8 +101,8 @@ const SessionAugeDashboard: React.FC<{
     const [showFatigueInfo, setShowFatigueInfo] = useState(false);
 
     const { hyperStats, globalDrain, sessionAlerts, weeklyAlerts, exerciseRanking } = useMemo(() => {
-        const hyperMap: Record<string, { vol: number, fail: number }> = {};
-        const weeklyHyperMap: Record<string, number> = {};
+        const hyperMap: Record<string, { flat: number, effective: number, fail: number }> = {};
+        const weeklyHyperMap: Record<string, { flat: number, effective: number }> = {};
         let totalCns = 0; let totalSpinal = 0; let totalMuscular = 0;
         let weeklyCns = 0; let weeklySpinal = 0; let weeklyMuscular = 0;
         const ranking: { id: string, name: string, fatigue: number, isCurrentSession: boolean }[] = [];
@@ -124,14 +139,28 @@ const SessionAugeDashboard: React.FC<{
                     weeklyCns += cnsHit; weeklySpinal += spinalHit; weeklyMuscular += muscularHit;
                     if (isCurrentSession) { totalCns += cnsHit; totalSpinal += spinalHit; totalMuscular += muscularHit; }
 
+                    // --- SISTEMA DE VOLUMEN EFECTIVO POR INTENSIDAD ---
+                    let volMult = 1.0;
+                    if (rpe >= 10) volMult = 1.2;      // Fallo extremo / AMRAP
+                    else if (rpe >= 8) volMult = 1.0;  // Hipertrofia óptima
+                    else volMult = 0.6;                // Bombeo / RIR Alto (Permite soportar más series)
+
                     info.involvedMuscles.forEach((m: any) => {
                         const parent = normalizeMuscleGroup(m.muscle);
                         const hyperFactor = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.0; 
-                        weeklyHyperMap[parent] = (weeklyHyperMap[parent] || 0) + hyperFactor;
+                        
+                        const effVol = hyperFactor * volMult;
+                        const flatVol = hyperFactor;
+
+                        if (!weeklyHyperMap[parent]) weeklyHyperMap[parent] = { flat: 0, effective: 0 };
+                        weeklyHyperMap[parent].flat += flatVol;
+                        weeklyHyperMap[parent].effective += effVol;
+
                         if (isCurrentSession) {
-                            if (!hyperMap[parent]) hyperMap[parent] = { vol: 0, fail: 0 };
-                            hyperMap[parent].vol += hyperFactor;
-                            if (rpe >= 9.5) hyperMap[parent].fail += hyperFactor;
+                            if (!hyperMap[parent]) hyperMap[parent] = { flat: 0, effective: 0, fail: 0 };
+                            hyperMap[parent].flat += flatVol;
+                            hyperMap[parent].effective += effVol;
+                            if (rpe >= 9.5) hyperMap[parent].fail += flatVol;
                         }
                     });
                 });
@@ -152,37 +181,58 @@ const SessionAugeDashboard: React.FC<{
             }
         });
 
-        const sortMap = (map: Record<string, { vol: number, fail: number }>) => Object.entries(map)
-            .map(([muscle, data]) => ({ muscle, volume: Math.round(data.vol * 10) / 10, failRatio: data.vol > 0 ? data.fail / data.vol : 0 }))
+        const sortMap = (map: Record<string, { flat: number, effective: number, fail?: number }>) => Object.entries(map)
+            .map(([muscle, data]) => ({ muscle, volume: Math.round(data.effective * 10) / 10, flat: data.flat, failRatio: data.flat > 0 ? (data.fail || 0) / data.flat : 0 }))
             .filter(item => item.volume > 0).sort((a, b) => b.volume - a.volume);
         
         const sortedHyper = sortMap(hyperMap);
+        const sortedWeekly = sortMap(weeklyHyperMap);
         ranking.sort((a, b) => b.fatigue - a.fatigue);
 
-        // Lógica Dinámica de Volumen Basura
+        // LÓGICA DINÁMICA: MENSAJES Y UMBRALES BASADOS EN MRV
+        const limits = settings?.volumeLimits || {};
+
         const dynamicSessionAlerts = sortedHyper.map(m => {
-            let threshold = 6;
-            if (m.failRatio >= 0.8) threshold = 4; // Muy estricto si todo es al fallo
-            else if (m.failRatio <= 0.3) threshold = 8; // Más permisivo si hay RIR
-            return { ...m, threshold };
-        }).filter(m => m.volume > m.threshold);
+            const limit = limits[m.muscle]?.maxSession || 6;
+            let message = "";
+            let isAlert = false;
+            
+            if (m.volume > limit) {
+                isAlert = true;
+                if (m.failRatio >= 0.7) message = `Llevaste muchas series al fallo. Tu sistema nervioso local está frito. Añadir más es Volumen Basura.`;
+                else if (m.failRatio <= 0.3) message = `Aunque trabajas con RIR alto (Bombeo), superaste el límite efectivo (${limit} pts). El estímulo decaerá.`;
+                else message = `Superaste el umbral óptimo por sesión (${limit} pts). Estás generando daño sin hipertrofia.`;
+            }
+            return { ...m, threshold: limit, message, isAlert };
+        }).filter(m => m.isAlert);
+
+        const dynamicWeeklyAlerts = sortedWeekly.map(m => {
+            const mrv = limits[m.muscle]?.max || 18;
+            let message = "";
+            let isAlert = false;
+            if (m.flat > mrv) {
+                isAlert = true;
+                message = `Programas ${Math.round(m.flat)} series. Tu máximo recuperable (MRV) es ${mrv}. Entrarás en sobreentrenamiento.`;
+            }
+            return { ...m, mrv, message, isAlert };
+        }).filter(m => m.isAlert);
 
         return { 
-            hyperStats: context === 'session' ? sortedHyper : Object.entries(weeklyHyperMap).map(([m,v]) => ({muscle:m, volume: Math.round(v*10)/10})).sort((a,b)=>b.volume-a.volume), 
+            hyperStats: context === 'session' ? sortedHyper : sortedWeekly, 
             globalDrain: { 
                 cns: Math.min(100, ((context === 'session' ? totalCns : weeklyCns) / (context === 'session' ? 150 : 600)) * 100), 
                 spinal: Math.min(100, ((context === 'session' ? totalSpinal : weeklySpinal) / (context === 'session' ? 1000 : 4000)) * 100),
                 muscular: Math.min(100, ((context === 'session' ? totalMuscular : weeklyMuscular) / (context === 'session' ? 80 : 320)) * 100)
             },
             sessionAlerts: dynamicSessionAlerts,
-            weeklyAlerts: Object.entries(weeklyHyperMap).map(([m,v]) => ({muscle:m, volume:v})).filter(h => h.volume > 16),
+            weeklyAlerts: dynamicWeeklyAlerts,
             exerciseRanking: context === 'session' ? ranking.filter(r => r.isCurrentSession) : ranking
         };
-    }, [currentSession, weekSessions, exerciseList, context]);
+    }, [currentSession, weekSessions, exerciseList, context, settings]);
 
     // Exportar alertas al padre de forma segura
     useEffect(() => {
-        // @ts-ignore - Inyección directa al scope del padre mediante evento DOM o prop si existiera
+        // @ts-ignore
         const ev = new CustomEvent('augeAlertsUpdated', { detail: sessionAlerts });
         window.dispatchEvent(ev);
     }, [sessionAlerts]);
@@ -206,8 +256,8 @@ const SessionAugeDashboard: React.FC<{
                         <div key={alert.muscle} className="bg-red-950/30 border border-red-900/50 p-3 rounded-lg flex gap-2 items-start">
                             <FlameIcon size={16} className="text-red-500 shrink-0 mt-0.5 animate-pulse" />
                             <p className="text-[10px] text-red-200 leading-relaxed">
-                                <strong className="font-bold text-red-400 uppercase tracking-wide">Peligro: {alert.muscle} ({alert.volume} series).</strong><br/>
-                                Has superado el límite recuperable (~18). Estás generando daño sin hipertrofia. Reduce el volumen semanal.
+                                <strong className="font-bold text-red-400 uppercase tracking-wide">Sobrecarga: {alert.muscle}.</strong><br/>
+                                {alert.message}
                             </p>
                         </div>
                     ))}
@@ -220,8 +270,8 @@ const SessionAugeDashboard: React.FC<{
                         <div key={alert.muscle} className="bg-orange-950/30 border border-orange-900/50 p-2 rounded-lg flex gap-2 items-start">
                             <InfoIcon size={14} className="text-orange-500 shrink-0 mt-0.5" />
                             <p className="text-[9px] text-orange-200 leading-tight">
-                                <strong className="font-bold text-orange-400">Volumen Basura en {alert.muscle}.</strong> 
-                                 Tras la 6ta serie el estímulo decae. Considera mover este ejercicio.
+                                <strong className="font-bold text-orange-400">Peligro en {alert.muscle}:</strong><br/>
+                                {alert.message}
                             </p>
                         </div>
                     ))}
@@ -985,97 +1035,131 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                         </div>
                     )}
                     
-                    <div className="w-full">
-                        <div className="space-y-1">
-                            {/* ENCABEZADOS DE COLUMNA */}
-                            <div className="grid grid-cols-[20px,50px,1fr,30px] gap-x-3 pb-1 border-b border-zinc-800">
-                                <span className="text-[8px] text-zinc-600 text-center">#</span>
-                                <span className="text-[8px] text-zinc-600 text-center uppercase">{exercise.trainingMode === 'time' ? 'Seg' : 'Reps'}</span>
-                                <span className="text-[8px] text-zinc-600 text-center uppercase">Intensidad</span>
-                                <span></span>
-                            </div>
-
-                            {exercise.sets.map((set, setIndex) => {
-                                const isAmrap = set.isAmrap || set.intensityMode === 'amrap';
-                                // Calculamos carga estimada si aplica
-                                let estimatedLoad: number | null = null;
-                                if (exercise.trainingMode === 'percent' && exercise.reference1RM && set.targetPercentageRM) {
-                                    estimatedLoad = Math.round((exercise.reference1RM * set.targetPercentageRM) / 100);
-                                }
-
-                                return (
-                                    <div key={set.id} className="grid items-center grid-cols-[20px,50px,1fr,30px] gap-x-3 py-2 border-b border-zinc-900 last:border-0">
-                                        <span className="font-mono text-zinc-600 text-[10px] text-center">{setIndex + 1}</span>
-                                        
-                                        {/* COLUMNA 1: REPS (O TIEMPO) - SIEMPRE VISIBLE */}
-                                        <div className="relative">
-                                            {exercise.trainingMode === 'time' ? (
-                                                <input type="number" value={set.targetDuration ?? ''} onChange={e => handleSetChange(setIndex, 'targetDuration', parseInt(e.target.value))} className="w-full text-center bg-transparent text-sm font-bold p-0 border-none focus:ring-0 text-white" placeholder="Seg"/>
-                                            ) : (
-                                                <input type="number" value={set.targetReps ?? ''} onChange={e => handleSetChange(setIndex, 'targetReps', parseInt(e.target.value))} placeholder={isAmrap ? "Min" : "#"} className={`w-full text-center bg-transparent text-sm font-bold p-0 border-none focus:ring-0 ${isAmrap ? 'text-yellow-400' : 'text-white'}`}/>
-                                            )}
-                                        </div>
-
-                                        {/* COLUMNA 2: INTENSIDAD + DATOS EXTRAS (FLEX) */}
-                                        <div className="flex items-center gap-2">
-                                            {/* INTENSIDAD SELECTOR */}
-                                            {isAmrap ? (
-                                                <div className="w-16 bg-yellow-900/20 border border-yellow-600/30 rounded px-1 py-1 flex justify-center"><span className="text-[8px] font-black text-yellow-500 uppercase">{set.isCalibrator ? 'CALIB' : 'FALLO'}</span></div>
-                                            ) : (
-                                                <div className="flex items-center gap-1 w-16 shrink-0">
-                                                    <select value={set.intensityMode || 'rpe'} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[9px] text-zinc-400 font-bold border-none focus:ring-0 uppercase text-right w-8 p-0"><option value="rpe">RPE</option><option value="rir">RIR</option><option value="failure">FAIL</option></select>
-                                                    {set.intensityMode !== 'failure' && (
-                                                        <input type="number" step="0.5" value={set.intensityMode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => handleSetChange(setIndex, set.intensityMode === 'rir' ? 'targetRIR' : 'targetRPE', parseFloat(e.target.value))} className="w-8 text-center bg-transparent border-b border-zinc-800 text-sm font-bold text-white focus:border-white p-0" placeholder="-"/>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* DATOS DE MODO % (Porcentaje + Carga) */}
-                                            {exercise.trainingMode === 'percent' && (
-                                                <div className="flex items-center gap-2 border-l border-zinc-800 pl-2 ml-1 flex-grow">
-                                                    <div className="flex flex-col items-center w-10">
-                                                        <div className="flex items-center">
-                                                            <input type="number" value={set.targetPercentageRM ?? ''} onChange={e => handleSetChange(setIndex, 'targetPercentageRM', parseFloat(e.target.value))} className="w-8 text-center bg-transparent text-xs font-bold p-0 border-none focus:ring-0 text-blue-400" placeholder="%"/>
-                                                            <span className="text-[8px] text-zinc-600">%</span>
-                                                        </div>
-                                                    </div>
-                                                    {estimatedLoad !== null && (
-                                                        <span className="text-[10px] font-mono text-zinc-400 whitespace-nowrap bg-zinc-900 px-1 rounded border border-zinc-800">
-                                                            {estimatedLoad} kg
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                            
-                                            <div className="flex-grow"></div>
-                                            
-                                            {/* INDICADOR DE CARGA ESPINAL POR SERIE */}
-                                            {(exerciseInfo?.axialLoadFactor ?? 0) > 0 && estimatedLoad ? (
-                                                <div className="flex flex-col items-end mr-2 px-1 rounded bg-red-950/40 border border-red-900/50" title={`Puntaje Espinal: ${(estimatedLoad * (set.targetReps || 0) * (exerciseInfo!.axialLoadFactor || 0) * (exerciseInfo!.postureFactor || 1)).toFixed(0)}`}>
-                                                    <span className="text-[7px] text-red-500 font-bold uppercase leading-none mt-0.5">Espinal</span>
-                                                    <span className="text-[9px] font-mono font-black text-red-400 leading-none mb-0.5">
-                                                        {Math.round(calculateSpinalScore({ weight: estimatedLoad, reps: set.targetReps || 0, rpe: set.targetRPE }, exerciseInfo))}
-                                                    </span>
-                                                </div>
-                                            ) : null}
-
-                                            <button onClick={() => { const newVal = !isAmrap; handleSetChange(setIndex, 'isAmrap', newVal); handleSetChange(setIndex, 'intensityMode', newVal ? 'amrap' : 'rpe'); }} className={`p-1 rounded ml-auto ${isAmrap ? 'text-yellow-400' : 'text-zinc-800 hover:text-white'}`}><FlameIcon size={12} /></button>
-                                        </div>
-                                        
-                                        {/* DELETE */}
-                                        <button type="button" onClick={() => onRemoveSet(setIndex)} className="text-zinc-700 hover:text-red-500"><XIcon size={14}/></button>
-                                    </div>
-                                )
-                            })}
-                        </div>
+                    {/* BARRA DE HERRAMIENTAS ADICIONAL */}
+                    <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
+                         <label className="flex items-center gap-2 cursor-pointer group">
+                             <input type="checkbox" checked={exercise.isCompetitionLift} onChange={(e) => onExerciseChange('isCompetitionLift', e.target.checked)} className="rounded border-zinc-700 bg-black text-yellow-500 focus:ring-0 w-3 h-3" />
+                             <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${exercise.isCompetitionLift ? 'text-yellow-500' : 'text-zinc-600 group-hover:text-white'}`}>Modo Competición / Tarima</span>
+                         </label>
                     </div>
 
-                    {!hideAddSetButton && (
-                        <div className="flex gap-2 mt-2">
-                            <button onClick={() => onAddSet()} className="flex-1 py-3 border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900 rounded text-[10px] font-black uppercase text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-2"><PlusIcon size={12}/> Añadir Serie</button>
-                            <button onClick={() => setIsWarmupModalOpen(true)} className="px-4 py-3 border border-zinc-800 bg-transparent hover:bg-zinc-900 rounded text-[10px] font-black uppercase text-zinc-500 hover:text-white transition-all">Aproximación</button>
-                        </div>
-                    )}
+                    <div className="w-full relative">
+                        {exercise.isCompetitionLift ? (
+                            // --- MODO COMPETICIÓN (Luces de Jueceo, Max 4 Intentos) ---
+                            <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x items-center">
+                                {exercise.sets.slice(0, 4).map((set, setIndex) => (
+                                    <div key={set.id} className="shrink-0 w-[220px] bg-zinc-900/80 border border-yellow-500/20 rounded-2xl p-4 snap-center relative shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-500">
+                                                {setIndex === 3 ? 'Récord / 4to' : `Intento ${setIndex + 1}`}
+                                            </span>
+                                            <button type="button" onClick={() => onRemoveSet(setIndex)} className="text-zinc-600 hover:text-red-500"><XIcon size={14}/></button>
+                                        </div>
+                                        
+                                        <div className="flex flex-col items-center mb-4">
+                                            <div className="flex items-baseline gap-1 bg-black px-4 py-2 rounded-xl border border-white/10">
+                                                <input type="number" value={set.weight || ''} onChange={e => handleSetChange(setIndex, 'weight', parseFloat(e.target.value))} className="w-16 text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white" placeholder="00.0"/>
+                                                <span className="text-xs text-zinc-500 font-bold">kg</span>
+                                            </div>
+                                        </div>
+
+                                        {/* LUCES DE JUECEO (3 Jueces) */}
+                                        <div className="flex flex-col items-center gap-2 bg-black/50 p-2 rounded-xl border border-white/5">
+                                            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Luces de Jueceo</span>
+                                            <div className="flex gap-3">
+                                                {[0, 1, 2].map((judgeIdx) => {
+                                                    const currentLight = set.judgingLights?.[judgeIdx];
+                                                    const lightColor = currentLight === true ? 'bg-white shadow-[0_0_10px_white]' : currentLight === false ? 'bg-red-500 shadow-[0_0_10px_red]' : 'bg-zinc-800 border border-zinc-700';
+                                                    return (
+                                                        <button key={judgeIdx} onClick={() => {
+                                                            const newLights = [...(set.judgingLights || [null, null, null])] as [boolean|null, boolean|null, boolean|null];
+                                                            // Toggle: Null -> White -> Red -> Null
+                                                            newLights[judgeIdx] = newLights[judgeIdx] === null ? true : newLights[judgeIdx] === true ? false : null;
+                                                            
+                                                            // Auto-calcular resultado del intento basado en mayoría
+                                                            const whites = newLights.filter(l => l === true).length;
+                                                            const reds = newLights.filter(l => l === false).length;
+                                                            const result = (whites + reds === 3) ? (whites >= 2 ? 'good' : 'no-lift') : 'pending';
+                                                            
+                                                            handleSetChange(setIndex, 'judgingLights', newLights);
+                                                            handleSetChange(setIndex, 'attemptResult', result);
+                                                        }} className={`w-8 h-8 rounded-full transition-all duration-300 ${lightColor}`}></button>
+                                                    )
+                                                })}
+                                            </div>
+                                            {set.attemptResult === 'good' && <span className="text-[9px] font-black text-white bg-green-500/20 px-2 py-0.5 rounded mt-1">VÁLIDO (Good Lift)</span>}
+                                            {set.attemptResult === 'no-lift' && <span className="text-[9px] font-black text-white bg-red-500/20 px-2 py-0.5 rounded mt-1">NULO (No Lift)</span>}
+                                        </div>
+                                    </div>
+                                ))}
+                                {exercise.sets.length < 4 && (
+                                     <button onClick={() => onAddSet()} className="shrink-0 w-16 h-32 border border-dashed border-zinc-700 rounded-2xl flex items-center justify-center text-zinc-600 hover:text-white hover:border-white transition-all"><PlusIcon size={24}/></button>
+                                )}
+                            </div>
+                        ) : (
+                            // --- MODO STANDARD (Scroll Horizontal de Tarjetas) ---
+                            <div className="flex gap-2 overflow-x-auto pb-4 custom-scrollbar snap-x items-stretch">
+                                {exercise.sets.map((set, setIndex) => {
+                                    const isAmrap = set.isAmrap || set.intensityMode === 'amrap';
+                                    let estimatedLoad: number | null = null;
+                                    if (exercise.trainingMode === 'percent' && exercise.reference1RM && set.targetPercentageRM) {
+                                        estimatedLoad = Math.round((exercise.reference1RM * set.targetPercentageRM) / 100);
+                                    }
+
+                                    return (
+                                        <div key={set.id} className={`shrink-0 w-36 bg-[#0a0a0a] border ${isAmrap ? 'border-yellow-500/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]' : 'border-zinc-800'} rounded-2xl p-3 snap-center flex flex-col justify-between relative group`}>
+                                            {/* Cabecera Tarjetita */}
+                                            <div className="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
+                                                <span className="font-black text-zinc-500 text-[10px] bg-black px-2 py-0.5 rounded-full border border-zinc-800">S{setIndex + 1}</span>
+                                                <button type="button" onClick={() => onRemoveSet(setIndex)} className="text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><XIcon size={12}/></button>
+                                            </div>
+                                            
+                                            {/* Reps/Tiempo */}
+                                            <div className="flex flex-col items-center mb-3 bg-black/50 p-2 rounded-xl">
+                                                <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mb-1">{exercise.trainingMode === 'time' ? 'Segundos' : isAmrap ? 'Mínimo Reps' : 'Reps Target'}</span>
+                                                {exercise.trainingMode === 'time' ? (
+                                                    <input type="number" value={set.targetDuration ?? ''} onChange={e => handleSetChange(setIndex, 'targetDuration', parseInt(e.target.value))} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white" placeholder="0"/>
+                                                ) : (
+                                                    <input type="number" value={set.targetReps ?? ''} onChange={e => handleSetChange(setIndex, 'targetReps', parseInt(e.target.value))} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 ${isAmrap ? 'text-yellow-400' : 'text-white'}`}/>
+                                                )}
+                                            </div>
+
+                                            {/* Intensidad & Carga */}
+                                            <div className="flex items-center justify-between gap-1">
+                                                {isAmrap ? (
+                                                    <div className="flex-1 bg-yellow-900/20 border border-yellow-600/30 rounded p-1.5 flex justify-center text-center"><span className="text-[8px] font-black text-yellow-500 uppercase leading-none">{set.isCalibrator ? 'Calibrador' : 'Al Fallo'}</span></div>
+                                                ) : (
+                                                    <div className="flex flex-col flex-1 bg-zinc-900 p-1.5 rounded-lg border border-zinc-800">
+                                                        <select value={set.intensityMode || 'rpe'} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[8px] text-zinc-500 font-bold border-none focus:ring-0 uppercase p-0 mb-0.5"><option value="rpe">RPE</option><option value="rir">RIR</option><option value="failure">FAIL</option></select>
+                                                        {set.intensityMode !== 'failure' && (
+                                                            <input type="number" step="0.5" value={set.intensityMode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => handleSetChange(setIndex, set.intensityMode === 'rir' ? 'targetRIR' : 'targetRPE', parseFloat(e.target.value))} className="w-full bg-transparent text-sm font-bold text-white focus:border-white p-0 border-none" placeholder="-"/>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {exercise.trainingMode === 'percent' && (
+                                                    <div className="flex flex-col flex-1 bg-blue-900/10 p-1.5 rounded-lg border border-blue-500/20 items-center">
+                                                        <div className="flex items-center justify-center">
+                                                            <input type="number" value={set.targetPercentageRM ?? ''} onChange={e => handleSetChange(setIndex, 'targetPercentageRM', parseFloat(e.target.value))} className="w-8 text-center bg-transparent text-sm font-black p-0 border-none focus:ring-0 text-blue-400" placeholder="%"/>
+                                                        </div>
+                                                        {estimatedLoad !== null && <span className="text-[8px] font-mono text-zinc-400 mt-0.5">{estimatedLoad}kg</span>}
+                                                    </div>
+                                                )}
+                                                
+                                                <button onClick={() => { const newVal = !isAmrap; handleSetChange(setIndex, 'isAmrap', newVal); handleSetChange(setIndex, 'intensityMode', newVal ? 'amrap' : 'rpe'); }} className={`p-2 rounded-lg ml-1 border ${isAmrap ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'bg-black border-zinc-800 text-zinc-600 hover:text-white'}`}><FlameIcon size={12} /></button>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                                {!hideAddSetButton && (
+                                    <div className="shrink-0 w-24 flex flex-col gap-2 justify-center pl-2">
+                                        <button onClick={() => onAddSet()} className="w-full h-12 border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900 rounded-xl text-[10px] font-black uppercase text-zinc-400 hover:text-white transition-all flex items-center justify-center shadow-inner"><PlusIcon size={16}/></button>
+                                        <button onClick={() => setIsWarmupModalOpen(true)} className="w-full h-10 border border-zinc-800 bg-transparent hover:bg-zinc-900 rounded-xl text-[8px] font-black uppercase text-zinc-500 hover:text-white transition-all">Aprox</button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </details>
         </div>
@@ -1248,7 +1332,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     // NUEVOS ESTADOS ROADMAP, GUARDADO Y REGLAS
     const [emptyDaySelected, setEmptyDaySelected] = useState<number | null>(null);
-    const [globalSessionAlerts, setGlobalSessionAlerts] = useState<{ muscle: string; volume: number; threshold: number; failRatio: number; }[]>([]);
+    const [globalSessionAlerts, setGlobalSessionAlerts] = useState<{ muscle: string; volume: number; threshold: number; failRatio: number; message?: string }[]>([]);
     const [notifiedAlerts, setNotifiedAlerts] = useState<Set<string>>(new Set());
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
 
@@ -1258,15 +1342,23 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     useEffect(() => {
         globalSessionAlerts.forEach(alert => {
             if (!notifiedAlerts.has(alert.muscle)) {
-                addToast(`¡Cuidado! Volumen basura detectado en ${alert.muscle}. Revisa la tarjeta roja.`, "danger");
+                addToast(`¡Cuidado! Alerta de volumen en ${alert.muscle}. Revisa la tarjeta roja.`, "danger");
                 setNotifiedAlerts(prev => new Set(prev).add(alert.muscle));
             }
         });
     }, [globalSessionAlerts, notifiedAlerts, addToast]);
 
+    // ESTADO PARA ALERTAS DE CINETICA AVANZADA
+    const [neuralAlerts, setNeuralAlerts] = useState<{type: string, message: string, severity: 'warning'|'critical'}[]>([]);
+
     const culpritExerciseIds = useMemo(() => {
         const culprits = new Set<string>();
         const volMap: Record<string, number> = {};
+        let totalSpinalLoad = 0;
+        let elbowStress = 0;
+        let kneeStress = 0;
+        
+        const limits = settings?.volumeLimits || {};
         
         const allEx = [...(session?.exercises || [])];
         (session?.parts || []).forEach(p => allEx.push(...p.exercises));
@@ -1276,30 +1368,61 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             if (!info) return;
             
             let isCulprit = false;
-            const validSetsCount = ex.sets?.filter(s => (s as any).type !== 'warmup').length || 0;
-            if (validSetsCount === 0) return;
+            const validSets = ex.sets?.filter(s => (s as any).type !== 'warmup') || [];
+            if (validSets.length === 0) return;
 
-            info.involvedMuscles.forEach(m => {
-                const parent = normalizeMuscleGroup(m.muscle);
-                const hyperFactor = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.0;
-                const addedVol = hyperFactor * validSetsCount;
-                
-                const alert = globalSessionAlerts.find(a => a.muscle === parent);
-                const threshold = alert ? alert.threshold : 6; 
-                
-                if ((volMap[parent] || 0) + addedVol > threshold) {
-                    if ((volMap[parent] || 0) <= threshold) {
-                        isCulprit = true;
+            // 1. Detección Inteligente de Volumen Basura y Solapamiento
+            validSets.forEach(set => {
+                let rpe = set.targetRPE || 8;
+                if (set.intensityMode === 'rir' && set.targetRIR !== undefined) rpe = 10 - set.targetRIR;
+                if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap') rpe = 11;
+
+                let volMult = 1.0;
+                if (rpe >= 10) volMult = 1.2;
+                else if (rpe >= 8) volMult = 1.0;
+                else volMult = 0.6;
+
+                info.involvedMuscles.forEach(m => {
+                    const parent = normalizeMuscleGroup(m.muscle);
+                    const hyperFactor = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.0;
+                    const addedVol = hyperFactor * volMult;
+                    const limit = limits[parent]?.maxSession || 6;
+                    
+                    if ((volMap[parent] || 0) + addedVol > limit) {
+                        if ((volMap[parent] || 0) <= limit) isCulprit = true;
                     }
+                    volMap[parent] = (volMap[parent] || 0) + addedVol;
+                });
+                
+                // 2. Detección de Carga Espinal
+                if ((info.axialLoadFactor || 0) > 0) {
+                    totalSpinalLoad += (info.axialLoadFactor || 0);
                 }
-                volMap[parent] = (volMap[parent] || 0) + addedVol;
             });
+
+            // 3. Detección de Toxicidad Articular
+            const exName = info.name.toLowerCase();
+            const count = validSets.length;
+            if (exName.includes('press francés') || exName.includes('rompecráneos') || exName.includes('extensión en polea')) elbowStress += count;
+            if (exName.includes('extensión de cuádriceps') || exName.includes('sissy')) kneeStress += count;
             
             if (isCulprit) culprits.add(ex.id);
         });
+
+        const newAlerts: {type: string, message: string, severity: 'warning'|'critical'}[] = [];
+        if (totalSpinalLoad > 15) {
+            newAlerts.push({ type: 'Espinal', severity: 'critical', message: 'Carga Axial Crítica: Estás acumulando demasiada compresión en la zona lumbar. Considera cambiar ejercicios libres por máquinas para salvar tu espalda baja.' });
+        }
+        if (elbowStress > 8) {
+            newAlerts.push({ type: 'Articular', severity: 'warning', message: 'Estrés de Codo: Alta acumulación de trabajo aislado de tríceps. Sugerimos diversificar ángulos o bajar la intensidad para evitar tendinitis.' });
+        }
+        if (kneeStress > 8) {
+            newAlerts.push({ type: 'Articular', severity: 'warning', message: 'Fricción Patelar: Demasiada cizalla en la rodilla por extensiones puras. Asegura un buen calentamiento previo.' });
+        }
         
+        setNeuralAlerts(newAlerts);
         return culprits;
-    }, [session, globalSessionAlerts, exerciseList]);
+    }, [session, settings.volumeLimits, exerciseList]);
     const [transferMode, setTransferMode] = useState<'export'|'import'>('export');
     const [transferTargetId, setTransferTargetId] = useState<string>('');
     const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
@@ -1535,7 +1658,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     // --- BLOQUE 1: REEMPLAZAR EL RETURN DEL COMPONENTE PRINCIPAL ---
     return (
-        <div className="relative h-full flex flex-col bg-black text-white">
+        <div className="fixed inset-0 z-[9999] flex flex-col bg-black text-white animate-slide-up">
              {isBgModalOpen && <BackgroundEditorModal 
                 isOpen={isBgModalOpen} 
                 onClose={() => setIsBgModalOpen(false)} 
@@ -1547,39 +1670,84 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             />}
             
             {/* --- HEADER (High Contrast Black) --- */}
-            <div className="relative flex-shrink-0 bg-black border-b border-white/20 z-20 min-h-[120px]">
-                 <div className="absolute inset-0 z-0 opacity-30" style={{ ...headerStyle, backgroundSize: 'cover', filter: session.coverStyle ? getFilterString() : 'none' }}></div>
-                 <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/20 via-black/60 to-black"></div>
-                 
-                 <div className="relative z-10 p-5 space-y-4">
-                    <input 
-                        type="text" 
-                        value={session.name} 
-                        onChange={e => updateSession(d => {d.name = e.target.value})} 
-                        placeholder="NOMBRE DE LA SESIÓN" 
-                        className="text-3xl font-black text-white bg-transparent border-none focus:ring-0 w-full p-0 leading-tight tracking-tighter uppercase placeholder-zinc-700" 
+            <div className="relative flex-shrink-0 bg-black border-b border-white/20 z-20 min-h-[140px] pt-8">
+                {/* BOTÓN CERRAR FULLSCREEN */}
+                <button onClick={onCancel} className="absolute top-4 right-4 z-50 p-2 bg-black/50 backdrop-blur-md rounded-full text-zinc-400 hover:text-white transition-colors border border-white/10">
+                    <XIcon size={18} />
+                </button>
+
+                <div className="absolute inset-0 z-0 opacity-30" style={{ ...headerStyle, backgroundSize: 'cover', filter: session.coverStyle ? getFilterString() : 'none' }}></div>
+                <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/20 via-black/60 to-black"></div>
+
+                <div className="relative z-10 p-5 space-y-4">
+                    <input
+                        type="text"
+                        value={session.name}
+                        onChange={e => updateSession(d => { d.name = e.target.value; })}
+                        placeholder="NOMBRE DE LA SESIÓN"
+                        className="text-3xl font-black text-white bg-transparent border-none focus:ring-0 w-[85%] p-0 leading-tight tracking-tighter uppercase placeholder-zinc-700"
                     />
                     <div className="flex gap-2 items-center">
-                        <input 
-                            type="text" 
-                            value={session.description} 
-                            onChange={e => updateSession(d => {d.description = e.target.value})} 
-                            placeholder="Añade una descripción..." 
-                            className="text-xs text-zinc-300 bg-transparent border-none focus:ring-0 flex-grow p-0 placeholder-zinc-600 font-medium" 
+                        <input
+                            type="text"
+                            value={session.description}
+                            onChange={e => updateSession(d => { d.description = e.target.value; })}
+                            placeholder="Añade una descripción..."
+                            className="text-xs text-zinc-300 bg-transparent border-none focus:ring-0 flex-grow p-0 placeholder-zinc-600 font-medium"
                         />
-                        <button onClick={() => setIsBgModalOpen(true)} className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-all text-zinc-400"><ImageIcon size={16} /></button>
+                        <button onClick={() => setIsBgModalOpen(true)} className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-all text-zinc-400">
+                            <ImageIcon size={16} />
+                        </button>
                     </div>
-                    
-                    {/* ACCIONES DE SESIÓN (Transferir) */}
-                    <div className="flex items-center gap-3 pt-1">
-                         <div className="flex items-center gap-3">
+
+                    {/* ACCIONES DE SESIÓN (Transferir, Modo Básico y Varita Mágica) */}
+                    <div className="flex items-center justify-between pt-1">
+                        <div className="flex items-center gap-3">
                             {activeSessionId !== 'empty' && (
-                                <button onClick={() => setIsTransferModalOpen(true)} className="px-4 py-1.5 bg-white text-black hover:scale-105 rounded-lg text-[10px] font-black uppercase transition-all flex items-center gap-1"><LayersIcon size={14}/> Transferir / Recibir</button>
+                                <button onClick={() => setIsTransferModalOpen(true)} className="px-4 py-1.5 bg-white text-black hover:scale-105 rounded-lg text-[10px] font-black uppercase transition-all flex items-center gap-1">
+                                    <LayersIcon size={14} /> Transferir
+                                </button>
                             )}
                         </div>
+
+                        {/* TOGGLE VARITA MÁGICA Y MEET DAY */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => updateSession(d => { d.isMeetDay = !d.isMeetDay; })}
+                                className={`p-2 rounded-lg border transition-all ${session.isMeetDay ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]' : 'bg-black border-white/10 text-zinc-500 hover:text-white'}`}
+                                title="Modo Competición (Game Day)"
+                            >
+                                <TrophyIcon size={16} />
+                            </button>
+                            <button
+                                onClick={() => { setBulkScope(bulkScope === 'manual' ? 'session' : 'manual'); setIsAnalysisExpanded(true); }}
+                                className={`p-2 rounded-lg border transition-all flex items-center gap-1 ${bulkScope === 'manual' && isAnalysisExpanded ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'bg-black border-white/10 text-zinc-500 hover:text-white'}`}
+                                title="Edición Lote (Varita Mágica)"
+                            >
+                                <WandIcon size={16} />
+                            </button>
+                        </div>
                     </div>
-                 </div>
+                </div>
             </div>
+
+            {/* MODAL DE FONDO */}
+            {isBgModalOpen && (
+                <BackgroundEditorModal
+                    isOpen={isBgModalOpen}
+                    onClose={() => setIsBgModalOpen(false)}
+                    onSave={(background, coverStyle) => {
+                        updateSession(d => {
+                            if (background) d.background = background;
+                            if (coverStyle) d.coverStyle = coverStyle;
+                        });
+                    }}
+                    initialBackground={session.background}
+                    initialCoverStyle={session.coverStyle}
+                    previewTitle={session.name}
+                    isOnline={isOnline}
+                />
+            )}
 
             {/* MODALES DE ACCIÓN CONTEXTUAL */}
             <Modal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} title="Transferencia de Sesión">
@@ -1765,16 +1933,86 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                      }
                  }}
             >
-                {/* ALERTA CRÍTICA DE VOLUMEN BASURA */}
-                {activeSessionId !== 'empty' && globalSessionAlerts && globalSessionAlerts.length > 0 && (
-                    <div className="bg-red-950/80 border-l-4 border-red-500 p-4 rounded-r-xl shadow-2xl flex items-start gap-3 animate-slide-up sticky top-0 z-30 backdrop-blur-md">
-                        <AlertTriangleIcon className="text-red-500 shrink-0 mt-0.5" size={24} />
-                        <div>
-                            <h4 className="text-red-400 font-black uppercase tracking-widest text-[10px]">Alerta de Volumen Basura</h4>
-                            <p className="text-[10px] text-red-200 mt-1 leading-relaxed">
-                                Has superado el umbral de hipertrofia. <strong className="text-white">{globalSessionAlerts.map((a: any) => `${a.muscle} (${a.volume.toFixed(1)} s)`).join(', ')}</strong>. Continuar agregando series generará fatiga sin resultados.
-                            </p>
+                {/* PANEL GAME DAY (MEET REPORT) */}
+                {session.isMeetDay && (
+                    <div className="bg-gradient-to-br from-yellow-900/30 to-black border border-yellow-500/50 p-5 rounded-2xl shadow-[0_0_30px_rgba(250,204,21,0.15)] flex flex-col gap-4 animate-fade-in relative overflow-hidden">
+                        <div className="absolute -right-10 -top-10 opacity-10 text-yellow-500"><TrophyIcon size={120} /></div>
+                        
+                        <div className="flex justify-between items-center z-10">
+                            <div>
+                                <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2"><TrophyIcon size={20} className="text-yellow-400"/> Game Day / Meet</h3>
+                                <p className="text-[10px] text-yellow-200/60 font-bold uppercase tracking-widest mt-1">Simulador de Competición</p>
+                            </div>
+                            <div className="flex items-center gap-2 bg-black border border-yellow-500/30 px-3 py-2 rounded-xl">
+                                <span className="text-[9px] text-zinc-400 uppercase font-bold">Pesaje (BW)</span>
+                                <input type="number" value={session.meetBodyweight || ''} onChange={e => updateSession(d => {d.meetBodyweight = parseFloat(e.target.value)})} className="w-14 bg-transparent text-white font-black text-sm p-0 border-none focus:ring-0 text-center" placeholder="kg"/>
+                            </div>
                         </div>
+
+                        {/* Calculadora en Vivo (DOTS/Total) */}
+                        <div className="grid grid-cols-2 gap-3 z-10">
+                            <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex flex-col items-center">
+                                <span className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Total Proyectado</span>
+                                <span className="text-2xl font-black text-white">
+                                    {(() => {
+                                        let total = 0;
+                                        (session.parts || []).forEach(p => p.exercises.forEach(ex => {
+                                            if (ex.isCompetitionLift) {
+                                                // Busca el intento válido más pesado
+                                                const bestGoodLift = Math.max(...ex.sets.filter(s => s.attemptResult === 'good').map(s => s.weight || 0), 0);
+                                                total += bestGoodLift;
+                                            }
+                                        }));
+                                        return total;
+                                    })()} <span className="text-xs text-zinc-500">kg</span>
+                                </span>
+                            </div>
+                            <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex flex-col items-center">
+                                <span className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Puntos DOTS</span>
+                                <span className="text-2xl font-black text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
+                                    {(() => {
+                                        let total = 0;
+                                        (session.parts || []).forEach(p => p.exercises.forEach(ex => {
+                                            if (ex.isCompetitionLift) {
+                                                const bestGoodLift = Math.max(...ex.sets.filter(s => s.attemptResult === 'good').map(s => s.weight || 0), 0);
+                                                total += bestGoodLift;
+                                            }
+                                        }));
+                                        return calculateDOTS(total, session.meetBodyweight || 0, true);
+                                    })()}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ALERTAS BIOMECÁNICAS Y NEURALES (KPKN ENGINE) */}
+                {activeSessionId !== 'empty' && (
+                    <div className="space-y-3 sticky top-0 z-30 pt-2 backdrop-blur-md">
+                        {globalSessionAlerts.length > 0 && (
+                            <div className="bg-red-950/80 border-l-4 border-red-500 p-3 rounded-r-xl shadow-lg flex items-start gap-3 animate-slide-up">
+                                <AlertTriangleIcon className="text-red-500 shrink-0 mt-0.5" size={20} />
+                                <div className="space-y-1 w-full pr-2">
+                                    <h4 className="text-red-400 font-black uppercase tracking-widest text-[9px]">Alerta de Recuperación</h4>
+                                    {globalSessionAlerts.map((a: any) => (
+                                        <div key={a.muscle} className="text-[10px] text-red-200 leading-tight">
+                                            <strong className="text-white">{a.muscle}:</strong> {a.message || 'Límite de volumen superado.'}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {neuralAlerts.map((alert, idx) => (
+                            <div key={idx} className={`border-l-4 p-3 rounded-r-xl shadow-lg flex items-start gap-3 animate-slide-up ${alert.severity === 'critical' ? 'bg-orange-950/80 border-orange-500' : 'bg-yellow-950/80 border-yellow-500'}`}>
+                                <div className={alert.severity === 'critical' ? 'text-orange-500 shrink-0' : 'text-yellow-500 shrink-0'}>
+                                    <ActivityIcon size={20} />
+                                </div>
+                                <div>
+                                    <h4 className={`${alert.severity === 'critical' ? 'text-orange-400' : 'text-yellow-400'} font-black uppercase tracking-widest text-[9px]`}>Alerta {alert.type}</h4>
+                                    <p className={`text-[10px] ${alert.severity === 'critical' ? 'text-orange-200' : 'text-yellow-200'} mt-0.5 leading-relaxed`}>{alert.message}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
 
@@ -1885,6 +2123,16 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 </div>
                 </>
                 )}
+                {/* --- BOTÓN GUARDAR FLOTANTE ESTILO BOTTOM SHEET --- */}
+                <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent pt-24 z-[10000] flex justify-center pointer-events-none">
+                    <button 
+                        onClick={handleSave} 
+                        className="pointer-events-auto w-full max-w-sm bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent hover:border-black"
+                    >
+                        <CheckIcon size={18}/>
+                        <span>Guardar Sesión</span>
+                    </button>
+                </div>
             </div>
         </div>
     );

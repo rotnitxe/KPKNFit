@@ -244,6 +244,10 @@ export interface Settings {
   autoSyncEnabled: boolean;
   appBackground?: SessionBackground;
   homeWidgetOrder?: string[];
+  
+  // --- LÍMITES CALIBRADOS DEL ATLETA (KPKN ENGINE) ---
+  // Guarda el tope por músculo. Ej: { "Pectoral": { maxSession: 8, max: 18 } }
+  volumeLimits?: Record<string, { maxSession: number; max: number; min?: number }>;
 }
 
 export interface Program {
@@ -341,6 +345,9 @@ export interface Session {
   sessionB?: Session;
   sessionC?: Session;
   sessionD?: Session;
+  isMeetDay?: boolean;
+  meetBodyweight?: number;
+  meetResults?: { placement?: string; total?: number; dots?: number; awards?: string[] };
 }
 
 export interface SessionPart {
@@ -396,6 +403,7 @@ export interface Exercise {
   goal1RM?: number;
   calculated1RM?: number;
   damageProfile?: 'stretch' | 'squeeze' | 'normal'; 
+  isCompetitionLift?: boolean;
 }
 
 export interface ExerciseSet {
@@ -425,6 +433,8 @@ export interface ExerciseSet {
   performanceMode?: 'target' | 'failure' | 'failed';
   technicalWeight?: number;
   consolidatedWeight?: number;
+  attemptResult?: 'good' | 'no-lift' | 'pending';
+  judgingLights?: [boolean | null, boolean | null, boolean | null];
 }
 
 // NUEVO: Definimos los roles exactos (AUGE)
