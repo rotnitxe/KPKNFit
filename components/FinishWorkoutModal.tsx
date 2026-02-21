@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
 import { DISCOMFORT_LIST } from '../data/discomfortList';
-import { CheckCircleIcon, ArrowUpIcon, ArrowDownIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, DumbbellIcon, ClockIcon } from './icons';
+import { CheckCircleIcon, ArrowUpIcon, ArrowDownIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, DumbbellIcon, ClockIcon, FlameIcon } from './icons';
 import { useAppDispatch } from '../contexts/AppContext';
 import { shareElementAsImage } from '../services/shareService';
 import CaupolicanBackground from './social/CaupolicanBackground';
@@ -232,16 +232,53 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
                 </div>
             </div>
             
-            <div className="space-y-4">
-                <SliderInput label="Dificultad de la Sesión" value={sessionDifficulty} onChange={setSessionDifficulty} />
-                <SliderInput label="Claridad Mental" value={mentalClarity} onChange={setMentalClarity} />
-                <SliderInput label="Bombeo Muscular (Pump)" value={pump} onChange={setPump} />
-                <SliderInput label="Fatiga General" value={fatigueLevel} onChange={setFatigueLevel} />
+            <div className="space-y-6 bg-zinc-950/50 p-5 rounded-3xl border border-white/5 shadow-inner">
+                <div>
+                    <label className="block text-[10px] font-black text-sky-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <ZapIcon size={14}/> RPE Global de la Sesión
+                    </label>
+                    <div className="flex items-center gap-4">
+                        <input type="range" min="1" max="10" value={sessionDifficulty} onChange={(e) => setSessionDifficulty(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 accent-sky-500" />
+                        <span className="text-xl font-black text-white w-8 text-right tabular-nums">{sessionDifficulty}</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label className="block text-[10px] font-black text-rose-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <ActivityIcon size={14}/> Drenaje del SNC (Estrés Central)
+                    </label>
+                    <div className="flex items-center gap-4">
+                        <input type="range" min="1" max="10" value={fatigueLevel} onChange={(e) => setFatigueLevel(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 accent-rose-500" />
+                        <span className="text-xl font-black text-white w-8 text-right tabular-nums">{fatigueLevel}</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-[10px] font-black text-amber-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <FlameIcon size={14}/> Daño Muscular (Pump)
+                    </label>
+                    <div className="flex items-center gap-4">
+                        <input type="range" min="1" max="10" value={pump} onChange={(e) => setPump(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 accent-amber-500" />
+                        <span className="text-xl font-black text-white w-8 text-right tabular-nums">{pump}</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <BrainIcon size={14}/> Claridad Mental
+                    </label>
+                    <div className="flex items-center gap-4">
+                        <input type="range" min="1" max="10" value={mentalClarity} onChange={(e) => setMentalClarity(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 accent-indigo-500" />
+                        <span className="text-xl font-black text-white w-8 text-right tabular-nums">{mentalClarity}</span>
+                    </div>
+                </div>
             </div>
             
-            <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
-            <TagGroup title="Adherencia" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
-            <TagGroup title="Molestias Articulares" tags={DISCOMFORT_LIST} selected={selectedDiscomforts} onToggle={(tag) => toggleTag(tag, selectedDiscomforts, setSelectedDiscomforts)} />
+            <div className="space-y-4 pt-2">
+                <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
+                <TagGroup title="Adherencia" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
+                <TagGroup title="Alertas de Caupolicán Body (Articulaciones)" tags={DISCOMFORT_LIST} selected={selectedDiscomforts} onToggle={(tag) => toggleTag(tag, selectedDiscomforts, setSelectedDiscomforts)} />
+            </div>
             
             <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Notas del Diario</label>

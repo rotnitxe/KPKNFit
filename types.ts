@@ -532,6 +532,7 @@ export interface BrandEquivalency {
 }
 
 export interface OngoingWorkoutState {
+    readinessData?: any; // <-- SISTEMA AUGE
     programId: string;
     session: Session;
     startTime: number;
@@ -614,6 +615,7 @@ export interface UnilateralSetInputs {
 }
 
 export interface WorkoutLog {
+    readinessData?: any; // <-- SISTEMA AUGE
     id: string;
     programId: string;
     programName: string;
