@@ -1048,12 +1048,12 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
   const [showCalibrationAlert, setShowCalibrationAlert] = useState(false); // Nuevo estado
 
   const handleAttemptNextStep = () => {
-      if (!athleteScore) {
-          setShowCalibrationAlert(true);
-      } else {
-          setWizardStep(1);
-      }
-  };
+    if (!athleteScore) {
+        setShowCalibrationAlert(true);
+    } else {
+        handleCreate(false);
+    }
+};
 
   // Estados de Configuración de Tiempo y Días
   const [startDay, setStartDay] = useState(1);
@@ -1690,17 +1690,6 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                     }
                 }
             });
-
-            wizardEvents.filter(e => e.calculatedWeek === globalWeekIndex).forEach(ev => {
-                let evName = `📌 ${ev.title.toUpperCase()}`; let evDesc = `{"type":"${ev.type}"}`; let evDay = 6;
-                if (ev.type === 'powerlifting_comp') { evName = `🏆 COMP: ${ev.title}`; evDay = 6; }
-                if (ev.type === 'bodybuilding_comp') { evName = `✨ TARIMA: ${ev.title}`; evDay = 6; }
-                if (ev.type === '1rm_test') { evName = `🎯 TEST 1RM: ${ev.title}`; evDay = 5; }
-                if (ev.type === 'admission_test') { evName = `🏅 PRUEBA: ${ev.title}`; evDay = 5; }
-                if (ev.type === 'vacation') { evName = `🌴 VACACIONES: ${ev.title}`; evDay = 0; }
-                if (ev.type === 'exams') { evName = `📚 EXÁMENES: ${ev.title}`; evDay = 0; }
-                sessions.push({ id: crypto.randomUUID(), name: evName, description: evDesc, exercises: [], dayOfWeek: evDay });
-            });
             return sessions;
         };
 
@@ -1723,46 +1712,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                  };
              });
 
-             // DIVISIÓN AUTOMÁTICA EN MACROCICLOS POR EVENTO
-             const macroEvents = [...wizardEvents]
-                 .filter(e => e.createMacrocycle)
-                 .sort((a, b) => a.calculatedWeek - b.calculatedWeek);
-            
-             if (macroEvents.length === 0) {
-                 newProgram.macrocycles.push({ id: crypto.randomUUID(), name: 'Macrociclo Principal', blocks: blocks });
-             } else {
-                 let lastProcessedWeek = 0;
-                 macroEvents.forEach((ev, idx) => {
-                     const blocksForThisMacro: Block[] = [];
-                     let currentMacroWeeks = 0;
-                    
-                     for (let b of blocks) {
-                          const blockWeeks = b.mesocycles.reduce((acc, m) => acc + m.weeks.length, 0);
-                          if (lastProcessedWeek + currentMacroWeeks < ev.calculatedWeek + 1) {
-                              blocksForThisMacro.push(b);
-                              currentMacroWeeks += blockWeeks;
-                          }
-                     }
-                    
-                     lastProcessedWeek += currentMacroWeeks;
-                    
-                     newProgram.macrocycles.push({ 
-                         id: crypto.randomUUID(), 
-                         name: ev.title ? `Road to ${ev.title}` : `Macrociclo ${idx + 1}`, 
-                         blocks: blocksForThisMacro.length > 0 ? JSON.parse(JSON.stringify(blocksForThisMacro)) : [] 
-                     });
-                 });
-                
-                 const remainingBlocks = blocks.filter(b => {
-                      const totalWeeksInNewMacros = newProgram.macrocycles.reduce((acc, m) => acc + (m.blocks||[]).reduce((a,b)=>a+b.mesocycles.reduce((x,y)=>x+y.weeks.length,0),0), 0);
-                      const blockStartWeek = blocks.indexOf(b) > 0 ? blocks.slice(0, blocks.indexOf(b)).reduce((a,x)=>a+x.mesocycles.reduce((y,z)=>y+z.weeks.length,0),0) : 0;
-                      return blockStartWeek >= totalWeeksInNewMacros;
-                 });
-                
-                 if (remainingBlocks.length > 0) {
-                      newProgram.macrocycles.push({ id: crypto.randomUUID(), name: 'Fase Post-Evento / Off-Season', blocks: remainingBlocks });
-                 }
-             }
+             newProgram.macrocycles.push({ id: crypto.randomUUID(), name: 'Macrociclo Principal', blocks: blocks });
 
             } else {
                 // LÓGICA REFINADA: PROGRAMA SIMPLE (CÍCLICO)
@@ -2174,19 +2124,12 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             <div className="pt-8 pb-4 px-6 bg-black flex-shrink-0 z-20 border-b border-white/5">
                  <div className="relative max-w-md mx-auto text-center">
                  <div className="flex justify-between items-center mb-2">
-                        {wizardStep > 0 ? (
-                            <button onClick={() => setWizardStep(prev => prev - 1)} className="text-gray-500 hover:text-white transition-colors">
-                                <ArrowUpIcon size={20} className="-rotate-90"/>
-                            </button>
-                        ) : (
-                            <button onClick={onCancel} className="text-gray-500 hover:text-red-500 transition-colors" title="Salir del Wizard">
-                                <XIcon size={20}/>
-                            </button>
-                        )}
+                        <button onClick={onCancel} className="text-gray-500 hover:text-red-500 transition-colors" title="Salir del Wizard">
+                            <XIcon size={20}/>
+                        </button>
                         <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex-1 text-center">
-                            {wizardStep === 0 ? 'Paso 1: Estructura' : 'Paso 2: Roadmap y Sesiones'}
+                            Creación de Programa
                         </h2>
-                        {wizardStep > 0 && <div className="w-5" />} {/* Spacer */}
                      </div>
                      <input
                         ref={nameInputRef}
@@ -2195,7 +2138,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                         onChange={(e) => setProgramName(e.target.value)}
                         placeholder="NOMBRE DEL PROGRAMA"
                         className="w-full bg-transparent border-none py-2 text-2xl font-black text-center text-white placeholder-white/20 focus:ring-0 transition-all uppercase tracking-tighter"
-                        autoFocus={wizardStep === 0}
+                        autoFocus={true}
                     />
                 </div>
             </div>
@@ -2231,7 +2174,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                             <button onClick={() => { setShowCalibrationAlert(false); setShowProfilingWizard(true); }} className="w-full py-4 bg-white text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform shadow-lg shadow-white/10">
                                                 Calibrar Perfil
                                             </button>
-                                            <button onClick={() => { setShowCalibrationAlert(false); setWizardStep(1); }} className="text-[10px] font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-colors py-2">
+                                            <button onClick={() => { setShowCalibrationAlert(false); handleCreate(false); }} className="text-[10px] font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-colors py-2">
                                                 Omitir por ahora
                                             </button>
                                         </div>
@@ -2564,7 +2507,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                 )}
                             </div>
 
-                             {/* Botón Flotante Siguiente */}
+                            {/* Botón Flotante Siguiente */}
                              <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-50 pointer-events-none">
                                 <button 
                                     onClick={handleAttemptNextStep} // Validar calibración antes de ir al paso intermedio
@@ -2572,7 +2515,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                     className={`pointer-events-auto bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all duration-500 flex items-center gap-3 ${!selectedSplit ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}
                                 >
                                     Siguiente: Vista General <ArrowDownIcon size={16} className="-rotate-90"/>
-                                </button>
+                                </button> 
 
                             {/* === BOTÓN DE CONTINUAR PERMANENTE === */}
                             <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/90 to-transparent pt-32 z-40 flex flex-col items-center justify-end pointer-events-none">
@@ -2625,355 +2568,45 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                     {wizardStep === 1 && (
                         <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in-up">
                             
-                            {/* BOTONES FLOTANTES */}
-                            <button 
-                                onClick={() => setWizardStep(0)} 
-                                className="fixed top-4 left-4 z-[220] p-2.5 rounded-full bg-black/40 text-white border border-white/10 backdrop-blur-md hover:bg-white/20 transition-all shadow-lg"
-                                title="Volver al paso anterior"
-                            >
-                                <ArrowLeftIcon size={18} />
-                            </button>
-                            <button 
-                                onClick={() => {
-                                    if (window.confirm('¿Seguro que quieres salir? Perderás los cambios no guardados.')) {
-                                        onCancel();
-                                    }
-                                }}  
-                                className="fixed top-4 right-4 z-[220] p-2.5 rounded-full bg-black/40 text-gray-400 border border-white/10 backdrop-blur-md hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all shadow-lg"
-                                title="Cancelar y salir"
-                            >
-                                <XIcon size={18} />
-                            </button>
-
-                            {/* CONTENEDOR DE SCROLL UNIFICADO */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar pb-40">
-
-                                {/* --- SECCIÓN 1: GESTOR ESTRICTO DE FECHAS CLAVE VS EVENTOS --- */}
-                                <div className="px-6 pt-16 pb-6 bg-[#050505] border-b border-white/5 relative z-20">
-                                    <div className="flex flex-col gap-5 max-w-4xl mx-auto">
-                                        <div className="flex justify-between items-center">
-                                            <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none flex items-center gap-2">
-                                                <CalendarIcon size={20} className="text-white"/>
-                                                {selectedTemplateId.includes('complex') ? 'Fechas Clave y Roadmap' : 'Eventos Cíclicos'}
-                                            </h3>
-                                            <div className="text-right">
-                                                <span className="text-[9px] text-gray-500 font-mono uppercase block">Semanas Base</span>
-                                                <div className="text-xl font-black text-white leading-none mt-1">
-                                                    {selectedTemplateId === 'power-complex' ? blockDurations.reduce((a,b)=>a+b,0) : wizardSimpleWeeks}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Explicación Pedagógica de la Diferencia */}
-                                        <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl flex gap-3 shadow-sm">
-                                            <InfoIcon size={20} className="text-blue-400 shrink-0 mt-0.5" />
-                                            <p className="text-[10px] text-blue-200 leading-relaxed font-medium">
-                                                {selectedTemplateId.includes('complex') 
-                                                    ? <><strong className="text-white">Estás en un Programa Avanzado.</strong> Aquí usas <strong>Fechas Clave</strong>: Hitos únicos en tu línea de tiempo (como un torneo, toma de marcas o vacaciones) que te permiten organizar y cortar tus bloques de forma lineal.</>
-                                                    : <><strong className="text-white">Estás en un Programa Simple.</strong> Aquí usas <strong>Eventos Cíclicos</strong>: Acciones que se repiten sistemáticamente cada cierta cantidad de ciclos (ej. Prueba de 1RM cada 4 vueltas) en tu bucle infinito.</>}
-                                            </p>
-                                        </div>
-                                        
-                                        {/* Creador Inteligente (Se adapta según el tipo de programa) */}
-                                        <div className="bg-[#111] border border-white/10 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                <input type="text" id="wz-ev-title" placeholder="Nombre (Ej: Test de Fuerza)" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-xl p-3 outline-none uppercase tracking-widest focus:border-white" />
-                                                <select id="wz-ev-type" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-xl p-3 outline-none cursor-pointer focus:border-white">
-                                                    <option value="1rm_test">🎯 Test 1RM</option>
-                                                    <option value="powerlifting_comp">🏆 Competición PL</option>
-                                                    <option value="bodybuilding_comp">✨ Tarima Culturismo</option>
-                                                    <option value="admission_test">🏅 Prueba Física</option>
-                                                    {selectedTemplateId.includes('complex') && <option value="vacation">🌴 Vacaciones / Viaje</option>}
-                                                    {selectedTemplateId.includes('complex') && <option value="exams">📚 Semana de Exámenes</option>}
-                                                </select>
-                                            </div>
-
-                                            <div className="flex items-end gap-3">
-                                                {selectedTemplateId.includes('complex') ? (
-                                                    // INPUTS PARA PROGRAMA AVANZADO (FECHAS EXACTAS)
-                                                    <>
-                                                        <div className="flex flex-col flex-1">
-                                                            <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1 ml-1">Fecha de Inicio</span>
-                                                            <input type="date" id="wz-ev-date" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-xl p-3 outline-none w-full focus:border-white" />
-                                                        </div>
-                                                        <div className="flex flex-col flex-1">
-                                                            <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1 ml-1">Fecha Fin (Opcional)</span>
-                                                            <input type="date" id="wz-ev-end" className="bg-black border border-white/10 text-[10px] font-bold text-white rounded-xl p-3 outline-none w-full focus:border-white" />
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    // INPUTS PARA PROGRAMA SIMPLE (FRECUENCIA DE CICLOS)
-                                                    <div className="flex flex-col flex-1">
-                                                        <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1 ml-1">Frecuencia del Evento</span>
-                                                        <div className="flex items-center gap-3 bg-black border border-white/10 rounded-xl p-1 pr-4">
-                                                            <span className="pl-3 text-[10px] text-gray-400 font-bold uppercase">Repetir cada</span>
-                                                            <input type="number" id="wz-ev-cycles" defaultValue="4" min="1" className="bg-zinc-900 border border-white/5 text-xs font-black text-white rounded-lg p-2 outline-none w-16 text-center focus:border-white" />
-                                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Ciclos</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <button onClick={() => {
-                                                    const titleEl = document.getElementById('wz-ev-title') as HTMLInputElement;
-                                                    const tEl = document.getElementById('wz-ev-type') as HTMLSelectElement;
-                                                    const isComplex = selectedTemplateId.includes('complex');
-                                                    
-                                                    const title = titleEl.value;
-                                                    const type = tEl.value;
-                                                    const editId = titleEl.dataset.editId;
-
-                                                    if (isComplex) {
-                                                        const dEl = document.getElementById('wz-ev-date') as HTMLInputElement;
-                                                        const eEl = document.getElementById('wz-ev-end') as HTMLInputElement;
-                                                        const divMacroEl = document.getElementById('wz-ev-macro') as HTMLInputElement;
-                                                        const d = dEl.value;
-                                                        
-                                                        if (!d) { addToast('Selecciona la fecha de inicio', 'danger'); return; }
-                                                        const diffWeeks = Math.max(0, Math.ceil((new Date(d).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 7)));
-                                                        
-                                                        const newEv = { id: editId || crypto.randomUUID(), title: title || 'Evento', type, date: d, endDate: eEl?.value, calculatedWeek: diffWeeks, createMacrocycle: divMacroEl?.checked };
-                                                        
-                                                        if (editId) setWizardEvents(wizardEvents.map(ev => ev.id === editId ? newEv : ev));
-                                                        else setWizardEvents([...wizardEvents, newEv]);
-                                                        
-                                                        dEl.value = ''; if(eEl) eEl.value = ''; if(divMacroEl) divMacroEl.checked = false;
-                                                    } else {
-                                                        const cEl = document.getElementById('wz-ev-cycles') as HTMLInputElement;
-                                                        const cycles = parseInt(cEl.value) || 4;
-                                                        
-                                                        const newEv = { id: editId || crypto.randomUUID(), title: title || 'Evento', type, date: new Date().toISOString(), calculatedWeek: 0, repeatEveryXCycles: cycles };
-                                                        
-                                                        if (editId) setWizardEvents(wizardEvents.map(ev => ev.id === editId ? newEv : ev));
-                                                        else setWizardEvents([...wizardEvents, newEv]);
-                                                        
-                                                        cEl.value = '4';
-                                                    }
-                                                    
-                                                    titleEl.value = '';
-                                                    titleEl.dataset.editId = '';
-                                                    addToast('Agregado al Roadmap', 'success');
-                                                }} className="bg-white text-black p-3 rounded-xl hover:scale-105 transition-transform flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)] shrink-0 h-[46px] w-[46px]">
-                                                    <PlusIcon size={18}/>
-                                                </button>
-                                            </div>
-                                            
-                                            {/* Checkbox Macrociclos (Solo Avanzado) */}
-                                            {selectedTemplateId.includes('complex') && (
-                                                <div className="flex items-center gap-2 mt-1 ml-1">
-                                                    <input type="checkbox" id="wz-ev-macro" className="accent-blue-500 w-3 h-3 bg-black border-white/20 rounded cursor-pointer" />
-                                                    <label htmlFor="wz-ev-macro" className="text-[9px] font-bold text-gray-400 uppercase tracking-widest cursor-pointer hover:text-white transition-colors">
-                                                        Crear Macrociclo exclusivo ("Road to...") con esta fecha
-                                                    </label>
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        {/* BARRAS VISUALES (LINEAL vs CIRCULAR) */}
-                                        {wizardEvents.length > 0 && (
-                                            <div className="mt-8 border-t border-white/5 pt-8">
-                                                {selectedTemplateId.includes('complex') ? (
-                                                    // TIMELINE LINEAL (AVANZADO)
-                                                    <div className="relative mb-6 h-8">
-                                                        {(() => {
-                                                            const totalProgramWeeks = blockDurations.reduce((a,b)=>a+b,0);
-                                                            const maxEventWeek = Math.max(...wizardEvents.map(e => e.calculatedWeek + 1));
-                                                            const displayMaxWeeks = Math.max(12, totalProgramWeeks + 2, maxEventWeek + 2);
-                                                            const currentProgressPct = Math.min(100, (totalProgramWeeks / displayMaxWeeks) * 100);
-
-                                                            return (
-                                                                <div className="w-full h-full relative">
-                                                                    <div className="absolute top-1/2 left-0 right-0 h-1.5 -translate-y-1/2 bg-white/5 rounded-full"></div>
-                                                                    <div className="absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full transition-all duration-500 ease-out bg-white shadow-[0_0_15px_rgba(255,255,255,0.4)]" style={{ width: `${currentProgressPct}%` }}></div>
-                                                                    
-                                                                    <div className="absolute top-1/2 w-1 h-4 bg-white -translate-y-1/2 z-10 shadow-[0_0_10px_white]" style={{ left: `${currentProgressPct}%`, transform: 'translate(-50%, -50%)' }}>
-                                                                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-black text-white bg-black/80 px-2 py-0.5 rounded border border-white/20 whitespace-nowrap">
-                                                                            {totalProgramWeeks} W
-                                                                        </span>
-                                                                    </div>
-
-                                                                    {wizardEvents.map((ev, i) => (
-                                                                        <TimelineEventCircle
-                                                                            key={ev.id || i}
-                                                                            ev={ev}
-                                                                            displayMaxWeeks={displayMaxWeeks}
-                                                                            totalProgramWeeks={totalProgramWeeks}
-                                                                            maxEventWeek={maxEventWeek}
-                                                                            onEdit={(editEv) => {
-                                                                                const titleEl = document.getElementById('wz-ev-title') as HTMLInputElement;
-                                                                                if (titleEl) { titleEl.value = editEv.title; titleEl.dataset.editId = editEv.id; }
-                                                                                addToast('Editando fecha clave...', 'success');
-                                                                            }}
-                                                                            onUpdateWeek={(updatedEv, newWeek) => {
-                                                                                const newDate = new Date(); newDate.setDate(newDate.getDate() + (newWeek * 7));
-                                                                                setWizardEvents(wizardEvents.map(e => e.id === updatedEv.id ? { ...e, calculatedWeek: newWeek, date: newDate.toISOString().split('T')[0] } : e));
-                                                                            }}
-                                                                        />
-                                                                    ))}
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                    </div>
-                                                ) : (
-                                                    // DIAGRAMA CIRCULAR (SIMPLE)
-                                                    <div className="relative w-full flex justify-center py-6">
-                                                        <div className="relative w-48 h-48 flex items-center justify-center">
-                                                            {/* Círculo animado de fondo representando el ciclo infinito */}
-                                                            <svg className="absolute inset-0 w-full h-full text-white/20 animate-[spin_8s_linear_infinite]" viewBox="0 0 100 100">
-                                                                <defs>
-                                                                    <marker id="arrowHead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                                                                        <path d="M 0 0 L 10 5 L 0 10 z" className="fill-white/50" />
-                                                                    </marker>
-                                                                </defs>
-                                                                <path d="M 50 10 A 40 40 0 0 1 90 50" fill="none" stroke="currentColor" strokeWidth="3" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
-                                                                <path d="M 50 90 A 40 40 0 0 1 10 50" fill="none" stroke="currentColor" strokeWidth="3" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
-                                                            </svg>
-                                                            
-                                                            {/* Centro Cíclico */}
-                                                            <div className="absolute inset-0 flex items-center justify-center flex-col z-0">
-                                                                <RefreshCwIcon size={24} className="text-white/30 mb-1" />
-                                                                <span className="text-[8px] font-black uppercase tracking-widest text-white/40 text-center">Bucle<br/>Base</span>
-                                                            </div>
-
-                                                            {/* Nodos de Eventos (Distanciados en el círculo) */}
-                                                            {wizardEvents.map((ev, i) => {
-                                                                const angle = (i * (360 / wizardEvents.length)) * (Math.PI / 180);
-                                                                const radius = 80; // Distancia desde el centro (radio un poco mayor al SVG)
-                                                                const x = Math.cos(angle) * radius;
-                                                                const y = Math.sin(angle) * radius;
-
-                                                                return (
-                                                                    <div 
-                                                                        key={ev.id || i} 
-                                                                        onClick={() => {
-                                                                            const titleEl = document.getElementById('wz-ev-title') as HTMLInputElement;
-                                                                            if (titleEl) { titleEl.value = ev.title; titleEl.dataset.editId = ev.id; }
-                                                                            addToast('Editando evento cíclico...', 'success');
-                                                                        }}
-                                                                        className="absolute z-10 flex flex-col items-center cursor-pointer group"
-                                                                        style={{ transform: `translate(${x}px, ${y}px)` }}
-                                                                    >
-                                                                        <div className="w-10 h-10 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.6)] group-hover:scale-110 group-hover:bg-blue-400 transition-all">
-                                                                            <TargetIcon size={16} className="text-white"/>
-                                                                        </div>
-                                                                        <div className="absolute top-12 bg-black/95 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/20 flex flex-col items-center min-w-max shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                                            <span className="text-[10px] font-black text-white uppercase">{ev.title}</span>
-                                                                            <span className="text-[8px] text-blue-300 font-bold uppercase tracking-widest mt-0.5">Cada {ev.repeatEveryXCycles} Ciclos</span>
-                                                                        </div>
-                                                                    </div>
-                                                                )
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Botones rápidos para eliminar */}
-                                                <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                                                    {wizardEvents.map((ev, i) => (
-                                                        <div key={i} className="bg-white/5 border border-white/10 text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full flex items-center gap-2">
-                                                            {ev.title}
-                                                            <button onClick={() => setWizardEvents(wizardEvents.filter(e => e.id !== ev.id))} className="text-zinc-500 hover:text-red-500 transition-colors"><XIcon size={12}/></button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* --- SECCIÓN 2: EDICIÓN DE SESIONES (HEREDADO DE MACROCICLO) --- */}
-                                <div className="px-6 py-12 bg-[#050505]">
-                                    <div className="max-w-4xl mx-auto space-y-6">
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                                                    <DumbbellIcon size={20}/>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none">Diseña tus sesiones</h3>
-                                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Configura el entrenamiento base</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Selector de Bloques (Solo Avanzado) */}
-                                            {selectedTemplateId === 'power-complex' && (
-                                                <div className="flex bg-[#111] p-1 rounded-full border border-white/10 shrink-0">
-                                                    {POWER_BLOCK_NAMES.map((name, idx) => (
-                                                        <button
-                                                            key={name}
-                                                            onClick={() => handleSwitchBlockEdit(idx)}
-                                                            className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap
-                                                                ${activeBlockEdit === idx ? 'bg-white text-black shadow-md' : 'text-zinc-500 hover:text-white'}
-                                                            `}
-                                                        >
-                                                            {name}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Widget de Volumen */}
-                                        <VolumeBudgetBar currentVolume={Object.fromEntries(Object.entries(currentWeeklyVolume).map(([k, v]) => [k, v.total]))} recommendation={volumeLimits} />
-
-                                        {/* Barra de Herramientas Contextual (Aplicar a todos) */}
-                                        {selectedTemplateId === 'power-complex' && splitMode === 'per_block' && (
-                                            <div className="flex justify-end">
-                                                <div className="flex items-center gap-3 bg-[#111] px-4 py-2 rounded-full border border-white/10 shadow-sm transition-colors duration-300">
-                                                    <span className={`text-[9px] font-bold uppercase tracking-wider transition-colors ${applyToAllBlocks ? 'text-white' : 'text-zinc-500'}`}>
-                                                        Aplicar a bloques con split: <span className="text-zinc-300">({blockSplits[activeBlockEdit]?.name || 'Actual'})</span>
-                                                    </span>
-                                                    <ToggleSwitch checked={applyToAllBlocks} onChange={setApplyToAllBlocks} size="sm" />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Lista Creadora de Sesiones (Las mismas del Macrociclo) */}
-                                        <div className="space-y-3">
-                                            {splitPattern.map((label, index) => {
-                                                const dayLabel = getDayLabel(index);
-                                                const isRest = label.toLowerCase() === 'descanso';
-                                                return (
-                                                    <InlineSessionCreator
-                                                        key={index}
-                                                        dayLabel={dayLabel}
-                                                        sessionName={label}
-                                                        isRest={isRest}
-                                                        sessionData={detailedSessions[index]}
-                                                        onRename={(name) => handleRenameSession(index, name)}
-                                                        onUpdateSession={(s) => handleUpdateSessionSmart(index, s)}
-                                                        onMoveUp={() => handleMoveSession(index, 'up')}
-                                                        onMoveDown={() => handleMoveSession(index, 'down')}
-                                                        isFirst={index === 0}
-                                                        isLast={index === cycleDuration - 1}
-                                                        exerciseList={exerciseList}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> {/* CIERRE CONTENEDOR SCROLL */}
-
                             {/* --- FOOTER FLOTANTE (BOTONES FINALES) --- */}
                             <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-40 flex flex-col items-center gap-4 pointer-events-none">
                                 <div className="pointer-events-auto flex items-center gap-3 bg-black/80 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 shadow-xl">
-                                    <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Activar al guardar</span>
+                                    <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Activar al crear</span>
                                     <ToggleSwitch checked={autoActivate} onChange={setAutoActivate} size="sm" />
                                 </div>
 
-                                <div className="flex gap-3 pointer-events-auto">
+                                <div className="flex gap-3 pointer-events-auto w-full max-w-md justify-center">
                                     <button 
                                         onClick={() => handleCreate(true)} 
                                         className="bg-zinc-900 text-zinc-400 px-6 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:text-white hover:bg-zinc-800 transition-colors border border-white/10 shadow-lg"
                                     >
-                                        Guardar Borrador
+                                        Borrador
                                     </button>
                                     <button 
-                                        onClick={() => handleCreate(false)} 
-                                        className="bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-transparent hover:border-black"
+                                        onClick={handleAttemptNextStep}
+                                        disabled={(() => {
+                                            if (selectedTemplateId !== 'power-complex' || splitMode === 'global') return !selectedSplit;
+                                            return Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length;
+                                        })()}
+                                        className={`flex-1 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] transition-all flex items-center justify-center gap-2 border border-transparent 
+                                            ${((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit) || (selectedTemplateId === 'power-complex' && splitMode === 'per_block' && Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length)
+                                                ? 'bg-[#222] text-gray-500 cursor-not-allowed border-white/5'
+                                                : 'bg-white text-black hover:scale-105 active:scale-95 hover:border-black cursor-pointer'
+                                            }`}
                                     >
                                         <SaveIcon size={16}/>
-                                        <span>Crear Programa Final</span>
+                                        <span>
+                                            {(() => {
+                                                if (selectedTemplateId === 'power-complex' && splitMode === 'per_block') {
+                                                    const missing = POWER_BLOCK_NAMES.length - Object.keys(blockSplits).length;
+                                                    if (missing > 0) return `Faltan ${missing} Bloques`;
+                                                }
+                                                if ((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit) {
+                                                    return "Selecciona Split";
+                                                }
+                                                return "Crear Programa";
+                                            })()}
+                                        </span>
                                     </button>
                                 </div>
                             </div>
