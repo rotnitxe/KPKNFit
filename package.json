@@ -5,8 +5,8 @@
   "type": "module",
   "description": "Un creador y seguidor de rutinas de gimnasio inteligente.",
   "scripts": {
-    "postinstall": "chmod +x node_modules/.bin/esbuild",
-    "build": "npx esbuild index.tsx --bundle --outfile=www/index.js --sourcemap --jsx=automatic --loader:.js=jsx --loader:.ts=tsx --format=esm && npx cpx2 index.html www && npx cpx2 favicon.svg www && npx cpx2 manifest.json www && npx cpx2 service-worker.js www && npx cpx2 icon-192.png www && npx cpx2 icon-512.png www && npx cpx2 widget-template.html www",
+    "postinstall": "node -e \"if (process.platform !== 'win32') require('child_process').execSync('chmod +x node_modules/.bin/esbuild')\"",
+    "build": "npx tailwindcss -i input.css -o www/output.css --minify && npx esbuild index.tsx --bundle --outfile=www/index.js --sourcemap --jsx=automatic --loader:.js=jsx --loader:.ts=tsx --format=esm && npx cpx2 index.html www && npx cpx2 favicon.svg www && npx cpx2 manifest.json www && npx cpx2 service-worker.js www && npx cpx2 icon-192.png www && npx cpx2 icon-512.png www && npx cpx2 widget-template.html www",
     "serve": "npx serve www -l 5500",
     "dev": "npm run build && npm run serve",
     "cap:add": "npx cap add android",
@@ -37,6 +37,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "tailwindcss": "^3.4.17",
     "@capacitor/android": "^6.0.0",
     "@capacitor/cli": "^6.0.0",
     "@types/react": "^19.2.14",

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yourprime-v19';
+const CACHE_NAME = 'yourprime-v20';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -6,7 +6,7 @@ const urlsToCache = [
   '/manifest.json',
   '/favicon.svg',
   'widget-template.html',
-  'https://cdn.tailwindcss.com',
+  '/output.css',
   'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;700&family=Roboto+Condensed:wght@400;700&family=Great+Vibes&family=Tahoma:wght@400;700&family=Courier+Prime:wght@400;700&display=swap',
 
   // Google Drive API scripts
