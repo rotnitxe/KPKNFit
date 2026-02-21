@@ -1,8 +1,7 @@
-
 // components/ui/Toast.tsx
 import React, { useEffect, useState, useCallback } from 'react';
-import { CheckCircleIcon, TrophyIcon, XIcon, AlertTriangleIcon } from '../icons';
 import { ToastData } from '../../types';
+import { CheckCircleIcon, TrophyIcon, XIcon, AlertTriangleIcon } from '../icons';
 
 interface ToastProps {
   toast: ToastData;
@@ -12,7 +11,6 @@ interface ToastProps {
 const ICONS = {
     success: <CheckCircleIcon className="text-emerald-400" size={20} />,
     achievement: <TrophyIcon className="text-yellow-400" size={20} />,
-    // Updated: Suggestion is now a simple dot/bullet instead of LightbulbIcon
     suggestion: <div className="w-3 h-3 rounded-full bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.6)]" />,
     danger: <AlertTriangleIcon className="text-red-400" size={20} />,
 };
@@ -34,22 +32,25 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
 
   const handleDismiss = useCallback(() => {
     setIsExiting(true);
+    // Esperamos 400ms para que la animación de salida termine antes de removerlo del estado global
     setTimeout(() => onDismiss(toast.id), 400); 
   }, [onDismiss, toast.id]);
 
   useEffect(() => {
+    // El temporizador ahora llama a handleDismiss() en lugar de onDismiss directo, 
+    // para que también se vea la animación al irse solo.
     const timer = setTimeout(() => {
       handleDismiss();
     }, toast.duration || 4000);
 
     return () => clearTimeout(timer);
-  }, [toast, handleDismiss]);
+  }, [toast.duration, handleDismiss]); // Quitamos toast entero de las dependencias para evitar recargas fantasma
 
   return (
     <div
       onClick={handleDismiss}
       className={`cursor-pointer w-auto min-w-[300px] max-w-[90vw] pointer-events-auto
-                  transition-all duration-500 cubic-bezier(0.19, 1, 0.22, 1)
+                  transition-all duration-500 cubic-bezier(0.19, 1, 0.22, 1) mb-3
                   ${isMounting ? 'opacity-0 scale-90 -translate-y-4' : 
                     isExiting ? 'opacity-0 scale-95 translate-x-4' : 'opacity-100 scale-100 translate-y-0'}
       `}
@@ -75,9 +76,12 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
              <span className="text-sm font-bold text-white/90 leading-tight">{toast.message}</span>
           </div>
 
-          <div className="flex-shrink-0 text-white/20 group-hover:text-white/60 transition-colors">
+          <button 
+             onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
+             className="flex-shrink-0 text-white/20 hover:text-white/60 transition-colors p-1 bg-black/20 rounded-full"
+          >
               <XIcon size={14} />
-          </div>
+          </button>
       </div>
     </div>
   );

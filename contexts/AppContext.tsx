@@ -166,6 +166,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const isAppLoading = isSettingsLoading || isProgramsLoading || isHistoryLoading || isSkippedLoading || isBodyProgressLoading || isNutritionLogsLoading || isDbLoading || isPantryLoading || isWaterLogsLoading || isOngoingLoading;
 
+    // --- 1.5. INICIALIZAR HISTORIAL NATIVO ---
+    useEffect(() => {
+        // Solo en el primer renderizado, aseguramos que el estado inicial esté en history nativo
+        if (window.history.state === null) {
+            window.history.replaceState({ view: 'home' }, '');
+        }
+    }, []);
+
     // --- 2. DETECTAR CAMBIOS DE CONEXIÓN (useEffect) ---
     useEffect(() => {
         const handleOnline = () => setIsOnline(true);
@@ -332,8 +340,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const stateToPush = { view: newView, data };
         if (options?.replace) {
             setHistoryStack(prev => [...prev.slice(0, -1), stateToPush]);
+            // Sincronizar con el historial nativo (reemplazo)
+            window.history.replaceState(stateToPush, '');
         } else {
             setHistoryStack(prev => [...prev, stateToPush]);
+            // Sincronizar con el historial nativo (nuevo estado)
+            window.history.pushState(stateToPush, '');
         }
 
         setActiveProgramId(null); setEditingProgramId(null); setEditingSessionInfo(null);
@@ -389,6 +401,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         setView(previousState.view);
     }, [historyStack, setHistoryStack, setView, setActiveProgramId, setEditingProgramId, setEditingSessionInfo, setLoggingSessionInfo, setViewingSessionInfo, setViewingExerciseId, setViewingMuscleGroupId, setViewingBodyPartId, setViewingChainId, setViewingMuscleCategoryName, setViewingFoodId]);
+
+    // --- INTERCEPTOR DEL BOTÓN NATIVO ATRÁS (ANDROID/IOS) ---
+    useEffect(() => {
+        const handlePopState = (event: PopStateEvent) => {
+            // Prevenimos el comportamiento por defecto de salida
+            event.preventDefault();
+            
+            // Si hay historial en nuestra app, manejamos la navegación interna
+            if (historyStack.length > 1) {
+                handleBack();
+            } else {
+                // Si estamos en la raíz (ej. home), podríamos querer preguntar si quiere salir
+                // o dejar que Android maneje la salida. Para que no se cierre accidentalmente, 
+                // podemos volver a empujar el estado para "atrapar" al usuario en la app.
+                window.history.pushState({ view: 'home' }, '');
+                if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.WARNING as any);
+                addToast("Presiona el botón Inicio para salir.", "suggestion");
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [handleBack, historyStack.length, settings.hapticFeedbackEnabled, addToast]);
 
     // CRUD: Programs
     const handleCreateProgram = useCallback(() => navigateTo('program-editor'), [navigateTo]);

@@ -573,34 +573,24 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
 
                             {subView === 'weekly' && isCyclic ? (
                                 // =========================================================
-                                // VISTA CÍCLICA (Futurista para programas de 1 semana)      
+                                // VISTA CÍCLICA COMPACTA      
                                 // =========================================================
-                                <div className="px-4 py-12 flex flex-col items-center">
-                                    <div className="relative mb-8">
-                                        {/* Anillos concéntricos animados de fondo */}
-                                        <div className="absolute inset-[-10px] border-2 border-blue-500/20 rounded-full animate-ping" style={{ animationDuration: '3s' }} />
-                                        <div className="absolute inset-2 border-2 border-purple-500/20 rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
-                                        
-                                        {/* Botón Cíclico Interactivo */}
+                                <div className="px-4 py-6 flex flex-col items-center">
+                                    <div className="flex items-center justify-between w-full max-w-md mb-6 bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                                        <div>
+                                            <h3 className="text-lg font-black text-white uppercase tracking-tight">Bucle Base</h3>
+                                            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Estructura Cíclica</p>
+                                        </div>
                                         <button 
                                             onClick={() => setShowCyclicHistory(!showCyclicHistory)}
-                                            className="relative w-28 h-28 rounded-full bg-gradient-to-tr from-zinc-950 to-zinc-900 border border-white/5 shadow-[0_0_50px_rgba(59,130,246,0.15)] flex flex-col items-center justify-center group hover:scale-105 transition-all z-10"
+                                            className="px-4 py-2 rounded-xl bg-blue-900/20 text-blue-400 text-[9px] font-black uppercase tracking-widest border border-blue-500/30 hover:bg-blue-600/40 transition-colors flex items-center gap-1.5"
                                         >
-                                            <svg className="text-blue-400 group-hover:rotate-180 transition-transform duration-1000 mb-1" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
-                                            </svg>
-                                            <span className="text-[9px] font-black text-white uppercase tracking-widest mt-1">
-                                                {showCyclicHistory ? 'Ver Plan' : 'Historial'}
-                                            </span>
+                                            <ActivityIcon size={14} />
+                                            {showCyclicHistory ? 'Ver Rutinas' : 'Ver Historial'}
                                         </button>
                                     </div>
-                                    
-                                    <div className="text-center mb-10">
-                                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Bucle de Entrenamiento</h3>
-                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-2">Estructura Cíclica Activa</p>
-                                    </div>
 
-                                    <div className="w-full max-w-md">
+                                    <div className="w-full max-w-md pb-24">
                                         {showCyclicHistory ? (
                                             // HISTORIAL CÍCLICO
                                             <div className="space-y-4 animate-slide-up">
@@ -638,22 +628,20 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                         ) : (
                                             // PLAN CÍCLICO (Avanzado con Días de la Semana y Edición)
                                             <div className="space-y-3 animate-slide-up">
-                                                <div className="flex items-center gap-3 mb-6">
-                                                    <div className="h-px bg-white/10 flex-1"></div>
-                                                    <h4 className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Plan de Acción</h4>
-                                                    <div className="h-px bg-white/10 flex-1"></div>
-                                                </div>
                                                 
                                                 {/* SELECTOR DE SEMANAS CÍCLICAS Y EVENTOS PARA PROGRAMAS SIMPLES */}
                                                 {(currentWeeks.length > 1 || (program.events && program.events.length > 0)) && (
-                                                    <div className="flex flex-col items-center gap-3 mb-6 w-full animate-fade-in">
-                                                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Plan de Acción</span>
-                                                        <div className="flex gap-2 overflow-x-auto no-scrollbar w-full justify-center pb-2">
+                                                    <div className="w-full overflow-x-auto no-scrollbar mb-6 pb-2">
+                                                        <div className="flex gap-2 w-max items-center">
                                                             {currentWeeks.map((w, idx) => (
                                                                 <button 
                                                                     key={w.id} 
-                                                                    onClick={() => { setSelectedWeekId(w.id); setSelectedEventId(null); }}
-                                                                    className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${w.id === selectedWeekId && !selectedEventId ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)] scale-105' : 'bg-zinc-900 border border-white/10 text-zinc-500 hover:bg-zinc-800 hover:text-white'}`}
+                                                                    onClick={(e) => { 
+                                                                        setSelectedWeekId(w.id); 
+                                                                        setSelectedEventId(null);
+                                                                        e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                                                                    }}
+                                                                    className={`shrink-0 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${w.id === selectedWeekId && !selectedEventId ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)] scale-105' : 'bg-zinc-900 border border-white/10 text-zinc-500 hover:bg-zinc-800 hover:text-white'}`}
                                                                 >
                                                                     {w.name || `Semana ${idx + 1}`}
                                                                 </button>
@@ -838,16 +826,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                 );
                                                             })}
 
-                                                            <button 
-                                                                onClick={() => {
-                                                                    if (selectedBlock && cyclicWeek && handleAddSession) {
-                                                                        handleAddSession(program.id, selectedBlock.macroIndex, cyclicWeek.mesoIndex, cyclicWeek.id);
-                                                                    }
-                                                                }}
-                                                                className="w-full py-4 mt-4 bg-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors shadow-lg"
-                                                            >
-                                                                <PlusIcon size={16} /> Añadir Nueva Sesión
-                                                            </button>
                                                         </div>
                                                     );
                                                 })()}
@@ -928,7 +906,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                             setSelectedWeekId(week.id);
                                                                             e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                                                                         }}
-                                                                        className={`relative px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center min-w-[3rem]
+                                                                        className={`shrink-0 relative px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center min-w-[3rem]
                                                                             ${isWeekSelected
                                                                                 ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
                                                                                 : 'bg-transparent text-zinc-500 hover:text-white hover:bg-zinc-800'
@@ -1123,19 +1101,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                     );
                                                                 })}
                                                                 
-                                                                {/* BOTÓN GENERAL PARA AÑADIR SESIÓN EXTRA */}
-                                                                <button 
-                                                                    onClick={() => {
-                                                                        const selectedWeek = currentWeeks.find(w => w.id === selectedWeekId);
-                                                                        if (selectedBlock && selectedWeek && handleAddSession) {
-                                                                            handleAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
-                                                                        }
-                                                                    }}
-                                                                    className="w-full py-4 mt-4 bg-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors shadow-lg"
-                                                                >
-                                                                    <PlusIcon size={16} /> Añadir Nueva Sesión
-                                                                </button>
-                                                            </div>
+                                                                </div>
                                                         );
                                                     })()
                                                 )}
@@ -1167,28 +1133,33 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                     isCyclic ? (
                                                         // DIAGRAMA CIRCULAR PARA PROGRAMAS SIMPLES
                                                         <div className="relative w-full flex justify-center py-6">
-                                                            <div className="relative w-48 h-48 flex items-center justify-center">
-                                                                {/* Círculo animado */}
-                                                                <svg className="absolute inset-0 w-full h-full text-white/20 animate-[spin_8s_linear_infinite]" viewBox="0 0 100 100">
+                                                            <div className="relative w-56 h-56 flex items-center justify-center">
+                                                                {/* Círculo estático representativo del bucle */}
+                                                                <svg className="absolute inset-0 w-full h-full text-zinc-800" viewBox="0 0 100 100">
                                                                     <defs>
-                                                                        <marker id="arrowHead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                                                                            <path d="M 0 0 L 10 5 L 0 10 z" className="fill-white/50" />
+                                                                        <marker id="arrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                                                            <path d="M 0 0 L 10 5 L 0 10 z" className="fill-zinc-700" />
                                                                         </marker>
                                                                     </defs>
-                                                                    <path d="M 50 10 A 40 40 0 0 1 90 50" fill="none" stroke="currentColor" strokeWidth="3" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
-                                                                    <path d="M 50 90 A 40 40 0 0 1 10 50" fill="none" stroke="currentColor" strokeWidth="3" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
+                                                                    {/* Dibujamos un anillo estático con flechas */}
+                                                                    <path d="M 50 5 A 45 45 0 0 1 95 50" fill="none" stroke="currentColor" strokeWidth="2" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
+                                                                    <path d="M 95 50 A 45 45 0 0 1 50 95" fill="none" stroke="currentColor" strokeWidth="2" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
+                                                                    <path d="M 50 95 A 45 45 0 0 1 5 50" fill="none" stroke="currentColor" strokeWidth="2" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
+                                                                    <path d="M 5 50 A 45 45 0 0 1 50 5" fill="none" stroke="currentColor" strokeWidth="2" markerEnd="url(#arrowHead)" strokeLinecap="round"/>
                                                                 </svg>
                                                                 
                                                                 {/* Centro */}
                                                                 <div className="absolute inset-0 flex items-center justify-center flex-col z-0">
-                                                                    <span className="text-[8px] font-black uppercase tracking-widest text-white/40 text-center">Bucle<br/>Base</span>
+                                                                    <ActivityIcon size={20} className="text-zinc-700 mb-1" />
+                                                                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-600 text-center">Bucle<br/>Eterno</span>
                                                                 </div>
 
                                                                 {/* Nodos de Eventos */}
                                                                 {(program.events || []).map((ev, i) => {
                                                                     const safeEvents = program.events || [];
-                                                                    const angle = (i * (360 / safeEvents.length)) * (Math.PI / 180);
-                                                                    const radius = 80;
+                                                                    // Posicionamos los eventos en el círculo
+                                                                    const angle = (i * (360 / safeEvents.length) - 90) * (Math.PI / 180);
+                                                                    const radius = 90;
                                                                     const x = Math.cos(angle) * radius;
                                                                     const y = Math.sin(angle) * radius;
 
@@ -1196,19 +1167,20 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                         <div 
                                                                             key={ev.id || i} 
                                                                             onClick={() => {
-                                                                                // Pre-poblar el modal de edición
                                                                                 setNewEventData({ id: ev.id || '', title: ev.title, repeatEveryXCycles: ev.repeatEveryXCycles || 1, calculatedWeek: ev.calculatedWeek || 0, type: ev.type || '1rm_test' });
                                                                                 setIsEventModalOpen(true);
                                                                             }}
                                                                             className="absolute z-10 flex flex-col items-center cursor-pointer group"
                                                                             style={{ transform: `translate(${x}px, ${y}px)` }}
                                                                         >
-                                                                            <div className="w-10 h-10 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.6)] group-hover:scale-110 group-hover:bg-blue-400 transition-all">
-                                                                                <span className="text-[10px] font-bold text-white uppercase">{ev.repeatEveryXCycles}C</span>
+                                                                            <div className="w-12 h-12 rounded-full bg-zinc-950 border border-yellow-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.2)] group-hover:scale-110 group-hover:border-yellow-400 transition-all">
+                                                                                <div className="text-center">
+                                                                                    <span className="block text-[8px] text-zinc-500 font-black uppercase leading-none">Cada</span>
+                                                                                    <span className="block text-xs font-black text-yellow-400 leading-none mt-0.5">{ev.repeatEveryXCycles}</span>
+                                                                                </div>
                                                                             </div>
-                                                                            <div className="absolute top-12 bg-black/95 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/20 flex flex-col items-center min-w-max shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                                                <span className="text-[10px] font-black text-white uppercase">{ev.title}</span>
-                                                                                <span className="text-[8px] text-blue-300 font-bold uppercase tracking-widest mt-0.5">Cada {ev.repeatEveryXCycles} Ciclos</span>
+                                                                            <div className="absolute top-14 bg-black px-3 py-1.5 rounded-lg border border-white/10 flex flex-col items-center min-w-max shadow-xl pointer-events-none">
+                                                                                <span className="text-[9px] font-black text-white uppercase">{ev.title}</span>
                                                                             </div>
                                                                         </div>
                                                                     )
@@ -1279,15 +1251,17 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                     <div key={macro.id} className="relative space-y-4">
                                                         {/* Cabecera del Macrociclo (Compacta) */}
                                                         <div className="flex justify-between items-center bg-[#0a0a0a] p-4 rounded-2xl border border-white/10 shadow-lg relative z-10">
-                                                            <div className="flex items-center gap-3 flex-1">
+                                                        <div className="flex items-center gap-3 flex-1">
                                                                 <span className="bg-white/10 text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest shrink-0">Macro {macroIndex + 1}</span>
                                                                 <input 
                                                                     className="bg-transparent border-none p-0 text-lg md:text-xl font-black text-white uppercase tracking-tight focus:ring-0 w-full"
-                                                                    value={macro.name}
-                                                                    onChange={(e) => {
-                                                                        const updated = JSON.parse(JSON.stringify(program));
-                                                                        updated.macrocycles[macroIndex].name = e.target.value;
-                                                                        if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                    defaultValue={macro.name}
+                                                                    onBlur={(e) => {
+                                                                        if (e.target.value !== macro.name) {
+                                                                            const updated = JSON.parse(JSON.stringify(program));
+                                                                            updated.macrocycles[macroIndex].name = e.target.value || `Macrociclo ${macroIndex + 1}`;
+                                                                            if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                        }
                                                                     }}
                                                                 />
                                                             </div>
@@ -1340,15 +1314,17 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                         
                                                                         {/* Header del Bloque */}
                                                                         <div className="p-3 border-b border-white/5 bg-white/[0.02] flex justify-between items-start">
-                                                                            <div className="flex-1">
+                                                                        <div className="flex-1">
                                                                                 <span className="bg-white/10 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-wider mb-1 inline-block">Bloque {blockIndex + 1}</span>
                                                                                 <input 
                                                                                     className="bg-transparent border-none p-0 text-base font-black text-white uppercase tracking-tight focus:ring-0 w-full block"
-                                                                                    value={block.name}
-                                                                                    onChange={(e) => {
-                                                                                        const updated = JSON.parse(JSON.stringify(program));
-                                                                                        updated.macrocycles[macroIndex].blocks[blockIndex].name = e.target.value;
-                                                                                        if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                    defaultValue={block.name}
+                                                                                    onBlur={(e) => {
+                                                                                        if (e.target.value !== block.name) {
+                                                                                            const updated = JSON.parse(JSON.stringify(program));
+                                                                                            updated.macrocycles[macroIndex].blocks[blockIndex].name = e.target.value || `Bloque ${blockIndex + 1}`;
+                                                                                            if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                        }
                                                                                     }}
                                                                                 />
                                                                             </div>
@@ -1372,17 +1348,19 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                                 <div key={meso.id} className="space-y-3 bg-black/40 p-3 rounded-xl border border-white/5">
                                                                                     {/* Header del Ciclo / Mesociclo */}
                                                                                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 border-b border-white/5 pb-2">
-                                                                                        <div className="flex items-center gap-2 flex-1">
+                                                                                    <div className="flex items-center gap-2 flex-1">
                                                                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)] shrink-0"></div>
                                                                                             <input 
                                                                                                 className="bg-transparent border-none p-0 text-[11px] font-black text-white uppercase truncate flex-1 focus:ring-0"
-                                                                                                value={isCyclic ? 'Semanas Cíclicas' : meso.name}
+                                                                                                defaultValue={isCyclic ? 'Semanas Cíclicas' : meso.name}
                                                                                                 disabled={isCyclic}
-                                                                                                onChange={(e) => {
+                                                                                                onBlur={(e) => {
                                                                                                     if (isCyclic) return;
-                                                                                                    const updated = JSON.parse(JSON.stringify(program));
-                                                                                                    updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].name = e.target.value;
-                                                                                                    if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                                    if (e.target.value !== meso.name) {
+                                                                                                        const updated = JSON.parse(JSON.stringify(program));
+                                                                                                        updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].name = e.target.value || `Ciclo ${mesoIndex + 1}`;
+                                                                                                        if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                                    }
                                                                                                 }}
                                                                                             />
                                                                                         </div>
@@ -1444,12 +1422,14 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                                                                             {hasEvent && <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>}
                                                                                                             <input 
                                                                                                                 className={`bg-transparent border-none p-0 text-[9px] font-black uppercase truncate w-[85%] focus:ring-0 ${hasEvent ? 'text-yellow-400' : 'text-gray-400 focus:text-white'}`}
-                                                                                                                value={week.name}
+                                                                                                                defaultValue={week.name}
                                                                                                                 onClick={(e) => e.stopPropagation()}
-                                                                                                                onChange={(e) => {
-                                                                                                                    const updated = JSON.parse(JSON.stringify(program));
-                                                                                                                    updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].weeks[weekIndex].name = e.target.value;
-                                                                                                                    if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                                                onBlur={(e) => {
+                                                                                                                    if (e.target.value !== week.name) {
+                                                                                                                        const updated = JSON.parse(JSON.stringify(program));
+                                                                                                                        updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].weeks[weekIndex].name = e.target.value || `Semana ${weekIndex + 1}`;
+                                                                                                                        if(handleUpdateProgram) handleUpdateProgram(updated);
+                                                                                                                    }
                                                                                                                 }}
                                                                                                             />
                                                                                                         </div>
@@ -1732,7 +1712,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                     <div>
                                         <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1 block">¿Cada cuántos ciclos ocurrirá?</label>
                                         <div className="flex items-center gap-3">
-                                            <input type="number" min="1" value={newEventData.repeatEveryXCycles} onChange={e => setNewEventData({...newEventData, repeatEveryXCycles: parseInt(e.target.value) || 1})} className="w-24 bg-[#111] border border-[#222] rounded-xl p-3 text-white text-center text-xs font-bold focus:border-white focus:ring-0" />
+                                            <input type="text" inputMode="numeric" pattern="[0-9]*" value={newEventData.repeatEveryXCycles} onChange={e => setNewEventData({...newEventData, repeatEveryXCycles: e.target.value === '' ? '' as any : parseInt(e.target.value)})} className="w-24 bg-[#111] border border-[#222] rounded-xl p-3 text-white text-center text-xs font-bold focus:border-white focus:ring-0" />
                                             <span className="text-[10px] text-zinc-400 font-bold uppercase">Ciclos</span>
                                         </div>
                                         <p className="text-[9px] text-zinc-500 mt-2 leading-relaxed">El evento ocurrirá automáticamente cada vez que completes esta cantidad de ciclos (repetir semanas).</p>
@@ -1742,7 +1722,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                         <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1 block">¿En qué semana exacta ocurrirá?</label>
                                         <div className="flex items-center gap-3">
                                             <span className="text-[10px] text-zinc-400 font-bold uppercase">Semana</span>
-                                            <input type="number" min="1" value={newEventData.calculatedWeek + 1} onChange={e => setNewEventData({...newEventData, calculatedWeek: (parseInt(e.target.value) || 1) - 1})} className="w-24 bg-[#111] border border-[#222] rounded-xl p-3 text-white text-center text-xs font-bold focus:border-white focus:ring-0" />
+                                            <input type="text" inputMode="numeric" pattern="[0-9]*" value={newEventData.calculatedWeek === -1 ? '' : newEventData.calculatedWeek + 1} onChange={e => setNewEventData({...newEventData, calculatedWeek: e.target.value === '' ? -1 : (parseInt(e.target.value) || 1) - 1})} className="w-24 bg-[#111] border border-[#222] rounded-xl p-3 text-white text-center text-xs font-bold focus:border-white focus:ring-0" />
                                         </div>
                                     </div>
                                 )}
@@ -1774,8 +1754,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                             title: newEventData.title,
                                             type: newEventData.type,
                                             date: new Date().toISOString(),
-                                            calculatedWeek: isCyclic ? 0 : newEventData.calculatedWeek,
-                                            repeatEveryXCycles: isCyclic ? newEventData.repeatEveryXCycles : undefined
+                                            calculatedWeek: isCyclic ? 0 : (newEventData.calculatedWeek === -1 ? 0 : newEventData.calculatedWeek),
+                                            repeatEveryXCycles: isCyclic ? (parseInt(newEventData.repeatEveryXCycles as any) || 1) : undefined
                                         };
 
                                         if (newEventData.id) {
@@ -1885,7 +1865,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                     const updated = JSON.parse(JSON.stringify(program));
                                     updated.structure = 'simple';
                                     updated.events = []; 
-                                    updated.macrocycles = [{ id: crypto.randomUUID(), name: "Macrociclo Cíclico", blocks: [{ id: crypto.randomUUID(), name: "BLOQUE CÍCLICO", mesocycles: [{ id: crypto.randomUUID(), name: "Ciclo Base", goal: "Custom", weeks: [{ id: crypto.randomUUID(), name: "Semana 1", sessions: [] }] }] }] }];
+                                    updated.macrocycles = [{ id: crypto.randomUUID(), name: "Macrociclo", blocks: [{ id: crypto.randomUUID(), name: "BLOQUE CÍCLICO", mesocycles: [{ id: crypto.randomUUID(), name: "Ciclo Base", goal: "Custom", weeks: [{ id: crypto.randomUUID(), name: "Semana 1", sessions: [] }] }] }] }];
                                     if(handleUpdateProgram) handleUpdateProgram(updated);
                                     setShowSimpleTransition(false);
                                     addToast("Programa simplificado. Nueva semana en blanco.", "success");
@@ -1905,7 +1885,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                         const updated = JSON.parse(JSON.stringify(program));
                                         updated.structure = 'simple';
                                         updated.events = []; 
-                                        updated.macrocycles = [{ id: crypto.randomUUID(), name: "Macrociclo Cíclico", blocks: [{ id: crypto.randomUUID(), name: "BLOQUE CÍCLICO", mesocycles: [{ id: crypto.randomUUID(), name: "Ciclo Base", goal: "Custom", weeks: [{ ...week, id: crypto.randomUUID(), name: "Semana 1" }] }] }] }];
+                                        updated.macrocycles = [{ id: crypto.randomUUID(), name: "Macrociclo", blocks: [{ id: crypto.randomUUID(), name: "BLOQUE CÍCLICO", mesocycles: [{ id: crypto.randomUUID(), name: "Ciclo Base", goal: "Custom", weeks: [{ ...week, id: crypto.randomUUID(), name: "Semana 1" }] }] }] }];
                                         if(handleUpdateProgram) handleUpdateProgram(updated);
                                         setShowSimpleTransition(false);
                                         addToast(`Programa simplificado usando: ${week.label}`, "success");
