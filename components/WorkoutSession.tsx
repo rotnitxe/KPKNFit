@@ -1,6 +1,6 @@
 // components/WorkoutSession.tsx
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, ExerciseSet, SessionBackground, OngoingSetData, SetInputState, UnilateralSetInputs, DropSetData, RestPauseData, ExerciseMuscleInfo, Program, Settings, PlanDeviation, CoverStyle } from '../types';
+import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, ExerciseSet, SessionBackground, OngoingSetData, SetInputState, UnilateralSetInputs, DropSetData, RestPauseData, ExerciseMuscleInfo, Program, Settings, PlanDeviation, CoverStyle, ToastData } from '../types';
 import Button from './ui/Button';
 import { ClockIcon, ChevronRightIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, LayersIcon } from './icons'; 
 import { playSound } from '../services/soundService';
@@ -566,8 +566,9 @@ const SetDetails: React.FC<{
     currentSession1RM?: number;
     base1RM?: number;
     isCalibrated?: boolean;
-    cardAnimation?: string | null; 
-}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation }) => {
+    cardAnimation?: string | null;
+    addToast: (message: string, type?: ToastData['type'], title?: string, duration?: number) => void;
+}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast }) => {
     
     const isUnilateral = exercise.isUnilateral || false;
     const isTimeMode = exercise.trainingMode === 'time';
@@ -679,8 +680,7 @@ const SetDetails: React.FC<{
         onInputChange('performanceMode', 'failed', isUnilateral ? activeSide : undefined);
         onInputChange('discomfortNotes', `🚨 FALLO CRÍTICO: ${reason}`, isUnilateral ? activeSide : undefined);
         
-        // Usamos el dispatch que ya declaraste arriba para mostrar el Toast
-        dispatch.addToast(`Serie anulada por: ${reason}`, "danger");
+        addToast(`Serie anulada por: ${reason}`, "danger");
         
         onLogSet();
         setShowFailedModal(false);
@@ -1474,6 +1474,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                     base1RM={exInfo?.calculated1RM || ex.reference1RM} 
                                                                     isCalibrated={!!sessionAdjusted1RMs[ex.id]} 
                                                                     cardAnimation={setCardAnimations[String(set.id)]}
+                                                                    addToast={addToast}
                                                                 />
                                                             </div>
                                                         </div>
