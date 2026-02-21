@@ -674,10 +674,14 @@ const SetDetails: React.FC<{
     const handleSetDurationSave = (tut: number) => { onInputChange('duration', tut.toString(), isUnilateral ? activeSide : undefined); };
     
     const handleFailedSet = (reason: string) => {
-        hapticImpact(ImpactStyle.Medium);
+        hapticNotification(NotificationType.ERROR); // Vibración pesada de error
         onInputChange('isIneffective', true, isUnilateral ? activeSide : undefined);
         onInputChange('performanceMode', 'failed', isUnilateral ? activeSide : undefined);
-        onInputChange('discomfortNotes', `Fallo Total: ${reason}`, isUnilateral ? activeSide : undefined);
+        onInputChange('discomfortNotes', `🚨 FALLO CRÍTICO: ${reason}`, isUnilateral ? activeSide : undefined);
+        
+        // Usamos el dispatch que ya declaraste arriba para mostrar el Toast
+        dispatch.addToast(`Serie anulada por: ${reason}`, "danger");
+        
         onLogSet();
         setShowFailedModal(false);
     };
@@ -885,6 +889,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const { setOngoingWorkout, handleStartRest, addToast, setIsLiveCoachActive, addOrUpdateCustomExercise } = dispatch;
     
     const [isFocusMode, setIsFocusMode] = useState(true); 
+    const [isSkippingRest, setIsSkippingRest] = useState(false); // CANDADO DE SEGURIDAD
     const [currentSession, setCurrentSession] = useState<Session>(ongoingWorkout?.session || session);
     const [startTime] = useState(ongoingWorkout?.startTime || Date.now());
     const [duration, setDuration] = useState(0);
@@ -1003,29 +1008,19 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     }, [allExercises, completedSets, settings, exerciseList]);
 
     const activePartInfo = useMemo(() => {
-        if (!activeExerciseId || !renderExercises.length) return null;
-        const part = renderExercises.find((p: any) => p.exercises.some((e: any) => e.id === activeExerciseId));
-        return part || null; // Blindaje contra undefined
+        if (!activeExerciseId || !renderExercises || renderExercises.length === 0) return null;
+        // Usamos optional chaining para evitar errores si exercises es null
+        const part = renderExercises.find((p: any) => p.exercises?.some((e: any) => e.id === activeExerciseId));
+        return part || null; 
     }, [activeExerciseId, renderExercises]);
 
-    // Blindaje de seguridad en vivo
+    // Blindaje Maestro: Previene colapsos si un ejercicio desaparece de la lista en tiempo real
     useEffect(() => {
-        if (renderExercises.length > 0 && activeExerciseId) {
-            const exists = renderExercises.some((p: any) => p.exercises.some((e: any) => e.id === activeExerciseId));
+        if (renderExercises && renderExercises.length > 0 && activeExerciseId) {
+            const exists = renderExercises.some((p: any) => p.exercises?.some((e: any) => e.id === activeExerciseId));
             if (!exists) {
-                // Si el ejercicio actual desaparece, mover al primero disponible
-                setActiveExerciseId(renderExercises[0]?.exercises[0]?.id || null);
-            }
-        }
-    }, [renderExercises, activeExerciseId]);
-
-    // Blindaje de seguridad en vivo contra pantallas negras
-    useEffect(() => {
-        if (renderExercises.length > 0 && activeExerciseId) {
-            const exists = renderExercises.some((p: any) => p.exercises.some((e: any) => e.id === activeExerciseId));
-            if (!exists) {
-                // Si el ejercicio actual desaparece (ej. fue saltado/borrado), forza la UI al primero disponible
-                setActiveExerciseId(renderExercises[0]?.exercises[0]?.id || null);
+                const firstAvailableId = renderExercises[0]?.exercises?.[0]?.id || null;
+                setActiveExerciseId(firstAvailableId);
             }
         }
     }, [renderExercises, activeExerciseId]);
