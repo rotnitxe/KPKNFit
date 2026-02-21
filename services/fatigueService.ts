@@ -287,3 +287,45 @@ export const isSetEffective = (set: any): boolean => {
     const rpe = getEffectiveRPE(set);
     return rpe >= 6;
 };
+/**
+ * --- CÁLCULO DE ESTRÉS DE SESIÓN COMPLETADA ---
+ * Calcula el estrés total de una sesión finalizada sumando el impacto en el SNC, muscular y espinal.
+ * Usado para métricas de fatiga histórica y para disparar recomendaciones de recuperación (PCE).
+ */
+export const calculateCompletedSessionStress = (
+    completedExercises: CompletedExercise[], 
+    exerciseList: ExerciseMuscleInfo[]
+): number => {
+    // Obtenemos los tanques de batería estándar (sin settings explícitos para cálculo histórico base)
+    const tanks = calculatePersonalizedBatteryTanks({});
+    let totalStress = 0;
+    
+    // Mapa para rastrear la fatiga acumulada por músculo en la misma sesión
+    const muscleVolumeMap: Record<string, number> = {};
+
+    completedExercises.forEach(ex => {
+        // Buscamos la info técnica del ejercicio en la base de datos
+        const info = exerciseList.find(i => i.id === ex.exerciseDbId || i.name === ex.exerciseName);
+        const primaryMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
+        
+        let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
+
+        ex.sets.forEach((s: any) => {
+            // Ignorar series de calentamiento en el cálculo de estrés
+            if (s.type === 'warmup') return;
+            
+            accumulatedSets += 1;
+            
+            // Calculamos el drenaje individual (asumimos 90s de descanso como fallback)
+            const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, 90);
+            
+            // El score total es la suma bruta del desgaste
+            totalStress += drain.cnsDrainPct + drain.muscularDrainPct + drain.spinalDrainPct;
+        });
+
+        // Actualizamos el contador de series de este músculo para penalizar volumen basura después
+        muscleVolumeMap[primaryMuscle] = accumulatedSets;
+    });
+
+    return totalStress;
+};
