@@ -51,7 +51,6 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
     const handleStart = () => {
         if (isSubmitting) return;
         setIsSubmitting(true);
-        // Pequeño delay estético, luego enviamos la data exacta que espera AppContext
         setTimeout(() => {
             onContinue({ sleepQuality, stressLevel, doms, motivation });
         }, 150);
@@ -69,21 +68,20 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
                             <BatteryIcon size={24} />
                         </div>
                         <h2 className="text-xl font-black text-white uppercase tracking-tight">Estado Base</h2>
-                        <p className="text-[9px] text-sky-400 font-bold uppercase tracking-widest mt-1">Sincronización de Baterías AUGE</p>
+                        <p className="text-[9px] text-sky-400 font-bold uppercase tracking-widest mt-1">Sincronización Baterías AUGE</p>
                     </div>
                 </div>
 
-                {/* El overflow-y-auto aquí soluciona el bloqueo de pantalla */}
-                <div className="p-5 overflow-y-auto hide-scrollbar flex-1 relative">
-                    <p className="text-[11px] text-slate-400 text-center mb-5 px-2 leading-relaxed">Calibra tus biomarcadores antes de la batalla. Estos datos ajustarán la matemática de fatiga en vivo.</p>
+                <div className="p-5 overflow-y-auto hide-scrollbar flex-1 relative bg-black/20">
+                    <p className="text-[11px] text-slate-400 text-center mb-5 px-2 leading-relaxed font-bold uppercase tracking-widest">Ajusta tus parámetros antes de la batalla.</p>
                     <CyberSlider label="Calidad del Sueño" value={sleepQuality} onChange={setSleepQuality} icon={<MoonIcon size={16}/>} color="text-indigo-400" accentClass="accent-indigo-500" />
                     <CyberSlider label="Estrés del SNC" value={stressLevel} onChange={setStressLevel} icon={<ActivityIcon size={16}/>} color="text-rose-400" accentClass="accent-rose-500" inverseScale={true} />
-                    <CyberSlider label="Daño Muscular Prev" value={doms} onChange={setDoms} icon={<FlameIcon size={16}/>} color="text-amber-400" accentClass="accent-amber-500" inverseScale={true} />
-                    <CyberSlider label="Foco / Motivación" value={motivation} onChange={setMotivation} icon={<ZapIcon size={16}/>} color="text-sky-400" accentClass="accent-sky-500" />
+                    <CyberSlider label="Daño Muscular" value={doms} onChange={setDoms} icon={<FlameIcon size={16}/>} color="text-amber-400" accentClass="accent-amber-500" inverseScale={true} />
+                    <CyberSlider label="Motivación" value={motivation} onChange={setMotivation} icon={<ZapIcon size={16}/>} color="text-sky-400" accentClass="accent-sky-500" />
                 </div>
 
                 <div className="p-5 border-t border-white/5 shrink-0 bg-[#0a0a0a]">
-                    <button onClick={handleStart} disabled={isSubmitting} className="w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all bg-white text-black hover:bg-slate-200 active:scale-95">
+                    <button onClick={handleStart} disabled={isSubmitting} className="w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all bg-white text-black hover:bg-slate-200 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
                         {isSubmitting ? 'Sincronizando...' : 'Comenzar Batalla'}
                     </button>
                     <button onClick={onClose} disabled={isSubmitting} className="w-full py-3 mt-2 rounded-2xl text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors">

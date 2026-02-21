@@ -1003,10 +1003,21 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     }, [allExercises, completedSets, settings, exerciseList]);
 
     const activePartInfo = useMemo(() => {
-        if (!activeExerciseId) return null;
+        if (!activeExerciseId || !renderExercises.length) return null;
         const part = renderExercises.find((p: any) => p.exercises.some((e: any) => e.id === activeExerciseId));
-        return part || null; // Evita el undefined estricto que causa la pantalla negra
+        return part || null; // Blindaje contra undefined
     }, [activeExerciseId, renderExercises]);
+
+    // Blindaje de seguridad en vivo
+    useEffect(() => {
+        if (renderExercises.length > 0 && activeExerciseId) {
+            const exists = renderExercises.some((p: any) => p.exercises.some((e: any) => e.id === activeExerciseId));
+            if (!exists) {
+                // Si el ejercicio actual desaparece, mover al primero disponible
+                setActiveExerciseId(renderExercises[0]?.exercises[0]?.id || null);
+            }
+        }
+    }, [renderExercises, activeExerciseId]);
 
     // Blindaje de seguridad en vivo contra pantallas negras
     useEffect(() => {
