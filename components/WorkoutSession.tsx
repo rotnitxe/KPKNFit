@@ -996,7 +996,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     const activePartInfo = useMemo(() => {
         if (!activeExerciseId) return null;
-        return renderExercises.find(p => p.exercises.some(e => e.id === activeExerciseId));
+        return renderExercises.find((p: any) => p.exercises.some((e: any) => e.id === activeExerciseId));
     }, [activeExerciseId, renderExercises]);
 
     useEffect(() => {
@@ -1175,7 +1175,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             
             if (adaptiveRestTime > 0 && !isUnilateral) handleStartRest(adaptiveRestTime, exercise.name);
         }
-    }, [setInputs, selectedTags, handleStartRest, moveToNextSet, addToast, settings.algorithmSettings, completedSets, exerciseFeedback, allExercises, program.mode, program.goals, settings.weightUnit]);
+    }, [setInputs, selectedTags, handleStartRest, moveToNextSet, addToast, settings.algorithmSettings, completedSets, exerciseFeedback, allExercises, program.mode, (program as any).goals, settings.weightUnit]);
 
     const handleGoalAnimationComplete = () => {
         setStarGoalProgress(null);
