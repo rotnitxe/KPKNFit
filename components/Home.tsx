@@ -9,7 +9,7 @@ import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { calculateSystemicFatigue, calculateDailyReadiness } from '../services/recoveryService';
 import Modal from './ui/Modal';
 import { CaupolicanIcon } from './CaupolicanIcon';
-import MuscleRecoveryWidget from './MuscleRecoveryWidget';
+import SystemBatteryWidget from './MuscleRecoveryWidget';
 
 interface HomeProps {
   onNavigate: (view: View, program?: Program) => void;
@@ -136,78 +136,6 @@ const Progress1RMWidget: React.FC<{ history: WorkoutLog[] }> = ({ history }) => 
     );
 };
 
-
-// --- WIDGET AUGE (Panel Biológico Compacto + Acordeón) ---
-const AugeStatusWidget: React.FC = () => {
-    const { history, settings, sleepLogs, dailyWellbeingLogs, exerciseList } = useAppState();
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    const cnsBattery = useMemo(() => {
-        try {
-            // Ajuste de firma según el error: (history, sleepLogs, settings, date, exerciseList)
-            // Usamos cast a any para que la llamada sea flexible ante cambios en recoveryService
-            const fatigueRes = (calculateSystemicFatigue as any)(history, sleepLogs || [], settings, new Date(), exerciseList) || 0;
-            
-            const fatigueVal = typeof fatigueRes === 'number' 
-                ? fatigueRes 
-                : (fatigueRes?.totalSystemicFatigue || fatigueRes?.cnsFatigue || fatigueRes?.cnsDrain || 0);
-                
-            return Math.max(0, Math.min(100, 100 - fatigueVal));
-        } catch (e) {
-            console.error("Error calculando SNC:", e);
-            return 100; // Fallback seguro para evitar pantalla negra
-        }
-    }, [history, settings, exerciseList, sleepLogs]);
-    
-    const readiness = useMemo(() => calculateDailyReadiness(sleepLogs, dailyWellbeingLogs, settings, cnsBattery), [sleepLogs, dailyWellbeingLogs, settings, cnsBattery]);
-
-    return (
-        <div className="bg-[#0a0a0a] border border-[#222] rounded-2xl overflow-hidden mb-4 transition-all">
-            {/* Header Compacto (Siempre Visible) */}
-            <div onClick={() => setIsExpanded(!isExpanded)} className="p-4 cursor-pointer hover:bg-[#111] transition-colors flex flex-col gap-3 relative">
-                <div className="flex justify-between items-center z-10">
-                    <div className="flex items-center gap-2">
-                        <ActivityIcon size={14} className={readiness.status === 'red' ? 'text-red-500' : readiness.status === 'yellow' ? 'text-yellow-500' : 'text-emerald-500'}/>
-                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Ecosistema AUGE</span>
-                    </div>
-                    <ChevronRightIcon size={14} className={`text-zinc-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 z-10">
-                    <div>
-                        <div className="flex justify-between items-end mb-1">
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase">SNC (Sistema Central)</span>
-                            <span className="text-[10px] font-mono font-bold text-white">{Math.round(readiness.cnsBattery)}%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-[#222] rounded-full overflow-hidden">
-                            <div className={`h-full transition-all ${readiness.status === 'red' ? 'bg-red-500' : readiness.status === 'yellow' ? 'bg-yellow-500' : 'bg-emerald-500'}`} style={{width: `${readiness.cnsBattery}%`}}></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div className="flex justify-between items-end mb-1">
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase">Estado Biológico</span>
-                            <span className={`text-[9px] font-black uppercase ${readiness.status === 'red' ? 'text-red-400' : readiness.status === 'yellow' ? 'text-yellow-400' : 'text-emerald-400'}`}>
-                                {readiness.status === 'red' ? 'Peligro' : readiness.status === 'yellow' ? 'Precaución' : 'Óptimo'}
-                            </span>
-                        </div>
-                        <p className="text-[8px] text-zinc-400 leading-tight truncate">{readiness.recommendation}</p>
-                    </div>
-                </div>
-                {/* Glow de fondo sutil */}
-                <div className={`absolute -right-10 -top-10 w-32 h-32 blur-[50px] rounded-full pointer-events-none z-0 opacity-20 ${readiness.status === 'red' ? 'bg-red-500' : readiness.status === 'yellow' ? 'bg-yellow-500' : 'bg-emerald-500'}`} />
-            </div>
-
-            {/* Acordeón de Baterías Musculares */}
-            <div className={`transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] ${isExpanded ? 'max-h-[1000px] opacity-100 border-t border-[#222]' : 'max-h-0 opacity-0'}`}>
-                <div className="p-4 bg-black">
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-4">Fatiga Muscular Local</p>
-                    <MuscleRecoveryWidget />
-                </div>
-            </div>
-        </div>
-    );
-};
-
 // --- MAIN HOME COMPONENT ---
 const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
     const { programs, history, activeProgramState, dailyWellbeingLogs, settings } = useAppState();
@@ -307,7 +235,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                         {/* WIDGETS DE ANÁLISIS (AUGE + 1RM) */}
                         <div className="space-y-4">
                             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Análisis Biométrico</h3>
-                            <AugeStatusWidget />
+                            <SystemBatteryWidget />
                             
                             <div className="grid grid-cols-2 gap-4">
                                 <Progress1RMWidget history={history} />

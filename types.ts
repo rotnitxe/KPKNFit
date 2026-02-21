@@ -246,8 +246,15 @@ export interface Settings {
   homeWidgetOrder?: string[];
   
   // --- LÍMITES CALIBRADOS DEL ATLETA (KPKN ENGINE) ---
-  // Guarda el tope por músculo. Ej: { "Pectoral": { maxSession: 8, max: 18 } }
   volumeLimits?: Record<string, { maxSession: number; max: number; min?: number }>;
+  
+  // --- AUTO-CALIBRACIÓN CIBERNÉTICA (Deltas del Usuario) ---
+  batteryCalibration?: {
+      cnsDelta: number;
+      muscularDelta: number;
+      spinalDelta: number;
+      lastCalibrated: string;
+  };
 }
 
 export interface Program {

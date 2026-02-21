@@ -10,7 +10,7 @@ import BackgroundEditorModal from './SessionBackgroundModal';
 import { useAppContext } from '../contexts/AppContext';
 import { storageService } from '../services/storageService';
 import { useImageGradient } from '../utils/colorUtils';
-import { calculatePredictedSessionDrain, calculateSetStress, calculateSpinalScore, getDynamicAugeMetrics } from '../services/fatigueService';
+import { calculatePredictedSessionDrain, calculateSetStress, calculateSpinalScore, getDynamicAugeMetrics, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from '../services/fatigueService';
 import { InfoTooltip } from './ui/InfoTooltip';
 import { calculateSessionVolume, calculateAverageVolumeForWeeks } from '../services/analysisService';
 import { calculateUnifiedMuscleVolume, normalizeMuscleGroup } from '../services/volumeCalculator';
@@ -83,15 +83,14 @@ const AmrapSelectionModal: React.FC<{
     );
 };
 
-// --- BLOQUE 3: DASHBOARD AUGE (SESIÓN VS SEMANA) ---
 const SessionAugeDashboard: React.FC<{ 
     currentSession: Session; 
     weekSessions: Session[];
     exerciseList: ExerciseMuscleInfo[];
 }> = ({ currentSession, weekSessions, exerciseList = [] }) => {
+    const { settings } = useAppContext();
     const [viewMode, setViewMode] = useState<'volume' | 'drain' | 'ranking'>('volume');
     const [context, setContext] = useState<'session' | 'week'>('session');
-    const { settings } = useAppContext(); // Extraemos los límites calibrados del usuario
 
     const scrollToExercise = (exId: string) => {
         const el = document.getElementById(`exercise-card-${exId}`);
@@ -103,47 +102,47 @@ const SessionAugeDashboard: React.FC<{
     const { hyperStats, globalDrain, sessionAlerts, weeklyAlerts, exerciseRanking } = useMemo(() => {
         const hyperMap: Record<string, { flat: number, effective: number, fail: number }> = {};
         const weeklyHyperMap: Record<string, { flat: number, effective: number }> = {};
+        
         let totalCns = 0; let totalSpinal = 0; let totalMuscular = 0;
         let weeklyCns = 0; let weeklySpinal = 0; let weeklyMuscular = 0;
+        
         const ranking: { id: string, name: string, fatigue: number, isCurrentSession: boolean }[] = [];
+        const tanks = calculatePersonalizedBatteryTanks(settings);
 
         const processExercises = (exercises: any[], isCurrentSession: boolean) => {
+            const muscleSetCount: Record<string, number> = {};
+
             exercises.forEach(ex => {
                 const info = exerciseList.find((e: any) => e.id === ex.exerciseDbId || e.name === ex.name);
                 if (!info) return;
-                const augeMetrics = getDynamicAugeMetrics(info, ex.name);
+                const primaryMuscle = normalizeMuscleGroup(info.involvedMuscles.find((m: any) => m.role === 'primary')?.muscle || 'General');
+                
                 const validSets = ex.sets?.filter((s: any) => (s as any).type !== 'warmup') || [];
-
                 let exFatigueScore = 0;
 
                 validSets.forEach((set: any) => {
-                    const stress = calculateSetStress(set, info, ex.restTime || 90);
-                    let loadMult = 1.0;
+                    let accumulatedSets = muscleSetCount[primaryMuscle] || 0;
                     
-                    const reps = set.targetReps || 10;
-                    if (reps <= 3) loadMult *= 1.4; 
-                    else if (reps > 15) loadMult *= 1.15; 
+                    // --- THE SINGLE SOURCE OF TRUTH (Batería Local Acumulada) ---
+                    const drain = calculateSetBatteryDrain(set, info, tanks, accumulatedSets, ex.restTime || 90);
+                    
+                    muscleSetCount[primaryMuscle] = accumulatedSets + 1;
+                    exFatigueScore += drain.cnsDrainPct + drain.muscularDrainPct;
 
+                    if (isCurrentSession) {
+                        totalCns += drain.cnsDrainPct;
+                        totalSpinal += drain.spinalDrainPct;
+                        totalMuscular += drain.muscularDrainPct;
+                    }
+                    weeklyCns += drain.cnsDrainPct;
+                    weeklySpinal += drain.spinalDrainPct;
+                    weeklyMuscular += drain.muscularDrainPct;
+
+                    // Lógica Efectiva (MRV y Basura)
                     let rpe = set.targetRPE || 8;
                     if (set.intensityMode === 'rir' && set.targetRIR !== undefined) rpe = 10 - set.targetRIR;
                     if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap') rpe = 11;
-
-                    if (rpe >= 10) loadMult *= Math.pow((rpe/10), 1.5); 
-
-                    const cnsHit = (stress * (augeMetrics.cnc / 5.0) * loadMult);
-                    const spinalHit = calculateSpinalScore(set, info);
-
-                    exFatigueScore += cnsHit + (spinalHit * 0.05);
-                    const muscularHit = (stress * (augeMetrics.efc / 5.0));
-
-                    weeklyCns += cnsHit; weeklySpinal += spinalHit; weeklyMuscular += muscularHit;
-                    if (isCurrentSession) { totalCns += cnsHit; totalSpinal += spinalHit; totalMuscular += muscularHit; }
-
-                    // --- SISTEMA DE VOLUMEN EFECTIVO POR INTENSIDAD ---
-                    let volMult = 1.0;
-                    if (rpe >= 10) volMult = 1.2;      // Fallo extremo / AMRAP
-                    else if (rpe >= 8) volMult = 1.0;  // Hipertrofia óptima
-                    else volMult = 0.6;                // Bombeo / RIR Alto (Permite soportar más series)
+                    let volMult = rpe >= 10 ? 1.2 : rpe >= 8 ? 1.0 : 0.6;
 
                     info.involvedMuscles.forEach((m: any) => {
                         const parent = normalizeMuscleGroup(m.muscle);
@@ -166,7 +165,7 @@ const SessionAugeDashboard: React.FC<{
                 });
 
                 if (exFatigueScore > 0) {
-                    ranking.push({ id: ex.id, name: ex.name, fatigue: Math.min(10, (exFatigueScore / 60) * 10), isCurrentSession });
+                    ranking.push({ id: ex.id, name: ex.name, fatigue: exFatigueScore, isCurrentSession });
                 }
             });
         };
@@ -189,14 +188,12 @@ const SessionAugeDashboard: React.FC<{
         const sortedWeekly = sortMap(weeklyHyperMap);
         ranking.sort((a, b) => b.fatigue - a.fatigue);
 
-        // LÓGICA DINÁMICA: MENSAJES Y UMBRALES BASADOS EN MRV
         const limits = settings?.volumeLimits || {};
 
         const dynamicSessionAlerts = sortedHyper.map(m => {
             const limit = limits[m.muscle]?.maxSession || 6;
             let message = "";
             let isAlert = false;
-            
             if (m.volume > limit) {
                 isAlert = true;
                 if (m.failRatio >= 0.7) message = `Llevaste muchas series al fallo. Tu sistema nervioso local está frito. Añadir más es Volumen Basura.`;
@@ -220,9 +217,9 @@ const SessionAugeDashboard: React.FC<{
         return { 
             hyperStats: context === 'session' ? sortedHyper : sortedWeekly, 
             globalDrain: { 
-                cns: Math.min(100, ((context === 'session' ? totalCns : weeklyCns) / (context === 'session' ? 150 : 600)) * 100), 
-                spinal: Math.min(100, ((context === 'session' ? totalSpinal : weeklySpinal) / (context === 'session' ? 1000 : 4000)) * 100),
-                muscular: Math.min(100, ((context === 'session' ? totalMuscular : weeklyMuscular) / (context === 'session' ? 80 : 320)) * 100)
+                cns: Math.min(100, context === 'session' ? totalCns : weeklyCns), 
+                spinal: Math.min(100, context === 'session' ? totalSpinal : weeklySpinal),
+                muscular: Math.min(100, context === 'session' ? totalMuscular : weeklyMuscular)
             },
             sessionAlerts: dynamicSessionAlerts,
             weeklyAlerts: dynamicWeeklyAlerts,
@@ -429,6 +426,7 @@ export const AdvancedExercisePickerModal: React.FC<{
     exerciseList: ExerciseMuscleInfo[];
     initialSearch?: string;
 }> = ({ isOpen, onClose, onSelect, onCreateNew, exerciseList, initialSearch }) => {
+    const { settings } = useAppContext(); // Extraemos la configuración para el Tanque
     const [search, setSearch] = useState(initialSearch || '');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
     const [tooltipExId, setTooltipExId] = useState<string | null>(null);
@@ -479,18 +477,18 @@ export const AdvancedExercisePickerModal: React.FC<{
         return primary ? getParentMuscle(primary.muscle) : 'Varios';
     };
 
-    // MOTOR DE FATIGA CIENTÍFICO (Verro Score Normalizado)
-    const normalizeToTenScale = (val: number) => Math.min(10, Math.max(1, Math.round(val / 3)));
+    // MOTOR DE FATIGA AUGE 3.0 (Battery Drain %)
     const calculateIntrinsicFatigue = (ex: ExerciseMuscleInfo) => {
-        // Simulamos una serie estándar (10 reps @ RPE 8) para medir el costo intrínseco
-        const points = calculateSetStress({ targetReps: 10, targetRPE: 8 }, ex, 90);
-        return normalizeToTenScale(points);
+        // Simulamos una serie estándar efectiva (10 reps @ RPE 8)
+        const tanks = calculatePersonalizedBatteryTanks(settings);
+        return calculateSetBatteryDrain({ targetReps: 10, targetRPE: 8 }, ex, tanks, 0, 90);
     };
 
-    const getFatigueUI = (score: number) => {
-        if (score <= 3) return { color: 'bg-green-500', text: 'text-green-500', label: 'Baja' };
-        if (score <= 7) return { color: 'bg-yellow-500', text: 'text-yellow-500', label: 'Moderada' };
-        return { color: 'bg-red-500', text: 'text-red-500', label: 'Alta' };
+    const getFatigueUI = (drain: { muscularDrainPct: number; cnsDrainPct: number }) => {
+        const total = drain.cnsDrainPct + drain.muscularDrainPct;
+        if (total <= 3.0) return { color: 'bg-emerald-500', text: 'text-emerald-500' };
+        if (total <= 6.0) return { color: 'bg-yellow-500', text: 'text-yellow-500' };
+        return { color: 'bg-red-500', text: 'text-red-500' };
     };
 
     const getAugeIndexes = (exName: string, exInfo: ExerciseMuscleInfo) => {
@@ -517,7 +515,10 @@ export const AdvancedExercisePickerModal: React.FC<{
             result = result.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
         } else if (activeCategory) {
             if (activeCategory === 'KPKN Top Tier') result = result.filter(e => isTopTier(e.name));
-            else if (activeCategory === 'Baja Fatiga') result = result.filter(e => calculateIntrinsicFatigue(e) <= 4);
+            else if (activeCategory === 'Baja Fatiga') result = result.filter(e => {
+                const drain = calculateIntrinsicFatigue(e);
+                return (drain.cnsDrainPct + drain.muscularDrainPct) <= 6.0; // Umbral de batería %
+            });
             else {
                 const terms = categoryMap[activeCategory] || [];
                 result = result.filter(e => e.involvedMuscles.some(m => m.role === 'primary' && terms.some(term => m.muscle.toLowerCase().includes(term))));
@@ -531,15 +532,18 @@ export const AdvancedExercisePickerModal: React.FC<{
             if (sortKey === 'fatigue') {
                 const fA = calculateIntrinsicFatigue(a);
                 const fB = calculateIntrinsicFatigue(b);
-                return sortDir === 'asc' ? fA - fB : fB - fA;
+                const totalA = fA.cnsDrainPct + fA.muscularDrainPct;
+                const totalB = fB.cnsDrainPct + fB.muscularDrainPct;
+                return sortDir === 'asc' ? totalA - totalB : totalB - totalA;
             }
             if (sortKey === 'muscle') {
                 const mA = getPrimaryMuscleName(a);
                 const mB = getPrimaryMuscleName(b);
                 const comp = sortDir === 'asc' ? mA.localeCompare(mB) : mB.localeCompare(mA);
-                // Secondary sort: Si son del mismo músculo, ordenar por fatiga (asc)
                 if (comp !== 0) return comp;
-                return calculateIntrinsicFatigue(a) - calculateIntrinsicFatigue(b);
+                const fA = calculateIntrinsicFatigue(a);
+                const fB = calculateIntrinsicFatigue(b);
+                return (fA.cnsDrainPct + fA.muscularDrainPct) - (fB.cnsDrainPct + fB.muscularDrainPct);
             }
             return 0;
         });
@@ -649,8 +653,13 @@ export const AdvancedExercisePickerModal: React.FC<{
                                                     <div className="flex justify-between items-center w-full">
                                                         <span className="text-[9px] text-zinc-500 uppercase font-bold truncate">{ex.equipment} • {primaryMuscle}</span>
                                                         <div className="flex items-center gap-1.5 shrink-0">
-                                                            <div className={`w-2 h-2 rounded-full ${fatigueUI.color} shadow-[0_0_8px_currentColor]`}></div>
-                                                            <span className="text-[10px] font-black text-white">{fatigueScore}<span className="text-zinc-600">/10</span></span>
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${fatigueUI.color} shadow-[0_0_8px_currentColor]`}></div>
+                                                            <span className="text-[9px] font-mono text-zinc-400 bg-zinc-900 px-1 rounded border border-white/5">
+                                                                -{fatigueScore.cnsDrainPct.toFixed(1)}% <span className="text-yellow-500">⚡</span>
+                                                            </span>
+                                                            <span className="text-[9px] font-mono text-zinc-400 bg-zinc-900 px-1 rounded border border-white/5">
+                                                                -{fatigueScore.muscularDrainPct.toFixed(1)}% <span className="text-red-400">🥩</span>
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </button>
@@ -825,64 +834,27 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
 
     const restLabel = isInSuperset && !isSupersetLast ? 'Transición (s)' : 'Descanso (s)';
 
-    // --- MOTOR LOCAL AUGE (Predictivo por Ejercicio en Vivo) ---
-    const augeMetrics = useMemo(() => getDynamicAugeMetrics(exerciseInfo, exercise.name), [exerciseInfo, exercise.name]);
-    
+    // --- MOTOR LOCAL AUGE 3.0 (Drenaje Predictivo en Vivo por Ejercicio) ---
     const localDrain = useMemo(() => {
-        let rawCns = 0, rawSpinal = 0;
-        const muscles: Record<string, number> = {};
+        const tanks = calculatePersonalizedBatteryTanks(settings);
+        let cnsPct = 0, spinalPct = 0, muscularPct = 0;
         
-        // Protección robusta: Si sets no existe o no es array, iteramos un array vacío
         const safeSets = Array.isArray(exercise.sets) ? exercise.sets : [];
         
         safeSets.forEach((set, idx) => {
             if ((set as any)?.type === 'warmup') return;
-             
-             // 1. Detección RIR/RPE/Fallo
-             let rpe = set.targetRPE || 8;
-             if (set.intensityMode === 'rir' && set.targetRIR !== undefined) rpe = 10 - set.targetRIR;
-             if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap') rpe = 11; // Fallo real
-             
-             // 2. Curva de repeticiones
-             let reps = set.targetReps || 10;
-             let repMult = 1.0;
-             if (reps <= 3) repMult = 1.4; // Altas cargas SNC
-             else if (reps > 15) repMult = 1.15; // Metabólico
-
-             // 3. Crecimiento Exponencial (Fallo y Volumen Basura)
-             let fatigueExp = 1.0;
-             if (rpe >= 10) fatigueExp = Math.pow((rpe/10), 1.6); // Fallo dispara exponencialmente
-             
-             // Castigo por series (Volumen Basura intra-ejercicio a partir de la 6ta)
-             if (idx >= 5) fatigueExp *= Math.pow(1.3, idx - 4);
-
-             const stress = calculateSetStress({ ...set, targetRPE: rpe }, exerciseInfo, exercise.restTime || 90) * repMult * fatigueExp;
-             
-             rawCns += stress * (augeMetrics.cnc / 5.0);
-             
-             // Estrés Espinal conectado
-             const setSpinal = calculateSpinalScore({ ...set, targetRPE: rpe }, exerciseInfo);
-             rawSpinal += setSpinal * fatigueExp;
-
-             exerciseInfo?.involvedMuscles.forEach(m => {
-                 const mName = normalizeMuscleGroup(m.muscle);
-                 const rMult = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.6 : m.role === 'stabilizer' ? 0.3 : 0.15;
-                 muscles[mName] = (muscles[mName] || 0) + (stress * rMult);
-             });
+            
+            // Pasamos `idx` simulando el volumen acumulado intra-ejercicio 
+            // para detonar la alerta visual si excede su capacidad.
+            const drain = calculateSetBatteryDrain(set, exerciseInfo, tanks, idx, exercise.restTime || 90);
+            
+            cnsPct += drain.cnsDrainPct;
+            spinalPct += drain.spinalDrainPct;
+            muscularPct += drain.muscularDrainPct;
         });
         
-        // Conversión a porcentaje para la UI (1-100%)
-        const toPct = (val: number, maxExpected: number) => Math.min(100, Math.max(0, (val / maxExpected) * 100));
-        
-        const topMusclesList = Object.entries(muscles).sort((a, b) => b[1] - a[1]).slice(0, 2);
-        const topMuscleVal = topMusclesList.length > 0 ? topMusclesList[0][1] : 0;
-
-        const cnsPct = toPct(rawCns, 60); 
-        const spinalPct = exerciseInfo?.axialLoadFactor ? toPct(rawSpinal, 800) : 0;
-        const muscularPctValue = toPct(topMuscleVal, 50);
-        
-        return { cns: cnsPct, spinal: spinalPct, muscular: muscularPctValue };
-    }, [exercise.sets, exerciseInfo, augeMetrics, exercise.restTime, exercise.trainingMode]);
+        return { cns: cnsPct, spinal: spinalPct, muscular: muscularPct };
+    }, [exercise.sets, exerciseInfo, exercise.restTime, settings]);
 
     return (
         <div className="flex gap-2 items-start transition-all duration-300 w-full max-w-full">

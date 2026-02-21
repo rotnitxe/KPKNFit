@@ -78,44 +78,6 @@ const getEFC = (info: ExerciseMuscleInfo | undefined): number => {
     return getDynamicAugeMetrics(info).efc;
 };
 
-/**
- * CÁLCULO DE CARGA AXIAL Y ESTRÉS ESPINAL (SSC)
- * Basado en la fórmula: (Carga en kg * Reps) * SSC * Factor Postura
- */
-export const calculateSpinalScore = (set: any, info: ExerciseMuscleInfo | undefined): number => {
-    const { ssc } = getDynamicAugeMetrics(info, set.exerciseName);
-    if (ssc === 0) return 0;
-    
-    const weight = set.weight || set.completedWeight || 0;
-    const reps = set.completedReps || set.targetReps || set.reps || 0;
-    const postureFactor = info?.postureFactor || 1.0;
-    
-    let spinalScore = 0;
-    if (weight === 0) {
-        // Predicción para el editor donde aún no hay peso (basado en RPE)
-        const rpe = set.targetRPE || 8;
-        spinalScore = reps * ssc * 10 * (rpe / 8) * postureFactor;
-    } else {
-        spinalScore = (weight * reps) * ssc * postureFactor;
-    }
-    
-    // Añadir tonelaje axial de Dropsets
-    if (set.dropSets) {
-        set.dropSets.forEach((ds: any) => {
-            spinalScore += ((ds.weight || weight) * (ds.reps || 0)) * ssc * postureFactor;
-        });
-    }
-    
-    // Regla de Fatiga Técnica Exponencial: A mayor RPE (Fallo, Dropsets), la degradación técnica en columna es exponencial
-    const rpe = getEffectiveRPE(set);
-    if (rpe >= 10 && ssc >= 1.2) {
-        // Multiplicador base de 1.5x. Si el RPE es 13 (Técnicas de intensidad), el daño escala exponencialmente.
-        spinalScore *= 1.5 * Math.pow(rpe / 10, 2);
-    }
-    
-    return spinalScore;
-};
-
 const getEffectiveRPE = (set: any): number => {
     let baseRpe = 7; // Valor por defecto
 
@@ -126,172 +88,199 @@ const getEffectiveRPE = (set: any): number => {
     else if (set.targetRIR !== undefined) baseRpe = 10 - set.targetRIR;
 
     // 2. Override por Fallo (Base RPE 11)
-    // El fallo real implica mayor reclutamiento y daño que RIR 0 (RPE 10)
     if (set.isFailure || set.performanceMode === 'failure' || set.intensityMode === 'failure' || set.isAmrap) {
         baseRpe = Math.max(baseRpe, 11);
     }
 
-    // 3. Incremento Exponencial por Técnicas Avanzadas (Más allá del fallo)
+    // 3. Incremento Exponencial por Técnicas Avanzadas
     let techniqueBonus = 0;
-    
-    if (set.dropSets && set.dropSets.length > 0) {
-        techniqueBonus += set.dropSets.length * 1.5; // Cada DropSet añade fatiga extrema
-    }
-    if (set.restPauses && set.restPauses.length > 0) {
-        techniqueBonus += set.restPauses.length * 1.0; 
-    }
-    if (set.partialReps && set.partialReps > 0) {
-        techniqueBonus += 0.5; // Ir a parciales post-fallo
-    }
+    if (set.dropSets && set.dropSets.length > 0) techniqueBonus += set.dropSets.length * 1.5;
+    if (set.restPauses && set.restPauses.length > 0) techniqueBonus += set.restPauses.length * 1.0; 
+    if (set.partialReps && set.partialReps > 0) techniqueBonus += 0.5;
 
-    // Si se usaron técnicas, el usuario al menos llegó al límite
-    if (techniqueBonus > 0 && baseRpe < 10) {
-        baseRpe = 10; 
-    }
+    if (techniqueBonus > 0 && baseRpe < 10) baseRpe = 10; 
 
-    return baseRpe + techniqueBonus; // Un DropSet al fallo puede devolver un RPE de 12.5 o más
+    return baseRpe + techniqueBonus;
 };
 
 /**
-/**
- * SISTEMA AUGE: Cálculo de Drenaje Muscular Local (D_musc)
- * Fórmula: Sets * (Reps^0.65) * (RPE/10) * EFC_local * K_rol
+ * --- KPKN ENGINE: TANQUES DE BATERÍA PERSONALIZADOS ---
+ * Define el "100%" de capacidad de un atleta basado en su nivel y estilo de entrenamiento.
  */
-export const calculateSetStress = (
+export const calculatePersonalizedBatteryTanks = (settings: any) => {
+    // Tanque Base (Usuario Intermedio Estándar)
+    let baseMuscular = 300; 
+    let baseCns = 250;      
+    let baseSpinal = 4000;  
+
+    // Modificador por Nivel de Experiencia (Work Capacity)
+    const level = settings?.athleteScore?.profileLevel || 'Advanced';
+    const levelMult = level === 'Beginner' ? 0.8 : 1.2; // Avanzados toleran 20% más volumen
+
+    // Modificador por Estilo de Entrenamiento
+    const style = (settings?.athleteScore?.trainingStyle || settings?.athleteType || 'Bodybuilder').toLowerCase();
+    let cnsMult = 1.0, muscMult = 1.0, spineMult = 1.0;
+
+    if (style.includes('powerlift')) {
+        cnsMult = 1.3; spineMult = 1.4; muscMult = 0.9; // SNC y Espalda de acero, menos tolerancia metabólica
+    } else if (style.includes('bodybuild') || style.includes('aesthetics')) {
+        cnsMult = 0.9; spineMult = 0.9; muscMult = 1.3; // Alta tolerancia al ácido láctico y volumen local
+    } else {
+        cnsMult = 1.15; spineMult = 1.15; muscMult = 1.15; // Powerbuilder / Híbrido
+    }
+
+    return {
+        muscularTank: baseMuscular * levelMult * muscMult,
+        cnsTank: baseCns * levelMult * cnsMult,
+        spinalTank: baseSpinal * levelMult * spineMult
+    };
+};
+
+/**
+ * --- KPKN ENGINE: SINGLE SOURCE OF TRUTH (Cálculo de Drenaje por Serie) ---
+ * Retorna directamente el % exacto de batería que drena una serie individual.
+ */
+export const calculateSetBatteryDrain = (
     set: any, 
     info: ExerciseMuscleInfo | undefined, 
-    restTime: number = 90,
-    muscleRole: 'primary' | 'secondary' | 'stabilizer' | 'neutralizer' = 'primary'
-): number => {
+    tanks: { muscularTank: number, cnsTank: number, spinalTank: number },
+    accumulatedSetsForMuscle: number = 0,
+    restTime: number = 90
+) => {
+    const auge = getDynamicAugeMetrics(info, set.exerciseName || info?.name);
     const rpe = getEffectiveRPE(set);
-    const reps = set.completedReps || set.targetReps || set.reps || 0;
-    const efc = getEFC(info); 
-    const partialReps = set.partialReps || 0;
-    
-    let effectiveVolume = reps + (partialReps * 0.5);
-    
-    // Sumar volumen extra de técnicas de intensidad
-    if (set.dropSets) effectiveVolume += set.dropSets.reduce((acc: number, ds: any) => acc + (ds.reps || 0), 0);
-    if (set.restPauses) effectiveVolume += set.restPauses.reduce((acc: number, rp: any) => acc + (rp.reps || 0), 0);
+    const reps = set.completedReps || set.targetReps || set.reps || 10;
+    const isCompound = info?.type === 'Básico' || info?.tier === 'T1';
 
-    if (effectiveVolume <= 0) return 0;
+    // 1. CURVA BIOMECÁNICA EN "U" (Impacto por Rango de Repeticiones)
+    let repsCnsMult = 1.0, repsMuscMult = 1.0, repsSpineMult = 1.0;
 
-    // Ajuste no lineal del volumen: Reps^0.65
-    const volumeFactor = Math.pow(effectiveVolume, 0.65);
-    
-    // Multiplicador Exponencial por AUGE (Intensidad Extrema)
-    let intensityFactor = rpe / 10;
-    if (rpe > 10) {
-        // Crecimiento exponencial para esfuerzos que superan el fallo (RPE > 10)
-        // Ej: RPE 12.5 -> (1.25)^1.5 = 1.39 -> Se multiplica con el volumen ya inflado por las reps extra
-        intensityFactor = Math.pow(rpe / 10, 1.5);
-    } else if (set.performanceMode === 'failed') {
-        intensityFactor = 1.4; // Penalización estática por fallo técnico/accidental
-    }
-    
-    // --- INTEGRACIÓN: DESCANSO ADAPTATIVO SIMULADO ---
-    // AUGE asume que si la intensidad fue extrema, tomaste el descanso compensatorio de la UI
-    let effectiveRestTime = restTime;
-    if (rpe > 9) {
-        let addedRest = (rpe - 9) * 25 * 1.25; // Misma fórmula proporcional de la UI
-        effectiveRestTime += Math.min(addedRest, 120); // Cap de +120s
-    }
-
-    // --- FACTOR DE DESCANSO AUGE (SUPER-SERIES VS FUERZA) ---
-    let restFactor = 1.0;
-    if (effectiveRestTime > 0) {
-        if (effectiveRestTime <= 30) {
-            restFactor = 1.4; // Bi-Series / Super-Series extremas (Estrés altísimo)
-        } else if (effectiveRestTime < 60) {
-            restFactor = 1.2; // Descanso incompleto tradicional (Metabólico)
-        } else if (effectiveRestTime >= 120) {
-            // Recuperación de ATP-CP completada mitiga la fatiga central generada
-            // 120s = 1.0 | 180s (3m) = ~0.9 | 300s (5m) = 0.8 (Tope máximo de mitigación)
-            restFactor = Math.max(0.8, 1.0 - ((effectiveRestTime - 120) * 0.0015)); 
+    if (reps <= 4) { // Zona RM (Fuerza Pura)
+        if (isCompound) {
+            repsCnsMult = 1.8;   // Destroza el SNC
+            repsSpineMult = 1.6; // Alta carga axial
+            repsMuscMult = 0.7;  // Poco tiempo bajo tensión para hipertrofia
+        } else {
+            repsCnsMult = 1.2; 
+            repsSpineMult = 0.1;
+            repsMuscMult = 0.8;
         }
+    } else if (reps >= 16) { // Zona Metabólica
+        repsCnsMult = 0.7;   // Menor carga neural
+        repsSpineMult = 0.5;
+        repsMuscMult = 1.4;  // Altísimo estrés metabólico
     }
 
-    // K_rol (Coeficiente de Participación Sinérgica)
-    let k_rol = 1.0; // Agonista
-    if (muscleRole === 'secondary') k_rol = 0.6; // Sinergista Dinámico
-    if (muscleRole === 'stabilizer') k_rol = 0.3; // Estabilizador
-    if (muscleRole === 'neutralizer') k_rol = 0.15; // Neutralizador
+    // 2. MULTIPLICADOR EXPONENCIAL POR RPE / RIR
+    let intensityMult = 1.0;
+    if (rpe >= 11) intensityMult = 1.8;       // Más allá del fallo (Dropsets/RestPause)
+    else if (rpe >= 10) intensityMult = 1.5;  // Fallo Absoluto (Exponencial)
+    else if (rpe >= 9) intensityMult = 1.15;  // RIR 1
+    else if (rpe >= 8) intensityMult = 1.0;   // RIR 2 (Base óptima)
+    else if (rpe >= 6) intensityMult = 0.7;   // RIR 3-4 (Bombeo)
+    else intensityMult = 0.4;                 // RIR 5+ (Calentamiento/Recuperación)
 
-    const rawStress = volumeFactor * intensityFactor * efc * restFactor * k_rol;
+    // 3. TOXICIDAD POR VOLUMEN ACUMULADO (Intra-Sesión)
+    // Si ya hiciste 6 series de un músculo hoy, la 7ma te fatiga exponencialmente más.
+    let junkVolumeMult = 1.0;
+    if (accumulatedSetsForMuscle >= 6) {
+        junkVolumeMult = 1.0 + ((accumulatedSetsForMuscle - 5) * 0.35); // Ej: Serie 6 = x1.35, Serie 7 = x1.70
+    }
+
+    // 4. FACTOR DE DESCANSO (Densidad)
+    let restFactor = 1.0;
+    if (restTime <= 45) restFactor = 1.3; // Superseries drenan más rápido
+    else if (restTime >= 180) restFactor = 0.85; // Descansos largos protegen el SNC
+
+    // 5. CÁLCULO DE DAÑO BRUTO
+    const rawMuscular = auge.efc * repsMuscMult * intensityMult * junkVolumeMult * restFactor * 8.0;
+    const rawCns = auge.cnc * repsCnsMult * intensityMult * restFactor * 6.0;
     
-    return Math.round(rawStress * 10) / 10;
+    // El estrés espinal requiere el peso. Si no hay peso, lo estimamos con RPE y EFC.
+    const weightFactor = set.weight ? (set.weight * 0.05) : (auge.efc * 2.0); 
+    const rawSpinal = auge.ssc * repsSpineMult * intensityMult * weightFactor * 4.0;
+
+    // 6. CONVERSIÓN A PORCENTAJE DE BATERÍA DRENADA
+    return {
+        muscularDrainPct: (rawMuscular / tanks.muscularTank) * 100,
+        cnsDrainPct: (rawCns / tanks.cnsTank) * 100,
+        spinalDrainPct: (rawSpinal / tanks.spinalTank) * 100
+    };
 };
 
 /**
- * PASO 3: NORMALIZACIÓN A ESCALA 1-10
+ * --- PREDICTOR GLOBAL DE LA SESIÓN ---
+ * Suma todos los porcentajes para dar el total de batería que costará la sesión.
  */
-export const normalizeToTenScale = (verroScore: number): number => {
-    const maxThreshold = 45; // 45 pts Verro = Fatiga crítica (10/10)
-    return Math.min(10, Math.max(1, parseFloat(((verroScore / maxThreshold) * 10).toFixed(1))));
-};
+export const calculatePredictedSessionDrain = (session: Session, exerciseList: ExerciseMuscleInfo[], settings?: any) => {
+    const tanks = calculatePersonalizedBatteryTanks(settings);
+    
+    let totalCnsPct = 0;
+    let totalMuscularPct = 0;
+    let totalSpinalPct = 0;
+    
+    // Mapa de volumen para rastrear la fatiga acumulada del músculo en vivo
+    const muscleVolumeMap: Record<string, number> = {};
 
-/**
- * PASO 5: BATERÍA DUAL (SNC VS MÚSCULO)
- */
-export const calculatePredictedSessionDrain = (session: Session, exerciseList: ExerciseMuscleInfo[]) => {
-    let sncPoints = 0;
-    let musclePoints = 0;
-    let spinalPoints = 0; // Acumulador de daño biomecánico
     const exercises = session.parts ? session.parts.flatMap(p => p.exercises) : session.exercises;
 
     exercises?.forEach(ex => {
         const info = exerciseList.find(i => i.id === ex.exerciseDbId || i.name === ex.name);
-        const efc = getEFC(info);
+        const primaryMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
         
+        // Contamos cuántas series lleva este músculo ANTES de empezar este ejercicio
+        let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
+
         ex.sets?.forEach(s => {
-            // D_musc: Drenaje Muscular Local (Asumiendo rol primario para la sumatoria global)
-            const d_musc = calculateSetStress(s, info, ex.restTime || 90, 'primary');
-            musclePoints += d_musc;
+            if ((s as any).type === 'warmup') return;
+
+            accumulatedSets += 1; // Incrementamos el track en vivo
             
-            // D_SNC: Drenaje Sistémico (Refinado con Intensidad Relativa AUGE)
-            const rpe = getEffectiveRPE(s);
-            let sncIntensityFactor = 1.0;
+            const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, ex.restTime || 90);
             
-            // Si tenemos el 1RM calculado del ejercicio, comparamos carga real vs potencial
-            if (info?.calculated1RM && s.weight) {
-                const intensityPercent = s.weight / info.calculated1RM;
-                if (intensityPercent > 0.85) sncIntensityFactor = 1.6; // Cargas pesadas drenan SNC
-                else if (intensityPercent > 0.70) sncIntensityFactor = 1.2;
-            } else {
-                // Fallback por RPE
-                if (rpe >= 9) sncIntensityFactor = 1.4;
-            }
-            
-            // Si el ejercicio es multiarticular libre (ej. Sentadilla, EFC alto)
-            const structuralFactor = efc > 3.0 ? 1.3 : 0.8; 
-            
-            const d_snc = d_musc * sncIntensityFactor * structuralFactor;
-            sncPoints += d_snc;
-            
-            // D_spine: Carga Espinal
-            spinalPoints += calculateSpinalScore(s, info);
+            totalMuscularPct += drain.muscularDrainPct;
+            totalCnsPct += drain.cnsDrainPct;
+            totalSpinalPct += drain.spinalDrainPct;
         });
+
+        // Guardamos el nuevo total para el siguiente ejercicio
+        muscleVolumeMap[primaryMuscle] = accumulatedSets;
     });
 
     return {
-        cnsDrain: Math.round(Math.min(100, (sncPoints / 280) * 100)), // Umbral 280 pts (PDF)
-        muscleBatteryDrain: Math.round(Math.min(100, (musclePoints / 350) * 100)), // Umbral 350 pts (PDF)
-        spinalDrain: Math.round(Math.min(100, (spinalPoints / 8000) * 100)), // Umbral 8000 unidades (Zona Roja PDF)
-        totalSpinalScore: Math.round(spinalPoints) // Dato bruto para visualización de UI
+        cnsDrain: Math.round(Math.min(100, totalCnsPct)),
+        muscleBatteryDrain: Math.round(Math.min(100, totalMuscularPct)),
+        spinalDrain: Math.round(Math.min(100, totalSpinalPct)),
+        totalSpinalScore: Math.round(totalSpinalPct * 10) // Valor de referencia extra
     };
+};
+
+// Funciones Legacy Mantenidas para Retrocompatibilidad temporal en otras vistas
+export const calculateSetStress = (set: any, info: ExerciseMuscleInfo | undefined, restTime: number = 90): number => {
+    const defaultTanks = calculatePersonalizedBatteryTanks({});
+    const drain = calculateSetBatteryDrain(set, info, defaultTanks, 0, restTime);
+    return drain.muscularDrainPct; 
+};
+
+export const calculateSpinalScore = (set: any, info: ExerciseMuscleInfo | undefined): number => {
+    const defaultTanks = calculatePersonalizedBatteryTanks({});
+    const drain = calculateSetBatteryDrain(set, info, defaultTanks, 0, 90);
+    return drain.spinalDrainPct;
+};
+
+export const normalizeToTenScale = (verroScore: number): number => {
+    return Math.min(10, Math.max(1, parseFloat(((verroScore / 10) * 10).toFixed(1)))); // Aproximación
 };
 
 export const calculateExerciseFatigueScale = (exercise: any, info: ExerciseMuscleInfo | undefined): number => {
     if (!exercise.sets?.length) return 0;
-    const maxSetStress = Math.max(...exercise.sets.map((s: any) => calculateSetStress(s, info, exercise.restTime || 90)));
-    return normalizeToTenScale(maxSetStress);
-};
-
-export const calculateCompletedSessionStress = (completedExercises: CompletedExercise[], exerciseList: ExerciseMuscleInfo[]): number => {
-    return completedExercises.reduce((total, ex) => {
-        const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.exerciseName);
-        return total + ex.sets.reduce((sTotal, s) => sTotal + calculateSetStress(s, info, 90), 0);
-    }, 0);
+    const defaultTanks = calculatePersonalizedBatteryTanks({});
+    let totalDrain = 0;
+    exercise.sets.forEach((s: any, idx: number) => {
+        const drain = calculateSetBatteryDrain(s, info, defaultTanks, idx, exercise.restTime || 90);
+        totalDrain += drain.cnsDrainPct + (drain.muscularDrainPct * 0.5);
+    });
+    return Math.min(10, Math.round(totalDrain / 2)); 
 };
 
 export const isSetEffective = (set: any): boolean => {

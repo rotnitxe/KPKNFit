@@ -616,3 +616,153 @@ export const calculateSleepRecommendations = (
         isWorkDayTomorrow: isTomorrowWorkDay
     };
 };
+
+import { calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from './fatigueService';
+
+export interface BatteryAuditLog { icon: string; label: string; val: number | string; type: 'workout' | 'penalty' | 'bonus' | 'info'; }
+
+/**
+ * --- KPKN ENGINE 3.0: BATERÍAS GLOBALES Y AUDITORÍA ---
+ * Calcula el estado de los 3 sistemas cruzando entrenamientos con hábitos de vida.
+ */
+export const calculateGlobalBatteries = (
+    history: WorkoutLog[],
+    sleepLogs: SleepLog[],
+    dailyWellbeingLogs: DailyWellbeingLog[],
+    nutritionLogs: NutritionLog[],
+    settings: Settings,
+    exerciseList: ExerciseMuscleInfo[]
+) => {
+    const now = Date.now();
+    const tanks = calculatePersonalizedBatteryTanks(settings);
+
+    // Vida Media de la Fatiga (Horas para recuperar el 50%)
+    let cnsHalfLife = 28;    // SNC recupera moderadamente rápido si hay sueño
+    let muscHalfLife = 40;   // Músculo requiere síntesis proteica
+    let spinalHalfLife = 72; // Tejido conectivo y fascia tardan muchísimo
+
+    const auditLogs = { cns: [] as BatteryAuditLog[], muscular: [] as BatteryAuditLog[], spinal: [] as BatteryAuditLog[] };
+
+    // 1. MODULADOR DE NUTRICIÓN (Afecta la recarga Muscular)
+    const fortyEightHoursAgo = now - (48 * 3600000);
+    const recentNutrition = nutritionLogs.filter(n => new Date(n.date).getTime() > fortyEightHoursAgo);
+    let nutritionStatus = settings.calorieGoalObjective || 'maintenance';
+    
+    if (recentNutrition.length > 0) {
+        const avgCals = recentNutrition.reduce((a, b) => a + (b.calories || 0), 0) / recentNutrition.length;
+        if (settings.dailyCalorieGoal) {
+            if (avgCals < settings.dailyCalorieGoal * 0.9) nutritionStatus = 'deficit';
+            else if (avgCals > settings.dailyCalorieGoal * 1.1) nutritionStatus = 'surplus';
+        }
+    }
+    
+    if (nutritionStatus === 'deficit') {
+        muscHalfLife *= 1.3; // Tarda 30% más en recargar
+        auditLogs.muscular.push({ icon: '📉', label: 'Déficit Calórico (Recarga Lenta)', val: '', type: 'info' });
+    } else if (nutritionStatus === 'surplus') {
+        muscHalfLife *= 0.8; // Tarda 20% menos en recargar
+        auditLogs.muscular.push({ icon: '🚀', label: 'Superávit Calórico (Recarga Rápida)', val: '', type: 'info' });
+    }
+
+    // 2. MODULADOR DE SUEÑO Y ESTRÉS (Afecta Capacidad SNC)
+    let cnsPenalty = 0;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
+    const recentWellbeing = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
+
+    if (recentWellbeing && recentWellbeing.stressLevel >= 4) {
+        cnsPenalty += 12;
+        auditLogs.cns.push({ icon: '🤯', label: 'Alto Estrés Reportado', val: -12, type: 'penalty' });
+    }
+
+    if (settings?.algorithmSettings?.augeEnableSleepTracking !== false) {
+        const sleepArray = Array.isArray(sleepLogs) ? sleepLogs : [];
+        const sortedSleep = [...sleepArray].sort((a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime()).slice(0, 3);
+        let wSleep = 7.5;
+        if (sortedSleep.length > 0) wSleep = ((sortedSleep[0]?.duration || 7.5) * 0.5) + ((sortedSleep[1]?.duration || 7.5) * 0.3) + ((sortedSleep[2]?.duration || 7.5) * 0.2);
+        
+        if (wSleep < 6) {
+            cnsPenalty += 18;
+            auditLogs.cns.push({ icon: '🥱', label: 'Deuda de Sueño Crítica', val: -18, type: 'penalty' });
+        } else if (wSleep >= 8.5) {
+            cnsPenalty -= 10;
+            auditLogs.cns.push({ icon: '🛌', label: 'Sueño Profundo (Bonus)', val: '+10', type: 'bonus' });
+        }
+    }
+
+    // 3. ACUMULACIÓN DE ENTRENAMIENTO (Drenaje Directo)
+    let cnsFatigue = 0, muscFatigue = 0, spinalFatigue = 0;
+    const sevenDaysAgo = now - (7 * 24 * 3600 * 1000);
+    const recentLogs = history.filter(l => new Date(l.date).getTime() > sevenDaysAgo);
+
+    recentLogs.forEach(log => {
+        let logCns = 0, logMusc = 0, logSpinal = 0;
+        const hoursAgo = (now - new Date(log.date).getTime()) / 3600000;
+        
+        // Sumamos el drenaje de cada serie
+        log.completedExercises.forEach(ex => {
+            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.exerciseName);
+            ex.sets.forEach((s, idx) => {
+                const drain = calculateSetBatteryDrain(s, info, tanks, idx, 90);
+                logCns += drain.cnsDrainPct;
+                logMusc += drain.muscularDrainPct;
+                logSpinal += drain.spinalDrainPct;
+            });
+        });
+
+        // Aplicamos la tasa de recarga (Decaimiento Exponencial) basado en cuánto tiempo pasó
+        const cnsDecay = logCns * Math.exp(-(Math.LN2 / cnsHalfLife) * hoursAgo);
+        const muscDecay = logMusc * Math.exp(-(Math.LN2 / muscHalfLife) * hoursAgo);
+        const spinalDecay = logSpinal * Math.exp(-(Math.LN2 / spinalHalfLife) * hoursAgo);
+
+        cnsFatigue += cnsDecay;
+        muscFatigue += muscDecay;
+        spinalFatigue += spinalDecay;
+
+        // Registrar en Auditoría solo si la sesión aún tiene un impacto > 3%
+        if (hoursAgo < 72) {
+            if (cnsDecay > 3) auditLogs.cns.push({ icon: '🏋️', label: `Sesión: ${log.sessionName}`, val: -Math.round(cnsDecay), type: 'workout' });
+            if (muscDecay > 3) auditLogs.muscular.push({ icon: '🏋️', label: `Sesión: ${log.sessionName}`, val: -Math.round(muscDecay), type: 'workout' });
+            if (spinalDecay > 3) auditLogs.spinal.push({ icon: '🏋️', label: `Sesión: ${log.sessionName}`, val: -Math.round(spinalDecay), type: 'workout' });
+        }
+    });
+
+    // 4. AUTO-CALIBRACIÓN DEL USUARIO (Manual Override)
+    const calib = settings.batteryCalibration || { cnsDelta: 0, muscularDelta: 0, spinalDelta: 0, lastCalibrated: '' };
+    let cnsDelta = calib.cnsDelta || 0;
+    let muscDelta = calib.muscularDelta || 0;
+    let spinalDelta = calib.spinalDelta || 0;
+
+    // Los overrides desaparecen solos después de 3 días (72h)
+    if (calib.lastCalibrated) {
+        const calibHours = (now - new Date(calib.lastCalibrated).getTime()) / 3600000;
+        const calibDecay = Math.max(0, 1 - (calibHours / 72));
+        cnsDelta *= calibDecay;
+        muscDelta *= calibDecay;
+        spinalDelta *= calibDecay;
+    }
+
+    if (Math.abs(cnsDelta) > 1) auditLogs.cns.push({ icon: '🧠', label: 'Auto-Calibración (Tú)', val: Math.round(cnsDelta) > 0 ? `+${Math.round(cnsDelta)}` : Math.round(cnsDelta), type: cnsDelta > 0 ? 'bonus' : 'penalty' });
+    if (Math.abs(muscDelta) > 1) auditLogs.muscular.push({ icon: '🧠', label: 'Auto-Calibración (Tú)', val: Math.round(muscDelta) > 0 ? `+${Math.round(muscDelta)}` : Math.round(muscDelta), type: muscDelta > 0 ? 'bonus' : 'penalty' });
+    if (Math.abs(spinalDelta) > 1) auditLogs.spinal.push({ icon: '🧠', label: 'Auto-Calibración (Tú)', val: Math.round(spinalDelta) > 0 ? `+${Math.round(spinalDelta)}` : Math.round(spinalDelta), type: spinalDelta > 0 ? 'bonus' : 'penalty' });
+
+    // 5. CÁLCULO FINAL (100% - Daño Acumulado)
+    const finalCns = Math.min(100, Math.max(0, 100 - cnsFatigue - cnsPenalty + cnsDelta));
+    const finalMusc = Math.min(100, Math.max(0, 100 - muscFatigue + muscDelta));
+    const finalSpinal = Math.min(100, Math.max(0, 100 - spinalFatigue + spinalDelta));
+
+    // 6. VEREDICTO EXPERTO AUGE
+    let verdict = "Todos tus sistemas están óptimos. Es un buen día para buscar récords personales (PRs).";
+    if (finalCns < 30) verdict = "Tu sistema nervioso está frito. NO intentes 1RMs hoy. Prioriza máquinas y reduce el RPE.";
+    else if (finalSpinal < 35) verdict = "Tu columna y tejido axial están sobrecargados. Evita el Peso Muerto o Sentadillas Libres hoy.";
+    else if (finalMusc < 30) verdict = "Alta fatiga muscular residual. Asegúrate de comer suficiente proteína y haz rutinas de bombeo.";
+    else if (cnsPenalty > 10) verdict = "Tu falta de sueño/estrés está limitando tu potencial hoy. Autorregula tu peso y no vayas al fallo.";
+
+    return {
+        cns: Math.round(finalCns),
+        muscular: Math.round(finalMusc),
+        spinal: Math.round(finalSpinal),
+        auditLogs,
+        verdict
+    };
+};

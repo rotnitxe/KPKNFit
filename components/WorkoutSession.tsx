@@ -11,7 +11,8 @@ import { useAppDispatch, useAppState, useAppContext } from '../contexts/AppConte
 // Bypass de TypeScript: Adaptador para que los strings literales sean aceptados como Enums de Capacitor
 const hapticImpact = (style?: any) => _hapticImpact(style);
 const hapticNotification = (type?: any) => _hapticNotification(type);
-import { calculateSpinalScore } from '../services/fatigueService';
+import { calculateSpinalScore, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from '../services/fatigueService';
+import { normalizeMuscleGroup } from '../services/volumeCalculator';
 import FinishWorkoutModal from './FinishWorkoutModal';
 import ExerciseHistoryModal from './ExerciseHistoryModal';
 import Modal from './ui/Modal';
@@ -473,7 +474,8 @@ const WorkoutHeader: React.FC<{
     isCompact?: boolean;
     isResting?: boolean;
     zenMode?: boolean;
-}> = React.memo(({ sessionName, activePartName, activePartColor, background, coverStyle, isFocusMode, onToggleFocusMode, isLiveCoachActive, onToggleLiveCoach, isCompact, isResting, zenMode }) => {
+    liveBatteryDrain?: { cns: number; muscular: number; spinal: number };
+}> = React.memo(({ sessionName, activePartName, activePartColor, background, coverStyle, isFocusMode, onToggleFocusMode, isLiveCoachActive, onToggleLiveCoach, isCompact, isResting, zenMode, liveBatteryDrain }) => {
     const bgImage = background?.type === 'image' ? `url(${background.value})` : undefined;
     const bgColor = background?.type === 'color' ? background.value : undefined;
     const tintClass = zenMode ? '' : (isResting ? 'bg-sky-900/30' : 'bg-red-900/10');
@@ -503,6 +505,32 @@ const WorkoutHeader: React.FC<{
                         <h2 className={`font-black text-white truncate transition-all duration-500 drop-shadow-lg leading-tight ${isCompact ? 'text-xl' : 'text-3xl'}`}>{sessionName}</h2>
                         {isCompact && activePartName && (
                             <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5 block truncate" style={{ color: isResting ? '#38bdf8' : activePartColor }}>{isResting ? 'Descansando...' : activePartName}</span>
+                        )}
+                        
+                        {/* --- KPKN LIVE HUD --- */}
+                        {liveBatteryDrain && (
+                            <div className={`flex gap-3 items-center bg-[#111]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)] mt-1.5 w-max transition-opacity duration-300 ${isCompact ? 'opacity-0 h-0 overflow-hidden mt-0 py-0 border-none' : 'opacity-100'}`}>
+                                <div className="flex items-center gap-1.5" title="SNC Drenado">
+                                    <BrainIcon size={12} className={liveBatteryDrain.cns > 70 ? 'text-red-500 animate-pulse' : 'text-sky-400'}/>
+                                    <span className={`text-[10px] font-mono font-black ${liveBatteryDrain.cns > 70 ? 'text-red-400' : 'text-white'}`}>
+                                        -{liveBatteryDrain.cns.toFixed(0)}%
+                                    </span>
+                                </div>
+                                <div className="w-[1px] h-3 bg-white/20"></div>
+                                <div className="flex items-center gap-1.5" title="Músculo Drenado">
+                                    <ActivityIcon size={12} className={liveBatteryDrain.muscular > 70 ? 'text-red-500 animate-pulse' : 'text-rose-400'}/>
+                                    <span className={`text-[10px] font-mono font-black ${liveBatteryDrain.muscular > 70 ? 'text-red-400' : 'text-white'}`}>
+                                        -{liveBatteryDrain.muscular.toFixed(0)}%
+                                    </span>
+                                </div>
+                                <div className="w-[1px] h-3 bg-white/20"></div>
+                                <div className="flex items-center gap-1.5" title="Carga Espinal">
+                                    <StarIcon size={12} className={liveBatteryDrain.spinal > 70 ? 'text-red-500 animate-pulse' : 'text-amber-400'}/>
+                                    <span className={`text-[10px] font-mono font-black ${liveBatteryDrain.spinal > 70 ? 'text-red-400' : 'text-white'}`}>
+                                        -{liveBatteryDrain.spinal.toFixed(0)}%
+                                    </span>
+                                </div>
+                            </div>
                         )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 ml-2">
@@ -607,10 +635,10 @@ const SetDetails: React.FC<{
     }, [history, exercise.id, exercise.exerciseDbId, setIndex, safeInputs.weight, completedReps]);
 
     const handleAdjust = useCallback((field: 'reps' | 'weight' | 'duration', amount: number) => {
-        let targetField: any = field;
+        let targetField: keyof SetInputState = field;
         if (field === 'reps' && repInputMode === 'partial') { targetField = 'partialReps'; }
         
-        const val = parseFloat(safeInputs[targetField] as string || '0') || 0;
+        const val = parseFloat(String(safeInputs[targetField]) || '0') || 0;
         let newValue: number;
         if (field === 'weight') {
             const step = settings.weightUnit === 'kg' ? (val < 20 ? 1.25 : 2.5) : 2.5;
@@ -889,7 +917,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     const allExercises = useMemo<Exercise[]>(() => {
         if (sessionForMode.parts && sessionForMode.parts.length > 0) {
-            return sessionForMode.parts.flatMap((p: any) => p.exercises as Exercise[]);
+            return sessionForMode.parts.flatMap((p: any) => p.exercises.map((e: any) => e as Exercise[]));
         }
         return (sessionForMode.exercises as Exercise[]) || [];
     }, [sessionForMode]);
@@ -918,6 +946,53 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     const [completedSets, setCompletedSets] = useState<Record<string, { left: OngoingSetData | null, right: OngoingSetData | null }>>((ongoingWorkout?.completedSets as any) || {});
     const [historyModalExercise, setHistoryModalExercise] = useState<Exercise | null>(null);
+
+    // --- KPKN LIVE TELEMETRY ENGINE ---
+    const liveBatteryDrain = useMemo(() => {
+        const tanks = calculatePersonalizedBatteryTanks(settings);
+        let cnsPct = 0, muscPct = 0, spinalPct = 0;
+        const muscleVolumeMap: Record<string, number> = {};
+
+        allExercises.forEach(ex => {
+            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+            const rawMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
+            const primaryMuscle = normalizeMuscleGroup ? normalizeMuscleGroup(rawMuscle) : rawMuscle;
+            
+            let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
+
+            (ex.sets || []).forEach(set => {
+                const isSetCompleted = !!completedSets[String(set.id)];
+                if (isSetCompleted && (set as any).type !== 'warmup') {
+                    accumulatedSets += 1;
+                    
+                    const completedDataRaw = completedSets[String(set.id)] as { left: OngoingSetData | null, right: OngoingSetData | null };
+                    const completedData = ex.isUnilateral ? (completedDataRaw?.left || completedDataRaw?.right) : completedDataRaw?.left;
+                    
+                    // Mezclamos la data de la serie base con lo que el usuario realmente hizo
+                    const setToCalculate = completedData ? {
+                        ...set,
+                        completedReps: completedData.reps,
+                        completedRPE: completedData.rpe,
+                        weight: completedData.weight,
+                        isFailure: completedData.isFailure,
+                        intensityMode: completedData.performanceMode === 'failure' ? 'failure' : set.intensityMode
+                    } : set;
+
+                    const drain = calculateSetBatteryDrain(setToCalculate, info, tanks, accumulatedSets, ex.restTime || 90);
+                    cnsPct += drain.cnsDrainPct;
+                    muscPct += drain.muscularDrainPct;
+                    spinalPct += drain.spinalDrainPct;
+                }
+            });
+            muscleVolumeMap[primaryMuscle] = accumulatedSets;
+        });
+
+        return {
+            cns: Math.min(100, cnsPct),
+            muscular: Math.min(100, muscPct),
+            spinal: Math.min(100, spinalPct)
+        };
+    }, [allExercises, completedSets, settings, exerciseList]);
 
     const activePartInfo = useMemo(() => {
         if (!activeExerciseId) return null;
@@ -1119,11 +1194,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             const isStar = ex.isStarTarget || isBasic;
             let targetGoal = ex.goal1RM;
             
-            if (!targetGoal && isBasic && program.goals) {
+            if (!targetGoal && isBasic && (program as any).goals) {
                 const n = ex.name.toLowerCase();
-                if(n.includes('sentadilla') || n.includes('squat')) targetGoal = program.goals.squat1RM;
-                else if(n.includes('bench')) targetGoal = program.goals.bench1RM;
-                else if(n.includes('muerto') || n.includes('deadlift')) targetGoal = program.goals.deadlift1RM;
+                if (n.includes('sentadilla') || n.includes('squat')) targetGoal = (program as any).goals.squat1RM;
+                else if (n.includes('bench')) targetGoal = (program as any).goals.bench1RM;
+                else if (n.includes('muerto') || n.includes('deadlift')) targetGoal = (program as any).goals.deadlift1RM;
             }
 
             if (isStar && targetGoal && targetGoal > 0) {
@@ -1248,7 +1323,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 />
             )}
 
-            <WorkoutHeader 
+<WorkoutHeader 
                 sessionName={currentSession.name} 
                 background={currentSession.background} 
                 coverStyle={currentSession.coverStyle}
@@ -1260,10 +1335,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 activePartName={activePartInfo?.name} 
                 isResting={!!(restTimer && restTimer.remaining > 0)} 
                 zenMode={settings.enableZenMode} 
+                liveBatteryDrain={liveBatteryDrain}
             />
             
             <div className="mt-4 px-2 sm:px-4 space-y-10 relative">
-                 {renderExercises.map((part, partIndex) => {
+            {renderExercises.map((part: any, partIndex: number) => {
                     const theme = getPartTheme(part.name || '');
                     return (
                     <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group">
