@@ -266,7 +266,24 @@ export const App: React.FC = () => {
     }, [requestWakeLock]);
     // --- FIN LÓGICA WAKE LOCK ---
 
-    // --- SISTEMA DE VERSIONES Y NOVEDADES ---
+    // --- VIP PASS PARA IOS (PROMPT DE INSTALACIÓN NATIVO) ---
+    const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+    
+    useEffect(() => {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+        // Detecta Safari en iOS estrictamente
+        const isSafari = navigator.vendor && navigator.vendor.indexOf('Apple') > -1 && navigator.userAgent && navigator.userAgent.indexOf('CriOS') === -1 && navigator.userAgent.indexOf('FxiOS') === -1;
+        // Detecta si ya está instalada (Standalone mode)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+        
+        // Si es iPhone, usa Safari, no está instalada y no la hemos ocultado previamente
+        if (isIOS && isSafari && !isStandalone && !localStorage.getItem('kpkn_ios_prompt_hidden')) {
+            setShowIOSPrompt(true);
+        }
+    }, []);
+    // --- FIN VIP PASS ---
+
+    // --- SISTEMA DE VERSIONES Y ESCUDO ANTI-CACHÉ ---
     const APP_VERSION = "1.0.1"; // ⚠️ CAMBIA ESTE NÚMERO CADA VEZ QUE ME PIDAS UNA ACTUALIZACIÓN GRANDE
     const [showUpdateModal, setShowUpdateModal] = useState(false);
 
@@ -274,6 +291,12 @@ export const App: React.FC = () => {
         const storedVersion = localStorage.getItem('kpkn_version');
         // Si ya había una versión instalada, y es distinta a la nueva, ¡es una actualización!
         if (storedVersion && storedVersion !== APP_VERSION) {
+            // ESCUDO ANTI-CACHÉ: Forzar limpieza profunda de la memoria del Service Worker
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    for (let name of names) caches.delete(name);
+                });
+            }
             setShowUpdateModal(true);
         }
         // Guardar la versión actual silenciosamente
@@ -513,6 +536,65 @@ export const App: React.FC = () => {
             {pendingCoachBriefing && <CoachBriefingModal isOpen={!!pendingCoachBriefing} onClose={handleContinueWorkoutAfterBriefing} briefing={pendingCoachBriefing} />}
             {state.isLogActionSheetOpen && <LogActionSheet />}
             <SpecialSessionLoggerModal />
+
+            {/* --- MODAL DE NOVEDADES (ACTUALIZACIÓN) --- */}
+            {showUpdateModal && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
+                    <div className="bg-zinc-900 border border-blue-500/30 rounded-3xl p-6 w-full max-w-sm shadow-2xl shadow-blue-500/10 animate-slide-up relative overflow-hidden">
+                        {/* Glow Background */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full pointer-events-none"></div>
+
+                        <div className="w-16 h-16 bg-blue-500/20 border border-blue-500/30 rounded-full flex items-center justify-center text-blue-400 mb-6 mx-auto relative z-10 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        </div>
+                        
+                        <h2 className="text-xl font-black text-white uppercase text-center tracking-tight mb-2 relative z-10">¡KPKN Actualizado!</h2>
+                        <p className="text-zinc-400 text-[11px] text-center font-bold uppercase tracking-widest mb-6 relative z-10">Versión Instalada: {APP_VERSION}</p>
+                        
+                        <div className="bg-black/50 rounded-2xl p-5 mb-6 border border-white/5 space-y-3 relative z-10">
+                            <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                Novedades Recientes:
+                            </h3>
+                            <ul className="text-[11px] text-zinc-300 space-y-2.5 font-bold">
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Caja Negra integrada para atrapar fallos del sistema en tiempo real.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>ADN Nativo activado: Gestos y navegación nivel sistema operativo.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>La pantalla ya no se apaga mientras entrenas.</span></li>
+                            </ul>
+                        </div>
+
+                        <button 
+                            onClick={() => setShowUpdateModal(false)}
+                            className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] relative z-10 active:scale-95"
+                        >
+                            ¡Entendido, a entrenar!
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* --- VIP PASS IOS BANNER --- */}
+            {showIOSPrompt && (
+                <div className="fixed bottom-4 left-4 right-4 z-[9999] animate-slide-up pointer-events-auto">
+                    <div className="bg-black/90 backdrop-blur-2xl border border-white/20 p-4 rounded-3xl shadow-2xl flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-xl flex-shrink-0 flex items-center justify-center p-1 shadow-inner">
+                            <img src="/icon-192.png" alt="KPKN" className="w-full h-full object-contain rounded-lg" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-white font-black text-sm uppercase tracking-tight leading-none mb-1">Instala KPKN</h3>
+                            <p className="text-slate-400 text-[10px] font-bold leading-tight">
+                                Toca <svg className="inline w-4 h-4 text-sky-500 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> y selecciona <br/><span className="text-white font-black">"Añadir a inicio"</span>
+                            </p>
+                        </div>
+                        <button 
+                            onClick={() => { setShowIOSPrompt(false); localStorage.setItem('kpkn_ios_prompt_hidden', 'true'); }} 
+                            className="text-slate-500 hover:text-white bg-white/5 border border-white/10 p-2.5 rounded-full transition-colors"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -577,6 +577,7 @@ const SetDetails: React.FC<{
     const [showFailureWarning, setShowFailureWarning] = useState(false);
     const [showFailedModal, setShowFailedModal] = useState(false); 
     const [isStagnant, setIsStagnant] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false); // CANDADO ANTI-DOBLE TOQUE
 
     const currentInputs: SetInputState = isUnilateral ? (inputs as UnilateralSetInputs)[activeSide] : (inputs as SetInputState);
     const safeInputs: SetInputState = currentInputs || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, isIneffective: false, isPartial: false, duration: '', notes: '', advancedTechnique: '', dropSets: [], restPauses: [], performanceMode: 'target', partialReps: '', technicalQuality: '8', discomfortLevel: '0', discomfortNotes: '', tempo: '' };
@@ -651,16 +652,23 @@ const SetDetails: React.FC<{
     }, [safeInputs, onInputChange, settings.weightUnit, isUnilateral, activeSide, repInputMode]);
     
     const handleLogAttempt = () => {
+        if (isSubmitting) return; // Si el candado está cerrado, ignorar toque accidental
+        setIsSubmitting(true);
+
         if (set.isAmrap) {
             const reps = parseInt(safeInputs.reps, 10) || 0;
             const target = set.targetReps || 0;
             if (reps < target) {
                  setShowFailureWarning(true); 
+                 setIsSubmitting(false); // Liberar candado si falla validación
                  return; 
             }
         }
         setShowFailureWarning(false);
         onLogSet(!!set.isCalibrator);
+        
+        // Liberar el candado después de medio segundo
+        setTimeout(() => setIsSubmitting(false), 500);
     }
     
     const handleSetDurationSave = (tut: number) => { onInputChange('duration', tut.toString(), isUnilateral ? activeSide : undefined); };
