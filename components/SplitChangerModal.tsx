@@ -62,8 +62,8 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fade-in">
-            <div className="w-full max-w-lg max-h-[90vh] bg-[#0a0a0a] border border-white/10 rounded-t-3xl sm:rounded-3xl flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fade-in p-0 sm:p-4">
+            <div className="w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] bg-[#0a0a0a] border border-white/10 rounded-t-3xl sm:rounded-3xl flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]">
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-white/10">
                     <div>
@@ -80,7 +80,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                 </div>
 
                 {step === 'gallery' ? (
-                    <div className="flex flex-col flex-1 overflow-hidden">
+                    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                         {/* Search */}
                         <div className="px-5 py-3 border-b border-white/5">
                             <div className="relative">
@@ -95,13 +95,13 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Filter tags */}
-                        <div className="px-5 py-2 flex gap-2 overflow-x-auto hide-scrollbar border-b border-white/5">
+                        {/* Filter tags — flex-wrap para que las etiquetas no se corten en pantallas pequeñas */}
+                        <div className="px-5 py-3 flex flex-wrap gap-2 border-b border-white/5 min-h-0">
                             {FILTER_TAGS.map(tag => (
                                 <button
                                     key={tag}
                                     onClick={() => setFilter(tag)}
-                                    className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all border ${
+                                    className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all border shrink-0 ${
                                         filter === tag
                                             ? 'bg-white text-black border-white'
                                             : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500'
@@ -113,7 +113,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                         </div>
 
                         {/* Split list */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+                        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 space-y-2">
                             {filteredSplits.map(split => {
                                 const isCurrent = split.id === currentSplitId;
                                 const trainingDays = split.pattern.filter(d => d.toLowerCase() !== 'descanso').length;
@@ -157,7 +157,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-6">
+                    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-5 space-y-6">
                         {/* Selected split preview */}
                         {selectedSplit && (
                             <div className="bg-zinc-900 border border-white/10 rounded-2xl p-4">
@@ -297,7 +297,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
 
                 {/* Footer */}
                 {step === 'scope' && (
-                    <div className="p-5 border-t border-white/10 flex gap-3">
+                    <div className="p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-white/10 flex gap-3 shrink-0">
                         <Button variant="secondary" onClick={handleBack} className="flex-1 !py-3 !text-[10px]">
                             Atrás
                         </Button>

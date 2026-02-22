@@ -518,7 +518,7 @@ export const App: React.FC = () => {
                 onSettingsClick={() => navigateTo('settings')}
             />
             
-            <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar z-10 ${view === 'home' ? 'p-0' : 'pt-4'} pb-[100px]`}>
+            <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar z-10 ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))]`}>
                 <div className={`${view === 'home' || view === 'sleep' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
                         {renderView()}
