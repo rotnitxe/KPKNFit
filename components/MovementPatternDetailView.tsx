@@ -52,7 +52,7 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
   }
 
   return (
-    <div className="pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
+    <div className="pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
       <header className="relative h-32 -mx-4 bg-gradient-to-b from-orange-900/30 to-[#0a0a0a] border-b border-orange-500/20">
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">

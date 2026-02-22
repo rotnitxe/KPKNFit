@@ -20,10 +20,10 @@ import TimersModal from './components/TimersModal';
 import Toast from './components/ui/Toast';
 import CustomExerciseEditorModal from './components/CustomExerciseEditorModal';
 import VideoAnalysisModal from './components/VideoAnalysisModal';
-import ReadinessCheckModal from './components/ReadinessCheckModal';
+import ReadinessDrawer from './components/ReadinessDrawer';
 import AddToPlaylistSheet from './components/AddToPlaylistSheet';
-import StartWorkoutModal from './components/StartWorkoutModal';
-import CoachBriefingModal from './components/CoachBriefingModal';
+import StartWorkoutDrawer from './components/StartWorkoutDrawer';
+import CoachBriefingDrawer from './components/CoachBriefingDrawer';
 import AddBodyLogModal from './components/AddBodyLogModal';
 import LogActionSheet from './components/LogActionSheet';
 import FoodEditorModal from './components/FoodEditorModal';
@@ -569,7 +569,7 @@ export const App: React.FC = () => {
                 onSettingsClick={() => navigateTo('settings')}
             />
             
-            <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar z-10 ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))]`}>
+            <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar z-10 ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))]`}>
                 <div className={`${view === 'home' || view === 'sleep' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
                         {renderView()}
@@ -603,10 +603,10 @@ export const App: React.FC = () => {
             {isFoodEditorOpen && <FoodEditorModal />}
             {state.isAddPantryItemModalOpen && <AddPantryItemModal />}
             {isVideoAnalysisModalOpen && <VideoAnalysisModal isOpen={isVideoAnalysisModalOpen} onClose={() => setIsVideoAnalysisModalOpen(false)} exerciseName={viewingExercise?.name || ''} isOnline={isOnline} settings={settings} />}
-            {isReadinessModalOpen && <ReadinessCheckModal isOpen={isReadinessModalOpen} onClose={() => { setIsReadinessModalOpen(false); setPendingWorkoutForReadinessCheck(null); }} onContinue={handleContinueFromReadiness} />}
+            {isReadinessModalOpen && <ReadinessDrawer isOpen={isReadinessModalOpen} onClose={() => { setIsReadinessModalOpen(false); setPendingWorkoutForReadinessCheck(null); }} onContinue={handleContinueFromReadiness} />}
             {state.isAddToPlaylistSheetOpen && <AddToPlaylistSheet />}
-            {isStartWorkoutModalOpen && <StartWorkoutModal isOpen={isStartWorkoutModalOpen} onClose={() => setIsStartWorkoutModalOpen(false)} />}
-            {pendingCoachBriefing && <CoachBriefingModal isOpen={!!pendingCoachBriefing} onClose={handleContinueWorkoutAfterBriefing} briefing={pendingCoachBriefing} />}
+            {isStartWorkoutModalOpen && <StartWorkoutDrawer isOpen={isStartWorkoutModalOpen} onClose={() => setIsStartWorkoutModalOpen(false)} />}
+            {pendingCoachBriefing && <CoachBriefingDrawer isOpen={!!pendingCoachBriefing} onClose={handleContinueWorkoutAfterBriefing} briefing={pendingCoachBriefing} />}
             {state.isLogActionSheetOpen && <LogActionSheet />}
             <SpecialSessionLoggerModal />
 

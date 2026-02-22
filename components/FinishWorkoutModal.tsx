@@ -2,6 +2,7 @@
 // components/FinishWorkoutModal.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import Modal from './ui/Modal';
+import WorkoutDrawer from './workout/WorkoutDrawer';
 import Button from './ui/Button';
 import { DISCOMFORT_LIST } from '../data/discomfortList';
 import { CheckCircleIcon, ArrowUpIcon, ArrowDownIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, DumbbellIcon, ClockIcon, FlameIcon } from './icons';
@@ -16,6 +17,8 @@ interface FinishWorkoutModalProps {
   mode?: 'live' | 'log';
   improvementIndex?: { percent: number; direction: 'up' | 'down' | 'neutral' } | null;
   initialDurationInSeconds?: number;
+  initialNotes?: string;
+  asDrawer?: boolean;
 }
 
 const ENVIRONMENT_TAGS = ["Gimnasio Lleno", "Gimnasio Vacío", "Entrenando con Amigos", "Buena Música", "Distraído", "Con Prisa"];
@@ -94,7 +97,7 @@ const WorkoutShareCard: React.FC<{
     );
 };
 
-const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds }) => {
+const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, asDrawer }) => {
   const { addRecommendationTrigger, addToast } = useAppDispatch();
   const [fatigueLevel, setFatigueLevel] = useState(5);
   const [mentalClarity, setMentalClarity] = useState(5);
@@ -116,6 +119,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
       if (initialDurationInSeconds) {
         setDurationInMinutes(Math.round(initialDurationInSeconds / 60).toString());
       }
+      if (initialNotes) setNotes(initialNotes);
       setLogDate(new Date().toISOString().split('T')[0]);
     }
     
@@ -134,7 +138,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     }
     
     prevIsOpen.current = isOpen;
-  }, [isOpen, initialDurationInSeconds]);
+  }, [isOpen, initialDurationInSeconds, initialNotes]);
 
   const handleFinishAttempt = () => {
       // Consecuencia: Sugerir descarga si fatiga > 7 y claridad < 4
@@ -198,9 +202,9 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     </div>
   )
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={showRecoverySuggestion ? "🛡️ Recuperación Prioritaria" : "Finalizar Sesión"}>
-      {/* Hidden Share Card */}
+  const title = showRecoverySuggestion ? "Recuperación Prioritaria" : "Finalizar Sesión";
+  const content = (
+    <>
       <WorkoutShareCard 
           date={logDate} 
           duration={durationInMinutes || '--'} 
@@ -321,6 +325,19 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
               </div>
           </div>
       )}
+    </>
+  );
+
+  if (asDrawer) {
+    return (
+      <WorkoutDrawer isOpen={isOpen} onClose={onClose} title={title} height="90vh">
+        <div className="p-5 overflow-y-auto max-h-[85vh]">{content}</div>
+      </WorkoutDrawer>
+    );
+  }
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+      {content}
     </Modal>
   );
 };

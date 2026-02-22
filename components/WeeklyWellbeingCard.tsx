@@ -6,7 +6,7 @@ import { getWeekId } from '../utils/calculations';
 import Card from './ui/Card';
 import { InfoTooltip } from './ui/InfoTooltip';
 import Button from './ui/Button';
-import ReadinessCheckModal from './ReadinessCheckModal';
+import ReadinessDrawer from './ReadinessDrawer';
 import { DailyWellbeingLog } from '../types';
 
 const EMOJI_MAPS = {
@@ -87,7 +87,7 @@ const WeeklyWellbeingCard: React.FC = () => {
             <div className="bg-slate-900/30 border border-white/5 rounded-2xl p-4 text-center">
                  <p className="text-sm text-slate-400 mb-2">¿Cómo te sientes hoy?</p>
                  <Button onClick={() => setIsModalOpen(true)} variant="secondary" className="w-full !text-xs">Registrar Estado</Button>
-                 <ReadinessCheckModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onContinue={handleSaveDailyWellbeing} />
+                 <ReadinessDrawer isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onContinue={handleSaveDailyWellbeing} />
             </div>
          );
     }
@@ -96,7 +96,7 @@ const WeeklyWellbeingCard: React.FC = () => {
 
     return (
         <div className="bg-slate-900/30 border border-white/5 rounded-2xl p-4">
-            <ReadinessCheckModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onContinue={handleSaveDailyWellbeing} />
+            <ReadinessDrawer isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onContinue={handleSaveDailyWellbeing} />
             
             <div className="flex justify-between items-center mb-3">
                 <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Bienestar (Promedio 7d)</h3>

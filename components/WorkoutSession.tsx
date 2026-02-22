@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, ExerciseSet, SessionBackground, OngoingSetData, SetInputState, UnilateralSetInputs, DropSetData, RestPauseData, ExerciseMuscleInfo, Program, Settings, PlanDeviation, CoverStyle, ToastData } from '../types';
 import Button from './ui/Button';
-import { ClockIcon, ChevronRightIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, LayersIcon } from './icons'; 
+import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons'; 
 import { playSound } from '../services/soundService';
 import { hapticImpact as _hapticImpact, ImpactStyle, hapticNotification as _hapticNotification, NotificationType } from '../services/hapticsService';
 import { calculateBrzycki1RM, getWeightSuggestionForSet, roundWeight, calculateWeightFrom1RM } from '../utils/calculations';
@@ -18,6 +18,9 @@ import { GPFatigueCurve } from './ui/AugeDeepView';
 import FinishWorkoutModal from './FinishWorkoutModal';
 import ExerciseHistoryModal from './ExerciseHistoryModal';
 import Modal from './ui/Modal';
+import WarmupDrawer from './workout/WarmupDrawer';
+import PostExerciseDrawer from './workout/PostExerciseDrawer';
+import WorkoutDrawer from './workout/WorkoutDrawer';
 
 const InCardTimer: React.FC<{ initialTime: number; onSave: (duration: number) => void; }> = ({ initialTime, onSave }) => {
     const [time, setTime] = useState(initialTime * 1000);
@@ -151,151 +154,6 @@ const GoalProgressOverlay: React.FC<{
                 
                 <button onClick={onAnimationComplete} className="mt-6 w-full py-3 rounded-2xl bg-white/5 text-slate-500 font-bold text-xs uppercase tracking-widest">Cerrar</button>
             </div>
-        </div>
-    );
-};
-
-// --- INLINE FEEDBACK CARD ---
-const InlineFeedbackCard: React.FC<{
-    exerciseName: string;
-    onSave: (feedback: { jointLoad: number; technicalQuality: number; perceivedFatigue: number }) => void;
-}> = ({ exerciseName, onSave }) => {
-    const [jointLoad, setJointLoad] = useState(5);
-    const [technicalQuality, setTechnicalQuality] = useState(8);
-    const [perceivedFatigue, setPerceivedFatigue] = useState(5);
-
-    const handleSave = () => {
-        hapticImpact(ImpactStyle.Medium);
-        onSave({ jointLoad, technicalQuality, perceivedFatigue });
-    };
-
-    return (
-        <div className="set-card-content p-5 bg-slate-900/90 border border-slate-700/50 rounded-xl flex flex-col h-full min-w-[85vw] max-w-[85vw] sm:min-w-[350px] shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><ActivityIcon size={120} /></div>
-             
-             <div className="text-center mb-6">
-                <h4 className="text-xl font-black text-white uppercase tracking-tighter mb-1">Feedback Post-Ejercicio</h4>
-                <p className="text-xs text-slate-400 font-medium">¿Cómo sentiste el {exerciseName}?</p>
-             </div>
-
-             <div className="space-y-6 flex-1 flex flex-col justify-center">
-                <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-2">
-                        <span>Carga Articular</span>
-                        <span className={jointLoad > 7 ? "text-red-400" : "text-green-400"}>{jointLoad}/10</span>
-                    </div>
-                    <input type="range" min="1" max="10" value={jointLoad} onChange={(e) => setJointLoad(parseInt(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500" />
-                </div>
-                <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-2">
-                        <span>Técnica</span>
-                        <span className={technicalQuality < 5 ? "text-red-400" : "text-green-400"}>{technicalQuality}/10</span>
-                    </div>
-                    <input type="range" min="1" max="10" value={technicalQuality} onChange={(e) => setTechnicalQuality(parseInt(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500" />
-                </div>
-                <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-2">
-                        <span>Fatiga Percibida</span>
-                        <span className="text-orange-400">{perceivedFatigue}/10</span>
-                    </div>
-                    <input type="range" min="1" max="10" value={perceivedFatigue} onChange={(e) => setPerceivedFatigue(parseInt(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500" />
-                </div>
-             </div>
-
-             <div className="mt-8">
-                <Button onClick={handleSave} className="w-full !py-4 shadow-lg shadow-primary-color/20 !text-sm font-black uppercase tracking-widest">
-                    <CheckIcon size={18} className="mr-2"/> Completar Ejercicio
-                </Button>
-             </div>
-        </div>
-    );
-};
-
-// --- WARMUP DASHBOARD COMPONENT ---
-const WarmupDashboard: React.FC<{
-    exercise: Exercise;
-    baseWeight: number; 
-    onBaseWeightChange: (weight: number) => void;
-    settings: Settings;
-    isConsolidated: boolean;
-    onComplete: () => void;
-}> = ({ exercise, baseWeight, onBaseWeightChange, settings, isConsolidated, onComplete }) => {
-    const [checkedSets, setCheckedSets] = useState<Set<string>>(new Set());
-
-    useEffect(() => {
-        if (exercise.warmupSets && checkedSets.size === exercise.warmupSets.length && exercise.warmupSets.length > 0) {
-            const timer = setTimeout(() => {
-                onComplete();
-            }, 500);
-            return () => clearTimeout(timer);
-        }
-    }, [checkedSets, exercise.warmupSets, onComplete]);
-
-    if (!exercise.warmupSets || exercise.warmupSets.length === 0) return null;
-
-    const toggleSet = (id: string) => {
-        setCheckedSets(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(id)) newSet.delete(id);
-            else newSet.add(id);
-            return newSet;
-        });
-        hapticImpact(ImpactStyle.Light);
-    };
-
-    return (
-        <div className="set-card-content p-4 bg-slate-950/80 border border-sky-500/30 rounded-xl relative overflow-hidden h-full flex flex-col min-w-[85vw] max-w-[85vw] sm:min-w-[350px]">
-             <div className="absolute top-0 right-0 p-2 opacity-10 pointer-events-none"><FlameIcon size={80}/></div>
-             
-             <div className="text-center mb-4 relative z-10">
-                <h4 className="text-xs font-black text-sky-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                     <ActivityIcon size={14}/> Calentamiento
-                 </h4>
-                 
-                 <div className="inline-flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-sky-500/20 shadow-lg">
-                     <span className="text-[10px] text-slate-400 uppercase font-bold">{isConsolidated ? 'Peso Meta:' : 'Peso Objetivo:'}</span>
-                     <input 
-                        type="number" 
-                        value={baseWeight || ''} 
-                        onChange={e => onBaseWeightChange(parseFloat(e.target.value) || 0)}
-                        className="w-16 bg-transparent border-b border-slate-600 text-center font-bold text-white text-sm focus:border-sky-400 outline-none"
-                        placeholder="0"
-                    />
-                    <span className="text-[10px] text-slate-500">{settings.weightUnit}</span>
-                 </div>
-             </div>
-
-             <div className="flex-1 flex flex-col justify-center gap-2 overflow-y-auto max-h-[300px] custom-scrollbar px-2">
-                 {exercise.warmupSets.map((set, i) => {
-                     const calculatedWeight = roundWeight((baseWeight * (set.percentageOfWorkingWeight / 100)), settings.weightUnit);
-                     const isDone = checkedSets.has(set.id);
-                     
-                     return (
-                         <button 
-                            key={set.id}
-                            onClick={() => toggleSet(set.id)}
-                            className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all w-full text-left group ${isDone ? 'bg-sky-600/20 border-sky-500/50 text-white shadow-[0_0_15px_rgba(56,189,248,0.2)]' : 'bg-slate-900/50 border-slate-700/50 text-slate-300 hover:border-sky-500/30'}`}
-                         >
-                             <div className="flex items-center gap-4">
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isDone ? 'bg-sky-500 border-sky-500' : 'border-slate-600 group-hover:border-sky-500/50'}`}>
-                                    {isDone && <CheckIcon size={12} className="text-white"/>}
-                                </div>
-                                <div className="flex flex-col">
-                                    <div className="text-sm font-mono flex items-baseline gap-1">
-                                        <span className="font-black text-lg">{calculatedWeight}</span>
-                                        <span className="text-[10px] opacity-70 font-bold">{settings.weightUnit}</span>
-                                    </div>
-                                    <span className="text-[9px] text-sky-400 font-bold uppercase tracking-wider">{set.percentageOfWorkingWeight}% Carga</span>
-                                </div>
-                             </div>
-                             <div className="text-right">
-                                 <span className="text-xl font-black text-white block leading-none">{set.targetReps}</span>
-                                 <span className="text-[9px] text-slate-500 uppercase font-bold">Reps</span>
-                             </div>
-                         </button>
-                     )
-                 })}
-             </div>
         </div>
     );
 };
@@ -511,29 +369,41 @@ const WorkoutHeader: React.FC<{
                             <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5 block truncate" style={{ color: isResting ? '#38bdf8' : activePartColor }}>{isResting ? 'Descansando...' : activePartName}</span>
                         )}
                         
-                        {/* --- KPKN LIVE HUD --- */}
+                        {/* --- BATERÍA AUGE PROMINENTE --- */}
                         {liveBatteryDrain && (
-                            <div onClick={() => setShowLiveAuge(!showLiveAuge)} className={`flex gap-3 items-center bg-[#111]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)] mt-1.5 w-max transition-opacity duration-300 cursor-pointer ${isCompact ? 'opacity-0 h-0 overflow-hidden mt-0 py-0 border-none' : 'opacity-100'} ${showLiveAuge ? 'border-violet-500/30' : ''}`}>
-                                <div className="flex items-center gap-1.5" title="SNC Drenado">
-                                    <BrainIcon size={12} className={liveBatteryDrain.cns > 70 ? 'text-red-500 animate-pulse' : 'text-sky-400'}/>
-                                    <span className={`text-[10px] font-mono font-black ${liveBatteryDrain.cns > 70 ? 'text-red-400' : 'text-white'}`}>
-                                        -{liveBatteryDrain.cns.toFixed(0)}%
+                            <div onClick={() => setShowLiveAuge(!showLiveAuge)} className={`flex flex-col gap-1 mt-1.5 transition-opacity duration-300 cursor-pointer bg-[#0a0a0a]/60 backdrop-blur-sm rounded-lg px-2 py-1.5 border border-orange-500/20 ${showLiveAuge ? 'border-violet-500/40' : ''}`}>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-mono font-black uppercase tracking-widest text-orange-500/90">AUGE</span>
+                                    {(() => {
+                                        const total = (liveBatteryDrain.cns + liveBatteryDrain.muscular + liveBatteryDrain.spinal) / 3;
+                                        const pct = Math.min(100, total);
+                                        const color = pct > 70 ? 'bg-red-500' : pct > 40 ? 'bg-amber-500' : 'bg-emerald-500';
+                                        return (
+                                            <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden min-w-[60px] max-w-[120px]">
+                                                <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
+                                            </div>
+                                        );
+                                    })()}
+                                    <span className="text-[9px] font-mono font-black text-slate-400">
+                                        {((liveBatteryDrain.cns + liveBatteryDrain.muscular + liveBatteryDrain.spinal) / 3).toFixed(0)}%
                                     </span>
                                 </div>
-                                <div className="w-[1px] h-3 bg-white/20"></div>
-                                <div className="flex items-center gap-1.5" title="Músculo Drenado">
-                                    <ActivityIcon size={12} className={liveBatteryDrain.muscular > 70 ? 'text-red-500 animate-pulse' : 'text-rose-400'}/>
-                                    <span className={`text-[10px] font-mono font-black ${liveBatteryDrain.muscular > 70 ? 'text-red-400' : 'text-white'}`}>
-                                        -{liveBatteryDrain.muscular.toFixed(0)}%
-                                    </span>
-                                </div>
-                                <div className="w-[1px] h-3 bg-white/20"></div>
-                                <div className="flex items-center gap-1.5" title="Carga Espinal">
-                                    <StarIcon size={12} className={liveBatteryDrain.spinal > 70 ? 'text-red-500 animate-pulse' : 'text-amber-400'}/>
-                                    <span className={`text-[10px] font-mono font-black ${liveBatteryDrain.spinal > 70 ? 'text-red-400' : 'text-white'}`}>
-                                        -{liveBatteryDrain.spinal.toFixed(0)}%
-                                    </span>
-                                </div>
+                                {!isCompact && (
+                                    <div className="flex gap-3 items-center">
+                                        <div className="flex items-center gap-1" title="SNC Drenado">
+                                            <BrainIcon size={10} className={liveBatteryDrain.cns > 70 ? 'text-red-500' : 'text-sky-400'}/>
+                                            <span className="text-[9px] font-mono text-slate-500">{liveBatteryDrain.cns.toFixed(0)}%</span>
+                                        </div>
+                                        <div className="flex items-center gap-1" title="Muscular Drenado">
+                                            <ActivityIcon size={10} className={liveBatteryDrain.muscular > 70 ? 'text-red-500' : 'text-rose-400'}/>
+                                            <span className="text-[9px] font-mono text-slate-500">{liveBatteryDrain.muscular.toFixed(0)}%</span>
+                                        </div>
+                                        <div className="flex items-center gap-1" title="Carga Espinal">
+                                            <StarIcon size={10} className={liveBatteryDrain.spinal > 70 ? 'text-red-500' : 'text-amber-400'}/>
+                                            <span className="text-[9px] font-mono text-slate-500">{liveBatteryDrain.spinal.toFixed(0)}%</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {/* --- LIVE AUGE PANEL --- */}
@@ -603,7 +473,9 @@ const SetDetails: React.FC<{
     isCalibrated?: boolean;
     cardAnimation?: string | null;
     addToast: (message: string, type?: ToastData['type'], title?: string, duration?: number) => void;
-}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast }) => {
+    suggestedWeight?: number;
+    selectedTag?: string;
+}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast, suggestedWeight, selectedTag }) => {
     
     const isUnilateral = exercise.isUnilateral || false;
     const isTimeMode = exercise.trainingMode === 'time';
@@ -614,7 +486,6 @@ const SetDetails: React.FC<{
     const [showFailedModal, setShowFailedModal] = useState(false); 
     const [isStagnant, setIsStagnant] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); // CANDADO ANTI-DOBLE TOQUE
-    const [showAdvancedTechniques, setShowAdvancedTechniques] = useState(false);
 
     const currentInputs: SetInputState = isUnilateral ? (inputs as UnilateralSetInputs)[activeSide] : (inputs as SetInputState);
     const safeInputs: SetInputState = currentInputs || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, isIneffective: false, isPartial: false, duration: '', notes: '', advancedTechnique: '', dropSets: [], restPauses: [], performanceMode: 'target', partialReps: '', technicalQuality: '8', discomfortLevel: '0', discomfortNotes: '', tempo: '' };
@@ -641,13 +512,14 @@ const SetDetails: React.FC<{
     }
 
     const suggestedLoad = useMemo(() => {
+        if (suggestedWeight != null && suggestedWeight > 0) return suggestedWeight;
         const oneRM = currentSession1RM || exerciseInfo?.calculated1RM || exercise.reference1RM || 0;
         if (oneRM <= 0 || (targetReps <= 0 && targetDuration <= 0)) return null;
         
         const effectiveReps = isTimeMode ? Math.max(1, Math.round(targetDuration / 3)) : targetReps;
         const weight = calculateWeightFrom1RM(oneRM, effectiveReps + (targetRIR !== undefined ? targetRIR : (10 - targetRPE)));
         return roundWeight(weight, settings.weightUnit);
-    }, [exercise, exerciseInfo, set, currentSession1RM, settings.weightUnit, targetReps, targetDuration, isTimeMode]);
+    }, [suggestedWeight, exercise, exerciseInfo, set, currentSession1RM, settings.weightUnit, targetReps, targetDuration, isTimeMode]);
     
     const inputWeight = parseFloat(safeInputs.weight);
     const isWeightWarning = useMemo(() => {
@@ -761,8 +633,13 @@ const SetDetails: React.FC<{
                         Meta: <span className="text-white">{isTimeMode ? `${targetDuration}s` : `${targetReps} reps`}</span> <span className="text-slate-600">|</span> <span className="text-white">{set.intensityMode === 'rir' ? `RIR ${targetRIR}` : `RPE ${targetRPE}`}</span>
                     </div>
                     
-                    <div className="flex gap-2 items-center">
-                        {suggestedLoad && <div className="text-[10px] text-sky-400 font-mono font-bold uppercase border border-sky-500/30 bg-sky-900/20 px-2 py-0.5 rounded">Sugerido: {suggestedLoad.toFixed(1)}{settings.weightUnit}</div>}
+                    <div className="flex gap-2 items-center flex-wrap">
+                        {suggestedLoad && (
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] text-sky-400 font-mono font-bold uppercase border border-sky-500/30 bg-sky-900/20 px-2 py-0.5 rounded">Sugerido: {suggestedLoad.toFixed(1)}{settings.weightUnit}</span>
+                                <button onClick={() => { hapticImpact(ImpactStyle.Light); onInputChange('weight', suggestedLoad.toFixed(1), isUnilateral ? activeSide : undefined); }} className="text-[9px] font-mono font-black uppercase bg-sky-500/30 hover:bg-sky-500/50 text-sky-300 px-2 py-0.5 rounded border border-sky-500/40 transition-colors">Usar</button>
+                            </div>
+                        )}
                         
                         {/* NUEVO: INDICADOR ESPINAL EN VIVO MIENTRAS ENTRENA */}
                         {(exerciseInfo?.axialLoadFactor ?? 0) > 0 && (
@@ -876,41 +753,35 @@ const SetDetails: React.FC<{
                     </div>
                 )}
 
-                <div className="mx-2 mt-2">
-                    <button onClick={() => setShowAdvancedTechniques(!showAdvancedTechniques)} className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg border text-[10px] font-black uppercase transition-all ${showAdvancedTechniques ? 'bg-slate-700 border-slate-600 text-white' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'}`}>
-                        <LayersIcon size={12} /> Técnicas avanzadas {((safeInputs.dropSets?.length || 0) + (safeInputs.restPauses?.length || 0)) > 0 && <span className="bg-amber-500/30 text-amber-400 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.dropSets?.length || 0) + (safeInputs.restPauses?.length || 0)}</span>}
+                {/* Dropset / Rest-Pause: botones visibles + filas expandibles */}
+                <div className="mx-2 mt-2 flex gap-2">
+                    <button onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-orange-500/30 text-[10px] font-black uppercase bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:border-orange-500/50 transition-colors">
+                        <PlusIcon size={12} /> Dropset {(safeInputs.dropSets?.length || 0) > 0 && <span className="bg-orange-500/30 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.dropSets?.length || 0)}</span>}
                     </button>
-                    {showAdvancedTechniques && (
-                        <div className="mt-2 space-y-3 p-3 bg-slate-900/50 border border-slate-700 rounded-xl animate-fade-in">
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Dropsets</span>
-                                    <button onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-white"><PlusIcon size={12}/></button>
-                                </div>
-                                {(safeInputs.dropSets || []).map((ds, i) => (
-                                    <div key={i} className="flex gap-2 items-center mb-2">
-                                        <input type="number" step="0.5" placeholder="Peso" value={ds.weight || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: parseFloat(e.target.value) || 0, reps: arr[i].reps }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-16" />
-                                        <input type="number" placeholder="Reps" value={ds.reps || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: arr[i].weight, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-14" />
-                                        <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
-                                    </div>
-                                ))}
-                            </div>
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Rest-pause</span>
-                                    <button onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-white"><PlusIcon size={12}/></button>
-                                </div>
-                                {(safeInputs.restPauses || []).map((rp, i) => (
-                                    <div key={i} className="flex gap-2 items-center mb-2">
-                                        <input type="number" placeholder="Descanso (s)" value={rp.restTime || ''} onChange={e => { const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: parseInt(e.target.value, 10) || 0, reps: arr[i].reps }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-20" />
-                                        <input type="number" placeholder="Reps" value={rp.reps || ''} onChange={e => { const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: arr[i].restTime, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-14" />
-                                        <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <button onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-sky-500/30 text-[10px] font-black uppercase bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 hover:border-sky-500/50 transition-colors">
+                        <PlusIcon size={12} /> Rest-Pause {(safeInputs.restPauses?.length || 0) > 0 && <span className="bg-sky-500/30 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.restPauses?.length || 0)}</span>}
+                    </button>
                 </div>
+                {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
+                    <div className="mx-2 mt-2 p-3 bg-slate-900/50 border border-orange-500/20 rounded-xl space-y-3 animate-fade-in">
+                        {(safeInputs.dropSets || []).map((ds, i) => (
+                            <div key={`ds-${i}`} className="flex gap-2 items-center">
+                                <span className="text-[9px] font-mono text-orange-500/80 w-14">Dropset</span>
+                                <input type="number" step="0.5" placeholder="Peso" value={ds.weight || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: parseFloat(e.target.value) || 0, reps: arr[i].reps }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
+                                <input type="number" placeholder="Reps" value={ds.reps || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: arr[i].weight, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
+                                <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
+                            </div>
+                        ))}
+                        {(safeInputs.restPauses || []).map((rp, i) => (
+                            <div key={`rp-${i}`} className="flex gap-2 items-center">
+                                <span className="text-[9px] font-mono text-sky-500/80 w-14">Rest-Pause</span>
+                                <input type="number" placeholder="Descanso (s)" value={rp.restTime || ''} onChange={e => { const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: parseInt(e.target.value, 10) || 0, reps: arr[i].reps }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
+                                <input type="number" placeholder="Reps" value={rp.reps || ''} onChange={e => { const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: arr[i].restTime, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
+                                <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
+                            </div>
+                        ))}
+                    </div>
+                ) : null}
             </div>
 
             {exercise.isCompetitionLift && (
@@ -987,7 +858,7 @@ interface WorkoutSessionProps {
 export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program, programId, settings, history, onFinish, onCancel, onUpdateExercise1RM, isFinishModalOpen, setIsFinishModalOpen, exerciseList, onUpdateSessionInProgram, isTimeSaverModalOpen, setIsTimeSaverModalOpen, onUpdateExerciseInProgram: updateExInProg, isTimersModalOpen, setIsTimersModalOpen }) => {
     const { ongoingWorkout, isLiveCoachActive, isOnline, muscleHierarchy, restTimer } = useAppState();
     const dispatch = useAppDispatch();
-    const { setOngoingWorkout, handleStartRest, addToast, setIsLiveCoachActive, addOrUpdateCustomExercise } = dispatch;
+    const { setOngoingWorkout, handleStartRest, handleSkipRestTimer, addToast, setIsLiveCoachActive, addOrUpdateCustomExercise } = dispatch;
     
     const [isFocusMode, setIsFocusMode] = useState(true); 
     const [isSkippingRest, setIsSkippingRest] = useState(false); // CANDADO DE SEGURIDAD
@@ -1006,6 +877,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     
     const [starGoalProgress, setStarGoalProgress] = useState<{ exerciseId: string; current: number; goal: number; unit: string } | null>(null);
     const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null);
+    const [sessionNotes, setSessionNotes] = useState<string>(ongoingWorkout?.sessionNotes || '');
+    const [showNotesDrawer, setShowNotesDrawer] = useState(false);
     const isFinishingRef = useRef(false);
 
     const setsContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -1483,7 +1356,35 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     return (
         <div className={`pb-32 ${isFocusMode ? 'focus-mode-active' : ''} transition-colors duration-700`}>
-             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} />
+             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} asDrawer />
+            {activeSetId?.startsWith('warmup-') && (() => {
+                const exId = activeSetId.replace('warmup-', '');
+                const ex = allExercises.find((e: Exercise) => e.id === exId);
+                return ex ? (
+                    <WarmupDrawer
+                        isOpen={true}
+                        onClose={() => { const firstSetId = ex.sets[0]?.id; if (firstSetId) { setActiveSetId(firstSetId); scrollToId(ex.id, `set-card-${firstSetId}`); } }}
+                        exercise={ex}
+                        baseWeight={consolidatedWeights[ex.id] || 0}
+                        onBaseWeightChange={(w) => setConsolidatedWeights(prev => ({ ...prev, [ex.id]: w }))}
+                        settings={settings}
+                        isConsolidated={!findPrForExercise(exerciseList.find(e => e.id === ex.exerciseDbId) || {} as any, history, settings, selectedTags[ex.id])}
+                        onComplete={() => handleWarmupComplete(ex)}
+                    />
+                ) : null;
+            })()}
+            {activeSetId?.startsWith('feedback-') && (() => {
+                const exId = activeSetId.replace('feedback-', '');
+                const ex = allExercises.find((e: Exercise) => e.id === exId);
+                return ex ? (
+                    <PostExerciseDrawer
+                        isOpen={true}
+                        onClose={() => handleFinishFeedback(ex.id, { jointLoad: 5, technicalQuality: 8, perceivedFatigue: 5 })}
+                        exerciseName={ex.name}
+                        onSave={(feedback) => handleFinishFeedback(ex.id, feedback)}
+                    />
+                ) : null;
+            })()}
             {historyModalExercise && <ExerciseHistoryModal exercise={historyModalExercise} programId={programId} history={history} settings={settings} onClose={() => setHistoryModalExercise(null)} />}
             
             {starGoalProgress && (
@@ -1578,70 +1479,112 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                     onTagChange={(tag) => setSelectedTags(prev => ({...prev, [ex.id]: tag}))} 
                                                 />
 
-                                                <div 
-                                                    ref={(el) => { setsContainerRefs.current[ex.id] = el; }}
-                                                    className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 -mx-2 px-2 hide-scrollbar scroll-smooth"
-                                                >
-                                                    {ex.warmupSets && ex.warmupSets.length > 0 && (
-                                                        <div className="snap-center shrink-0 h-auto" id={`warmup-card-${ex.id}`} onClick={() => setActiveSetId(`warmup-${ex.id}`)}>
-                                                            <WarmupDashboard 
-                                                                exercise={ex} 
-                                                                baseWeight={consolidatedWeights[ex.id] || 0} 
-                                                                onBaseWeightChange={(w) => setConsolidatedWeights(prev => ({...prev, [ex.id]: w}))} 
-                                                                settings={settings} 
-                                                                isConsolidated={!pr} 
-                                                                onComplete={() => handleWarmupComplete(ex)}
-                                                            />
-                                                        </div>
-                                                    )}
-
-                                                    {ex.sets.map((set: ExerciseSet, setIndex) => (
-                                                        <div 
-                                                            key={set.id} 
-                                                            className="snap-center shrink-0 min-w-[85vw] max-w-[85vw] sm:min-w-[350px]"
-                                                            id={`set-card-${set.id}`}
+                                                {/* Wizard: un set a la vez con flechas */}
+                                                <div className="space-y-3" ref={(el) => { setsContainerRefs.current[ex.id] = el; }}>
+                                                    <div className="flex items-center justify-between px-1">
+                                                        <button 
+                                                            onClick={() => {
+                                                                if (activeSlideIndex > 0) {
+                                                                    const prevIdx = activeSlideIndex - 1;
+                                                                    if (hasWarmup && prevIdx === 0) setActiveSetId(`warmup-${ex.id}`);
+                                                                    else if (prevIdx === totalSlides - 1) setActiveSetId(`feedback-${ex.id}`);
+                                                                    else setActiveSetId(ex.sets[prevIdx - (hasWarmup ? 1 : 0)].id);
+                                                                    scrollToId(ex.id, prevIdx === 0 && hasWarmup ? `warmup-card-${ex.id}` : prevIdx === totalSlides - 1 ? `feedback-card-${ex.id}` : `set-card-${ex.sets[prevIdx - (hasWarmup ? 1 : 0)].id}`);
+                                                                }
+                                                            }}
+                                                            disabled={activeSlideIndex === 0}
+                                                            className="p-2 rounded-lg border border-orange-500/20 text-slate-400 hover:text-white hover:border-orange-500/40 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                                                         >
-                                                             <div className={`set-card-details !bg-panel-color overflow-hidden rounded-xl border border-slate-700 h-full ${activeSetId === set.id ? 'ring-1 ring-primary-color' : ''}`} onClick={() => setActiveSetId(set.id)}>
-                                                                <div className="p-3 bg-slate-900/80 border-b border-slate-800 flex justify-between items-center">
-                                                                    <div className="flex items-center gap-2"><p className="font-bold text-slate-400 text-xs uppercase">Serie {setIndex + 1}</p>{completedSets[set.id as string] && <CheckCircleIcon size={18} className="text-green-400" />}</div>
-                                                                    <p className="text-xs text-slate-500 font-mono">{formatSetTarget(set, ex, settings)}</p>
-                                                                </div>
-                                                                <SetDetails 
-                                                                    exercise={ex} 
-                                                                    exerciseInfo={exInfo} 
-                                                                    set={set} 
-                                                                    setIndex={setIndex} 
-                                                                    settings={settings} 
-                                                                    inputs={(setInputs[String(set.id)] as SetInputState) || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, duration: '', partialReps: '' }} 
-                                                                    onInputChange={(field, value, side) => handleSetInputChange(String(set.id), field as keyof SetInputState, value, side)} 
-                                                                    onLogSet={(isCalibrator) => handleLogSet(ex, set, isCalibrator)} 
-                                                                    isLogged={!!completedSets[set.id as string]} 
-                                                                    history={history} 
-                                                                    currentSession1RM={sessionAdjusted1RMs[ex.id]} 
-                                                                    base1RM={exInfo?.calculated1RM || ex.reference1RM} 
-                                                                    isCalibrated={!!sessionAdjusted1RMs[ex.id]} 
-                                                                    cardAnimation={setCardAnimations[String(set.id)]}
-                                                                    addToast={addToast}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                    
-                                                    <div className="snap-center shrink-0 min-w-[85vw] max-w-[85vw] sm:min-w-[350px]" id={`feedback-card-${ex.id}`}>
-                                                        <InlineFeedbackCard 
-                                                            exerciseName={ex.name} 
-                                                            onSave={(feedback) => handleFinishFeedback(ex.id, feedback)}
-                                                        />
+                                                            <ChevronLeftIcon size={20} />
+                                                        </button>
+                                                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-500">
+                                                            {activeSlideIndex === 0 && hasWarmup ? 'Calentamiento' : activeSlideIndex === totalSlides - 1 ? 'Feedback' : `Set ${activeSlideIndex - (hasWarmup ? 1 : 0) + 1}/${ex.sets.length}`}
+                                                        </span>
+                                                        <button 
+                                                            onClick={() => {
+                                                                if (activeSlideIndex < totalSlides - 1) {
+                                                                    const nextIdx = activeSlideIndex + 1;
+                                                                    if (hasWarmup && nextIdx === 0) setActiveSetId(`warmup-${ex.id}`);
+                                                                    else if (nextIdx === totalSlides - 1) setActiveSetId(`feedback-${ex.id}`);
+                                                                    else setActiveSetId(ex.sets[nextIdx - (hasWarmup ? 1 : 0)].id);
+                                                                    scrollToId(ex.id, nextIdx === totalSlides - 1 ? `feedback-card-${ex.id}` : `set-card-${ex.sets[nextIdx - (hasWarmup ? 1 : 0)].id}`);
+                                                                }
+                                                            }}
+                                                            disabled={activeSlideIndex === totalSlides - 1}
+                                                            className="p-2 rounded-lg border border-orange-500/20 text-slate-400 hover:text-white hover:border-orange-500/40 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                                        >
+                                                            <ChevronRightIcon size={20} />
+                                                        </button>
                                                     </div>
-                                                </div>
+
+                                                    <div className="min-h-[280px] overflow-hidden">
+                                                        {activeSlideIndex === 0 && hasWarmup && (
+                                                            <div id={`warmup-card-${ex.id}`} className="animate-fade-in">
+                                                                <button onClick={() => setActiveSetId(`warmup-${ex.id}`)} className="w-full p-6 bg-slate-950/80 border border-sky-500/30 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-sky-500/50 transition-colors min-h-[260px]">
+                                                                    <FlameIcon size={40} className="text-sky-400" />
+                                                                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-sky-400">Calentamiento</span>
+                                                                    <span className="text-xs text-slate-500">Toca para abrir</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        {ex.sets.map((set: ExerciseSet, setIndex) => {
+                                                            const slideIdx = (hasWarmup ? 1 : 0) + setIndex;
+                                                            if (activeSlideIndex !== slideIdx) return null;
+                                                            return (
+                                                                <div key={set.id} id={`set-card-${set.id}`} className="animate-fade-in">
+                                                                    <div className={`set-card-details !bg-panel-color overflow-hidden rounded-xl border border-slate-700 ${activeSetId === set.id ? 'ring-1 ring-primary-color' : ''}`}>
+                                                                        <div className="p-3 bg-slate-900/80 border-b border-slate-800 flex justify-between items-center">
+                                                                            <div className="flex items-center gap-2"><p className="font-bold text-slate-400 text-xs uppercase">Serie {setIndex + 1}</p>{completedSets[set.id as string] && <CheckCircleIcon size={18} className="text-green-400" />}</div>
+                                                                            <p className="text-xs text-slate-500 font-mono">{formatSetTarget(set, ex, settings)}</p>
+                                                                        </div>
+                                                                        <SetDetails 
+                                                                            exercise={ex} 
+                                                                            exerciseInfo={exInfo} 
+                                                                            set={set} 
+                                                                            setIndex={setIndex} 
+                                                                            settings={settings} 
+                                                                            inputs={(setInputs[String(set.id)] as SetInputState) || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, duration: '', partialReps: '' }} 
+                                                                            onInputChange={(field, value, side) => handleSetInputChange(String(set.id), field as keyof SetInputState, value, side)} 
+                                                                            onLogSet={(isCalibrator) => handleLogSet(ex, set, isCalibrator)} 
+                                                                            isLogged={!!completedSets[set.id as string]} 
+                                                                            history={history} 
+                                                                            currentSession1RM={sessionAdjusted1RMs[ex.id]} 
+                                                                            base1RM={exInfo?.calculated1RM || ex.reference1RM} 
+                                                                            isCalibrated={!!sessionAdjusted1RMs[ex.id]} 
+                                                                            cardAnimation={setCardAnimations[String(set.id)]} 
+                                                                            addToast={addToast}
+                                                                            suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])}
+                                                                            selectedTag={selectedTags[ex.id]}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        {activeSlideIndex === totalSlides - 1 && (
+                                                            <div id={`feedback-card-${ex.id}`} className="animate-fade-in">
+                                                                <button onClick={() => setActiveSetId(`feedback-${ex.id}`)} className="w-full p-6 bg-slate-950/80 border border-orange-500/20 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-orange-500/40 transition-colors min-h-[260px]">
+                                                                    <ActivityIcon size={40} className="text-orange-500/80" />
+                                                                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">Feedback Post-Ejercicio</span>
+                                                                    <span className="text-xs text-slate-500">Toca para abrir</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 
-                                                <div className="flex justify-center gap-1.5 mt-2 mb-1">
-                                                    {Array.from({ length: totalSlides }).map((_, i) => (
-                                                        <div 
-                                                            key={i} 
-                                                            className={`h-1.5 rounded-full transition-all duration-300 ${i === activeSlideIndex ? 'w-4 bg-primary-color' : 'w-1.5 bg-slate-700'}`}
-                                                        />
-                                                    ))}
+                                                    <div className="flex justify-center gap-1.5 mt-2 mb-1">
+                                                        {Array.from({ length: totalSlides }).map((_, i) => (
+                                                            <button 
+                                                                key={i} 
+                                                                onClick={() => {
+                                                                    if (i === 0 && hasWarmup) setActiveSetId(`warmup-${ex.id}`);
+                                                                    else if (i === totalSlides - 1) setActiveSetId(`feedback-${ex.id}`);
+                                                                    else setActiveSetId(ex.sets[i - (hasWarmup ? 1 : 0)].id);
+                                                                    scrollToId(ex.id, i === 0 && hasWarmup ? `warmup-card-${ex.id}` : i === totalSlides - 1 ? `feedback-card-${ex.id}` : `set-card-${ex.sets[i - (hasWarmup ? 1 : 0)].id}`);
+                                                                }}
+                                                                className={`h-1.5 rounded-full transition-all duration-300 ${i === activeSlideIndex ? 'w-4 bg-primary-color' : 'w-1.5 bg-slate-700 hover:bg-slate-600'}`}
+                                                            />
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </details>
@@ -1652,6 +1595,28 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     </details>
                 )})}
             </div>
+
+            {/* Barra de acciones rápidas */}
+            <div className="fixed left-0 right-0 bottom-[max(75px,calc(75px+env(safe-area-inset-bottom)))] z-20 px-4 py-2 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-orange-500/20 flex justify-center gap-3">
+                <button onClick={() => { const ex = allExercises.find(e => e.id === activeExerciseId); if (ex) handleFinishFeedback(ex.id, { jointLoad: 5, technicalQuality: 8, perceivedFatigue: 5 }); addToast('Ejercicio saltado', 'info'); }} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-500/30 text-[10px] font-mono font-black uppercase tracking-widest text-orange-400 hover:bg-orange-500/10 transition-colors">
+                    <ChevronRightIcon size={14} /> Saltar
+                </button>
+                <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-sky-500/30 text-[10px] font-mono font-black uppercase tracking-widest text-sky-400 hover:bg-sky-500/10 transition-colors">
+                    <ClockIcon size={14} /> 90s
+                </button>
+                <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-500/30 text-[10px] font-mono font-black uppercase tracking-widest text-slate-400 hover:bg-slate-500/10 transition-colors">
+                    <PencilIcon size={14} /> Notas
+                </button>
+            </div>
+
+            {showNotesDrawer && (
+                <WorkoutDrawer isOpen={true} onClose={() => setShowNotesDrawer(false)} title="Notas de Sesión" height="50vh">
+                    <div className="p-5">
+                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-xl p-4 text-white text-sm font-mono placeholder-slate-500 focus:border-orange-500/50 outline-none" />
+                        <p className="text-[9px] text-slate-500 mt-2 font-mono">Se incluirán al finalizar la sesión.</p>
+                    </div>
+                </WorkoutDrawer>
+            )}
         </div>
     );
 };

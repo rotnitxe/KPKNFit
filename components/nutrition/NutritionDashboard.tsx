@@ -207,7 +207,7 @@ export const NutritionDashboard: React.FC<{
     };
 
     return (
-        <div className="space-y-4 pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))]">
+        <div className="space-y-4 pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))]">
             {showSetupBanner && onOpenWizard && (
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
                     <p className="text-sm text-zinc-300 mb-2">Aún no has configurado tu plan de alimentación.</p>

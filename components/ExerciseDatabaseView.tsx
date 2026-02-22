@@ -89,7 +89,7 @@ const ExerciseDatabaseView: React.FC = () => {
     }, [exerciseList]);
 
     return (
-        <div className="pt-[65px] pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
+        <div className="pt-[65px] pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
             <DiscoverExercisesModal isOpen={isDiscoverModalOpen} onClose={() => setIsDiscoverModalOpen(false)} />
             <header className="flex items-center gap-4 mb-6 -mx-4 px-4">
                 <button onClick={handleBack} className="p-2 text-slate-300 hover:text-orange-400/80 transition-colors">

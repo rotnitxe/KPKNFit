@@ -105,6 +105,7 @@
           --header-border-color: var(--card-border);
           
           /* TAB BAR: SOLID BLACK */
+          --tab-bar-safe-bottom: max(90px, calc(75px + env(safe-area-inset-bottom, 0px) + 16px));
           --tab-bar-bg-color: #000000;
           --tab-bar-backdrop-filter: none;
           --tab-bar-border-color: #222222;
@@ -146,6 +147,7 @@
             --header-border-color: var(--card-border);
             
             /* TAB BAR: SOLID BLACK OVERRIDE */
+            --tab-bar-safe-bottom: max(90px, calc(75px + env(safe-area-inset-bottom, 0px) + 16px));
             --tab-bar-bg-color: #000000;
             --tab-bar-backdrop-filter: none;
             --tab-bar-border-color: rgba(255, 255, 255, 0.08);
@@ -220,6 +222,11 @@
 
         .tab-bar-card-container > div {
             pointer-events: auto;
+        }
+
+        /* Safe area for content above TabBar - use for sticky/fixed bottom elements */
+        .tab-bar-safe-area {
+            padding-bottom: var(--tab-bar-safe-bottom, max(90px, calc(75px + env(safe-area-inset-bottom, 0px) + 16px)));
         }
 
         /* ========================================================= */

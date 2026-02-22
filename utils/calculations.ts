@@ -157,6 +157,10 @@ export const calculateFFMI = (heightCm: number, weightKg: number, bodyFatPercent
     return { ffmi: ffmi.toFixed(1), normalizedFfmi: normalizedFfmi.toFixed(1), interpretation, leanBodyMass: leanBodyMass.toFixed(1) };
 };
 
+/**
+ * Sugerencia de carga inteligente: considera últimas N sesiones, set anterior en sesión,
+ * tendencia (estancado → pequeño bump), y 1RM como fallback.
+ */
 export const getWeightSuggestionForSet = (
     exercise: Exercise,
     exerciseInfo: ExerciseMuscleInfo | undefined,
@@ -175,27 +179,42 @@ export const getWeightSuggestionForSet = (
         return roundWeight(weight, settings.weightUnit);
     }
     
+    // Set anterior en esta sesión: prioridad alta
+    if (setIndex > 0) {
+        const prevSetCompleted = completedSetsForExercise[setIndex - 1];
+        if (prevSetCompleted?.weight && prevSetCompleted.weight > 0) return roundWeight(prevSetCompleted.weight, settings.weightUnit);
+    }
+    
+    // Set 0: usar últimas N sesiones (hasta 5) para este ejercicio
     if (setIndex === 0) {
         const currentTagName = selectedTag || 'Base';
-        let lastPerfWeight = 0;
-        for (let i = history.length - 1; i >= 0; i--) {
+        const lastN = 5;
+        const weightsFromHistory: number[] = [];
+        for (let i = history.length - 1; i >= 0 && weightsFromHistory.length < lastN; i--) {
             const log = history[i];
             const completedEx = log.completedExercises.find(ce => ce.exerciseDbId === exercise.exerciseDbId || ce.exerciseName === exercise.name);
             if (completedEx && (completedEx.machineBrand || 'Base') === currentTagName) {
-                lastPerfWeight = completedEx.sets[0]?.weight || 0;
-                break;
+                const w = completedEx.sets[0]?.weight;
+                if (w && w > 0) weightsFromHistory.push(w);
             }
         }
-        if (lastPerfWeight > 0) return roundWeight(lastPerfWeight, settings.weightUnit);
-    } else {
-        const prevSetCompleted = completedSetsForExercise[setIndex - 1];
-        if (prevSetCompleted?.weight) return roundWeight(prevSetCompleted.weight, settings.weightUnit);
+        if (weightsFromHistory.length > 0) {
+            const lastWeight = weightsFromHistory[0];
+            // Tendencia: si 3+ sesiones con mismo peso → sugerir +2.5% (evitar estancamiento)
+            const isStagnant = weightsFromHistory.length >= 3 && weightsFromHistory.slice(0, 3).every(w => Math.abs(w - lastWeight) < 0.1);
+            const step = settings.weightUnit === 'kg' ? 1.25 : 2.5;
+            const bump = isStagnant ? step : 0;
+            return roundWeight(lastWeight + bump, settings.weightUnit);
+        }
     }
 
+    // Fallback: 1RM × % según reps + RPE/RIR
     if (reference1RM) {
         const rpe = set.targetRPE || 8;
         const reps = set.targetReps || 8;
-        const weight = calculateWeightFrom1RM(reference1RM, reps + (10 - rpe));
+        const rir = set.targetRIR;
+        const effectiveReps = rir !== undefined ? reps + rir : reps + (10 - rpe);
+        const weight = calculateWeightFrom1RM(reference1RM, effectiveReps);
         return roundWeight(weight, settings.weightUnit);
     }
     return undefined;
