@@ -67,9 +67,11 @@ const ExerciseDatabaseView: React.FC = () => {
 
     const filteredExercises = useMemo(() => {
         return exerciseList.filter(ex => {
+            const q = searchQuery.toLowerCase();
             const searchMatch = searchQuery.length === 0 || 
-                                ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                (ex.alias && ex.alias.toLowerCase().includes(searchQuery.toLowerCase()));
+                                ex.name.toLowerCase().includes(q) ||
+                                (ex.alias && ex.alias.toLowerCase().includes(q)) ||
+                                (ex.equipment && ex.equipment.toLowerCase().includes(q));
             const muscleMatch = muscleFilter === 'All' || ex.involvedMuscles.some(m => m.role === 'primary' && m.muscle === muscleFilter);
             const categoryMatch = categoryFilter === 'All' || ex.category === categoryFilter;
             const equipmentMatch = equipmentFilter === 'All' || ex.equipment === equipmentFilter;

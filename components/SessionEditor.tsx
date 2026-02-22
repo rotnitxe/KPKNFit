@@ -568,7 +568,12 @@ export const AdvancedExercisePickerModal: React.FC<{
         let result = exerciseList;
 
         if (search) {
-            result = result.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+            const q = search.toLowerCase();
+            result = result.filter(e =>
+                e.name.toLowerCase().includes(q) ||
+                (e.equipment && e.equipment.toLowerCase().includes(q)) ||
+                (e.alias && e.alias.toLowerCase().includes(q))
+            );
         } else if (activeCategory) {
             if (activeCategory === 'KPKN Top Tier') result = result.filter(e => isTopTier(e.name));
             else if (activeCategory === 'Baja Fatiga') result = result.filter(e => {

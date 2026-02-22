@@ -78,7 +78,12 @@ const MuscleGroupEditorModal: React.FC<MuscleGroupEditorModalProps> = ({ isOpen,
 
   const filteredExercises = useMemo(() => {
     if (!searchQuery) return [];
-    return exerciseList.filter(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 10);
+    const q = searchQuery.toLowerCase();
+    return exerciseList.filter(ex =>
+        ex.name.toLowerCase().includes(q) ||
+        (ex.equipment && ex.equipment.toLowerCase().includes(q)) ||
+        (ex.alias && ex.alias.toLowerCase().includes(q))
+    ).slice(0, 10);
   }, [searchQuery, exerciseList]);
 
 

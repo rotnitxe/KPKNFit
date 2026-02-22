@@ -52,6 +52,8 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
         const q = searchQuery.toLowerCase();
         return exerciseList.filter(e =>
             e.name.toLowerCase().includes(q) ||
+            (e.equipment && e.equipment.toLowerCase().includes(q)) ||
+            (e.alias && e.alias.toLowerCase().includes(q)) ||
             e.involvedMuscles?.some(m => m.muscle.toLowerCase().includes(q))
         ).slice(0, 15);
     }, [searchQuery, exerciseList]);

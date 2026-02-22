@@ -70,6 +70,7 @@ const KPKNView: React.FC = () => {
         const exercises = exerciseList.filter(ex =>
             ex.name.toLowerCase().includes(q) ||
             (ex.alias && ex.alias.toLowerCase().includes(q)) ||
+            (ex.equipment && ex.equipment.toLowerCase().includes(q)) ||
             ex.involvedMuscles.some(m => m.muscle.toLowerCase().includes(q))
         ).slice(0, 15);
 
