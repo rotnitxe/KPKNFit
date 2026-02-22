@@ -17,6 +17,7 @@ import {
     ReadinessWidget,
     StreakWidget,
     QuickLogWidget,
+    SetupChecklistCard,
 } from './home/index';
 import { ExerciseHistoryNerdView } from './ExerciseHistoryNerdView';
 
@@ -78,6 +79,10 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
         return [...valid, ...missing];
     }, [settings.homeCardOrder]);
 
+    const hasProgram = programs.length > 0 && !!activeProgramState;
+    const hasNutrition = !!settings.hasSeenNutritionWizard;
+    const showSetupChecklist = settings.hasSeenGeneralWizard && (!hasProgram || !hasNutrition);
+
     const handleDragEnd = (result: { destination?: { index: number }; source: { index: number } }) => {
         if (!result.destination || result.destination.index === result.source.index) return;
         const newOrder = [...cardOrder];
@@ -128,6 +133,17 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                             </p>
                         </div>
 
+                        {showSetupChecklist && (
+                            <div className="mb-4">
+                                <SetupChecklistCard
+                                    hasProgram={hasProgram}
+                                    hasNutrition={hasNutrition}
+                                    onProgramPress={() => navigateTo('program-editor')}
+                                    onNutritionPress={() => navigateTo('nutrition')}
+                                />
+                            </div>
+                        )}
+
                         <DragDropContext onDragEnd={handleDragEnd}>
                             <Droppable droppableId="home-cards">
                                 {(provided) => (
@@ -165,6 +181,14 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                     </>
                 ) : programs.length > 0 ? (
                     <div className="w-full pt-4 pb-10 animate-fade-in space-y-6">
+                        {showSetupChecklist && (
+                            <SetupChecklistCard
+                                hasProgram={hasProgram}
+                                hasNutrition={hasNutrition}
+                                onProgramPress={() => navigateTo('program-editor')}
+                                onNutritionPress={() => navigateTo('nutrition')}
+                            />
+                        )}
                         <div className="text-center mb-6">
                             <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-lg">Selecciona un Programa</h2>
                             <p className="text-zinc-400 text-xs mt-2 font-medium">Tienes programas creados. Activa uno para comenzar.</p>
@@ -210,6 +234,16 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                     </div>
                 ) : (
                     <div className="text-center w-full pt-2 pb-10">
+                        {showSetupChecklist && (
+                            <div className="mb-6">
+                                <SetupChecklistCard
+                                    hasProgram={hasProgram}
+                                    hasNutrition={hasNutrition}
+                                    onProgramPress={() => navigateTo('program-editor')}
+                                    onNutritionPress={() => navigateTo('nutrition')}
+                                />
+                            </div>
+                        )}
                         <div className="w-full flex justify-center mb-6 animate-fade-in">
                             <CaupolicanIcon size={200} color="white" />
                         </div>

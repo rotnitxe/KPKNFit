@@ -10,3 +10,4 @@ export { TopExercisesWidget } from './TopExercisesWidget';
 export { ReadinessWidget } from './ReadinessWidget';
 export { StreakWidget } from './StreakWidget';
 export { QuickLogWidget } from './QuickLogWidget';
+export { SetupChecklistCard } from './SetupChecklistCard';

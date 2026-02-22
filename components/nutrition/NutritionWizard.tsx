@@ -1,5 +1,5 @@
 // components/nutrition/NutritionWizard.tsx
-// Wizard de objetivos nutricionales (3 pasos)
+// Wizard de objetivos nutricionales (3 pasos). Estética NERD con fondo animado.
 
 import React, { useState, useMemo } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '../icons';
@@ -9,6 +9,7 @@ import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import { ChevronRightIcon, ChevronLeftIcon } from '../icons';
 import Button from '../ui/Button';
 import { NutritionTooltip } from './NutritionTooltip';
+import { AnimatedSvgBackground } from '../onboarding/AnimatedSvgBackground';
 
 const ACTIVITY_FACTORS: Record<number, number> = {
     1: 1.2, 2: 1.375, 3: 1.55, 4: 1.725, 5: 1.9,
@@ -187,7 +188,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 return (
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
                                 Objetivo
                                 <NutritionTooltip content="Define si buscas perder grasa (déficit), mantener peso o ganar masa (superávit). Cada objetivo ajusta las calorías recomendadas." title="Objetivo" />
                             </h2>
@@ -209,7 +210,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Conexión AUGE</h2>
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono">Conexión AUGE</h2>
                             <p className="text-slate-400 text-sm mt-1">Conecta calorías y macros con la batería muscular para el cálculo de recuperación.</p>
                             <div className="flex gap-4 mt-4">
                                 <button
@@ -233,7 +234,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
                                 Datos corporales
                                 <NutritionTooltip content="Peso, estatura y edad son la base para calcular tu TMB (tasa metabólica basal). Con %grasa usamos Katch-McArdle, más preciso para atletas." title="Datos corporales" />
                             </h2>
@@ -294,7 +295,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 return (
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
                                 Nivel de actividad
                                 <NutritionTooltip content="El TDEE se calcula como TMB × factor de actividad. Sedentario 1.2, muy activo 1.9. En Avanzado puedes afinar con días/horas o factor personalizado." title="Actividad" />
                             </h2>
@@ -340,7 +341,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Enfermedades metabólicas</h2>
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono">Enfermedades metabólicas</h2>
                             <p className="text-slate-400 text-sm mt-1">Para ajuste de calorías si aplica.</p>
                             <div className="space-y-2 mt-4">
                                 {METABOLIC_CONDITIONS.map(opt => (
@@ -362,7 +363,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Preferencia dietética</h2>
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono">Preferencia dietética</h2>
                             <p className="text-slate-400 text-sm mt-1">Vegano/vegetariano: ajustamos proteínas por biodisponibilidad.</p>
                             <div className="flex gap-3 mt-4">
                                 {DIET_OPTIONS.map(opt => (
@@ -387,7 +388,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 return (
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
                                 Desglose
                                 <NutritionTooltip content="TMB: calorías en reposo. TDEE: TMB × factor actividad ± ajuste objetivo. Las fórmulas Mifflin y Katch calculan el TMB." title="TMB y TDEE" />
                             </h2>
@@ -419,7 +420,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
                                 Edición de macros
                                 <NutritionTooltip content="Proteínas: 4 kcal/g, esenciales para músculo. Carbohidratos: 4 kcal/g, energía. Grasas: 9 kcal/g, hormonas y saciedad." title="Macros" />
                             </h2>
@@ -501,7 +502,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Tendencia</h2>
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono">Tendencia</h2>
                             <div className="bg-slate-900/50 rounded-xl p-4 border border-orange-500/20 mt-4 space-y-2">
                                 <p className="text-sm text-slate-400">Con tus macros actuales ({caloriesFromMacros} kcal/día):</p>
                                 <p className="text-2xl font-black font-mono text-white">{trend >= 0 ? '+' : ''}{trend.toFixed(2)} kg/sem</p>
@@ -530,33 +531,58 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] flex flex-col">
-            <div className="flex-1 overflow-y-auto px-4 py-8">
-                <div className="max-w-md mx-auto">
-                    <div className="flex items-center gap-2 mb-8">
-                        <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Paso {step} de 3</span>
-                        <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#FC4C02] rounded-full transition-all" style={{ width: `${(step / 3) * 100}%` }} />
+        <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+            <AnimatedSvgBackground
+                src="/fondo-wizards.svg"
+                variant="horizontal"
+                animation="zoom"
+                opacity={0.1}
+            />
+            <div className="relative z-10 flex-1 flex flex-col min-h-0">
+                <div className="flex-1 overflow-y-auto px-4 py-8 custom-scrollbar">
+                    <div className="max-w-md mx-auto">
+                        <div className="flex items-center gap-3 mb-8">
+                            <span className="text-[9px] font-black text-orange-500 uppercase tracking-[0.2em] font-mono shrink-0">
+                                Paso {step} de 3
+                            </span>
+                            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-[#FC4C02] rounded-full transition-all duration-300"
+                                    style={{ width: `${(step / 3) * 100}%` }}
+                                />
+                            </div>
                         </div>
+                        <div className="animate-fade-in">{renderStep()}</div>
                     </div>
-                    {renderStep()}
                 </div>
-            </div>
-            <div className="p-4 pb-24 border-t border-white/10 flex gap-3">
-                {step > 1 ? (
-                    <Button onClick={() => setStep(s => s - 1)} variant="secondary" className="flex-1">
-                        <ChevronLeftIcon size={18} className="mr-1" /> Atrás
-                    </Button>
-                ) : <div className="flex-1" />}
-                {step < 3 ? (
-                    <Button onClick={() => setStep(s => s + 1)} className="flex-1">
-                        Siguiente <ChevronRightIcon size={18} className="ml-1" />
-                    </Button>
-                ) : (
-                    <Button onClick={handleFinish} className="flex-1">
-                        Guardar plan
-                    </Button>
-                )}
+                <div className="shrink-0 p-4 pb-24 border-t border-white/10 flex gap-3 bg-black/40 backdrop-blur-sm">
+                    {step > 1 ? (
+                        <Button
+                            onClick={() => setStep(s => s - 1)}
+                            variant="secondary"
+                            className="flex-1 font-mono text-[10px] font-black uppercase tracking-widest border border-white/10"
+                        >
+                            <ChevronLeftIcon size={18} className="mr-1" /> Atrás
+                        </Button>
+                    ) : (
+                        <div className="flex-1" />
+                    )}
+                    {step < 3 ? (
+                        <Button
+                            onClick={() => setStep(s => s + 1)}
+                            className="flex-1 font-mono text-[10px] font-black uppercase tracking-widest"
+                        >
+                            Siguiente <ChevronRightIcon size={18} className="ml-1" />
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={handleFinish}
+                            className="flex-1 font-mono text-[10px] font-black uppercase tracking-widest"
+                        >
+                            Guardar plan
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );

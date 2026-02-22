@@ -33,6 +33,7 @@ import { PostSessionQuestionnaireWidget } from './components/PostSessionQuestion
 import AthleteIDDashboard from './components/AthleteIDDashboard';
 import { UpdateNoveltiesModal } from './components/UpdateNoveltiesModal';
 import { GeneralOnboardingWizard } from './components/onboarding/GeneralOnboardingWizard';
+import { WelcomeWizard } from './components/onboarding/WelcomeWizard';
 
 // Icons for header & new menu
 import { ArrowLeftIcon, IdCardIcon } from './components/icons';
@@ -554,7 +555,10 @@ export const App: React.FC = () => {
             
             <AppBackground />
 
-            {!settings.hasSeenGeneralWizard && (
+            {!settings.hasSeenWelcome && (
+                <WelcomeWizard onComplete={() => setSettings({ hasSeenWelcome: true })} />
+            )}
+            {settings.hasSeenWelcome && !settings.hasSeenGeneralWizard && (
                 <GeneralOnboardingWizard
                     onComplete={() => setSettings({ hasSeenGeneralWizard: true })}
                 />

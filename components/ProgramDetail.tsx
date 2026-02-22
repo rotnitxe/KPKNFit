@@ -4,7 +4,7 @@ import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon, TrashIcon } from './ic
 import { useAppContext } from '../contexts/AppContext';
 import { calculateUnifiedMuscleVolume } from '../services/volumeCalculator';
 import InteractiveWeekOverlay from './InteractiveWeekOverlay';
-import SplitChangerModal from './SplitChangerModal';
+import SplitChangerDrawer from './program-detail/SplitChangerDrawer';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 
 import CompactHeroBanner from './program-detail/CompactHeroBanner';
@@ -519,7 +519,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
             )}
 
             {/* Split Changer */}
-            <SplitChangerModal
+            <SplitChangerDrawer
                 isOpen={isSplitChangerOpen}
                 onClose={() => setIsSplitChangerOpen(false)}
                 currentSplitId={program.selectedSplitId}
