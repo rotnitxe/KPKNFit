@@ -48,7 +48,7 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
         'home': { icon: HomeIcon, label: 'Inicio', view: 'home' },
         'programs': { icon: DumbbellIcon, label: 'Programas', view: 'programs' },
         'nutrition': { icon: UtensilsIcon, label: 'Nutrición', view: 'nutrition' },
-        'kpkn': { icon: ClipboardListIcon, label: 'KPKN', view: 'kpkn' },
+        'kpkn': { icon: ClipboardListIcon, label: 'Wiki/Lab', view: 'kpkn' },
     };
 
     const handleNavClick = (view: View) => {

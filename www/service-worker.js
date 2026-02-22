@@ -1,25 +1,39 @@
-const CACHE_NAME = 'yourprime-v21';
-// Solo recursos same-origin en install: evita fallos CORS que pueden bloquear la instalación PWA
+const CACHE_NAME = 'yourprime-v20';
 const urlsToCache = [
   '/',
   '/index.html',
   '/index.js',
   '/manifest.json',
   '/favicon.svg',
-  '/widget-template.html',
+  'widget-template.html',
   '/output.css',
-  '/icon-192.png',
-  '/icon-512.png'
+  'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;700&family=Roboto+Condensed:wght@400;700&family=Great+Vibes&family=Tahoma:wght@400;700&family=Courier+Prime:wght@400;700&display=swap',
+
+  // Google Drive API scripts
+  'https://apis.google.com/js/api.js',
+  'https://accounts.google.com/gsi/client',
+
+  // Audio files
+  'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg',
+  'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg',
+  'https://actions.google.com/sounds/v1/impacts/crash.ogg',
+  'https://actions.google.com/sounds/v1/emergency/beeper_confirm.ogg',
+  'https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg',
+  'https://actions.google.com/sounds/v1/switches/switch_toggle_on.ogg',
+  'https://actions.google.com/sounds/v1/ui/ui_tap_forward.ogg',
+  'https://actions.google.com/sounds/v1/ui/ui_tap_reverse.ogg'
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting();
+  self.skipWaiting(); // OBLIGA A TOMAR EL CONTROL INMEDIATAMENTE AL ABRIR LA APP
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-      .then(() => console.log('PWA: caché esencial instalada'))
-      .catch(err => {
-        console.warn('PWA: algunos recursos no se cachearon (no bloquea instalación):', err);
+      .then(cache => {
+        console.log('Opened cache and caching essential assets');
+        return cache.addAll(urlsToCache);
+      })
+      .catch(error => {
+        console.error('Failed to cache essential assets during install:', error);
       })
   );
 });

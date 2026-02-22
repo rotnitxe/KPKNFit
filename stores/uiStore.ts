@@ -43,6 +43,9 @@ interface UIStoreState {
     viewingExerciseId: string | null;
     viewingFoodId: string | null;
     viewingMuscleGroupId: string | null;
+    viewingJointId: string | null;
+    viewingTendonId: string | null;
+    viewingMovementPatternId: string | null;
     viewingBodyPartId: string | null;
     viewingChainId: string | null;
     viewingMuscleCategoryName: string | null;
@@ -187,6 +190,9 @@ export const useUIStore = create<UIStoreState>()(
         viewingExerciseId: null,
         viewingFoodId: null,
         viewingMuscleGroupId: null,
+        viewingJointId: null,
+        viewingTendonId: null,
+        viewingMovementPatternId: null,
         viewingBodyPartId: null,
         viewingChainId: null,
         viewingMuscleCategoryName: null,
@@ -253,6 +259,9 @@ export const useUIStore = create<UIStoreState>()(
         setViewingExerciseId: (v) => set((s) => { s.viewingExerciseId = v; }),
         setViewingFoodId: (v) => set((s) => { s.viewingFoodId = v; }),
         setViewingMuscleGroupId: (v) => set((s) => { s.viewingMuscleGroupId = v; }),
+        setViewingJointId: (v) => set((s) => { s.viewingJointId = v; }),
+        setViewingTendonId: (v) => set((s) => { s.viewingTendonId = v; }),
+        setViewingMovementPatternId: (v) => set((s) => { s.viewingMovementPatternId = v; }),
         setViewingBodyPartId: (v) => set((s) => { s.viewingBodyPartId = v; }),
         setViewingChainId: (v) => set((s) => { s.viewingChainId = v; }),
         setViewingMuscleCategoryName: (v) => set((s) => { s.viewingMuscleCategoryName = v; }),

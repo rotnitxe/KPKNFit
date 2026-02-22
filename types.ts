@@ -55,6 +55,10 @@ export type View =
   | 'muscle-category' 
   | 'chain-detail' 
   | 'hall-of-fame' 
+  | 'joint-detail'
+  | 'tendon-detail'
+  | 'movement-pattern-detail'
+  | 'wiki-home'
   | 'nutrition' 
   | 'food-detail' 
   | 'session-detail'
@@ -831,6 +835,50 @@ export interface ToastData {
     duration?: number;
 }
 
+// Wiki/Lab: Lesión común con enfoque en entrenamiento
+export interface CommonInjury {
+    name: string;
+    description: string;
+    riskExercises?: string[];
+    contraindications?: string[];
+    returnProgressions?: string[];
+}
+
+// Wiki/Lab: Articulación
+export interface JointInfo {
+    id: string;
+    name: string;
+    description: string;
+    type: 'hinge' | 'ball-socket' | 'pivot' | 'gliding' | 'saddle' | 'condyloid';
+    bodyPart: 'upper' | 'lower' | 'spine';
+    musclesCrossing: string[];
+    tendonsRelated: string[];
+    movementPatterns: string[];
+    commonInjuries: CommonInjury[];
+}
+
+// Wiki/Lab: Tendón
+export interface TendonInfo {
+    id: string;
+    name: string;
+    description: string;
+    muscleId: string;
+    jointId?: string;
+    commonInjuries: CommonInjury[];
+}
+
+// Wiki/Lab: Patrón de movimiento
+export interface MovementPatternInfo {
+    id: string;
+    name: string;
+    description: string;
+    forceTypes: string[];
+    chainTypes: string[];
+    primaryMuscles: string[];
+    primaryJoints: string[];
+    exampleExercises: string[];
+}
+
 export interface MuscleGroupInfo {
     id: string;
     name: string;
@@ -841,6 +889,14 @@ export interface MuscleGroupInfo {
     coverStyle?: CoverStyle;
     recommendedExercises?: string[];
     favoriteExerciseId?: string;
+    // Wiki/Lab: campos expandidos
+    origin?: string;
+    insertion?: string;
+    mechanicalFunctions?: string[];
+    relatedJoints?: string[];
+    relatedTendons?: string[];
+    commonInjuries?: CommonInjury[];
+    movementPatterns?: string[];
 }
 
 export interface MuscleHierarchy {
@@ -1139,6 +1195,9 @@ export interface AppContextState {
     exercisePlaylists: ExercisePlaylist[];
     muscleGroupData: MuscleGroupInfo[];
     muscleHierarchy: MuscleHierarchy;
+    jointDatabase: JointInfo[];
+    tendonDatabase: TendonInfo[];
+    movementPatternDatabase: MovementPatternInfo[];
     exerciseList: ExerciseMuscleInfo[];
     foodDatabase: FoodItem[];
     unlockedAchievements: AchievementUnlock[];
@@ -1161,6 +1220,9 @@ export interface AppContextState {
     viewingExerciseId: string | null;
     viewingFoodId: string | null;
     viewingMuscleGroupId: string | null;
+    viewingJointId: string | null;
+    viewingTendonId: string | null;
+    viewingMovementPatternId: string | null;
     viewingBodyPartId: string | null;
     viewingChainId: string | null;
     viewingMuscleCategoryName: string | null;

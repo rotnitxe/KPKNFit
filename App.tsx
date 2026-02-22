@@ -57,6 +57,9 @@ import HallOfFameView from './components/HallOfFameView';
 import BodyPartDetailView from './components/BodyPartDetailView';
 import MuscleCategoryView from './components/MuscleCategoryView';
 import ChainDetailView from './components/ChainDetailView';
+import JointDetailView from './components/JointDetailView';
+import TendonDetailView from './components/TendonDetailView';
+import MovementPatternDetailView from './components/MovementPatternDetailView';
 import MuscleListEditorModal from './components/MuscleListEditorModal';
 import BodyLabView from './components/BodyLabView';
 import TrainingPurposeView from './components/TrainingPurposeView';
@@ -105,6 +108,9 @@ export const App: React.FC = () => {
         viewingSessionInfo,
         viewingExerciseId,
         viewingMuscleGroupId,
+        viewingJointId,
+        viewingTendonId,
+        viewingMovementPatternId,
         viewingBodyPartId,
         viewingChainId,
         viewingMuscleCategoryName,
@@ -382,7 +388,7 @@ export const App: React.FC = () => {
     }), [handleLogPress, onFinishWorkoutPress, onTimeSaverPress, onModifyPress, onTimersPress, onCancelWorkout, onPauseWorkoutPress, onSaveSessionPress, onAddExercisePress, handleBack, onSaveProgramPress, onSaveLoggedWorkoutPress, onAddCustomExercisePress, onCoachPress, onEditExercisePress, onAnalyzeTechniquePress, onAddToPlaylistPress, addToast]);
 
      const subTabBarContext = useMemo(() => {
-        if (['kpkn', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'hall-of-fame'].includes(view)) return 'kpkn';
+        if (['kpkn', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'hall-of-fame', 'joint-detail', 'tendon-detail', 'movement-pattern-detail'].includes(view)) return 'kpkn';
         if (['food-database', 'food-detail'].includes(view)) return 'food-database';
         if (['progress'].includes(view)) return 'progress';
         return null;
@@ -492,6 +498,9 @@ export const App: React.FC = () => {
             case 'smart-meal-planner': return <SmartMealPlannerView />;
             case 'exercise-detail': return viewingExerciseId && <ExerciseDetailView exerciseId={viewingExerciseId} isOnline={isOnline} muscleHierarchy={muscleHierarchy} />;
             case 'muscle-group-detail': return viewingMuscleGroupId && <MuscleGroupDetailView muscleGroupId={viewingMuscleGroupId} isOnline={isOnline} />;
+            case 'joint-detail': return viewingJointId && <JointDetailView jointId={viewingJointId} isOnline={isOnline} />;
+            case 'tendon-detail': return viewingTendonId && <TendonDetailView tendonId={viewingTendonId} isOnline={isOnline} />;
+            case 'movement-pattern-detail': return viewingMovementPatternId && <MovementPatternDetailView movementPatternId={viewingMovementPatternId} isOnline={isOnline} />;
             case 'body-part-detail': return viewingBodyPartId && <BodyPartDetailView bodyPartId={viewingBodyPartId as any} />;
             case 'muscle-category': return viewingMuscleCategoryName && <MuscleCategoryView categoryName={viewingMuscleCategoryName} />;
             case 'chain-detail': return viewingChainId && <ChainDetailView chainId={viewingChainId as any} />;
@@ -499,7 +508,7 @@ export const App: React.FC = () => {
             
             default: return <Home onNavigate={handleHomeNavigation} onResumeWorkout={handleResumeWorkout} onEditSleepLog={setEditingSleepLog}/>;
         }
-    }, [view, programs, history, settings, isOnline, activeProgramId, editingProgramId, editingSessionInfo, loggingSessionInfo, viewingSessionInfo, activeSession, viewingExerciseId, viewingMuscleGroupId, viewingBodyPartId, viewingChainId, viewingMuscleCategoryName, ongoingWorkout, isFinishModalOpen, isTimeSaverModalOpen, isTimersModalOpen, isLogFinishModalOpen, exerciseList, muscleHierarchy, saveProgramTrigger, saveSessionTrigger, saveLoggedWorkoutTrigger, addExerciseTrigger]);
+    }, [view, programs, history, settings, isOnline, activeProgramId, editingProgramId, editingSessionInfo, loggingSessionInfo, viewingSessionInfo, activeSession, viewingExerciseId, viewingMuscleGroupId, viewingJointId, viewingTendonId, viewingMovementPatternId, viewingBodyPartId, viewingChainId, viewingMuscleCategoryName, ongoingWorkout, isFinishModalOpen, isTimeSaverModalOpen, isTimersModalOpen, isLogFinishModalOpen, exerciseList, muscleHierarchy, saveProgramTrigger, saveSessionTrigger, saveLoggedWorkoutTrigger, addExerciseTrigger]);
     
     
     const tabBarContainerHeight = 'h-[75px]'; // Standard height for anchored nav + safe area

@@ -32,6 +32,9 @@ export function viewToPath(view: View, data?: any): string {
         case 'kpkn': return '/kpkn';
         case 'exercise-detail': return `/kpkn/exercise/${data?.exerciseId || '_'}`;
         case 'muscle-group-detail': return `/kpkn/muscle/${data?.muscleGroupId || '_'}`;
+        case 'joint-detail': return `/kpkn/joint/${data?.jointId || '_'}`;
+        case 'tendon-detail': return `/kpkn/tendon/${data?.tendonId || '_'}`;
+        case 'movement-pattern-detail': return `/kpkn/pattern/${data?.movementPatternId || '_'}`;
         case 'body-part-detail': return `/kpkn/body-part/${data?.bodyPartId || '_'}`;
         case 'chain-detail': return `/kpkn/chain/${data?.chainId || '_'}`;
         case 'muscle-category': return `/kpkn/category/${encodeURIComponent(data?.categoryName || '_')}`;

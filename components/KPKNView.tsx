@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { ExerciseMuscleInfo, ExercisePlaylist } from '../types';
 import { ChevronRightIcon, PlusIcon, TrashIcon, TrophyIcon, ActivityIcon, TargetIcon, BrainIcon, DumbbellIcon, ClipboardListIcon } from './icons';
+import WikiHomeView from './WikiHomeView';
 import { useAppContext, useAppDispatch, useUIState } from '../contexts/AppContext';
 import Button from './ui/Button';
 import Card from './ui/Card';
@@ -25,7 +26,7 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ e
 });
 
 const KPKNView: React.FC = () => {
-    const { exerciseList, exercisePlaylists, addOrUpdatePlaylist, deletePlaylist, muscleHierarchy, settings } = useAppContext();
+    const { exerciseList, exercisePlaylists, addOrUpdatePlaylist, deletePlaylist, settings, muscleGroupData, jointDatabase, tendonDatabase, movementPatternDatabase } = useAppContext();
     const { setSettings, navigateTo } = useAppDispatch();
     const { activeSubTabs, searchQuery } = useUIState();
     
@@ -55,96 +56,118 @@ const KPKNView: React.FC = () => {
         }
     }
     
-    const hallOfFameExercises = useMemo(() => exerciseList.filter(ex => ex.isHallOfFame), [exerciseList]);
-    const bodyPartCategories = useMemo(() => Object.keys(muscleHierarchy.bodyPartHierarchy).sort((a, b) => a.localeCompare(b)), [muscleHierarchy]);
+    const unifiedSearchResults = useMemo(() => {
+        if (!searchQuery || searchQuery.length < 2) return { exercises: [], muscles: [], joints: [], tendons: [], patterns: [] };
+        const q = searchQuery.toLowerCase().trim();
+        const exercises = exerciseList.filter(ex =>
+            ex.name.toLowerCase().includes(q) ||
+            (ex.alias && ex.alias.toLowerCase().includes(q)) ||
+            ex.involvedMuscles.some(m => m.muscle.toLowerCase().includes(q))
+        ).slice(0, 15);
+        const muscles = (muscleGroupData || []).filter(m =>
+            m.name.toLowerCase().includes(q) || (m.description || '').toLowerCase().includes(q)
+        ).slice(0, 10);
+        const joints = (jointDatabase || []).filter(j =>
+            j.name.toLowerCase().includes(q) || (j.description || '').toLowerCase().includes(q)
+        ).slice(0, 8);
+        const tendons = (tendonDatabase || []).filter(t =>
+            t.name.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q)
+        ).slice(0, 8);
+        const patterns = (movementPatternDatabase || []).filter(p =>
+            p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q)
+        ).slice(0, 8);
+        return { exercises, muscles, joints, tendons, patterns };
+    }, [searchQuery, exerciseList, muscleGroupData, jointDatabase, tendonDatabase, movementPatternDatabase]);
     
-    const specialCategories = useMemo(() => {
-        const allSpecial = Object.keys(muscleHierarchy.specialCategories || {});
-        return allSpecial;
-    }, [muscleHierarchy]);
-
-    const filteredExercises = useMemo(() => {
-        if (!searchQuery) return [];
-        const query = searchQuery.toLowerCase();
-        return exerciseList.filter(ex => 
-            ex.name.toLowerCase().includes(query) || 
-            (ex.alias && ex.alias.toLowerCase().includes(query)) ||
-            ex.involvedMuscles.some(m => m.muscle.toLowerCase().includes(query))
-        ).slice(0, 30); 
-    }, [searchQuery, exerciseList]);
-    
-    const renderExploreTab = () => (
-        <div className="space-y-6 animate-fade-in">
-            {searchQuery.length > 0 ? (
-                <div>
-                     <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 ml-1">Resultados ({filteredExercises.length})</h2>
-                     <div className="space-y-2">
-                        {filteredExercises.length > 0 ? (
-                            filteredExercises.map(ex => <ExerciseItem key={ex.id} exercise={ex} />)
+    const renderExploreTab = () => {
+        const hasResults = searchQuery.length >= 2 && (
+            unifiedSearchResults.exercises.length > 0 ||
+            unifiedSearchResults.muscles.length > 0 ||
+            unifiedSearchResults.joints.length > 0 ||
+            unifiedSearchResults.tendons.length > 0 ||
+            unifiedSearchResults.patterns.length > 0
+        );
+        return (
+            <div className="space-y-6 animate-fade-in">
+                {searchQuery.length >= 2 ? (
+                    <div className="space-y-6">
+                        {hasResults ? (
+                            <>
+                                {unifiedSearchResults.exercises.length > 0 && (
+                                    <div>
+                                        <h2 className="text-xs font-black text-sky-500 uppercase tracking-widest mb-3 ml-1">Ejercicios ({unifiedSearchResults.exercises.length})</h2>
+                                        <div className="space-y-2">
+                                            {unifiedSearchResults.exercises.map(ex => <ExerciseItem key={ex.id} exercise={ex} />)}
+                                        </div>
+                                    </div>
+                                )}
+                                {unifiedSearchResults.muscles.length > 0 && (
+                                    <div>
+                                        <h2 className="text-xs font-black text-purple-500 uppercase tracking-widest mb-3 ml-1">Músculos ({unifiedSearchResults.muscles.length})</h2>
+                                        <div className="space-y-2">
+                                            {unifiedSearchResults.muscles.map(m => (
+                                                <div key={m.id} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: m.id })} className="p-4 flex justify-between items-center cursor-pointer bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5">
+                                                    <span className="font-bold text-white">{m.name}</span>
+                                                    <ChevronRightIcon className="text-slate-500" size={18} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {unifiedSearchResults.joints.length > 0 && (
+                                    <div>
+                                        <h2 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-3 ml-1">Articulaciones ({unifiedSearchResults.joints.length})</h2>
+                                        <div className="space-y-2">
+                                            {unifiedSearchResults.joints.map(j => (
+                                                <div key={j.id} onClick={() => navigateTo('joint-detail', { jointId: j.id })} className="p-4 flex justify-between items-center cursor-pointer bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5">
+                                                    <span className="font-bold text-white">{j.name}</span>
+                                                    <ChevronRightIcon className="text-slate-500" size={18} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {unifiedSearchResults.tendons.length > 0 && (
+                                    <div>
+                                        <h2 className="text-xs font-black text-amber-500 uppercase tracking-widest mb-3 ml-1">Tendones ({unifiedSearchResults.tendons.length})</h2>
+                                        <div className="space-y-2">
+                                            {unifiedSearchResults.tendons.map(t => (
+                                                <div key={t.id} onClick={() => navigateTo('tendon-detail', { tendonId: t.id })} className="p-4 flex justify-between items-center cursor-pointer bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5">
+                                                    <span className="font-bold text-white">{t.name}</span>
+                                                    <ChevronRightIcon className="text-slate-500" size={18} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {unifiedSearchResults.patterns.length > 0 && (
+                                    <div>
+                                        <h2 className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-3 ml-1">Patrones ({unifiedSearchResults.patterns.length})</h2>
+                                        <div className="space-y-2">
+                                            {unifiedSearchResults.patterns.map(p => (
+                                                <div key={p.id} onClick={() => navigateTo('movement-pattern-detail', { movementPatternId: p.id })} className="p-4 flex justify-between items-center cursor-pointer bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5">
+                                                    <span className="font-bold text-white">{p.name}</span>
+                                                    <ChevronRightIcon className="text-slate-500" size={18} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <div className="text-center py-10 opacity-50">
                                 <DumbbellIcon size={40} className="mx-auto text-slate-600 mb-2"/>
-                                <p className="text-slate-400">No se encontraron ejercicios.</p>
+                                <p className="text-slate-400">No se encontraron resultados.</p>
+                                <p className="text-slate-500 text-xs mt-1">Prueba con músculos, articulaciones o tendones.</p>
                             </div>
                         )}
-                     </div>
-                </div>
-            ) : (
-                <>
-                    {/* Functional Groups Grid */}
-                    {specialCategories.length > 0 && (
-                        <div>
-                            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 px-1"><ActivityIcon className="text-sky-400" size={20}/> Grupos Funcionales</h2>
-                            <div className="grid grid-cols-2 gap-3">
-                                {specialCategories.map(categoryName => (
-                                    <div key={categoryName} onClick={() => navigateTo('chain-detail', { chainId: categoryName })} className="bg-slate-900/50 border border-white/5 p-4 rounded-2xl cursor-pointer hover:bg-slate-800 hover:border-sky-500/30 transition-all group">
-                                        <h3 className="font-bold text-slate-200 text-sm uppercase tracking-wide group-hover:text-sky-300 transition-colors">{categoryName}</h3>
-                                        <div className="w-8 h-1 bg-sky-500/20 rounded-full mt-2 group-hover:bg-sky-500 transition-colors"></div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Anatomy List */}
-                    <div>
-                        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 px-1 mt-2"><BrainIcon className="text-purple-400" size={20}/> Anatomía</h2>
-                        <div className="space-y-2">
-                            {bodyPartCategories.map(categoryName => (
-                                <div key={categoryName} onClick={() => navigateTo('muscle-category', { categoryName })} className="bg-slate-900/30 p-4 flex justify-between items-center cursor-pointer rounded-xl border border-white/5 hover:border-purple-500/30 hover:bg-slate-800 transition-all group">
-                                    <h2 className="text-lg font-bold text-slate-200 group-hover:text-white">{categoryName}</h2>
-                                    <ChevronRightIcon className="text-slate-600 group-hover:text-purple-400 transition-colors" />
-                                </div>
-                            ))}
-                        </div>
                     </div>
-
-                    {/* Hall of Fame */}
-                    {hallOfFameExercises.length > 0 && (
-                        <div className="pt-4">
-                            <div className="flex justify-between items-center mb-3 px-1">
-                                <h2 className="text-xl font-bold text-yellow-400 flex items-center gap-2">
-                                    <TrophyIcon /> Hall Of Fame
-                                </h2>
-                                <button onClick={() => navigateTo('hall-of-fame')} className="text-xs font-bold text-slate-500 hover:text-white uppercase tracking-wider">Ver todo</button>
-                            </div>
-                            <div className="relative">
-                                <div className="flex overflow-x-auto snap-x snap-mandatory space-x-3 pb-4 -mx-4 px-4 hide-scrollbar">
-                                    {hallOfFameExercises.map(ex => (
-                                        <div key={ex.id} onClick={() => navigateTo('exercise-detail', { exerciseId: ex.id })} className="snap-center flex-shrink-0 w-40 h-32 bg-gradient-to-br from-slate-900 to-black rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-yellow-900/30 hover:border-yellow-500/50 transition-all group relative overflow-hidden">
-                                            <div className="absolute inset-0 bg-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                            <h3 className="font-bold text-white text-sm leading-tight z-10">{ex.name}</h3>
-                                            <p className="text-[10px] text-yellow-500/80 font-black uppercase tracking-wider z-10">{ex.involvedMuscles?.find(m => m.role === 'primary')?.muscle}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </>
-            )}
-        </div>
-    );
+                ) : (
+                    <WikiHomeView />
+                )}
+            </div>
+        );
+    };
     
     const renderListsTab = () => (
          <div className="space-y-4 animate-fade-in">
@@ -217,10 +240,10 @@ const KPKNView: React.FC = () => {
             {/* Unified Title (No local header controls anymore) */}
              <div className="mb-6">
                 <h1 className="text-4xl font-black uppercase tracking-tighter text-white">
-                    {currentTab === 'Explorar' ? 'Base de Datos' : 'Mis Listas'}
+                    {currentTab === 'Explorar' ? 'Wiki/Lab' : 'Mis Listas'}
                 </h1>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                    {currentTab === 'Explorar' ? 'Enciclopedia de Ejercicios' : 'Colecciones Personalizadas'}
+                    {currentTab === 'Explorar' ? 'Base de conocimiento para el entrenamiento' : 'Colecciones Personalizadas'}
                 </p>
             </div>
 

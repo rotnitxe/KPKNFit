@@ -1,6 +1,7 @@
 // components/MuscleGroupDetailView.tsx
 import React, { useMemo, useEffect, useState } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
+import { enrichWithWikipedia } from '../services/wikipediaEnrichment';
 import { ExerciseMuscleInfo, MuscleHierarchy, MuscleSubGroup } from '../types';
 import { SparklesIcon, ChevronRightIcon, DumbbellIcon, PencilIcon, StarIcon } from './icons';
 import Button from './ui/Button';
@@ -33,8 +34,9 @@ interface MuscleGroupDetailViewProps {
 
 const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGroupId, isOnline }) => {
     const { muscleGroupData, settings, exerciseList, muscleHierarchy, history } = useAppState();
-    const { setCurrentBackgroundOverride, updateMuscleGroupInfo } = useAppDispatch();
+    const { setCurrentBackgroundOverride, updateMuscleGroupInfo, navigateTo } = useAppDispatch();
     const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [wikiExtract, setWikiExtract] = useState<string | null>(null);
 
     const muscleInfo = useMemo(() => {
         return muscleGroupData.find(m => m.id === muscleGroupId);
@@ -128,6 +130,22 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                  <div className="glass-card-nested p-4">
                     <h3 className="font-bold text-lg text-white mb-2">Información General</h3>
                     <p className="whitespace-pre-wrap text-slate-300 text-sm">{muscleInfo.description}</p>
+                    {!wikiExtract && (
+                        <button
+                            onClick={async () => {
+                                const r = await enrichWithWikipedia(muscleInfo.name);
+                                if (r?.extract) setWikiExtract(r.extract);
+                            }}
+                            className="mt-3 text-xs text-cyan-400 hover:text-cyan-300 font-medium"
+                        >
+                            + Más información (Wikipedia)
+                        </button>
+                    )}
+                    {wikiExtract && (
+                        <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-cyan-500/20">
+                            <p className="text-xs text-slate-400 italic">{wikiExtract}</p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -140,6 +158,72 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                         <p className="text-sm text-slate-400">{muscleInfo.importance.health}</p>
                     </div>
                 </div>
+
+                {/* Wiki/Lab: Origen e inserción */}
+                {(muscleInfo.origin || muscleInfo.insertion) && (
+                    <details className="glass-card-nested !p-0">
+                        <summary className="p-4 cursor-pointer flex justify-between items-center list-none">
+                            <h3 className="font-bold text-white">Origen e Inserción</h3>
+                            <ChevronRightIcon className="details-arrow" />
+                        </summary>
+                        <div className="p-4 border-t border-slate-700/50 space-y-2">
+                            {muscleInfo.origin && <p className="text-sm"><span className="text-slate-500 font-mono text-xs">Origen:</span> <span className="text-slate-300">{muscleInfo.origin}</span></p>}
+                            {muscleInfo.insertion && <p className="text-sm"><span className="text-slate-500 font-mono text-xs">Inserción:</span> <span className="text-slate-300">{muscleInfo.insertion}</span></p>}
+                        </div>
+                    </details>
+                )}
+
+                {/* Wiki/Lab: Funciones mecánicas */}
+                {muscleInfo.mechanicalFunctions && muscleInfo.mechanicalFunctions.length > 0 && (
+                    <div className="glass-card-nested p-4">
+                        <h3 className="font-bold text-white mb-2">Funciones Mecánicas</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {muscleInfo.mechanicalFunctions.map((f, i) => (
+                                <span key={i} className="px-2 py-1 bg-slate-800 rounded-lg text-sm text-slate-300">{f}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Wiki/Lab: Articulaciones y tendones relacionados */}
+                {((muscleInfo.relatedJoints?.length || 0) > 0 || (muscleInfo.relatedTendons?.length || 0) > 0) && (
+                    <div className="glass-card-nested p-4">
+                        <h3 className="font-bold text-white mb-2">Relaciones Anatómicas</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {muscleInfo.relatedJoints?.map(jId => (
+                                <button key={jId} onClick={() => navigateTo('joint-detail', { jointId: jId })} className="px-2 py-1 bg-cyan-900/40 border border-cyan-500/30 rounded-lg text-sm text-cyan-300 hover:bg-cyan-800/50 transition-colors">
+                                    Articulación: {jId.replace(/-/g, ' ')}
+                                </button>
+                            ))}
+                            {muscleInfo.relatedTendons?.map(tId => (
+                                <button key={tId} onClick={() => navigateTo('tendon-detail', { tendonId: tId })} className="px-2 py-1 bg-amber-900/40 border border-amber-500/30 rounded-lg text-sm text-amber-300 hover:bg-amber-800/50 transition-colors">
+                                    Tendón: {tId.replace(/tendon-|-/g, ' ')}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Wiki/Lab: Lesiones comunes */}
+                {muscleInfo.commonInjuries && muscleInfo.commonInjuries.length > 0 && (
+                    <details className="glass-card-nested !p-0">
+                        <summary className="p-4 cursor-pointer flex justify-between items-center list-none">
+                            <h3 className="font-bold text-red-400/90">Lesiones Comunes</h3>
+                            <ChevronRightIcon className="details-arrow" />
+                        </summary>
+                        <div className="p-4 border-t border-slate-700/50 space-y-3">
+                            {muscleInfo.commonInjuries.map((inj, i) => (
+                                <div key={i} className="bg-slate-900/50 rounded-lg p-3">
+                                    <h4 className="font-semibold text-white text-sm">{inj.name}</h4>
+                                    <p className="text-slate-400 text-xs mt-1">{inj.description}</p>
+                                    {inj.returnProgressions && inj.returnProgressions.length > 0 && (
+                                        <p className="text-slate-500 text-xs mt-2">Progresión: {inj.returnProgressions.join(' → ')}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </details>
+                )}
 
                  <div className="glass-card-nested p-4">
                     <h3 className="font-bold text-lg text-white mb-3">Volumen Semanal Recomendado (series)</h3>

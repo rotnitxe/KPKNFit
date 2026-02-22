@@ -35,6 +35,9 @@ import { cacheService } from '../services/cacheService';
 import { calculateCompletedSessionStress, calculateCompletedSessionDrainBreakdown } from '../services/auge';
 import { queueFatigueDataPoint, queueTrainingImpulse } from '../services/augeAdaptiveService';
 import { UIProvider, UIState, UIDispatch } from './UIContext';
+import { JOINT_DATABASE } from '../data/jointDatabase';
+import { TENDON_DATABASE } from '../data/tendonDatabase';
+import { MOVEMENT_PATTERN_DATABASE } from '../data/movementPatternDatabase';
 
 const AppStateContext = createContext<AppContextState | undefined>(undefined);
 const AppDispatchContext = createContext<AppContextDispatch | undefined>(undefined);
@@ -264,7 +267,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         ui.setActiveProgramId(null); ui.setEditingProgramId(null); ui.setEditingSessionInfo(null);
         ui.setLoggingSessionInfo(null); ui.setViewingSessionInfo(null); ui.setViewingExerciseId(null);
-        ui.setViewingMuscleGroupId(null); ui.setViewingBodyPartId(null); ui.setViewingChainId(null);
+        ui.setViewingMuscleGroupId(null); ui.setViewingJointId(null); ui.setViewingTendonId(null); ui.setViewingMovementPatternId(null); ui.setViewingBodyPartId(null); ui.setViewingChainId(null);
         ui.setViewingMuscleCategoryName(null); ui.setViewingFoodId(null);
 
         if (data) {
@@ -276,6 +279,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 case 'session-detail': ui.setViewingSessionInfo(data); break;
                 case 'exercise-detail': ui.setViewingExerciseId(data.exerciseId); break;
                 case 'muscle-group-detail': ui.setViewingMuscleGroupId(data.muscleGroupId); break;
+                case 'joint-detail': ui.setViewingJointId(data.jointId); break;
+                case 'tendon-detail': ui.setViewingTendonId(data.tendonId); break;
+                case 'movement-pattern-detail': ui.setViewingMovementPatternId(data.movementPatternId); break;
                 case 'body-part-detail': ui.setViewingBodyPartId(data.bodyPartId); break;
                 case 'chain-detail': ui.setViewingChainId(data.chainId); break;
                 case 'muscle-category': ui.setViewingMuscleCategoryName(data.categoryName); break;
@@ -295,7 +301,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         ui.setActiveProgramId(null); ui.setEditingProgramId(null); ui.setEditingSessionInfo(null);
         ui.setLoggingSessionInfo(null); ui.setViewingSessionInfo(null); ui.setViewingExerciseId(null);
-        ui.setViewingMuscleGroupId(null); ui.setViewingBodyPartId(null); ui.setViewingChainId(null);
+        ui.setViewingMuscleGroupId(null); ui.setViewingJointId(null); ui.setViewingTendonId(null); ui.setViewingMovementPatternId(null); ui.setViewingBodyPartId(null); ui.setViewingChainId(null);
         ui.setViewingMuscleCategoryName(null); ui.setViewingFoodId(null);
 
         if (previousState.data) {
@@ -307,6 +313,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 case 'session-detail': ui.setViewingSessionInfo(previousState.data); break;
                 case 'exercise-detail': ui.setViewingExerciseId(previousState.data.exerciseId); break;
                 case 'muscle-group-detail': ui.setViewingMuscleGroupId(previousState.data.muscleGroupId); break;
+                case 'joint-detail': ui.setViewingJointId(previousState.data.jointId); break;
+                case 'tendon-detail': ui.setViewingTendonId(previousState.data.tendonId); break;
+                case 'movement-pattern-detail': ui.setViewingMovementPatternId(previousState.data.movementPatternId); break;
                 case 'body-part-detail': ui.setViewingBodyPartId(previousState.data.bodyPartId); break;
                 case 'chain-detail': ui.setViewingChainId(previousState.data.chainId); break;
                 case 'muscle-category': ui.setViewingMuscleCategoryName(previousState.data.categoryName); break;
@@ -956,6 +965,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const stateValue: AppContextState = {
         view: ui.view, historyStack: ui.historyStack, programs, history, skippedLogs, settings, bodyProgress,
         nutritionLogs, waterLogs, pantryItems, tasks, exercisePlaylists, muscleGroupData, muscleHierarchy,
+        jointDatabase: JOINT_DATABASE, tendonDatabase: TENDON_DATABASE, movementPatternDatabase: MOVEMENT_PATTERN_DATABASE,
         exerciseList, foodDatabase, unlockedAchievements, isOnline: ui.isOnline, isAppLoading,
         installPromptEvent: ui.installPromptEvent, drive, toasts: ui.toasts, bodyLabAnalysis,
         biomechanicalData, biomechanicalAnalysis, syncQueue, aiNutritionPlan, activeProgramState,
@@ -975,7 +985,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         editingSessionInfo: ui.editingSessionInfo, activeSession: ui.activeSession,
         loggingSessionInfo: ui.loggingSessionInfo, viewingSessionInfo: ui.viewingSessionInfo,
         viewingExerciseId: ui.viewingExerciseId, viewingFoodId: ui.viewingFoodId,
-        viewingMuscleGroupId: ui.viewingMuscleGroupId, viewingBodyPartId: ui.viewingBodyPartId,
+        viewingMuscleGroupId: ui.viewingMuscleGroupId, viewingJointId: ui.viewingJointId, viewingTendonId: ui.viewingTendonId, viewingMovementPatternId: ui.viewingMovementPatternId, viewingBodyPartId: ui.viewingBodyPartId,
         viewingChainId: ui.viewingChainId, viewingMuscleCategoryName: ui.viewingMuscleCategoryName,
         exerciseToAddId: ui.exerciseToAddId, foodItemToAdd_to_pantry: ui.foodItemToAdd_to_pantry,
         ongoingWorkout, editingCustomExerciseData: ui.editingCustomExerciseData,

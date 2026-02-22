@@ -41,7 +41,7 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={view === 'food-database' ? "Buscar alimento..." : "Buscar ejercicio..."}
+                    placeholder={view === 'food-database' ? "Buscar alimento..." : "Buscar ejercicio, músculo, articulación..."}
                     className="w-full h-10 bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-white/30 placeholder-white/20"
                 />
                 <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={14} />
