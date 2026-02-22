@@ -47,7 +47,7 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
 
     if (phase === 'choice') {
         return (
-            <div className="fixed inset-0 z-[9998] flex flex-col bg-black/60 overflow-hidden">
+            <div className="fixed inset-0 z-[9998] flex flex-col bg-black overflow-hidden">
                 <AnimatedSvgBackground
                     src="/fondo-wizards.svg"
                     variant="horizontal"
@@ -56,7 +56,7 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
                 />
                 <div className="relative z-10 flex-1 flex items-center justify-center p-6 min-h-0">
                     <div className="w-full max-w-md">
-                        <div className="bg-black/35 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                        <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
                             <div className="p-8">
                                 <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto mb-6">
                                     <ZapIcon size={32} className="text-amber-400" />
@@ -117,10 +117,10 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
 
     if (phase === 'nutrition') {
         return (
-            <div className="fixed inset-0 z-[9998] flex flex-col bg-black/60 overflow-hidden">
+            <div className="fixed inset-0 z-[9998] flex flex-col bg-black overflow-hidden">
                 <AnimatedSvgBackground src="/fondo-wizards.svg" variant="horizontal" animation="zoom" opacity={0.28} />
                 <div className="relative z-10 flex flex-col flex-1 min-h-0">
-                    <div className="flex justify-between items-center p-4 border-b border-white/10 shrink-0 bg-black/25 backdrop-blur-sm">
+                    <div className="flex justify-between items-center p-4 border-b border-white/10 shrink-0">
                         <h2 className="text-[10px] font-black text-white uppercase tracking-widest font-mono">Nutrición</h2>
                         <div className="flex gap-2">
                             <button
@@ -150,10 +150,10 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
 
     if (phase === 'precalibration') {
         return (
-            <div className="fixed inset-0 z-[9998] flex flex-col bg-black/60 overflow-hidden">
+            <div className="fixed inset-0 z-[9998] flex flex-col bg-black overflow-hidden">
                 <AnimatedSvgBackground src="/fondo-wizards.svg" variant="horizontal" animation="zoom" opacity={0.28} />
                 <div className="relative z-10 flex flex-col flex-1 min-h-0">
-                    <div className="flex justify-between items-center p-4 border-b border-white/10 shrink-0 bg-black/25 backdrop-blur-sm">
+                    <div className="flex justify-between items-center p-4 border-b border-white/10 shrink-0">
                         <h2 className="text-[10px] font-black text-white uppercase tracking-widest font-mono">Pre-calibrar batería</h2>
                         <button
                             onClick={handlePrecalibrationSkip}

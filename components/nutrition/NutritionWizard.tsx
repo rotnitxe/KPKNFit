@@ -530,7 +530,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     };
 
     return (
-        <div className="min-h-screen bg-black/70 flex flex-col relative overflow-hidden">
+        <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
             <AnimatedSvgBackground
                 src="/fondo-wizards.svg"
                 variant="horizontal"
