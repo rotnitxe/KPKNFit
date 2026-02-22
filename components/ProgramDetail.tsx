@@ -11,7 +11,6 @@ import CompactHeroBanner from './program-detail/CompactHeroBanner';
 import TrainingCalendarGrid from './program-detail/TrainingCalendarGrid';
 import AnalyticsDashboard from './program-detail/AnalyticsDashboard';
 import StructureDrawer from './program-detail/StructureDrawer';
-import StructureTabView from './program-detail/StructureTabView';
 
 interface ProgramDetailProps {
     program: Program;
@@ -39,7 +38,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
     const { activeProgramState } = useAppContext();
 
     // ─── State ───
-    const [activeTab, setActiveTab] = useState<'training' | 'analytics' | 'structure'>('training');
+    const [activeTab, setActiveTab] = useState<'training' | 'analytics'>('training');
     const [isStructureDrawerOpen, setIsStructureDrawerOpen] = useState(false);
     const [isSplitChangerOpen, setIsSplitChangerOpen] = useState(false);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
@@ -221,7 +220,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 trainingDaysCount={trainingDaysCount}
             />
 
-            {/* Mobile tabs */}
+            {/* Tabs: Entrenamiento | Analytics */}
             <div className="flex border-b border-white/5 shrink-0">
                 <button
                     onClick={() => setActiveTab('training')}
@@ -234,12 +233,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'analytics' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'}`}
                 >
                     Analytics
-                </button>
-                <button
-                    onClick={() => setActiveTab('structure')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'structure' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'}`}
-                >
-                    Estructura
                 </button>
             </div>
 
@@ -261,33 +254,12 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                         onSelectBlock={setSelectedBlockId}
                         onSelectWeek={setSelectedWeekId}
                         onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
-                        onOpenStructureDrawer={() => setActiveTab('structure')}
+                        onOpenStructureDrawer={() => setIsStructureDrawerOpen(true)}
                         onStartWorkout={handleStartWorkout}
                         onEditSession={onEditSessionClick}
                         onDeleteSession={onDeleteSessionHandler}
                         onAddSession={handleAddSession}
                         addToast={addToast}
-                    />
-                </div>
-
-                {/* Structure panel - full width when selected */}
-                <div className={`flex-1 flex flex-col min-h-0 overflow-hidden bg-[#0a0a0a] ${activeTab !== 'structure' ? 'hidden' : ''}`} style={{ minWidth: 0 }}>
-                    <StructureTabView
-                        program={program}
-                        isCyclic={isCyclic}
-                        selectedBlockId={selectedBlockId}
-                        selectedWeekId={selectedWeekId}
-                        onSelectBlock={setSelectedBlockId}
-                        onSelectWeek={setSelectedWeekId}
-                        onUpdateProgram={handleUpdateProgram}
-                        onEditWeek={setEditingWeekInfo}
-                        onShowAdvancedTransition={() => { setActiveTab('training'); setShowAdvancedTransition(true); }}
-                        onShowSimpleTransition={() => { setActiveTab('training'); setShowSimpleTransition(true); }}
-                        onOpenEventModal={(data) => {
-                            if (data) setNewEventData(data);
-                            else setNewEventData({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' });
-                            setIsEventModalOpen(true);
-                        }}
                     />
                 </div>
 
@@ -517,28 +489,26 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                         <div className="absolute top-0 left-0 w-full h-1 bg-[#FC4C02] rounded-t-xl" />
                         <div className="w-14 h-14 mx-auto bg-[#FC4C02]/10 rounded-xl flex items-center justify-center mb-4">
                             {tourStep === 1 && <DumbbellIcon size={24} className="text-[#FC4C02]" />}
-                            {tourStep === 2 && <CalendarIcon size={24} className="text-[#FC4C02]" />}
-                            {tourStep === 3 && <ActivityIcon size={24} className="text-[#FC4C02]" />}
+                            {tourStep === 2 && <ActivityIcon size={24} className="text-[#FC4C02]" />}
                         </div>
                         <h3 className="text-base font-bold text-white uppercase mb-2">
-                            {tourStep === 1 ? 'Entrenamiento' : tourStep === 2 ? 'Estructura' : 'Analytics'}
+                            {tourStep === 1 ? 'Entrenamiento' : 'Analytics'}
                         </h3>
                         <p className="text-xs text-[#8E8E93] leading-relaxed mb-6">
-                            {tourStep === 1 ? 'La grilla muestra tu semana completa. Toca una sesión para iniciar o editar.'
-                                : tourStep === 2 ? 'Abre el panel de estructura para navegar bloques, mesociclos y semanas.'
-                                    : 'El panel de Analytics muestra volumen, fuerza, recuperación y más en tiempo real.'}
+                            {tourStep === 1 ? 'La grilla muestra tu semana completa. Usa el selector de bloques/semanas para abrir la estructura. Toca una sesión para iniciar o editar.'
+                                : 'El panel de Analytics muestra volumen, fuerza, recuperación y más en tiempo real.'}
                         </p>
                         <div className="flex justify-between items-center border-t border-white/5 pt-4">
                             <div className="flex gap-1.5">
-                                {[1, 2, 3].map(step => (
+                                {[1, 2].map(step => (
                                     <div key={step} className={`w-2 h-2 rounded-full ${tourStep === step ? 'bg-[#FC4C02]' : 'bg-white/10'}`} />
                                 ))}
                             </div>
                             <button onClick={() => {
-                                if (tourStep < 3) setTourStep(prev => prev + 1);
+                                if (tourStep < 2) setTourStep(prev => prev + 1);
                                 else { setTourStep(0); localStorage.setItem(`kpkn_tour_seen_${program.id}`, 'true'); }
                             }} className="bg-[#FC4C02] text-white px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wide hover:brightness-110 transition-all">
-                                {tourStep < 3 ? 'Siguiente' : '¡Listo!'}
+                                {tourStep < 2 ? 'Siguiente' : '¡Listo!'}
                             </button>
                         </div>
                         <button onClick={() => { setTourStep(0); localStorage.setItem(`kpkn_tour_seen_${program.id}`, 'true'); }} className="absolute top-3 right-3 text-[#48484A] hover:text-white">

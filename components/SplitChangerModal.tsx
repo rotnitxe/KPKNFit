@@ -95,21 +95,23 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Filter tags — flex-wrap para que las etiquetas no se corten en pantallas pequeñas */}
-                        <div className="px-5 py-3 flex flex-wrap gap-2 border-b border-white/5 min-h-0">
-                            {FILTER_TAGS.map(tag => (
-                                <button
-                                    key={tag}
-                                    onClick={() => setFilter(tag)}
-                                    className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all border shrink-0 ${
-                                        filter === tag
-                                            ? 'bg-white text-black border-white'
-                                            : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500'
-                                    }`}
-                                >
-                                    {tag}
-                                </button>
-                            ))}
+                        {/* Filter tags — scroll horizontal para evitar desbordes y superposiciones */}
+                        <div className="px-5 py-3 border-b border-white/5 shrink-0">
+                            <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar -mx-1 px-1">
+                                {FILTER_TAGS.map(tag => (
+                                    <button
+                                        key={tag}
+                                        onClick={() => setFilter(tag)}
+                                        className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all border shrink-0 whitespace-nowrap ${
+                                            filter === tag
+                                                ? 'bg-white text-black border-white'
+                                                : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500'
+                                        }`}
+                                    >
+                                        {tag}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Split list */}
@@ -127,19 +129,19 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                                 : 'bg-zinc-900/50 border-white/5 hover:border-white/20 hover:bg-zinc-900'
                                         }`}
                                     >
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-black text-white">{split.name}</span>
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="text-sm font-black text-white truncate">{split.name}</span>
                                                     {isCurrent && (
-                                                        <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                                        <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 shrink-0">
                                                             ACTUAL
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[10px] text-zinc-500 mt-0.5">{split.description}</p>
+                                                <p className="text-[10px] text-zinc-500 mt-0.5 line-clamp-2">{split.description}</p>
                                             </div>
-                                            <span className="text-[10px] font-black text-zinc-500">{trainingDays}d</span>
+                                            <span className="text-[10px] font-black text-zinc-500 shrink-0">{trainingDays}d</span>
                                         </div>
                                         <div className="flex gap-1 mt-2">
                                             {split.pattern.map((day, i) => (
