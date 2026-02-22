@@ -5,7 +5,8 @@ import React, { useState, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import type { NutritionLog, LoggedFood } from '../../types';
 import { calculateDailyCalorieGoal } from '../../utils/calorieFormulas';
-import { UtensilsIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
+import { getMicronutrientDeficiencies } from '../../services/nutritionRecoveryService';
+import { UtensilsIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, AlertTriangleIcon } from '../icons';
 import { CalorieGoalCard, CalorieGoalModal } from './CalorieGoalCard';
 
 const mealOrder: NutritionLog['mealType'][] = ['breakfast', 'lunch', 'dinner', 'snack'];
@@ -106,6 +107,11 @@ export const NutritionDashboard: React.FC<{
         });
         return g;
     }, [consumedLogs]);
+
+    const micronutrientDeficiencies = useMemo(
+        () => getMicronutrientDeficiencies(dailyTotals.micronutrients),
+        [dailyTotals.micronutrients]
+    );
 
     const calorieStatus = calorieGoal > 0
         ? dailyTotals.calories / calorieGoal
@@ -231,6 +237,29 @@ export const NutritionDashboard: React.FC<{
                             >
                                 {m.name}: {m.amount.toFixed(0)}{m.unit}
                             </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Reporte de micronutrientes faltantes (al final del día) */}
+            {micronutrientDeficiencies.length > 0 && (
+                <div className="bg-amber-950/30 border border-amber-500/30 rounded-2xl p-5">
+                    <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <AlertTriangleIcon size={12} />
+                        Posibles carencias hoy
+                    </p>
+                    <p className="text-[10px] text-zinc-400 mb-3">
+                        Estos micronutrientes están por debajo del 70% del valor diario recomendado:
+                    </p>
+                    <div className="space-y-2">
+                        {micronutrientDeficiencies.map((d, i) => (
+                            <div key={i} className="flex justify-between items-center text-[10px]">
+                                <span className="text-amber-300 font-medium">{d.name}</span>
+                                <span className="text-zinc-500 font-mono">
+                                    {d.amount.toFixed(0)}{d.unit} ({d.pct}% del objetivo)
+                                </span>
+                            </div>
                         ))}
                     </div>
                 </div>

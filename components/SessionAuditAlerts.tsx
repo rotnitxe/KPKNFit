@@ -1,15 +1,16 @@
 import React, { useMemo } from 'react';
 import { AlertTriangleIcon, InfoIcon } from './icons';
-import { Exercise, ExerciseMuscleInfo } from '../types';
+import { Exercise, ExerciseMuscleInfo, Settings } from '../types';
 import { validateSessionVolume, normalizeMuscleGroup } from '../services/volumeCalculator';
 import { HYPERTROPHY_ROLE_MULTIPLIERS, FATIGUE_ROLE_MULTIPLIERS } from '../services/auge';
 
 interface SessionAuditAlertsProps {
     sessionExercises: { name: string; sets: any[]; exerciseDbId?: string }[]; 
     allExercisesDB: Exercise[];
+    settings?: Settings | null;
 }
 
-const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercises, allExercisesDB }) => {
+const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercises, allExercisesDB, settings }) => {
     
     const { sessionVolume, marginalFatigue } = useMemo(() => {
         const hyperMap: Record<string, number> = {};
@@ -60,9 +61,11 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
 
     const alerts: { type: 'warning' | 'error' | 'info'; msg: string }[] = [];
     
+    const deficitRegime = settings?.calorieGoalObjective === 'deficit';
+
     // 2. Validar Techo de Sesión (Límite de Hipertrofia)
     (Object.entries(sessionVolume) as [string, number][]).forEach(([muscle, vol]) => {
-        const check = validateSessionVolume(vol, muscle);
+        const check = validateSessionVolume(vol, muscle, { deficitRegime });
         if (!check.isValid && check.message) {
              alerts.push({ type: 'error', msg: check.message });
         } else if (check.isValid && check.message) {

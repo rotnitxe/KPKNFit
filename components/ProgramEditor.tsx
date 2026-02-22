@@ -775,6 +775,7 @@ const InlineSessionCreator: React.FC<{
                         <SessionAuditAlerts 
                                 sessionExercises={sessionData?.exercises || []}
                                 allExercisesDB={exerciseList as any}
+                                settings={settings}
                         />
                             <div className="overflow-x-auto custom-scrollbar pb-2">
                                 <div className="min-w-[350px]">

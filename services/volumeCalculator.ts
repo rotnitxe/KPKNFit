@@ -118,26 +118,34 @@ export const calculateWeeklyVolume = (
 /**
  * MÓDULO 4.2: VALIDACIÓN DE FRECUENCIA (Session Caps)
  * Verifica si el volumen asignado a una sesión excede el límite productivo.
+ * En régimen de déficit: límites reducidos (~80%) para proteger masa muscular.
  */
 export const validateSessionVolume = (
     setsInSession: number, 
-    muscleGroup: string
+    muscleGroup: string,
+    options?: { deficitRegime?: boolean }
 ): { isValid: boolean; message?: string } => {
-    // Premisa: Límite productivo ~8-12 series por músculo por sesión.
-    const MAX_PRODUCTIVE_SESSION_SETS = 12; // Umbral superior del informe (Módulo 4.2)
+    const MAX_PRODUCTIVE_SESSION_SETS = 12;
     const WARNING_THRESHOLD = 10;
+    const deficitFactor = options?.deficitRegime ? 0.8 : 1;
+    const maxSets = Math.round(MAX_PRODUCTIVE_SESSION_SETS * deficitFactor);
+    const warnSets = Math.round(WARNING_THRESHOLD * deficitFactor);
 
-    if (setsInSession > MAX_PRODUCTIVE_SESSION_SETS) {
+    if (setsInSession > maxSets) {
         return {
             isValid: false,
-            message: `⚠️ Volumen Basura: ${setsInSession} series de ${muscleGroup} en una sesión excede el límite productivo (${MAX_PRODUCTIVE_SESSION_SETS}). Considera dividir en 2 días.`
+            message: options?.deficitRegime
+                ? `⚠️ En déficit: ${setsInSession} series de ${muscleGroup} excede el límite recomendado (${maxSets}). Reduce volumen para proteger tu masa muscular.`
+                : `⚠️ Volumen Basura: ${setsInSession} series de ${muscleGroup} en una sesión excede el límite productivo (${maxSets}). Considera dividir en 2 días.`
         };
     }
     
-    if (setsInSession >= WARNING_THRESHOLD) {
+    if (setsInSession >= warnSets) {
         return {
             isValid: true,
-            message: `ℹ️ Estás cerca del límite por sesión (${setsInSession}/${MAX_PRODUCTIVE_SESSION_SETS}). Asegúrate de nutrirte bien peri-entrenamiento.`
+            message: options?.deficitRegime
+                ? `ℹ️ En déficit: cerca del límite (${setsInSession}/${maxSets}). Prioriza recuperación.`
+                : `ℹ️ Estás cerca del límite por sesión (${setsInSession}/${maxSets}). Asegúrate de nutrirte bien peri-entrenamiento.`
         };
     }
 

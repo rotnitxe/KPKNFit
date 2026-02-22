@@ -195,16 +195,18 @@ const SessionAugeDashboard: React.FC<{
         ranking.sort((a, b) => b.fatigue - a.fatigue);
 
         const limits = settings?.volumeLimits || {};
+        const deficitFactor = settings?.calorieGoalObjective === 'deficit' ? 0.8 : 1;
 
         const dynamicSessionAlerts = sortedHyper.map(m => {
-            const limit = limits[m.muscle]?.maxSession || 6;
+            const limit = Math.round((limits[m.muscle]?.maxSession || 6) * deficitFactor);
             let message = "";
             let isAlert = false;
             if (m.volume > limit) {
                 isAlert = true;
-                if (m.failRatio >= 0.7) message = `Llevaste muchas series al fallo. Tu sistema nervioso local está frito. Añadir más es Volumen Basura.`;
-                else if (m.failRatio <= 0.3) message = `Aunque trabajas con RIR alto (Bombeo), superaste el límite efectivo (${limit} pts). El estímulo decaerá.`;
-                else message = `Superaste el umbral óptimo por sesión (${limit} pts). Estás generando daño sin hipertrofia.`;
+                const deficitNote = deficitFactor < 1 ? ' En déficit, el límite es más bajo para proteger tu masa muscular.' : '';
+                if (m.failRatio >= 0.7) message = `Llevaste muchas series al fallo. Tu sistema nervioso local está frito. Añadir más es Volumen Basura.${deficitNote}`;
+                else if (m.failRatio <= 0.3) message = `Aunque trabajas con RIR alto (Bombeo), superaste el límite efectivo (${limit} pts). El estímulo decaerá.${deficitNote}`;
+                else message = `Superaste el umbral óptimo por sesión (${limit} pts). Estás generando daño sin hipertrofia.${deficitNote}`;
             }
             return { ...m, threshold: limit, message, isAlert };
         }).filter(m => m.isAlert);
@@ -1414,6 +1416,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         });
 
         const newAlerts: {type: string, message: string, severity: 'warning'|'critical'}[] = [];
+        if (settings.calorieGoalObjective === 'deficit') {
+            newAlerts.push({ type: 'Déficit', severity: 'warning', message: 'Régimen de déficit calórico activo. Esta sesión podría ser muy dura de recuperar. Considera reducir volumen o RPE para proteger tu masa muscular.' });
+        }
         if (totalSpinalLoad > 15) {
             newAlerts.push({ type: 'Espinal', severity: 'critical', message: 'Carga Axial Crítica: Estás acumulando demasiada compresión en la zona lumbar. Considera cambiar ejercicios libres por máquinas para salvar tu espalda baja.' });
         }
@@ -1426,7 +1431,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         
         setNeuralAlerts(newAlerts);
         return culprits;
-    }, [session, settings.volumeLimits, exerciseList]);
+    }, [session, settings.volumeLimits, settings.calorieGoalObjective, exerciseList]);
     // Transfer mode states removed — migrated to TransferDrawer
     // Rules and history modals removed — migrated to drawers
     const [sessionHistory, setSessionHistory] = useState<Session[]>([]);
@@ -1675,13 +1680,16 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     const augeSuggestions = useMemo(() => {
         const suggestions: { id: string; message: string; exerciseName?: string; action?: () => void }[] = [];
+        if (settings.calorieGoalObjective === 'deficit') {
+            suggestions.push({ id: 'sug-deficit', message: 'En déficit calórico: reduce series o evita RPE 10 para proteger masa muscular y recuperación.', action: undefined });
+        }
         neuralAlerts.forEach((a, i) => {
             if (a.type === 'Espinal') {
                 suggestions.push({ id: `sug-spinal-${i}`, message: 'Considera cambiar ejercicios libres por máquinas para reducir carga espinal.', action: undefined });
             }
         });
         return suggestions;
-    }, [neuralAlerts]);
+    }, [neuralAlerts, settings.calorieGoalObjective]);
 
     const sessionDrainEstimate = useMemo(() => {
         let msc = 0, snc = 0, spinal = 0, totalSets = 0;
@@ -1823,6 +1831,21 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
             {/* ═══ Main Content ═══ */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {/* Régimen Déficit Calórico */}
+                {settings.calorieGoalObjective === 'deficit' && (
+                    <div className="mx-4 mt-4 p-4 rounded-xl bg-amber-950/40 border border-amber-500/30">
+                        <div className="flex items-start gap-3">
+                            <AlertTriangleIcon size={20} className="text-amber-400 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wide">Régimen de déficit calórico</h3>
+                                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                                    Esta sesión podría ser muy dura de recuperar. Con menos calorías, tu cuerpo prioriza la supervivencia sobre la síntesis muscular. <strong className="text-amber-200">Considera reducir volumen (menos series) o RPE (evitar fallo) para proteger tu masa muscular y poder recuperarte.</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Meet Day panel */}
                 {session.isMeetDay && (
                     <div className="mx-4 mt-4 p-4 rounded-lg bg-yellow-400/5 border border-yellow-400/10">

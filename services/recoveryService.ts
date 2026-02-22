@@ -1,5 +1,6 @@
 
 import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog, NutritionLog } from '../types';
+import { computeNutritionRecoveryMultiplier } from './nutritionRecoveryService';
 import { calculateSetStress, getDynamicAugeMetrics, WEEKLY_CNS_FATIGUE_REFERENCE } from './fatigueService';
 import { buildExerciseIndex, findExercise, ExerciseIndex } from '../utils/exerciseIndex';
 
@@ -152,24 +153,18 @@ export const calculateMuscleBattery = (
     const todayStr = new Date().toISOString().split('T')[0];
     const recentWellbeing = dailyWellbeingLogs.find(l => l.date === todayStr) || dailyWellbeingLogs[dailyWellbeingLogs.length - 1];
 
-    // --- INTEGRACIÓN NUTRICIÓN DINÁMICA AUGE ---
-    // Solo aplicamos el modificador si el usuario tiene el tracking activado
+    // --- INTEGRACIÓN NUTRICIÓN DINÁMICA AUGE (lógica no lineal) ---
     if (settings.algorithmSettings?.augeEnableNutritionTracking !== false) {
-        const fortyEightHoursAgo = now - (48 * 3600000);
-        const recentNutrition = nutritionLogs.filter(n => new Date(n.date).getTime() > fortyEightHoursAgo);
-        
-        let actualNutritionStatus = settings.calorieGoalObjective; // Fallback
-        if (recentNutrition.length > 0) {
-            const avgCalories = recentNutrition.reduce((acc, curr) => acc + (curr.calories || 0), 0) / 2;
-            if (settings.dailyCalorieGoal) {
-                if (avgCalories < settings.dailyCalorieGoal * 0.9) actualNutritionStatus = 'deficit';
-                else if (avgCalories > settings.dailyCalorieGoal * 1.1) actualNutritionStatus = 'surplus';
-                else actualNutritionStatus = 'maintenance';
-            }
-        }
-
-        if (actualNutritionStatus === 'deficit') recoveryTimeMultiplier *= 1.35; // Penalización AUGE
-        else if (actualNutritionStatus === 'surplus') recoveryTimeMultiplier *= 0.85; 
+        const nutritionResult = computeNutritionRecoveryMultiplier({
+            nutritionLogs,
+            settings,
+            stressLevel: recentWellbeing?.stressLevel ?? 3,
+            hoursWindow: 48,
+        });
+        recoveryTimeMultiplier *= nutritionResult.recoveryTimeMultiplier;
+    } else if (settings.calorieGoalObjective === 'deficit') {
+        // Régimen especial: usuario reportó déficit pero no conecta nutrición. Aplicamos penalización base.
+        recoveryTimeMultiplier *= 1.25;
     }
     
     // Factor 2: Estrés (Alto estrés = +40% de tiempo según AUGE)
@@ -503,14 +498,22 @@ export const calculateDailyReadiness = (
     // Determinación del Semáforo (Traffic Light)
     let status: 'green' | 'yellow' | 'red' = 'green';
     let recommendation = "Estás en condiciones óptimas. Tienes luz verde para buscar récords personales o tirar pesado.";
+    const isDeficit = settings.calorieGoalObjective === 'deficit';
+    if (isDeficit) {
+        recommendation = "En régimen de déficit: prioriza mantener masa muscular. Evita volumen excesivo o ir al fallo en cada serie.";
+    }
 
     // Lógica de castigo combinado: Batería baja + Mal estilo de vida = Riesgo inminente
     if (cnsBattery < 40 || recoveryTimeMultiplier >= 1.8) {
         status = 'red';
-        recommendation = "Tu sistema nervioso no está listo. Tu falta de sueño/estrés está frenando tu recarga. Considera descanso total o una sesión muy ligera de movilidad.";
+        recommendation = isDeficit
+            ? "Déficit + fatiga alta. Riesgo de pérdida muscular. Descanso o sesión muy ligera. Prioriza proteína y sueño."
+            : "Tu sistema nervioso no está listo. Tu falta de sueño/estrés está frenando tu recarga. Considera descanso total o una sesión muy ligera de movilidad.";
     } else if (cnsBattery < 70 || recoveryTimeMultiplier >= 1.3) {
         status = 'yellow';
-        recommendation = "Tienes fatiga residual o factores externos en contra. Cambia el trabajo pesado por técnica, o reduce tu volumen planificado al 50%.";
+        recommendation = isDeficit
+            ? "Déficit activo. Reduce volumen o RPE hoy para poder recuperarte y proteger tu masa muscular."
+            : "Tienes fatiga residual o factores externos en contra. Cambia el trabajo pesado por técnica, o reduce tu volumen planificado al 50%.";
     }
 
     if (diagnostics.length === 0) {
@@ -641,34 +644,35 @@ export const calculateGlobalBatteries = (
     let spinalHalfLife = 72; // Tejido conectivo y fascia tardan muchísimo
 
     const auditLogs = { cns: [] as BatteryAuditLog[], muscular: [] as BatteryAuditLog[], spinal: [] as BatteryAuditLog[] };
-
-    // 1. MODULADOR DE NUTRICIÓN (Afecta la recarga Muscular)
-    const fortyEightHoursAgo = now - (48 * 3600000);
-    const recentNutrition = nutritionLogs.filter(n => new Date(n.date).getTime() > fortyEightHoursAgo);
-    let nutritionStatus = settings.calorieGoalObjective || 'maintenance';
-    
-    if (recentNutrition.length > 0) {
-        const avgCals = recentNutrition.reduce((a, b) => a + (b.calories || 0), 0) / recentNutrition.length;
-        if (settings.dailyCalorieGoal) {
-            if (avgCals < settings.dailyCalorieGoal * 0.9) nutritionStatus = 'deficit';
-            else if (avgCals > settings.dailyCalorieGoal * 1.1) nutritionStatus = 'surplus';
-        }
-    }
-    
-    if (nutritionStatus === 'deficit') {
-        muscHalfLife *= 1.3; // Tarda 30% más en recargar
-        auditLogs.muscular.push({ icon: '📉', label: 'Déficit Calórico (Recarga Lenta)', val: '', type: 'info' });
-    } else if (nutritionStatus === 'surplus') {
-        muscHalfLife *= 0.8; // Tarda 20% menos en recargar
-        auditLogs.muscular.push({ icon: '🚀', label: 'Superávit Calórico (Recarga Rápida)', val: '', type: 'info' });
-    }
-
-    // 2. MODULADOR DE SUEÑO Y ESTRÉS (Afecta Capacidad SNC)
-    let cnsPenalty = 0;
     const todayStr = new Date().toISOString().split('T')[0];
     const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
     const recentWellbeing = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
 
+    // 1. MODULADOR DE NUTRICIÓN (Afecta la recarga Muscular)
+    if (settings?.algorithmSettings?.augeEnableNutritionTracking !== false) {
+        const nutritionResult = computeNutritionRecoveryMultiplier({
+            nutritionLogs,
+            settings,
+            stressLevel: recentWellbeing?.stressLevel ?? 3,
+            hoursWindow: 48,
+        });
+        const nutMult = nutritionResult.recoveryTimeMultiplier;
+        muscHalfLife *= nutMult;
+        if (nutritionResult.status === 'deficit') {
+            auditLogs.muscular.push({ icon: '📉', label: 'Déficit Calórico (Recarga Lenta)', val: '', type: 'info' });
+        } else if (nutritionResult.status === 'surplus') {
+            auditLogs.muscular.push({ icon: '🚀', label: 'Superávit Calórico (Recarga Acelerada)', val: '', type: 'info' });
+        } else if (nutritionResult.factors.some(f => f.includes('Proteína'))) {
+            auditLogs.muscular.push({ icon: '🥩', label: 'Proteína subóptima', val: '', type: 'info' });
+        }
+    } else if (settings?.calorieGoalObjective === 'deficit') {
+        // Régimen especial: usuario reportó déficit pero no conecta nutrición
+        muscHalfLife *= 1.25;
+        auditLogs.muscular.push({ icon: '📉', label: 'Régimen Déficit (Recarga más lenta)', val: '', type: 'info' });
+    }
+
+    // 2. MODULADOR DE SUEÑO Y ESTRÉS (Afecta Capacidad SNC)
+    let cnsPenalty = 0;
     if (recentWellbeing && recentWellbeing.stressLevel >= 4) {
         cnsPenalty += 12;
         auditLogs.cns.push({ icon: '🤯', label: 'Alto Estrés Reportado', val: -12, type: 'penalty' });

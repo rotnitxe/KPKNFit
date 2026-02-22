@@ -81,9 +81,9 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
     const runningRatio = mealCals / (dailyGoal / 4);
 
     if (runningRatio < 0.6) {
-        setTimeout(() => addToast("Déficit detectado — AUGE penalizará recuperación muscular +35%", "suggestion"), 800);
+        setTimeout(() => addToast("Déficit detectado — la batería muscular se recuperará más lento.", "suggestion"), 800);
     } else if (runningRatio > 1.3) {
-        setTimeout(() => addToast("Superávit detectado — AUGE acelera recuperación muscular -15%", "success"), 800);
+        setTimeout(() => addToast("Superávit detectado — la batería puede recuperarse más rápido (si la proteína es suficiente).", "success"), 800);
     } else {
         setTimeout(() => addToast("AUGE ajustará tu tasa de recuperación con este registro.", "suggestion"), 800);
     }

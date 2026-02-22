@@ -16,7 +16,7 @@ const TARGET_MUSCLES = [
 ];
 
 export const useMuscleRecovery = (): UseMuscleRecoveryReturn => {
-    const { history, exerciseList, isAppLoading, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs } = useAppState();
+    const { history, exerciseList, isAppLoading, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs, dailyWellbeingLogs, nutritionLogs } = useAppState();
 
     const [recoveryData, setRecoveryData] = useState<MuscleRecoveryStatus[]>([]);
     const [isComputing, setIsComputing] = useState(false);
@@ -37,7 +37,8 @@ export const useMuscleRecovery = (): UseMuscleRecoveryReturn => {
                     TARGET_MUSCLES.map(muscleName =>
                         calculateMuscleBatteryAsync(
                             muscleName, history, exerciseList, sleepLogs,
-                            settings, muscleHierarchy, postSessionFeedback, waterLogs
+                            settings, muscleHierarchy, postSessionFeedback, waterLogs,
+                            dailyWellbeingLogs || [], nutritionLogs || []
                         ).then(batteryData => ({
                             muscleId: muscleName.toLowerCase().replace(/\s/g, '-'),
                             muscleName,
@@ -59,7 +60,7 @@ export const useMuscleRecovery = (): UseMuscleRecoveryReturn => {
         };
 
         computeAll();
-    }, [history, exerciseList, isAppLoading, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs]);
+    }, [history, exerciseList, isAppLoading, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs, dailyWellbeingLogs, nutritionLogs]);
 
     return { recoveryData, isLoading: isAppLoading || isComputing };
 };

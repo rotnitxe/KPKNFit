@@ -313,12 +313,12 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                     <div className="mb-2 relative z-10">
                         <span className="text-[10px] font-black text-orange-500 uppercase flex items-center gap-1.5"><ActivityIcon size={12}/> Precisión de Baterías (AUGE)</span>
                         <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
-                            Si apagas estas variables, la app dejará de exigirte este registro. <strong className="text-orange-400">Sin embargo, los tiempos de recuperación serán menos exactos</strong> para tu contexto personal, basándose únicamente en matemáticas estándar.
+                            Conecta calorías y macros con la batería muscular para que la recuperación refleje tu alimentación. <strong className="text-orange-400">Si desactivas</strong>, la batería se calcula solo con el entrenamiento (útil si no trackeas siempre la comida).
                         </p>
                     </div>
                     
                     <div className="flex items-center justify-between border-t border-white/5 pt-3 relative z-10">
-                        <span className="text-xs font-bold text-slate-300 flex items-center gap-2"><UtensilsIcon size={14} className="text-slate-500"/> Tracking de Nutrición</span>
+                        <span className="text-xs font-bold text-slate-300 flex items-center gap-2"><UtensilsIcon size={14} className="text-slate-500"/> Conectar nutrición con batería</span>
                         <ToggleSwitch 
                             checked={pendingSettings.algorithmSettings?.augeEnableNutritionTracking !== false} 
                             onChange={(c) => handleAlgorithmChange('augeEnableNutritionTracking', c)} 
