@@ -1310,8 +1310,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             if (!initial.parts) initial.parts = [{ id: crypto.randomUUID(), name: 'Principal', exercises: initial.exercises || [] }];
             sessions = [initial];
         }
-        // Asegurar dayOfWeek en todas las sesiones para que el roadmap filtre correctamente
-        const firstDay = getOrderedDaysOfWeek(settings.startWeekOn)[0]?.value ?? 1;
+        const prog = existingSessionInfo ? programs.find(p => p.id === existingSessionInfo.programId) : null;
+        const firstDay = getOrderedDaysOfWeek(prog?.startDay ?? settings.startWeekOn)[0]?.value ?? 1;
         return sessions.map(s => (s.dayOfWeek === undefined ? { ...s, dayOfWeek: firstDay } : s));
     });
 
@@ -1642,70 +1642,71 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const handleDragOver = (e: React.DragEvent) => e.preventDefault();
     const handleDrop = (targetIndex: number) => { if (draggedPartIndex === null || draggedPartIndex === targetIndex) return; updateSession(draft => { if (!draft.parts) return; const partToMove = draft.parts[draggedPartIndex]; draft.parts.splice(draggedPartIndex, 1); draft.parts.splice(targetIndex, 0, partToMove); }); setDraggedPartIndex(null); };
 
-    const orderedDays = getOrderedDaysOfWeek(settings.startWeekOn);
+    const currentProgram = existingSessionInfo ? programs.find(p => p.id === existingSessionInfo.programId) : null;
+    const orderedDays = getOrderedDaysOfWeek(currentProgram?.startDay ?? settings.startWeekOn);
 
-    // --- BLOQUE 1: REEMPLAZAR EL RETURN DEL COMPONENTE PRINCIPAL ---
+    const handleExerciseUpdate = useCallback((partIndex: number, exerciseIndex: number, updater: (ex: any) => void) => {
+        updateSession(draft => {
+            const part = draft.parts?.[partIndex];
+            if (!part || !part.exercises[exerciseIndex]) return;
+            updater(part.exercises[exerciseIndex]);
+        });
+    }, [updateSession]);
+
+    const handleExerciseRemove = useCallback((partIndex: number, exerciseIndex: number) => {
+        updateSession(draft => {
+            const part = draft.parts?.[partIndex];
+            if (!part) return;
+            part.exercises.splice(exerciseIndex, 1);
+        });
+    }, [updateSession]);
+
     return (
-        <div className="fixed inset-0 z-[9999] bg-black text-white animate-slide-up overflow-y-auto custom-scrollbar flex flex-col">
+        <div className="fixed inset-0 z-[9999] bg-black text-white animate-slide-up flex flex-col">
             
-            {/* --- HEADER (High Contrast Black) --- */}
-            <div className="relative flex-shrink-0 bg-black border-b border-white/20 z-20 min-h-[140px] pt-8">
-                {/* BOTÓN CERRAR FULLSCREEN */}
-                <button onClick={onCancel} className="absolute top-4 right-4 z-50 p-2 bg-black/50 backdrop-blur-md rounded-full text-zinc-400 hover:text-white transition-colors border border-white/10">
-                    <XIcon size={18} />
+            {/* --- HEADER COMPACTO --- */}
+            <div className="relative flex-shrink-0 bg-black border-b border-white/10 z-20">
+                <button onClick={onCancel} className="absolute top-3 right-3 z-50 p-2 bg-black/60 backdrop-blur-md rounded-full text-zinc-400 hover:text-white transition-colors border border-white/10">
+                    <XIcon size={16} />
                 </button>
 
-                <div className="absolute inset-0 z-0 opacity-30" style={{ ...headerStyle, backgroundSize: 'cover', filter: session.coverStyle ? getFilterString() : 'none' }}></div>
-                <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/20 via-black/60 to-black"></div>
+                {session.background?.type === 'image' && (
+                    <div className="absolute inset-0 z-0 opacity-15" style={{ backgroundImage: `url(${session.background.value})`, backgroundSize: 'cover' }}></div>
+                )}
+                <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/40 to-black"></div>
 
-                <div className="relative z-10 p-5 space-y-4">
+                <div className="relative z-10 px-5 pt-6 pb-4 space-y-2">
                     <input
                         type="text"
                         value={session.name}
                         onChange={e => updateSession(d => { d.name = e.target.value; })}
                         placeholder="NOMBRE DE LA SESIÓN"
-                        className="text-3xl font-black text-white bg-transparent border-none focus:ring-0 w-[85%] p-0 leading-tight tracking-tighter uppercase placeholder-zinc-700"
+                        className="text-2xl font-black text-white bg-transparent border-none focus:ring-0 w-[85%] p-0 leading-tight tracking-tighter uppercase placeholder-zinc-700"
                     />
-                    <div className="flex gap-2 items-center">
-                        <input
-                            type="text"
-                            value={session.description}
-                            onChange={e => updateSession(d => { d.description = e.target.value; })}
-                            placeholder="Añade una descripción..."
-                            className="text-xs text-zinc-300 bg-transparent border-none focus:ring-0 flex-grow p-0 placeholder-zinc-600 font-medium"
-                        />
-                        <button onClick={() => setIsBgModalOpen(true)} className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-all text-zinc-400">
-                            <ImageIcon size={16} />
+                    <input
+                        type="text"
+                        value={session.description}
+                        onChange={e => updateSession(d => { d.description = e.target.value; })}
+                        placeholder="Descripción..."
+                        className="text-[11px] text-zinc-400 bg-transparent border-none focus:ring-0 w-full p-0 placeholder-zinc-700 font-medium"
+                    />
+
+                    <div className="flex items-center gap-2 pt-1">
+                        <button onClick={() => setIsBgModalOpen(true)} className="p-2 rounded-lg border border-white/10 text-zinc-500 hover:text-white hover:bg-white/5 transition-all" title="Fondo">
+                            <ImageIcon size={14} />
                         </button>
-                    </div>
-
-                    {/* ACCIONES DE SESIÓN (Transferir, Modo Básico y Varita Mágica) */}
-                    <div className="flex items-center justify-between pt-1">
-                        <div className="flex items-center gap-3">
-                            {activeSessionId !== 'empty' && (
-                                <button onClick={() => setIsTransferModalOpen(true)} className="px-4 py-1.5 bg-white text-black hover:scale-105 rounded-lg text-[10px] font-black uppercase transition-all flex items-center gap-1">
-                                    <LayersIcon size={14} /> Transferir
-                                </button>
-                            )}
-                        </div>
-
-                        {/* TOGGLE VARITA MÁGICA Y MEET DAY */}
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => updateSession(d => { d.isMeetDay = !d.isMeetDay; })}
-                                className={`p-2 rounded-lg border transition-all ${session.isMeetDay ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]' : 'bg-black border-white/10 text-zinc-500 hover:text-white'}`}
-                                title="Modo Competición (Game Day)"
-                            >
-                                <TrophyIcon size={16} />
+                        {activeSessionId !== 'empty' && (
+                            <button onClick={() => setIsTransferModalOpen(true)} className="px-3 py-1.5 bg-zinc-900 border border-white/10 hover:bg-zinc-800 rounded-lg text-[9px] font-bold uppercase text-zinc-400 hover:text-white transition-all flex items-center gap-1.5">
+                                <LayersIcon size={12} /> Transferir
                             </button>
-                            <button
-                                onClick={() => { setBulkScope(bulkScope === 'manual' ? 'session' : 'manual'); setIsAnalysisExpanded(true); }}
-                                className={`p-2 rounded-lg border transition-all flex items-center gap-1 ${bulkScope === 'manual' && isAnalysisExpanded ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'bg-black border-white/10 text-zinc-500 hover:text-white'}`}
-                                title="Edición Lote (Varita Mágica)"
-                            >
-                                <WandIcon size={16} />
-                            </button>
-                        </div>
+                        )}
+                        <button
+                            onClick={() => updateSession(d => { d.isMeetDay = !d.isMeetDay; })}
+                            className={`p-2 rounded-lg border transition-all ${session.isMeetDay ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400' : 'border-white/10 text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                            title="Competición"
+                        >
+                            <TrophyIcon size={14} />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1854,11 +1855,11 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 </div>
             </Modal>
 
-            {/* --- ROADMAP SEMANAL (Navegación Intra-Semana y Multi-Sesión) --- */}
+            {/* --- ROADMAP SEMANAL COMPACTO --- */}
             {existingSessionInfo && (
-                <div className="flex flex-col border-b border-[#222] flex-shrink-0 bg-black">
-                    <div className="px-6 py-5 flex items-center justify-between relative overflow-hidden">
-                        <div className="absolute top-1/2 left-8 right-8 h-[2px] bg-[#222] -translate-y-1/2 z-0"></div>
+                <div className="flex flex-col border-b border-white/5 flex-shrink-0 bg-black">
+                    <div className="px-5 py-4 flex items-center justify-between relative overflow-hidden">
+                        <div className="absolute top-1/2 left-6 right-6 h-px bg-white/5 -translate-y-1/2 z-0"></div>
                         {orderedDays.map(day => {
                             const daySessions = weekSessions.filter(s => s.dayOfWeek === day.value);
                             const isActive = daySessions.some(s => s.id === activeSessionId) || emptyDaySelected === day.value;
@@ -1869,24 +1870,23 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                                 <button 
                                     key={day.value} 
                                     onClick={() => handleDayClick(day.value, daySessions)}
-                                    className="relative z-10 flex flex-col items-center gap-2 group outline-none"
+                                    className="relative z-10 flex flex-col items-center gap-1.5 group outline-none"
                                 >
-                                    <div className={`w-4 h-4 rounded-full border-4 transition-all duration-300 relative ${isActive ? 'bg-white border-white scale-125 shadow-[0_0_15px_rgba(255,255,255,0.4)]' : hasSession ? 'bg-[#222] border-black hover:bg-[#444]' : 'bg-black border-[#222] hover:border-[#444]'}`}>
-                                        {isModified && !isActive && <div className="absolute -top-2 -right-2 w-2 h-2 bg-orange-500 rounded-full"></div>}
+                                    <div className={`w-3.5 h-3.5 rounded-full border-[3px] transition-all duration-200 relative ${isActive ? 'bg-white border-white scale-125 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : hasSession ? 'bg-zinc-700 border-zinc-800 hover:bg-zinc-500' : 'bg-black border-zinc-800 hover:border-zinc-600'}`}>
+                                        {isModified && !isActive && <div className="absolute -top-1.5 -right-1.5 w-1.5 h-1.5 bg-orange-500 rounded-full"></div>}
                                     </div>
-                                    <span className={`text-[9px] font-black uppercase tracking-widest absolute -bottom-5 transition-colors ${isActive ? 'text-white' : hasSession ? 'text-zinc-500' : 'text-zinc-700'}`}>{day.label.slice(0,3)}</span>
+                                    <span className={`text-[8px] font-black uppercase tracking-wider transition-colors ${isActive ? 'text-white' : hasSession ? 'text-zinc-600' : 'text-zinc-800'}`}>{day.label.slice(0,2)}</span>
                                 </button>
                             )
                         })}
                     </div>
-                    {/* TABS MULTI-SESIÓN PARA EL DÍA SELECCIONADO */}
                     {activeSessionId !== 'empty' && weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).length > 1 && (
-                        <div className="flex px-4 gap-2 overflow-x-auto hide-scrollbar pb-2">
+                        <div className="flex px-4 gap-1.5 overflow-x-auto hide-scrollbar pb-2">
                             {weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).map((s, idx) => (
                                 <button 
                                     key={s.id} 
                                     onClick={() => setActiveSessionId(s.id)} 
-                                    className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap transition-colors border ${activeSessionId === s.id ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500'}`}
+                                    className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap transition-colors border ${activeSessionId === s.id ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-600 border-zinc-800 hover:border-zinc-500'}`}
                                 >
                                     {s.name || `Sesión ${idx + 1}`}
                                 </button>
@@ -1896,191 +1896,198 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 </div>
             )}
 
-            {/* --- MAIN CONTENT (Scroll Fix Applied Here) --- */}
-            <div className="flex flex-col p-4 space-y-8 bg-black w-full min-h-max">
-                {/* PANEL GAME DAY (MEET PLANNING) */}
-                {session.isMeetDay && (
-                    <div className="bg-gradient-to-br from-yellow-900/30 to-black border border-yellow-500/50 p-5 rounded-2xl shadow-[0_0_30px_rgba(250,204,21,0.15)] flex flex-col gap-4 animate-fade-in relative overflow-hidden">
-                        <div className="absolute -right-10 -top-10 opacity-10 text-yellow-500"><TrophyIcon size={120} /></div>
-                        
-                        <div className="flex justify-between items-center z-10">
-                            <div>
-                                <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2"><TrophyIcon size={20} className="text-yellow-400"/> Game Day / Meet</h3>
-                                <p className="text-[10px] text-yellow-200/60 font-bold uppercase tracking-widest mt-1">Planificación de Competición</p>
+            {/* --- MAIN CONTENT --- */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="flex flex-col p-4 space-y-4 bg-black w-full pb-32">
+                    {/* Meet Day panel (compact) */}
+                    {session.isMeetDay && (
+                        <div className="bg-yellow-950/20 border border-yellow-500/30 p-4 rounded-2xl flex flex-col gap-3 animate-fade-in">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-2"><TrophyIcon size={16} className="text-yellow-400"/> Game Day</h3>
+                                <div className="flex items-center gap-1.5 bg-black border border-yellow-500/20 px-2 py-1.5 rounded-lg">
+                                    <span className="text-[8px] text-zinc-500 uppercase font-bold">BW</span>
+                                    <input type="number" value={session.meetBodyweight || ''} onChange={e => updateSession(d => {d.meetBodyweight = parseFloat(e.target.value)})} className="w-12 bg-transparent text-white font-bold text-xs p-0 border-none focus:ring-0 text-center" placeholder="kg"/>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 bg-black border border-yellow-500/30 px-3 py-2 rounded-xl">
-                                <span className="text-[9px] text-zinc-400 uppercase font-bold">Pesaje (BW)</span>
-                                <input type="number" value={session.meetBodyweight || ''} onChange={e => updateSession(d => {d.meetBodyweight = parseFloat(e.target.value)})} className="w-14 bg-transparent text-white font-black text-sm p-0 border-none focus:ring-0 text-center" placeholder="kg"/>
-                            </div>
-                        </div>
-
-                        <div className="z-10 space-y-2">
                             {(() => {
                                 const compLifts = (session.parts || []).flatMap(p => p.exercises.filter(ex => ex.isCompetitionLift));
                                 if (compLifts.length === 0) return (
-                                    <p className="text-[10px] text-zinc-500 text-center py-4">Marca ejercicios como "Movimiento de Competición" para planificar tus intentos.</p>
+                                    <p className="text-[9px] text-zinc-500 text-center py-2">Marca ejercicios como competición para planificar intentos.</p>
                                 );
                                 return compLifts.map((ex, i) => (
-                                    <div key={i} className="bg-black/50 border border-white/10 p-3 rounded-xl flex items-center justify-between">
-                                        <span className="text-xs font-bold text-white">{ex.name}</span>
-                                        <span className="text-[10px] font-black text-yellow-400">{ex.sets.length} intentos planificados</span>
+                                    <div key={i} className="bg-black/40 border border-white/5 p-2.5 rounded-xl flex items-center justify-between">
+                                        <span className="text-[11px] font-bold text-white">{ex.name}</span>
+                                        <span className="text-[9px] font-black text-yellow-400">{ex.sets.length} intentos</span>
                                     </div>
                                 ));
                             })()}
-                            <p className="text-[9px] text-zinc-500 text-center mt-2">Las luces de jueceo y el total se calculan en vivo durante la sesión de entrenamiento.</p>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* ALERTAS BIOMECÁNICAS Y NEURALES (KPKN ENGINE) */}
-                {activeSessionId !== 'empty' && (
-                    <div className="space-y-3 sticky top-0 z-30 pt-2 backdrop-blur-md">
-                        {globalSessionAlerts.length > 0 && (
-                            <div className="bg-red-950/80 border-l-4 border-red-500 p-3 rounded-r-xl shadow-lg flex items-start gap-3 animate-slide-up">
-                                <AlertTriangleIcon className="text-red-500 shrink-0 mt-0.5" size={20} />
-                                <div className="space-y-1 w-full pr-2">
-                                    <h4 className="text-red-400 font-black uppercase tracking-widest text-[9px]">Alerta de Recuperación</h4>
+                    {activeSessionId === 'empty' ? (
+                        <div className="flex flex-col items-center justify-center text-center space-y-4 pt-16">
+                            <LayersIcon size={40} className="text-zinc-800" />
+                            <div>
+                                <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Día libre</p>
+                                <p className="text-[11px] text-zinc-600 mt-1">No hay sesión para este día.</p>
+                            </div>
+                            <Button onClick={() => handleCreateFirstSession(emptyDaySelected!)} className="mt-4 !text-xs">
+                                Crear Sesión
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Parts & Exercises */}
+                            <div className="space-y-6">
+                                {session.parts?.map((part, pi) => {
+                                    const groupedExercises = groupExercises(part.exercises);
+                                    const isColorPickerOpen = openColorPickerIndex === pi;
+                                    const themeColor = part.color || '#3b82f6';
+                                    const isCollapsed = collapsedParts[part.id] || false;
+                                    
+                                    return (
+                                        <div key={part.id} className={`relative transition-all ${draggedPartIndex === pi ? 'opacity-50' : ''}`} draggable onDragStart={() => handleDragStart(pi)} onDragOver={handleDragOver} onDrop={() => handleDrop(pi)}>
+                                            
+                                            {/* Part Header - clean and minimal */}
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <DragHandleIcon className="text-zinc-700 cursor-grab active:cursor-grabbing" size={14} />
+                                                <button onClick={(e) => { e.preventDefault(); togglePartCollapse(part.id); }} className="text-zinc-600 hover:text-white transition-colors">
+                                                    <ChevronRightIcon size={14} className={`transition-transform duration-200 ${isCollapsed ? '' : 'rotate-90'}`} />
+                                                </button>
+                                                <button onClick={() => setOpenColorPickerIndex(isColorPickerOpen ? null : pi)} className="w-1.5 h-5 rounded-sm shrink-0" style={{ backgroundColor: themeColor }} title="Color"/>
+                                                
+                                                <input 
+                                                    value={part.name} 
+                                                    onChange={e => updateSession(d => { d.parts![pi].name = e.target.value; })} 
+                                                    className="bg-transparent text-sm font-black text-white flex-1 min-w-0 outline-none border-none p-0 focus:ring-0 uppercase tracking-tight placeholder-zinc-800" 
+                                                    placeholder="SECCIÓN" 
+                                                />
+                                                <span className="text-[9px] font-bold text-zinc-600">{part.exercises.length} ej.</span>
+                                                <button onClick={(e) => handleRemovePart(pi, e)} className="text-zinc-700 hover:text-red-500 transition-colors"><TrashIcon size={14}/></button>
+                                            </div>
+
+                                            <div className={`transition-all duration-200 overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[5000px] opacity-100'}`}>
+                                                {/* Color Picker inline */}
+                                                {isColorPickerOpen && (
+                                                    <div className="flex flex-wrap gap-2 p-2 mb-3 border border-white/5 rounded-xl bg-zinc-900/30 animate-fade-in">
+                                                        {PRESET_PART_COLORS.map(color => (
+                                                            <button key={color} onClick={() => { updateSession(d => { d.parts![pi].color = color; }); setOpenColorPickerIndex(null); }} className={`w-5 h-5 rounded-full border transition-all hover:scale-110 ${part.color === color ? 'ring-2 ring-white scale-110 border-white' : 'border-white/10'}`} style={{ backgroundColor: color }}/>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Exercises - compact cards */}
+                                                <div className="space-y-2 pl-6">
+                                                    {groupedExercises.map((group, groupIdx) => {
+                                                        if (group.type === 'superset') {
+                                                            return (
+                                                                <SupersetManagementBlock
+                                                                    key={`group-${group.id}-${groupIdx}`}
+                                                                    exercises={group.items}
+                                                                    onUpdateSession={updateSession}
+                                                                    partIndex={pi}
+                                                                    partColor={part.color}
+                                                                    onReorderExercise={handleReorderExercise}
+                                                                    onToggleSelect={handleToggleSelectExercise}
+                                                                    selectedIds={selectedExerciseIds}
+                                                                    isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'}
+                                                                    onUnlink={handleUnlink}
+                                                                    onLinkNext={handleLinkWithNext}
+                                                                    culpritIds={culpritExerciseIds}
+                                                                />
+                                                            )
+                                                        } else {
+                                                            const { ex, index: ei } = group;
+                                                            return <MemoizedExerciseCard key={ex.id} exercise={ex} categoryColor={part.color} isInSuperset={false} isJunkVolumeCulprit={culpritExerciseIds.has(ex.id)} onExerciseChange={(f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei] as any)[f] = v; else d.parts![pi].exercises[ei] = {...d.parts![pi].exercises[ei], ...f}; }); }} onSetChange={(si, f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei].sets[si] as any)[f] = v; else d.parts![pi].exercises[ei].sets[si] = {...d.parts![pi].exercises[ei].sets[si], ...f}; }); }} onAddSet={() => updateSession(d => { d.parts![pi].exercises[ei].sets.push({ id: crypto.randomUUID(), targetReps: 8, intensityMode: 'rpe', targetRPE: 8 }); })} onRemoveSet={(si) => updateSession(d => { d.parts![pi].exercises[ei].sets.splice(si, 1); })} onRemoveExercise={() => updateSession(d => { d.parts![pi].exercises.splice(ei, 1); })} onReorder={(dir) => handleReorderExercise(pi, ei, dir)} onLinkNext={() => handleLinkWithNext(pi, ei)} isFirst={pi === 0 && ei === 0} isLast={pi === (session.parts?.length || 0) - 1 && ei === part.exercises.length - 1} isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'} isSelected={selectedExerciseIds.has(ex.id)} onToggleSelect={() => handleToggleSelectExercise(ex.id)}/>
+                                                        }
+                                                    })}
+                                                    
+                                                    <button onClick={() => handleAddExercise(pi)} className="w-full py-3 border border-dashed border-white/10 hover:border-white/30 text-zinc-600 hover:text-white rounded-xl transition-all text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5">
+                                                        <PlusIcon size={10}/> Ejercicio
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                
+                                <button onClick={handleAddPart} className="w-full py-3 bg-zinc-900/30 hover:bg-zinc-900/60 border border-white/5 hover:border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all flex items-center justify-center gap-1.5">
+                                    <LayersIcon size={12}/> Nueva Sección
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* --- AUGE BOTTOM PANEL --- */}
+            {activeSessionId !== 'empty' && (
+                <div className="flex-shrink-0">
+                    <button
+                        onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)}
+                        className={`w-full flex items-center justify-between px-5 py-2.5 border-t transition-all ${
+                            isAnalysisExpanded ? 'bg-zinc-900 border-white/10' : 'bg-black border-white/5'
+                        }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <ActivityIcon size={12} className="text-blue-400" />
+                            <span className="text-[9px] font-black text-white uppercase tracking-widest">AUGE</span>
+                            {(globalSessionAlerts.length > 0 || neuralAlerts.length > 0) && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 text-[8px] font-black">
+                                    {globalSessionAlerts.length + neuralAlerts.length}
+                                </span>
+                            )}
+                        </div>
+                        <ChevronRightIcon size={12} className={`text-zinc-600 transition-transform ${isAnalysisExpanded ? 'rotate-90' : '-rotate-90'}`} />
+                    </button>
+                    
+                    {isAnalysisExpanded && (
+                        <div className="bg-zinc-950 border-t border-white/5 max-h-[40vh] overflow-y-auto custom-scrollbar p-4 animate-fade-in">
+                            <SessionAugeDashboard 
+                                currentSession={session} 
+                                weekSessions={weekSessions}
+                                exerciseList={exerciseList} 
+                            />
+                            {/* Inline alerts */}
+                            {(globalSessionAlerts.length > 0 || neuralAlerts.length > 0) && (
+                                <div className="mt-4 space-y-2">
                                     {globalSessionAlerts.map((a: any) => (
-                                        <div key={a.muscle} className="text-[10px] text-red-200 leading-tight">
-                                            <strong className="text-white">{a.muscle}:</strong> {a.message || 'Límite de volumen superado.'}
+                                        <div key={a.muscle} className="bg-red-950/30 border border-red-500/20 rounded-xl p-2.5 flex items-start gap-2">
+                                            <AlertTriangleIcon className="text-red-400 shrink-0 mt-0.5" size={12} />
+                                            <div>
+                                                <span className="text-[10px] font-black text-red-400">{a.muscle}</span>
+                                                <p className="text-[9px] text-zinc-400">{a.message || 'Límite de volumen superado.'}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {neuralAlerts.map((alert, idx) => (
+                                        <div key={idx} className={`rounded-xl p-2.5 flex items-start gap-2 border ${alert.severity === 'critical' ? 'bg-orange-950/30 border-orange-500/20' : 'bg-yellow-950/30 border-yellow-500/20'}`}>
+                                            <ActivityIcon size={12} className={alert.severity === 'critical' ? 'text-orange-400' : 'text-yellow-400'} />
+                                            <div>
+                                                <span className={`text-[10px] font-black ${alert.severity === 'critical' ? 'text-orange-400' : 'text-yellow-400'}`}>{alert.type}</span>
+                                                <p className="text-[9px] text-zinc-400">{alert.message}</p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        )}
-                        {neuralAlerts.map((alert, idx) => (
-                            <div key={idx} className={`border-l-4 p-3 rounded-r-xl shadow-lg flex items-start gap-3 animate-slide-up ${alert.severity === 'critical' ? 'bg-orange-950/80 border-orange-500' : 'bg-yellow-950/80 border-yellow-500'}`}>
-                                <div className={alert.severity === 'critical' ? 'text-orange-500 shrink-0' : 'text-yellow-500 shrink-0'}>
-                                    <ActivityIcon size={20} />
-                                </div>
-                                <div>
-                                    <h4 className={`${alert.severity === 'critical' ? 'text-orange-400' : 'text-yellow-400'} font-black uppercase tracking-widest text-[9px]`}>Alerta {alert.type}</h4>
-                                    <p className={`text-[10px] ${alert.severity === 'critical' ? 'text-orange-200' : 'text-yellow-200'} mt-0.5 leading-relaxed`}>{alert.message}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {activeSessionId === 'empty' ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center space-y-4 pt-20">
-                        <LayersIcon size={48} className="text-zinc-800" />
-                        <div>
-                            <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Día libre de entrenamiento</p>
-                            <p className="text-xs text-zinc-600 mt-1">No hay ninguna sesión programada para este día.</p>
+                            )}
                         </div>
-                        <Button onClick={() => handleCreateFirstSession(emptyDaySelected!)} className="mt-4">
-                            Crear Primera Sesión
-                        </Button>
-                    </div>
-                ) : (
-                    <>
-                        {/* Dashboard AUGE Toggle */}
-                        <div className="relative">
-                    <button onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)} className="w-full flex items-center justify-between p-3 border border-white/10 rounded-xl bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors group">
-                        <span className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest group-hover:text-white"><ActivityIcon size={12} /> ESTÍMULO VS FATIGA</span>
-                        <ChevronRightIcon size={14} className={`text-zinc-500 transition-transform ${isAnalysisExpanded ? 'rotate-90' : ''}`} />
-                    </button>
-                    <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isAnalysisExpanded ? 'opacity-100 max-h-[1000px] mt-2' : 'opacity-0 max-h-0'}`}>
-                         <SessionAugeDashboard 
-                            currentSession={session} 
-                            weekSessions={weekSessions}
-                            exerciseList={exerciseList} 
-                         />
-                    </div>
+                    )}
                 </div>
+            )}
 
-                {/* Parts List */}
-                <div className="space-y-10 pb-20">
-                    {session.parts?.map((part, pi) => {
-                        const groupedExercises = groupExercises(part.exercises);
-                        const isColorPickerOpen = openColorPickerIndex === pi;
-                        const themeColor = part.color || '#ffffff';
-                        const isCollapsed = collapsedParts[part.id] || false;
-                        
-                        return (
-                        <div key={part.id} className={`relative transition-all duration-300 ${draggedPartIndex === pi ? 'opacity-50' : 'opacity-100'}`} draggable onDragStart={() => handleDragStart(pi)} onDragOver={handleDragOver} onDrop={() => handleDrop(pi)}>
-                            
-                            {/* Part Header (Wireframe Style) */}
-                            <div className="flex items-end gap-3 pb-2 border-b-2 border-white mb-4">
-                                <DragHandleIcon className="text-zinc-600 cursor-grab active:cursor-grabbing hover:text-white mb-1" size={18} />
-                                <button onClick={(e) => { e.preventDefault(); togglePartCollapse(part.id); }} className="text-zinc-500 hover:text-white transition-colors mb-1"><ChevronRightIcon size={16} className={`transition-transform duration-200 ${isCollapsed ? '' : 'rotate-90'}`} /></button>
-                                <button onClick={() => setOpenColorPickerIndex(isColorPickerOpen ? null : pi)} className="w-2 h-6 mb-1 rounded-sm transition-transform active:scale-90" style={{ backgroundColor: themeColor }} title="Color"/>
-                                
-                                <div className="flex-grow min-w-0">
-                                    <input 
-                                        value={part.name} 
-                                        onChange={e => updateSession(d => { d.parts![pi].name = e.target.value; })} 
-                                        className="bg-transparent text-2xl font-black text-white w-full outline-none border-none p-0 focus:ring-0 uppercase tracking-tighter placeholder-zinc-800" 
-                                        placeholder="SECCIÓN" 
-                                    />
-                                </div>
-                                <button onClick={(e) => handleRemovePart(pi, e)} className="text-zinc-600 hover:text-red-500 mb-1"><TrashIcon size={16}/></button>
-                            </div>
-
-                            <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[5000px] opacity-100'}`}>
-                                {/* Color Picker */}
-                                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isColorPickerOpen ? 'max-h-24 opacity-100 mb-6' : 'max-h-0 opacity-0'}`}>
-                                    <div className="flex flex-wrap gap-3 p-3 border border-white/10 rounded-xl bg-zinc-900/50">
-                                        {PRESET_PART_COLORS.map(color => (<button key={color} onClick={() => { updateSession(d => { d.parts![pi].color = color; }); setOpenColorPickerIndex(null); }} className={`w-6 h-6 rounded-full border border-white/20 transition-all hover:scale-110 ${part.color === color ? 'ring-2 ring-white scale-110' : ''}`} style={{ backgroundColor: color }}/>))}
-                                    </div>
-                                </div>
-                                
-                                {/* Exercises Grid */}
-                                <div className="space-y-4">
-                                    {groupedExercises.map((group, groupIdx) => {
-                                        if (group.type === 'superset') {
-                                            return (
-                                                <SupersetManagementBlock
-                                                    key={`group-${group.id}-${groupIdx}`}
-                                                    exercises={group.items}
-                                                    onUpdateSession={updateSession}
-                                                    partIndex={pi}
-                                                    partColor={part.color}
-                                                    onReorderExercise={handleReorderExercise}
-                                                    onToggleSelect={handleToggleSelectExercise}
-                                                    selectedIds={selectedExerciseIds}
-                                                    isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'}
-                                                    onUnlink={handleUnlink}
-                                                    onLinkNext={handleLinkWithNext}
-                                                    culpritIds={culpritExerciseIds}
-                                                />
-                                            )
-                                        } else {
-                                            const { ex, index: ei } = group;
-                                            return <MemoizedExerciseCard key={ex.id} exercise={ex} categoryColor={part.color} isInSuperset={false} isJunkVolumeCulprit={culpritExerciseIds.has(ex.id)} onExerciseChange={(f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei] as any)[f] = v; else d.parts![pi].exercises[ei] = {...d.parts![pi].exercises[ei], ...f}; }); }} onSetChange={(si, f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei].sets[si] as any)[f] = v; else d.parts![pi].exercises[ei].sets[si] = {...d.parts![pi].exercises[ei].sets[si], ...f}; }); }} onAddSet={() => updateSession(d => { d.parts![pi].exercises[ei].sets.push({ id: crypto.randomUUID(), targetReps: 8, intensityMode: 'rpe', targetRPE: 8 }); })} onRemoveSet={(si) => updateSession(d => { d.parts![pi].exercises[ei].sets.splice(si, 1); })} onRemoveExercise={() => updateSession(d => { d.parts![pi].exercises.splice(ei, 1); })} onReorder={(dir) => handleReorderExercise(pi, ei, dir)} onLinkNext={() => handleLinkWithNext(pi, ei)} isFirst={pi === 0 && ei === 0} isLast={pi === (session.parts?.length || 0) - 1 && ei === part.exercises.length - 1} isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'} isSelected={selectedExerciseIds.has(ex.id)} onToggleSelect={() => handleToggleSelectExercise(ex.id)}/>
-                                        }
-                                    })}
-                                    
-                                    <button onClick={() => handleAddExercise(pi)} className="relative z-30 w-full py-4 mt-4 border border-dashed border-white/20 hover:border-white text-zinc-500 hover:text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 group">
-                                        <div className="bg-white/10 p-1 rounded-full group-hover:bg-white group-hover:text-black transition-colors"><PlusIcon size={12}/></div>
-                                        Añadir Ejercicio
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )})}
-                    
-                    <div className="relative z-30 pt-8 mt-8 border-t border-white/10">
-                        <Button onClick={handleAddPart} className="w-full !py-4 font-black uppercase text-xs tracking-widest bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 shadow-xl">
-                            <LayersIcon size={16} className="mr-2"/> Nueva Sección
-                        </Button>
-                    </div>
-                </div>
-                </>
-                )}
-                
-                {/* --- BOTÓN GUARDAR ESTÁTICO (NO FLOTANTE NI BLOQUEANTE) --- */}
-                <div className="relative w-full p-6 mt-8 mb-12 bg-transparent z-50 flex justify-center">
+            {/* --- SAVE BUTTON (fixed bottom) --- */}
+            {activeSessionId !== 'empty' && (
+                <div className="flex-shrink-0 p-4 bg-black border-t border-white/5">
                     <button 
                         onClick={handleSave} 
-                        className="w-full max-w-sm bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent hover:border-black"
+                        className="w-full bg-white text-black py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.15em] hover:bg-zinc-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                     >
-                        <CheckIcon size={18}/>
-                        <span>Guardar Sesión</span>
+                        <CheckIcon size={16}/>
+                        Guardar Sesión
                     </button>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

@@ -27,6 +27,7 @@ import ExerciseHistoryWidget from './ExerciseHistoryWidget';
 import { RelativeStrengthAndBasicsWidget } from './RelativeStrengthAndBasicsWidget';
 import { getOrderedDaysOfWeek } from '../utils/calculations';
 import InteractiveWeekOverlay from './InteractiveWeekOverlay';
+import SplitChangerModal, { SplitChangeScope } from './SplitChangerModal';
 import { getCachedAdaptiveData, getConfidenceLabel, getConfidenceColor, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 import { BanisterTrend, BayesianConfidence, SelfImprovementScore } from './ui/AugeDeepView';
 
@@ -253,9 +254,10 @@ const SessionCard: React.FC<{
 };
 
 const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, onEdit, isActive, onDeleteSession }) => {
-    const { history, settings, handleEditSession, handleBack, handleAddSession, isOnline, exerciseList, muscleHierarchy, handleStartProgram, handlePauseProgram, handleEditProgram, handleUpdateProgram, addToast, handleStartWorkout } = useAppContext();    
+    const { history, settings, handleEditSession, handleBack, handleAddSession, isOnline, exerciseList, muscleHierarchy, handleStartProgram, handlePauseProgram, handleEditProgram, handleUpdateProgram, handleChangeSplit, addToast, handleStartWorkout } = useAppContext();    
     const [activeTab, setActiveTab] = useState<'training' | 'metrics'>('training');
-    const [subView, setSubView] = useState<'weekly' | 'macrocycle'>('weekly'); 
+    const [subView, setSubView] = useState<'weekly' | 'macrocycle'>('weekly');
+    const [isSplitChangerOpen, setIsSplitChangerOpen] = useState(false);
     const [editingWeekInfo, setEditingWeekInfo] = useState<{ 
         macroIndex: number; 
         blockIndex: number; 
@@ -279,6 +281,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
     const [newEventData, setNewEventData] = useState({ id: '', title: '', repeatEveryXCycles: 1, calculatedWeek: 0, type: 'Test 1RM' });
     const [showCyclicHistory, setShowCyclicHistory] = useState(false);
     const [selectedMusclePos, setSelectedMusclePos] = useState<{muscle: string, x: number, y: number} | null>(null);
+
+    const isCyclic = useMemo(() => program.structure === 'simple' || (!program.structure && program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1), [program]);
 
 
     // Calculamos las molestias históricas de este programa
@@ -561,9 +565,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                 
                 {/* A) PESTAÑA ENTRENAMIENTO */}
                 {activeTab === 'training' && (() => {
-                    // --- LÓGICA DERIVADA PARA ESTA VISTA ---
-                    // 1. Detectar si es un programa cíclico simple (Estructura Simple)
-                    const isCyclic = program.structure === 'simple' || (!program.structure && program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
                     
                     const selectedBlock = roadmapBlocks.find(b => b.id === selectedBlockId);
                     const selectedBlockIndex = roadmapBlocks.findIndex(b => b.id === selectedBlockId);
@@ -603,13 +604,22 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                             <h3 className="text-lg font-black text-white uppercase tracking-tight">Bucle Base</h3>
                                             <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Estructura Cíclica</p>
                                         </div>
-                                        <button 
-                                            onClick={() => setShowCyclicHistory(!showCyclicHistory)}
-                                            className="px-4 py-2 rounded-xl bg-blue-900/20 text-blue-400 text-[9px] font-black uppercase tracking-widest border border-blue-500/30 hover:bg-blue-600/40 transition-colors flex items-center gap-1.5"
-                                        >
-                                            <ActivityIcon size={14} />
-                                            {showCyclicHistory ? 'Ver Rutinas' : 'Ver Historial'}
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button 
+                                                onClick={() => setIsSplitChangerOpen(true)}
+                                                className="px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 text-[9px] font-black uppercase tracking-widest border border-white/10 hover:bg-zinc-700 hover:text-white transition-colors flex items-center gap-1.5"
+                                            >
+                                                <SettingsIcon size={12} />
+                                                Split
+                                            </button>
+                                            <button 
+                                                onClick={() => setShowCyclicHistory(!showCyclicHistory)}
+                                                className="px-3 py-2 rounded-xl bg-blue-900/20 text-blue-400 text-[9px] font-black uppercase tracking-widest border border-blue-500/30 hover:bg-blue-600/40 transition-colors flex items-center gap-1.5"
+                                            >
+                                                <ActivityIcon size={14} />
+                                                {showCyclicHistory ? 'Rutinas' : 'Historial'}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="w-full max-w-md pb-24">
@@ -761,7 +771,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                     
                                                     const maxDayAssigned = sessionsForWeek.reduce((max: number, s: any) => Math.max(max, s.dayOfWeek || 0), 0);
                                                     const isStandardWeek = maxDayAssigned <= 6;
-                                                    const startOn = settings?.startWeekOn ?? 1;
+                                                    const startOn = program.startDay ?? settings?.startWeekOn ?? 1;
                                                     
                                                     const daysArray = isStandardWeek 
                                                         ? getOrderedDaysOfWeek(startOn).map(d => d.value) 
@@ -1026,8 +1036,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                                         // 1. Determinar el número total de días a renderizar
                                                         const maxDayAssigned = sessionsForWeek.reduce((max: number, s: any) => Math.max(max, s.dayOfWeek || 0), 0);
                                                         
-                                                        const isStandardWeek = maxDayAssigned <= 6; // JS usa 0 a 6 para los días de la semana
-                                                        const startOn = settings?.startWeekOn ?? 1; // 1 = Lunes
+                                                        const isStandardWeek = maxDayAssigned <= 6;
+                                                        const startOn = program.startDay ?? settings?.startWeekOn ?? 1;
                                                         
                                                         // Utilizamos la función utilitaria para reordenar los días según preferencia extrayendo solo el valor numérico
                                                         const daysArray = isStandardWeek 
@@ -1036,8 +1046,16 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
 
                                                         return (
                                                             <div className="space-y-5">
+                                                                <div className="flex justify-end mb-2">
+                                                                    <button 
+                                                                        onClick={() => setIsSplitChangerOpen(true)}
+                                                                        className="px-3 py-1.5 rounded-xl bg-zinc-900 text-zinc-400 text-[9px] font-black uppercase tracking-widest border border-white/10 hover:bg-zinc-800 hover:text-white transition-colors flex items-center gap-1.5"
+                                                                    >
+                                                                        <SettingsIcon size={12} />
+                                                                        Cambiar Split
+                                                                    </button>
+                                                                </div>
                                                                 {daysArray.map(dayNum => {
-                                                                    // Agrupamos TODAS las sesiones correspondientes a este número de día
                                                                     const daySessions = sessionsForWeek.filter((s: any) => s.dayOfWeek === dayNum);
                                                                     
                                                                     let dayTitle = '';
@@ -1884,7 +1902,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                         if(!newEventData.title.trim()) { addToast("Ponle un nombre al evento", "danger"); return; }
                                         const updated = JSON.parse(JSON.stringify(program));
                                         if(!updated.events) updated.events = [];
-                                        const isCyclic = program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
                                         
                                         const eventPayload = {
                                             id: newEventData.id || crypto.randomUUID(),
@@ -2097,6 +2114,28 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                     </div>
                 </div>
             )}
+            {/* SPLIT CHANGER MODAL */}
+            <SplitChangerModal
+                isOpen={isSplitChangerOpen}
+                onClose={() => setIsSplitChangerOpen(false)}
+                currentSplitId={program.selectedSplitId}
+                currentStartDay={program.startDay ?? settings?.startWeekOn ?? 1}
+                isSimpleProgram={isCyclic}
+                onApply={(split, scope, preserveExercises, startDay) => {
+                    const block = roadmapBlocks.find(b => b.id === selectedBlockId);
+                    const week = currentWeeks.find(w => w.id === selectedWeekId);
+                    handleChangeSplit(
+                        program.id,
+                        split.pattern,
+                        split.id,
+                        scope,
+                        preserveExercises,
+                        startDay,
+                        block?.id,
+                        week?.id
+                    );
+                }}
+            />
         </div>
     );
 };

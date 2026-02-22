@@ -298,6 +298,8 @@ export interface Program {
         prs?: boolean;
     };
     carpeDiemEnabled?: boolean;
+    startDay?: number;
+    selectedSplitId?: string;
     isDraft?: boolean;
     lastSavedStep?: number;
     draftData?: {
@@ -1245,6 +1247,7 @@ export interface AppContextDispatch {
     handleSaveSession: (session: Session | Session[], programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleUpdateSessionInProgram: (session: Session, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleDeleteSession: (sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
+    handleChangeSplit: (programId: string, splitPattern: string[], splitId: string, scope: 'week' | 'block' | 'program', preserveExercises: boolean, startDay: number, targetBlockId?: string, targetWeekId?: string) => void;
     handleCopySessionsToMeso: (programId: string, macroIndex: number, mesoIndex: number) => void;
     handleStartProgram: (programId: string) => void;
     handlePauseProgram: () => void;

@@ -453,24 +453,93 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setPrograms(prevPrograms => {
             const newPrograms = JSON.parse(JSON.stringify(prevPrograms));
             const program = newPrograms.find((p: Program) => p.id === programId);
-            if (!program) return prevPrograms;
+            if (!program) { addToast('Error: Programa no encontrado.', 'danger'); return prevPrograms; }
             const macro = program.macrocycles[macroIndex];
-            if (macro) {
-                let mesoCount = 0;
-                for (const block of (macro.blocks || [])) {
-                    if (mesoIndex < mesoCount + block.mesocycles.length) {
-                        const relativeMesoIndex = mesoIndex - mesoCount;
-                        const meso = block.mesocycles[relativeMesoIndex];
-                        const week = meso.weeks.find((w: ProgramWeek) => w.id === weekId);
-                        if (week) week.sessions = week.sessions.filter((s: Session) => s.id !== sessionId);
-                        return newPrograms;
+            if (!macro) { addToast('Error: Macrociclo no encontrado.', 'danger'); return prevPrograms; }
+
+            for (const block of (macro.blocks || [])) {
+                for (const meso of block.mesocycles) {
+                    const week = meso.weeks.find((w: ProgramWeek) => w.id === weekId);
+                    if (week) {
+                        const before = week.sessions.length;
+                        week.sessions = week.sessions.filter((s: Session) => s.id !== sessionId);
+                        if (week.sessions.length < before) {
+                            return newPrograms;
+                        }
                     }
-                    mesoCount += block.mesocycles.length;
                 }
             }
+            addToast('No se pudo eliminar la sesión. Intenta de nuevo.', 'danger');
+            return prevPrograms;
+        });
+    }, [setPrograms, addToast]);
+
+    const handleChangeSplit = useCallback((
+        programId: string,
+        splitPattern: string[],
+        splitId: string,
+        scope: 'week' | 'block' | 'program',
+        preserveExercises: boolean,
+        startDay: number,
+        targetBlockId?: string,
+        targetWeekId?: string
+    ) => {
+        setPrograms(prevPrograms => {
+            const newPrograms = JSON.parse(JSON.stringify(prevPrograms));
+            const program = newPrograms.find((p: Program) => p.id === programId);
+            if (!program) return prevPrograms;
+
+            program.startDay = startDay;
+            program.selectedSplitId = splitId;
+
+            const regenerateWeekSessions = (week: ProgramWeek) => {
+                const newSessions: Session[] = [];
+                splitPattern.forEach((label: string, dayIndex: number) => {
+                    if (label && label.toLowerCase() !== 'descanso' && label.trim() !== '') {
+                        const assignedDay = (startDay + dayIndex) % 7;
+                        let existingSession: Session | undefined;
+                        if (preserveExercises) {
+                            existingSession = week.sessions.find((s: Session) =>
+                                s.name.toLowerCase() === label.toLowerCase()
+                            );
+                        }
+                        if (existingSession) {
+                            newSessions.push({ ...existingSession, dayOfWeek: assignedDay });
+                        } else {
+                            newSessions.push({
+                                id: crypto.randomUUID(),
+                                name: label,
+                                description: '',
+                                exercises: [],
+                                dayOfWeek: assignedDay
+                            });
+                        }
+                    }
+                });
+                week.sessions = newSessions;
+            };
+
+            for (const macro of program.macrocycles) {
+                for (const block of (macro.blocks || [])) {
+                    const isTargetBlock = !targetBlockId || block.id === targetBlockId;
+                    if (!isTargetBlock && scope === 'block') continue;
+
+                    for (const meso of block.mesocycles) {
+                        for (const week of meso.weeks) {
+                            if (scope === 'week' && week.id !== targetWeekId) continue;
+                            regenerateWeekSessions(week);
+                            if (scope === 'week') break;
+                        }
+                    }
+
+                    if (scope === 'block') break;
+                }
+            }
+
             return newPrograms;
         });
-    }, [setPrograms]);
+        addToast('Split actualizado correctamente.', 'success');
+    }, [setPrograms, addToast]);
 
     // WORKOUT LOGIC
     const onCancelWorkout = useCallback(() => {
@@ -944,7 +1013,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         handleCreateProgram, handleEditProgram, handleSelectProgram: (p) => navigateTo('program-detail', { programId: p.id }),
         handleSaveProgram, handleUpdateProgram: handleSaveProgram, handleDeleteProgram,
         handleAddSession, handleEditSession, handleSaveSession, handleUpdateSessionInProgram,
-        handleDeleteSession, handleCopySessionsToMeso, handleStartProgram, handlePauseProgram,
+        handleDeleteSession, handleChangeSplit, handleCopySessionsToMeso, handleStartProgram, handlePauseProgram,
         handleFinishProgram, handleRestartProgram, handleStartWorkout,
         handleResumeWorkout: () => navigateTo('workout'), handleContinueFromReadiness,
         handleContinueWorkoutAfterBriefing, onCancelWorkout, handlePauseWorkout: () => navigateTo('home'),
