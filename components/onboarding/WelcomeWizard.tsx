@@ -150,7 +150,7 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
 
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
                 {/* Contenido del slide */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center justify-center px-6 py-12">
+                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center justify-center px-6 py-12 pb-24">
                     <div className="w-full max-w-md mx-auto">
                         <div className="flex justify-center mb-6">
                             <div className="w-20 h-20 rounded-2xl bg-black/20 border border-white/10 flex items-center justify-center backdrop-blur-md">
@@ -167,7 +167,7 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
                 </div>
 
                 {/* Navegación */}
-                <div className="shrink-0 px-6 pb-10 pt-4 border-t border-white/5 bg-black/20 backdrop-blur-sm">
+                <div className="shrink-0 px-6 pb-6 pt-4 border-t border-white/5 bg-black/20 backdrop-blur-sm">
                     <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
                         <button
                             onClick={handlePrev}
@@ -195,15 +195,18 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
                             ))}
                         </div>
 
-                        <button
-                            onClick={handleNext}
-                            className="p-3 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all font-mono text-[10px] font-black uppercase tracking-widest"
-                        >
-                            {isLast ? 'Empezar' : 'Siguiente'}
-                            <ChevronRightIcon size={18} className="inline-block ml-1" />
-                        </button>
+                        <div className="w-[72px]" aria-hidden />
                     </div>
                 </div>
+
+                {/* FAB Siguiente/Empezar */}
+                <button
+                    onClick={handleNext}
+                    aria-label={isLast ? 'Empezar' : 'Siguiente'}
+                    className="absolute bottom-6 right-6 z-20 w-12 h-12 rounded-full border border-amber-500/50 bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 flex items-center justify-center shadow-lg transition-all"
+                >
+                    <ChevronRightIcon size={22} />
+                </button>
             </div>
         </div>
     );

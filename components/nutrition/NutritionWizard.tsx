@@ -6,8 +6,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '../icons';
 import type { Settings, CalorieGoalConfig } from '../../types';
 import { mifflinStJeor, katchMcArdle } from '../../utils/calorieFormulas';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
-import { ChevronRightIcon, ChevronLeftIcon } from '../icons';
-import Button from '../ui/Button';
+import { ChevronRightIcon, ChevronLeftIcon, CheckIcon } from '../icons';
 import { NutritionTooltip } from './NutritionTooltip';
 import { AnimatedSvgBackground } from '../onboarding/AnimatedSvgBackground';
 
@@ -193,12 +192,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <NutritionTooltip content="Define si buscas perder grasa (déficit), mantener peso o ganar masa (superávit). Cada objetivo ajusta las calorías recomendadas." title="Objetivo" />
                             </h2>
                             <p className="text-slate-400 text-sm mt-1">¿Qué buscas con tu alimentación?</p>
-                            <div className="grid grid-cols-3 gap-3 mt-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
                                 {GOAL_OPTIONS.map(opt => (
                                     <button
                                         key={opt.id}
                                         onClick={() => setGoal(opt.id)}
-                                        className={`p-4 rounded-xl border text-center transition-all ${
+                                        className={`p-4 rounded-xl border text-left sm:text-center transition-all min-w-0 ${
                                             goal === opt.id ? 'bg-[#FC4C02]/20 border-orange-500 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-orange-500/30'
                                         }`}
                                     >
@@ -539,7 +538,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 opacity={0.28}
             />
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
-                <div className="flex-1 overflow-y-auto px-4 py-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto px-4 py-8 pb-28 custom-scrollbar">
                     <div className="max-w-md mx-auto">
                         <div className="flex items-center gap-3 mb-8">
                             <span className="text-[9px] font-black text-orange-500 uppercase tracking-[0.2em] font-mono shrink-0">
@@ -555,34 +554,25 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         <div className="animate-fade-in">{renderStep()}</div>
                     </div>
                 </div>
-                <div className="shrink-0 p-4 pb-24 border-t border-white/10 flex gap-3 bg-black/25 backdrop-blur-md">
-                    {step > 1 ? (
-                        <Button
-                            onClick={() => setStep(s => s - 1)}
-                            variant="secondary"
-                            className="flex-1 font-mono text-[10px] font-black uppercase tracking-widest border border-white/10"
-                        >
-                            <ChevronLeftIcon size={18} className="mr-1" /> Atrás
-                        </Button>
-                    ) : (
-                        <div className="flex-1" />
-                    )}
-                    {step < 3 ? (
-                        <Button
-                            onClick={() => setStep(s => s + 1)}
-                            className="flex-1 font-mono text-[10px] font-black uppercase tracking-widest"
-                        >
-                            Siguiente <ChevronRightIcon size={18} className="ml-1" />
-                        </Button>
-                    ) : (
-                        <Button
-                            onClick={handleFinish}
-                            className="flex-1 font-mono text-[10px] font-black uppercase tracking-widest"
-                        >
-                            Guardar plan
-                        </Button>
-                    )}
-                </div>
+                {/* FAB Atrás */}
+                {step > 1 && (
+                    <button
+                        onClick={() => setStep(s => s - 1)}
+                        aria-label="Atrás"
+                        className="absolute bottom-6 left-6 z-20 w-12 h-12 rounded-full border border-white/20 bg-black/40 text-zinc-400 hover:text-white hover:bg-black/60 flex items-center justify-center backdrop-blur-sm transition-all"
+                    >
+                        <ChevronLeftIcon size={22} />
+                    </button>
+                )}
+
+                {/* FAB Siguiente / Guardar */}
+                <button
+                    onClick={step < 3 ? () => setStep(s => s + 1) : handleFinish}
+                    aria-label={step < 3 ? 'Siguiente' : 'Guardar plan'}
+                    className="absolute bottom-6 right-6 z-20 w-12 h-12 rounded-full border border-orange-500/50 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 flex items-center justify-center shadow-lg transition-all"
+                >
+                    {step < 3 ? <ChevronRightIcon size={22} /> : <CheckIcon size={22} strokeWidth={2.5} />}
+                </button>
             </div>
         </div>
     );

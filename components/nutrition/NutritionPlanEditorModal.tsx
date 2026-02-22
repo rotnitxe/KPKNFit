@@ -201,12 +201,12 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
             <div className="flex flex-col flex-1 min-h-0">
             <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 custom-scrollbar space-y-2">
                 <Section title="Objetivo">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         {GOAL_OPTIONS.map(opt => (
                             <button
                                 key={opt.id}
                                 onClick={() => setGoal(opt.id)}
-                                className={`p-3 rounded-xl border text-center text-sm font-bold transition-all ${
+                                className={`p-3 rounded-xl border text-center text-sm font-bold transition-all min-w-0 ${
                                     goal === opt.id ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-slate-400'
                                 }`}
                             >
