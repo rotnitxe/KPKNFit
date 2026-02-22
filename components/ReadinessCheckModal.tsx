@@ -1,5 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { MoonIcon, ActivityIcon, FlameIcon, ZapIcon, BatteryIcon } from './icons';
+import React, { useState, useEffect, useMemo } from 'react';
+import { MoonIcon, ActivityIcon, FlameIcon, ZapIcon, BatteryIcon, BrainIcon } from './icons';
+import {
+    getCachedAdaptiveData,
+    queuePrediction,
+    queueOutcome,
+    getConfidenceLabel,
+    getConfidenceColor,
+} from '../services/augeAdaptiveService';
 
 interface ReadinessData {
   sleepQuality: number;
@@ -42,6 +49,40 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
     const [motivation, setMotivation] = useState(3);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const adaptiveCache = useMemo(() => getCachedAdaptiveData(), []);
+    const confidenceLabel = getConfidenceLabel(adaptiveCache.totalObservations);
+    const confidenceColor = getConfidenceColor(adaptiveCache.totalObservations);
+
+    const augePrediction = useMemo(() => {
+        const gpCurve = adaptiveCache.gpCurve;
+        const banister = adaptiveCache.banister;
+        let score = 3; // 1-5 scale: 1=red, 3=yellow, 5=green
+        if (banister?.systems?.muscular) {
+            const perf = banister.systems.muscular.performance;
+            if (perf.length > 0) {
+                const latest = perf[perf.length - 1];
+                if (latest > 0.7) score = 5;
+                else if (latest > 0.4) score = 4;
+                else if (latest > 0.1) score = 3;
+                else if (latest > -0.2) score = 2;
+                else score = 1;
+            }
+        }
+        if (gpCurve) {
+            const latestFatigue = gpCurve.mean_fatigue[gpCurve.mean_fatigue.length - 1] ?? 0.5;
+            if (latestFatigue > 0.7) score = Math.max(1, score - 1);
+            else if (latestFatigue < 0.3) score = Math.min(5, score + 1);
+        }
+        const labels: Record<number, { text: string; color: string }> = {
+            1: { text: 'ROJO — Descanso recomendado', color: 'text-red-400' },
+            2: { text: 'NARANJA — Sesión ligera', color: 'text-orange-400' },
+            3: { text: 'AMARILLO — Proceder con cautela', color: 'text-yellow-400' },
+            4: { text: 'VERDE — Buen día para entrenar', color: 'text-emerald-400' },
+            5: { text: 'VERDE+ — Óptimo para PRs', color: 'text-emerald-300' },
+        };
+        return { score, ...(labels[score] || labels[3]) };
+    }, [adaptiveCache]);
+
     useEffect(() => {
         if (isOpen) setIsSubmitting(false); 
     }, [isOpen]);
@@ -51,6 +92,23 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
     const handleStart = () => {
         if (isSubmitting) return;
         setIsSubmitting(true);
+
+        const now = new Date().toISOString();
+        const readinessAvg = (sleepQuality + (6 - stressLevel) + (6 - doms) + motivation) / 4;
+        const predId = `readiness-${Date.now()}`;
+        queuePrediction({
+            prediction_id: predId,
+            timestamp: now,
+            system: 'readiness',
+            predicted_value: augePrediction.score,
+            context: { confidence: confidenceLabel, observations: adaptiveCache.totalObservations },
+        });
+        queueOutcome({
+            prediction_id: predId,
+            actual_value: Math.round(readinessAvg),
+            feedback_source: 'readiness_modal',
+        });
+
         setTimeout(() => {
             onContinue({ sleepQuality, stressLevel, doms, motivation });
         }, 150);
@@ -73,7 +131,18 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
                 </div>
 
                 <div className="p-5 overflow-y-auto hide-scrollbar flex-1 relative bg-black/20">
-                    <p className="text-[11px] text-slate-400 text-center mb-5 px-2 leading-relaxed font-bold uppercase tracking-widest">Ajusta tus parámetros antes de la batalla.</p>
+                    <div className="mb-5 p-4 bg-[#111] border border-violet-500/20 rounded-2xl">
+                        <div className="flex items-center gap-2 mb-2">
+                            <BrainIcon size={14} className="text-violet-400" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-violet-400">Predicción AUGE</span>
+                        </div>
+                        <p className={`text-sm font-black ${augePrediction.color}`}>{augePrediction.text}</p>
+                        <p className={`text-[8px] mt-1 font-bold uppercase tracking-widest ${confidenceColor}`}>
+                            Basado en {adaptiveCache.totalObservations} observaciones — Confianza: {confidenceLabel}
+                        </p>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 text-center mb-5 px-2 leading-relaxed font-bold uppercase tracking-widest">Ahora reporta tu realidad.</p>
                     <CyberSlider label="Calidad del Sueño" value={sleepQuality} onChange={setSleepQuality} icon={<MoonIcon size={16}/>} color="text-indigo-400" accentClass="accent-indigo-500" />
                     <CyberSlider label="Estrés del SNC" value={stressLevel} onChange={setStressLevel} icon={<ActivityIcon size={16}/>} color="text-rose-400" accentClass="accent-rose-500" inverseScale={true} />
                     <CyberSlider label="Daño Muscular" value={doms} onChange={setDoms} icon={<FlameIcon size={16}/>} color="text-amber-400" accentClass="accent-amber-500" inverseScale={true} />

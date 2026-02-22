@@ -10,6 +10,7 @@ import { getNutritionalInfo, analyzeMealPhoto } from '../services/aiService';
 import { takePicture } from '../services/cameraService';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { queueFatigueDataPoint } from '../services/augeAdaptiveService';
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     if (dateString && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
@@ -78,7 +79,32 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
     };
     onSave(newLog);
     addToast("Comida registrada.", "success");
-    onClose(); // Close immediately for feedback
+
+    const dailyGoal = settings.dailyCalorieGoal || 2500;
+    const mealCals = totalMacros.calories;
+    const runningRatio = mealCals / (dailyGoal / 4);
+
+    if (runningRatio < 0.6) {
+        setTimeout(() => addToast("Déficit detectado — AUGE penalizará recuperación muscular +35%", "suggestion"), 800);
+    } else if (runningRatio > 1.3) {
+        setTimeout(() => addToast("Superávit detectado — AUGE acelera recuperación muscular -15%", "success"), 800);
+    } else {
+        setTimeout(() => addToast("AUGE ajustará tu tasa de recuperación con este registro.", "suggestion"), 800);
+    }
+
+    const nutritionStatus = runningRatio < 0.7 ? -1 : runningRatio > 1.1 ? 1 : 0;
+    queueFatigueDataPoint({
+        hours_since_session: 0,
+        session_stress: 0,
+        sleep_hours: 7,
+        nutrition_status: nutritionStatus,
+        stress_level: 3,
+        age: settings.age || 25,
+        is_compound_dominant: false,
+        observed_fatigue_fraction: 0,
+    });
+
+    onClose();
   };
 
   const totalMacros = useMemo(() => {

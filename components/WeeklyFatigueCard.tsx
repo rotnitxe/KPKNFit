@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useAppState } from '../contexts/AppContext';
 import { calculateHistoricalFatigueData } from '../services/analysisService';
-import { calculateCompletedSessionStress } from '../services/fatigueService';
+import { calculateCompletedSessionStress } from '../services/auge';
 import Card from './ui/Card';
 import { ActivityIcon } from './icons';
 import { InfoTooltip } from './ui/InfoTooltip';

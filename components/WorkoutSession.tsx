@@ -11,8 +11,10 @@ import { useAppDispatch, useAppState, useAppContext } from '../contexts/AppConte
 // Bypass de TypeScript: Adaptador para que los strings literales sean aceptados como Enums de Capacitor
 const hapticImpact = (style?: any) => _hapticImpact(style);
 const hapticNotification = (type?: any) => _hapticNotification(type);
-import { calculateSpinalScore, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from '../services/fatigueService';
+import { calculateSpinalScore, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from '../services/auge';
 import { normalizeMuscleGroup } from '../services/volumeCalculator';
+import { getCachedAdaptiveData, queueFatigueDataPoint, AugeAdaptiveCache } from '../services/augeAdaptiveService';
+import { GPFatigueCurve } from './ui/AugeDeepView';
 import FinishWorkoutModal from './FinishWorkoutModal';
 import ExerciseHistoryModal from './ExerciseHistoryModal';
 import Modal from './ui/Modal';
@@ -475,7 +477,9 @@ const WorkoutHeader: React.FC<{
     isResting?: boolean;
     zenMode?: boolean;
     liveBatteryDrain?: { cns: number; muscular: number; spinal: number };
-}> = React.memo(({ sessionName, activePartName, activePartColor, background, coverStyle, isFocusMode, onToggleFocusMode, isLiveCoachActive, onToggleLiveCoach, isCompact, isResting, zenMode, liveBatteryDrain }) => {
+    adaptiveCache?: AugeAdaptiveCache | null;
+}> = React.memo(({ sessionName, activePartName, activePartColor, background, coverStyle, isFocusMode, onToggleFocusMode, isLiveCoachActive, onToggleLiveCoach, isCompact, isResting, zenMode, liveBatteryDrain, adaptiveCache }) => {
+    const [showLiveAuge, setShowLiveAuge] = useState(false);
     const bgImage = background?.type === 'image' ? `url(${background.value})` : undefined;
     const bgColor = background?.type === 'color' ? background.value : undefined;
     const tintClass = zenMode ? '' : (isResting ? 'bg-sky-900/30' : 'bg-red-900/10');
@@ -509,7 +513,7 @@ const WorkoutHeader: React.FC<{
                         
                         {/* --- KPKN LIVE HUD --- */}
                         {liveBatteryDrain && (
-                            <div className={`flex gap-3 items-center bg-[#111]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)] mt-1.5 w-max transition-opacity duration-300 ${isCompact ? 'opacity-0 h-0 overflow-hidden mt-0 py-0 border-none' : 'opacity-100'}`}>
+                            <div onClick={() => setShowLiveAuge(!showLiveAuge)} className={`flex gap-3 items-center bg-[#111]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)] mt-1.5 w-max transition-opacity duration-300 cursor-pointer ${isCompact ? 'opacity-0 h-0 overflow-hidden mt-0 py-0 border-none' : 'opacity-100'} ${showLiveAuge ? 'border-violet-500/30' : ''}`}>
                                 <div className="flex items-center gap-1.5" title="SNC Drenado">
                                     <BrainIcon size={12} className={liveBatteryDrain.cns > 70 ? 'text-red-500 animate-pulse' : 'text-sky-400'}/>
                                     <span className={`text-[10px] font-mono font-black ${liveBatteryDrain.cns > 70 ? 'text-red-400' : 'text-white'}`}>
@@ -530,6 +534,37 @@ const WorkoutHeader: React.FC<{
                                         -{liveBatteryDrain.spinal.toFixed(0)}%
                                     </span>
                                 </div>
+                            </div>
+                        )}
+                        {/* --- LIVE AUGE PANEL --- */}
+                        {showLiveAuge && liveBatteryDrain && (
+                            <div className="w-full mt-2 bg-[#0a0a0a]/95 backdrop-blur-sm border border-violet-500/20 rounded-2xl p-3 animate-fade-in shadow-lg" onClick={e => e.stopPropagation()}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <BrainIcon size={12} className="text-violet-400" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-violet-400">Live AUGE</span>
+                                </div>
+                                <GPFatigueCurve
+                                    data={adaptiveCache?.gpCurve || null}
+                                    compact={true}
+                                    actualLine={{
+                                        hours: [0, 1],
+                                        values: [0, (liveBatteryDrain.cns + liveBatteryDrain.muscular + liveBatteryDrain.spinal) / 300]
+                                    }}
+                                />
+                                {(() => {
+                                    const totalDrain = (liveBatteryDrain.cns + liveBatteryDrain.muscular + liveBatteryDrain.spinal) / 3;
+                                    const predicted = adaptiveCache?.gpCurve?.mean_fatigue?.[1] ?? 0.3;
+                                    const predictedPct = predicted * 100;
+                                    const diff = totalDrain - predictedPct;
+                                    if (diff > 20) {
+                                        return (
+                                            <div className="mt-2 px-2 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg">
+                                                <p className="text-[9px] text-red-400 font-bold">⚠ Acumulando {diff.toFixed(0)}% más fatiga de lo esperado</p>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
                             </div>
                         )}
                     </div>
@@ -1036,9 +1071,29 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         };
     }, [allExercises, completedSets, settings, exerciseList]);
 
+    const [adaptiveCache] = useState<AugeAdaptiveCache | null>(() => getCachedAdaptiveData());
+
+    const prevCompletedCountRef = useRef(Object.keys(completedSets).length);
+    useEffect(() => {
+        const currentCount = Object.keys(completedSets).length;
+        if (currentCount > prevCompletedCountRef.current) {
+            const totalDrain = (liveBatteryDrain.cns + liveBatteryDrain.muscular + liveBatteryDrain.spinal) / 3;
+            queueFatigueDataPoint({
+                hours_since_session: 0,
+                session_stress: totalDrain,
+                sleep_hours: 7,
+                nutrition_status: 1,
+                stress_level: 3,
+                age: settings.age || 25,
+                is_compound_dominant: true,
+                observed_fatigue_fraction: totalDrain / 100,
+            });
+        }
+        prevCompletedCountRef.current = currentCount;
+    }, [completedSets, liveBatteryDrain, settings.age]);
+
     const activePartInfo = useMemo(() => {
         if (!activeExerciseId || !renderExercises || renderExercises.length === 0) return null;
-        // Usamos optional chaining para evitar errores si exercises es null
         const part = renderExercises.find((p: any) => p.exercises?.some((e: any) => e.id === activeExerciseId));
         return part || null; 
     }, [activeExerciseId, renderExercises]);
@@ -1391,6 +1446,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 isResting={!!(restTimer && restTimer.remaining > 0)} 
                 zenMode={settings.enableZenMode} 
                 liveBatteryDrain={liveBatteryDrain}
+                adaptiveCache={adaptiveCache}
             />
             
             <div className="mt-4 px-2 sm:px-4 space-y-10 relative">

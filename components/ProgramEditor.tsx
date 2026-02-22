@@ -3,6 +3,7 @@
 import ProgramAdherenceWidget from './ProgramAdherenceWidget'; 
 import ExerciseHistoryWidget from './ExerciseHistoryWidget'; 
 import { calculateWeeklyVolume, normalizeMuscleGroup, calculateUnifiedMuscleVolume } from '../services/volumeCalculator';
+import { DISPLAY_ROLE_WEIGHTS, HYPERTROPHY_ROLE_MULTIPLIERS } from '../services/auge';
 import FeedbackInsights from './FeedbackInsights';
 import SessionAuditAlerts from './SessionAuditAlerts';
 import VolumeBudgetBar from './VolumeBudgetBar';
@@ -578,7 +579,7 @@ export const AdvancedExercisePickerModal: React.FC<{
                                     // Agrupación matemática correcta (Tomando el MÁXIMO por padre, no la suma)
                                     const groupedMuscles = ex.involvedMuscles.reduce((acc, m) => {
                                         const parent = getParentMuscle(m.muscle);
-                                        const value = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.4;
+                                        const value = DISPLAY_ROLE_WEIGHTS[m.role] ?? 0.2;
                                         if (!acc[parent] || value > acc[parent]) acc[parent] = value;
                                         return acc;
                                     }, {} as Record<string, number>);
@@ -1179,7 +1180,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                           parentMuscle = muscleData.muscle.charAt(0).toUpperCase() + muscleData.muscle.slice(1);
                       }
 
-                      const factor = muscleData.role === 'primary' ? 1.0 : 0.5;
+                      const factor = HYPERTROPHY_ROLE_MULTIPLIERS[muscleData.role] ?? 0.5;
                       const addedVolume = setsCount * factor;
                       
                       // Deduplicación

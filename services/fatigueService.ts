@@ -3,6 +3,12 @@ import { ExerciseSet, Session, ExerciseMuscleInfo, CompletedExercise, CompletedS
 import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 
 /**
+ * Capacidad de referencia semanal para normalización de fatiga SNC (puntos).
+ * Fatiga total teórica semanal de un atleta avanzado.
+ */
+export const WEEKLY_CNS_FATIGUE_REFERENCE = 4000;
+
+/**
  * --- SISTEMA AUGE v2.0: MOTOR DE MÉTRICAS DINÁMICAS ---
  * Matriz Algorítmica de Componentes Principales (Patrón Base + Modificadores)
  */
@@ -79,7 +85,7 @@ const getEFC = (info: ExerciseMuscleInfo | undefined): number => {
     return getDynamicAugeMetrics(info).efc;
 };
 
-const getEffectiveRPE = (set: any): number => {
+export const getEffectiveRPE = (set: any): number => {
     let baseRpe = 7; // Valor por defecto
 
     // 1. Traductor Universal RIR a RPE

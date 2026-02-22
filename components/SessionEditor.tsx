@@ -10,9 +10,11 @@ import BackgroundEditorModal from './SessionBackgroundModal';
 import { useAppContext } from '../contexts/AppContext';
 import { storageService } from '../services/storageService';
 import { useImageGradient } from '../utils/colorUtils';
-import { calculatePredictedSessionDrain, calculateSetStress, calculateSpinalScore, getDynamicAugeMetrics, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from '../services/fatigueService';
+import { calculatePredictedSessionDrain, calculateSetStress, calculateSpinalScore, getDynamicAugeMetrics, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain, getEffectiveRPE, getEffectiveVolumeMultiplier, HYPERTROPHY_ROLE_MULTIPLIERS, DISPLAY_ROLE_WEIGHTS } from '../services/auge';
 import { InfoTooltip } from './ui/InfoTooltip';
 import { calculateSessionVolume, calculateAverageVolumeForWeeks } from '../services/analysisService';
+import { getCachedAdaptiveData, getConfidenceLabel, getConfidenceColor } from '../services/augeAdaptiveService';
+import { GPFatigueCurve, BayesianConfidence, BanisterTrend } from './ui/AugeDeepView';
 import { calculateUnifiedMuscleVolume, normalizeMuscleGroup } from '../services/volumeCalculator';
 import ToggleSwitch from './ui/ToggleSwitch';
 
@@ -89,8 +91,9 @@ const SessionAugeDashboard: React.FC<{
     exerciseList: ExerciseMuscleInfo[];
 }> = ({ currentSession, weekSessions, exerciseList = [] }) => {
     const { settings } = useAppContext();
-    const [viewMode, setViewMode] = useState<'volume' | 'drain' | 'ranking'>('volume');
+    const [viewMode, setViewMode] = useState<'volume' | 'drain' | 'ranking' | 'prediction'>('volume');
     const [context, setContext] = useState<'session' | 'week'>('session');
+    const adaptiveCache = useMemo(() => getCachedAdaptiveData(), []);
 
     const scrollToExercise = (exId: string) => {
         const el = document.getElementById(`exercise-card-${exId}`);
@@ -138,15 +141,11 @@ const SessionAugeDashboard: React.FC<{
                     weeklySpinal += drain.spinalDrainPct;
                     weeklyMuscular += drain.muscularDrainPct;
 
-                    // Lógica Efectiva (MRV y Basura)
-                    let rpe = set.targetRPE || 8;
-                    if (set.intensityMode === 'rir' && set.targetRIR !== undefined) rpe = 10 - set.targetRIR;
-                    if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap') rpe = 11;
-                    let volMult = rpe >= 10 ? 1.2 : rpe >= 8 ? 1.0 : 0.6;
+                    const volMult = getEffectiveVolumeMultiplier(set);
 
                     info.involvedMuscles.forEach((m: any) => {
                         const parent = normalizeMuscleGroup(m.muscle);
-                        const hyperFactor = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.0; 
+                        const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
                         
                         const effVol = hyperFactor * volMult;
                         const flatVol = hyperFactor;
@@ -159,7 +158,7 @@ const SessionAugeDashboard: React.FC<{
                             if (!hyperMap[parent]) hyperMap[parent] = { flat: 0, effective: 0, fail: 0 };
                             hyperMap[parent].flat += flatVol;
                             hyperMap[parent].effective += effVol;
-                            if (rpe >= 9.5) hyperMap[parent].fail += flatVol;
+                            if (getEffectiveRPE(set) >= 9.5) hyperMap[parent].fail += flatVol;
                         }
                     });
                 });
@@ -244,6 +243,7 @@ const SessionAugeDashboard: React.FC<{
                     <button onClick={() => setViewMode('volume')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'volume' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><TargetIcon size={12}/> Estímulo</button>
                     <button onClick={() => setViewMode('drain')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'drain' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ActivityIcon size={12}/> Fatiga</button>
                     <button onClick={() => setViewMode('ranking')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'ranking' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><LayersIcon size={12}/> Ranking</button>
+                    <button onClick={() => setViewMode('prediction')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'prediction' ? 'text-violet-400 underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ZapIcon size={12}/> Predicción</button>
                  </div>
             </div>
 
@@ -333,12 +333,11 @@ const SessionAugeDashboard: React.FC<{
                         </div>
                     </div>
                 </div>
-            ) : (
+            ) : viewMode === 'ranking' ? (
                 <div className="animate-fade-in space-y-2">
                      <p className="text-[9px] text-zinc-500 uppercase font-bold mb-2">Ranking de impacto sistémico</p>
                      <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 space-y-2">
                         {exerciseRanking.length > 0 ? exerciseRanking.map((rank, idx) => {
-                            // Protección División por cero y valores atípicos
                             const maxFatigue = exerciseRanking[0]?.fatigue > 0 ? exerciseRanking[0].fatigue : 1;
                             const percentage = Math.min(100, Math.max(0, (rank.fatigue / maxFatigue) * 100));
 
@@ -355,6 +354,52 @@ const SessionAugeDashboard: React.FC<{
                             );
                         }) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">No hay ejercicios evaluables</p>}
                      </div>
+                </div>
+            ) : (
+                <div className="animate-fade-in space-y-4">
+                    <div className="bg-[#111] p-3 rounded-xl border border-violet-500/10">
+                        <h4 className="text-[9px] font-black uppercase tracking-widest text-violet-400 mb-3 flex items-center gap-2"><ZapIcon size={10}/> Curva GP — Fatiga Esperada</h4>
+                        <GPFatigueCurve data={adaptiveCache.gpCurve} />
+                    </div>
+
+                    <div className="bg-[#111] p-3 rounded-xl border border-sky-500/10">
+                        <h4 className="text-[9px] font-black uppercase tracking-widest text-sky-400 mb-3">Recuperación Post-Sesión (Bayesiano)</h4>
+                        <BayesianConfidence
+                            totalObservations={adaptiveCache.totalObservations}
+                            personalizedRecoveryHours={adaptiveCache.personalizedRecoveryHours}
+                        />
+                    </div>
+
+                    <div className="bg-[#111] p-3 rounded-xl border border-emerald-500/10">
+                        <h4 className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-3">Impacto Banister</h4>
+                        {adaptiveCache.banister ? (
+                            <>
+                                <BanisterTrend systemData={adaptiveCache.banister.systems?.muscular || null} compact />
+                                <div className="mt-2 px-2 py-1.5 bg-black/40 rounded-lg">
+                                    <p className="text-[9px] text-zinc-300 font-medium italic">{adaptiveCache.banister.verdict || 'Sin veredicto disponible.'}</p>
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-[9px] text-zinc-600 font-bold text-center py-4">Completa más sesiones para activar Banister</p>
+                        )}
+                    </div>
+
+                    {/* Confidence dots on drain bars */}
+                    <div className="grid grid-cols-3 gap-2">
+                        {(['muscular', 'cns', 'spinal'] as const).map(sys => {
+                            const drainVal = globalDrain[sys === 'cns' ? 'cns' : sys];
+                            const confColor = getConfidenceColor(adaptiveCache.totalObservations);
+                            return (
+                                <div key={sys} className="bg-[#111] px-2 py-1.5 rounded-lg flex items-center justify-between">
+                                    <span className="text-[8px] font-black uppercase text-zinc-500">{sys}</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[9px] font-mono font-bold text-white">{drainVal.toFixed(0)}%</span>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${confColor.replace('text-', 'bg-')}`} title={getConfidenceLabel(adaptiveCache.totalObservations)} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             )}
         </div>
@@ -638,7 +683,7 @@ export const AdvancedExercisePickerModal: React.FC<{
                                     // Agrupación matemática correcta (Tomando el MÁXIMO por padre, no la suma)
                                     const groupedMuscles = ex.involvedMuscles.reduce((acc, m) => {
                                         const parent = getParentMuscle(m.muscle);
-                                        const value = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.4;
+                                        const value = DISPLAY_ROLE_WEIGHTS[m.role] ?? 0.2;
                                         if (!acc[parent] || value > acc[parent]) acc[parent] = value;
                                         return acc;
                                     }, {} as Record<string, number>);
@@ -1322,20 +1367,12 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             const validSets = ex.sets?.filter(s => (s as any).type !== 'warmup') || [];
             if (validSets.length === 0) return;
 
-            // 1. Detección Inteligente de Volumen Basura y Solapamiento
             validSets.forEach(set => {
-                let rpe = set.targetRPE || 8;
-                if (set.intensityMode === 'rir' && set.targetRIR !== undefined) rpe = 10 - set.targetRIR;
-                if (set.isAmrap || set.intensityMode === 'failure' || set.intensityMode === 'amrap') rpe = 11;
-
-                let volMult = 1.0;
-                if (rpe >= 10) volMult = 1.2;
-                else if (rpe >= 8) volMult = 1.0;
-                else volMult = 0.6;
+                const volMult = getEffectiveVolumeMultiplier(set);
 
                 info.involvedMuscles.forEach(m => {
                     const parent = normalizeMuscleGroup(m.muscle);
-                    const hyperFactor = m.role === 'primary' ? 1.0 : m.role === 'secondary' ? 0.5 : 0.0;
+                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
                     const addedVol = hyperFactor * volMult;
                     const limit = limits[parent]?.maxSession || 6;
                     

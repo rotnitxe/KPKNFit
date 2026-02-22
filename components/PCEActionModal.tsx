@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAppContext } from '../contexts/AppContext';
+import { getCachedAdaptiveData } from '../services/augeAdaptiveService';
+import { GPFatigueCurve, BayesianConfidence } from './ui/AugeDeepView';
 
 export const PCEActionModal: React.FC = () => {
     const [pceData, setPceData] = useState<any>(null);
@@ -10,6 +12,8 @@ export const PCEActionModal: React.FC = () => {
         window.addEventListener('auge-pce-triggered', handleTrigger);
         return () => window.removeEventListener('auge-pce-triggered', handleTrigger);
     }, []);
+
+    const adaptiveCache = useMemo(() => getCachedAdaptiveData(), []);
 
     if (!pceData) return null;
 
@@ -80,6 +84,24 @@ export const PCEActionModal: React.FC = () => {
                             {pceData.isExtreme ? "Cancelar Sesión de Mañana" : "Modificar Sesión de Mañana"}
                         </button>
                     </div>
+                </div>
+
+                {/* AUGE: Impacto Proyectado */}
+                <div className="mt-4 bg-gray-800/60 border border-violet-500/20 p-4 rounded-xl">
+                    <h3 className="font-bold text-violet-400 mb-3 flex items-center gap-2 text-sm">🧠 Impacto Proyectado AUGE</h3>
+                    <div className="mb-3">
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-2">Fatiga próximas 72h</p>
+                        <GPFatigueCurve data={adaptiveCache.gpCurve} compact />
+                    </div>
+                    <div className="mb-3">
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-2">Recuperación Bayesiana</p>
+                        <BayesianConfidence totalObservations={adaptiveCache.totalObservations} personalizedRecoveryHours={adaptiveCache.personalizedRecoveryHours} compact />
+                    </div>
+                    {adaptiveCache.banister?.verdict && (
+                        <div className="px-2 py-1.5 bg-black/40 rounded-lg border border-white/5">
+                            <p className="text-[9px] text-zinc-300 font-medium italic">{adaptiveCache.banister.verdict}</p>
+                        </div>
+                    )}
                 </div>
 
                 <button 

@@ -32,7 +32,7 @@ import { routerNavigate, routerBack } from '../routes/navigation';
 import * as aiService from '../services/aiService';
 import { getWeekId, estimatePercent1RM, getRepDebtContextKey, calculateBrzycki1RM } from '../utils/calculations';
 import { cacheService } from '../services/cacheService';
-import { calculateCompletedSessionStress } from '../services/fatigueService';
+import { calculateCompletedSessionStress } from '../services/auge';
 import { UIProvider, UIState, UIDispatch } from './UIContext';
 
 const AppStateContext = createContext<AppContextState | undefined>(undefined);

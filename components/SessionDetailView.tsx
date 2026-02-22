@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { useAppState } from '../contexts/AppContext';
 import { Session, Program, Exercise } from '../types';
 import { calculateIFI } from '../services/analysisService';
-import { calculatePredictedSessionDrain } from '../services/fatigueService';
+import { calculatePredictedSessionDrain } from '../services/auge';
 import Card from './ui/Card';
 import { BrainIcon, BarChartIcon, TrendingUpIcon, SparklesIcon, CheckCircleIcon, DumbbellIcon } from './icons';
 import { WorkoutVolumeAnalysis } from './WorkoutVolumeAnalysis';

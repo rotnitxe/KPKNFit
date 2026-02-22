@@ -7,12 +7,9 @@ import {
     calculateGlobalBatteries,
     calculateSystemicFatigue,
     calculateDailyReadiness,
-} from '../services/recoveryService';
-
-import {
     calculatePredictedSessionDrain,
     calculateCompletedSessionStress,
-} from '../services/fatigueService';
+} from '../services/auge';
 
 import {
     calculateACWR,

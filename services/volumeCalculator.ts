@@ -312,22 +312,13 @@ export const normalizeMuscleGroup = (specificMuscle: string): string => {
 };
 
 // --- LA NUEVA CALCULADORA MAESTRA DE VOLUMEN UNIFICADO ---
+// Multiplicadores importados desde AUGE (Single Source of Truth)
+import {
+    HYPERTROPHY_ROLE_MULTIPLIERS as MUSCLE_ROLE_MULTIPLIERS,
+    FATIGUE_ROLE_MULTIPLIERS,
+} from './auge';
 
-// 1. Multiplicadores para HIPERTROFIA (Regla de NO-Conteo Marginal)
-export const MUSCLE_ROLE_MULTIPLIERS: Record<string, number> = {
-    primary: 1.0,     // Principal = 1 serie entera (Tensión dinámica)
-    secondary: 0.5,   // Secundario dinámico = media serie
-    stabilizer: 0.0,  // Estabilizador = 0.0 (Sin ROM, no cuenta para crecimiento)
-    neutralizer: 0.0  // Neutralizador = 0.0
-};
-
-// 1.1 Multiplicadores para FATIGA / AUGE (Regla de SÍ-Conteo Marginal)
-export const FATIGUE_ROLE_MULTIPLIERS: Record<string, number> = {
-    primary: 1.0,     // Drenaje total
-    secondary: 0.6,   // Drenaje alto
-    stabilizer: 0.3,  // Drenaje moderado por esfuerzo isométrico/compresión
-    neutralizer: 0.15 // Drenaje leve
-};
+export { MUSCLE_ROLE_MULTIPLIERS, FATIGUE_ROLE_MULTIPLIERS };
 
 // 2. Motor único: Cuenta las series reales basándose en el rol del músculo
 

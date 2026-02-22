@@ -1,6 +1,6 @@
 
 import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog, NutritionLog } from '../types';
-import { calculateSetStress, getDynamicAugeMetrics } from './fatigueService';
+import { calculateSetStress, getDynamicAugeMetrics, WEEKLY_CNS_FATIGUE_REFERENCE } from './fatigueService';
 import { buildExerciseIndex, findExercise, ExerciseIndex } from '../utils/exerciseIndex';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
@@ -408,8 +408,7 @@ export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: Sleep
         cnsLoad += sessionCNS * recencyMultiplier;
     });
 
-    // Normalizar carga (0-100). Referencia: 4000 pts = Fatiga total teórica semanal para un avanzado
-    const normalizedGymFatigue = clamp((cnsLoad / 4000) * 100, 0, 100);
+    const normalizedGymFatigue = clamp((cnsLoad / WEEKLY_CNS_FATIGUE_REFERENCE) * 100, 0, 100);
 
     let sleepPenalty = 0;
     

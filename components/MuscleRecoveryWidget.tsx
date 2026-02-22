@@ -1,8 +1,10 @@
 // components/MuscleRecoveryWidget.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { BatteryAuditLog } from '../services/recoveryService';
+import { BatteryAuditLog } from '../services/auge';
 import { calculateGlobalBatteriesAsync } from '../services/computeWorkerService';
+import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
+import AugeDeepView, { SelfImprovementScore } from './ui/AugeDeepView';
 import { ActivityIcon, BrainIcon, SettingsIcon, XIcon, ZapIcon, InfoIcon, TargetIcon, LayersIcon } from './icons';
 import Modal from './ui/Modal';
 import SkeletonLoader from './ui/SkeletonLoader';
@@ -56,13 +58,14 @@ const SystemBatteryWidget: React.FC = () => {
     
     const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
     const [isCalibrating, setIsCalibrating] = useState(false);
+    const [auditTab, setAuditTab] = useState<'logs' | 'precision'>('logs');
     
-    // Sliders de calibración manual
     const [calibCns, setCalibCns] = useState(0);
     const [calibMusc, setCalibMusc] = useState(0);
     const [calibSpinal, setCalibSpinal] = useState(0);
 
     const [batteries, setBatteries] = useState<Awaited<ReturnType<typeof calculateGlobalBatteriesAsync>> | null>(null);
+    const [adaptiveCache, setAdaptiveCache] = useState<AugeAdaptiveCache | null>(null);
     const versionRef = useRef(0);
 
     useEffect(() => {
@@ -72,6 +75,10 @@ const SystemBatteryWidget: React.FC = () => {
             .then(result => { if (versionRef.current === v) setBatteries(result); })
             .catch(() => {});
     }, [history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList, isAppLoading]);
+
+    useEffect(() => {
+        setAdaptiveCache(getCachedAdaptiveData());
+    }, []);
 
     if (!batteries) return <SkeletonLoader lines={3} />;
 
@@ -118,7 +125,24 @@ const SystemBatteryWidget: React.FC = () => {
                     <InfoIcon size={16} className="text-zinc-500 shrink-0 mt-0.5" />
                     <p className="text-[9px] text-zinc-400 font-medium leading-relaxed italic">"{batteries.verdict}"</p>
                 </div>
+
+                {adaptiveCache && adaptiveCache.banister && (
+                    <div className="mt-3 pt-3 border-t border-white/5 relative z-10 flex items-start gap-2">
+                        <ZapIcon size={12} className="text-yellow-400 mt-0.5 shrink-0" />
+                        <p className="text-[9px] text-zinc-300 font-medium italic">{adaptiveCache.banister.verdict || 'Fitness vs fatiga: sin datos suficientes.'}</p>
+                    </div>
+                )}
             </div>
+
+            {adaptiveCache && (
+                <div className="mt-3" onClick={e => e.stopPropagation()}>
+                    <AugeDeepView
+                        cache={adaptiveCache}
+                        showSections={['gp', 'bayesian', 'banister']}
+                        compact={true}
+                    />
+                </div>
+            )}
 
             {/* MODAL AUDITORÍA (RECIBO DE BANCO) */}
             <Modal isOpen={isAuditModalOpen} onClose={() => setIsAuditModalOpen(false)} title="Auditoría de Sistemas" useCustomContent={true}>
@@ -127,6 +151,13 @@ const SystemBatteryWidget: React.FC = () => {
                         <h2 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2"><SettingsIcon size={16} className="text-white"/> Diagnóstico</h2>
                         <button onClick={() => setIsAuditModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors p-1 bg-zinc-900 rounded-full"><XIcon size={16}/></button>
                     </div>
+
+                    {!isCalibrating && (
+                        <div className="flex border-b border-[#222] shrink-0">
+                            <button onClick={() => setAuditTab('logs')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${auditTab === 'logs' ? 'text-white border-b-2 border-white' : 'text-zinc-500 hover:text-zinc-300'}`}>Diagnóstico</button>
+                            <button onClick={() => setAuditTab('precision')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${auditTab === 'precision' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-zinc-500 hover:text-zinc-300'}`}>Precisión AUGE</button>
+                        </div>
+                    )}
 
                     <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                         {isCalibrating ? (
@@ -153,7 +184,7 @@ const SystemBatteryWidget: React.FC = () => {
                                     <button onClick={handleSaveCalibration} className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-500 shadow-lg">Aplicar Delta</button>
                                 </div>
                             </div>
-                        ) : (
+                        ) : auditTab === 'logs' ? (
                             <>
                                 <AuditList logs={batteries.auditLogs.cns} title="Sistema Nervioso Central (SNC)" color="text-sky-400" />
                                 <AuditList logs={batteries.auditLogs.muscular} title="Recuperación Muscular" color="text-rose-400" />
@@ -165,6 +196,45 @@ const SystemBatteryWidget: React.FC = () => {
                                     </button>
                                 </div>
                             </>
+                        ) : (
+                            <div className="space-y-6 animate-fade-in">
+                                {adaptiveCache?.selfImprovement ? (
+                                    <>
+                                        <div className="bg-[#111] border border-yellow-500/20 p-5 rounded-2xl">
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-yellow-400 mb-4 flex items-center gap-2"><ZapIcon size={12}/> Score de Precisión</h4>
+                                            <SelfImprovementScore
+                                                score={adaptiveCache.selfImprovement.overall_prediction_score}
+                                                trend={adaptiveCache.selfImprovement.improvement_trend}
+                                                recommendations={adaptiveCache.selfImprovement.recommendations}
+                                            />
+                                        </div>
+
+                                        {adaptiveCache.selfImprovement.accuracy_by_system.length > 0 && (
+                                            <div className="bg-[#111] border border-white/5 p-5 rounded-2xl">
+                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-4">Precisión por Sistema</h4>
+                                                <div className="space-y-3">
+                                                    {adaptiveCache.selfImprovement.accuracy_by_system.map(sys => (
+                                                        <div key={sys.system} className="flex justify-between items-center">
+                                                            <span className="text-[10px] font-bold text-zinc-300 uppercase">{sys.system}</span>
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="text-[9px] text-zinc-500 font-mono">R²={sys.r_squared.toFixed(2)}</span>
+                                                                <span className="text-[9px] text-zinc-500 font-mono">MAE={sys.mae.toFixed(1)}</span>
+                                                                <span className="text-[10px] font-bold text-zinc-300">{sys.sample_size} obs</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <BrainIcon size={32} className="text-zinc-700 mx-auto mb-4" />
+                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">AUGE aún no tiene datos de auto-mejora</p>
+                                        <p className="text-[9px] text-zinc-600 mt-2">Completa sesiones y reporta tu estado para que AUGE aprenda.</p>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>

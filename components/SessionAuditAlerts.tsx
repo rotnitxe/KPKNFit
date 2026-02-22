@@ -2,15 +2,15 @@ import React, { useMemo } from 'react';
 import { AlertTriangleIcon, InfoIcon } from './icons';
 import { Exercise, ExerciseMuscleInfo } from '../types';
 import { validateSessionVolume, normalizeMuscleGroup } from '../services/volumeCalculator';
+import { HYPERTROPHY_ROLE_MULTIPLIERS, FATIGUE_ROLE_MULTIPLIERS } from '../services/auge';
 
 interface SessionAuditAlertsProps {
     sessionExercises: { name: string; sets: any[]; exerciseDbId?: string }[]; 
-    allExercisesDB: Exercise[]; // Necesitamos la DB para saber qué músculos ataca cada ejercicio
+    allExercisesDB: Exercise[];
 }
 
 const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercises, allExercisesDB }) => {
     
-// 1. Calcular Volumen de Hipertrofia y Fatiga Marginal (Doble Motor AUGE)
     const { sessionVolume, marginalFatigue } = useMemo(() => {
         const hyperMap: Record<string, number> = {};
         const fatigueMap: Record<string, number> = {};
@@ -30,14 +30,8 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
                  dbInfo.involvedMuscles.forEach((m) => {
                      const parentMuscle = normalizeMuscleGroup(m.muscle);
                      
-                     // Reglas Biológicas AUGE: Separación de Hipertrofia y Fatiga
-                     let hyperFactor = 0;
-                     let fatigueFactor = 0;
-                     
-                     if (m.role === 'primary') { hyperFactor = 1.0; fatigueFactor = 1.0; }
-                     else if (m.role === 'secondary') { hyperFactor = 0.5; fatigueFactor = 0.6; }
-                     else if (m.role === 'stabilizer') { hyperFactor = 0.0; fatigueFactor = 0.3; } // Esfuerzo isométrico
-                     else if (m.role === 'neutralizer') { hyperFactor = 0.0; fatigueFactor = 0.15; }
+                     const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
+                     const fatigueFactor = FATIGUE_ROLE_MULTIPLIERS[m.role] ?? 0;
 
                      const hyperImpact = setCount * hyperFactor;
                      const fatigueImpact = setCount * fatigueFactor;

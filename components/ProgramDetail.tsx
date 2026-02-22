@@ -26,7 +26,9 @@ import ProgramAdherenceWidget from './ProgramAdherenceWidget';
 import ExerciseHistoryWidget from './ExerciseHistoryWidget'; 
 import { RelativeStrengthAndBasicsWidget } from './RelativeStrengthAndBasicsWidget';
 import { getOrderedDaysOfWeek } from '../utils/calculations';
-import InteractiveWeekOverlay from './InteractiveWeekOverlay'; // <-- NUEVO OVERLAY
+import InteractiveWeekOverlay from './InteractiveWeekOverlay';
+import { getCachedAdaptiveData, getConfidenceLabel, getConfidenceColor, AugeAdaptiveCache } from '../services/augeAdaptiveService';
+import { BanisterTrend, BayesianConfidence, SelfImprovementScore } from './ui/AugeDeepView';
 
 const getAbsoluteWeekIndex = (programData: Program, targetBlockId: string, targetWeekId: string) => {
     let abs = 0;
@@ -407,7 +409,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
 
     // --- LÓGICA DEL ORBE DE ADHERENCIA ---
     const [showAdherenceModal, setShowAdherenceModal] = useState(false);
-    const [metricFilter, setMetricFilter] = useState<'todos' | 'volumen' | 'fuerza' | 'historial'>('todos'); // <--- NUEVA LÍNEA
+    const [metricFilter, setMetricFilter] = useState<'todos' | 'volumen' | 'fuerza' | 'historial' | 'auge'>('todos');
+    const [adaptiveCache] = useState<AugeAdaptiveCache>(() => getCachedAdaptiveData());
 
     const programLogs = useMemo(() => history.filter(log => log.programId === program.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [history, program.id]);
 
@@ -1550,7 +1553,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                                     { id: 'todos', label: 'Todos' },
                                     { id: 'volumen', label: 'Fatiga & Volumen' },
                                     { id: 'fuerza', label: 'Fuerza Relativa' },
-                                    { id: 'historial', label: 'Historial' }
+                                    { id: 'historial', label: 'Historial' },
+                                    { id: 'auge', label: 'AUGE Intelligence' }
                                 ].map(f => (
                                     <button 
                                         key={f.id} 
@@ -1619,6 +1623,116 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onStartWorkout, 
                             {(metricFilter === 'todos' || metricFilter === 'historial') && (
                                 <div className="mb-12 animate-slide-up">
                                     <ExerciseHistoryWidget program={program} history={history} />
+                                </div>
+                            )}
+
+                            {/* SECCIÓN 4: AUGE INTELLIGENCE */}
+                            {metricFilter === 'auge' && (
+                                <div className="mb-12 space-y-6 animate-slide-up">
+                                    {/* Banister Completo */}
+                                    <div className="bg-[#0a0a0a] border border-emerald-500/20 rounded-2xl p-5">
+                                        <h3 className="text-xs font-black uppercase tracking-widest text-emerald-400 mb-4 flex items-center gap-2">
+                                            <ActivityIcon size={14} /> Modelo Banister — Fitness vs Fatiga
+                                        </h3>
+                                        {adaptiveCache.banister ? (
+                                            <>
+                                                {Object.entries(adaptiveCache.banister.systems || {}).map(([sys, data]) => (
+                                                    <div key={sys} className="mb-4">
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-2">{sys}</p>
+                                                        <BanisterTrend systemData={data} />
+                                                    </div>
+                                                ))}
+                                                {adaptiveCache.banister.verdict && (
+                                                    <div className="mt-3 px-3 py-2 bg-black/40 rounded-xl border border-white/5">
+                                                        <p className="text-[10px] text-zinc-300 font-medium italic">{adaptiveCache.banister.verdict}</p>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="text-[10px] text-zinc-600 text-center py-8">Entrena más sesiones para activar el modelo Banister.</p>
+                                        )}
+                                    </div>
+
+                                    {/* Mapa de Recuperación Aprendida */}
+                                    <div className="bg-[#0a0a0a] border border-sky-500/20 rounded-2xl p-5">
+                                        <h3 className="text-xs font-black uppercase tracking-widest text-sky-400 mb-4">Mapa de Recuperación Aprendida</h3>
+                                        <BayesianConfidence
+                                            totalObservations={adaptiveCache.totalObservations}
+                                            personalizedRecoveryHours={adaptiveCache.personalizedRecoveryHours}
+                                        />
+                                        {Object.keys(adaptiveCache.personalizedRecoveryHours).length > 0 ? (
+                                            <div className="mt-4 space-y-2">
+                                                {Object.entries(adaptiveCache.personalizedRecoveryHours).map(([muscle, hrs]) => {
+                                                    const populational = 72;
+                                                    const diff = hrs - populational;
+                                                    return (
+                                                        <div key={muscle} className="flex items-center justify-between bg-[#111] p-3 rounded-xl border border-white/5">
+                                                            <span className="text-[10px] font-bold text-zinc-300">{muscle}</span>
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="text-[9px] text-zinc-500 font-mono">{populational}h pobl.</span>
+                                                                <span className={`text-[10px] font-mono font-bold ${diff < 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                    {hrs.toFixed(0)}h ({diff > 0 ? '+' : ''}{diff.toFixed(0)}h)
+                                                                </span>
+                                                                <div className="w-12 h-1.5 bg-black rounded-full overflow-hidden">
+                                                                    <div className={`h-full rounded-full ${diff < 0 ? 'bg-emerald-400' : 'bg-rose-400'}`} style={{ width: `${Math.min(100, Math.abs(diff) / populational * 100 + 50)}%` }} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <p className="text-[10px] text-zinc-600 text-center py-4 mt-3">AUGE aún no ha aprendido tus tasas de recuperación.</p>
+                                        )}
+                                    </div>
+
+                                    {/* Dashboard de Auto-Mejora */}
+                                    <div className="bg-[#0a0a0a] border border-yellow-500/20 rounded-2xl p-5">
+                                        <h3 className="text-xs font-black uppercase tracking-widest text-yellow-400 mb-4">Dashboard de Auto-Mejora</h3>
+                                        {adaptiveCache.selfImprovement ? (
+                                            <>
+                                                <SelfImprovementScore
+                                                    score={adaptiveCache.selfImprovement.overall_prediction_score}
+                                                    trend={adaptiveCache.selfImprovement.improvement_trend}
+                                                    recommendations={adaptiveCache.selfImprovement.recommendations}
+                                                />
+                                                {adaptiveCache.selfImprovement.accuracy_by_system.length > 0 && (
+                                                    <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-2">Precisión por Sistema</p>
+                                                        {adaptiveCache.selfImprovement.accuracy_by_system.map(sys => (
+                                                            <div key={sys.system} className="flex items-center justify-between bg-[#111] p-2 rounded-lg">
+                                                                <span className="text-[10px] font-bold text-zinc-300 uppercase">{sys.system}</span>
+                                                                <div className="flex items-center gap-2 text-[9px] font-mono">
+                                                                    <span className="text-zinc-500">R²={sys.r_squared.toFixed(2)}</span>
+                                                                    <span className="text-zinc-500">MAE={sys.mae.toFixed(1)}</span>
+                                                                    <span className={`font-bold ${sys.r_squared > 0.7 ? 'text-emerald-400' : sys.r_squared > 0.4 ? 'text-yellow-400' : 'text-rose-400'}`}>
+                                                                        {sys.sample_size} obs
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="text-[10px] text-zinc-600 text-center py-8">AUGE necesita más datos para evaluar su precisión.</p>
+                                        )}
+                                    </div>
+
+                                    {/* Resumen de Hallazgos */}
+                                    {(adaptiveCache.selfImprovement?.recommendations?.length ?? 0) > 0 && (
+                                        <div className="bg-[#0a0a0a] border border-violet-500/20 rounded-2xl p-5">
+                                            <h3 className="text-xs font-black uppercase tracking-widest text-violet-400 mb-3">Hallazgos de AUGE</h3>
+                                            <div className="space-y-2">
+                                                {adaptiveCache.selfImprovement!.recommendations.map((rec, i) => (
+                                                    <div key={i} className="flex items-start gap-2 bg-[#111] p-3 rounded-xl border border-white/5">
+                                                        <span className="text-violet-400 mt-0.5 shrink-0">→</span>
+                                                        <p className="text-[10px] text-zinc-300 leading-relaxed">{rec}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

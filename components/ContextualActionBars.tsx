@@ -9,19 +9,12 @@ import {
     ActivityIcon, SettingsIcon, Volume2Icon, PaletteIcon
 } from './icons';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { calculateSetStress } from '../services/fatigueService';
+import { calculateSetStress, classifyStressLevel } from '../services/auge';
 
 const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
-};
-
-const getStressLabel = (score: number) => {
-    if (score < 40) return { label: 'Bajo', color: 'text-sky-400', barColor: 'bg-sky-500' };
-    if (score < 80) return { label: 'Óptimo', color: 'text-green-400', barColor: 'bg-green-500' };
-    if (score < 120) return { label: 'Alto', color: 'text-orange-400', barColor: 'bg-orange-500' };
-    return { label: 'Excesivo', color: 'text-red-500', barColor: 'bg-red-500' };
 };
 
 export const WorkoutSessionActionBar: React.FC<{ actions: TabBarActions }> = ({ actions }) => {
@@ -63,7 +56,7 @@ export const WorkoutSessionActionBar: React.FC<{ actions: TabBarActions }> = ({ 
         return { completedSets: Object.keys(ongoingWorkout.completedSets).length, totalSets, totalTonnage, totalStress: Math.round(totalStress) };
     }, [ongoingWorkout, exerciseList]);
 
-    const stressInfo = getStressLabel(stats.totalStress);
+    const stressInfo = classifyStressLevel(stats.totalStress);
 
     if (!ongoingWorkout) return null;
 

@@ -2,8 +2,8 @@
 // services/analysisService.ts
 import { Program, DetailedMuscleVolumeAnalysis, ExerciseMuscleInfo, Settings, Session, MuscleHierarchy, Exercise, WorkoutLog, ExerciseSet, CompletedSet, ProgramWeek, NutritionLog, BodyProgressLog } from '../types';
 import { getWeekId, calculateFFMI, calculateBrzycki1RM } from '../utils/calculations';
-import { isSetEffective, calculateCompletedSessionStress } from './fatigueService';
-import { MUSCLE_ROLE_MULTIPLIERS } from './volumeCalculator';
+import { isSetEffective, calculateCompletedSessionStress, HYPERTROPHY_ROLE_MULTIPLIERS, classifyACWR } from './auge';
+const MUSCLE_ROLE_MULTIPLIERS = HYPERTROPHY_ROLE_MULTIPLIERS;
 import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 
 const createChildToParentMap = (hierarchy: MuscleHierarchy): Map<string, string> => {
@@ -79,7 +79,7 @@ export const calculateAverageVolumeForWeeks = (
                     // 1. Lógica de Frecuencia Intra-Sesión
                     const currentFreq = sessionFreqImpact.get(group) || { direct: 0, indirect: 0 };
                     if ((m.role === 'primary' || m.role === 'secondary') && hasDirectEffectiveSets) {
-                        const impactVal = m.role === 'primary' ? 1.0 : 0.5;
+                        const impactVal = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0.5;
                         currentFreq.direct = Math.max(currentFreq.direct, impactVal);
                     } else if (m.role === 'stabilizer' || m.role === 'neutralizer') {
                         currentFreq.indirect = 1.0;
@@ -247,12 +247,7 @@ export const calculateACWR = (
   if (chronicLoad < 10) return { acwr: 0, interpretation: 'Carga baja', color: 'text-sky-400' };
 
   const acwr = acuteLoad / chronicLoad;
-  let interpretation = 'Zona Segura';
-  let color = 'text-green-400';
-
-  if (acwr < 0.8) { interpretation = 'Sub-entrenando'; color = 'text-sky-400'; }
-  else if (acwr > 1.3 && acwr <= 1.5) { interpretation = 'Zona de Riesgo'; color = 'text-yellow-400'; }
-  else if (acwr > 1.5) { interpretation = 'Alto Riesgo'; color = 'text-red-400'; }
+  const { interpretation, color } = classifyACWR(acwr);
 
   return { acwr: parseFloat(acwr.toFixed(2)), interpretation, color };
 };
