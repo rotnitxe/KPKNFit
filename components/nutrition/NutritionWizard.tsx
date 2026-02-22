@@ -531,12 +531,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     };
 
     return (
-        <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+        <div className="min-h-screen bg-black/70 flex flex-col relative overflow-hidden">
             <AnimatedSvgBackground
                 src="/fondo-wizards.svg"
                 variant="horizontal"
                 animation="zoom"
-                opacity={0.1}
+                opacity={0.28}
             />
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
                 <div className="flex-1 overflow-y-auto px-4 py-8 custom-scrollbar">
@@ -555,7 +555,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         <div className="animate-fade-in">{renderStep()}</div>
                     </div>
                 </div>
-                <div className="shrink-0 p-4 pb-24 border-t border-white/10 flex gap-3 bg-black/40 backdrop-blur-sm">
+                <div className="shrink-0 p-4 pb-24 border-t border-white/10 flex gap-3 bg-black/25 backdrop-blur-md">
                     {step > 1 ? (
                         <Button
                             onClick={() => setStep(s => s - 1)}

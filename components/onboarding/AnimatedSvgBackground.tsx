@@ -18,7 +18,7 @@ export const AnimatedSvgBackground: React.FC<AnimatedSvgBackgroundProps> = ({
     src,
     variant,
     animation = 'parallax',
-    opacity = 0.12,
+    opacity = 0.28,
     className = '',
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -68,9 +68,9 @@ export const AnimatedSvgBackground: React.FC<AnimatedSvgBackgroundProps> = ({
                     }}
                 />
             </div>
-            {/* Overlay oscuro para contraste y legibilidad del texto */}
+            {/* Overlay oscuro para contraste y legibilidad del texto (menos opaco para que el fondo se vea) */}
             <div
-                className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/75 to-black/90"
+                className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/55 to-black/70"
                 style={{ opacity: 1 }}
             />
         </div>

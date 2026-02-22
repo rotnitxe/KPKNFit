@@ -140,12 +140,12 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
     const current = SLIDES[slide];
 
     return (
-        <div className="fixed inset-0 z-[9999] flex flex-col bg-black overflow-hidden">
+        <div className="fixed inset-0 z-[9999] flex flex-col bg-black/70 overflow-hidden">
             <AnimatedSvgBackground
                 src="/fondo-welcome.svg"
                 variant="vertical"
                 animation="scroll"
-                opacity={0.1}
+                opacity={0.3}
             />
 
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
@@ -153,21 +153,21 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center justify-center px-6 py-12">
                     <div className="w-full max-w-md mx-auto">
                         <div className="flex justify-center mb-6">
-                            <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                            <div className="w-20 h-20 rounded-2xl bg-black/20 border border-white/10 flex items-center justify-center backdrop-blur-md">
                                 {current.icon}
                             </div>
                         </div>
                         <h2 className="text-xl font-black text-white uppercase tracking-tight text-center mb-6 font-mono">
                             {current.title}
                         </h2>
-                        <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+                        <div className="bg-black/25 backdrop-blur-md rounded-2xl border border-white/10 p-6">
                             {current.content}
                         </div>
                     </div>
                 </div>
 
                 {/* Navegación */}
-                <div className="shrink-0 px-6 pb-10 pt-4 border-t border-white/5">
+                <div className="shrink-0 px-6 pb-10 pt-4 border-t border-white/5 bg-black/20 backdrop-blur-sm">
                     <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
                         <button
                             onClick={handlePrev}
