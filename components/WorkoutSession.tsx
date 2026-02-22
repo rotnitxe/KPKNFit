@@ -1192,20 +1192,23 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     useEffect(() => {
         // PREVENT STATE CLOBBERING DURING FINISH
-        if (ongoingWorkout && !isFinishingRef.current) {
-            setOngoingWorkout({ 
-                ...ongoingWorkout, 
-                completedSets: completedSets as any, 
-                exerciseFeedback, 
-                unilateralSetInputs: setInputs as any, 
-                selectedBrands: selectedTags, 
-                activeExerciseId, 
-                activeSetId, 
-                exerciseHeartRates, 
-                consolidatedWeights 
+        if (!isFinishingRef.current) {
+            setOngoingWorkout(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    completedSets: completedSets as any,
+                    exerciseFeedback,
+                    unilateralSetInputs: setInputs as any,
+                    selectedBrands: selectedTags,
+                    activeExerciseId,
+                    activeSetId,
+                    exerciseHeartRates,
+                    consolidatedWeights
+                };
             });
         }
-    }, [completedSets, exerciseFeedback, setInputs, selectedTags, activeExerciseId, activeSetId, ongoingWorkout, setOngoingWorkout, exerciseHeartRates, consolidatedWeights]);
+    }, [completedSets, exerciseFeedback, setInputs, selectedTags, activeExerciseId, activeSetId, setOngoingWorkout, exerciseHeartRates, consolidatedWeights]);
 
 
     const scrollToId = useCallback((exerciseId: string, elementId: string) => {
