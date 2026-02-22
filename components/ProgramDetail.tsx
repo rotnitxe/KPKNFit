@@ -231,7 +231,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 </button>
                 <button
                     onClick={() => setActiveTab('analytics')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'analytics' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'} hidden sm:block`}
+                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'analytics' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'}`}
                 >
                     Analytics
                 </button>
