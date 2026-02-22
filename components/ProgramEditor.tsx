@@ -21,7 +21,8 @@ import PeriodizationTemplateModal from './PeriodizationTemplateModal';
 import Card from './ui/Card';
 import { CaupolicanIcon } from './CaupolicanIcon';
 import ReactDOM from 'react-dom';
-import InteractiveWeekOverlay from './InteractiveWeekOverlay'; // <-- Nuevo import
+import InteractiveWeekOverlay from './InteractiveWeekOverlay';
+import { ProgramEditorAdvanced } from './program-editor';
 import CustomExerciseEditorModal from './CustomExerciseEditorModal';
 import { 
     ArrowLeftIcon, 
@@ -1737,6 +1738,17 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
       );
   }
   if (existingProgram && program) {
+      return (
+          <ProgramEditorAdvanced
+              program={program}
+              onSave={(updated) => { onSave(updated); }}
+              onCancel={onCancel}
+          />
+      );
+  }
+
+  /* Legacy editor code preserved below for reference */
+  if (false && existingProgram && program) {
       const simpleWeeks = program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks || [];
       const imageFilters = `contrast(${coverFilters.contrast}%) saturate(${coverFilters.saturation}%) grayscale(${coverFilters.grayscale}%)`;
 

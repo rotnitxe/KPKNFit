@@ -1,0 +1,9 @@
+export { default as EditorToolbar } from './EditorToolbar';
+export { default as EditorSidebar } from './EditorSidebar';
+export { default as DetailsSection } from './DetailsSection';
+export { default as StructureSection } from './StructureSection';
+export { default as GoalsSection } from './GoalsSection';
+export { default as EventsSection } from './EventsSection';
+export { default as VolumeSection } from './VolumeSection';
+export { default as ExportSection } from './ExportSection';
+export { default as ProgramEditorAdvanced } from './ProgramEditorAdvanced';
