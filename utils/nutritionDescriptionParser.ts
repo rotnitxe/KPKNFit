@@ -6,8 +6,12 @@ import { resolveToCanonical } from '../data/foodSynonyms';
 import { FOOD_DATABASE } from '../data/foodDatabase';
 import { extractCookingMethodFromFragment } from '../data/cookingMethodFactors';
 
-// Solo estos conectores dividen la lista (NO "de" para preservar "pechuga de pollo")
-const LIST_CONNECTORS = /\s+(y|con)\s+|,\s*|\s+\+\s+/gi;
+// Conectores que dividen la lista. "con" solo cuando va seguido de cantidad (ej: "nuggets con 300g arroz")
+// para no romper "agua mineral con gas". Usamos (?:...) para no capturar y evitar que "con" aparezca como fragmento.
+const COMMA_OR_PLUS = /,\s*|\s+\+\s+/g;
+const CONNECTOR_Y = /\s+y\s+/gi;
+// "con" seguido de cantidad (300g, 2 unidades, una porción...) para no romper "agua mineral con gas"
+const CONNECTOR_CON_QUANTITY = /\s+con\s+(?=\d|una?\b|uno\b|dos\b|tres\b|cuatro\b|cinco\b|medio\b|media\b|doble\b|triple\b)/gi;
 
 // Gramos: "300g", "300 g", "200gr", "1.5 kg", "300 gramos de"
 const GRAM_PATTERN = /(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg)(?:\s+de)?\s*/gi;
@@ -127,8 +131,19 @@ function parseFragment(frag: string): ParsedMealItem | null {
 function splitByListConnectors(description: string): string[] {
     const trimmed = description.trim();
     if (!trimmed) return [];
-    const parts = trimmed.split(LIST_CONNECTORS).filter(Boolean);
-    return parts.map(p => p.trim()).filter(Boolean);
+    let parts: string[] = [trimmed];
+    const splitBy = (regex: RegExp) => {
+        const next: string[] = [];
+        for (const p of parts) {
+            const sub = p.split(regex).map(s => s.trim()).filter(Boolean);
+            next.push(...sub);
+        }
+        parts = next;
+    };
+    splitBy(COMMA_OR_PLUS);
+    splitBy(CONNECTOR_Y);
+    splitBy(CONNECTOR_CON_QUANTITY);
+    return parts;
 }
 
 /** Porción global para "plato grande de X y Y" */

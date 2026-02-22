@@ -329,8 +329,9 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 const trend = weeklyTrendKg ?? 0;
                 const weightNum = Number(weight) || 70;
                 const pctWeekly = weightNum > 0 ? (trend / weightNum) * 100 : 0;
-                const isDangerLow = goal === 'lose' && pctWeekly < -0.5;
-                const isDangerHigh = goal === 'gain' && pctWeekly > 1;
+                const trendKgAbs = Math.abs(trend);
+                const isDangerLow = goal === 'lose' && (pctWeekly < -1.2 || trendKgAbs > 1.2);
+                const isDangerHigh = goal === 'gain' && (pctWeekly > 1.5 || trendKgAbs > 1.2);
                 return (
                     <div className="space-y-8">
                         <div>
@@ -372,39 +373,87 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <input type="number" value={healthMultiplier} onChange={e => setHealthMultiplier(Number(e.target.value) || 1)} min={0.8} max={1.2} step={0.05}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono" />
                             </div>
-                            <div className="space-y-4 mt-4">
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Proteínas (g)</label>
-                                    <input type="number" value={proteinG} onChange={e => setProteinG(Number(e.target.value) || 0)} min={0} max={500}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono" />
+                            <div className="mt-6 space-y-5">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Total diario</span>
+                                    <span className="text-2xl font-black text-white font-mono">{caloriesFromMacros} kcal</span>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Carbohidratos (g)</label>
-                                    <input type="number" value={carbsG} onChange={e => setCarbsG(Number(e.target.value) || 0)} min={0} max={800}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono" />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Grasas (g)</label>
-                                    <input type="number" value={fatsG} onChange={e => setFatsG(Number(e.target.value) || 0)} min={0} max={300}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono" />
+                                {(() => {
+                                    const pKcal = proteinG * 4;
+                                    const cKcal = carbsG * 4;
+                                    const fKcal = fatsG * 9;
+                                    const totalKcal = pKcal + cKcal + fKcal || 1;
+                                    const pPct = (pKcal / totalKcal) * 100;
+                                    const cPct = (cKcal / totalKcal) * 100;
+                                    const fPct = (fKcal / totalKcal) * 100;
+                                    return (
+                                        <>
+                                            <div className="h-4 rounded-full overflow-hidden flex bg-white/10">
+                                                <div className="h-full bg-rose-500/80 transition-all" style={{ width: `${pPct}%` }} title={`Proteína ${pPct.toFixed(0)}%`} />
+                                                <div className="h-full bg-amber-500/80 transition-all" style={{ width: `${cPct}%` }} title={`Carbos ${cPct.toFixed(0)}%`} />
+                                                <div className="h-full bg-sky-500/80 transition-all" style={{ width: `${fPct}%` }} title={`Grasas ${fPct.toFixed(0)}%`} />
+                                            </div>
+                                            <div className="flex gap-2 text-[10px] font-bold text-slate-500">
+                                                <span className="text-rose-400">P {pPct.toFixed(0)}%</span>
+                                                <span className="text-amber-400">C {cPct.toFixed(0)}%</span>
+                                                <span className="text-sky-400">G {fPct.toFixed(0)}%</span>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
+                                <div className="grid gap-4">
+                                    {[
+                                        { label: 'Proteínas', value: proteinG, set: setProteinG, max: 500, color: 'rose', kcalPerG: 4 },
+                                        { label: 'Carbohidratos', value: carbsG, set: setCarbsG, max: 800, color: 'amber', kcalPerG: 4 },
+                                        { label: 'Grasas', value: fatsG, set: setFatsG, max: 300, color: 'sky', kcalPerG: 9 },
+                                    ].map(({ label, value, set, max, color, kcalPerG }) => {
+                                        const kcal = value * kcalPerG;
+                                        const barColor = color === 'rose' ? 'bg-rose-500' : color === 'amber' ? 'bg-amber-500' : 'bg-sky-500';
+                                        return (
+                                            <div key={label} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-sm font-bold text-white">{label}</span>
+                                                    <span className="text-xs font-mono text-slate-400">{kcal} kcal</span>
+                                                </div>
+                                                <div className="h-2 rounded-full bg-white/10 overflow-hidden mb-3">
+                                                    <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${Math.min(100, (value / max) * 100)}%` }} />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        value={value}
+                                                        onChange={e => set(Number(e.target.value) || 0)}
+                                                        min={0}
+                                                        max={max}
+                                                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm"
+                                                    />
+                                                    <span className="text-[10px] text-slate-500">g</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
-                            <p className="text-2xl font-black text-white font-mono mt-4">{caloriesFromMacros} kcal/día</p>
                         </div>
 
                         <div>
                             <h2 className="text-xl font-black text-white uppercase tracking-tight">Tendencia</h2>
-                            <div className="bg-slate-900/50 rounded-xl p-4 border border-white/10 mt-4">
-                                <p className="text-sm text-slate-400">Tendencia semanal estimada</p>
+                            <div className="bg-slate-900/50 rounded-xl p-4 border border-white/10 mt-4 space-y-2">
+                                <p className="text-sm text-slate-400">Con tus macros actuales ({caloriesFromMacros} kcal/día):</p>
                                 <p className="text-2xl font-black font-mono text-white">{trend >= 0 ? '+' : ''}{trend.toFixed(2)} kg/sem</p>
-                                <p className="text-xs text-slate-500 mt-1">({pctWeekly >= 0 ? '+' : ''}{pctWeekly.toFixed(2)}% del peso)</p>
+                                <p className="text-xs text-slate-500">({pctWeekly >= 0 ? '+' : ''}{pctWeekly.toFixed(2)}% del peso corporal)</p>
+                                {(goal === 'lose' || goal === 'gain') && tdee != null && (
+                                    <p className="text-xs text-cyan-400/90 mt-2">
+                                        Target: {weeklyChangeKg} kg/sem → {tdee} kcal/día. Ajusta macros para acercarte.
+                                    </p>
+                                )}
                             </div>
                             {(isDangerLow || isDangerHigh) && (
                                 <div className={`p-4 rounded-xl border mt-4 ${isDangerLow ? 'bg-red-950/30 border-red-500/50' : 'bg-amber-950/30 border-amber-500/50'}`}>
                                     <p className="text-sm font-bold text-white">
-                                        {isDangerLow ? 'Ritmo muy agresivo: riesgo de pérdida de masa muscular.' : 'Ritmo muy alto: considera reducir el superávit.'}
+                                        {isDangerLow ? 'Ritmo muy agresivo: más de 1.2 kg/sem puede afectar masa muscular.' : 'Ritmo muy alto: más de 1.2 kg/sem suele acumular más grasa que músculo.'}
                                     </p>
-                                    <p className="text-xs text-slate-400 mt-1">Ajusta calorías o cambio semanal arriba.</p>
+                                    <p className="text-xs text-slate-400 mt-1">Considera reducir el cambio semanal o ajustar calorías.</p>
                                 </div>
                             )}
                             <p className="text-sm text-slate-400 mt-4">Revisa y guarda. Podrás editar todo después en el editor de plan.</p>
