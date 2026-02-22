@@ -3,13 +3,17 @@
 
 import React, { useState } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { NutritionDashboard, RegisterFoodDrawer } from './nutrition/index';
+import { NutritionDashboard, RegisterFoodDrawer, NutritionWizard } from './nutrition/index';
 
 const NutritionView: React.FC = () => {
     const { settings } = useAppState();
     const { handleSaveNutritionLog } = useAppDispatch();
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+    if (!settings.hasSeenNutritionWizard) {
+        return <NutritionWizard onComplete={() => {}} />;
+    }
 
     return (
         <div className="max-w-md mx-auto px-4 pt-4">

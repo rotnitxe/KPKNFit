@@ -4,6 +4,9 @@
 import type { FoodItem, Settings } from '../types';
 import { FOOD_DATABASE } from '../data/foodDatabase';
 
+const STOPWORDS = new Set(['con', 'de', 'y', 'la', 'el', 'en', 'a', 'al', 'del', 'los', 'las', 'un', 'una', 'por', 'para']);
+const FUZZY_THRESHOLD = 0.8;
+
 const CACHE_KEY = 'kpkn-food-search-cache';
 const CACHE_MAX_ENTRIES = 100;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -127,10 +130,21 @@ function foodItemFromUSDA(food: any): FoodItem {
 function searchLocal(query: string): FoodItem[] {
     const q = query.toLowerCase().trim();
     if (!q) return [];
-    return FOOD_DATABASE.filter(f =>
-        f.name.toLowerCase().includes(q) ||
-        (f.brand || '').toLowerCase().includes(q)
-    ).slice(0, 15);
+    if (!hasSignificantQuery(q)) return [];
+    const searchTerms = getSignificantQueryTokens(q).join(' ') || q;
+    let results = FOOD_DATABASE.filter(f => {
+        const name = (f.name || '').toLowerCase();
+        const brand = (f.brand || '').toLowerCase();
+        return searchTerms.split(' ').some(term => name.includes(term) || brand.includes(term));
+    }).slice(0, 15);
+    if (results.length === 0) {
+        results = FOOD_DATABASE.map(f => ({ item: f, score: fuzzyScore(q, f.name) }))
+            .filter(x => x.score >= FUZZY_THRESHOLD)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 15)
+            .map(x => x.item);
+    }
+    return results;
 }
 
 const OFF_OFFLINE_URL = '/data/openFoodFactsOffline.json';
@@ -155,22 +169,38 @@ async function searchOFFOffline(query: string): Promise<FoodItem[]> {
     const products = await loadOFFOffline();
     const q = query.toLowerCase().trim();
     if (!q || products.length === 0) return [];
+    if (!hasSignificantQuery(q)) return [];
+    const terms = getSignificantQueryTokens(q);
+    const searchTerms = terms.length > 0 ? terms : [q];
     const name = (p: any) => (p.product_name || p.product_name_es || '').toLowerCase();
-    const matches = products.filter((p: any) => name(p).includes(q));
+    let matches = products.filter((p: any) =>
+        searchTerms.some(term => name(p).includes(term))
+    );
+    if (matches.length === 0) {
+        matches = products
+            .map((p: any) => ({ p, score: fuzzyScore(q, name(p)) }))
+            .filter(x => x.score >= FUZZY_THRESHOLD)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 15)
+            .map(x => x.p);
+    }
     return matches.slice(0, 15).map((p: any) => foodItemFromOFF(p));
 }
 
 async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
+    if (!hasSignificantQuery(query)) return [];
+    const searchTerms = getSignificantQueryTokens(query).join(' ') || query.trim();
+    if (!searchTerms) return [];
     try {
-        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&json=1&page_size=10`;
+        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerms)}&search_simple=1&json=1&page_size=10`;
         const res = await fetch(url);
         const data = await res.json();
         const products = data.products || [];
         const items = products
             .filter((p: any) => p.product_name && (p.nutriments?.['energy-kcal_100g'] != null || p.nutriments?.proteins_100g != null))
-            .slice(0, 10)
-            .map((p: any) => foodItemFromOFF(p));
-        if (items.length > 0) return items;
+            .map((p: any) => foodItemFromOFF(p))
+            .filter((f: FoodItem) => fuzzyScore(query, f.name) >= FUZZY_THRESHOLD || getSignificantQueryTokens(query).some(t => normalizeFoodName(f.name).includes(t)));
+        if (items.length > 0) return items.slice(0, 10);
     } catch (_) {
         /* Fallback a offline */
     }
@@ -232,9 +262,20 @@ async function searchUSDAOffline(query: string): Promise<FoodItem[]> {
     const foods = await loadUSDAOffline();
     const q = query.toLowerCase().trim();
     if (!q) return [];
-    const matches = foods.filter((f: any) =>
-        (f.description || '').toLowerCase().includes(q)
+    if (!hasSignificantQuery(q)) return [];
+    const terms = getSignificantQueryTokens(q);
+    const searchTerms = terms.length > 0 ? terms : [q];
+    let matches = foods.filter((f: any) =>
+        searchTerms.some(term => (f.description || '').toLowerCase().includes(term))
     );
+    if (matches.length === 0) {
+        matches = foods
+            .map((f: any) => ({ f, score: fuzzyScore(q, f.description || '') }))
+            .filter((x: { f: any; score: number }) => x.score >= FUZZY_THRESHOLD)
+            .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
+            .slice(0, 15)
+            .map((x: { f: any }) => x.f);
+    }
     return matches.slice(0, 15).map((f: any) => foodItemFromUSDA(f));
 }
 
@@ -250,13 +291,63 @@ function normalizeFoodName(name: string): string {
         .trim();
 }
 
-/** Tokens significativos (palabras > 2 chars) */
+/** Tokens significativos (palabras > 2 chars, excluyendo stopwords) */
 function getTokens(normalized: string): Set<string> {
     return new Set(
         normalized
             .split(/\s+/)
-            .filter(t => t.length > 2 && !/^\d+$/.test(t))
+            .filter(t => t.length > 2 && !/^\d+$/.test(t) && !STOPWORDS.has(t))
     );
+}
+
+/** Query sanitizado: sin stopwords, requiere al menos un token significativo */
+function getSignificantQueryTokens(query: string): string[] {
+    const normalized = query
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase()
+        .trim();
+    const tokens = normalized
+        .split(/\s+/)
+        .filter(t => t.length > 2 && !/^\d+$/.test(t) && !STOPWORDS.has(t));
+    return tokens;
+}
+
+/** Si el query solo tiene stopwords o es muy corto, no buscar */
+function hasSignificantQuery(query: string): boolean {
+    const tokens = getSignificantQueryTokens(query);
+    const trimmed = query.trim();
+    return tokens.length > 0 || (trimmed.length >= 3 && !STOPWORDS.has(trimmed.toLowerCase()));
+}
+
+/** Score de similitud fuzzy (0-1): Jaccard + bonus por prefijo */
+function fuzzyScore(query: string, foodName: string): number {
+    const qNorm = normalizeFoodName(query);
+    const fNorm = normalizeFoodName(foodName);
+    if (!qNorm || !fNorm) return 0;
+    const qTokens = getTokens(qNorm);
+    const fTokens = getTokens(fNorm);
+    if (qTokens.size === 0) return fNorm.includes(qNorm) ? 0.9 : 0;
+    const overlap = [...qTokens].filter(t => fTokens.has(t)).length;
+    const union = new Set([...qTokens, ...fTokens]).size;
+    const jaccard = union > 0 ? overlap / union : 0;
+    const coverage = overlap / qTokens.size;
+    const score = (jaccard * 0.5 + coverage * 0.5);
+    if (fNorm.includes(qNorm) || qNorm.includes(fNorm)) return Math.max(score, 0.85);
+    return score;
+}
+
+/** Filtra resultados: descarta los que no comparten al menos un token significativo con el query */
+function filterByRelevance(items: FoodItem[], query: string): FoodItem[] {
+    const qTokens = getSignificantQueryTokens(query);
+    if (qTokens.length === 0) return items;
+    return items.filter(f => {
+        const fTokens = getTokens(normalizeFoodName(f.name));
+        const hasOverlap = qTokens.some(t => fTokens.has(t));
+        if (!hasOverlap) return false;
+        const score = fuzzyScore(query, f.name);
+        return score >= FUZZY_THRESHOLD;
+    });
 }
 
 /** Prioridad de fuente: USDA > local > OFF */
@@ -317,6 +408,7 @@ function mergeAndDeduplicate(local: FoodItem[], off: FoodItem[], usda: FoodItem[
 /**
  * Búsqueda unificada de alimentos
  * Consulta en paralelo: local, Open Food Facts, USDA (prioridad USDA, rellena macros faltantes)
+ * Filtra stopwords, aplica fuzzy matching si no hay resultados exactos, descarta irrelevantes
  */
 export async function searchFoods(
     query: string,
@@ -324,6 +416,7 @@ export async function searchFoods(
 ): Promise<FoodItem[]> {
     const q = query.trim();
     if (!q) return [];
+    if (!hasSignificantQuery(q)) return [];
 
     const cache = getCache();
     const cached = cache.get(q.toLowerCase());
@@ -339,7 +432,19 @@ export async function searchFoods(
         searchUSDA(q, usdaKey),
     ]);
 
-    const merged = mergeAndDeduplicate(local, off, usda);
+    let merged = mergeAndDeduplicate(local, off, usda);
+    merged = filterByRelevance(merged, q);
+
+    if (merged.length === 0) {
+        const allSources = [...local, ...off, ...usda];
+        const fuzzyCandidates = allSources
+            .map(f => ({ item: f, score: fuzzyScore(q, f.name) }))
+            .filter(x => x.score >= FUZZY_THRESHOLD)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 20)
+            .map(x => x.item);
+        merged = mergeAndDeduplicate(fuzzyCandidates, [], []);
+    }
 
     cache.set(q.toLowerCase(), { query: q, results: merged, ts: Date.now() });
     setCache(cache);

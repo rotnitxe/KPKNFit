@@ -10,6 +10,7 @@ const defaultSettings: Settings = {
     hasSeenProgramEditorTour: false,
     hasSeenSessionEditorTour: false,
     hasSeenKPKNTour: false,
+    hasSeenNutritionWizard: false,
     username: 'Atleta',
     profilePicture: undefined,
     athleteType: 'enthusiast',

@@ -53,6 +53,13 @@ export function katchMcArdle(weightKg: number, bodyFatPercent: number): number {
     return 370 + 21.6 * lbm;
 }
 
+/** Mapea género a constante Mifflin: transmale->male, transfemale->female, other->promedio */
+function getMifflinGender(g: string | undefined): 'male' | 'female' {
+    if (g === 'female' || g === 'transfemale') return 'female';
+    if (g === 'male' || g === 'transmale') return 'male';
+    return 'male';
+}
+
 /**
  * Calcula TMB según la fórmula seleccionada
  */
@@ -64,7 +71,7 @@ export function calculateBMR(
     const weight = userVitals.weight;
     const height = userVitals.height;
     const age = userVitals.age;
-    const gender = (userVitals.gender || 'male') as 'male' | 'female';
+    const gender = getMifflinGender(userVitals.gender);
     const bodyFat = userVitals.bodyFatPercentage ?? 15;
 
     if (!weight || !height || !age) return null;

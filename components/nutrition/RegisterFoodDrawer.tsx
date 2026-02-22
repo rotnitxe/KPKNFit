@@ -1,15 +1,17 @@
 // components/nutrition/RegisterFoodDrawer.tsx
 // Drawer lateral para registrar comida con parser de descripción y tags
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionPreset, CookingMethod } from '../../types';
+import { useMealTemplateStore } from '../../stores/mealTemplateStore';
 import { PORTION_MULTIPLIERS } from '../../types';
 import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
 import { getCookingFactor } from '../../data/cookingMethodFactors';
 import { searchFoods } from '../../services/foodSearchService';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
-import { XIcon, PlusIcon, TrashIcon, InfoIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
+import { XIcon, TrashIcon, InfoIcon, UtensilsIcon } from '../icons';
 import { FoodSearchModal } from '../FoodSearchModal';
+import { MealTemplateSelector } from './MealTemplateSelector';
 import Button from '../ui/Button';
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
@@ -19,7 +21,7 @@ const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     return new Date().toISOString();
 };
 
-const DEBOUNCE_MS = 400;
+const DEBOUNCE_MS = 300;
 
 interface TagWithFood {
     tag: string;
@@ -72,14 +74,18 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     mealType: initialMealType = 'lunch',
 }) => {
     const { addToast } = useAppDispatch();
+    const { addMealTemplate } = useMealTemplateStore();
     const [description, setDescription] = useState('');
     const [mealType, setMealType] = useState<NutritionLog['mealType']>(initialMealType);
     const [logDate, setLogDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
     const [tagItems, setTagItems] = useState<TagWithFood[]>([]);
-    const [isSearching, setIsSearching] = useState<Record<string, boolean>>({});
     const [searchModalForTagIdx, setSearchModalForTagIdx] = useState<number | null>(null);
     const [expandedTagIdx, setExpandedTagIdx] = useState<number | null>(null);
     const [showHelp, setShowHelp] = useState(false);
+    const [activeTab, setActiveTab] = useState<'description' | 'templates'>('description');
+    const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+    const [templateName, setTemplateName] = useState('');
+    const skipParseRef = useRef(false);
 
     const parsed = useMemo(() => parseMealDescription(description), [description]);
 
@@ -125,6 +131,10 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     }, []);
 
     const parseAndSetTags = useCallback(() => {
+        if (skipParseRef.current) {
+            skipParseRef.current = false;
+            return;
+        }
         if (!description.trim()) {
             setTagItems([]);
             return;
@@ -183,28 +193,6 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
     const handleDescriptionBlur = () => parseAndSetTags();
     const handleKeyDown = (e: React.KeyboardEvent) => e.key === 'Enter' && parseAndSetTags();
-
-    const fetchFoodForTag = useCallback(
-        async (tag: string, idx: number) => {
-            setIsSearching(s => ({ ...s, [idx]: true }));
-            try {
-                const results = await searchFoods(tag, settings);
-                const item = results[0] || null;
-                if (item) {
-                    setTagItems(prev => {
-                        const next = [...prev];
-                        if (next[idx]?.tag === tag) {
-                            next[idx] = { ...next[idx], foodItem: item, loggedFood: buildLoggedFromItem(item, next[idx]) };
-                        }
-                        return next;
-                    });
-                }
-            } finally {
-                setIsSearching(s => ({ ...s, [idx]: false }));
-            }
-        },
-        [settings, buildLoggedFromItem]
-    );
 
     const handleSearchModalSelect = useCallback((food: FoodItem, logged: LoggedFood, idx: number) => {
         setTagItems(prev => {
@@ -277,6 +265,33 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
     const foods = useMemo(() => tagItems.filter(t => t.loggedFood).map(t => t.loggedFood!) as LoggedFood[], [tagItems]);
 
+    const handleTemplateSelect = useCallback((foodsFromTemplate: LoggedFood[]) => {
+        skipParseRef.current = true;
+        const items: TagWithFood[] = foodsFromTemplate.map(f => {
+            const qty = f.quantity ?? 1;
+            return {
+                tag: f.foodName,
+                portion: (f.portionPreset || 'medium') as PortionPreset,
+                quantity: qty,
+                amountGrams: f.amount / qty,
+                cookingMethod: f.cookingMethod,
+                foodItem: null,
+                loggedFood: f,
+            };
+        });
+        setTagItems(items);
+        setDescription(foodsFromTemplate.map(f => `${f.quantity ?? 1}x ${f.foodName}`).join(', '));
+        setActiveTab('description');
+    }, []);
+
+    const handleSaveAsTemplate = () => {
+        const name = templateName.trim() || `Comida ${new Date().toLocaleDateString()}`;
+        addMealTemplate({ name, description: description.trim() || name, foods });
+        addToast(`Plantilla "${name}" guardada.`, 'success');
+        setShowSaveTemplate(false);
+        setTemplateName('');
+    };
+
     const handleSave = () => {
         if (foods.length === 0) {
             addToast('Añade al menos un alimento o busca coincidencias.', 'danger');
@@ -346,9 +361,40 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         </div>
                     )}
 
+                    <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+                        <button
+                            onClick={() => setActiveTab('description')}
+                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                                activeTab === 'description' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                            }`}
+                        >
+                            Comida
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('templates')}
+                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                                activeTab === 'templates' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                            }`}
+                        >
+                            <UtensilsIcon size={14} />
+                            Plantillas
+                        </button>
+                    </div>
+
+                    {activeTab === 'templates' ? (
+                        <div>
+                            <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                                Plantillas guardadas
+                            </label>
+                            <MealTemplateSelector
+                                onSelect={handleTemplateSelect}
+                                onClose={() => setActiveTab('description')}
+                            />
+                        </div>
+                    ) : (
                     <div>
                         <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                            Descripción
+                            Comida
                         </label>
                         <input
                             type="text"
@@ -359,7 +405,103 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             placeholder="Ej: 200g arroz cocido, 150g pechuga a la plancha"
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
                         />
+                        {tagItems.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                                {tagItems.map((t, idx) => (
+                                    <div key={idx} className="relative">
+                                        <button
+                                            onClick={() => setExpandedTagIdx(prev => (prev === idx ? null : idx))}
+                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                                t.loggedFood
+                                                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                                                    : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
+                                            }`}
+                                        >
+                                            {t.quantity > 1 && <span>{t.quantity}x</span>}
+                                            {t.amountGrams != null && <span>{t.amountGrams}g</span>}
+                                            <span>{t.tag}</span>
+                                            {t.loggedFood && (
+                                                <span className="font-mono text-[10px] opacity-80">
+                                                    {t.loggedFood.calories}kcal
+                                                </span>
+                                            )}
+                                        </button>
+                                        {expandedTagIdx === idx && (
+                                            <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-[#111] border border-white/10 shadow-xl space-y-2">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Gramos</label>
+                                                    <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Porción</label>
+                                                    <div className="flex gap-1 flex-wrap">
+                                                        {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(p => (
+                                                            <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{portionLabels[p]}</button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Cocción</label>
+                                                    <div className="flex gap-1 flex-wrap">
+                                                        {(['crudo', 'cocido', 'plancha', 'horno', 'frito', 'empanizado_frito'] as CookingMethod[]).map(m => (
+                                                            <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{cookingLabels[m]}</button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between pt-2 border-t border-white/5">
+                                                    <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
+                                                    {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}
+                                                </div>
+                                                {t.loggedFood && <p className="text-[10px] text-zinc-500 font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {tagItems.length > 0 && foods.length > 0 && (
+                            <div className="mt-3 flex items-center gap-4">
+                                <span className="text-lg font-black text-white font-mono">{Math.round(totalMacros.calories)} kcal</span>
+                                <span className="text-xs text-zinc-500">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
+                            </div>
+                        )}
+                        {foods.length > 0 && !showSaveTemplate && (
+                            <button
+                                onClick={() => setShowSaveTemplate(true)}
+                                className="mt-3 flex items-center gap-2 text-[10px] font-bold text-cyan-400 hover:text-cyan-300"
+                            >
+                                <UtensilsIcon size={14} />
+                                Guardar como plantilla
+                            </button>
+                        )}
+                        {showSaveTemplate && (
+                            <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                                <input
+                                    type="text"
+                                    value={templateName}
+                                    onChange={e => setTemplateName(e.target.value)}
+                                    placeholder="Nombre de la plantilla"
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600"
+                                    autoFocus
+                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleSaveAsTemplate}
+                                        className="flex-1 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 text-xs font-bold"
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button
+                                        onClick={() => { setShowSaveTemplate(false); setTemplateName(''); }}
+                                        className="py-2 px-3 rounded-lg bg-white/5 text-zinc-500 text-xs font-bold"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
+                    )}
 
                     {multiFoodWarning && (
                         <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-950/30 border border-amber-500/20">
@@ -397,171 +539,6 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         </div>
                     </div>
 
-                    {tagItems.length > 0 && (
-                        <div>
-                            <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                                Tags detectados
-                            </label>
-                            <div className="space-y-3">
-                                {tagItems.map((t, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="bg-white/5 border border-white/10 rounded-xl overflow-hidden"
-                                    >
-                                        <button
-                                            onClick={() => setExpandedTagIdx(prev => (prev === idx ? null : idx))}
-                                            className="w-full p-3 flex justify-between items-center text-left hover:bg-white/5 transition-colors"
-                                        >
-                                            <span className="text-sm font-bold text-white">
-                                                {t.quantity > 1 ? `${t.quantity}x ` : ''}
-                                                {t.amountGrams != null ? `${t.amountGrams}g ` : ''}
-                                                {t.tag}
-                                                {t.cookingMethod && (
-                                                    <span className="text-zinc-500 text-xs ml-1">
-                                                        ({cookingLabels[t.cookingMethod]})
-                                                    </span>
-                                                )}
-                                            </span>
-                                            {expandedTagIdx === idx ? (
-                                                <ChevronUpIcon size={14} className="text-zinc-500" />
-                                            ) : (
-                                                <ChevronDownIcon size={14} className="text-zinc-500" />
-                                            )}
-                                        </button>
-                                        {expandedTagIdx === idx && (
-                                            <div className="px-3 pb-3 pt-0 space-y-3 border-t border-white/5">
-                                                <div>
-                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">
-                                                        Gramos
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        value={t.amountGrams ?? ''}
-                                                        onChange={e =>
-                                                            setAmountGramsForTag(
-                                                                idx,
-                                                                e.target.value ? parseFloat(e.target.value) : undefined
-                                                            )
-                                                        }
-                                                        placeholder="Ej: 200"
-                                                        min={1}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">
-                                                        Porción
-                                                    </label>
-                                                    <div className="flex gap-1 flex-wrap">
-                                                        {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(
-                                                            p => (
-                                                                <button
-                                                                    key={p}
-                                                                    onClick={() => setPortionForTag(idx, p)}
-                                                                    className={`px-2 py-1 rounded text-[9px] font-bold transition-all ${
-                                                                        t.portion === p
-                                                                            ? 'bg-white text-black'
-                                                                            : 'bg-white/5 text-zinc-500 hover:text-white'
-                                                                    }`}
-                                                                >
-                                                                    {portionLabels[p]}
-                                                                </button>
-                                                            )
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">
-                                                        Cocción
-                                                    </label>
-                                                    <div className="flex gap-1 flex-wrap">
-                                                        {(
-                                                            ['crudo', 'cocido', 'plancha', 'horno', 'frito', 'empanizado_frito'] as CookingMethod[]
-                                                        ).map(m => (
-                                                            <button
-                                                                key={m}
-                                                                onClick={() =>
-                                                                    setCookingForTag(idx, t.cookingMethod === m ? undefined : m)
-                                                                }
-                                                                className={`px-2 py-1 rounded text-[9px] font-bold transition-all ${
-                                                                    t.cookingMethod === m
-                                                                        ? 'bg-white text-black'
-                                                                        : 'bg-white/5 text-zinc-500 hover:text-white'
-                                                                }`}
-                                                            >
-                                                                {cookingLabels[m]}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between items-center">
-                                                    <button
-                                                        onClick={() => removeTag(idx)}
-                                                        className="text-[10px] text-red-400 hover:text-red-300 font-bold"
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                    {!t.foodItem && (
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => fetchFoodForTag(t.tag, idx)}
-                                                                disabled={isSearching[idx]}
-                                                                className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
-                                                            >
-                                                                {isSearching[idx] ? 'Buscando...' : 'Buscar'}
-                                                                <PlusIcon size={10} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setSearchModalForTagIdx(idx)}
-                                                                className="py-1.5 px-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
-                                                            >
-                                                                Elegir manual
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {t.loggedFood && (
-                                                    <p className="text-[10px] text-zinc-400 font-mono">
-                                                        {t.loggedFood.calories} kcal · {t.loggedFood.protein}g P ·{' '}
-                                                        {t.loggedFood.amount}
-                                                        {t.loggedFood.unit}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )}
-                                        {expandedTagIdx !== idx && (
-                                            <div className="px-3 pb-2 flex justify-end">
-                                                <button
-                                                    onClick={e => {
-                                                        e.stopPropagation();
-                                                        removeTag(idx);
-                                                    }}
-                                                    className="text-zinc-500 hover:text-red-400 p-1"
-                                                >
-                                                    <TrashIcon size={14} />
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {foods.length > 0 && (
-                        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                                Resumen
-                            </p>
-                            <p className="text-2xl font-black text-white">
-                                {Math.round(totalMacros.calories)} <span className="text-sm text-zinc-500">kcal</span>
-                            </p>
-                            <p className="text-xs text-zinc-400 mt-1">
-                                P {totalMacros.protein.toFixed(0)}g · C {totalMacros.carbs.toFixed(0)}g · G{' '}
-                                {totalMacros.fats.toFixed(0)}g
-                            </p>
-                        </div>
-                    )}
                 </div>
 
                 <div className="p-4 border-t border-white/5 shrink-0">

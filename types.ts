@@ -129,6 +129,7 @@ export interface Settings {
   hasSeenProgramEditorTour: boolean;
   hasSeenSessionEditorTour: boolean;
   hasSeenKPKNTour: boolean;
+  hasSeenNutritionWizard?: boolean;
   
   // Perfil
   username?: string;
@@ -214,6 +215,7 @@ export interface Settings {
     gender?: 'male' | 'female' | 'transmale' | 'transfemale' | 'other';
     activityLevel?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
     bodyFatPercentage?: number;
+    muscleMassPercentage?: number;
     targetWeight?: number;
     targetDate?: string;
     targetStartWeight?: number;
@@ -241,6 +243,7 @@ export interface Settings {
   calorieGoalConfig?: CalorieGoalConfig;
   waterIntakeGoal_L?: number;
   dietaryPreference?: 'omnivore' | 'vegetarian' | 'vegan' | 'keto';
+  metabolicConditions?: string[];
   micronutrientFocus?: string[];
   muscleRecoveryMultipliers?: Record<string, number>;
 
@@ -757,6 +760,18 @@ export interface LoggedFood {
     portionInput?: PortionInput;
     cookingMethod?: CookingMethod;
     quantity?: number;
+}
+
+export interface MealTemplate {
+    id: string;
+    name: string;
+    description: string;
+    foods: LoggedFood[];
+    totalCalories: number;
+    totalProtein: number;
+    totalCarbs: number;
+    totalFats: number;
+    createdAt: string;
 }
 
 export interface NutritionLog {
