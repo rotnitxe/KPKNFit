@@ -1,8 +1,8 @@
 
 // hooks/useMuscleRecovery.ts
-import { useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAppState } from '../contexts/AppContext';
-import { calculateMuscleBattery } from '../services/recoveryService';
+import { calculateMuscleBatteryAsync } from '../services/computeWorkerService';
 import { MuscleRecoveryStatus } from '../types';
 
 interface UseMuscleRecoveryReturn {
@@ -10,45 +10,56 @@ interface UseMuscleRecoveryReturn {
     isLoading: boolean;
 }
 
+const TARGET_MUSCLES = [
+    'Pectorales', 'Dorsales', 'Deltoides', 'Bíceps', 'Tríceps',
+    'Cuádriceps', 'Isquiosurales', 'Glúteos', 'Pantorrillas', 'Abdomen', 'Espalda Baja'
+];
+
 export const useMuscleRecovery = (): UseMuscleRecoveryReturn => {
-    // FIX: Added waterLogs to destruction
     const { history, exerciseList, isAppLoading, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs } = useAppState();
 
-    const isLoading = isAppLoading;
+    const [recoveryData, setRecoveryData] = useState<MuscleRecoveryStatus[]>([]);
+    const [isComputing, setIsComputing] = useState(false);
+    const versionRef = useRef(0);
 
-    const recoveryData = useMemo<MuscleRecoveryStatus[]>(() => {
-        if (isLoading || !history || !exerciseList) {
-            return [];
+    useEffect(() => {
+        if (isAppLoading || !history || !exerciseList) {
+            setRecoveryData([]);
+            return;
         }
 
-        // Definimos los grupos musculares que queremos trackear en la batería
-        const targetMuscles = [
-            'Pectorales', 'Dorsales', 'Deltoides', 'Bíceps', 'Tríceps', 
-            'Cuádriceps', 'Isquiosurales', 'Glúteos', 'Pantorrillas', 'Abdomen', 'Espalda Baja'
-        ];
+        const version = ++versionRef.current;
+        setIsComputing(true);
 
-        const allStatuses = targetMuscles.map(muscleName => {
-            // FIX: Added waterLogs to function call
-            const batteryData = calculateMuscleBattery(
-                muscleName, 
-                history, 
-                exerciseList, 
-                sleepLogs, 
-                settings,
-                muscleHierarchy,
-                postSessionFeedback,
-                waterLogs
-            );
-            return {
-                muscleId: muscleName.toLowerCase().replace(/\s/g, '-'),
-                muscleName: muscleName,
-                ...batteryData
-            } as MuscleRecoveryStatus;
-        });
+        const computeAll = async () => {
+            try {
+                const results = await Promise.all(
+                    TARGET_MUSCLES.map(muscleName =>
+                        calculateMuscleBatteryAsync(
+                            muscleName, history, exerciseList, sleepLogs,
+                            settings, muscleHierarchy, postSessionFeedback, waterLogs
+                        ).then(batteryData => ({
+                            muscleId: muscleName.toLowerCase().replace(/\s/g, '-'),
+                            muscleName,
+                            ...batteryData
+                        } as MuscleRecoveryStatus))
+                    )
+                );
 
-        return allStatuses.sort((a, b) => a.recoveryScore - b.recoveryScore);
+                if (versionRef.current === version) {
+                    setRecoveryData(results.sort((a, b) => a.recoveryScore - b.recoveryScore));
+                }
+            } catch {
+                // Fallback: if worker fails, data stays at previous value
+            } finally {
+                if (versionRef.current === version) {
+                    setIsComputing(false);
+                }
+            }
+        };
 
-    }, [history, exerciseList, isLoading, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs]);
+        computeAll();
+    }, [history, exerciseList, isAppLoading, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs]);
 
-    return { recoveryData, isLoading };
+    return { recoveryData, isLoading: isAppLoading || isComputing };
 };

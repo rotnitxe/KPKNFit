@@ -7,7 +7,7 @@ import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import { SleepLog, DailyWellbeingLog, IntensityLevel } from '../types';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
-import { calculateSleepRecommendations, calculateSystemicFatigue } from '../services/recoveryService';
+import { calculateSleepRecommendations } from '../services/recoveryService';
 import { scheduleBedtimeReminder } from '../services/notificationService';
 
 // --- NUEVO MODAL: REGISTRO DE ACTIVIDAD (TRABAJO, ESTUDIO, ÁNIMO) ---

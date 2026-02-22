@@ -1,6 +1,7 @@
 
 import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog, NutritionLog } from '../types';
 import { calculateSetStress, getDynamicAugeMetrics } from './fatigueService';
+import { buildExerciseIndex, findExercise, ExerciseIndex } from '../utils/exerciseIndex';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
 
@@ -75,23 +76,22 @@ const isMuscleInGroup = (specificMuscle: string, targetCategory: string): boolea
 // --- 1. CAPACIDAD DE TRABAJO DINÁMICA CON SUELO DE SEGURIDAD ---
 // Calcula cuánto volumen tolera el usuario. Si el historial está vacío o es errático,
 // usa el tipo de atleta para asegurar un suelo mínimo lógico.
-const calculateUserWorkCapacity = (history: WorkoutLog[], muscleName: string, exerciseList: ExerciseMuscleInfo[], settings: Settings): number => {
+const calculateUserWorkCapacity = (history: WorkoutLog[], muscleName: string, exerciseList: ExerciseMuscleInfo[], settings: Settings, idx?: ExerciseIndex): number => {
     const now = Date.now();
     const fourWeeksAgo = now - (28 * 24 * 60 * 60 * 1000);
     
-    // Filtrar logs de las últimas 4 semanas
     const recentLogs = history.filter(log => new Date(log.date).getTime() > fourWeeksAgo);
     
-    // Obtener suelo base según tipo de atleta (Safety Floor)
     const baseFloor = ATHLETE_CAPACITY_FLOORS[settings.athleteType || 'enthusiast'] || 500;
 
     if (recentLogs.length === 0) return baseFloor;
 
+    const index = idx || buildExerciseIndex(exerciseList);
     let totalStress = 0;
     
     recentLogs.forEach(log => {
         log.completedExercises.forEach(ex => {
-            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.exerciseName);
+            const info = findExercise(index, ex.exerciseDbId, ex.exerciseName);
             if (!info) return;
 
             // Verificar si el músculo participó en el ejercicio
@@ -129,9 +129,10 @@ export const calculateMuscleBattery = (
     nutritionLogs: NutritionLog[] = []
 ) => {
     const now = Date.now();
+    const exIndex = buildExerciseIndex(exerciseList);
     
     // 1. Obtener Capacidad Dinámica (Tu tanque de gasolina personal)
-    const muscleCapacity = calculateUserWorkCapacity(history, muscleName, exerciseList, settings);
+    const muscleCapacity = calculateUserWorkCapacity(history, muscleName, exerciseList, settings, exIndex);
 
     // 2. Determinar Perfil de Recuperación (Half-Life diferenciado)
     let profileKey = 'medium';
@@ -218,11 +219,11 @@ export const calculateMuscleBattery = (
 
     relevantHistory.forEach(log => {
         const logTime = new Date(log.date).getTime();
-        const hoursSince = Math.max(0, (now - logTime) / 3600000); // Sanitización
+        const hoursSince = Math.max(0, (now - logTime) / 3600000);
         let sessionMuscleStress = 0;
 
         log.completedExercises.forEach(ex => {
-            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.exerciseName);
+            const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
             if (!info) return;
 
             // --- LÓGICA DE CASCADA (SINERGISTAS) ---
@@ -371,19 +372,18 @@ export const calculateMuscleBattery = (
 
 export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: SleepLog[], dailyWellbeingLogs: DailyWellbeingLog[], exerciseList: ExerciseMuscleInfo[], settings?: Settings) => {
     const now = Date.now();
+    const exIndex = buildExerciseIndex(exerciseList);
     const last7DaysLogs = history.filter(l => (now - new Date(l.date).getTime()) < 7 * 24 * 3600 * 1000);
     
-    // 1. Carga de Entrenamiento (SNC Focus & Axial)
     let cnsLoad = 0;
     
     last7DaysLogs.forEach(log => {
         const daysAgo = (now - new Date(log.date).getTime()) / (24 * 3600 * 1000);
-        // Factor de recencia suavizado (Exponencial inversa)
         const recencyMultiplier = Math.max(0.1, Math.exp(-0.4 * daysAgo)); 
 
         let sessionCNS = 0;
         log.completedExercises.forEach(ex => {
-            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.exerciseName);
+            const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
             const { cnc } = getDynamicAugeMetrics(info, ex.exerciseName);
             
             ex.sets.forEach(s => {
@@ -691,6 +691,7 @@ export const calculateGlobalBatteries = (
     }
 
     // 3. ACUMULACIÓN DE ENTRENAMIENTO (Drenaje Directo)
+    const exIndex = buildExerciseIndex(exerciseList);
     let cnsFatigue = 0, muscFatigue = 0, spinalFatigue = 0;
     const sevenDaysAgo = now - (7 * 24 * 3600 * 1000);
     const recentLogs = history.filter(l => new Date(l.date).getTime() > sevenDaysAgo);
@@ -699,9 +700,8 @@ export const calculateGlobalBatteries = (
         let logCns = 0, logMusc = 0, logSpinal = 0;
         const hoursAgo = (now - new Date(log.date).getTime()) / 3600000;
         
-        // Sumamos el drenaje de cada serie
         log.completedExercises.forEach(ex => {
-            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.exerciseName);
+            const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
             ex.sets.forEach((s, idx) => {
                 const drain = calculateSetBatteryDrain(s, info, tanks, idx, 90);
                 logCns += drain.cnsDrainPct;

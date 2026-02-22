@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { ExerciseMuscleInfo, ExercisePlaylist } from '../types';
 import { ChevronRightIcon, PlusIcon, TrashIcon, TrophyIcon, ActivityIcon, TargetIcon, BrainIcon, DumbbellIcon, ClipboardListIcon } from './icons';
-import { useAppContext, useAppDispatch } from '../contexts/AppContext';
+import { useAppContext, useAppDispatch, useUIState } from '../contexts/AppContext';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import CoachMark from './ui/CoachMark';
@@ -25,8 +25,9 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ e
 });
 
 const KPKNView: React.FC = () => {
-    const { exerciseList, exercisePlaylists, addOrUpdatePlaylist, deletePlaylist, muscleHierarchy, activeSubTabs, searchQuery, settings } = useAppContext();
+    const { exerciseList, exercisePlaylists, addOrUpdatePlaylist, deletePlaylist, muscleHierarchy, settings } = useAppContext();
     const { setSettings, navigateTo } = useAppDispatch();
+    const { activeSubTabs, searchQuery } = useUIState();
     
     // SubTabBar controls the view logic via activeSubTabs context, or we default to 'Explorar'
     const currentTab = activeSubTabs['kpkn'] || 'Explorar';

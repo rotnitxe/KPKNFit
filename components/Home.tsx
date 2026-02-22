@@ -6,7 +6,6 @@ import Button from './ui/Button';
 import { PlayIcon, FlameIcon, TrophyIcon, ClockIcon, PlusIcon, ChevronRightIcon, ActivityIcon, TargetIcon, CalendarIcon, AlertTriangleIcon, CheckCircleIcon, InfoIcon, PencilIcon, RefreshCwIcon, StarIcon, SettingsIcon, TrendingUpIcon, XIcon } from './icons';
 import { calculateBrzycki1RM } from '../utils/calculations';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { calculateSystemicFatigue, calculateDailyReadiness } from '../services/recoveryService';
 import Modal from './ui/Modal';
 import { CaupolicanIcon } from './CaupolicanIcon';
 import SystemBatteryWidget from './MuscleRecoveryWidget';

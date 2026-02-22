@@ -1,6 +1,6 @@
 // services/volumeCalculator.ts
-import { AthleteProfileScore, Settings, Mesocycle } from '../types';
 import { AthleteProfileScore, Settings, Mesocycle, Session, ExerciseMuscleInfo, MuscleRole } from '../types';
+import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 
 // === CONSTANTES DEL INFORME (Módulos 4 y 5) ===
 const PHASE_FACTORS: Record<string, number> = {
@@ -336,9 +336,10 @@ export const calculateUnifiedMuscleVolume = (
     exerciseList: ExerciseMuscleInfo[]
 ) => {
     const volumeMap: Record<string, number> = {};
+    const exIndex = buildExerciseIndex(exerciseList);
 
     sessions.forEach(session => {
-        if (!session) return; // Protección contra sesiones corruptas
+        if (!session) return;
         
         const allExercises = session.parts && session.parts.length > 0 
             ? session.parts.flatMap(p => p.exercises || []) 
@@ -352,9 +353,7 @@ export const calculateUnifiedMuscleVolume = (
             ).length;
 
             if (validSetsCount > 0) {
-                // Fallback de búsqueda (ID estricto -> Nombre)
-                const dbInfo = exerciseList.find(e => e.id === exercise.exerciseDbId) 
-                            || exerciseList.find(e => e.name.toLowerCase() === exercise.name.toLowerCase());
+                const dbInfo = findExercise(exIndex, exercise.exerciseDbId, exercise.name);
                 
                 // Si el ejercicio tiene músculos definidos en la BD o guardados en la propia sesión histórica
                 const involvedMuscles = dbInfo?.involvedMuscles || (exercise as any).targetMuscles || [];

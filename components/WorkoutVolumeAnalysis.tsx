@@ -3,7 +3,7 @@ import { Program, WorkoutLog, Settings, DetailedMuscleVolumeAnalysis, Session, P
 import { calculateAverageVolumeForWeeks } from '../services/analysisService';
 import { BarChartIcon, ChevronRightIcon, LayersIcon, ActivityIcon, DumbbellIcon, InfoIcon } from './icons';
 import SkeletonLoader from './ui/SkeletonLoader';
-import { useAppContext } from '../contexts/AppContext';
+import { useAppState } from '../contexts/AppContext';
 import ToggleSwitch from './ui/ToggleSwitch';
 import { XIcon } from './icons';
 import { MUSCLE_GROUP_DATA } from '../data/muscleGroupDatabase';
@@ -95,7 +95,7 @@ const getDynamicBenchmarks = (muscleName: string, sets: number, programMode?: st
 };
 
 export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ program, session, sessions, history, isOnline, settings, analysisData, title, onMuscleSelect, selectedMuscleInfo, onCloseMuscle }) => {
-    const { exerciseList, muscleHierarchy } = useAppContext(); // Eliminamos muscleGroupData del destructuring directo si no se usa para mapear IDs
+    const { exerciseList, muscleHierarchy } = useAppState();
     const [displayAnalysis, setDisplayAnalysis] = useState<DetailedMuscleVolumeAnalysis[] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [expandedMuscle, setExpandedMuscle] = useState<string | null>(null);

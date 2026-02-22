@@ -1,5 +1,6 @@
 // services/fatigueService.ts
 import { ExerciseSet, Session, ExerciseMuscleInfo, CompletedExercise, CompletedSet, Exercise, OngoingSetData } from '../types';
+import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 
 /**
  * --- SISTEMA AUGE v2.0: MOTOR DE MÉTRICAS DINÁMICAS ---
@@ -214,18 +215,18 @@ export const calculateSetBatteryDrain = (
  */
 export const calculatePredictedSessionDrain = (session: Session, exerciseList: ExerciseMuscleInfo[], settings?: any) => {
     const tanks = calculatePersonalizedBatteryTanks(settings);
+    const exIndex = buildExerciseIndex(exerciseList);
     
     let totalCnsPct = 0;
     let totalMuscularPct = 0;
     let totalSpinalPct = 0;
     
-    // Mapa de volumen para rastrear la fatiga acumulada del músculo en vivo
     const muscleVolumeMap: Record<string, number> = {};
 
     const exercises = session.parts ? session.parts.flatMap(p => p.exercises) : session.exercises;
 
     exercises?.forEach(ex => {
-        const info = exerciseList.find(i => i.id === ex.exerciseDbId || i.name === ex.name);
+        const info = findExercise(exIndex, ex.exerciseDbId, ex.name);
         const primaryMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
         
         // Contamos cuántas series lleva este músculo ANTES de empezar este ejercicio
@@ -303,9 +304,10 @@ export const calculateCompletedSessionStress = (
     // Mapa para rastrear la fatiga acumulada por músculo en la misma sesión
     const muscleVolumeMap: Record<string, number> = {};
 
+    const exIndex = buildExerciseIndex(exerciseList);
+
     completedExercises.forEach(ex => {
-        // Buscamos la info técnica del ejercicio en la base de datos
-        const info = exerciseList.find(i => i.id === ex.exerciseDbId || i.name === ex.exerciseName);
+        const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
         const primaryMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
         
         let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;

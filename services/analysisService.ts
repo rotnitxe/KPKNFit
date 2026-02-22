@@ -4,6 +4,7 @@ import { Program, DetailedMuscleVolumeAnalysis, ExerciseMuscleInfo, Settings, Se
 import { getWeekId, calculateFFMI, calculateBrzycki1RM } from '../utils/calculations';
 import { isSetEffective, calculateCompletedSessionStress } from './fatigueService';
 import { MUSCLE_ROLE_MULTIPLIERS } from './volumeCalculator';
+import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 
 const createChildToParentMap = (hierarchy: MuscleHierarchy): Map<string, string> => {
     const map = new Map<string, string>();
@@ -31,23 +32,20 @@ export const calculateAverageVolumeForWeeks = (
 ): DetailedMuscleVolumeAnalysis[] => {
     if (weeks.length === 0) return [];
 
+    const exIndex = buildExerciseIndex(exerciseList);
     const allMuscleTotals: Record<string, { totalVol: number, direct: Map<string, number>, indirect: Map<string, {sets: number, act: number}>, freqDirect: number, freqIndirect: number }> = {};
     const childToParentMap = createChildToParentMap(muscleHierarchy);
     
-    // Función segura para obtener la familia del músculo
     const getDisplayGroup = (muscle: string) => childToParentMap.get(muscle) || muscle;
 
     weeks.forEach(week => {
         week.sessions.forEach(session => {
             const exercises = (session.parts && session.parts.length > 0) ? session.parts.flatMap(p => p.exercises) : session.exercises;
             
-            // Mapa de impacto de Frecuencia para ESTA sesión
             const sessionFreqImpact = new Map<string, { direct: number, indirect: number }>();
 
             exercises.forEach(exercise => {
-                // FALLBACK DE SEGURIDAD: Intentar buscar por ID, luego por nombre.
-                const exerciseData = exerciseList.find(e => e.id === exercise.exerciseDbId) 
-                                  || exerciseList.find(e => e.name.toLowerCase() === exercise.name.toLowerCase());
+                const exerciseData = findExercise(exIndex, exercise.exerciseDbId, exercise.name);
                 
                 // Si el ejercicio fue borrado de la DB, lo ignoramos para no crashear
                 if (!exerciseData || !exerciseData.involvedMuscles) return;
@@ -305,10 +303,11 @@ export const calculateWeeklyEffectiveVolumeByMuscleGroup = (
     const thisWeekLogs = history.filter(log => getWeekId(new Date(log.date), settings.startWeekOn) === currentWeekId);
     const plannedWeek = findPlannedWeek(programs, history, settings);
 
+    const exIndex = buildExerciseIndex(exerciseList);
     const completedVolume: Record<string, number> = {};
     thisWeekLogs.forEach(log => {
         log.completedExercises.forEach(ex => {
-            const exInfo = exerciseList.find(e => e.id === ex.exerciseDbId || e.name.toLowerCase() === ex.exerciseName.toLowerCase());
+            const exInfo = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
             if (exInfo) {
                 const primaryMuscle = exInfo.involvedMuscles.find(m => m.role === 'primary')?.muscle;
                 if (primaryMuscle) {
@@ -323,7 +322,7 @@ export const calculateWeeklyEffectiveVolumeByMuscleGroup = (
     if (plannedWeek) {
         const exercises = plannedWeek.sessions.flatMap(s => (s.parts && s.parts.length > 0) ? s.parts.flatMap(p => p.exercises) : s.exercises);
         exercises.forEach(ex => {
-             const exInfo = exerciseList.find(e => e.id === ex.exerciseDbId || e.name.toLowerCase() === ex.name.toLowerCase());
+             const exInfo = findExercise(exIndex, ex.exerciseDbId, ex.name);
              if (exInfo) {
                 const primaryMuscle = exInfo.involvedMuscles.find(m => m.role === 'primary')?.muscle;
                 if (primaryMuscle) {

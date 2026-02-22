@@ -1,7 +1,8 @@
 // components/MuscleRecoveryWidget.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { calculateGlobalBatteries, BatteryAuditLog } from '../services/recoveryService';
+import { BatteryAuditLog } from '../services/recoveryService';
+import { calculateGlobalBatteriesAsync } from '../services/computeWorkerService';
 import { ActivityIcon, BrainIcon, SettingsIcon, XIcon, ZapIcon, InfoIcon, TargetIcon, LayersIcon } from './icons';
 import Modal from './ui/Modal';
 import SkeletonLoader from './ui/SkeletonLoader';
@@ -61,9 +62,15 @@ const SystemBatteryWidget: React.FC = () => {
     const [calibMusc, setCalibMusc] = useState(0);
     const [calibSpinal, setCalibSpinal] = useState(0);
 
-    const batteries = useMemo(() => {
-        if (isAppLoading || !history) return null;
-        return calculateGlobalBatteries(history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList);
+    const [batteries, setBatteries] = useState<Awaited<ReturnType<typeof calculateGlobalBatteriesAsync>> | null>(null);
+    const versionRef = useRef(0);
+
+    useEffect(() => {
+        if (isAppLoading || !history) { setBatteries(null); return; }
+        const v = ++versionRef.current;
+        calculateGlobalBatteriesAsync(history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList)
+            .then(result => { if (versionRef.current === v) setBatteries(result); })
+            .catch(() => {});
     }, [history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList, isAppLoading]);
 
     if (!batteries) return <SkeletonLoader lines={3} />;

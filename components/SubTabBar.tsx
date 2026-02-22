@@ -1,6 +1,6 @@
 // components/SubTabBar.tsx
 import React, { useMemo } from 'react';
-import { useAppContext, useAppDispatch } from '../contexts/AppContext';
+import { useAppContext, useAppDispatch, useUIState, useUIDispatch } from '../contexts/AppContext';
 import { SearchIcon, DumbbellIcon, ClipboardListIcon, PlusIcon, UtensilsIcon, BrainIcon, TrendingUpIcon, BodyIcon, ActivityIcon, PencilIcon, ClipboardPlusIcon } from './icons';
 
 interface SubTabBarProps {
@@ -12,13 +12,13 @@ interface SubTabBarProps {
 
 const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExerciseId, onEditExercisePress }) => {
     const { 
-        searchQuery, setSearchQuery, 
-        activeSubTabs, setActiveSubTabs, 
         openFoodEditor, navigateTo,
         openCustomExerciseEditor,
         view
     } = useAppContext();
-    const { setExerciseToAddId, setIsAddToPlaylistSheetOpen } = useAppDispatch();
+    const { setExerciseToAddId } = useAppDispatch();
+    const { searchQuery, activeSubTabs } = useUIState();
+    const { setSearchQuery, setActiveSubTabs, setIsAddToPlaylistSheetOpen } = useUIDispatch();
 
     const handleAddToPlaylist = () => {
         if (viewingExerciseId) {
