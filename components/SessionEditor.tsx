@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Session, Exercise, ExerciseSet, Settings, ExerciseMuscleInfo, WarmupSetDefinition, CoverStyle, SessionBackground } from '../types';
 import { PlusIcon, TrashIcon, SparklesIcon, StarIcon, ArrowDownIcon, ArrowUpIcon, InfoIcon, ChevronRightIcon, XIcon, ImageIcon, BarChartIcon, LinkIcon, ZapIcon, DragHandleIcon, CheckIcon, ClockIcon, TargetIcon, FlameIcon, ActivityIcon, PaletteIcon, LayersIcon, RefreshCwIcon, SearchIcon, DumbbellIcon, SettingsIcon, AlertTriangleIcon } from './icons';
 import Button from './ui/Button';
-import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, roundWeight, getOrderedDaysOfWeek } from '../utils/calculations';
+import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, calculateHybrid1RM, roundWeight, getOrderedDaysOfWeek } from '../utils/calculations';
 import Modal from './ui/Modal';
 import BackgroundEditorModal from './SessionBackgroundModal';
 import { useAppContext } from '../contexts/AppContext';
@@ -21,9 +21,11 @@ import ContextualHeader from './session-editor/ContextualHeader';
 import ExerciseRow from './session-editor/ExerciseRow';
 import PartSection from './session-editor/PartSection';
 import SaveBar from './session-editor/SaveBar';
+import { SessionMetricsBlock } from './session-editor/SessionMetricsBlock';
 import AugeFAB from './session-editor/AugeFAB';
 import AugeDrawerComponent from './session-editor/AugeDrawer';
-import { TransferDrawer, HistoryDrawer, RulesDrawer, SaveDrawer } from './session-editor/DrawerSystem';
+import { TransferDrawer, HistoryDrawer, RulesDrawer, SaveDrawer, RulesApplyPayload } from './session-editor/DrawerSystem';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 export interface SessionEditorProps {
   // Ahora onSave puede recibir un array de sesiones modificadas para el guardado en lote
@@ -816,13 +818,13 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     const [isAdvancedPickerOpen, setIsAdvancedPickerOpen] = useState(false); // Estado del modal avanzado
     const [isDetailsOpen, setIsDetailsOpen] = useState(defaultOpen);
 
-    // Efecto: Cálculo de 1RM Referencial
+    // Efecto: Cálculo de 1RM Referencial (fórmula híbrida: Brzycki ≤10, Epley 11-20, extrapolación >20)
     useEffect(() => {
         if (rmInputMode === 'calculator' && exercise.trainingMode === 'percent') {
             const w = parseFloat(prWeight);
             const r = parseInt(prReps, 10);
             if (w > 0 && r > 0) {
-                const e1rm = calculateBrzycki1RM(w, r);
+                const e1rm = calculateHybrid1RM(w, r);
                 onExerciseChange({ reference1RM: parseFloat(e1rm.toFixed(1)), prFor1RM: { weight: w, reps: r } });
             }
         }
@@ -1278,7 +1280,7 @@ const SupersetManagementBlock: React.FC<{
 };
 
 const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel, existingSessionInfo, isOnline, settings, saveTrigger, addExerciseTrigger, exerciseList }) => {
-    const { isDirty, setIsDirty, addToast, programs = [] } = useAppContext(); // <--- PROTECCIÓN 1
+    const { isDirty, setIsDirty, addToast, programs = [], openCustomExerciseEditor, setOnExerciseCreated } = useAppContext();
     const [isBgModalOpen, setIsBgModalOpen] = useState(false);
     // Analysis expanded state (legacy, kept for compatibility)
     const isAnalysisExpanded = false;
@@ -1440,6 +1442,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     const [isRulesDrawerFromEvent, setIsRulesDrawerFromEvent] = useState(false);
     const [isHistoryDrawerFromEvent, setIsHistoryDrawerFromEvent] = useState(false);
+    const [dismissedAvisoIds, setDismissedAvisoIds] = useState<Set<string>>(new Set());
+    const [exercisePickerTarget, setExercisePickerTarget] = useState<{ partIndex: number; exerciseIndex: number } | null>(null);
+    const [pendingRemoveExercise, setPendingRemoveExercise] = useState<{ partIndex: number; exerciseIndex: number; name: string } | null>(null);
 
     useEffect(() => {
         const openRules = () => setIsRulesDrawerFromEvent(true);
@@ -1547,9 +1552,49 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         setIsDirty(false);
     };
 
+    const validateSessionRules = useCallback((s: Session): string | null => {
+        const { maxRPE, maxExercisesPerMuscle } = sessionRules;
+        if (maxRPE != null) {
+            const allEx = [...(s.exercises || [])];
+            (s.parts || []).forEach(p => allEx.push(...p.exercises));
+            for (const ex of allEx) {
+                for (const set of ex.sets || []) {
+                    const st = set as any;
+                    let rpe: number | undefined = st.targetRPE;
+                    if (rpe == null && st.targetRIR != null) rpe = 10 - st.targetRIR;
+                    if (rpe == null && st.intensityMode === 'failure') rpe = 10;
+                    if (rpe != null && rpe > maxRPE) {
+                        return `RPE máximo configurado: ${maxRPE}. Hay series con RPE ${rpe}. Configura o elimina la regla en Reglas.`;
+                    }
+                }
+            }
+        }
+        if (maxExercisesPerMuscle != null) {
+            const muscleCount: Record<string, number> = {};
+            const allEx = [...(s.exercises || [])];
+            (s.parts || []).forEach(p => allEx.push(...p.exercises));
+            for (const ex of allEx) {
+                const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+                const primary = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle;
+                const muscle = primary ? normalizeMuscleGroup(primary) : '_unknown';
+                muscleCount[muscle] = (muscleCount[muscle] || 0) + 1;
+            }
+            const exceeded = Object.entries(muscleCount).find(([, c]) => c > maxExercisesPerMuscle);
+            if (exceeded) {
+                return `Máx ${maxExercisesPerMuscle} ejercicios por músculo. "${exceeded[0]}" tiene ${exceeded[1]}. Configura o elimina la regla en Reglas.`;
+            }
+        }
+        return null;
+    }, [sessionRules, exerciseList]);
+
     const handleSave = useCallback(async () => {
         if (activeSessionId !== 'empty' && (!sessionRef.current.name || !sessionRef.current.name.trim())) {
             addToast("La sesión debe tener un nombre antes de guardar.", "danger"); return;
+        }
+        const rulesError = validateSessionRules(sessionRef.current);
+        if (rulesError) {
+            addToast(rulesError, "danger");
+            return;
         }
 
         if ((modifiedIdsRef.current.size > 1 && existingSessionInfo) || (existingSessionInfo && existingSessionInfo.macroIndex !== undefined)) {
@@ -1557,7 +1602,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         } else {
             executeFinalSave([sessionRef.current]);
         }
-    }, [activeSessionId, addToast, existingSessionInfo]);
+    }, [activeSessionId, addToast, existingSessionInfo, validateSessionRules]);
 
     useEffect(() => {
         if (saveTrigger !== lastSaveTrigger.current) {
@@ -1624,6 +1669,23 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             }
         });
     };
+
+    const handleExerciseDragEnd = useCallback((result: any) => {
+        if (!result.destination || result.source.droppableId !== result.destination.droppableId) return;
+        const partMatch = result.destination.droppableId.match(/^part-(\d+)$/);
+        const exMatch = result.draggableId.match(/^ex-(\d+)-(\d+)$/);
+        if (!partMatch || !exMatch) return;
+        const partIndex = parseInt(partMatch[1], 10);
+        const fromIndex = result.source.index;
+        const toIndex = result.destination.index;
+        if (fromIndex === toIndex) return;
+        updateSession(draft => {
+            const part = draft.parts?.[partIndex];
+            if (!part) return;
+            const [removed] = part.exercises.splice(fromIndex, 1);
+            part.exercises.splice(toIndex, 0, removed);
+        });
+    }, [updateSession]);
     const handleLinkWithNext = (partIndex: number, exerciseIndex: number) => { updateSession(draft => { const part = draft.parts?.[partIndex]; if (!part || !part.exercises[exerciseIndex + 1]) return; const currentEx = part.exercises[exerciseIndex]; const nextEx = part.exercises[exerciseIndex + 1]; const newId = currentEx.supersetId || crypto.randomUUID(); currentEx.supersetId = newId; nextEx.supersetId = newId; }); };
     const handleUnlink = (partIndex: number, exerciseIndex: number) => { updateSession(draft => { const part = draft.parts?.[partIndex]; if (!part) return; part.exercises[exerciseIndex].supersetId = undefined; }); }
     
@@ -1660,12 +1722,19 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             if (!part) return;
             part.exercises.splice(exerciseIndex, 1);
         });
+        setPendingRemoveExercise(null);
     }, [updateSession]);
+
+    const requestExerciseRemove = useCallback((partIndex: number, exerciseIndex: number) => {
+        const ex = session.parts?.[partIndex]?.exercises?.[exerciseIndex];
+        setPendingRemoveExercise({ partIndex, exerciseIndex, name: ex?.name || 'este ejercicio' });
+    }, [session]);
 
     const [isAugeDrawerOpen, setIsAugeDrawerOpen] = useState(false);
     const [isTransferDrawerOpen, setIsTransferDrawerOpen] = useState(false);
     const [isHistoryDrawerOpen, setIsHistoryDrawerOpen] = useState(false);
     const [isRulesDrawerOpen, setIsRulesDrawerOpen] = useState(false);
+    const [sessionRules, setSessionRules] = useState<{ maxRPE?: number; maxExercisesPerMuscle?: number }>({});
 
     const exerciseRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -1677,6 +1746,42 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const totalAlertCount = globalSessionAlerts.length + neuralAlerts.length;
     const hasCriticalAlerts = neuralAlerts.some(a => a.severity === 'critical');
     const hasWarningAlerts = globalSessionAlerts.length > 0 || neuralAlerts.some(a => a.severity === 'warning');
+
+    const augeSessionStatus = useMemo((): 'optimal' | 'warning' | 'fatiguing' => {
+        const BASE_SESSIONS_PER_WEEK = 5;
+        const tanks = calculatePersonalizedBatteryTanks(settings);
+        const computeDrain = (s: Session) => {
+            let msc = 0, snc = 0, spinal = 0;
+            const allEx = [...(s.exercises || [])];
+            (s.parts || []).forEach(p => allEx.push(...p.exercises));
+            allEx.forEach(ex => {
+                const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+                if (!info) return { msc: 0, snc: 0, spinal: 0 };
+                (ex.sets?.filter(st => (st as any).type !== 'warmup') || []).forEach(set => {
+                    const d = calculateSetBatteryDrain(set, info, tanks, 0, ex.restTime || 90);
+                    msc += d.muscularDrainPct;
+                    snc += d.cnsDrainPct;
+                    spinal += (info.axialLoadFactor || 0) * 2;
+                });
+            });
+            return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal) };
+        };
+        const thisDrain = computeDrain(session);
+        const thisCombined = (thisDrain.msc + thisDrain.snc + thisDrain.spinal) / 3;
+        const otherSessions = weekSessions.filter(s => s.id !== activeSessionId);
+        let otherCombined = 0;
+        otherSessions.forEach(s => {
+            const d = computeDrain(s);
+            otherCombined += (d.msc + d.snc + d.spinal) / 3;
+        });
+        const sessionsCount = otherSessions.length + 1;
+        const remainingQuota = Math.max(0, 100 - otherCombined);
+        const slotsLeft = Math.max(1, BASE_SESSIONS_PER_WEEK - otherSessions.length);
+        const recommendedPerSession = sessionsCount === 1 ? 100 / BASE_SESSIONS_PER_WEEK : remainingQuota / slotsLeft;
+        if (thisCombined <= recommendedPerSession * 0.95) return 'optimal';
+        if (thisCombined <= recommendedPerSession * 1.25) return 'warning';
+        return 'fatiguing';
+    }, [session, weekSessions, activeSessionId, exerciseList, settings]);
 
     const augeSuggestions = useMemo(() => {
         const suggestions: { id: string; message: string; exerciseName?: string; action?: () => void }[] = [];
@@ -1756,14 +1861,54 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         addToast("Sesión restaurada", "success");
     }, [activeSessionId, addToast]);
 
-    const handleRulesApply = useCallback((sets: number, reps: number, rpe: number) => {
+    const handleRulesApply = useCallback((payload: RulesApplyPayload) => {
+        if (payload.action === 'limits') {
+            setSessionRules(prev => ({
+                ...prev,
+                ...(payload.maxRPE != null && { maxRPE: payload.maxRPE }),
+                ...(payload.maxExercisesPerMuscle != null && { maxExercisesPerMuscle: payload.maxExercisesPerMuscle }),
+            }));
+            addToast("Límites guardados", "success");
+            return;
+        }
+        const { sets = 3, reps = 10, rpe = 8, scope = 'session', sectionIndex = 0 } = payload;
         updateSession(draft => {
-            draft.parts?.forEach(p => p.exercises.forEach(ex => {
+            const partsToApply = scope === 'section' && draft.parts?.[sectionIndex]
+                ? [draft.parts[sectionIndex]]
+                : draft.parts || [];
+            partsToApply.forEach(p => p.exercises.forEach(ex => {
                 ex.sets = Array.from({ length: sets }).map(() => ({ id: crypto.randomUUID(), targetReps: reps, targetRPE: rpe, intensityMode: 'rpe' as const }));
             }));
         });
-        addToast("Métricas aplicadas a toda la sesión", "success");
+        addToast(scope === 'section' ? "Defaults aplicados a la sección" : "Métricas aplicadas a toda la sesión", "success");
     }, [updateSession, addToast]);
+
+    const handleApplyAvisoCorrection = useCallback((aviso: { id: string; correctionType?: string; muscle?: string }) => {
+        const { correctionType, muscle } = aviso;
+        setDismissedAvisoIds(prev => new Set(prev).add(aviso.id));
+        updateSession(draft => {
+            (draft.parts || []).forEach(p => {
+                p.exercises.forEach(ex => {
+                    const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+                    const exMuscle = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle;
+                    const matchesMuscle = muscle && exMuscle && normalizeMuscleGroup(exMuscle) === normalizeMuscleGroup(muscle);
+                    if (correctionType === 'reduce_series' && matchesMuscle && ex.sets.length > 1) {
+                        ex.sets.pop();
+                    } else if (correctionType === 'reduce_rpe' || correctionType === 'change_to_machine') {
+                        ex.sets.forEach(s => {
+                            if (s.targetRPE !== undefined && s.targetRPE > 7) (s as any).targetRPE = Math.max(6, s.targetRPE - 0.5);
+                        });
+                    } else if (correctionType === 'reduce_volume_rpe') {
+                        if (ex.sets.length > 3) ex.sets = ex.sets.slice(0, 3);
+                        ex.sets.forEach(s => {
+                            if (s.targetRPE !== undefined && s.targetRPE > 7) (s as any).targetRPE = 7;
+                        });
+                    }
+                });
+            });
+        });
+        addToast("Corrección aplicada", "success");
+    }, [updateSession, addToast, exerciseList]);
 
     const handleSaveSingle = useCallback((applyBlock: boolean) => {
         if (applyBlock) {
@@ -1793,59 +1938,13 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 onOpenBgDrawer={() => setIsBgModalOpen(true)}
                 onOpenTransferDrawer={() => setIsTransferDrawerOpen(true)}
                 onOpenHistoryDrawer={() => setIsHistoryDrawerOpen(true)}
+                onOpenRulesDrawer={() => setIsRulesDrawerOpen(true)}
                 activeSessionId={activeSessionId}
                 dayLabel={dayLabel}
             />
 
-            {/* ═══ Week Roadmap ═══ */}
-            {existingSessionInfo && (
-                <div className="flex flex-col border-b border-white/[0.05] shrink-0 bg-black">
-                    <div className="px-5 py-3 flex items-center justify-between relative overflow-hidden">
-                        <div className="absolute top-1/2 left-6 right-6 h-px bg-white/[0.04] -translate-y-1/2 z-0" />
-                        {orderedDays.map(day => {
-                            const daySessions = weekSessions.filter(s => s.dayOfWeek === day.value);
-                            const isActive = daySessions.some(s => s.id === activeSessionId) || emptyDaySelected === day.value;
-                            const hasSession = daySessions.length > 0;
-                            const isModified = daySessions.some(s => modifiedSessionIds.has(s.id));
-                            return (
-                                <button key={day.value} onClick={() => handleDayClick(day.value, daySessions)} className="relative z-10 flex flex-col items-center gap-1.5 group outline-none">
-                                    <div className={`w-3 h-3 rounded-full transition-all relative ${isActive ? 'bg-[#FC4C02] shadow-[0_0_10px_rgba(252,76,2,0.3)] scale-110' : hasSession ? 'bg-[#999] hover:bg-white' : 'bg-white/10 hover:bg-white/20'}`}>
-                                        {isModified && !isActive && <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-[#FC4C02] rounded-full" />}
-                                    </div>
-                                    <span className={`text-[8px] font-bold uppercase tracking-wider transition-colors ${isActive ? 'text-white' : hasSession ? 'text-[#555]' : 'text-white/10'}`}>{day.label.slice(0, 2)}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    {activeSessionId !== 'empty' && weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).length > 1 && (
-                        <div className="flex px-4 gap-1.5 overflow-x-auto no-scrollbar pb-2">
-                            {weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).map((s, idx) => (
-                                <button key={s.id} onClick={() => setActiveSessionId(s.id)} className={`px-3 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors border ${activeSessionId === s.id ? 'bg-[#FC4C02] text-white border-[#FC4C02]' : 'bg-transparent text-[#555] border-white/[0.08] hover:border-white/20'}`}>
-                                    {s.name || `Sesión ${idx + 1}`}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-
             {/* ═══ Main Content ═══ */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-                {/* Régimen Déficit Calórico */}
-                {settings.calorieGoalObjective === 'deficit' && (
-                    <div className="mx-4 mt-4 p-4 rounded-xl bg-amber-950/40 border border-amber-500/30">
-                        <div className="flex items-start gap-3">
-                            <AlertTriangleIcon size={20} className="text-amber-400 shrink-0 mt-0.5" />
-                            <div>
-                                <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wide">Régimen de déficit calórico</h3>
-                                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                                    Esta sesión podría ser muy dura de recuperar. Con menos calorías, tu cuerpo prioriza la supervivencia sobre la síntesis muscular. <strong className="text-amber-200">Considera reducir volumen (menos series) o RPE (evitar fallo) para proteger tu masa muscular y poder recuperarte.</strong>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {/* Meet Day panel */}
                 {session.isMeetDay && (
                     <div className="mx-4 mt-4 p-4 rounded-lg bg-yellow-400/5 border border-yellow-400/10">
@@ -1884,47 +1983,70 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     </div>
                 ) : (
                     <div className="pb-32">
+                        {/* ═══ Mini-widgets + Fatiga + Volumen ═══ */}
+                        <SessionMetricsBlock
+                            session={session}
+                            exerciseList={exerciseList}
+                            settings={settings}
+                            muscleDrainThreshold={10}
+                        />
                         {/* ═══ Parts & Exercises ═══ */}
-                        {session.parts?.map((part, pi) => (
-                            <PartSection
-                                key={part.id}
-                                partName={part.name}
-                                partIndex={pi}
-                                exerciseCount={part.exercises.length}
-                                color={part.color || '#FC4C02'}
-                                isCollapsed={collapsedParts[part.id] || false}
-                                onToggleCollapse={() => togglePartCollapse(part.id)}
-                                onRename={name => updateSession(d => { d.parts![pi].name = name; })}
-                                onChangeColor={color => updateSession(d => { d.parts![pi].color = color; })}
-                                onAddExercise={() => handleAddExercise(pi)}
-                            >
-                                {part.exercises.map((ex, ei) => (
-                                    <ExerciseRow
-                                        key={ex.id}
-                                        exercise={ex}
-                                        exerciseIndex={ei}
-                                        partIndex={pi}
-                                        exerciseList={exerciseList}
-                                        isCulprit={culpritExerciseIds.has(ex.id)}
-                                        isExpertMode={false}
-                                        fatigue={getExerciseFatigue(ex)}
-                                        augeSuggestion={getExerciseSuggestion(ex)}
-                                        onUpdate={handleExerciseUpdate}
-                                        onRemove={handleExerciseRemove}
-                                        onReorder={handleReorderExercise}
-                                        onLink={handleLinkWithNext}
-                                        onUnlink={handleUnlink}
-                                        onAmrapToggle={(pIdx, eIdx, sIdx) => {
-                                            updateSession(d => {
-                                                const set = d.parts?.[pIdx]?.exercises?.[eIdx]?.sets?.[sIdx];
-                                                if (set) set.isAmrap = !set.isAmrap;
-                                            });
-                                        }}
-                                        scrollRef={el => { exerciseRefs.current[ex.id] = el; if (el) el.setAttribute('data-name', ex.name); }}
-                                    />
-                                ))}
-                            </PartSection>
-                        ))}
+                        <DragDropContext onDragEnd={handleExerciseDragEnd}>
+                            {session.parts?.map((part, pi) => (
+                                <PartSection
+                                    key={part.id}
+                                    partName={part.name}
+                                    partIndex={pi}
+                                    exerciseCount={part.exercises.length}
+                                    color={part.color || '#FC4C02'}
+                                    isCollapsed={collapsedParts[part.id] || false}
+                                    onToggleCollapse={() => togglePartCollapse(part.id)}
+                                    onRename={name => updateSession(d => { d.parts![pi].name = name; })}
+                                    onChangeColor={color => updateSession(d => { d.parts![pi].color = color; })}
+                                    onAddExercise={() => handleAddExercise(pi)}
+                                >
+                                    <Droppable droppableId={`part-${pi}`}>
+                                        {(provided) => (
+                                            <div ref={provided.innerRef} {...provided.droppableProps}>
+                                                {part.exercises.map((ex, ei) => (
+                                                    <Draggable key={ex.id} draggableId={`ex-${pi}-${ei}`} index={ei}>
+                                                        {(provided, snapshot) => (
+                                                            <div ref={provided.innerRef} {...provided.draggableProps} className={snapshot.isDragging ? 'opacity-80' : ''}>
+                                                                <ExerciseRow
+                                                                    exercise={ex}
+                                                                    exerciseIndex={ei}
+                                                                    partIndex={pi}
+                                                                    exerciseList={exerciseList}
+                                                                    isCulprit={culpritExerciseIds.has(ex.id)}
+                                                                    isExpertMode={false}
+                                                                    fatigue={getExerciseFatigue(ex)}
+                                                                    augeSuggestion={getExerciseSuggestion(ex)}
+                                                                    onUpdate={handleExerciseUpdate}
+                                                                    onRemove={requestExerciseRemove}
+                                                                    onReorder={handleReorderExercise}
+                                                                    onLink={handleLinkWithNext}
+                                                                    onUnlink={handleUnlink}
+                                                                    onOpenExerciseModal={(pIdx, eIdx) => setExercisePickerTarget({ partIndex: pIdx, exerciseIndex: eIdx })}
+                                                                    onAmrapToggle={(pIdx, eIdx, sIdx) => {
+                                                                        updateSession(d => {
+                                                                            const set = d.parts?.[pIdx]?.exercises?.[eIdx]?.sets?.[sIdx];
+                                                                            if (set) set.isAmrap = !set.isAmrap;
+                                                                        });
+                                                                    }}
+                                                                    scrollRef={el => { exerciseRefs.current[ex.id] = el; if (el) el.setAttribute('data-name', ex.name); }}
+                                                                    dragHandleProps={provided.dragHandleProps}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </Draggable>
+                                                ))}
+                                                {provided.placeholder}
+                                            </div>
+                                        )}
+                                    </Droppable>
+                                </PartSection>
+                            ))}
+                        </DragDropContext>
 
                         {/* Add section button */}
                         <div className="px-4 py-3">
@@ -1940,7 +2062,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             {activeSessionId !== 'empty' && (
                 <AugeFAB
                     alertCount={totalAlertCount}
-                    hasWarnings={hasWarningAlerts}
+                    sessionStatus={augeSessionStatus}
                     hasCritical={hasCriticalAlerts}
                     onClick={() => setIsAugeDrawerOpen(true)}
                 />
@@ -1956,6 +2078,38 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 />
             )}
 
+            {/* ═══ Roadmap inferior (modo dios) ═══ */}
+            {existingSessionInfo && (
+                <div className="shrink-0 border-t border-white/[0.08] bg-black/95 backdrop-blur-xl">
+                    <div className="px-4 py-3 flex items-center justify-between relative overflow-hidden">
+                        <div className="absolute top-1/2 left-8 right-8 h-px bg-white/[0.04] -translate-y-1/2 z-0" />
+                        {orderedDays.map(day => {
+                            const daySessions = weekSessions.filter(s => s.dayOfWeek === day.value);
+                            const isActive = daySessions.some(s => s.id === activeSessionId) || emptyDaySelected === day.value;
+                            const hasSession = daySessions.length > 0;
+                            const isModified = daySessions.some(s => modifiedSessionIds.has(s.id));
+                            return (
+                                <button key={day.value} onClick={() => handleDayClick(day.value, daySessions)} className="relative z-10 flex flex-col items-center gap-1.5 group outline-none flex-1">
+                                    <div className={`w-3 h-3 rounded-full transition-all relative ${isActive ? 'bg-[#FC4C02] shadow-[0_0_10px_rgba(252,76,2,0.3)] scale-110' : hasSession ? 'bg-[#999] hover:bg-white' : 'bg-white/10 hover:bg-white/20'}`}>
+                                        {isModified && !isActive && <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-[#FC4C02] rounded-full" />}
+                                    </div>
+                                    <span className={`text-[8px] font-bold uppercase tracking-wider transition-colors ${isActive ? 'text-white' : hasSession ? 'text-[#555]' : 'text-white/10'}`}>{day.label.slice(0, 2)}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {activeSessionId !== 'empty' && weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).length > 1 && (
+                        <div className="flex px-4 gap-1.5 overflow-x-auto no-scrollbar pb-2">
+                            {weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).map((s, idx) => (
+                                <button key={s.id} onClick={() => setActiveSessionId(s.id)} className={`px-3 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors border shrink-0 ${activeSessionId === s.id ? 'bg-[#FC4C02] text-white border-[#FC4C02]' : 'bg-transparent text-[#555] border-white/[0.08] hover:border-white/20'}`}>
+                                    {s.name || `Sesión ${idx + 1}`}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* ═══ Drawers ═══ */}
             <AugeDrawerComponent
                 isOpen={isAugeDrawerOpen}
@@ -1969,6 +2123,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 drainSnc={sessionDrainEstimate.snc}
                 drainSpinal={sessionDrainEstimate.spinal}
                 onAlertClick={scrollToExerciseByName}
+                onApplyCorrection={handleApplyAvisoCorrection}
+                onDismissAviso={(id) => setDismissedAvisoIds(prev => new Set(prev).add(id))}
+                dismissedAvisoIds={dismissedAvisoIds}
             />
 
             <TransferDrawer
@@ -1991,6 +2148,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 isOpen={isRulesDrawerOpen || isRulesDrawerFromEvent}
                 onClose={() => { setIsRulesDrawerOpen(false); setIsRulesDrawerFromEvent(false); }}
                 onApply={handleRulesApply}
+                sectionNames={session.parts?.map(p => p.name || '') ?? []}
+                initialLimits={sessionRules}
             />
 
             <SaveDrawer
@@ -2002,6 +2161,47 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 onSaveSingle={handleSaveSingle}
                 onSaveMultiple={handleSaveMultiple}
             />
+
+            {/* Confirmación borrar ejercicio */}
+            {pendingRemoveExercise && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#111] border border-white/10 rounded-xl p-6 max-w-sm w-full">
+                        <p className="text-sm text-white mb-4">¿Eliminar <strong>{pendingRemoveExercise.name}</strong>?</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setPendingRemoveExercise(null)} className="flex-1 py-2.5 rounded-lg border border-white/10 text-[#999] hover:text-white transition-colors text-sm font-medium">Cancelar</button>
+                            <button onClick={() => handleExerciseRemove(pendingRemoveExercise.partIndex, pendingRemoveExercise.exerciseIndex)} className="flex-1 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-500 transition-colors text-sm font-bold">Sí</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Exercise picker modal (for ExerciseRow) */}
+            {exercisePickerTarget && (
+                <AdvancedExercisePickerModal
+                    isOpen={!!exercisePickerTarget}
+                    initialSearch={session.parts?.[exercisePickerTarget.partIndex]?.exercises?.[exercisePickerTarget.exerciseIndex]?.name}
+                    onClose={() => setExercisePickerTarget(null)}
+                    exerciseList={exerciseList}
+                    onSelect={(sugg) => {
+                        handleExerciseUpdate(exercisePickerTarget.partIndex, exercisePickerTarget.exerciseIndex, d => {
+                            d.name = sugg.name;
+                            d.exerciseDbId = sugg.id;
+                        });
+                        setExercisePickerTarget(null);
+                    }}
+                    onCreateNew={() => {
+                        const ex = session.parts?.[exercisePickerTarget.partIndex]?.exercises?.[exercisePickerTarget.exerciseIndex];
+                        setOnExerciseCreated?.(() => (newEx: ExerciseMuscleInfo) => {
+                            handleExerciseUpdate(exercisePickerTarget.partIndex, exercisePickerTarget.exerciseIndex, d => {
+                                d.name = newEx.name;
+                                d.exerciseDbId = newEx.id;
+                            });
+                        });
+                        openCustomExerciseEditor?.({ preFilledName: ex?.name || 'Nuevo ejercicio' });
+                        setExercisePickerTarget(null);
+                    }}
+                />
+            )}
 
             {/* Background editor (kept as modal for image editing) */}
             {isBgModalOpen && (

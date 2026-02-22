@@ -24,7 +24,7 @@ const PartSection: React.FC<PartSectionProps> = ({
     const [showColorPicker, setShowColorPicker] = useState(false);
 
     return (
-        <div className="mb-6">
+        <div className="mb-6 rounded-xl overflow-hidden" style={{ backgroundColor: `${color}08` }}>
             {/* Part header */}
             <div className="flex items-center gap-2 px-4 py-2">
                 {/* Color dot */}

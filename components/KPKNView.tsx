@@ -1,19 +1,15 @@
 // components/KPKNView.tsx
 import React, { useState, useMemo } from 'react';
 import { ExerciseMuscleInfo, ExercisePlaylist } from '../types';
-import { ChevronRightIcon, PlusIcon, TrashIcon, TrophyIcon, ActivityIcon, BrainIcon, DumbbellIcon, ClipboardListIcon } from './icons';
+import { ChevronRightIcon, PlusIcon, TrashIcon, ActivityIcon, BrainIcon, DumbbellIcon, ClipboardListIcon } from './icons';
 import { useAppContext, useAppDispatch, useUIState } from '../contexts/AppContext';
-import Button from './ui/Button';
-import Card from './ui/Card';
 import CoachMark from './ui/CoachMark';
 
-type WikiTab = 'exercises' | 'anatomy' | 'joints' | 'tendons' | 'patterns';
+type WikiTab = 'exercises' | 'anatomy' | 'patterns';
 
 const WIKI_TABS: { id: WikiTab; label: string; accent: string }[] = [
     { id: 'exercises', label: 'Ejercicios', accent: 'sky' },
     { id: 'anatomy', label: 'Anatomía', accent: 'purple' },
-    { id: 'joints', label: 'Articulaciones', accent: 'cyan' },
-    { id: 'tendons', label: 'Tendones', accent: 'amber' },
     { id: 'patterns', label: 'Patrones', accent: 'emerald' },
 ];
 
@@ -22,7 +18,7 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ e
     return (
         <div
             onClick={() => navigateTo('exercise-detail', { exerciseId: exercise.id })}
-            className="p-4 flex justify-between items-center cursor-pointer list-none bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all duration-200 group active:scale-[0.99]"
+            className="p-4 flex justify-between items-center cursor-pointer list-none bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-orange-500/20 hover:border-orange-500/40 transition-all duration-200 group active:scale-[0.99]"
         >
             <div>
                 <h3 className="font-bold text-white text-md group-hover:text-primary-color transition-colors">{exercise.name}</h3>
@@ -128,36 +124,42 @@ const KPKNView: React.FC = () => {
                     <div className="space-y-6">
                         <div
                             onClick={() => navigateTo('exercise-database')}
-                            className="p-6 rounded-2xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 cursor-pointer transition-all flex items-center justify-between"
+                            className="p-5 rounded-xl border border-orange-500/20 bg-[#0a0a0a] hover:border-orange-500/40 cursor-pointer transition-all flex items-center justify-between"
                         >
                             <div>
-                                <h3 className="font-bold text-white text-lg">Base de ejercicios</h3>
-                                <p className="text-slate-400 text-sm mt-1">{exerciseList.length} ejercicios disponibles</p>
+                                <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">Base de ejercicios</h3>
+                                <p className="text-white font-mono text-sm mt-1">{exerciseList.length} ejercicios</p>
                             </div>
-                            <ChevronRightIcon className="text-sky-400" size={24} />
+                            <ChevronRightIcon className="text-orange-500/60" size={20} />
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                            {exerciseList.filter(ex => ex.isHallOfFame).slice(0, 6).map(ex => (
+                            {exerciseList.filter(ex => ex.type === 'Básico').slice(0, 6).map(ex => (
                                 <div key={ex.id} onClick={() => navigateTo('exercise-detail', { exerciseId: ex.id })}
-                                    className="p-4 rounded-xl bg-slate-900/50 border border-white/5 hover:border-sky-500/30 cursor-pointer">
+                                    className="p-4 rounded-xl bg-[#0a0a0a] border border-orange-500/20 hover:border-orange-500/50 cursor-pointer transition-all">
                                     <h3 className="font-bold text-white text-sm">{ex.name}</h3>
-                                    <p className="text-[10px] text-sky-500/80 mt-0.5">{ex.involvedMuscles?.find(m => m.role === 'primary')?.muscle}</p>
+                                    <p className="text-[10px] text-orange-500/80 font-mono mt-0.5">{ex.involvedMuscles?.find(m => m.role === 'primary')?.muscle || ex.subMuscleGroup}</p>
+                                    {(ex.efc != null || ex.cnc != null || ex.ssc != null) && (
+                                        <div className="flex gap-1.5 mt-2 text-[9px] font-mono text-slate-500">
+                                            {ex.efc != null && <span>EFC:{ex.efc}</span>}
+                                            {ex.cnc != null && <span>CNC:{ex.cnc}</span>}
+                                            {ex.ssc != null && <span>SSC:{ex.ssc}</span>}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
-                        <button onClick={() => navigateTo('hall-of-fame')} className="text-xs font-bold text-sky-500 hover:text-sky-400">Ver Hall of Fame</button>
                     </div>
                 );
             case 'anatomy':
                 return (
                     <div className="space-y-6">
                         <div>
-                            <h2 className="text-xs font-black text-purple-500 uppercase tracking-widest mb-3">Anatomía por zona</h2>
+                            <h2 className="text-[10px] font-mono font-black text-purple-500/90 uppercase tracking-widest mb-3">Anatomía por zona</h2>
                             <div className="space-y-2">
                                 {bodyPartCategories.map(cat => (
                                     <div key={cat} onClick={() => navigateTo('muscle-category', { categoryName: cat })}
-                                        className="p-4 flex justify-between items-center rounded-xl bg-slate-900/40 border border-white/5 hover:border-purple-500/30 cursor-pointer transition-all">
-                                        <span className="font-semibold text-slate-200">{cat}</span>
+                                        className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-orange-500/20 hover:border-orange-500/40 cursor-pointer transition-all">
+                                        <span className="font-mono font-semibold text-slate-200 text-sm">{cat}</span>
                                         <ChevronRightIcon className="text-slate-500" size={18} />
                                     </div>
                                 ))}
@@ -165,11 +167,11 @@ const KPKNView: React.FC = () => {
                         </div>
                         {specialCategories.length > 0 && (
                             <div>
-                                <h2 className="text-xs font-black text-purple-500 uppercase tracking-widest mb-3">Grupos funcionales</h2>
+                                <h2 className="text-[10px] font-mono font-black text-purple-500/90 uppercase tracking-widest mb-3">Grupos funcionales</h2>
                                 <div className="grid grid-cols-2 gap-2">
                                     {specialCategories.map(cat => (
                                         <div key={cat} onClick={() => navigateTo('chain-detail', { chainId: cat })}
-                                            className="p-3 rounded-xl bg-slate-900/50 border border-white/5 hover:border-purple-500/30 cursor-pointer">
+                                            className="p-3 rounded-xl bg-[#0a0a0a] border border-orange-500/20 hover:border-orange-500/40 cursor-pointer">
                                             <span className="font-semibold text-slate-200 text-sm">{cat}</span>
                                         </div>
                                     ))}
@@ -178,40 +180,14 @@ const KPKNView: React.FC = () => {
                         )}
                     </div>
                 );
-            case 'joints':
-                return (
-                    <div className="space-y-2">
-                        <h2 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-3">Articulaciones ({jointDatabase?.length || 0})</h2>
-                        {(jointDatabase || []).map(j => (
-                            <div key={j.id} onClick={() => navigateTo('joint-detail', { jointId: j.id })}
-                                className="p-4 flex justify-between items-center rounded-xl bg-slate-900/40 border border-white/5 hover:border-cyan-500/30 cursor-pointer transition-all">
-                                <span className="font-semibold text-white">{j.name.split('(')[0].trim()}</span>
-                                <ChevronRightIcon className="text-slate-500" size={18} />
-                            </div>
-                        ))}
-                    </div>
-                );
-            case 'tendons':
-                return (
-                    <div className="space-y-2">
-                        <h2 className="text-xs font-black text-amber-500 uppercase tracking-widest mb-3">Tendones ({tendonDatabase?.length || 0})</h2>
-                        {(tendonDatabase || []).map(t => (
-                            <div key={t.id} onClick={() => navigateTo('tendon-detail', { tendonId: t.id })}
-                                className="p-4 flex justify-between items-center rounded-xl bg-slate-900/40 border border-white/5 hover:border-amber-500/30 cursor-pointer transition-all">
-                                <span className="font-semibold text-white">{t.name}</span>
-                                <ChevronRightIcon className="text-slate-500" size={18} />
-                            </div>
-                        ))}
-                    </div>
-                );
             case 'patterns':
                 return (
                     <div className="space-y-2">
-                        <h2 className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-3">Patrones de movimiento ({movementPatternDatabase?.length || 0})</h2>
+                        <h2 className="text-[10px] font-mono font-black text-emerald-500/90 uppercase tracking-widest mb-3">Patrones de movimiento ({movementPatternDatabase?.length || 0})</h2>
                         {(movementPatternDatabase || []).map(p => (
                             <div key={p.id} onClick={() => navigateTo('movement-pattern-detail', { movementPatternId: p.id })}
-                                className="p-4 flex justify-between items-center rounded-xl bg-slate-900/40 border border-white/5 hover:border-emerald-500/30 cursor-pointer transition-all">
-                                <span className="font-semibold text-white">{p.name}</span>
+                                className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-orange-500/20 hover:border-orange-500/40 cursor-pointer transition-all">
+                                            <span className="font-mono font-semibold text-white text-sm">{p.name}</span>
                                 <ChevronRightIcon className="text-slate-500" size={18} />
                             </div>
                         ))}
@@ -237,19 +213,19 @@ const KPKNView: React.FC = () => {
                         {hasResults ? (
                             <>
                                 {unifiedSearchResults.exercises.length > 0 && (
-                                    <div className="pb-6 border-b border-white/10">
-                                        <h2 className="text-xs font-black text-sky-500 uppercase tracking-widest mb-3 ml-1">Ejercicios ({unifiedSearchResults.exercises.length})</h2>
+                                    <div className="pb-6 border-b border-white/5">
+                                        <h2 className="text-[10px] font-mono font-black text-sky-500/90 uppercase tracking-widest mb-3 ml-1">Ejercicios ({unifiedSearchResults.exercises.length})</h2>
                                         <div className="space-y-2">
                                             {unifiedSearchResults.exercises.map(ex => <ExerciseItem key={ex.id} exercise={ex} />)}
                                         </div>
                                     </div>
                                 )}
                                 {unifiedSearchResults.muscles.length > 0 && (
-                                    <div className="pb-6 border-b border-white/10">
-                                        <h2 className="text-xs font-black text-purple-500 uppercase tracking-widest mb-3 ml-1">Músculos ({unifiedSearchResults.muscles.length})</h2>
+                                    <div className="pb-6 border-b border-white/5">
+                                        <h2 className="text-[10px] font-mono font-black text-purple-500/90 uppercase tracking-widest mb-3 ml-1">Músculos ({unifiedSearchResults.muscles.length})</h2>
                                         <div className="space-y-2">
                                             {unifiedSearchResults.muscles.map(m => (
-                                                <div key={m.id} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: m.id })} className="p-4 flex justify-between items-center cursor-pointer bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all">
+                                                <div key={m.id} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: m.id })} className="p-4 flex justify-between items-center cursor-pointer bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-orange-500/20 hover:border-orange-500/40 transition-all">
                                                     <span className="font-bold text-white">{m.name}</span>
                                                     <ChevronRightIcon className="text-slate-500" size={18} />
                                                 </div>
@@ -258,11 +234,11 @@ const KPKNView: React.FC = () => {
                                     </div>
                                 )}
                                 {unifiedSearchResults.joints.length > 0 && (
-                                    <div className="pb-6 border-b border-white/10">
-                                        <h2 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-3 ml-1">Articulaciones ({unifiedSearchResults.joints.length})</h2>
+                                    <div className="pb-6 border-b border-white/5">
+                                        <h2 className="text-[10px] font-mono font-black text-cyan-500/90 uppercase tracking-widest mb-3 ml-1">Articulaciones ({unifiedSearchResults.joints.length})</h2>
                                         <div className="space-y-2">
                                             {unifiedSearchResults.joints.map(j => (
-                                                <div key={j.id} onClick={() => navigateTo('joint-detail', { jointId: j.id })} className="p-4 flex justify-between items-center cursor-pointer bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all">
+                                                <div key={j.id} onClick={() => navigateTo('joint-detail', { jointId: j.id })} className="p-4 flex justify-between items-center cursor-pointer bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-orange-500/20 hover:border-orange-500/40 transition-all">
                                                     <span className="font-bold text-white">{j.name}</span>
                                                     <ChevronRightIcon className="text-slate-500" size={18} />
                                                 </div>
@@ -271,11 +247,11 @@ const KPKNView: React.FC = () => {
                                     </div>
                                 )}
                                 {unifiedSearchResults.tendons.length > 0 && (
-                                    <div className="pb-6 border-b border-white/10">
-                                        <h2 className="text-xs font-black text-amber-500 uppercase tracking-widest mb-3 ml-1">Tendones ({unifiedSearchResults.tendons.length})</h2>
+                                    <div className="pb-6 border-b border-white/5">
+                                        <h2 className="text-[10px] font-mono font-black text-amber-500/90 uppercase tracking-widest mb-3 ml-1">Tendones ({unifiedSearchResults.tendons.length})</h2>
                                         <div className="space-y-2">
                                             {unifiedSearchResults.tendons.map(t => (
-                                                <div key={t.id} onClick={() => navigateTo('tendon-detail', { tendonId: t.id })} className="p-4 flex justify-between items-center cursor-pointer bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all">
+                                                <div key={t.id} onClick={() => navigateTo('tendon-detail', { tendonId: t.id })} className="p-4 flex justify-between items-center cursor-pointer bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-orange-500/20 hover:border-orange-500/40 transition-all">
                                                     <span className="font-bold text-white">{t.name}</span>
                                                     <ChevronRightIcon className="text-slate-500" size={18} />
                                                 </div>
@@ -285,10 +261,10 @@ const KPKNView: React.FC = () => {
                                 )}
                                 {unifiedSearchResults.patterns.length > 0 && (
                                     <div>
-                                        <h2 className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-3 ml-1">Patrones ({unifiedSearchResults.patterns.length})</h2>
+                                        <h2 className="text-[10px] font-mono font-black text-emerald-500/90 uppercase tracking-widest mb-3 ml-1">Patrones ({unifiedSearchResults.patterns.length})</h2>
                                         <div className="space-y-2">
                                             {unifiedSearchResults.patterns.map(p => (
-                                                <div key={p.id} onClick={() => navigateTo('movement-pattern-detail', { movementPatternId: p.id })} className="p-4 flex justify-between items-center cursor-pointer bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all">
+                                                <div key={p.id} onClick={() => navigateTo('movement-pattern-detail', { movementPatternId: p.id })} className="p-4 flex justify-between items-center cursor-pointer bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-orange-500/20 hover:border-orange-500/40 transition-all">
                                                     <span className="font-bold text-white">{p.name}</span>
                                                     <ChevronRightIcon className="text-slate-500" size={18} />
                                                 </div>
@@ -298,31 +274,31 @@ const KPKNView: React.FC = () => {
                                 )}
                             </>
                         ) : (
-                            <div className="text-center py-10 opacity-50">
+                            <div className="text-center py-12 rounded-xl border border-white/5 bg-[#0a0a0a]">
                                 <DumbbellIcon size={40} className="mx-auto text-slate-600 mb-2"/>
-                                <p className="text-slate-400">No se encontraron resultados.</p>
-                                <p className="text-slate-500 text-xs mt-1">Prueba con músculos, articulaciones o tendones.</p>
+                                <p className="text-slate-400 font-mono text-sm">No se encontraron resultados.</p>
+                                <p className="text-[10px] text-slate-500 font-mono mt-1">Prueba con músculos, articulaciones o tendones.</p>
                             </div>
                         )}
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        <div className="flex overflow-x-auto gap-1 pb-2 -mx-1 hide-scrollbar border-b border-white/10">
+                        <div className="flex overflow-x-auto gap-1 pb-2 -mx-1 hide-scrollbar border-b border-white/5">
                             {WIKI_TABS.map(tab => {
                                 const isActive = activeWikiTab === tab.id;
                                 const activeClasses: Record<string, string> = {
-                                    sky: 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500',
-                                    purple: 'bg-purple-500/20 text-purple-400 border-b-2 border-purple-500',
-                                    cyan: 'bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-500',
-                                    amber: 'bg-amber-500/20 text-amber-400 border-b-2 border-amber-500',
-                                    emerald: 'bg-emerald-500/20 text-emerald-400 border-b-2 border-emerald-500',
+                                    sky: 'bg-sky-500/20 text-sky-400 border border-sky-500/40',
+                                    purple: 'bg-purple-500/20 text-purple-400 border border-purple-500/40',
+                                    cyan: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40',
+                                    amber: 'bg-amber-500/20 text-amber-400 border border-amber-500/40',
+                                    emerald: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40',
                                 };
                                 return (
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveWikiTab(tab.id)}
-                                        className={`flex-shrink-0 px-4 py-2.5 rounded-t-lg text-sm font-bold transition-all ${
-                                            isActive ? activeClasses[tab.accent] : 'text-slate-500 hover:text-slate-300'
+                                        className={`flex-shrink-0 px-4 py-2.5 rounded-lg text-[11px] font-mono font-bold transition-all border border-transparent ${
+                                            isActive ? activeClasses[tab.accent] : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                                         }`}
                                     >
                                         {tab.label}
@@ -340,54 +316,58 @@ const KPKNView: React.FC = () => {
     const renderListsTab = () => (
          <div className="space-y-4 animate-fade-in">
             {!isCreatingNew && (
-                <Button onClick={() => setIsCreatingNew(true)} className="w-full !py-4 shadow-lg shadow-primary-color/20">
-                    <PlusIcon /> Crear Nueva Lista
-                </Button>
+                <button
+                    onClick={() => setIsCreatingNew(true)}
+                    className="w-full py-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a] hover:bg-[#0d0d0d] hover:border-orange-500/40 transition-all flex items-center justify-center gap-2 font-mono text-sm font-bold text-orange-500/90"
+                >
+                    <PlusIcon size={18} /> CREAR NUEVA LISTA
+                </button>
             )}
             {isCreatingNew && (
-                <Card className="animate-fade-in-up">
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a] animate-fade-in-up">
                     <input 
                         type="text" 
                         value={newPlaylistName} 
                         onChange={e => setNewPlaylistName(e.target.value)} 
                         placeholder="Nombre de la nueva lista"
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white mb-3"
+                        className="w-full bg-[#0d0d0d] border border-white/5 rounded-lg p-3 text-white font-mono text-sm mb-3 placeholder:text-slate-500 focus:border-orange-500/40 outline-none"
                         autoFocus
                     />
                     <div className="flex gap-2">
-                        <Button onClick={() => setIsCreatingNew(false)} variant="secondary" className="flex-1">Cancelar</Button>
-                        <Button onClick={handleCreatePlaylist} disabled={!newPlaylistName.trim()} className="flex-1">Crear</Button>
+                        <button onClick={() => setIsCreatingNew(false)} className="flex-1 py-2.5 rounded-lg border border-white/10 text-slate-400 font-mono text-xs hover:bg-white/5">CANCELAR</button>
+                        <button onClick={handleCreatePlaylist} disabled={!newPlaylistName.trim()} className="flex-1 py-2.5 rounded-lg bg-orange-500/20 text-orange-400 font-mono text-xs font-bold border border-orange-500/30 disabled:opacity-40 disabled:cursor-not-allowed">CREAR</button>
                     </div>
-                </Card>
+                </div>
             )}
             
-            <div className="space-y-3">
+            <div className="space-y-2">
                 {Array.isArray(exercisePlaylists) && exercisePlaylists.length > 0 ? (
                     exercisePlaylists.map(playlist => (
-                        <details key={playlist.id} className="glass-card !p-0 group">
-                            <summary className="p-4 cursor-pointer list-none flex justify-between items-center bg-slate-900/20 hover:bg-slate-800/40 transition-colors">
+                        <details key={playlist.id} className="rounded-xl border border-orange-500/20 bg-[#0a0a0a] overflow-hidden group">
+                            <summary className="p-4 cursor-pointer list-none flex justify-between items-center hover:bg-[#0d0d0d] transition-colors">
                                 <div>
-                                    <h3 className="font-bold text-white text-lg">{playlist.name}</h3>
-                                    <p className="text-xs text-slate-400 font-medium">{playlist.exerciseIds.length} ejercicios</p>
+                                    <h3 className="font-bold text-white font-mono text-sm">{playlist.name}</h3>
+                                    <p className="text-[10px] text-orange-500/80 font-mono mt-0.5">{playlist.exerciseIds.length} ejercicios</p>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeletePlaylist(playlist.id); }} className="p-2 text-slate-600 hover:text-red-400 transition-colors"><TrashIcon size={16}/></button>
-                                    <ChevronRightIcon className="details-arrow transition-transform text-slate-500" />
+                                <div className="flex items-center gap-2">
+                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeletePlaylist(playlist.id); }} className="p-2 text-slate-500 hover:text-red-400 transition-colors" title="Eliminar lista"><TrashIcon size={14}/></button>
+                                    <ChevronRightIcon className="details-arrow transition-transform text-slate-500" size={16} />
                                 </div>
                             </summary>
-                            <div className="border-t border-slate-700/30 p-2 space-y-1 bg-black/20">
+                            <div className="border-t border-white/5 p-2 space-y-1 bg-[#080808]">
                                 {playlist.exerciseIds.length > 0 ? playlist.exerciseIds.map(exId => {
                                     const exercise = exerciseList.find(e => e.id === exId);
                                     return exercise ? <ExerciseItem key={exId} exercise={exercise} /> : null;
-                                }) : <p className="text-xs text-slate-500 text-center p-4 italic">Esta lista está vacía. Añade ejercicios desde el botón "+" en la vista de detalle.</p>}
+                                }) : <p className="text-[10px] text-slate-500 font-mono text-center p-4">Lista vacía. Añade ejercicios desde el botón + en la vista de detalle.</p>}
                             </div>
                         </details>
                     ))
                 ) : (
                     !isCreatingNew && (
-                        <div className="text-center py-12 opacity-50">
-                            <ClipboardListIcon size={48} className="mx-auto text-slate-600 mb-2"/>
-                            <p className="text-slate-400">Aún no has creado ninguna lista.</p>
+                        <div className="text-center py-12 rounded-xl border border-white/5 bg-[#0a0a0a]">
+                            <ClipboardListIcon size={40} className="mx-auto text-slate-600 mb-2"/>
+                            <p className="text-slate-400 font-mono text-sm">Aún no has creado ninguna lista.</p>
+                            <p className="text-[10px] text-slate-500 font-mono mt-1">Crea una para organizar tus ejercicios favoritos.</p>
                         </div>
                     )
                 )}
@@ -396,7 +376,7 @@ const KPKNView: React.FC = () => {
     );
 
     return (
-        <div className="pt-4 pb-32 px-4 max-w-4xl mx-auto">
+        <div className="pt-4 pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))] px-4 max-w-4xl mx-auto bg-[#0a0a0a] min-h-screen">
              {!settings.hasSeenKPKNTour && (
                 <CoachMark 
                     title="KPKN: Base de Conocimiento" 
@@ -405,13 +385,12 @@ const KPKNView: React.FC = () => {
                 />
              )}
              
-            {/* Unified Title (No local header controls anymore) */}
-             <div className="mb-6">
-                <h1 className="text-4xl font-black uppercase tracking-tighter text-white">
-                    {currentTab === 'Explorar' ? 'Wiki/Lab' : 'Mis Listas'}
+            <div className="mb-6 border-b border-white/5 pb-4">
+                <h1 className="text-2xl font-black font-mono uppercase tracking-tight text-white">
+                    {currentTab === 'Explorar' ? 'WikiLab' : 'Mis Listas'}
                 </h1>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                    {currentTab === 'Explorar' ? 'Base de conocimiento para el entrenamiento' : 'Colecciones Personalizadas'}
+                <p className="text-[10px] text-orange-500/80 font-mono uppercase tracking-widest mt-1">
+                    {currentTab === 'Explorar' ? 'base de conocimiento · ejercicios · anatomía · patrones' : 'colecciones personalizadas'}
                 </p>
             </div>
 

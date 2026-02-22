@@ -11,6 +11,10 @@ const defaultSettings: Settings = {
     hasSeenSessionEditorTour: false,
     hasSeenKPKNTour: false,
     hasSeenNutritionWizard: false,
+    hasDismissedNutritionSetup: false,
+    hasSeenGeneralWizard: false,
+    hasPrecalibratedBattery: false,
+    precalibrationDismissed: false,
     username: 'Atleta',
     profilePicture: undefined,
     athleteType: 'enthusiast',
@@ -67,6 +71,7 @@ const defaultSettings: Settings = {
     workDays: [1, 2, 3, 4, 5],
     wakeTimeWork: '07:00',
     wakeTimeOff: '09:00',
+    homeCardOrder: ['battery', 'session', 'nutrition', 'program', 'top5', 'readiness', 'streak', 'quicklog'],
 };
 
 export { defaultSettings };
@@ -98,10 +103,15 @@ export const useSettingsStore = create<SettingsStoreState>()(
                 settings: 'yourprime-settings',
             }),
             partialize: (state) => ({ settings: state.settings }),
-            merge: (persisted: any, current) => ({
-                ...current,
-                settings: { ...current.settings, ...(persisted?.settings || {}) },
-            }),
+            merge: (persisted: any, current) => {
+                const curr = current.settings;
+                const pers = persisted?.settings || {};
+                const merged = { ...curr, ...pers };
+                if (pers.userVitals && typeof pers.userVitals === 'object') {
+                    merged.userVitals = { ...(curr.userVitals || {}), ...pers.userVitals };
+                }
+                return { ...current, settings: merged };
+            },
             onRehydrateStorage: () => () => {
                 useSettingsStore.setState({ _hasHydrated: true });
             },

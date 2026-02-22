@@ -6,12 +6,10 @@ import { resolveToCanonical } from '../data/foodSynonyms';
 import { FOOD_DATABASE } from '../data/foodDatabase';
 import { extractCookingMethodFromFragment } from '../data/cookingMethodFactors';
 
-// Conectores que dividen la lista. "con" solo cuando va seguido de cantidad (ej: "nuggets con 300g arroz")
-// para no romper "agua mineral con gas". Usamos (?:...) para no capturar y evitar que "con" aparezca como fragmento.
+// Conectores que dividen la lista. "con" funciona igual que "y" (los alimentos con "con" en nombre usan "c/" en DB).
 const COMMA_OR_PLUS = /,\s*|\s+\+\s+/g;
 const CONNECTOR_Y = /\s+y\s+/gi;
-// "con" seguido de cantidad (300g, 2 unidades, una porción...) para no romper "agua mineral con gas"
-const CONNECTOR_CON_QUANTITY = /\s+con\s+(?=\d|una?\b|uno\b|dos\b|tres\b|cuatro\b|cinco\b|medio\b|media\b|doble\b|triple\b)/gi;
+const CONNECTOR_CON = /\s+con\s+/gi;
 
 // Gramos: "300g", "300 g", "200gr", "1.5 kg", "300 gramos de"
 const GRAM_PATTERN = /(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg)(?:\s+de)?\s*/gi;
@@ -35,13 +33,16 @@ const PORTION_PATTERNS: { pattern: RegExp; preset: PortionPreset }[] = [
 ];
 
 function findInDatabase(term: string): string | null {
-    const normalized = term.trim().toLowerCase();
+    const normalized = term.trim().toLowerCase().replace(/\s+con\s+/gi, ' c/ ');
     if (!normalized || normalized.length < 2) return null;
-    const exact = FOOD_DATABASE.find(f => f.name.toLowerCase() === normalized);
-    if (exact) return exact.name;
-    const partial = FOOD_DATABASE.find(f =>
-        f.name.toLowerCase().includes(normalized) || normalized.includes(f.name.toLowerCase())
+    const exact = FOOD_DATABASE.find(f =>
+        f.name.toLowerCase().replace(/\s+con\s+/gi, ' c/ ') === normalized
     );
+    if (exact) return exact.name;
+    const partial = FOOD_DATABASE.find(f => {
+        const fn = f.name.toLowerCase().replace(/\s+con\s+/gi, ' c/ ');
+        return fn.includes(normalized) || normalized.includes(fn);
+    });
     return partial?.name ?? null;
 }
 
@@ -142,7 +143,7 @@ function splitByListConnectors(description: string): string[] {
     };
     splitBy(COMMA_OR_PLUS);
     splitBy(CONNECTOR_Y);
-    splitBy(CONNECTOR_CON_QUANTITY);
+    splitBy(CONNECTOR_CON);
     return parts;
 }
 

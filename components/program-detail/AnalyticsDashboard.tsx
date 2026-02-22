@@ -7,6 +7,7 @@ import { RelativeStrengthAndBasicsWidget } from '../RelativeStrengthAndBasicsWid
 import ExerciseHistoryWidget from '../ExerciseHistoryWidget';
 import { AugeAdaptiveCache } from '../../services/augeAdaptiveService';
 import { BanisterTrend, BayesianConfidence, SelfImprovementScore } from '../ui/AugeDeepView';
+import MetricsWidgetGrid from './MetricsWidgetGrid';
 
 type WidgetId = 'bodymap' | 'volume' | 'strength' | 'banister' | 'adherence' | 'recovery' | 'history';
 
@@ -47,7 +48,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     programDiscomforts, adaptiveCache, exerciseList,
 }) => {
     const [activeWidgets] = useState<WidgetId[]>(DEFAULT_WIDGETS);
-    const [showAdherenceDetail, setShowAdherenceDetail] = useState(false);
     const [selectedMusclePos, setSelectedMusclePos] = useState<{ muscle: string; x: number; y: number } | null>(null);
     const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
 
@@ -77,19 +77,20 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     }
 
     return (
-        <div className="h-full overflow-y-auto custom-scrollbar">
-            {/* Header */}
-            <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between sticky top-0 bg-[#111] z-10">
+        <div className="h-full min-h-0 flex flex-col bg-black">
+            {/* Header sticky - nunca se oculta */}
+            <header className="shrink-0 sticky top-0 z-20 bg-black border-b border-white/5 px-4 py-3">
                 <span className="text-sm font-bold text-white uppercase tracking-wide">Analytics</span>
-            </div>
+            </header>
 
-            <div className="px-4 py-4 space-y-6">
-                {/* ── Body Map ── */}
-                {activeWidgets.includes('bodymap') && (
-                    <section>
-                        <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide mb-3">Mapa de Volumen</h3>
-                        <div className="flex flex-col items-center">
-                            <CaupolicanBody
+            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+                <div className="px-4 py-4 pb-[max(80px,env(safe-area-inset-bottom,0px))] space-y-6">
+                    {/* ── Body Map (fondo negro para que Caupolican no corte contra gris) ── */}
+                    {activeWidgets.includes('bodymap') && (
+                        <section className="bg-black overflow-hidden">
+                            <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide mb-3">Mapa de Volumen</h3>
+                            <div className="flex flex-col items-center bg-black">
+                                <CaupolicanBody
                                 data={visualizerData as any}
                                 isPowerlifting={program.mode === 'powerlifting'}
                                 focusedMuscle={focusedMuscle}
@@ -114,6 +115,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     <section>
                         <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide mb-3">Volumen Semanal</h3>
                         <WorkoutVolumeAnalysis
+                            program={program}
                             sessions={displayedSessions}
                             history={historyData}
                             isOnline={isOnline}
@@ -124,60 +126,20 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     </section>
                 )}
 
-                {/* ── Adherence ── */}
+                {/* ── Metrics Widget Grid (reemplaza adherencia) ── */}
                 {activeWidgets.includes('adherence') && (
                     <section>
-                        <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide">Adherencia</h3>
-                            <button onClick={() => setShowAdherenceDetail(!showAdherenceDetail)} className="text-[10px] font-bold text-[#FC4C02] hover:underline">
-                                {showAdherenceDetail ? 'Cerrar' : 'Detalle'}
-                            </button>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            {/* Circular progress */}
-                            <div className="relative w-20 h-20 shrink-0">
-                                <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                                    <path className="text-[#1a1a1a]" strokeWidth="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path
-                                        strokeWidth="3.5" strokeDasharray={`${totalAdherence}, 100`} strokeLinecap="round" stroke="currentColor" fill="none"
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                        style={{ color: totalAdherence >= 80 ? '#00F19F' : totalAdherence >= 50 ? '#FFD60A' : '#FF3B30' }}
-                                    />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-xl font-black text-white">{totalAdherence}%</span>
-                                </div>
-                            </div>
-                            {/* Mini calendar */}
-                            <div className="flex-1 grid grid-cols-7 gap-1">
-                                {weeklyAdherence.slice(0, 14).map((w, i) => (
-                                    <div
-                                        key={i}
-                                        className={`w-full aspect-square rounded-sm ${w.pct === 100 ? 'bg-[#00F19F]' : w.pct > 0 ? 'bg-[#FFD60A]' : 'bg-[#1a1a1a]'}`}
-                                        title={`${w.weekName}: ${w.pct}%`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                        {showAdherenceDetail && (
-                            <div className="mt-3 space-y-1.5">
-                                {weeklyAdherence.map((week, i) => (
-                                    <div key={i} className="flex items-center gap-2">
-                                        <span className="w-12 text-right text-[10px] font-bold text-[#48484A]">S{i + 1}</span>
-                                        <div className="flex-1 h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full rounded-full transition-all"
-                                                style={{
-                                                    width: `${week.pct}%`,
-                                                    backgroundColor: week.pct === 100 ? '#00F19F' : week.pct > 50 ? '#FFD60A' : '#FF3B30',
-                                                }}
-                                            />
-                                        </div>
-                                        <span className="w-8 text-[10px] font-bold text-white">{week.pct}%</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide mb-3">Métricas</h3>
+                        <MetricsWidgetGrid
+                            program={program}
+                            history={historyData}
+                            displayedSessions={displayedSessions}
+                            totalAdherence={totalAdherence}
+                            selectedWeekId={selectedWeekId}
+                            currentWeeks={currentWeeks}
+                            weeklyAdherence={weeklyAdherence}
+                            adaptiveCache={adaptiveCache}
+                        />
                     </section>
                 )}
 
@@ -250,6 +212,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         <ExerciseHistoryWidget program={program} history={historyData} />
                     </section>
                 )}
+                </div>
             </div>
         </div>
     );

@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Program, Session, ProgramWeek, ExerciseMuscleInfo } from '../../types';
 import { ChevronDownIcon, PlusIcon, PlayIcon, EditIcon, TrashIcon, DumbbellIcon, CalendarIcon, ActivityIcon } from '../icons';
 import { getAbsoluteWeekIndex } from '../../utils/programHelpers';
+
+const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 interface RoadmapBlock {
     id: string; name: string; macroIndex: number; blockIndex: number; totalWeeks: number; mesocycles: any[];
@@ -29,8 +31,6 @@ interface TrainingCalendarGridProps {
     addToast: (msg: string, type: 'success' | 'danger' | 'achievement' | 'suggestion') => void;
 }
 
-const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
 const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
     program, isCyclic, roadmapBlocks, currentWeeks, selectedBlockId,
     selectedWeekId, activeBlockId, settings, exerciseList, history,
@@ -38,6 +38,16 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
     onStartWorkout, onEditSession, onDeleteSession, onAddSession, addToast,
 }) => {
     const [showCyclicHistory, setShowCyclicHistory] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false);
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const selectedBlock = useMemo(() => roadmapBlocks.find(b => b.id === selectedBlockId), [roadmapBlocks, selectedBlockId]);
     const selectedWeekIndex = useMemo(() => currentWeeks.findIndex(w => w.id === selectedWeekId), [currentWeeks, selectedWeekId]);
@@ -83,6 +93,26 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
         }) || null;
     }, [program, selectedBlock, selectedWeek]);
 
+    const getWeekLabel = (weekIdx: number) => {
+        if (!isCyclic || currentWeeks.length !== 2) return `Semana ${weekIdx + 1}`;
+        return weekIdx === 0 ? 'Semana A' : 'Semana B';
+    };
+
+    const weekHasEvent = useMemo(() => {
+        const events = program.events || [];
+        const cycleLength = program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length || 1;
+        return (weekIdx: number) => {
+            if (!selectedBlock) return false;
+            const week = currentWeeks[weekIdx];
+            if (!week) return false;
+            const absIdx = getAbsoluteWeekIndex(program, selectedBlock.id, week.id);
+            return events.some(e => {
+                if (e.repeatEveryXCycles) return ((absIdx + 1) % (e.repeatEveryXCycles * cycleLength)) === 0;
+                return e.calculatedWeek === absIdx;
+            });
+        };
+    }, [program, selectedBlock, currentWeeks]);
+
     const navigateWeek = (dir: -1 | 1) => {
         const newIdx = selectedWeekIndex + dir;
         if (newIdx >= 0 && newIdx < currentWeeks.length) {
@@ -90,58 +120,102 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
         }
     };
 
-    return (
-        <div className="flex flex-col h-full">
-            {/* Header toolbar */}
-            <div className="px-4 py-3 border-b border-white/5 space-y-2.5 shrink-0">
-                {/* Block selector (non-cyclic) */}
-                {!isCyclic && roadmapBlocks.length > 1 && (
-                    <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-                        {roadmapBlocks.map(block => (
-                            <button
-                                key={block.id}
-                                onClick={() => onSelectBlock(block.id)}
-                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all ${
-                                    block.id === selectedBlockId
-                                        ? 'bg-[#FC4C02] text-white shadow-[0_0_15px_rgba(252,76,2,0.3)]'
-                                        : block.id === activeBlockId
-                                            ? 'bg-white/10 text-white'
-                                            : 'bg-white/5 text-[#8E8E93] hover:text-white'
-                                }`}
-                            >
-                                {block.name}
-                            </button>
-                        ))}
-                    </div>
-                )}
+    const getSessionsByDayForWeek = (week: ProgramWeek & { mesoIndex: number }) => {
+        const map = new Map<number, Session[]>();
+        orderedDays.forEach(d => map.set(d, []));
+        (week.sessions || []).forEach(s => {
+            const day = s.dayOfWeek ?? 0;
+            if (!map.has(day)) map.set(day, []);
+            map.get(day)!.push(s);
+        });
+        return map;
+    };
 
-                {/* Week nav + actions */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => navigateWeek(-1)} disabled={selectedWeekIndex <= 0} className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white disabled:opacity-20 transition-all">
-                            <ChevronDownIcon size={14} className="rotate-90" />
-                        </button>
-                        <span className="text-sm font-bold text-white">
-                            Semana {selectedWeekIndex + 1} <span className="text-[#48484A]">de {currentWeeks.length}</span>
+    return (
+        <div className="flex flex-col h-full min-h-0">
+            {/* Dropdown: Bloques + Filtros */}
+            <div className="relative px-4 py-2.5 border-b border-white/5 shrink-0" ref={dropdownRef}>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                        className="flex-1 flex items-center justify-between px-3 py-2 rounded-lg bg-[#1a1a1a] border border-white/5 text-left"
+                    >
+                        <span className="text-[11px] font-bold text-white truncate">
+                            {selectedBlock?.name || 'Bloque'}
+                            {isCyclic && ` · ${showCyclicHistory ? 'Historial' : 'Rutina'}`}
                         </span>
-                        <button onClick={() => navigateWeek(1)} disabled={selectedWeekIndex >= currentWeeks.length - 1} className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white disabled:opacity-20 transition-all">
-                            <ChevronDownIcon size={14} className="-rotate-90" />
-                        </button>
-                    </div>
-                    <div className="flex items-center gap-2">
+                        <ChevronDownIcon size={16} className={`text-[#8E8E93] shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                </div>
+                {dropdownOpen && (
+                    <div className="mt-2 absolute left-4 right-4 z-30 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-xl overflow-hidden py-1">
+                        {!isCyclic && roadmapBlocks.length > 1 && (
+                            <>
+                                {roadmapBlocks.map(block => (
+                                    <button
+                                        key={block.id}
+                                        onClick={() => { onSelectBlock(block.id); setDropdownOpen(false); }}
+                                        className={`w-full px-4 py-2.5 text-left text-[11px] font-bold transition-colors ${
+                                            block.id === selectedBlockId ? 'bg-[#FC4C02]/20 text-[#FC4C02]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'
+                                        }`}
+                                    >
+                                        {block.name}
+                                    </button>
+                                ))}
+                                <div className="border-t border-white/5 my-1" />
+                            </>
+                        )}
                         {isCyclic && (
-                            <button onClick={() => setShowCyclicHistory(!showCyclicHistory)} className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${showCyclicHistory ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#8E8E93] hover:text-white'}`}>
-                                {showCyclicHistory ? 'Historial' : 'Rutina'}
+                            <button
+                                onClick={() => { setShowCyclicHistory(!showCyclicHistory); setDropdownOpen(false); }}
+                                className={`w-full px-4 py-2.5 text-left text-[11px] font-bold ${showCyclicHistory ? 'bg-[#FC4C02]/20 text-[#FC4C02]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'}`}
+                            >
+                                {showCyclicHistory ? 'Rutina' : 'Historial'}
                             </button>
                         )}
-                        <button onClick={onOpenSplitChanger} className="px-2.5 py-1 rounded-lg bg-white/5 text-[10px] font-bold text-[#8E8E93] hover:text-white transition-colors">
+                        <button onClick={() => { onOpenSplitChanger(); setDropdownOpen(false); }} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[#8E8E93] hover:text-white hover:bg-white/5">
                             Split
                         </button>
-                        <button onClick={onOpenStructureDrawer} className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors">
-                            <ActivityIcon size={14} />
+                        <button onClick={() => { onOpenStructureDrawer(); setDropdownOpen(false); }} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[#8E8E93] hover:text-white hover:bg-white/5">
+                            Estructura
                         </button>
                     </div>
+                )}
+            </div>
+
+            {/* Week nav - carrusel con indicador A/B para cíclicos */}
+            <div className="px-4 py-2 border-b border-white/5 shrink-0">
+                <div className="flex items-center justify-between gap-2">
+                    <button onClick={() => navigateWeek(-1)} disabled={selectedWeekIndex <= 0} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white disabled:opacity-20 transition-all shrink-0">
+                        <ChevronDownIcon size={14} className="rotate-90" />
+                    </button>
+                    <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-2 justify-center py-1">
+                        {currentWeeks.map((week, weekIdx) => {
+                            const isSelected = week.id === selectedWeekId;
+                            const hasEv = weekHasEvent(weekIdx);
+                            return (
+                                <button
+                                    key={week.id}
+                                    onClick={() => onSelectWeek(week.id)}
+                                    className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                        isSelected
+                                            ? 'bg-[#FC4C02] text-white'
+                                            : 'bg-white/5 text-[#8E8E93] hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    {getWeekLabel(weekIdx)}
+                                    {hasEv && <CalendarIcon size={12} className={isSelected ? 'text-white' : 'text-[#FC4C02]'} />}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <button onClick={() => navigateWeek(1)} disabled={selectedWeekIndex >= currentWeeks.length - 1} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white disabled:opacity-20 transition-all shrink-0">
+                        <ChevronDownIcon size={14} className="-rotate-90" />
+                    </button>
                 </div>
+                <p className="text-[10px] text-[#48484A] text-center mt-1">
+                    {isCyclic && currentWeeks.length === 2 ? 'Alternancia A/B' : `${selectedWeekIndex + 1} de ${currentWeeks.length}`}
+                </p>
             </div>
 
             {/* Event banner */}
@@ -152,69 +226,97 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                 </div>
             )}
 
-            {/* Calendar grid */}
+            {/* Vertical week cards */}
             {!showCyclicHistory ? (
-                <div className="flex-1 overflow-y-auto px-4 py-3">
-                    <div className="grid grid-cols-7 gap-1.5 min-h-0">
-                        {/* Day headers */}
-                        {orderedDays.map(dayIdx => {
-                            const sessions = sessionsByDay.get(dayIdx) || [];
-                            const isTrainingDay = sessions.length > 0;
-                            return (
-                                <div key={`header-${dayIdx}`} className="text-center pb-2">
-                                    <span className={`text-[10px] font-bold uppercase tracking-wide ${isTrainingDay ? 'text-white' : 'text-[#48484A]'}`}>
-                                        {DAY_NAMES_SHORT[dayIdx]}
-                                    </span>
-                                    <div className={`w-1.5 h-1.5 rounded-full mx-auto mt-1 ${isTrainingDay ? 'bg-[#FC4C02]' : 'bg-[#1a1a1a]'}`} />
-                                </div>
-                            );
-                        })}
-
-                        {/* Day columns with sessions */}
-                        {orderedDays.map(dayIdx => {
-                            const sessions = sessionsByDay.get(dayIdx) || [];
-                            return (
-                                <div key={`col-${dayIdx}`} className="min-h-[120px] flex flex-col gap-1.5">
-                                    {sessions.length > 0 ? sessions.map((session, sIdx) => {
-                                        const exerciseCount = (session.exercises || []).length;
-                                        const estimatedMin = exerciseCount * 8;
-                                        const isCompleted = completedSessionIds.has(session.id);
-                                        return (
-                                            <CalendarSessionBlock
-                                                key={session.id}
-                                                session={session}
-                                                exerciseCount={exerciseCount}
-                                                estimatedMin={estimatedMin}
-                                                isCompleted={isCompleted}
-                                                onStart={() => onStartWorkout(session, program)}
-                                                onEdit={() => onEditSession(session)}
-                                                onDelete={() => {
-                                                    if (selectedBlock && selectedWeek) {
-                                                        onDeleteSession(session.id, program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id);
-                                                    }
-                                                }}
-                                            />
-                                        );
-                                    }) : (
-                                        <button
-                                            onClick={() => {
-                                                if (onAddSession && selectedBlock && selectedWeek) {
-                                                    onAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id, dayIdx);
-                                                }
-                                            }}
-                                            className="flex-1 rounded-lg border border-dashed border-white/5 flex items-center justify-center text-[#48484A] hover:text-[#8E8E93] hover:border-white/10 transition-all group"
-                                        >
-                                            <PlusIcon size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        </button>
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-[max(80px,env(safe-area-inset-bottom,0px))] space-y-4 custom-scrollbar">
+                    {currentWeeks.map((week, weekIdx) => {
+                        const weekSessionsByDay = getSessionsByDayForWeek(week);
+                        const isSelected = week.id === selectedWeekId;
+                        return (
+                            <div
+                                key={week.id}
+                                className={`rounded-xl border overflow-hidden transition-all ${
+                                    isSelected ? 'border-[#FC4C02]/40 bg-[#1a1a1a]' : 'border-white/5 bg-[#111]'
+                                }`}
+                            >
+                                <div className="px-3 py-2 border-b border-white/5 flex items-center justify-between">
+                                    <span className="text-[11px] font-bold text-white uppercase tracking-wide">{getWeekLabel(weekIdx)}</span>
+                                    {week.id === selectedWeekId && (
+                                        <span className="text-[9px] font-bold text-[#FC4C02]">Actual</span>
+                                    )}
+                                    {weekHasEvent(weekIdx) && (
+                                        <CalendarIcon size={12} className="text-[#FC4C02] shrink-0" />
                                     )}
                                 </div>
-                            );
-                        })}
-                    </div>
+                                <div className="divide-y divide-white/5">
+                                    {orderedDays.map(dayIdx => {
+                                        const sessions = weekSessionsByDay.get(dayIdx) || [];
+                                        return (
+                                            <div key={dayIdx} className="flex flex-col">
+                                                {sessions.length > 0 ? sessions.map((session) => {
+                                                    const exerciseCount = (session.exercises || []).length;
+                                                    const estimatedMin = exerciseCount * 8;
+                                                    const isCompleted = completedSessionIds.has(session.id);
+                                                    const block = roadmapBlocks.find(b => b.id === selectedBlockId);
+                                                    const weekData = currentWeeks.find(w => w.id === week.id);
+                                                    return (
+                                                        <div
+                                                            key={session.id}
+                                                            className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors"
+                                                            onClick={() => onEditSession(session)}
+                                                        >
+                                                            <span className="w-10 text-[10px] font-bold text-[#8E8E93] shrink-0">{DAY_NAMES_SHORT[dayIdx]}</span>
+                                                            <div className="flex-1 min-w-0">
+                                                                <span className={`text-xs font-bold block truncate ${isCompleted ? 'text-[#00F19F]' : 'text-white'}`}>
+                                                                    {session.name}
+                                                                </span>
+                                                                <span className="text-[10px] text-[#48484A]">{exerciseCount} ej · {estimatedMin}m</span>
+                                                            </div>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); onStartWorkout(session, program); }}
+                                                                className="w-8 h-8 rounded-lg bg-[#FC4C02] flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+                                                            >
+                                                                <PlayIcon size={12} fill="white" />
+                                                            </button>
+                                                            {week.id === selectedWeekId && block && weekData && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); onEditSession(session); }}
+                                                                        className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                                                        <EditIcon size={12} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id, program.id, block.macroIndex, weekData.mesoIndex, week.id); }}
+                                                                        className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-red-400 hover:bg-red-500/20">
+                                                                        <TrashIcon size={12} />
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                }                                                ) : (
+                                                    week.id === selectedWeekId && onAddSession && selectedBlock && (
+                                                        <button
+                                                            onClick={() => onAddSession(program.id, selectedBlock.macroIndex, week.mesoIndex, week.id, dayIdx)}
+                                                            className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors text-[#48484A] hover:text-[#8E8E93]"
+                                                        >
+                                                            <span className="w-10 text-[10px] font-bold shrink-0">{DAY_NAMES_SHORT[dayIdx]}</span>
+                                                            <span className="flex-1 text-left text-[10px]">+ Añadir sesión</span>
+                                                            <PlusIcon size={12} />
+                                                        </button>
+                                                    )
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             ) : (
                 /* Cyclic history view */
-                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-[max(80px,env(safe-area-inset-bottom,0px))] space-y-2 custom-scrollbar">
                     {programLogs.length > 0 ? programLogs.slice(0, 20).map((log: any, idx: number) => (
                         <div key={idx} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#111] border border-white/5">
                             <div className="w-8 h-8 rounded-lg bg-[#00F19F]/10 flex items-center justify-center shrink-0">
@@ -232,59 +334,6 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                             <p className="text-xs text-[#48484A] font-bold">Sin historial aún</p>
                         </div>
                     )}
-                </div>
-            )}
-        </div>
-    );
-};
-
-/* ── Session block inside calendar column ── */
-const CalendarSessionBlock: React.FC<{
-    session: Session;
-    exerciseCount: number;
-    estimatedMin: number;
-    isCompleted: boolean;
-    onStart: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-}> = ({ session, exerciseCount, estimatedMin, isCompleted, onStart, onEdit, onDelete }) => {
-    const [hovered, setHovered] = useState(false);
-
-    return (
-        <div
-            className={`relative rounded-lg p-2 transition-all cursor-pointer group ${
-                isCompleted
-                    ? 'bg-[#00F19F]/10 border border-[#00F19F]/20'
-                    : 'bg-[#1a1a1a] border border-white/5 hover:border-[#FC4C02]/30'
-            }`}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            onClick={onEdit}
-        >
-            {/* Completion bar */}
-            {isCompleted && (
-                <div className="absolute top-0 left-0 w-full h-0.5 rounded-t-lg bg-[#00F19F]" />
-            )}
-
-            <span className="text-[10px] font-bold text-white block truncate leading-tight">
-                {session.name}
-            </span>
-            <span className="text-[9px] text-[#48484A] block mt-0.5">
-                {exerciseCount} ej · {estimatedMin}m
-            </span>
-
-            {/* Hover actions */}
-            {hovered && (
-                <div className="absolute inset-0 rounded-lg bg-black/80 flex items-center justify-center gap-1 z-10">
-                    <button onClick={e => { e.stopPropagation(); onStart(); }} className="w-6 h-6 rounded bg-[#FC4C02] flex items-center justify-center hover:brightness-110 transition-all" title="Iniciar">
-                        <PlayIcon size={10} fill="white" />
-                    </button>
-                    <button onClick={e => { e.stopPropagation(); onEdit(); }} className="w-6 h-6 rounded bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors" title="Editar">
-                        <EditIcon size={10} />
-                    </button>
-                    <button onClick={e => { e.stopPropagation(); onDelete(); }} className="w-6 h-6 rounded bg-white/10 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors" title="Eliminar">
-                        <TrashIcon size={10} />
-                    </button>
                 </div>
             )}
         </div>

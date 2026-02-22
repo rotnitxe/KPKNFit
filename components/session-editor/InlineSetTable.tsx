@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExerciseSet } from '../../types';
 import { PlusIcon, XIcon, FlameIcon } from '../icons';
+import { calculateWeightFrom1RMHybrid } from '../../utils/calculations';
 
 interface InlineSetTableProps {
     sets: ExerciseSet[];
@@ -17,137 +18,154 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
 }) => {
     const isPercent = trainingMode === 'percent';
     const isTime = trainingMode === 'time';
+    const showWeightColumn = isPercent; // Modo REPS: no mostrar columna Peso (se usa peso consolidado a nivel ejercicio)
+
+    const getEstimatedWeight = (set: ExerciseSet) => {
+        if (!reference1RM) return null;
+        if (set.targetPercentageRM) return Math.round((reference1RM * set.targetPercentageRM / 100) * 4) / 4;
+        if (set.targetReps) return Math.round(calculateWeightFrom1RMHybrid(reference1RM, set.targetReps) * 4) / 4;
+        return null;
+    };
 
     return (
-        <div className="w-full">
-            {/* Column headers */}
-            <div className="flex items-center gap-1 px-1 pb-1.5 border-b border-white/5">
-                <span className="w-8 text-[10px] font-bold text-[#555] uppercase text-center">Set</span>
-                <span className="flex-1 text-[10px] font-bold text-[#555] uppercase">{isTime ? 'Seg' : 'Reps'}</span>
-                {isPercent && <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-right">%1RM</span>}
-                <span className="w-16 text-[10px] font-bold text-[#555] uppercase text-right">Peso</span>
-                <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-center">RPE</span>
-                <span className="w-16 text-[10px] font-bold text-[#555] uppercase text-center">Tipo</span>
-                <span className="w-7" />
-            </div>
+        <div className="w-full overflow-x-auto">
+            <div className="min-w-[420px]">
+                {/* Column headers */}
+                <div className="flex items-center gap-1 px-1 pb-1.5 border-b border-white/5">
+                    <span className="w-8 text-[10px] font-bold text-[#555] uppercase text-center">Set</span>
+                    <span className="flex-1 min-w-[48px] text-[10px] font-bold text-[#555] uppercase">{isTime ? 'Seg' : 'Reps'}</span>
+                    {isPercent && <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-right">%1RM</span>}
+                    {showWeightColumn && <span className="w-16 text-[10px] font-bold text-[#555] uppercase text-right">Peso</span>}
+                    <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-center">Int.</span>
+                    <span className="w-20 text-[10px] font-bold text-[#555] uppercase text-center">Tipo</span>
+                    <span className="w-7" />
+                </div>
 
-            {/* Set rows */}
-            {sets.map((set, i) => {
-                const mode = set.intensityMode || 'rpe';
-                const isAmrap = set.isAmrap || set.isCalibrator;
-                return (
-                    <div key={set.id || i} className="flex items-center gap-1 px-1 py-1.5 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors group">
-                        {/* Set number */}
-                        <span className="w-8 text-center text-xs font-mono text-[#999] font-bold">
-                            {i + 1}
-                        </span>
+                {/* Set rows */}
+                {sets.map((set, i) => {
+                    const mode = set.intensityMode || (isPercent ? 'solo_rm' : 'rpe');
+                    const isAmrap = set.isAmrap || set.isCalibrator;
+                    const isSoloRm = mode === 'solo_rm';
+                    const estimatedKg = isPercent && isSoloRm ? getEstimatedWeight(set) : null;
+                    const displayWeight = set.weight ?? (isPercent && reference1RM && set.targetPercentageRM ? Math.round((reference1RM * set.targetPercentageRM / 100) * 4) / 4 : estimatedKg);
+                    return (
+                        <div key={set.id || i} className="flex items-center gap-1 px-1 py-2 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors group min-h-[40px]">
+                            <span className="w-8 text-center text-xs font-mono text-[#999] font-bold">{i + 1}</span>
 
-                        {/* Reps / Duration */}
-                        <div className="flex-1">
-                            <input
-                                type="number"
-                                value={isTime ? (set.targetDuration || '') : (set.targetReps || '')}
-                                onChange={e => {
-                                    const val = parseInt(e.target.value) || 0;
-                                    onSetChange(i, isTime ? 'targetDuration' : 'targetReps', val);
-                                }}
-                                className="w-full bg-transparent border-b border-transparent focus:border-[#FC4C02] text-sm font-mono text-white py-0.5 transition-colors outline-none"
-                                placeholder="—"
-                            />
-                        </div>
-
-                        {/* %1RM */}
-                        {isPercent && (
-                            <div className="w-14">
+                            <div className="flex-1 min-w-[48px]">
                                 <input
                                     type="number"
-                                    value={set.targetPercentageRM || ''}
-                                    onChange={e => onSetChange(i, 'targetPercentageRM', parseInt(e.target.value) || 0)}
-                                    className="w-full bg-transparent border-b border-transparent focus:border-[#FC4C02] text-sm font-mono text-white py-0.5 text-right transition-colors outline-none"
-                                    placeholder="%"
+                                    min={0}
+                                    max={isTime ? 9999 : 99}
+                                    value={isTime ? (set.targetDuration || '') : (set.targetReps || '')}
+                                    onChange={e => {
+                                        const raw = e.target.value;
+                                        const val = parseInt(raw) || 0;
+                                        const clamped = isTime ? val : Math.min(99, Math.max(0, val));
+                                        onSetChange(i, isTime ? 'targetDuration' : 'targetReps', clamped);
+                                    }}
+                                    className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 px-1 rounded transition-colors outline-none placeholder-orange-900/50"
+                                    placeholder="—"
                                 />
                             </div>
-                        )}
 
-                        {/* Weight */}
-                        <div className="w-16">
-                            <input
-                                type="number"
-                                step="0.5"
-                                value={set.weight || (isPercent && reference1RM && set.targetPercentageRM ? Math.round((reference1RM * set.targetPercentageRM / 100) * 4) / 4 : '')}
-                                onChange={e => onSetChange(i, 'weight', parseFloat(e.target.value) || 0)}
-                                className="w-full bg-transparent border-b border-transparent focus:border-[#FC4C02] text-sm font-mono text-white py-0.5 text-right transition-colors outline-none"
-                                placeholder="kg"
-                            />
-                        </div>
-
-                        {/* Intensity */}
-                        <div className="w-14 text-center">
-                            {mode === 'failure' ? (
-                                <span className="text-[10px] font-bold text-red-400">FALLO</span>
-                            ) : mode === 'load' ? (
-                                <span className="text-[10px] font-bold text-[#999]">—</span>
-                            ) : (
-                                <input
-                                    type="number"
-                                    step="0.5"
-                                    max={10}
-                                    value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')}
-                                    onChange={e => {
-                                        const val = parseFloat(e.target.value);
-                                        onSetChange(i, mode === 'rir' ? 'targetRIR' : 'targetRPE', val);
-                                    }}
-                                    className="w-full bg-transparent border-b border-transparent focus:border-[#FC4C02] text-sm font-mono text-white py-0.5 text-center transition-colors outline-none"
-                                    placeholder={mode === 'rir' ? 'RIR' : 'RPE'}
-                                />
+                            {isPercent && (
+                                <div className="w-14">
+                                    <input
+                                        type="number"
+                                        value={set.targetPercentageRM || ''}
+                                        onChange={e => onSetChange(i, 'targetPercentageRM', parseInt(e.target.value) || 0)}
+                                        className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-orange-900/50"
+                                        placeholder="%"
+                                    />
+                                </div>
                             )}
-                        </div>
 
-                        {/* Type badge */}
-                        <div className="w-16 flex items-center justify-center">
-                            <select
-                                value={mode}
-                                onChange={e => onSetChange(i, 'intensityMode', e.target.value)}
-                                className="bg-transparent text-[10px] font-bold text-[#999] border-none p-0 focus:ring-0 cursor-pointer text-center"
-                            >
-                                <option value="rpe" className="bg-black text-white">RPE</option>
-                                <option value="rir" className="bg-black text-white">RIR</option>
-                                <option value="failure" className="bg-black text-white">Fallo</option>
-                                <option value="load" className="bg-black text-white">Carga</option>
-                            </select>
-                            {isAmrap && <FlameIcon size={10} className="text-yellow-400 ml-0.5 shrink-0" />}
-                        </div>
+                            {showWeightColumn && (
+                                <div className="w-16 flex flex-col items-end">
+                                    {isSoloRm && estimatedKg != null ? (
+                                        <span className="text-[10px] font-mono text-orange-400/90">{estimatedKg}kg</span>
+                                    ) : (
+                                        <input
+                                            type="number"
+                                            step="0.5"
+                                            value={displayWeight ?? ''}
+                                            onChange={e => onSetChange(i, 'weight', parseFloat(e.target.value) || 0)}
+                                            className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-orange-900/50"
+                                            placeholder="kg"
+                                        />
+                                    )}
+                                </div>
+                            )}
 
-                        {/* Actions */}
-                        <div className="w-7 flex items-center justify-center">
-                            {onAmrapToggle && (
-                                <button
-                                    onClick={() => onAmrapToggle(i)}
-                                    className={`mr-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${isAmrap ? 'text-yellow-400 opacity-100' : 'text-[#555]'}`}
-                                    title="AMRAP"
+                            <div className="w-14 text-center">
+                                {mode === 'failure' ? (
+                                    <span className="text-[10px] font-bold text-red-400">FALLO</span>
+                                ) : mode === 'solo_rm' ? (
+                                    <span className="text-[10px] font-bold text-orange-400/90">RM</span>
+                                ) : mode === 'load' ? (
+                                    <span className="text-[10px] font-bold text-[#999]">—</span>
+                                ) : (
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        min={0}
+                                        max={10}
+                                        value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')}
+                                        onChange={e => {
+                                            const val = parseFloat(e.target.value);
+                                            onSetChange(i, mode === 'rir' ? 'targetRIR' : 'targetRPE', val);
+                                        }}
+                                        className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-center rounded transition-colors outline-none placeholder-orange-900/50"
+                                        placeholder={mode === 'rir' ? 'RIR' : 'RPE'}
+                                    />
+                                )}
+                            </div>
+
+                            <div className="w-20 flex items-center justify-center">
+                                <select
+                                    value={mode}
+                                    onChange={e => onSetChange(i, 'intensityMode', e.target.value)}
+                                    className="bg-black/50 text-[10px] font-bold text-[#999] border border-white/10 rounded px-1 py-0.5 focus:ring-1 focus:ring-orange-500/30 cursor-pointer text-center"
                                 >
-                                    <FlameIcon size={10} />
-                                </button>
-                            )}
-                            <button
-                                onClick={() => onRemoveSet(i)}
-                                className="text-[#555] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                            >
-                                <XIcon size={12} />
-                            </button>
-                        </div>
-                    </div>
-                );
-            })}
+                                    {isPercent && <option value="solo_rm" className="bg-black text-white">SOLO RM</option>}
+                                    <option value="rpe" className="bg-black text-white">RPE</option>
+                                    <option value="rir" className="bg-black text-white">RIR</option>
+                                    <option value="failure" className="bg-black text-white">Fallo</option>
+                                    <option value="load" className="bg-black text-white">Carga</option>
+                                </select>
+                                {isAmrap && <FlameIcon size={10} className="text-yellow-400 ml-0.5 shrink-0" />}
+                            </div>
 
-            {/* Add row */}
-            <button
-                onClick={onAddSet}
-                className="flex items-center gap-1.5 px-1 py-2 w-full text-left text-[#555] hover:text-[#FC4C02] transition-colors"
-            >
-                <PlusIcon size={12} />
-                <span className="text-xs font-medium">Agregar serie</span>
-            </button>
+                            <div className="w-7 flex items-center justify-center gap-0.5">
+                                {onAmrapToggle && (
+                                    <button
+                                        onClick={() => onAmrapToggle(i)}
+                                        className={`p-1.5 rounded transition-opacity ${isAmrap ? 'text-yellow-400 opacity-100' : 'text-[#555] hover:text-white opacity-0 group-hover:opacity-100'}`}
+                                        title="AMRAP"
+                                    >
+                                        <FlameIcon size={10} />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => onRemoveSet(i)}
+                                    className="p-1.5 text-[#555] hover:text-red-400 transition-all rounded"
+                                >
+                                    <XIcon size={12} />
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
+
+                <button
+                    onClick={onAddSet}
+                    className="flex items-center gap-1.5 px-1 py-2.5 w-full text-left text-[#555] hover:text-[#FC4C02] transition-colors"
+                >
+                    <PlusIcon size={12} />
+                    <span className="text-xs font-medium">Agregar serie</span>
+                </button>
+            </div>
         </div>
     );
 };

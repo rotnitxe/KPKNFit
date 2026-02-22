@@ -273,6 +273,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (data) {
             switch (newView) {
                 case 'program-detail': ui.setActiveProgramId(data.programId); break;
+                case 'program-metric-volume':
+                case 'program-metric-strength':
+                case 'program-metric-density':
+                case 'program-metric-frequency':
+                case 'program-metric-banister':
+                case 'program-metric-recovery':
+                case 'program-metric-adherence':
+                case 'program-metric-rpe':
+                    ui.setActiveProgramId(data.programId); break;
                 case 'program-editor': ui.setEditingProgramId(data.programId || null); break;
                 case 'session-editor': ui.setEditingSessionInfo(data); break;
                 case 'log-workout': ui.setLoggingSessionInfo(data); break;
@@ -307,6 +316,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (previousState.data) {
             switch (previousState.view) {
                 case 'program-detail': ui.setActiveProgramId(previousState.data.programId); break;
+                case 'program-metric-volume':
+                case 'program-metric-strength':
+                case 'program-metric-density':
+                case 'program-metric-frequency':
+                case 'program-metric-banister':
+                case 'program-metric-recovery':
+                case 'program-metric-adherence':
+                case 'program-metric-rpe':
+                    ui.setActiveProgramId(previousState.data.programId); break;
                 case 'program-editor': ui.setEditingProgramId(previousState.data.programId || null); break;
                 case 'session-editor': ui.setEditingSessionInfo(previousState.data); break;
                 case 'log-workout': ui.setLoggingSessionInfo(previousState.data); break;

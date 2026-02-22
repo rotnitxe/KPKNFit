@@ -3,23 +3,44 @@ import React, { useState, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { ExerciseMuscleInfo } from '../types';
 import { ArrowLeftIcon, SearchIcon, ChevronRightIcon, SparklesIcon } from './icons';
-import Card from './ui/Card';
 import { MUSCLE_GROUPS, EXERCISE_TYPES, CHAIN_TYPES } from '../data/exerciseList';
 import DiscoverExercisesModal from './DiscoverExercisesModal';
-import Button from './ui/Button';
+
+const PATTERN_FORCE_OPTIONS: (ExerciseMuscleInfo['force'] | 'All')[] = [
+    'All',
+    'Empuje',
+    'Tirón',
+    'Bisagra',
+    'Sentadilla',
+    'Rotación',
+    'Anti-Rotación',
+    'Flexión',
+    'Extensión',
+    'Anti-Flexión',
+    'Anti-Extensión',
+    'Salto',
+    'Otro',
+];
 
 const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ exercise }) => {
     const { navigateTo } = useAppDispatch();
     return (
         <div
             onClick={() => navigateTo('exercise-detail', { exerciseId: exercise.id })}
-            className="p-3 flex justify-between items-center cursor-pointer list-none hover:bg-slate-800/50 rounded-lg transition-colors"
+            className="p-4 flex justify-between items-center cursor-pointer list-none bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-orange-500/20 hover:border-orange-500/50 transition-all group"
         >
-            <div>
-                <h3 className="font-semibold text-white text-md">{exercise.name}</h3>
-                <p className="text-xs text-slate-400">{exercise.type} • {exercise.equipment}</p>
+            <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-white text-md group-hover:text-orange-400/90 transition-colors">{exercise.name}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{exercise.type} • {exercise.equipment}</p>
+                {(exercise.efc != null || exercise.cnc != null || exercise.ssc != null) && (
+                    <div className="flex gap-2 mt-2 text-[10px] font-mono text-slate-500">
+                        {exercise.efc != null && <span>EFC:{exercise.efc}</span>}
+                        {exercise.cnc != null && <span>CNC:{exercise.cnc}</span>}
+                        {exercise.ssc != null && <span>SSC:{exercise.ssc}</span>}
+                    </div>
+                )}
             </div>
-            <ChevronRightIcon className="text-slate-500" />
+            <ChevronRightIcon className="text-orange-500/50 group-hover:text-orange-400 flex-shrink-0 ml-2" size={18} />
         </div>
     );
 });
@@ -33,6 +54,7 @@ const ExerciseDatabaseView: React.FC = () => {
     const [equipmentFilter, setEquipmentFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All');
     const [chainFilter, setChainFilter] = useState('All');
+    const [patternFilter, setPatternFilter] = useState<ExerciseMuscleInfo['force'] | 'All'>('All');
     const [isDiscoverModalOpen, setIsDiscoverModalOpen] = useState(false);
     
     const filterOptions = useMemo(() => ({
@@ -53,69 +75,97 @@ const ExerciseDatabaseView: React.FC = () => {
             const equipmentMatch = equipmentFilter === 'All' || ex.equipment === equipmentFilter;
             const typeMatch = typeFilter === 'All' || ex.type === typeFilter;
             const chainMatch = chainFilter === 'All' || (ex.chain && ex.chain.toLowerCase() === chainFilter.toLowerCase());
+            const patternMatch = patternFilter === 'All' || ex.force === patternFilter;
             
-            return searchMatch && muscleMatch && categoryMatch && equipmentMatch && typeMatch && chainMatch;
+            return searchMatch && muscleMatch && categoryMatch && equipmentMatch && typeMatch && chainMatch && patternMatch;
         });
-    }, [exerciseList, searchQuery, muscleFilter, categoryFilter, equipmentFilter, typeFilter, chainFilter]);
+    }, [exerciseList, searchQuery, muscleFilter, categoryFilter, equipmentFilter, typeFilter, chainFilter, patternFilter]);
+
+    const availablePatterns = useMemo(() => {
+        const forces = new Set(exerciseList.map(e => e.force).filter(Boolean));
+        return PATTERN_FORCE_OPTIONS.filter(p => p === 'All' || forces.has(p));
+    }, [exerciseList]);
 
     return (
-        <div className="pt-[65px] pb-20 animate-fade-in">
+        <div className="pt-[65px] pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
             <DiscoverExercisesModal isOpen={isDiscoverModalOpen} onClose={() => setIsDiscoverModalOpen(false)} />
             <header className="flex items-center gap-4 mb-6 -mx-4 px-4">
-                <button onClick={handleBack} className="p-2 text-slate-300">
+                <button onClick={handleBack} className="p-2 text-slate-300 hover:text-orange-400/80 transition-colors">
                     <ArrowLeftIcon />
                 </button>
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Base de Datos</h1>
-                    <p className="text-slate-400 text-sm">{exerciseList.length} ejercicios</p>
+                    <h1 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">Base de Datos</h1>
+                    <p className="text-white font-mono text-xl mt-0.5">{exerciseList.length} ejercicios</p>
                 </div>
             </header>
 
-            <div className="sticky top-[65px] z-10 bg-bg-color py-4 -mx-4 px-4 border-b border-border-color space-y-3">
-                <Button onClick={() => setIsDiscoverModalOpen(true)} className="w-full">
-                    <SparklesIcon /> Descubrir Nuevos Ejercicios (IA)
-                </Button>
+            <div className="sticky top-[65px] z-10 bg-[#0a0a0a] py-4 -mx-4 px-4 border-b border-orange-500/20 space-y-3">
+                <button onClick={() => setIsDiscoverModalOpen(true)} className="w-full py-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a] text-[10px] font-mono font-bold text-orange-500/90 hover:border-orange-500/40 transition-colors flex items-center justify-center gap-2">
+                    <SparklesIcon size={14} /> Descubrir Nuevos Ejercicios (IA)
+                </button>
                 <div className="relative">
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Buscar por nombre..."
-                        className="w-full bg-slate-900 border border-slate-700 rounded-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-color"
+                        className="w-full bg-[#0a0a0a] border border-orange-500/20 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/40"
                     />
-                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-500/50" size={20} />
+                </div>
+
+                {/* Filtro por patrón - chips */}
+                <div>
+                    <p className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Patrón</p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {availablePatterns.map(p => (
+                            <button
+                                key={p}
+                                onClick={() => setPatternFilter(p)}
+                                className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-lg border transition-all ${
+                                    patternFilter === p
+                                        ? 'bg-orange-500/20 text-orange-400 border-orange-500/50'
+                                        : 'bg-[#0a0a0a] text-slate-500 border-orange-500/20 hover:border-orange-500/40 hover:text-slate-300'
+                                }`}
+                            >
+                                {p === 'All' ? 'Todos' : p}
+                            </button>
+                        ))}
+                    </div>
                 </div>
                 
-                <details className="glass-card !p-0 !bg-transparent !border-none">
-                    <summary className="text-sm font-semibold text-slate-400 cursor-pointer py-1">Filtros Avanzados</summary>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 pt-2">
-                        <select value={muscleFilter} onChange={e => setMuscleFilter(e.target.value)} className="w-full">
+                <details className="border border-orange-500/20 rounded-lg overflow-hidden">
+                    <summary className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-400 cursor-pointer py-2 px-3 hover:text-orange-500/80">
+                        Filtros Avanzados
+                    </summary>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-3 border-t border-white/5 bg-[#0d0d0d]">
+                        <select value={muscleFilter} onChange={e => setMuscleFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-orange-500/20 rounded text-white text-sm py-1.5">
                             {filterOptions.muscles.map(cat => <option key={cat} value={cat}>{cat === 'All' ? 'Músculo Principal' : cat}</option>)}
                         </select>
-                        <select value={equipmentFilter} onChange={e => setEquipmentFilter(e.target.value)} className="w-full">
+                        <select value={equipmentFilter} onChange={e => setEquipmentFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-orange-500/20 rounded text-white text-sm py-1.5">
                             {filterOptions.equipment.map(eq => <option key={eq} value={eq}>{eq === 'All' ? 'Equipamiento' : eq}</option>)}
                         </select>
-                         <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="w-full">
+                        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-orange-500/20 rounded text-white text-sm py-1.5">
                             {filterOptions.categories.map(cat => <option key={cat} value={cat}>{cat === 'All' ? 'Categoría' : cat}</option>)}
                         </select>
-                        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="w-full">
+                        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-orange-500/20 rounded text-white text-sm py-1.5">
                             {filterOptions.types.map(t => <option key={t} value={t}>{t === 'All' ? 'Tipo' : t}</option>)}
                         </select>
-                        <select value={chainFilter} onChange={e => setChainFilter(e.target.value)} className="w-full">
+                        <select value={chainFilter} onChange={e => setChainFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-orange-500/20 rounded text-white text-sm py-1.5">
                             {filterOptions.chains.map(c => <option key={c} value={c}>{c === 'All' ? 'Cadena Muscular' : c}</option>)}
                         </select>
                     </div>
                 </details>
             </div>
 
-            <p className="text-sm text-slate-500 text-center my-4">{filteredExercises.length} resultados</p>
+            <p className="text-[10px] font-mono text-orange-500/90 text-center my-4 px-4">{filteredExercises.length} resultados</p>
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-2 px-4">
                 {filteredExercises.map(ex => (
                     <ExerciseItem key={ex.id} exercise={ex} />
                 ))}
-                 {filteredExercises.length === 0 && (
-                    <p className="text-center text-slate-400 pt-8">No se encontraron ejercicios con los filtros seleccionados.</p>
+                {filteredExercises.length === 0 && (
+                    <p className="text-center text-slate-500 text-sm pt-8 font-mono">No se encontraron ejercicios con los filtros seleccionados.</p>
                 )}
             </div>
         </div>

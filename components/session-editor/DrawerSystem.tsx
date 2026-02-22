@@ -169,39 +169,134 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose, s
     );
 };
 
-/* ═══════════ Rules Drawer ═══════════ */
+/* ═══════════ Rules Drawer (Ampliado) ═══════════ */
+export type RulesScope = 'session' | 'section' | 'week' | 'block';
+
+export interface RulesApplyPayload {
+    action: 'defaults' | 'limits';
+    sets?: number;
+    reps?: number;
+    rpe?: number;
+    scope?: RulesScope;
+    sectionIndex?: number;
+    maxExercisesPerMuscle?: number;
+    maxRPE?: number;
+}
+
 interface RulesDrawerProps {
     isOpen: boolean;
     onClose: () => void;
-    onApply: (sets: number, reps: number, rpe: number) => void;
+    onApply: (payload: RulesApplyPayload) => void;
+    sectionNames?: string[];
+    initialLimits?: { maxRPE?: number; maxExercisesPerMuscle?: number };
 }
 
-export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApply }) => {
+export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApply, sectionNames = [], initialLimits }) => {
     const [sets, setSets] = useState(3);
     const [reps, setReps] = useState(10);
     const [rpe, setRpe] = useState(8);
+    const [scope, setScope] = useState<RulesScope>('session');
+    const [sectionIndex, setSectionIndex] = useState(0);
+    const [maxExercisesPerMuscle, setMaxExercisesPerMuscle] = useState<number | ''>(initialLimits?.maxExercisesPerMuscle ?? '');
+    const [maxRPE, setMaxRPE] = useState<number | ''>(initialLimits?.maxRPE ?? '');
+    const [activeTab, setActiveTab] = useState<'defaults' | 'limits'>('defaults');
+
+    useEffect(() => {
+        if (isOpen && initialLimits) {
+            setMaxExercisesPerMuscle(initialLimits.maxExercisesPerMuscle ?? '');
+            setMaxRPE(initialLimits.maxRPE ?? '');
+        }
+    }, [isOpen, initialLimits?.maxExercisesPerMuscle, initialLimits?.maxRPE]);
+
+    const handleApplyDefaults = () => {
+        onApply({
+            sets,
+            reps,
+            rpe,
+            scope,
+            sectionIndex: scope === 'section' ? sectionIndex : undefined,
+            action: 'defaults',
+        });
+        onClose();
+    };
+
+    const handleSaveLimits = () => {
+        onApply({
+            maxExercisesPerMuscle: maxExercisesPerMuscle === '' ? undefined : maxExercisesPerMuscle,
+            maxRPE: maxRPE === '' ? undefined : maxRPE,
+            action: 'limits',
+        });
+        onClose();
+    };
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} title="Reglas Macro" position="bottom" height="45%">
+        <Drawer isOpen={isOpen} onClose={onClose} title="Reglas" position="bottom" height="70%">
             <div className="p-4 space-y-4">
-                <p className="text-xs text-[#999] leading-relaxed">Aplica reglas masivas a todos los ejercicios de esta sesión.</p>
-                <div className="grid grid-cols-3 gap-3">
-                    <div>
-                        <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Series</span>
-                        <input type="number" value={sets} onChange={e => setSets(parseInt(e.target.value) || 3)} className="w-full bg-[#0d0d0d] border-b border-white/10 focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
-                    </div>
-                    <div>
-                        <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Reps</span>
-                        <input type="number" value={reps} onChange={e => setReps(parseInt(e.target.value) || 10)} className="w-full bg-[#0d0d0d] border-b border-white/10 focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
-                    </div>
-                    <div>
-                        <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">RPE</span>
-                        <input type="number" value={rpe} step="0.5" onChange={e => setRpe(parseFloat(e.target.value) || 8)} className="w-full bg-[#0d0d0d] border-b border-white/10 focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
-                    </div>
+                <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+                    <button onClick={() => setActiveTab('defaults')} className={`flex-1 py-2 text-[10px] font-bold rounded-md transition-all ${activeTab === 'defaults' ? 'bg-[#FC4C02] text-white' : 'text-[#999]'}`}>Defaults</button>
+                    <button onClick={() => setActiveTab('limits')} className={`flex-1 py-2 text-[10px] font-bold rounded-md transition-all ${activeTab === 'limits' ? 'bg-[#FC4C02] text-white' : 'text-[#999]'}`}>Límites</button>
                 </div>
-                <button onClick={() => { onApply(sets, reps, rpe); onClose(); }} className="w-full py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">
-                    Aplicar a toda la Sesión
-                </button>
+
+                {activeTab === 'defaults' && (
+                    <>
+                        <p className="text-xs text-[#999] leading-relaxed">Aplica valores por defecto a ejercicios.</p>
+                        <div>
+                            <span className="text-[10px] font-bold text-[#555] uppercase block mb-2">Ámbito</span>
+                            <div className="flex gap-2 flex-wrap">
+                                {(['session', 'section'] as const).map(s => (
+                                    <button key={s} onClick={() => setScope(s)} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${scope === s ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#999]'}`}>
+                                        {s === 'session' ? 'Toda la sesión' : 'Sección'}
+                                    </button>
+                                ))}
+                            </div>
+                            {scope === 'section' && sectionNames.length > 0 && (
+                                <select value={sectionIndex} onChange={e => setSectionIndex(parseInt(e.target.value))} className="mt-2 w-full bg-[#0d0d0d] border border-white/10 rounded-lg text-xs text-white py-2 px-3">
+                                    {sectionNames.map((name, i) => (
+                                        <option key={i} value={i} className="bg-black">{name || `Sección ${i + 1}`}</option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                            <div>
+                                <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Series</span>
+                                <input type="number" min={1} max={20} value={sets} onChange={e => setSets(Math.min(20, Math.max(1, parseInt(e.target.value) || 3)))} className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Reps</span>
+                                <input type="number" min={1} max={99} value={reps} onChange={e => setReps(Math.min(99, Math.max(1, parseInt(e.target.value) || 10)))} className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">RPE</span>
+                                <input type="number" step="0.5" min={1} max={10} value={rpe} onChange={e => setRpe(Math.min(10, Math.max(1, parseFloat(e.target.value) || 8)))} className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {activeTab === 'limits' && (
+                    <>
+                        <p className="text-xs text-[#999] leading-relaxed">Límites y restricciones (aviso al superar).</p>
+                        <div>
+                            <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Máx ejercicios por músculo</span>
+                            <input type="number" min={1} max={20} value={maxExercisesPerMuscle} onChange={e => setMaxExercisesPerMuscle(e.target.value === '' ? '' : Math.min(20, Math.max(1, parseInt(e.target.value) || 0)))} placeholder="Sin límite" className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 px-3 outline-none placeholder-[#555]" />
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">RPE máximo (aviso si se supera)</span>
+                            <input type="number" step="0.5" min={1} max={10} value={maxRPE} onChange={e => setMaxRPE(e.target.value === '' ? '' : Math.min(10, Math.max(1, parseFloat(e.target.value) || 0)))} placeholder="Sin límite" className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 px-3 outline-none placeholder-[#555]" />
+                        </div>
+                    </>
+                )}
+
+                {activeTab === 'defaults' ? (
+                    <button onClick={handleApplyDefaults} className="w-full py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">
+                        Aplicar defaults
+                    </button>
+                ) : (
+                    <button onClick={handleSaveLimits} className="w-full py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">
+                        Guardar límites
+                    </button>
+                )}
             </div>
         </Drawer>
     );

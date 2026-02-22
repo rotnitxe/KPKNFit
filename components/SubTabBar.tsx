@@ -11,11 +11,7 @@ interface SubTabBarProps {
 }
 
 const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExerciseId, onEditExercisePress }) => {
-    const { 
-        openFoodEditor, navigateTo,
-        openCustomExerciseEditor,
-        view
-    } = useAppContext();
+    const { navigateTo, openCustomExerciseEditor, view } = useAppContext();
     const { setExerciseToAddId } = useAppDispatch();
     const { searchQuery, activeSubTabs } = useUIState();
     const { setSearchQuery, setActiveSubTabs, setIsAddToPlaylistSheetOpen } = useUIDispatch();
@@ -79,14 +75,16 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
                     </button>
                 )}
                 
-                {/* Add Button Logic */}
-                <button 
-                    onClick={() => view === 'food-database' ? openFoodEditor() : openCustomExerciseEditor()}
-                    className="p-2.5 rounded-xl bg-primary-color text-white shadow-lg shadow-primary-color/20 hover:brightness-110 active:scale-95"
-                    title={view === 'food-database' ? "Añadir Alimento" : "Crear Ejercicio"}
-                >
-                    <PlusIcon size={18} />
-                </button>
+                {/* Add Button: solo en KPKN (crear ejercicio). En food-database se oculta (crear alimentos obsoleto) */}
+                {view === 'kpkn' && (
+                    <button 
+                        onClick={openCustomExerciseEditor}
+                        className="p-2.5 rounded-xl bg-primary-color text-white shadow-lg shadow-primary-color/20 hover:brightness-110 active:scale-95"
+                        title="Crear Ejercicio"
+                    >
+                        <PlusIcon size={18} />
+                    </button>
+                )}
             </div>
         </div>
     );

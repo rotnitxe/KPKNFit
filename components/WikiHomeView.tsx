@@ -1,6 +1,6 @@
 // components/WikiHomeView.tsx
 import React from 'react';
-import { ChevronRightIcon, TrophyIcon, ActivityIcon, BrainIcon, DumbbellIcon } from './icons';
+import { ChevronRightIcon, ActivityIcon, BrainIcon, DumbbellIcon } from './icons';
 import { useAppContext } from '../contexts/AppContext';
 
 const WikiSectionCard: React.FC<{
@@ -24,11 +24,10 @@ const WikiSectionCard: React.FC<{
 );
 
 const WikiHomeView: React.FC = () => {
-  const { muscleHierarchy, exerciseList, jointDatabase, tendonDatabase, movementPatternDatabase, navigateTo } = useAppContext();
+  const { muscleHierarchy, exerciseList, movementPatternDatabase, navigateTo } = useAppContext();
 
   const bodyPartCategories = Object.keys(muscleHierarchy.bodyPartHierarchy || {}).sort((a, b) => a.localeCompare(b));
   const specialCategories = Object.keys(muscleHierarchy.specialCategories || {});
-  const hallOfFameExercises = exerciseList.filter(ex => ex.isHallOfFame);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -49,24 +48,10 @@ const WikiHomeView: React.FC = () => {
         />
         <WikiSectionCard
           title="Anatomía"
-          subtitle="Músculos y grupos"
+          subtitle="Músculos, articulaciones y tendones"
           accentColor="bg-purple-500/20 text-purple-400"
           onClick={() => navigateTo('muscle-category', { categoryName: bodyPartCategories[0] || 'Pecho' })}
           icon={<BrainIcon size={20} />}
-        />
-        <WikiSectionCard
-          title="Articulaciones"
-          subtitle={`${jointDatabase?.length || 0} articulaciones`}
-          accentColor="bg-cyan-500/20 text-cyan-400"
-          onClick={() => jointDatabase?.length && navigateTo('joint-detail', { jointId: jointDatabase[0].id })}
-          icon={<ActivityIcon size={20} />}
-        />
-        <WikiSectionCard
-          title="Tendones"
-          subtitle={`${tendonDatabase?.length || 0} tendones`}
-          accentColor="bg-amber-500/20 text-amber-400"
-          onClick={() => tendonDatabase?.length && navigateTo('tendon-detail', { tendonId: tendonDatabase[0].id })}
-          icon={<ActivityIcon size={20} />}
         />
         <WikiSectionCard
           title="Patrones"
@@ -97,26 +82,6 @@ const WikiHomeView: React.FC = () => {
         </div>
       )}
 
-      {/* Articulaciones */}
-      {(jointDatabase?.length || 0) > 0 && (
-        <div>
-          <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-            <span className="text-cyan-400">●</span> Articulaciones
-          </h2>
-          <div className="flex overflow-x-auto gap-2 pb-2 hide-scrollbar">
-            {jointDatabase.slice(0, 8).map(j => (
-              <button
-                key={j.id}
-                onClick={() => navigateTo('joint-detail', { jointId: j.id })}
-                className="flex-shrink-0 px-3 py-2 rounded-lg bg-slate-900/60 border border-cyan-500/20 hover:border-cyan-500/50 text-left transition-all"
-              >
-                <span className="text-sm font-semibold text-white block truncate max-w-[120px]">{j.name.split('(')[0].trim()}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Anatomía por categoría */}
       <div>
         <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
@@ -136,33 +101,6 @@ const WikiHomeView: React.FC = () => {
         </div>
       </div>
 
-      {/* Hall of Fame */}
-      {hallOfFameExercises.length > 0 && (
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-bold text-yellow-400 flex items-center gap-2">
-              <TrophyIcon size={18} /> Hall Of Fame
-            </h2>
-            <button onClick={() => navigateTo('hall-of-fame')} className="text-xs font-bold text-slate-500 hover:text-white">
-              Ver todo
-            </button>
-          </div>
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-2 -mx-4 px-4 hide-scrollbar">
-            {hallOfFameExercises.slice(0, 6).map(ex => (
-              <div
-                key={ex.id}
-                onClick={() => navigateTo('exercise-detail', { exerciseId: ex.id })}
-                className="snap-center flex-shrink-0 w-36 h-28 bg-gradient-to-br from-slate-900 to-black rounded-xl p-3 flex flex-col justify-between cursor-pointer border border-yellow-900/30 hover:border-yellow-500/50 transition-all"
-              >
-                <h3 className="font-bold text-white text-sm leading-tight">{ex.name}</h3>
-                <p className="text-[10px] text-yellow-500/80 font-bold uppercase">
-                  {ex.involvedMuscles?.find(m => m.role === 'primary')?.muscle}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

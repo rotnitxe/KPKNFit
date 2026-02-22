@@ -13,6 +13,10 @@ export interface CalorieGoalConfig {
     goal: 'lose' | 'maintain' | 'gain';
     weeklyChangeKg?: number;
     healthMultiplier?: number;
+    /** Avanzado: factor personalizado (1.0–2.0) */
+    customActivityFactor?: number;
+    activityDaysPerWeek?: number;
+    activityHoursPerDay?: number;
 }
 
 // --- NUEVO: Tipos para el Algoritmo KPKN (Informe v3) ---
@@ -53,8 +57,7 @@ export type View =
   | 'muscle-group-detail' 
   | 'body-part-detail' 
   | 'muscle-category' 
-  | 'chain-detail' 
-  | 'hall-of-fame' 
+  | 'chain-detail'
   | 'joint-detail'
   | 'tendon-detail'
   | 'movement-pattern-detail'
@@ -66,7 +69,15 @@ export type View =
   | 'social-feed'
   | 'athlete-profile'
   | 'recovery'
-  | 'sleep';
+  | 'sleep'
+  | 'program-metric-volume'
+  | 'program-metric-strength'
+  | 'program-metric-density'
+  | 'program-metric-frequency'
+  | 'program-metric-banister'
+  | 'program-metric-recovery'
+  | 'program-metric-adherence'
+  | 'program-metric-rpe';
 
 // --- LÓGICA DE VOLUMEN V3 (INFORME TÉCNICO) ---
 
@@ -130,7 +141,11 @@ export interface Settings {
   hasSeenSessionEditorTour: boolean;
   hasSeenKPKNTour: boolean;
   hasSeenNutritionWizard?: boolean;
-  
+  hasDismissedNutritionSetup?: boolean;
+  hasSeenGeneralWizard?: boolean;
+  hasPrecalibratedBattery?: boolean;
+  precalibrationDismissed?: boolean;
+
   // Perfil
   username?: string;
   profilePicture?: string;
@@ -206,6 +221,8 @@ export interface Settings {
     background: string;
     cardColor: string;
   };
+  /** Orden de tarjetas en Home (IDs: battery, session, nutrition, program, top5, readiness, streak, quicklog) */
+  homeCardOrder?: string[];
 
   // Nutrición & Biometría
   userVitals: {
@@ -424,6 +441,8 @@ export interface Exercise {
   supersetId?: string;
   variantName?: string;
   prFor1RM?: { weight: number, reps: number };
+  /** Peso consolidado (kg + reps) para autosugerir cargas en modo REPS */
+  consolidatedWeight?: { weightKg: number; reps: number };
   brandEquivalencies?: BrandEquivalency[];
   isUnilateral?: boolean;
   isCalibratorAmrap?: boolean;
@@ -439,7 +458,7 @@ export interface ExerciseSet {
   targetDuration?: number;
   targetRPE?: number;
   targetRIR?: number;
-  intensityMode?: 'rpe' | 'rir' | 'failure' | 'amrap' | 'load'; 
+  intensityMode?: 'rpe' | 'rir' | 'failure' | 'amrap' | 'load' | 'solo_rm'; 
   targetPercentageRM?: number;
   weight?: number; 
   advancedTechnique?: string;
@@ -501,6 +520,12 @@ export interface ExerciseMuscleInfo {
     variantOf?: string;
     sfr?: { score: number; justification: string; };
     setupTime?: number;
+    averageRestSeconds?: number;
+    coreInvolvement?: 'high' | 'medium' | 'low';
+    bracingRecommended?: boolean;
+    strapsRecommended?: boolean;
+    bodybuildingScore?: number;
+    functionalTransfer?: string;
     // --- SISTEMA AUGE v2.0 ---
     efc?: number; // Costo Metabólico/Fatiga Local (1-5)
     ssc?: number; // Costo Estructural/Espinal (0-2.0) - Reemplaza a axialLoadFactor
@@ -910,6 +935,7 @@ export interface MuscleGroupInfo {
     mechanicalFunctions?: string[];
     relatedJoints?: string[];
     relatedTendons?: string[];
+    aestheticRole?: string;
     commonInjuries?: CommonInjury[];
     movementPatterns?: string[];
 }

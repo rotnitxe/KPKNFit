@@ -90,7 +90,7 @@ export const FOOD_DATABASE: FoodItem[] = [
     { id: 'cl042', name: 'Bebida Isotónica', brand: 'Gatorade', servingSize: 500, unit: 'ml', calories: 120, protein: 0, carbs: 30, fats: 0 },
     { id: 'cl043', name: 'Milo (en polvo)', brand: 'Nestlé', servingSize: 20, unit: 'g', calories: 80, protein: 2.5, carbs: 15, fats: 1 },
     { id: 'cl044', name: 'Kem Piña', brand: 'Kem', servingSize: 350, unit: 'ml', calories: 160, protein: 0, carbs: 40, fats: 0 },
-    { id: 'cl045', name: 'Agua Mineral con Gas', brand: 'Cachantun', servingSize: 500, unit: 'ml', calories: 0, protein: 0, carbs: 0, fats: 0 },
+    { id: 'cl045', name: 'Agua Mineral c/ Gas', brand: 'Cachantun', servingSize: 500, unit: 'ml', calories: 0, protein: 0, carbs: 0, fats: 0 },
 
     // Snacks y Dulces
     { id: 'cl050', name: 'Papas Fritas Corte Americano', brand: 'Lays', servingSize: 100, unit: 'g', calories: 532, protein: 6.5, carbs: 52, fats: 33 },
@@ -126,7 +126,7 @@ export const FOOD_DATABASE: FoodItem[] = [
     { id: 'int010', name: 'Avena Instantánea Maple & Brown Sugar', brand: 'Quaker', servingSize: 43, unit: 'g', calories: 160, protein: 4, carbs: 33, fats: 2.5 },
 
     // --- Comidas Preparadas (Estimaciones Genéricas) ---
-    { id: 'meal001', name: 'Ensalada César con Pollo', brand: 'Comida', servingSize: 350, unit: 'g', calories: 450, protein: 30, carbs: 15, fats: 30 },
+    { id: 'meal001', name: 'Ensalada César c/ Pollo', brand: 'Comida', servingSize: 350, unit: 'g', calories: 450, protein: 30, carbs: 15, fats: 30 },
     { id: 'meal002', name: 'Lasaña de Carne', brand: 'Comida', servingSize: 300, unit: 'g', calories: 400, protein: 25, carbs: 35, fats: 18 },
     { id: 'meal003', name: 'Sopa de Lentejas', brand: 'Comida', servingSize: 400, unit: 'g', calories: 350, protein: 18, carbs: 55, fats: 5 },
     { id: 'meal004', name: 'Completo Italiano', brand: 'Comida', servingSize: 250, unit: 'g', calories: 550, protein: 15, carbs: 45, fats: 35 },

@@ -230,7 +230,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
     ];
 
     return (
-        <div className="max-w-4xl mx-auto pb-40 animate-fade-in space-y-6">
+        <div className="max-w-4xl mx-auto pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))] animate-fade-in space-y-6">
             {isBgModalOpen && (
                 <BackgroundEditorModal
                     isOpen={isBgModalOpen}

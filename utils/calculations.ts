@@ -31,6 +31,58 @@ export const calculateWeightFrom1RM = (e1rm: number, reps: number): number => {
   return Math.max(0, e1rm * ((37 - effectiveReps) / 36));
 };
 
+/**
+ * Epley formula: better for higher reps (11-20).
+ * 1RM = weight * (1 + reps/30)
+ */
+export const calculateEpley1RM = (weight: number, reps: number): number => {
+  if (!weight || weight <= 0 || !reps || reps <= 0) return 0;
+  if (reps === 1) return weight;
+  const e1rm = weight * (1 + reps / 30);
+  return parseFloat(e1rm.toFixed(1));
+};
+
+/**
+ * Hybrid 1RM: Brzycki ≤10, Epley 11-20, smooth extrapolation >20.
+ * Plan: Brzycki hasta 10, Epley 11-20, extrapolación suave >20.
+ */
+export const calculateHybrid1RM = (weight: number, reps: number, isAmrap: boolean = false): number => {
+  if (!weight || weight <= 0 || !reps || reps <= 0) return 0;
+  if (reps === 1) return weight;
+  const r = Math.min(reps, 50);
+  let e1rm: number;
+  if (r <= 10) {
+    e1rm = weight * (36 / (37 - r));
+  } else if (r <= 20) {
+    e1rm = weight * (1 + r / 30);
+  } else {
+    // Smooth extrapolation >20: Epley-like but more conservative for very high reps
+    e1rm = weight * (1 + 20 / 30) * Math.pow(1 + (r - 20) / 80, 0.9);
+  }
+  if (isAmrap && reps > 3) e1rm = e1rm * 1.025;
+  return parseFloat(e1rm.toFixed(1));
+};
+
+/**
+ * Weight from 1RM using hybrid formula (inverse of calculateHybrid1RM).
+ * For reps ≤10: Brzycki inverse. For 11-20: Epley inverse. For >20: extrapolation.
+ */
+export const calculateWeightFrom1RMHybrid = (e1rm: number, reps: number): number => {
+  if (reps <= 0 || e1rm <= 0) return 0;
+  if (reps === 1) return e1rm;
+  const r = Math.min(reps, 50);
+  let weight: number;
+  if (r <= 10) {
+    weight = e1rm * ((37 - r) / 36);
+  } else if (r <= 20) {
+    weight = e1rm / (1 + r / 30);
+  } else {
+    const base = e1rm / (1 + 20 / 30) / Math.pow(1 + (r - 20) / 80, 0.9);
+    weight = base;
+  }
+  return Math.max(0, parseFloat(weight.toFixed(1)));
+};
+
 export const getOrderedDaysOfWeek = (startWeekOn: number) => {
     const days = [
         { label: 'Domingo', value: 0 },

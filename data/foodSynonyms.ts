@@ -66,7 +66,7 @@ export const FOOD_SYNONYMS: Record<string, string[]> = {
     'empanada de pino': ['empanada', 'empanada pino', 'empanada de carne'],
     'lasaña de carne': ['lasaña', 'lasagna', 'lasagna de carne'],
     'sopa de lentejas': ['sopa lentejas'],
-    'ensalada césar con pollo': ['ensalada cesar', 'cesar con pollo'],
+    'ensalada césar c/ pollo': ['ensalada cesar', 'cesar c/ pollo', 'ensalada cesar con pollo'],
 };
 
 /**

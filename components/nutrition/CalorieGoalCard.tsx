@@ -32,17 +32,20 @@ export const CalorieGoalCard: React.FC<{
     calorieGoal: number;
     onEditClick: () => void;
 }> = ({ calorieGoal, onEditClick }) => {
+    const hasGoal = calorieGoal > 0;
     return (
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex justify-between items-center">
             <div>
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Objetivo</p>
-                <p className="text-lg font-black text-white font-mono">{calorieGoal} kcal</p>
+                <p className="text-lg font-black text-white font-mono">
+                    {hasGoal ? `${calorieGoal} kcal` : 'Configura tu plan'}
+                </p>
             </div>
             <button
                 onClick={onEditClick}
                 className="text-[9px] font-bold text-zinc-500 uppercase hover:text-white transition-colors"
             >
-                Editar plan
+                {hasGoal ? 'Editar plan' : 'Configurar'}
             </button>
         </div>
     );

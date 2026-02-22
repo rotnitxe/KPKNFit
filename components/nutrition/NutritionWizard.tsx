@@ -8,6 +8,7 @@ import { mifflinStJeor, katchMcArdle } from '../../utils/calorieFormulas';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import { ChevronRightIcon, ChevronLeftIcon } from '../icons';
 import Button from '../ui/Button';
+import { NutritionTooltip } from './NutritionTooltip';
 
 const ACTIVITY_FACTORS: Record<number, number> = {
     1: 1.2, 2: 1.375, 3: 1.55, 4: 1.725, 5: 1.9,
@@ -78,9 +79,22 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     const [fatsG, setFatsG] = useState(settings.dailyFatGoal ?? 70);
     const [otherCondition, setOtherCondition] = useState('');
     const [formulaExpanded, setFormulaExpanded] = useState(false);
-    const [bioExpanded, setBioExpanded] = useState(false);
+    const [advancedActivityExpanded, setAdvancedActivityExpanded] = useState(false);
+    const [customActivityFactor, setCustomActivityFactor] = useState<number | ''>(() => {
+        const custom = settings.calorieGoalConfig?.customActivityFactor;
+        return typeof custom === 'number' ? custom : '';
+    });
+    const [activityDaysPerWeek, setActivityDaysPerWeek] = useState(settings.calorieGoalConfig?.activityDaysPerWeek ?? 3);
+    const [activityHoursPerDay, setActivityHoursPerDay] = useState(settings.calorieGoalConfig?.activityHoursPerDay ?? 1);
 
     const activityIdx = activityLevel;
+    const derivedActivityFactor = useMemo(() => {
+        if (customActivityFactor !== '' && typeof customActivityFactor === 'number') return customActivityFactor;
+        if (!advancedActivityExpanded) return ACTIVITY_FACTORS[activityIdx] ?? 1.55;
+        const days = Math.min(7, Math.max(0, activityDaysPerWeek));
+        const hours = Math.min(24, Math.max(0, activityHoursPerDay));
+        return 1.2 + (days / 7) * 0.4 + (hours / 12) * 0.3;
+    }, [activityIdx, advancedActivityExpanded, customActivityFactor, activityDaysPerWeek, activityHoursPerDay]);
 
     const bmr = useMemo(() => {
         if (!weight || !height || !age) return null;
@@ -96,12 +110,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
     const tdee = useMemo(() => {
         if (bmr == null) return null;
-        const factor = ACTIVITY_FACTORS[activityIdx] ?? 1.55;
+        const factor = derivedActivityFactor;
         let t = bmr * factor;
         if (goal === 'lose') t -= (weeklyChangeKg * 7700) / 7;
         else if (goal === 'gain') t += (weeklyChangeKg * 7700) / 7;
         return Math.round(t * healthMultiplier);
-    }, [bmr, activityIdx, goal, weeklyChangeKg, healthMultiplier]);
+    }, [bmr, derivedActivityFactor, goal, weeklyChangeKg, healthMultiplier]);
 
     const proteinMultiplier = dietPreference === 'vegan' ? 1.15 : dietPreference === 'vegetarian' ? 1.08 : 1;
 
@@ -135,6 +149,8 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
             goal,
             weeklyChangeKg,
             healthMultiplier,
+            ...(customActivityFactor !== '' && { customActivityFactor: Number(customActivityFactor) }),
+            ...(advancedActivityExpanded && { activityDaysPerWeek, activityHoursPerDay }),
         };
         setSettings({
             hasSeenNutritionWizard: true,
@@ -171,7 +187,10 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 return (
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Objetivo</h2>
+                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                                Objetivo
+                                <NutritionTooltip content="Define si buscas perder grasa (déficit), mantener peso o ganar masa (superávit). Cada objetivo ajusta las calorías recomendadas." title="Objetivo" />
+                            </h2>
                             <p className="text-slate-400 text-sm mt-1">¿Qué buscas con tu alimentación?</p>
                             <div className="grid grid-cols-3 gap-3 mt-4">
                                 {GOAL_OPTIONS.map(opt => (
@@ -179,7 +198,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                         key={opt.id}
                                         onClick={() => setGoal(opt.id)}
                                         className={`p-4 rounded-xl border text-center transition-all ${
-                                            goal === opt.id ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/30'
+                                            goal === opt.id ? 'bg-[#FC4C02]/20 border-orange-500 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-orange-500/30'
                                         }`}
                                     >
                                         <span className="font-bold block">{opt.label}</span>
@@ -214,57 +233,60 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Datos corporales</h2>
+                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                                Datos corporales
+                                <NutritionTooltip content="Peso, estatura y edad son la base para calcular tu TMB (tasa metabólica basal). Con %grasa usamos Katch-McArdle, más preciso para atletas." title="Datos corporales" />
+                            </h2>
                             <p className="text-slate-400 text-sm mt-1">Necesarios para calcular tu TMB y calorías diarias.</p>
                             <div className="space-y-4 mt-4">
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Estatura (cm)</label>
                                     <input type="number" value={height} onChange={e => setHeight(Number(e.target.value) || 170)} min={100} max={250}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono" />
+                                        className="w-full bg-white/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white font-mono focus:border-orange-500/50 outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Peso (kg)</label>
                                     <input type="number" value={weight} onChange={e => setWeight(Number(e.target.value) || 70)} min={30} max={300}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono" />
+                                        className="w-full bg-white/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white font-mono focus:border-orange-500/50 outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Edad</label>
                                     <input type="number" value={age} onChange={e => setAge(Number(e.target.value) || 30)} min={10} max={120}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono" />
+                                        className="w-full bg-white/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white font-mono focus:border-orange-500/50 outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Género</label>
                                     <div className="flex flex-wrap gap-2">
                                         {GENDER_OPTIONS.map(opt => (
                                             <button key={opt.id} onClick={() => setGender(opt.id)}
-                                                className={`px-3 py-2 rounded-lg text-sm font-bold ${
-                                                    gender === opt.id ? 'bg-white text-black' : 'bg-white/5 text-slate-400'
+                                                className={`px-3 py-2 rounded-lg text-sm font-bold transition-all ${
+                                                    gender === opt.id ? 'bg-[#FC4C02] text-white border border-orange-500' : 'bg-white/5 text-slate-400 border border-white/10 hover:border-orange-500/30'
                                                 }`}>
                                                 {opt.label}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                            </div>
-                            <details className="mt-4" open={bioExpanded}>
-                                <summary onClick={() => setBioExpanded(!bioExpanded)} className="cursor-pointer flex items-center gap-2 text-amber-400/90 text-xs font-bold hover:text-amber-300">
-                                    {bioExpanded ? <ChevronUpIcon size={14} /> : <ChevronDownIcon size={14} />}
-                                    Bioimpedancia (opcional)
-                                </summary>
-                                <div className="grid grid-cols-2 gap-4 mt-3 pl-0">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Grasa corporal</label>
-                                        <input type="number" value={bodyFat} onChange={e => setBodyFat(e.target.value === '' ? '' : Number(e.target.value))} min={5} max={60} step={0.5} placeholder="Ej: 18"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600" />
+                                <div className="pt-4 border-t border-white/10">
+                                    <p className="text-[10px] font-bold text-orange-400 uppercase mb-2 flex items-center gap-1">
+                                        Bioimpedancia (altamente recomendado)
+                                        <NutritionTooltip content="Si tienes %grasa (báscula, plicómetro, DEXA), usamos Katch-McArdle: más preciso que Mifflin para atletas. LBM = peso × (1 - %grasa/100)." title="Katch-McArdle" />
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Grasa corporal</label>
+                                            <input type="number" value={bodyFat} onChange={e => setBodyFat(e.target.value === '' ? '' : Number(e.target.value))} min={5} max={60} step={0.5} placeholder="Ej: 18"
+                                                className="w-full bg-white/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-orange-500/50 outline-none" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Masa muscular</label>
+                                            <input type="number" value={muscleMass} onChange={e => setMuscleMass(e.target.value === '' ? '' : Number(e.target.value))} min={20} max={50} step={0.5} placeholder="Ej: 42"
+                                                className="w-full bg-white/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-orange-500/50 outline-none" />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Masa muscular</label>
-                                        <input type="number" value={muscleMass} onChange={e => setMuscleMass(e.target.value === '' ? '' : Number(e.target.value))} min={20} max={50} step={0.5} placeholder="Ej: 42"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600" />
-                                    </div>
+                                    {ffmi != null && <p className="text-xs text-orange-400 font-mono mt-2">FFMI estimado: {ffmi}</p>}
                                 </div>
-                                {ffmi != null && <p className="text-xs text-cyan-400 font-mono mt-2">FFMI estimado: {ffmi}</p>}
-                            </details>
+                            </div>
                         </div>
                     </div>
                 );
@@ -272,19 +294,49 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 return (
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Nivel de actividad</h2>
+                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                                Nivel de actividad
+                                <NutritionTooltip content="El TDEE se calcula como TMB × factor de actividad. Sedentario 1.2, muy activo 1.9. En Avanzado puedes afinar con días/horas o factor personalizado." title="Actividad" />
+                            </h2>
                             <p className="text-slate-400 text-sm mt-1">¿Qué tan activo eres fuera del gimnasio?</p>
                             <div className="space-y-2 mt-4">
                                 {ACTIVITY_OPTIONS.map(opt => (
                                     <button key={opt.id} onClick={() => setActivityLevel(opt.id)}
                                         className={`w-full p-4 rounded-xl border text-left transition-all ${
-                                            activityIdx === opt.id ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-slate-300'
+                                            activityIdx === opt.id ? 'bg-[#FC4C02]/20 border-orange-500 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-orange-500/30'
                                         }`}>
                                         <span className="font-bold block">{opt.label}</span>
                                         <span className="text-xs text-slate-500">{opt.desc}</span>
                                     </button>
                                 ))}
                             </div>
+                            <button
+                                onClick={() => setAdvancedActivityExpanded(!advancedActivityExpanded)}
+                                className="flex items-center gap-2 mt-4 text-orange-400/90 text-xs font-bold hover:text-orange-300"
+                            >
+                                {advancedActivityExpanded ? <ChevronUpIcon size={14} /> : <ChevronDownIcon size={14} />}
+                                Avanzado
+                            </button>
+                            {advancedActivityExpanded && (
+                                <div className="mt-3 p-4 rounded-xl bg-white/5 border border-orange-500/20 space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Días de ejercicio/semana</label>
+                                        <input type="number" value={activityDaysPerWeek} onChange={e => setActivityDaysPerWeek(Number(e.target.value) || 0)} min={0} max={7}
+                                            className="w-full bg-white/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white font-mono focus:border-orange-500/50 outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Horas activas/día (promedio)</label>
+                                        <input type="number" value={activityHoursPerDay} onChange={e => setActivityHoursPerDay(Number(e.target.value) || 0)} min={0} max={24} step={0.5}
+                                            className="w-full bg-white/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white font-mono focus:border-orange-500/50 outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Factor personalizado (opcional, 1.0–2.0)</label>
+                                        <input type="number" value={customActivityFactor} onChange={e => setCustomActivityFactor(e.target.value === '' ? '' : Number(e.target.value))} min={1} max={2} step={0.05} placeholder="Ej: 1.55"
+                                            className="w-full bg-white/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-orange-500/50 outline-none" />
+                                    </div>
+                                    <p className="text-xs text-orange-400 font-mono">Factor efectivo: {derivedActivityFactor.toFixed(2)}</p>
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -316,7 +368,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 {DIET_OPTIONS.map(opt => (
                                     <button key={opt.id} onClick={() => setDietPreference(opt.id)}
                                         className={`flex-1 p-4 rounded-xl border font-bold transition-all ${
-                                            dietPreference === opt.id ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-slate-400'
+                                            dietPreference === opt.id ? 'bg-[#FC4C02]/20 border-orange-500 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-orange-500/30'
                                         }`}>
                                         {opt.label}
                                     </button>
@@ -335,20 +387,29 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 return (
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Desglose</h2>
-                            <div className="bg-slate-900/50 rounded-xl p-4 border border-cyan-500/20 space-y-2 font-mono text-sm mt-4">
-                                <p className="text-cyan-400" title="Tasa Metabólica Basal">TMB: {bmr != null ? Math.round(bmr) : '—'} kcal</p>
-                                <p className="text-cyan-400" title="Gasto energético diario total">TDEE: {tdee != null ? tdee : '—'} kcal</p>
+                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                                Desglose
+                                <NutritionTooltip content="TMB: calorías en reposo. TDEE: TMB × factor actividad ± ajuste objetivo. Las fórmulas Mifflin y Katch calculan el TMB." title="TMB y TDEE" />
+                            </h2>
+                            <div className="bg-slate-900/50 rounded-xl p-4 border border-orange-500/20 space-y-2 font-mono text-sm mt-4">
+                                <p className="text-orange-400 flex items-center gap-1">
+                                    TMB: {bmr != null ? Math.round(bmr) : '—'} kcal
+                                    <NutritionTooltip content="Tasa Metabólica Basal: calorías que quemas en reposo. Base para calcular tu gasto diario." title="TMB" />
+                                </p>
+                                <p className="text-orange-400 flex items-center gap-1">
+                                    TDEE: {tdee != null ? tdee : '—'} kcal
+                                    <NutritionTooltip content="Gasto energético diario total: TMB × factor de actividad. Incluye ejercicio y NEAT." title="TDEE" />
+                                </p>
                                 <p className="text-slate-400 text-xs">Factores Atwater: P=4, C=4, G=9 kcal/g</p>
                                 <button
                                     onClick={() => setFormulaExpanded(!formulaExpanded)}
-                                    className="flex items-center gap-2 mt-2 text-amber-400/90 text-xs font-bold hover:text-amber-300"
+                                    className="flex items-center gap-2 mt-2 text-orange-400/90 text-xs font-bold hover:text-orange-300"
                                 >
                                     {formulaExpanded ? <ChevronUpIcon size={14} /> : <ChevronDownIcon size={14} />}
                                     {formulaExpanded ? 'Ocultar fórmulas' : 'Ver fórmulas'}
                                 </button>
                                 {formulaExpanded && (
-                                    <div className="mt-3 pt-3 border-t border-white/10 space-y-2 text-[11px] text-amber-200/80 font-mono">
+                                    <div className="mt-3 pt-3 border-t border-white/10 space-y-2 text-[11px] text-orange-200/80 font-mono">
                                         <p>Mifflin-St Jeor: TMB = 10×peso + 6.25×altura − 5×edad + s</p>
                                         <p>Katch-McArdle: TMB = 370 + (21.6 × LBM)</p>
                                         <p>Calorías = P×4 + C×4 + G×9</p>
@@ -358,7 +419,10 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Edición de macros</h2>
+                            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-1">
+                                Edición de macros
+                                <NutritionTooltip content="Proteínas: 4 kcal/g, esenciales para músculo. Carbohidratos: 4 kcal/g, energía. Grasas: 9 kcal/g, hormonas y saciedad." title="Macros" />
+                            </h2>
                             {(goal === 'lose' || goal === 'gain') && (
                                 <div className="mt-4">
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Cambio semanal (kg)</label>
@@ -388,31 +452,31 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                     const fPct = (fKcal / totalKcal) * 100;
                                     return (
                                         <>
-                                            <div className="h-4 rounded-full overflow-hidden flex bg-white/10">
-                                                <div className="h-full bg-rose-500/80 transition-all" style={{ width: `${pPct}%` }} title={`Proteína ${pPct.toFixed(0)}%`} />
-                                                <div className="h-full bg-amber-500/80 transition-all" style={{ width: `${cPct}%` }} title={`Carbos ${cPct.toFixed(0)}%`} />
-                                                <div className="h-full bg-sky-500/80 transition-all" style={{ width: `${fPct}%` }} title={`Grasas ${fPct.toFixed(0)}%`} />
+                                                <div className="h-4 rounded-full overflow-hidden flex bg-white/10">
+                                                <div className="h-full bg-blue-500/80 transition-all" style={{ width: `${pPct}%` }} title={`Proteína ${pPct.toFixed(0)}%`} />
+                                                <div className="h-full bg-green-500/80 transition-all" style={{ width: `${cPct}%` }} title={`Carbos ${cPct.toFixed(0)}%`} />
+                                                <div className="h-full bg-amber-500/80 transition-all" style={{ width: `${fPct}%` }} title={`Grasas ${fPct.toFixed(0)}%`} />
                                             </div>
                                             <div className="flex gap-2 text-[10px] font-bold text-slate-500">
-                                                <span className="text-rose-400">P {pPct.toFixed(0)}%</span>
-                                                <span className="text-amber-400">C {cPct.toFixed(0)}%</span>
-                                                <span className="text-sky-400">G {fPct.toFixed(0)}%</span>
+                                                <span className="text-blue-400">P {pPct.toFixed(0)}%</span>
+                                                <span className="text-green-400">C {cPct.toFixed(0)}%</span>
+                                                <span className="text-amber-400">G {fPct.toFixed(0)}%</span>
                                             </div>
                                         </>
                                     );
                                 })()}
                                 <div className="grid gap-4">
                                     {[
-                                        { label: 'Proteínas', value: proteinG, set: setProteinG, max: 500, color: 'rose', kcalPerG: 4 },
-                                        { label: 'Carbohidratos', value: carbsG, set: setCarbsG, max: 800, color: 'amber', kcalPerG: 4 },
-                                        { label: 'Grasas', value: fatsG, set: setFatsG, max: 300, color: 'sky', kcalPerG: 9 },
-                                    ].map(({ label, value, set, max, color, kcalPerG }) => {
+                                        { label: 'Proteínas', value: proteinG, set: setProteinG, max: 500, color: 'blue', kcalPerG: 4, tooltip: '4 kcal/g. Objetivo típico: 1.6–2.2 g/kg para ganancia muscular.' },
+                                        { label: 'Carbohidratos', value: carbsG, set: setCarbsG, max: 800, color: 'green', kcalPerG: 4, tooltip: '4 kcal/g. Principal fuente de energía para entrenamiento.' },
+                                        { label: 'Grasas', value: fatsG, set: setFatsG, max: 300, color: 'amber', kcalPerG: 9, tooltip: '9 kcal/g. Esenciales para hormonas y saciedad. Mínimo ~0.5 g/kg.' },
+                                    ].map(({ label, value, set, max, color, kcalPerG, tooltip }) => {
                                         const kcal = value * kcalPerG;
-                                        const barColor = color === 'rose' ? 'bg-rose-500' : color === 'amber' ? 'bg-amber-500' : 'bg-sky-500';
+                                        const barColor = color === 'blue' ? 'bg-blue-500' : color === 'green' ? 'bg-green-500' : 'bg-amber-500';
                                         return (
-                                            <div key={label} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                                            <div key={label} className="p-4 rounded-xl bg-white/5 border border-orange-500/20">
                                                 <div className="flex justify-between items-center mb-2">
-                                                    <span className="text-sm font-bold text-white">{label}</span>
+                                                    <span className="text-sm font-bold text-white flex items-center gap-1">{label}<NutritionTooltip content={tooltip} title={label} /></span>
                                                     <span className="text-xs font-mono text-slate-400">{kcal} kcal</span>
                                                 </div>
                                                 <div className="h-2 rounded-full bg-white/10 overflow-hidden mb-3">
@@ -425,7 +489,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                                         onChange={e => set(Number(e.target.value) || 0)}
                                                         min={0}
                                                         max={max}
-                                                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm"
+                                                        className="flex-1 bg-white/5 border border-orange-500/20 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-orange-500/50 outline-none"
                                                     />
                                                     <span className="text-[10px] text-slate-500">g</span>
                                                 </div>
@@ -438,12 +502,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
                         <div>
                             <h2 className="text-xl font-black text-white uppercase tracking-tight">Tendencia</h2>
-                            <div className="bg-slate-900/50 rounded-xl p-4 border border-white/10 mt-4 space-y-2">
+                            <div className="bg-slate-900/50 rounded-xl p-4 border border-orange-500/20 mt-4 space-y-2">
                                 <p className="text-sm text-slate-400">Con tus macros actuales ({caloriesFromMacros} kcal/día):</p>
                                 <p className="text-2xl font-black font-mono text-white">{trend >= 0 ? '+' : ''}{trend.toFixed(2)} kg/sem</p>
                                 <p className="text-xs text-slate-500">({pctWeekly >= 0 ? '+' : ''}{pctWeekly.toFixed(2)}% del peso corporal)</p>
                                 {(goal === 'lose' || goal === 'gain') && tdee != null && (
-                                    <p className="text-xs text-cyan-400/90 mt-2">
+                                    <p className="text-xs text-orange-400/90 mt-2">
                                         Target: {weeklyChangeKg} kg/sem → {tdee} kcal/día. Ajusta macros para acercarte.
                                     </p>
                                 )}
@@ -470,9 +534,9 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
             <div className="flex-1 overflow-y-auto px-4 py-8">
                 <div className="max-w-md mx-auto">
                     <div className="flex items-center gap-2 mb-8">
-                        <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest">Paso {step} de 3</span>
+                        <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Paso {step} de 3</span>
                         <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-cyan-500 rounded-full transition-all" style={{ width: `${(step / 3) * 100}%` }} />
+                            <div className="h-full bg-[#FC4C02] rounded-full transition-all" style={{ width: `${(step / 3) * 100}%` }} />
                         </div>
                     </div>
                     {renderStep()}

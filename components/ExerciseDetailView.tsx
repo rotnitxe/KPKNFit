@@ -2,14 +2,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { ExerciseMuscleInfo, MuscleHierarchy } from '../types';
-import { getAICoachAnalysis, getCommunityOpinionForExercise, generateImage, searchGoogleImages, searchWebForExerciseVideos, estimateSFR, getPrimeStarsRating } from '../services/aiService';
-import { StarIcon, SparklesIcon, BrainIcon, UploadIcon, VideoIcon, ImageIcon, PlusIcon, TrendingUpIcon, CheckCircleIcon, XCircleIcon, ChevronRightIcon, DumbbellIcon, ActivityIcon, TrophyIcon, UsersIcon, AlertTriangleIcon, ArrowUpIcon, ArrowDownIcon, PencilIcon } from './icons';
-import Button from './ui/Button';
+import { getAICoachAnalysis, getCommunityOpinionForExercise, generateImage, searchGoogleImages, searchWebForExerciseVideos, estimateSFR } from '../services/aiService';
+import { StarIcon, SparklesIcon, BrainIcon, UploadIcon, VideoIcon, ImageIcon, PlusIcon, TrendingUpIcon, CheckCircleIcon, XCircleIcon, ChevronRightIcon, DumbbellIcon, ActivityIcon, UsersIcon, AlertTriangleIcon, ArrowUpIcon, ArrowDownIcon, PencilIcon } from './icons';
 import { ExerciseLink } from './ExerciseLink';
 import { InfoTooltip } from './ui/InfoTooltip';
 import ImageSearchModal from './ImageSearchModal';
 import SkeletonLoader from './ui/SkeletonLoader';
-import Card from './ui/Card';
 
 // --- Sub-components ---
 
@@ -24,8 +22,8 @@ const StarRating: React.FC<{ rating: number; onSetRating?: (rating: number) => v
 );
 
 const TagWithTooltip: React.FC<{ label: string }> = ({ label }) => (
-    <div className="flex items-center px-2 py-1 bg-slate-700 text-slate-300 rounded-full">
-        <span className="text-xs font-semibold">{label}</span>
+    <div className="flex items-center px-2 py-1 bg-[#0a0a0a] border border-orange-500/20 text-slate-300 rounded-lg">
+        <span className="text-[10px] font-mono font-semibold">{label}</span>
         <InfoTooltip term={label} />
     </div>
 );
@@ -56,53 +54,53 @@ export const KinesiologyAnalysis: React.FC<{ exercise: ExerciseMuscleInfo }> = (
     if (!hasAnyData) return null;
 
     return (
-        <Card>
-             <h3 className="font-bold text-lg text-white mb-3 flex items-center gap-2"><BrainIcon /> Análisis Kinesiológico</h3>
+        <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><BrainIcon size={14} /> Análisis Kinesiológico</h3>
              <div className="space-y-4">
                 {resistanceProfile && (
-                    <div className="bg-slate-900/50 p-3 rounded-lg">
+                    <div className="bg-[#0d0d0d] p-3 rounded-lg border border-white/5">
                         <h4 className="font-semibold text-primary-color">Perfil de Resistencia</h4>
                         <p className="text-sm text-slate-300">Tensión Máxima: <span className="font-bold capitalize">{resistanceProfile.peakTensionPoint}</span></p>
                     </div>
                 )}
                 {commonMistakes && commonMistakes.length > 0 && (
-                     <details className="glass-card-nested !p-0">
-                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none"><h4 className="font-semibold text-white">Faltas Técnicas Comunes</h4><ChevronRightIcon className="details-arrow"/></summary>
-                        <ul className="p-3 border-t border-slate-700/50 list-disc list-inside space-y-2 text-sm">
+                     <details className="rounded-xl border border-white/5 overflow-hidden">
+                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Faltas Técnicas Comunes</h4><ChevronRightIcon className="details-arrow"/></summary>
+                        <ul className="p-3 border-t border-white/5 list-disc list-inside space-y-2 text-sm text-slate-300">
                             {commonMistakes.map((item, i) => <li key={i}><strong className="text-slate-300">{item.mistake}:</strong> <span className="text-slate-400">{item.correction}</span></li>)}
                         </ul>
                     </details>
                 )}
                  {anatomicalConsiderations && anatomicalConsiderations.length > 0 && (
-                     <details className="glass-card-nested !p-0">
-                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none"><h4 className="font-semibold text-white">Consideraciones Anatómicas</h4><ChevronRightIcon className="details-arrow"/></summary>
-                        <ul className="p-3 border-t border-slate-700/50 list-disc list-inside space-y-2 text-sm">
+                     <details className="rounded-xl border border-white/5 overflow-hidden">
+                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Consideraciones Anatómicas</h4><ChevronRightIcon className="details-arrow"/></summary>
+                        <ul className="p-3 border-t border-white/5 list-disc list-inside space-y-2 text-sm text-slate-300">
                             {anatomicalConsiderations.map((item, i) => <li key={i}><strong className="text-slate-300">{item.trait}:</strong> <span className="text-slate-400">{item.advice}</span></li>)}
                         </ul>
                     </details>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {progressions && progressions.length > 0 && (
-                        <details className="glass-card-nested !p-0">
-                            <summary className="p-3 cursor-pointer flex justify-between items-center list-none"><h4 className="font-semibold text-green-400 flex items-center gap-2"><ArrowUpIcon/> Progresiones</h4><ChevronRightIcon className="details-arrow"/></summary>
-                            <ul className="p-3 border-t border-slate-700/50 list-disc list-inside space-y-2 text-sm">
+                        <details className="rounded-xl border border-white/5 overflow-hidden">
+                            <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-green-400 flex items-center gap-2"><ArrowUpIcon size={12}/> Progresiones</h4><ChevronRightIcon className="details-arrow"/></summary>
+                            <ul className="p-3 border-t border-white/5 list-disc list-inside space-y-2 text-sm text-slate-300">
                                 {progressions.map((item, i) => <li key={i}><strong className="text-slate-300">{item.name}:</strong> <span className="text-slate-400">{item.description}</span></li>)}
                             </ul>
                         </details>
                     )}
                      {regressions && regressions.length > 0 && (
-                        <details className="glass-card-nested !p-0">
-                            <summary className="p-3 cursor-pointer flex justify-between items-center list-none"><h4 className="font-semibold text-yellow-400 flex items-center gap-2"><ArrowDownIcon/> Regresiones</h4><ChevronRightIcon className="details-arrow"/></summary>
-                            <ul className="p-3 border-t border-slate-700/50 list-disc list-inside space-y-2 text-sm">
+                        <details className="rounded-xl border border-white/5 overflow-hidden">
+                            <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-yellow-400 flex items-center gap-2"><ArrowDownIcon size={12}/> Regresiones</h4><ChevronRightIcon className="details-arrow"/></summary>
+                            <ul className="p-3 border-t border-white/5 list-disc list-inside space-y-2 text-sm text-slate-300">
                                 {regressions.map((item, i) => <li key={i}><strong className="text-slate-300">{item.name}:</strong> <span className="text-slate-400">{item.description}</span></li>)}
                             </ul>
                         </details>
                     )}
                 </div>
                  {periodizationNotes && periodizationNotes.length > 0 && (
-                     <details className="glass-card-nested !p-0">
-                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none"><h4 className="font-semibold text-white">Contexto de Programa</h4><ChevronRightIcon className="details-arrow"/></summary>
-                        <div className="p-3 border-t border-slate-700/50 space-y-3 text-sm">
+                     <details className="rounded-xl border border-white/5 overflow-hidden">
+                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Contexto de Programa</h4><ChevronRightIcon className="details-arrow"/></summary>
+                        <div className="p-3 border-t border-white/5 space-y-3 text-sm text-slate-300">
                             {periodizationNotes.map((item, i) => (
                                 <div key={i}>
                                     <div className="flex justify-between items-center">
@@ -116,7 +114,7 @@ export const KinesiologyAnalysis: React.FC<{ exercise: ExerciseMuscleInfo }> = (
                     </details>
                 )}
              </div>
-        </Card>
+        </div>
     )
 };
 
@@ -179,8 +177,8 @@ const ImageVideoGallery: React.FC<{
                 onSelectImage={handleSelectImageFromSearch}
                 initialQuery={exerciseName}
             />
-            <div className="glass-card p-4">
-                <h3 className="font-bold text-lg text-white mb-3">Galería Multimedia</h3>
+            <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Galería Multimedia</h3>
                 <div className="relative">
                     <div className="flex overflow-x-auto snap-x snap-mandatory space-x-3 pb-3 hide-scrollbar">
                         {images.map((img, i) => (
@@ -196,7 +194,7 @@ const ImageVideoGallery: React.FC<{
                             </div>
                         ))}
                         {!hasMedia && (
-                            <div className="flex-shrink-0 w-full text-center text-slate-500 text-sm py-8 bg-slate-900/50 rounded-lg">
+                            <div className="flex-shrink-0 w-full text-center text-slate-500 text-sm font-mono py-8 bg-[#0d0d0d] rounded-lg border border-white/5">
                                 No hay imágenes ni videos. <br/> ¡Añade algunos!
                             </div>
                         )}
@@ -207,13 +205,13 @@ const ImageVideoGallery: React.FC<{
                         </div>
                     )}
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs mt-4">
-                    <Button onClick={() => fileInputRef.current?.click()} variant="secondary"><UploadIcon size={12}/> Subir</Button>
+                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono mt-4">
+                    <button onClick={() => fileInputRef.current?.click()} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors"><UploadIcon size={12} className="inline mr-1"/> Subir</button>
                     <input type="file" ref={fileInputRef} onChange={handleUpload} accept="image/*" className="hidden"/>
-                    <Button onClick={handleGenerateImage} variant="secondary" isLoading={isLoading === 'ai'} disabled={!isOnline || !!isLoading}><SparklesIcon size={12}/> Generar IA</Button>
-                    <Button onClick={() => setIsImageSearchOpen(true)} variant="secondary" disabled={!isOnline || !!isLoading}><ImageIcon size={12}/> Buscar Imagen</Button>
-                    <Button onClick={addVideoUrl} variant="secondary" disabled={!!isLoading}><PlusIcon size={12}/> Video URL</Button>
-                    <Button onClick={handleSearchVideos} variant="secondary" isLoading={isLoading === 'webVideo'} disabled={!isOnline || !!isLoading}><VideoIcon size={12}/> Buscar Video</Button>
+                    <button onClick={handleGenerateImage} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><SparklesIcon size={12} className="inline mr-1"/> Generar IA</button>
+                    <button onClick={() => setIsImageSearchOpen(true)} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><ImageIcon size={12} className="inline mr-1"/> Buscar Imagen</button>
+                    <button onClick={addVideoUrl} disabled={!!isLoading} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><PlusIcon size={12} className="inline mr-1"/> Video URL</button>
+                    <button onClick={handleSearchVideos} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><VideoIcon size={12} className="inline mr-1"/> Buscar Video</button>
                 </div>
             </div>
         </>
@@ -224,8 +222,8 @@ const RecommendedMobility: React.FC<{ exerciseNames?: string[] }> = ({ exerciseN
     if (!exerciseNames || exerciseNames.length === 0) return null;
 
     return (
-        <div className="glass-card p-4">
-            <h3 className="font-bold text-lg text-white mb-3">Movilidad Recomendada (Pre-sesión)</h3>
+        <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Movilidad Recomendada (Pre-sesión)</h3>
             <ul className="list-disc list-inside space-y-1 text-slate-300 text-sm">
                 {exerciseNames.map((name, i) => (
                     <li key={i}>
@@ -249,7 +247,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     const { settings, exerciseList, programs } = useAppState();
     const { setCurrentBackgroundOverride, addOrUpdateCustomExercise, openCustomExerciseEditor } = useAppDispatch();
     const [exercise, setExercise] = useState<ExerciseMuscleInfo | null>(null);
-    const [isLoading, setIsLoading] = useState({ analysis: false, community: false, rating: false, sfr: false });
+    const [isLoading, setIsLoading] = useState({ analysis: false, community: false, sfr: false });
     
     useEffect(() => {
         const foundExercise = exerciseList.find(e => e.id === exerciseId);
@@ -294,7 +292,6 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
         if (foundExercise && isOnline) {
             if (!foundExercise.aiCoachAnalysis) fetchAICoachAnalysis(foundExercise);
             if (!foundExercise.communityOpinion) fetchCommunityOpinion(foundExercise);
-            if (!foundExercise.primeStars) fetchPrimeStarsRating(foundExercise);
             if (!foundExercise.sfr) fetchSFR(foundExercise);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -329,16 +326,6 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
         }
     };
 
-    const fetchPrimeStarsRating = async (ex: ExerciseMuscleInfo) => {
-         setIsLoading(prev => ({ ...prev, rating: true }));
-        try {
-            const ratingData = await getPrimeStarsRating(ex.name, settings);
-            updateExerciseState({ primeStars: ratingData });
-        } catch (e) { console.error(e); } finally {
-            setIsLoading(prev => ({ ...prev, rating: false }));
-        }
-    };
-    
     const fetchSFR = async (ex: ExerciseMuscleInfo) => {
         setIsLoading(prev => ({ ...prev, sfr: true }));
         try {
@@ -353,11 +340,20 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     const handleFavoriteToggle = () => updateExerciseState({ isFavorite: !exercise?.isFavorite });
     const handleMediaUpdate = (images: string[], videos: string[]) => updateExerciseState({ images, videos });
 
-    if (!exercise) {
-        return <div className="pt-24 text-center">Cargando ejercicio...</div>;
-    }
+    const primaryMuscle = exercise?.involvedMuscles?.find(m => m.role === 'primary')?.muscle || 'Desconocido';
+    const similarExercises = useMemo(() => {
+        if (!exercise) return [];
+        return exerciseList
+            .filter(ex => ex.id !== exercise.id && (
+                (ex.force && ex.force === exercise.force) ||
+                ex.involvedMuscles?.some(m => m.role === 'primary' && m.muscle === primaryMuscle)
+            ))
+            .slice(0, 6);
+    }, [exercise, exerciseList, primaryMuscle]);
 
-    const primaryMuscle = exercise.involvedMuscles?.find(m => m.role === 'primary')?.muscle || 'Desconocido';
+    if (!exercise) {
+        return <div className="pt-24 text-center text-slate-400 font-mono">Cargando ejercicio...</div>;
+    }
 
     const getSfrColor = (score: number | undefined) => {
         if (score === undefined) return 'hsl(0, 0%, 50%)';
@@ -366,22 +362,21 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     };
 
     return (
-        <div className="pb-28 animate-fade-in">
-            <header className="relative h-48">
+        <div className="pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
+            <header className="relative h-48 -mx-4 border-b border-orange-500/20">
                 <div className="absolute bottom-4 left-4 right-4 z-10">
                      <h1 className="text-3xl font-bold text-white flex items-center gap-2">
                          <button onClick={handleFavoriteToggle} aria-label="Marcar como favorito">
                             <StarIcon size={28} filled={exercise.isFavorite} className={exercise.isFavorite ? 'text-yellow-400' : 'text-slate-600 hover:text-yellow-400'}/>
                          </button>
                          {exercise.name}
-                         {exercise.isHallOfFame && <span title="Hall of Fame" className="p-1 bg-yellow-400/20 rounded-full"><TrophyIcon size={16} className="text-yellow-400"/></span>}
                     </h1>
                     {exercise.alias && <p className="text-slate-400 text-sm ml-10 italic">{exercise.alias}</p>}
                     <p className="text-slate-300 ml-10 mt-1">{primaryMuscle}</p>
                 </div>
             </header>
             
-            <div className="space-y-6 mt-6">
+            <div className="space-y-6 mt-6 px-4">
                 <div className="flex flex-wrap gap-2">
                     <TagWithTooltip label={exercise.category} />
                     <TagWithTooltip label={exercise.type} />
@@ -389,44 +384,157 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                     {exercise.force && <TagWithTooltip label={exercise.force} />}
                 </div>
                 
-                <Card>
-                    <div className="flex flex-col sm:flex-row justify-around items-center gap-6">
-                        <div className="text-center">
-                            <label className="text-sm font-semibold text-slate-300 mb-2 block">Tu Calificación</label>
-                            <StarRating rating={exercise.userRating || 0} onSetRating={handleUserRating} />
-                        </div>
-                        <div className="w-full sm:w-px h-px sm:h-16 bg-slate-700"></div> {/* Divider */}
-                        <div className="text-center">
-                            <label className="text-sm font-semibold text-slate-300 mb-2 block">PrimeStars (IA)</label>
-                            {isLoading.rating ? <SkeletonLoader className="h-5 w-24 mx-auto" lines={1} /> : <StarRating rating={exercise.primeStars?.score || 0} colorClass="text-sky-400"/>}
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                    <label className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2 block">Tu Calificación</label>
+                    <StarRating rating={exercise.userRating || 0} onSetRating={handleUserRating} />
+                </div>
+
+                {/* AUGE interactivo */}
+                {(exercise.efc != null || exercise.cnc != null || exercise.ssc != null) && (
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">1 Serie Efectiva = Fatiga AUGE</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                            {exercise.efc != null && (
+                                <div>
+                                    <p className="text-[10px] font-mono text-slate-500 uppercase">EFC</p>
+                                    <div className="h-2 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                                        <div className="h-full bg-orange-500/80 rounded-full" style={{ width: `${(exercise.efc / 5) * 100}%` }} />
+                                    </div>
+                                    <p className="text-sm font-mono text-white mt-0.5">{exercise.efc}/5</p>
+                                </div>
+                            )}
+                            {exercise.cnc != null && (
+                                <div>
+                                    <p className="text-[10px] font-mono text-slate-500 uppercase">CNC</p>
+                                    <div className="h-2 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                                        <div className="h-full bg-orange-500/80 rounded-full" style={{ width: `${(exercise.cnc / 5) * 100}%` }} />
+                                    </div>
+                                    <p className="text-sm font-mono text-white mt-0.5">{exercise.cnc}/5</p>
+                                </div>
+                            )}
+                            {exercise.ssc != null && (
+                                <div>
+                                    <p className="text-[10px] font-mono text-slate-500 uppercase">SSC</p>
+                                    <div className="h-2 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                                        <div className="h-full bg-orange-500/80 rounded-full" style={{ width: `${Math.min((exercise.ssc / 2) * 100, 100)}%` }} />
+                                    </div>
+                                    <p className="text-sm font-mono text-white mt-0.5">{exercise.ssc}/2</p>
+                                </div>
+                            )}
                         </div>
                     </div>
-                </Card>
+                )}
 
-                {exercise.primeStars && !isLoading.rating && (
-                     <blockquote className="glass-card !p-3 text-sm italic text-slate-300 border-l-4 border-sky-400">
-                        {exercise.primeStars.justification}
-                    </blockquote>
+                {/* Mini-widgets NERD */}
+                <div className="grid grid-cols-2 gap-2">
+                    {exercise.setupTime != null && (
+                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                            <p className="text-[10px] font-mono text-slate-500 uppercase">Setup (1-10)</p>
+                            <p className="text-lg font-mono text-orange-400">{exercise.setupTime}</p>
+                        </div>
+                    )}
+                    {exercise.averageRestSeconds != null && (
+                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                            <p className="text-[10px] font-mono text-slate-500 uppercase">Descanso (s)</p>
+                            <p className="text-lg font-mono text-orange-400">{exercise.averageRestSeconds}</p>
+                        </div>
+                    )}
+                    {exercise.coreInvolvement && (
+                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                            <p className="text-[10px] font-mono text-slate-500 uppercase">Core</p>
+                            <p className="text-sm font-mono text-orange-400 capitalize">{exercise.coreInvolvement}</p>
+                        </div>
+                    )}
+                    {exercise.bracingRecommended != null && (
+                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                            <p className="text-[10px] font-mono text-slate-500 uppercase">Bracing</p>
+                            <p className="text-sm font-mono text-orange-400">{exercise.bracingRecommended ? 'Sí' : 'No'}</p>
+                        </div>
+                    )}
+                    {exercise.strapsRecommended != null && (
+                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                            <p className="text-[10px] font-mono text-slate-500 uppercase">Straps</p>
+                            <p className="text-sm font-mono text-orange-400">{exercise.strapsRecommended ? 'Recomendado' : 'Opcional'}</p>
+                        </div>
+                    )}
+                    {exercise.bodybuildingScore != null && (
+                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                            <p className="text-[10px] font-mono text-slate-500 uppercase">Culturismo</p>
+                            <p className="text-lg font-mono text-orange-400">{exercise.bodybuildingScore}/10</p>
+                        </div>
+                    )}
+                </div>
+
+                {exercise.functionalTransfer && (
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Transferencia Funcional</h3>
+                        <p className="text-sm text-slate-300">{exercise.functionalTransfer}</p>
+                    </div>
+                )}
+
+                {((exercise.injuryRisk?.details || exercise.commonMistakes?.length) ?? 0) > 0 && (
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-red-400/90 mb-2">Malestares / Precauciones</h3>
+                        {exercise.injuryRisk?.details && <p className="text-sm text-slate-300 mb-2">{exercise.injuryRisk.details}</p>}
+                        {exercise.commonMistakes && exercise.commonMistakes.length > 0 && (
+                            <ul className="list-disc list-inside text-sm text-slate-400 space-y-1">
+                                {exercise.commonMistakes.map((m, i) => <li key={i}>{m.mistake}: {m.correction}</li>)}
+                            </ul>
+                        )}
+                    </div>
+                )}
+
+                {similarExercises.length > 0 && (
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Ejercicios Similares</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {similarExercises.map(ex => (
+                                <span key={ex.id} className="inline-block">
+                                    <ExerciseLink name={ex.name} />
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {((exercise.progressions?.length || 0) + (exercise.regressions?.length || 0)) > 0 && (
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Ejercicios que Mejoran este Movimiento</h3>
+                        <div className="space-y-2 text-sm">
+                            {exercise.progressions?.map((p, i) => (
+                                <div key={`prog-${i}`} className="flex items-start gap-2">
+                                    <ArrowUpIcon size={14} className="text-green-400 flex-shrink-0 mt-0.5" />
+                                    <div><span className="font-semibold text-slate-200">{p.name}:</span> <span className="text-slate-400">{p.description}</span></div>
+                                </div>
+                            ))}
+                            {exercise.regressions?.map((r, i) => (
+                                <div key={`reg-${i}`} className="flex items-start gap-2">
+                                    <ArrowDownIcon size={14} className="text-yellow-400 flex-shrink-0 mt-0.5" />
+                                    <div><span className="font-semibold text-slate-200">{r.name}:</span> <span className="text-slate-400">{r.description}</span></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 )}
                 
                 <ImageVideoGallery images={exercise.images || []} videos={exercise.videos || []} exerciseName={exercise.name} isOnline={isOnline} onUpdate={handleMediaUpdate} />
 
-                <div className="glass-card p-4">
-                     <h3 className="font-bold text-lg text-white mb-2">Descripción</h3>
-                    <p className="whitespace-pre-wrap text-slate-300">{exercise.description}</p>
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Descripción</h3>
+                    <p className="whitespace-pre-wrap text-slate-300 text-sm">{exercise.description}</p>
                 </div>
                 
                 {registeredVariants.length > 0 && (
-                    <div className="glass-card p-4">
-                         <h3 className="font-bold text-lg text-white mb-2">Variantes Registradas</h3>
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Variantes Registradas</h3>
                          <ul className="list-disc list-inside text-sm text-slate-300">
                             {registeredVariants.map(variant => <li key={variant}>{variant}</li>)}
                          </ul>
                     </div>
                 )}
 
-                <div className="glass-card p-4">
-                    <h3 className="font-bold text-lg text-white mb-3 text-center">Análisis de Rendimiento</h3>
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 text-center">Análisis de Rendimiento</h3>
                     <div className="space-y-4">
                         {exercise.sfr ? (
                             <div className="flex flex-col items-center gap-4 text-center">
@@ -447,7 +555,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                             </div>
                         ) : isLoading.sfr ? <div className="flex justify-center"><SkeletonLoader type="circle" className="w-40 h-40" /></div> : null}
 
-                        <div className="space-y-4 pt-4 border-t border-slate-700/50">
+                        <div className="space-y-4 pt-4 border-t border-white/5">
                             {exercise.setupTime && <IndicatorBar label="Tiempo de Preparación" value={exercise.setupTime} />}
                             {exercise.technicalDifficulty && <IndicatorBar label="Dificultad Técnica" value={exercise.technicalDifficulty} />}
                             {exercise.injuryRisk && <IndicatorBar label="Riesgo Lesivo" value={exercise.injuryRisk.level} details={exercise.injuryRisk.details} />}
@@ -462,8 +570,8 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
 
                 {exercise.recommendedMobility && exercise.recommendedMobility.length > 0 && <RecommendedMobility exerciseNames={exercise.recommendedMobility} />}
                 
-                <div className="glass-card p-4">
-                    <h3 className="font-bold text-lg text-white mb-3 flex items-center gap-2"><SparklesIcon/> Análisis del Coach IA</h3>
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><SparklesIcon size={14}/> Análisis del Coach IA</h3>
                     {isLoading.analysis ? <SkeletonLoader lines={5} /> : exercise.aiCoachAnalysis ? (
                         <div className="space-y-4 text-sm">
                             <p className="italic text-slate-300">"{exercise.aiCoachAnalysis.summary}"</p>
@@ -483,8 +591,8 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                     ) : <p className="text-sm text-slate-500">No hay análisis disponible.</p>}
                 </div>
 
-                <div className="glass-card p-4">
-                     <h3 className="font-bold text-lg text-white mb-3 flex items-center gap-2"><UsersIcon/> Opinión de la Comunidad</h3>
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><UsersIcon size={14}/> Opinión de la Comunidad</h3>
                      {isLoading.community ? <SkeletonLoader lines={3} /> : exercise.communityOpinion && exercise.communityOpinion.length > 0 ? (
                          <ul className="list-disc list-inside space-y-2 text-sm text-slate-300">
                             {exercise.communityOpinion.map((op, i) => <li key={i}>{op}</li>)}
@@ -493,11 +601,11 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 </div>
 
                 {exercise.sportsRelevance && exercise.sportsRelevance.length > 0 && (
-                     <div className="glass-card p-4">
-                         <h3 className="font-bold text-lg text-white mb-3">Relevancia Deportiva</h3>
+                     <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Relevancia Deportiva</h3>
                         <div className="flex flex-wrap gap-2">
                             {exercise.sportsRelevance.map(sport => (
-                                <span key={sport} className="px-2 py-1 bg-slate-700 text-slate-300 rounded-full text-xs font-semibold">{sport}</span>
+                                <span key={sport} className="px-2 py-1 bg-[#0d0d0d] border border-orange-500/20 text-slate-300 rounded-lg text-[10px] font-mono">{sport}</span>
                             ))}
                         </div>
                     </div>

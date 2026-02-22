@@ -43,33 +43,33 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
   }
 
   return (
-    <div className="pb-20 animate-fade-in">
-      <header className="relative h-32 -mx-4 bg-gradient-to-b from-amber-900/40 to-black">
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+    <div className="pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
+      <header className="relative h-32 -mx-4 bg-gradient-to-b from-orange-900/30 to-[#0a0a0a] border-b border-orange-500/20">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
-          <span className="text-amber-400 text-xs font-bold uppercase tracking-wider">Tendón</span>
-          <h1 className="text-3xl font-bold text-white mt-1">{tendon.name}</h1>
+          <span className="text-orange-500/90 text-[10px] font-mono font-black uppercase tracking-widest">Tendón</span>
+          <h1 className="text-3xl font-bold font-mono text-white mt-1">{tendon.name}</h1>
         </div>
       </header>
 
-      <div className="space-y-6 mt-6">
-        <div className="glass-card-nested p-4">
-          <h3 className="font-bold text-white mb-2">Descripción</h3>
+      <div className="space-y-6 mt-6 px-4">
+        <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Descripción</h3>
           <p className="text-slate-300 text-sm">{tendon.description}</p>
         </div>
 
-        <div className="glass-card-nested p-4">
-          <h3 className="font-bold text-white mb-2">Músculo asociado</h3>
+        <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Músculo asociado</h3>
           {muscle ? (
             <div
               onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: muscle.id })}
-              className="p-3 flex justify-between items-center rounded-lg bg-slate-900/50 hover:bg-slate-800 cursor-pointer transition-colors"
+              className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-orange-500/20 hover:border-orange-500/50 cursor-pointer transition-all"
             >
-              <span className="font-semibold text-slate-200">{muscle.name}</span>
-              <ChevronRightIcon className="text-slate-500" size={16} />
+              <span className="font-mono font-semibold text-slate-200 text-sm">{muscle.name}</span>
+              <ChevronRightIcon className="text-orange-500/50" size={18} />
             </div>
           ) : (
-            <p className="p-3 rounded-lg bg-slate-900/50 text-slate-500 text-sm italic">
+            <p className="p-4 rounded-xl bg-[#0a0a0a] border border-orange-500/20 text-slate-500 text-sm italic">
               {tendon.muscleId
                 ? `Músculo referenciado no disponible en la base de datos.`
                 : 'Sin músculo asociado registrado.'}
@@ -78,31 +78,31 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
         </div>
 
         {joint && (
-          <div className="glass-card-nested p-4">
-            <h3 className="font-bold text-white mb-2">Articulación</h3>
+          <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Articulación</h3>
             <div
               onClick={() => navigateTo('joint-detail', { jointId: joint.id })}
-              className="p-3 flex justify-between items-center rounded-lg bg-slate-900/50 hover:bg-slate-800 cursor-pointer transition-colors"
+              className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-orange-500/20 hover:border-orange-500/50 cursor-pointer transition-all"
             >
-              <span className="font-semibold text-slate-200">{joint.name}</span>
-              <ChevronRightIcon className="text-slate-500" size={16} />
+              <span className="font-mono font-semibold text-slate-200 text-sm">{joint.name}</span>
+              <ChevronRightIcon className="text-orange-500/50" size={18} />
             </div>
           </div>
         )}
 
         {tendon.commonInjuries && tendon.commonInjuries.length > 0 && (
-          <details className="glass-card-nested !p-0">
-            <summary className="p-4 cursor-pointer flex justify-between items-center list-none">
-              <h3 className="font-bold text-red-400/90">Lesiones Comunes</h3>
-              <ChevronRightIcon className="details-arrow" />
+          <details className="rounded-xl border border-orange-500/20 overflow-hidden">
+            <summary className="p-4 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]">
+              <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-red-400/90">Lesiones Comunes</h3>
+              <ChevronRightIcon className="details-arrow text-orange-500/50" />
             </summary>
-            <div className="p-4 border-t border-slate-700/50 space-y-3">
+            <div className="p-4 border-t border-white/5 space-y-3 bg-[#080808]">
               {tendon.commonInjuries.map((inj, i) => (
-                <div key={i} className="bg-slate-900/50 rounded-lg p-3">
+                <div key={i} className="bg-[#0a0a0a] rounded-xl p-3 border border-orange-500/20">
                   <h4 className="font-semibold text-white text-sm">{inj.name}</h4>
                   <p className="text-slate-400 text-xs mt-1">{inj.description}</p>
                   {inj.returnProgressions && inj.returnProgressions.length > 0 && (
-                    <p className="text-slate-500 text-xs mt-2">Progresión: {inj.returnProgressions.join(' → ')}</p>
+                    <p className="text-slate-500 text-xs mt-2 font-mono">Progresión: {inj.returnProgressions.join(' → ')}</p>
                   )}
                 </div>
               ))}

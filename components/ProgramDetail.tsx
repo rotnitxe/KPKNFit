@@ -11,6 +11,7 @@ import CompactHeroBanner from './program-detail/CompactHeroBanner';
 import TrainingCalendarGrid from './program-detail/TrainingCalendarGrid';
 import AnalyticsDashboard from './program-detail/AnalyticsDashboard';
 import StructureDrawer from './program-detail/StructureDrawer';
+import StructureTabView from './program-detail/StructureTabView';
 
 interface ProgramDetailProps {
     program: Program;
@@ -38,7 +39,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
     const { activeProgramState } = useAppContext();
 
     // ─── State ───
-    const [activeTab, setActiveTab] = useState<'training' | 'analytics'>('training');
+    const [activeTab, setActiveTab] = useState<'training' | 'analytics' | 'structure'>('training');
     const [isStructureDrawerOpen, setIsStructureDrawerOpen] = useState(false);
     const [isSplitChangerOpen, setIsSplitChangerOpen] = useState(false);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
@@ -221,7 +222,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
             />
 
             {/* Mobile tabs */}
-            <div className="sm:hidden flex border-b border-white/5 shrink-0">
+            <div className="flex border-b border-white/5 shrink-0">
                 <button
                     onClick={() => setActiveTab('training')}
                     className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'training' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'}`}
@@ -230,16 +231,22 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 </button>
                 <button
                     onClick={() => setActiveTab('analytics')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'analytics' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'}`}
+                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'analytics' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'} hidden sm:block`}
                 >
                     Analytics
+                </button>
+                <button
+                    onClick={() => setActiveTab('structure')}
+                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'structure' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'}`}
+                >
+                    Estructura
                 </button>
             </div>
 
             {/* Split view (desktop) / Tab content (mobile) */}
             <div className="flex-1 flex overflow-hidden min-h-0">
                 {/* Training panel */}
-                <div className={`flex-1 flex flex-col overflow-hidden bg-black ${activeTab !== 'training' ? 'hidden sm:flex' : ''}`} style={{ minWidth: 0 }}>
+                <div className={`flex-1 flex flex-col min-h-0 overflow-hidden bg-black ${activeTab !== 'training' ? 'hidden sm:flex' : ''}`} style={{ minWidth: 0 }}>
                     <TrainingCalendarGrid
                         program={program}
                         isCyclic={isCyclic}
@@ -254,7 +261,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                         onSelectBlock={setSelectedBlockId}
                         onSelectWeek={setSelectedWeekId}
                         onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
-                        onOpenStructureDrawer={() => setIsStructureDrawerOpen(true)}
+                        onOpenStructureDrawer={() => setActiveTab('structure')}
                         onStartWorkout={handleStartWorkout}
                         onEditSession={onEditSessionClick}
                         onDeleteSession={onDeleteSessionHandler}
@@ -263,8 +270,29 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     />
                 </div>
 
+                {/* Structure panel - full width when selected */}
+                <div className={`flex-1 flex flex-col min-h-0 overflow-hidden bg-[#0a0a0a] ${activeTab !== 'structure' ? 'hidden' : ''}`} style={{ minWidth: 0 }}>
+                    <StructureTabView
+                        program={program}
+                        isCyclic={isCyclic}
+                        selectedBlockId={selectedBlockId}
+                        selectedWeekId={selectedWeekId}
+                        onSelectBlock={setSelectedBlockId}
+                        onSelectWeek={setSelectedWeekId}
+                        onUpdateProgram={handleUpdateProgram}
+                        onEditWeek={setEditingWeekInfo}
+                        onShowAdvancedTransition={() => { setActiveTab('training'); setShowAdvancedTransition(true); }}
+                        onShowSimpleTransition={() => { setActiveTab('training'); setShowSimpleTransition(true); }}
+                        onOpenEventModal={(data) => {
+                            if (data) setNewEventData(data);
+                            else setNewEventData({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' });
+                            setIsEventModalOpen(true);
+                        }}
+                    />
+                </div>
+
                 {/* Analytics panel */}
-                <div className={`sm:w-[40%] sm:max-w-[480px] sm:min-w-[320px] sm:border-l sm:border-white/5 bg-[#111] overflow-hidden ${activeTab !== 'analytics' ? 'hidden sm:block' : ''}`}>
+                <div className={`sm:w-[40%] sm:max-w-[480px] sm:min-w-[320px] sm:border-l sm:border-white/5 bg-[#111] min-h-0 overflow-hidden flex flex-col ${activeTab !== 'analytics' ? 'hidden sm:flex' : ''}`}>
                     <AnalyticsDashboard
                         program={program}
                         history={history}

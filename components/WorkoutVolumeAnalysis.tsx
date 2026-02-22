@@ -4,7 +4,6 @@ import { calculateAverageVolumeForWeeks } from '../services/analysisService';
 import { BarChartIcon, ChevronRightIcon, LayersIcon, ActivityIcon, DumbbellIcon, InfoIcon } from './icons';
 import SkeletonLoader from './ui/SkeletonLoader';
 import { useAppState } from '../contexts/AppContext';
-import ToggleSwitch from './ui/ToggleSwitch';
 import { XIcon } from './icons';
 import { MUSCLE_GROUP_DATA } from '../data/muscleGroupDatabase';
 import { MaximizeIcon } from './icons';
@@ -99,7 +98,7 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
     const [displayAnalysis, setDisplayAnalysis] = useState<DetailedMuscleVolumeAnalysis[] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [expandedMuscle, setExpandedMuscle] = useState<string | null>(null);
-    const [calculationMode, setCalculationMode] = useState<'simple' | 'complex'>('complex');
+    const calculationMode = 'complex' as const; // Siempre avanzado (plan: sin switch)
     const [isHierarchyOpen, setIsHierarchyOpen] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState<string>('default');
 
@@ -236,17 +235,46 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
     }, [analysisData, program, session, sessions, calculationMode, selectedItemId]);
 
 
+    const maxSets = Math.max(1, ...(displayAnalysis?.map(d => d.displayVolume + (d.indirectExercises?.reduce((s, e) => s + e.sets, 0) ?? 0)) ?? [0]));
+
     return (
         <div className="relative" ref={containerRef}>
-            {/* TOGGLE MODO DE CÁLCULO (Avanzado / Simple) */}
-            <div className="flex justify-center items-center py-4 border-t border-white/5 mt-4">
-                <ToggleSwitch 
-                    checked={calculationMode === 'complex'} 
-                    onChange={(c) => setCalculationMode(c ? 'complex' : 'simple')} 
-                    label={calculationMode === 'complex' ? 'Cálculo Avanzado' : 'Cálculo Simple'}
-                    size="sm"
-                />
-            </div>
+            {/* Lista de músculos con barras apiladas (Directo verde / Indirecto azul) */}
+            {displayAnalysis && displayAnalysis.length > 0 && (
+                <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" title="Directo" />
+                        <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Directo</span>
+                        <span className="w-2 h-2 rounded-full bg-blue-500 ml-2" title="Indirecto" />
+                        <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Indirecto</span>
+                    </div>
+                    {displayAnalysis.map((item) => {
+                        const directSets = item.directExercises?.reduce((s, e) => s + e.sets, 0) ?? 0;
+                        const indirectSets = item.indirectExercises?.reduce((s, e) => s + e.sets, 0) ?? 0;
+                        const total = directSets + indirectSets;
+                        const directWidthPct = maxSets > 0 ? (directSets / maxSets) * 100 : 0;
+                        const indirectWidthPct = maxSets > 0 ? (indirectSets / maxSets) * 100 : 0;
+                        return (
+                            <div key={item.muscleGroup} className="flex items-center gap-2 group">
+                                <span className="w-24 text-[10px] font-bold text-[#8E8E93] truncate text-right shrink-0">{item.muscleGroup}</span>
+                                <div className="flex-1 h-3 bg-[#1a1a1a] rounded-full overflow-hidden flex min-w-0" title={`Directo: ${directSets} | Indirecto: ${indirectSets}`}>
+                                    <div
+                                        className="h-full bg-emerald-500 transition-all"
+                                        style={{ width: `${directWidthPct}%`, minWidth: directSets > 0 ? '2px' : 0 }}
+                                    />
+                                    <div
+                                        className="h-full bg-blue-500 transition-all"
+                                        style={{ width: `${indirectWidthPct}%`, minWidth: indirectSets > 0 ? '2px' : 0 }}
+                                    />
+                                </div>
+                                <span className="w-14 text-[10px] font-bold text-white text-right shrink-0 tabular-nums">
+                                    {directSets}|{indirectSets}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* TOOLTIP Y MODAL ANATÓMICO */}
             {selectedMuscleInfo && onCloseMuscle && (

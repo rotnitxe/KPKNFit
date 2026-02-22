@@ -118,6 +118,20 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
     const parsed = useMemo(() => parseMealDescription(description), [description]);
 
+    const hasStructuredContent = useCallback((text: string): boolean => {
+        const t = text.trim();
+        if (!t || t.length < 2) return false;
+        return (
+            /\d{1,4}\s*(g|gr|gramos?|kg)/i.test(t) ||
+            /^(dos|tres|cuatro|cinco|un|una|medio|media|doble|triple)\s+\w+/i.test(t) ||
+            /^\d+\s+(x\s*)?\w+/.test(t) ||
+            /(cocido|cocida|frito|frita|plancha|horno|crudo|empanizado)/i.test(t) ||
+            t.includes(',') ||
+            /\s+y\s+/.test(t) ||
+            /\s+con\s+/.test(t)
+        );
+    }, []);
+
     const buildLoggedFromItem = useCallback((item: FoodItem, tag: TagWithFood): LoggedFood => {
         const amount =
             tag.amountGrams != null
@@ -213,20 +227,6 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             });
         }
     }, [description, parsed, settings, buildLoggedFromItem]);
-
-    const hasStructuredContent = useCallback((text: string): boolean => {
-        const t = text.trim();
-        if (!t || t.length < 2) return false;
-        return (
-            /\d{1,4}\s*(g|gr|gramos?|kg)/i.test(t) ||
-            /^(dos|tres|cuatro|cinco|un|una|medio|media|doble|triple)\s+\w+/i.test(t) ||
-            /^\d+\s+(x\s*)?\w+/.test(t) ||
-            /(cocido|cocida|frito|frita|plancha|horno|crudo|empanizado)/i.test(t) ||
-            t.includes(',') ||
-            /\s+y\s+/.test(t) ||
-            /\s+con\s+/.test(t)
-        );
-    }, []);
 
     useEffect(() => {
         if (activeTab !== 'description' && activeTab !== 'hybrid') return;

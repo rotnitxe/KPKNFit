@@ -19,6 +19,14 @@ export function viewToPath(view: View, data?: any): string {
         case 'tasks': return '/tasks';
         case 'programs': return '/programs';
         case 'program-detail': return `/programs/${data?.programId || '_'}`;
+        case 'program-metric-volume': return `/programs/${data?.programId || '_'}/metric/volume`;
+        case 'program-metric-strength': return `/programs/${data?.programId || '_'}/metric/strength`;
+        case 'program-metric-density': return `/programs/${data?.programId || '_'}/metric/density`;
+        case 'program-metric-frequency': return `/programs/${data?.programId || '_'}/metric/frequency`;
+        case 'program-metric-banister': return `/programs/${data?.programId || '_'}/metric/banister`;
+        case 'program-metric-recovery': return `/programs/${data?.programId || '_'}/metric/recovery`;
+        case 'program-metric-adherence': return `/programs/${data?.programId || '_'}/metric/adherence`;
+        case 'program-metric-rpe': return `/programs/${data?.programId || '_'}/metric/rpe`;
         case 'program-editor': return `/programs/${data?.programId || '_new'}/edit`;
         case 'session-editor': return '/session-editor';
         case 'workout': return '/workout';
@@ -38,7 +46,6 @@ export function viewToPath(view: View, data?: any): string {
         case 'body-part-detail': return `/kpkn/body-part/${data?.bodyPartId || '_'}`;
         case 'chain-detail': return `/kpkn/chain/${data?.chainId || '_'}`;
         case 'muscle-category': return `/kpkn/category/${encodeURIComponent(data?.categoryName || '_')}`;
-        case 'hall-of-fame': return '/hall-of-fame';
         case 'body-lab': return '/body-lab';
         case 'mobility-lab': return '/mobility-lab';
         case 'ai-art-studio': return '/ai-art-studio';

@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Exercise, ExerciseSet, ExerciseMuscleInfo } from '../../types';
 import { StarIcon, TrashIcon, ChevronDownIcon, ClockIcon, LinkIcon, SearchIcon, PlusIcon, FlameIcon } from '../icons';
 import InlineSetTable from './InlineSetTable';
 import FatigueIndicators from './FatigueIndicators';
+import { calculateHybrid1RM } from '../../utils/calculations';
 
 interface ExerciseRowProps {
     exercise: Exercise;
@@ -19,13 +20,15 @@ interface ExerciseRowProps {
     onLink: (partIndex: number, exerciseIndex: number) => void;
     onUnlink: (partIndex: number, exerciseIndex: number) => void;
     onAmrapToggle?: (partIndex: number, exerciseIndex: number, setIndex: number) => void;
+    onOpenExerciseModal?: (partIndex: number, exerciseIndex: number) => void;
     scrollRef?: (el: HTMLDivElement | null) => void;
+    dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
 const ExerciseRow: React.FC<ExerciseRowProps> = ({
     exercise, exerciseIndex, partIndex, exerciseList, isCulprit,
     isExpertMode, fatigue, augeSuggestion, onUpdate, onRemove, onReorder,
-    onLink, onUnlink, onAmrapToggle, scrollRef,
+    onLink, onUnlink, onAmrapToggle, onOpenExerciseModal, scrollRef, dragHandleProps,
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isSearching, setIsSearching] = useState(!exercise.name);
@@ -76,11 +79,12 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
     const handleAddSet = useCallback(() => {
         onUpdate(partIndex, exerciseIndex, (draft) => {
             const last = draft.sets[draft.sets.length - 1];
+            const defaultMode = draft.trainingMode === 'percent' ? 'solo_rm' : (last?.intensityMode || 'rpe');
             draft.sets.push({
                 id: crypto.randomUUID(),
                 targetReps: last?.targetReps || 10,
                 targetRPE: last?.targetRPE || 8,
-                intensityMode: last?.intensityMode || 'rpe',
+                intensityMode: last?.intensityMode || defaultMode,
             });
         });
     }, [partIndex, exerciseIndex, onUpdate]);
@@ -90,6 +94,17 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
             draft.sets.splice(setIndex, 1);
         });
     }, [partIndex, exerciseIndex, onUpdate]);
+
+    // Calcular reference1RM desde PR cuando prFor1RM está definido (modo percent)
+    useEffect(() => {
+        if (exercise.trainingMode !== 'percent' || !exercise.prFor1RM?.weight || !exercise.prFor1RM?.reps) return;
+        const e1rm = calculateHybrid1RM(exercise.prFor1RM.weight, exercise.prFor1RM.reps);
+        if (e1rm > 0 && Math.abs((exercise.reference1RM || 0) - e1rm) > 0.1) {
+            onUpdate(partIndex, exerciseIndex, (draft) => {
+                draft.reference1RM = e1rm;
+            });
+        }
+    }, [exercise.trainingMode, exercise.prFor1RM?.weight, exercise.prFor1RM?.reps, exercise.reference1RM, partIndex, exerciseIndex, onUpdate]);
 
     const formatRest = (seconds: number) => {
         const m = Math.floor(seconds / 60);
@@ -144,15 +159,19 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors"
             >
-                {/* Grip handle */}
-                <div className="w-4 flex flex-col items-center gap-0.5 shrink-0 cursor-grab opacity-30 hover:opacity-60 transition-opacity">
+                {/* Grip handle (drag) */}
+                <div {...(dragHandleProps || {})} className={`w-6 flex flex-col items-center justify-center gap-0.5 shrink-0 cursor-grab active:cursor-grabbing ${dragHandleProps ? 'opacity-60 hover:opacity-100' : 'opacity-30 hover:opacity-60'} transition-opacity touch-none`}>
                     <div className="w-3 h-0.5 bg-[#555] rounded-full" />
                     <div className="w-3 h-0.5 bg-[#555] rounded-full" />
                 </div>
 
                 {/* Exercise name */}
                 <button
-                    onClick={e => { e.stopPropagation(); setIsSearching(true); }}
+                    onClick={e => {
+                        e.stopPropagation();
+                        if (onOpenExerciseModal) onOpenExerciseModal(partIndex, exerciseIndex);
+                        else setIsSearching(true);
+                    }}
                     className="text-sm font-medium text-white truncate hover:text-[#FC4C02] transition-colors text-left min-w-0 flex-1"
                 >
                     {exercise.name || 'Seleccionar ejercicio'}
@@ -218,14 +237,82 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         </select>
 
                         {exercise.trainingMode === 'percent' && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-[#555]">1RM:</span>
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        value={exercise.reference1RM ?? ''}
+                                        onChange={e => onUpdate(partIndex, exerciseIndex, d => { d.reference1RM = parseFloat(e.target.value) || 0; })}
+                                        placeholder="kg"
+                                        className="w-14 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                    />
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-[#555]">o PR:</span>
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        value={exercise.prFor1RM?.weight ?? ''}
+                                        onChange={e => {
+                                            const w = parseFloat(e.target.value) || 0;
+                                            onUpdate(partIndex, exerciseIndex, d => {
+                                                d.prFor1RM = { weight: w, reps: d.prFor1RM?.reps || 1 };
+                                            });
+                                        }}
+                                        placeholder="kg"
+                                        className="w-12 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                    />
+                                    <span className="text-[10px] text-[#555]">×</span>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={30}
+                                        value={exercise.prFor1RM?.reps ?? ''}
+                                        onChange={e => {
+                                            const r = Math.min(30, Math.max(1, parseInt(e.target.value) || 1));
+                                            onUpdate(partIndex, exerciseIndex, d => {
+                                                d.prFor1RM = { weight: d.prFor1RM?.weight || 0, reps: r };
+                                            });
+                                        }}
+                                        placeholder="r"
+                                        className="w-10 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {exercise.trainingMode === 'reps' && (
                             <div className="flex items-center gap-1">
-                                <span className="text-[10px] text-[#555]">1RM:</span>
+                                <span className="text-[10px] text-[#555]">Peso ref:</span>
                                 <input
                                     type="number"
-                                    value={exercise.reference1RM || ''}
-                                    onChange={e => onUpdate(partIndex, exerciseIndex, d => { d.reference1RM = parseFloat(e.target.value) || 0; })}
+                                    step="0.5"
+                                    value={exercise.consolidatedWeight?.weightKg ?? ''}
+                                    onChange={e => {
+                                        const w = parseFloat(e.target.value) || 0;
+                                        onUpdate(partIndex, exerciseIndex, d => {
+                                            d.consolidatedWeight = { weightKg: w, reps: d.consolidatedWeight?.reps || 10 };
+                                        });
+                                    }}
                                     placeholder="kg"
-                                    className="w-16 bg-transparent border-b border-white/10 focus:border-[#FC4C02] text-xs font-mono text-white text-center py-0.5 outline-none transition-colors"
+                                    className="w-12 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                />
+                                <span className="text-[10px] text-[#555]">×</span>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={99}
+                                    value={exercise.consolidatedWeight?.reps ?? ''}
+                                    onChange={e => {
+                                        const r = Math.min(99, Math.max(1, parseInt(e.target.value) || 10));
+                                        onUpdate(partIndex, exerciseIndex, d => {
+                                            d.consolidatedWeight = { weightKg: d.consolidatedWeight?.weightKg || 0, reps: r };
+                                        });
+                                    }}
+                                    placeholder="r"
+                                    className="w-10 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
                                 />
                             </div>
                         )}

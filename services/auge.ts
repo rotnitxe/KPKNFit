@@ -34,11 +34,20 @@ export {
     calculateSystemicFatigue,
     calculateDailyReadiness,
     calculateGlobalBatteries,
+    getPerMuscleBatteries,
+    getSpinalDrainByExercise,
+    applyPrecalibrationToBattery,
+    applyPrecalibrationReadinessOnly,
+    PRECALIBRATION_INTENSITY_TO_RPE,
+    ACCORDION_MUSCLES,
     learnRecoveryRate,
     checkPendingSurveys,
     calculateSleepRecommendations,
     RECOVERY_FACTORS,
     type BatteryAuditLog,
+    type SpinalDrainEntry,
+    type PrecalibrationExerciseInput,
+    type PrecalibrationReadinessInput,
 } from './recoveryService';
 
 // ─── CONSTANTES CENTRALIZADAS ───────────────────────────────────────────────

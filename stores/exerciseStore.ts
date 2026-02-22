@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { createMultiKeyStorage } from './storageAdapter';
-import { DETAILED_EXERCISE_LIST } from '../data/exerciseDatabase';
+import { FULL_EXERCISE_LIST } from '../data/exerciseDatabaseMerged';
 import { INITIAL_MUSCLE_GROUP_DATA } from '../data/initialMuscleGroupDatabase';
 import { INITIAL_MUSCLE_HIERARCHY } from '../data/initialMuscleHierarchy';
 import type { ExerciseMuscleInfo, ExercisePlaylist, MuscleGroupInfo, MuscleHierarchy } from '../types';
@@ -33,7 +33,7 @@ interface ExerciseStoreState {
 export const useExerciseStore = create<ExerciseStoreState>()(
     persist(
         immer((set) => ({
-            exerciseList: DETAILED_EXERCISE_LIST,
+            exerciseList: FULL_EXERCISE_LIST,
             exercisePlaylists: [],
             muscleGroupData: INITIAL_MUSCLE_GROUP_DATA,
             muscleHierarchy: INITIAL_MUSCLE_HIERARCHY,
@@ -45,7 +45,7 @@ export const useExerciseStore = create<ExerciseStoreState>()(
             setMuscleHierarchy: (u) => set((s) => { s.muscleHierarchy = applyUpdater(s.muscleHierarchy, u); }),
 
             addOrUpdateCustomExercise: (exercise) => set((state) => {
-                const isStatic = DETAILED_EXERCISE_LIST.some(ex => ex.id === exercise.id);
+                const isStatic = FULL_EXERCISE_LIST.some(ex => ex.id === exercise.id);
                 const withFlag = { ...exercise, isCustom: !isStatic };
 
                 const idxById = state.exerciseList.findIndex(ex => ex.id === withFlag.id);

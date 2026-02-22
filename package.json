@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Un creador y seguidor de rutinas de gimnasio inteligente.",
   "scripts": {
+    "extract-exercises": "python scripts/extract_exercise_db_from_docx.py",
     "postinstall": "node -e \"if (process.platform !== 'win32') require('child_process').execSync('chmod +x node_modules/.bin/esbuild')\"",
     "build": "npx tailwindcss -i input.css -o www/output.css --minify && npx esbuild index.tsx --bundle --outfile=www/index.js --sourcemap --jsx=automatic --loader:.js=jsx --loader:.ts=tsx --format=esm && npx esbuild workers/computeWorker.ts --bundle --outfile=www/computeWorker.js --format=iife --loader:.ts=tsx && npx cpx2 index.html www && npx cpx2 favicon.svg www && npx cpx2 manifest.json www && npx cpx2 service-worker.js www && npx cpx2 icon-192.png www && npx cpx2 icon-512.png www && npx cpx2 widget-template.html www && npx cpx2 data/usdaFoundationFoods.json www/data && npx cpx2 data/usdaFoodsOffline.json www/data && npx cpx2 data/openFoodFactsOffline.json www/data",
     "serve": "npx serve www -l 5500",

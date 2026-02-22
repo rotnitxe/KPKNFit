@@ -67,7 +67,8 @@ export function calculateBMR(
     settings: Settings,
     config?: CalorieGoalConfig | null
 ): number | null {
-    const { userVitals } = settings;
+    const userVitals = settings.userVitals;
+    if (!userVitals) return null;
     const weight = userVitals.weight;
     const height = userVitals.height;
     const age = userVitals.age;
@@ -103,19 +104,40 @@ function getActivityIndex(level?: string): number {
     return map[level || 'moderate'] ?? 3;
 }
 
+/** Obtiene factor de actividad: prioriza custom, luego derivado de días/horas, luego estándar */
+function getActivityFactor(config?: CalorieGoalConfig | null): number {
+    if (config?.customActivityFactor != null && config.customActivityFactor >= 1 && config.customActivityFactor <= 2) {
+        return config.customActivityFactor;
+    }
+    const days = config?.activityDaysPerWeek ?? 3;
+    const hours = config?.activityHoursPerDay ?? 1;
+    const derived = 1.2 + (Math.min(7, Math.max(0, days)) / 7) * 0.4 + (Math.min(24, Math.max(0, hours)) / 12) * 0.3;
+    if (config?.activityDaysPerWeek != null || config?.activityHoursPerDay != null) {
+        return derived;
+    }
+    const activityIdx = config?.activityLevel ?? 3;
+    return ACTIVITY_FACTORS[activityIdx] ?? 1.55;
+}
+
 /**
  * Calcula calorías diarias objetivo
- * TMB * factor actividad * ajuste objetivo * healthMultiplier
+ * Prioriza dailyCalorieGoal guardado (macros del wizard) cuando existe.
+ * Si no, calcula desde TMB * factor actividad * ajuste objetivo * healthMultiplier
  */
 export function calculateDailyCalorieGoal(
     settings: Settings,
     config?: CalorieGoalConfig | null
 ): number {
-    const bmr = calculateBMR(settings, config);
-    if (bmr == null) return settings.dailyCalorieGoal ?? 2500;
+    // Prioridad 1: Usuario configuró macros explícitamente en wizard
+    if (settings.dailyCalorieGoal != null && settings.dailyCalorieGoal > 0) {
+        return settings.dailyCalorieGoal;
+    }
 
-    const activityIdx = config?.activityLevel ?? getActivityIndex(settings.userVitals.activityLevel);
-    const factor = ACTIVITY_FACTORS[activityIdx] ?? 1.55;
+    const bmr = calculateBMR(settings, config);
+    if (bmr == null) return 0; // Sin datos: UI mostrará "Configura tu plan"
+
+    const effectiveConfig: CalorieGoalConfig | undefined = config ?? (settings.calorieGoalConfig ? { ...settings.calorieGoalConfig, activityLevel: settings.calorieGoalConfig.activityLevel ?? getActivityIndex(settings.userVitals?.activityLevel) } : undefined);
+    const factor = getActivityFactor(effectiveConfig);
     let tdee = bmr * factor;
 
     const goal = config?.goal ?? (settings.calorieGoalObjective === 'deficit' ? 'lose' : settings.calorieGoalObjective === 'surplus' ? 'gain' : 'maintain');
@@ -129,4 +151,22 @@ export function calculateDailyCalorieGoal(
 
     const healthMult = config?.healthMultiplier ?? 1;
     return Math.round(tdee * healthMult);
+}
+
+/** Calcula TMB y TDEE para mostrar en dashboard */
+export function getBMRAndTDEE(
+    settings: Settings,
+    config?: CalorieGoalConfig | null
+): { bmr: number | null; tdee: number | null } {
+    const bmr = calculateBMR(settings, config);
+    if (bmr == null) return { bmr: null, tdee: null };
+    const effectiveConfig = config ?? (settings.calorieGoalConfig ? { ...settings.calorieGoalConfig } : undefined);
+    const factor = getActivityFactor(effectiveConfig);
+    let tdee = bmr * factor;
+    const goal = config?.goal ?? (settings.calorieGoalObjective === 'deficit' ? 'lose' : settings.calorieGoalObjective === 'surplus' ? 'gain' : 'maintain');
+    const weeklyChange = config?.weeklyChangeKg ?? 0.5;
+    if (goal === 'lose') tdee -= (weeklyChange * 7700) / 7;
+    else if (goal === 'gain') tdee += (weeklyChange * 7700) / 7;
+    const healthMult = config?.healthMultiplier ?? 1;
+    return { bmr, tdee: Math.round(tdee * healthMult) };
 }

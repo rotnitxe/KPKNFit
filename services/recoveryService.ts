@@ -14,7 +14,8 @@ const RECOVERY_PROFILES: Record<string, number> = {
 };
 
 const MUSCLE_PROFILE_MAP: Record<string, string> = {
-    'bíceps': 'fast', 'tríceps': 'fast', 'deltoides': 'fast', 'pantorrillas': 'fast', 'abdomen': 'fast', 'antebrazo': 'fast',
+    'bíceps': 'fast', 'tríceps': 'fast', 'deltoides': 'fast', 'deltoides-anterior': 'fast', 'deltoides-lateral': 'fast', 'deltoides-posterior': 'fast',
+    'pantorrillas': 'fast', 'abdomen': 'fast', 'antebrazo': 'fast',
     'pectorales': 'medium', 'dorsales': 'medium', 'hombros': 'medium', 'trapecio': 'medium',
     'cuádriceps': 'slow', 'glúteos': 'slow', 'aductores': 'medium',
     'isquiosurales': 'heavy', 'espalda baja': 'heavy', 'erectores espinales': 'heavy', 'core': 'medium'
@@ -53,6 +54,9 @@ const MUSCLE_CATEGORY_MAP: Record<string, string[]> = {
     'pectorales': ['pectoral', 'pecho'],
     'dorsales': ['dorsal', 'redondo mayor', 'espalda alta', 'lats'],
     'deltoides': ['deltoides', 'hombro', 'delts'],
+    'deltoides-anterior': ['deltoides anterior', 'deltoide anterior', 'anterior'],
+    'deltoides-lateral': ['deltoides lateral', 'deltoide lateral', 'lateral', 'medio'],
+    'deltoides-posterior': ['deltoides posterior', 'deltoide posterior', 'posterior'],
     'bíceps': ['bíceps', 'biceps', 'braquial', 'braquiorradial', 'antebrazo'],
     'tríceps': ['tríceps', 'triceps'],
     'cuádriceps': ['cuádriceps', 'cuadriceps', 'recto femoral', 'vasto', 'quads'],
@@ -768,4 +772,180 @@ export const calculateGlobalBatteries = (
         auditLogs,
         verdict
     };
+};
+
+// --- BATERÍA POR MÚSCULO (para acordeón Home) ---
+/** Lista de músculos para el acordeón. Sin porciones excepto deltoides (anterior, lateral, posterior). */
+export const ACCORDION_MUSCLES: { id: string; label: string; isDeltoidPortion?: boolean }[] = [
+    { id: 'bíceps', label: 'Bíceps' },
+    { id: 'tríceps', label: 'Tríceps' },
+    { id: 'pectorales', label: 'Pectorales' },
+    { id: 'dorsales', label: 'Dorsales' },
+    { id: 'deltoides-anterior', label: 'Deltoides Anterior', isDeltoidPortion: true },
+    { id: 'deltoides-lateral', label: 'Deltoides Lateral', isDeltoidPortion: true },
+    { id: 'deltoides-posterior', label: 'Deltoides Posterior', isDeltoidPortion: true },
+    { id: 'cuádriceps', label: 'Cuádriceps' },
+    { id: 'glúteos', label: 'Glúteos' },
+    { id: 'isquiosurales', label: 'Isquiosurales' },
+    { id: 'pantorrillas', label: 'Pantorrillas' },
+    { id: 'abdomen', label: 'Abdomen' },
+    { id: 'antebrazo', label: 'Antebrazo' },
+    { id: 'trapecio', label: 'Trapecio' },
+    { id: 'core', label: 'Core' },
+    { id: 'espalda baja', label: 'Espalda Baja' },
+    { id: 'aductores', label: 'Aductores' },
+];
+
+export const getPerMuscleBatteries = (
+    history: WorkoutLog[],
+    exerciseList: ExerciseMuscleInfo[],
+    sleepLogs: SleepLog[],
+    settings: Settings,
+    muscleHierarchy: MuscleHierarchy,
+    postSessionFeedback: PostSessionFeedback[] = [],
+    waterLogs: WaterLog[] = [],
+    dailyWellbeingLogs: DailyWellbeingLog[] = [],
+    nutritionLogs: NutritionLog[] = []
+): Record<string, number> => {
+    const result: Record<string, number> = {};
+    for (const m of ACCORDION_MUSCLES) {
+        const battery = calculateMuscleBattery(
+            m.id,
+            history,
+            exerciseList,
+            sleepLogs,
+            settings,
+            muscleHierarchy,
+            postSessionFeedback,
+            waterLogs,
+            dailyWellbeingLogs,
+            nutritionLogs
+        );
+        result[m.id] = battery.recoveryScore;
+    }
+    return result;
+};
+
+// --- DRENAJE ESPINAL POR EJERCICIO (para COLUMNA tabs) ---
+export interface SpinalDrainEntry {
+    exerciseName: string;
+    totalSpinalDrain: number;
+}
+
+/** Intensidad pre-calibración → RPE para simular drenaje */
+export const PRECALIBRATION_INTENSITY_TO_RPE: Record<string, number> = {
+    LIGERO: 6,
+    MEDIO: 7,
+    ALTO: 8,
+    MUY_ALTO: 9,
+    EXTREMO: 10,
+};
+
+export interface PrecalibrationExerciseInput {
+    exerciseDbId?: string;
+    exerciseName: string;
+    intensity: 'LIGERO' | 'MEDIO' | 'ALTO' | 'MUY_ALTO' | 'EXTREMO';
+}
+
+export interface PrecalibrationReadinessInput {
+    sleepQuality: number;
+    stressLevel: number;
+    doms: number;
+    motivation: number;
+}
+
+/** Aplica pre-calibración: simula drenaje de ejercicios recientes + readiness y devuelve deltas para batteryCalibration */
+export const applyPrecalibrationToBattery = (
+    exercises: PrecalibrationExerciseInput[],
+    readiness: PrecalibrationReadinessInput,
+    exerciseList: ExerciseMuscleInfo[],
+    settings: Settings
+): { cnsDelta: number; muscularDelta: number; spinalDelta: number } => {
+    const tanks = calculatePersonalizedBatteryTanks(settings);
+    const exIndex = buildExerciseIndex(exerciseList);
+
+    let totalCns = 0;
+    let totalMusc = 0;
+    let totalSpinal = 0;
+
+    exercises.forEach((ex, exIdx) => {
+        const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
+        const rpe = PRECALIBRATION_INTENSITY_TO_RPE[ex.intensity] ?? 8;
+        const reps = (info?.type === 'Básico' ? 5 : 8);
+        const virtualSet = { completedRPE: rpe, completedReps: reps, targetReps: reps, weight: 0 };
+        const drain = calculateSetBatteryDrain(virtualSet, info, tanks, exIdx, 90);
+        totalCns += drain.cnsDrainPct;
+        totalMusc += drain.muscularDrainPct;
+        totalSpinal += drain.spinalDrainPct;
+    });
+
+    const readinessAvg = (readiness.sleepQuality + (6 - readiness.stressLevel) + (6 - readiness.doms) + readiness.motivation) / 4;
+    const readinessFactor = readinessAvg / 5;
+    const bonusFromReadiness = (readinessFactor - 0.6) * 15;
+    const cnsBonus = Math.round(bonusFromReadiness);
+    const muscBonus = Math.round(bonusFromReadiness * 0.5);
+
+    return {
+        cnsDelta: Math.round(-totalCns + cnsBonus),
+        muscularDelta: Math.round(-totalMusc + muscBonus),
+        spinalDelta: Math.round(-totalSpinal),
+    };
+};
+
+/** Pre-calibración solo con readiness (usuario no entrenó antes) */
+export const applyPrecalibrationReadinessOnly = (
+    readiness: PrecalibrationReadinessInput
+): { cnsDelta: number; muscularDelta: number; spinalDelta: number } => {
+    const readinessAvg = (readiness.sleepQuality + (6 - readiness.stressLevel) + (6 - readiness.doms) + readiness.motivation) / 4;
+    const factor = (readinessAvg - 3) * 5;
+    return {
+        cnsDelta: Math.round(factor),
+        muscularDelta: Math.round(factor * 0.5),
+        spinalDelta: 0,
+    };
+};
+
+export const getSpinalDrainByExercise = (
+    history: WorkoutLog[],
+    exerciseList: ExerciseMuscleInfo[],
+    days: number | null,
+    settings?: Settings
+): SpinalDrainEntry[] => {
+    const now = Date.now();
+    const tanks = calculatePersonalizedBatteryTanks(settings || {});
+    const exIndex = buildExerciseIndex(exerciseList);
+
+    const cutoff = days === null
+        ? 0
+        : now - (days * 24 * 60 * 60 * 1000);
+
+    const relevantLogs = history.filter(log =>
+        days === null || new Date(log.date).getTime() > cutoff
+    );
+
+    const byExercise = new Map<string, number>();
+
+    relevantLogs.forEach(log => {
+        const hoursAgo = (now - new Date(log.date).getTime()) / 3600000;
+        const spinalHalfLife = 72;
+        const decay = Math.exp(-(Math.LN2 / spinalHalfLife) * hoursAgo);
+
+        log.completedExercises.forEach(ex => {
+            const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
+            const name = ex.exerciseName || info?.name || 'Ejercicio';
+            let total = 0;
+            ex.sets.forEach((s, idx) => {
+                const drain = calculateSetBatteryDrain(s, info, tanks, idx, 90);
+                total += drain.spinalDrainPct * decay;
+            });
+            if (total > 0) {
+                const prev = byExercise.get(name) || 0;
+                byExercise.set(name, prev + total);
+            }
+        });
+    });
+
+    return Array.from(byExercise.entries())
+        .map(([exerciseName, totalSpinalDrain]) => ({ exerciseName, totalSpinalDrain }))
+        .sort((a, b) => b.totalSpinalDrain - a.totalSpinalDrain);
 };

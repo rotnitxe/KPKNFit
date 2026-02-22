@@ -1,14 +1,16 @@
 // components/nutrition/NutritionDashboard.tsx
-// Dashboard cockpit de Nutrición: calorías prominentes, macros, micronutrientes, grasas expandible
+// Dashboard NERD: calorías híbridas, mini-donuts macros, métricas, gráficos
 
 import React, { useState, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import type { NutritionLog, LoggedFood } from '../../types';
-import { calculateDailyCalorieGoal } from '../../utils/calorieFormulas';
+import { calculateDailyCalorieGoal, getBMRAndTDEE } from '../../utils/calorieFormulas';
 import { getMicronutrientDeficiencies } from '../../services/nutritionRecoveryService';
 import { UtensilsIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, AlertTriangleIcon } from '../icons';
 import { CalorieGoalCard } from './CalorieGoalCard';
 import { NutritionPlanEditorModal } from './NutritionPlanEditorModal';
+import { NutritionTooltip } from './NutritionTooltip';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
 
 const mealOrder: NutritionLog['mealType'][] = ['breakfast', 'lunch', 'dinner', 'snack'];
 const mealNames: Record<NutritionLog['mealType'], string> = {
@@ -16,6 +18,40 @@ const mealNames: Record<NutritionLog['mealType'], string> = {
     lunch: 'Almuerzo',
     dinner: 'Cena',
     snack: 'Snack',
+};
+
+const MACRO_COLORS = { protein: '#3b82f6', carbs: '#22c55e', fats: '#f59e0b' };
+const MACRO_TOOLTIPS = {
+    protein: 'Proteínas: esenciales para síntesis muscular, recuperación y saciedad. Objetivo típico: 1.6-2.2 g/kg.',
+    carbs: 'Carbohidratos: principal fuente de energía para entrenamiento. Ajusta según actividad.',
+    fats: 'Grasas: hormonas, absorción de vitaminas, saciedad. No bajar de 0.5 g/kg.',
+};
+
+const MacroMiniDonut: React.FC<{
+    value: number;
+    max: number;
+    label: string;
+    color: string;
+    tooltip: string;
+}> = ({ value, max, label, color, tooltip }) => {
+    const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+    const circumference = 2 * Math.PI * 36;
+    const strokeDash = (pct / 100) * circumference;
+    return (
+        <div className="flex flex-col items-center">
+            <div className="relative w-20 h-20">
+                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+                    <circle cx="40" cy="40" r="36" fill="none" stroke={color} strokeWidth="6" strokeDasharray={`${strokeDash} ${circumference}`} strokeLinecap="round" />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-black text-white font-mono">{Math.round(value)}</span>
+            </div>
+            <span className="text-[9px] font-bold text-zinc-500 mt-1 flex items-center gap-0.5">
+                {label}
+                <NutritionTooltip content={tooltip} title={label} />
+            </span>
+        </div>
+    );
 };
 
 const ProgressBar: React.FC<{
@@ -44,11 +80,23 @@ const ProgressBar: React.FC<{
     );
 };
 
+export const useNutritionStats = (selectedDate: string) => {
+    const { nutritionLogs, settings } = useAppState();
+    const calorieGoal = useMemo(() => calculateDailyCalorieGoal(settings, settings.calorieGoalConfig), [settings]);
+    const logsForDate = useMemo(() => nutritionLogs.filter(log => log.date && log.date.startsWith(selectedDate)), [nutritionLogs, selectedDate]);
+    const consumedLogs = useMemo(() => logsForDate.filter(l => l.status === 'consumed' || !l.status), [logsForDate]);
+    const dailyCalories = useMemo(() => consumedLogs.reduce((acc, log) => acc + (log.foods || []).reduce((s: number, f: LoggedFood) => s + (f.calories || 0), 0), 0), [consumedLogs]);
+    return { dailyCalories, calorieGoal, hasCalorieGoal: calorieGoal > 0 };
+};
+
 export const NutritionDashboard: React.FC<{
     selectedDate: string;
     onDateChange: (date: string) => void;
     onOpenDrawer: () => void;
-}> = ({ selectedDate, onDateChange, onOpenDrawer }) => {
+    showSetupBanner?: boolean;
+    onOpenWizard?: () => void;
+    hideHeader?: boolean;
+}> = ({ selectedDate, onDateChange, onOpenDrawer, showSetupBanner, onOpenWizard, hideHeader }) => {
     const { nutritionLogs, settings } = useAppState();
     const { setNutritionLogs, addToast } = useAppDispatch();
     const [fatExpanded, setFatExpanded] = useState(false);
@@ -114,10 +162,42 @@ export const NutritionDashboard: React.FC<{
         [dailyTotals.micronutrients]
     );
 
-    const calorieStatus = calorieGoal > 0
-        ? dailyTotals.calories / calorieGoal
-        : 1;
+    const hasCalorieGoal = calorieGoal > 0;
+    const calorieStatus = hasCalorieGoal ? dailyTotals.calories / calorieGoal : 1;
     const calorieColor = calorieStatus > 1.1 ? '#ef4444' : calorieStatus < 0.9 ? '#22c55e' : '#eab308';
+
+    const { bmr, tdee } = useMemo(() => getBMRAndTDEE(settings, settings.calorieGoalConfig), [settings]);
+    const deficitSurplus = hasCalorieGoal ? dailyTotals.calories - calorieGoal : 0;
+    const weightKg = settings.userVitals?.weight;
+    const proteinPerKg = weightKg && weightKg > 0 ? (dailyTotals.protein / weightKg).toFixed(1) : null;
+    const fiberToday = useMemo(() => {
+        const fromMicro = dailyTotals.micronutrients.find(m => /fiber|fibra/i.test(m.name));
+        if (fromMicro) return fromMicro.amount;
+        return consumedLogs.flatMap(l => (l.foods || []).map(f => (f as any).carbBreakdown?.fiber ?? 0)).reduce((a, b) => a + b, 0) || 0;
+    }, [consumedLogs, dailyTotals.micronutrients]);
+
+    const trendChartData = useMemo(() => {
+        const dailyCalories: Record<string, number> = {};
+        nutritionLogs.forEach(log => {
+            const date = new Date(log.date).toISOString().split('T')[0];
+            const totalCals = log.foods.reduce((sum, food) => sum + (food.calories || 0), 0);
+            dailyCalories[date] = (dailyCalories[date] || 0) + totalCals;
+        });
+        return Object.entries(dailyCalories)
+            .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+            .slice(-14)
+            .map(([date, cal]) => ({ date: new Date(date + 'T12:00:00Z').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }), Calorías: Math.round(cal) }));
+    }, [nutritionLogs]);
+
+    const macroPieData = useMemo(() => {
+        const total = dailyTotals.protein + dailyTotals.carbs + dailyTotals.fats;
+        if (total === 0) return [];
+        return [
+            { name: 'Proteínas', value: dailyTotals.protein, color: MACRO_COLORS.protein },
+            { name: 'Carbohidratos', value: dailyTotals.carbs, color: MACRO_COLORS.carbs },
+            { name: 'Grasas', value: dailyTotals.fats, color: MACRO_COLORS.fats },
+        ];
+    }, [dailyTotals]);
 
     const handleDelete = (logId: string) => {
         if (window.confirm('¿Eliminar registro?')) {
@@ -127,106 +207,172 @@ export const NutritionDashboard: React.FC<{
     };
 
     return (
-        <div className="space-y-4 pb-24">
-            <header className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] font-mono">
-                        Nutrición
-                    </h1>
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={e => onDateChange(e.target.value)}
-                        className="bg-transparent border-none text-zinc-400 text-[9px] font-mono mt-0.5 focus:ring-0 p-0"
-                    />
+        <div className="space-y-4 pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))]">
+            {showSetupBanner && onOpenWizard && (
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                    <p className="text-sm text-zinc-300 mb-2">Aún no has configurado tu plan de alimentación.</p>
+                    <button
+                        onClick={onOpenWizard}
+                        className="text-sm font-bold text-orange-400 hover:text-orange-300 transition-colors"
+                    >
+                        Configurar ahora
+                    </button>
                 </div>
-            </header>
+            )}
+            {!hideHeader && (
+                <header className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] font-mono">
+                            Nutrición
+                        </h1>
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={e => onDateChange(e.target.value)}
+                            className="bg-transparent border-none text-zinc-400 text-[9px] font-mono mt-0.5 focus:ring-0 p-0"
+                        />
+                    </div>
+                </header>
+            )}
 
             {/* Card Calorías */}
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">
                     Calorías
                 </p>
-                <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-black text-white font-mono tracking-tight">
-                        {Math.round(dailyTotals.calories)}
-                    </span>
-                    <span className="text-sm font-mono text-zinc-500">
-                        / {calorieGoal} kcal
-                    </span>
-                </div>
-                <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                    <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                            width: `${Math.min(100, (dailyTotals.calories / calorieGoal) * 100)}%`,
-                            backgroundColor: calorieColor,
-                        }}
+                {hasCalorieGoal ? (
+                    <>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-4xl font-black text-white font-mono tracking-tight">
+                                {Math.round(dailyTotals.calories)}
+                            </span>
+                            <span className="text-sm font-mono text-zinc-500">
+                                / {calorieGoal} kcal
+                            </span>
+                        </div>
+                        <div className="mt-2 h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                            <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                    width: `${Math.min(100, (dailyTotals.calories / calorieGoal) * 100)}%`,
+                                    backgroundColor: calorieColor,
+                                }}
+                            />
+                        </div>
+                    </>
+                ) : (
+                    <p className="text-sm text-zinc-500">Configura tu plan de alimentación para ver tu progreso.</p>
+                )}
+            </div>
+
+            {/* Mini-donuts Macros */}
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
+                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-4">
+                    Macros
+                </p>
+                <div className="flex justify-around gap-4">
+                    <MacroMiniDonut
+                        value={dailyTotals.protein}
+                        max={settings.dailyProteinGoal || 150}
+                        label="Proteínas"
+                        color={MACRO_COLORS.protein}
+                        tooltip={MACRO_TOOLTIPS.protein}
                     />
+                    <MacroMiniDonut
+                        value={dailyTotals.carbs}
+                        max={settings.dailyCarbGoal || 250}
+                        label="Carbohidratos"
+                        color={MACRO_COLORS.carbs}
+                        tooltip={MACRO_TOOLTIPS.carbs}
+                    />
+                    <MacroMiniDonut
+                        value={dailyTotals.fats}
+                        max={settings.dailyFatGoal || 70}
+                        label="Grasas"
+                        color={MACRO_COLORS.fats}
+                        tooltip={MACRO_TOOLTIPS.fats}
+                    />
+                </div>
+                <div className="mt-4 space-y-3">
+                    <ProgressBar value={dailyTotals.protein} max={settings.dailyProteinGoal || 150} label="Proteínas" unit="g" color={MACRO_COLORS.protein} />
+                    <ProgressBar value={dailyTotals.carbs} max={settings.dailyCarbGoal || 250} label="Carbohidratos" unit="g" color={MACRO_COLORS.carbs} />
+                    <div>
+                        <button onClick={() => setFatExpanded(!fatExpanded)} className="w-full flex justify-between items-center mb-1.5">
+                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Grasas</span>
+                            {fatExpanded ? <ChevronUpIcon size={12} className="text-zinc-500" /> : <ChevronDownIcon size={12} className="text-zinc-500" />}
+                        </button>
+                        <div className="flex justify-between items-end mb-1.5">
+                            <span />
+                            <span className="text-[10px] font-mono text-zinc-400">{Math.round(dailyTotals.fats)} / {Math.round(settings.dailyFatGoal || 70)} g</span>
+                        </div>
+                        <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden border border-white/5">
+                            <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (dailyTotals.fats / (settings.dailyFatGoal || 70)) * 100)}%`, backgroundColor: MACRO_COLORS.fats }} />
+                        </div>
+                        {fatExpanded && (
+                            <div className="mt-3 pl-2 border-l-2 border-white/10 space-y-1">
+                                <p className="text-[9px] text-zinc-500">Saturadas: {dailyTotals.fatBreakdown.saturated.toFixed(1)}g</p>
+                                <p className="text-[9px] text-zinc-500">Mono: {dailyTotals.fatBreakdown.monounsaturated.toFixed(1)}g</p>
+                                <p className="text-[9px] text-zinc-500">Poli: {dailyTotals.fatBreakdown.polyunsaturated.toFixed(1)}g</p>
+                                <p className="text-[9px] text-zinc-500">Trans: {dailyTotals.fatBreakdown.trans.toFixed(1)}g</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Barras Macros */}
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
+            {/* Métricas */}
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
-                    Macros
+                    Métricas
                 </p>
-                <ProgressBar
-                    value={dailyTotals.protein}
-                    max={settings.dailyProteinGoal || 150}
-                    label="Proteína"
-                    unit="g"
-                    color="#3b82f6"
-                />
-                <ProgressBar
-                    value={dailyTotals.carbs}
-                    max={settings.dailyCarbGoal || 250}
-                    label="Carbohidratos"
-                    unit="g"
-                    color="#f97316"
-                />
-                <div>
-                    <button
-                        onClick={() => setFatExpanded(!fatExpanded)}
-                        className="w-full flex justify-between items-center mb-1.5"
-                    >
-                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
-                            Grasas
-                        </span>
-                        {fatExpanded ? (
-                            <ChevronUpIcon size={12} className="text-zinc-500" />
-                        ) : (
-                            <ChevronDownIcon size={12} className="text-zinc-500" />
-                        )}
-                    </button>
-                    <div className="flex justify-between items-end mb-1.5">
-                        <span />
-                        <span className="text-[10px] font-mono text-zinc-400">
-                            {Math.round(dailyTotals.fats)} / {Math.round(settings.dailyFatGoal || 70)} g
-                        </span>
-                    </div>
-                    <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden border border-white/5">
-                        <div
-                            className="h-full rounded-full bg-[#eab308] transition-all"
-                            style={{
-                                width: `${Math.min(100, (dailyTotals.fats / (settings.dailyFatGoal || 70)) * 100)}%`,
-                            }}
-                        />
-                    </div>
-                    {fatExpanded && (
-                        <div className="mt-3 pl-2 border-l-2 border-white/10 space-y-1">
-                            <p className="text-[9px] text-zinc-500">Saturadas: {dailyTotals.fatBreakdown.saturated.toFixed(1)}g</p>
-                            <p className="text-[9px] text-zinc-500">Mono: {dailyTotals.fatBreakdown.monounsaturated.toFixed(1)}g</p>
-                            <p className="text-[9px] text-zinc-500">Poli: {dailyTotals.fatBreakdown.polyunsaturated.toFixed(1)}g</p>
-                            <p className="text-[9px] text-zinc-500">Trans: {dailyTotals.fatBreakdown.trans.toFixed(1)}g</p>
-                        </div>
-                    )}
+                <div className="grid grid-cols-2 gap-3 text-[10px] font-mono">
+                    {bmr != null && <div><span className="text-zinc-500">TMB</span><span className="text-orange-400 ml-1">{Math.round(bmr)} kcal</span></div>}
+                    {tdee != null && <div><span className="text-zinc-500">TDEE</span><span className="text-orange-400 ml-1">{tdee} kcal</span></div>}
+                    {hasCalorieGoal && <div><span className="text-zinc-500">Déficit/Superávit</span><span className={deficitSurplus >= 0 ? 'text-emerald-400' : 'text-red-400'}>{deficitSurplus >= 0 ? '+' : ''}{deficitSurplus} kcal</span></div>}
+                    {proteinPerKg && <div><span className="text-zinc-500">Proteína/kg</span><span className="text-orange-400 ml-1">{proteinPerKg} g</span></div>}
+                    <div><span className="text-zinc-500">Fibra</span><span className="text-orange-400 ml-1">{fiberToday.toFixed(0)} g</span></div>
                 </div>
             </div>
+
+            {/* Gráfico tendencia */}
+            {trendChartData.length >= 2 && (
+                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+                        Tendencia calorías
+                    </p>
+                    <ResponsiveContainer width="100%" height={160}>
+                        <BarChart data={trendChartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} />
+                            <YAxis stroke="#94a3b8" fontSize={10} unit=" kcal" />
+                            <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(249,115,22,0.3)' }} />
+                            <Bar dataKey="Calorías" fill="#f97316" radius={[2, 2, 0, 0]} />
+                            {hasCalorieGoal && <ReferenceLine y={calorieGoal} stroke="#f97316" strokeDasharray="3 3" />}
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            )}
+
+            {/* Gráfico distribución macros */}
+            {macroPieData.length > 0 && macroPieData.some(d => d.value > 0) && (
+                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+                        Distribución macros
+                    </p>
+                    <ResponsiveContainer width="100%" height={120}>
+                        <PieChart>
+                            <Pie data={macroPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={45} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                                {macroPieData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                            </Pie>
+                            <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(249,115,22,0.3)' }} formatter={(v: number) => `${v.toFixed(0)}g`} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+            )}
 
             {/* Micronutrientes */}
             {dailyTotals.micronutrients.length > 0 && (
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
+                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
                     <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
                         Micronutrientes
                     </p>
@@ -288,7 +434,7 @@ export const NutritionDashboard: React.FC<{
                         return (
                             <div
                                 key={mealType}
-                                className="bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden"
+                                className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden"
                             >
                                 <div className="px-4 py-2 border-b border-white/5">
                                     <h4 className="text-[10px] font-black text-zinc-400 uppercase">
@@ -344,10 +490,10 @@ export const NutritionDashboard: React.FC<{
                 )}
             </div>
 
-            {/* FAB */}
+            {/* FAB NERD */}
             <button
                 onClick={onOpenDrawer}
-                className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-xl hover:scale-105 transition-transform z-50"
+                className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-[#FC4C02] text-white flex items-center justify-center shadow-lg shadow-orange-500/30 hover:scale-105 transition-transform z-50 border border-orange-400/30"
             >
                 <UtensilsIcon size={24} />
             </button>

@@ -32,6 +32,7 @@ import { SleepWidgetHeader } from './components/SleepWidgetHeader';
 import { PostSessionQuestionnaireWidget } from './components/PostSessionQuestionnaireWidget';
 import AthleteIDDashboard from './components/AthleteIDDashboard';
 import { UpdateNoveltiesModal } from './components/UpdateNoveltiesModal';
+import { GeneralOnboardingWizard } from './components/onboarding/GeneralOnboardingWizard';
 
 // Icons for header & new menu
 import { ArrowLeftIcon, IdCardIcon } from './components/icons';
@@ -54,7 +55,6 @@ import LogWorkoutView from './components/LogWorkoutView';
 import KPKNView from './components/KPKNView';
 import { ExerciseDetailView } from './components/ExerciseDetailView';
 import MuscleGroupDetailView from './components/MuscleGroupDetailView';
-import HallOfFameView from './components/HallOfFameView';
 import BodyPartDetailView from './components/BodyPartDetailView';
 import MuscleCategoryView from './components/MuscleCategoryView';
 import ChainDetailView from './components/ChainDetailView';
@@ -71,6 +71,15 @@ import SmartMealPlannerView from './components/SmartMealPlannerView';
 import NutritionView from './components/NutritionView';
 import FoodDatabaseView from './components/FoodDatabaseView';
 import EditSleepLogModal from './components/EditSleepLogModal';
+import ProgramMetricVolumeDetail from './components/program-detail/metrics/ProgramMetricVolumeDetail';
+import ProgramMetricStrengthDetail from './components/program-detail/metrics/ProgramMetricStrengthDetail';
+import ProgramMetricDensityDetail from './components/program-detail/metrics/ProgramMetricDensityDetail';
+import ProgramMetricFrequencyDetail from './components/program-detail/metrics/ProgramMetricFrequencyDetail';
+import ProgramMetricBanisterDetail from './components/program-detail/metrics/ProgramMetricBanisterDetail';
+import ProgramMetricRecoveryDetail from './components/program-detail/metrics/ProgramMetricRecoveryDetail';
+import ProgramMetricAdherenceDetail from './components/program-detail/metrics/ProgramMetricAdherenceDetail';
+import ProgramMetricRPEDetail from './components/program-detail/metrics/ProgramMetricRPEDetail';
+import { getCachedAdaptiveData } from './services/augeAdaptiveService';
 
 // Components formerly widgets, now views
 import SleepTrackerWidget from './components/SleepTrackerWidget';
@@ -149,7 +158,8 @@ export const App: React.FC = () => {
         pendingCoachBriefing,
         sleepLogs,
         isMenuOpen,
-        pendingWorkoutForReadinessCheck
+        pendingWorkoutForReadinessCheck,
+        historyStack
     } = state;
     
     const {
@@ -389,7 +399,7 @@ export const App: React.FC = () => {
     }), [handleLogPress, onFinishWorkoutPress, onTimeSaverPress, onModifyPress, onTimersPress, onCancelWorkout, onPauseWorkoutPress, onSaveSessionPress, onAddExercisePress, handleBack, onSaveProgramPress, onSaveLoggedWorkoutPress, onAddCustomExercisePress, onCoachPress, onEditExercisePress, onAnalyzeTechniquePress, onAddToPlaylistPress, addToast]);
 
      const subTabBarContext = useMemo(() => {
-        if (['kpkn', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'hall-of-fame', 'joint-detail', 'tendon-detail', 'movement-pattern-detail'].includes(view)) return 'kpkn';
+        if (['kpkn', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'joint-detail', 'tendon-detail', 'movement-pattern-detail'].includes(view)) return 'kpkn';
         if (['food-database', 'food-detail'].includes(view)) return 'food-database';
         if (['progress'].includes(view)) return 'progress';
         return null;
@@ -505,7 +515,32 @@ export const App: React.FC = () => {
             case 'body-part-detail': return viewingBodyPartId && <BodyPartDetailView bodyPartId={viewingBodyPartId as any} />;
             case 'muscle-category': return viewingMuscleCategoryName && <MuscleCategoryView categoryName={viewingMuscleCategoryName} />;
             case 'chain-detail': return viewingChainId && <ChainDetailView chainId={viewingChainId as any} />;
-            case 'hall-of-fame': return <HallOfFameView />;
+
+            case 'program-metric-volume':
+            case 'program-metric-strength':
+            case 'program-metric-density':
+            case 'program-metric-frequency':
+            case 'program-metric-banister':
+            case 'program-metric-recovery':
+            case 'program-metric-adherence':
+            case 'program-metric-rpe': {
+                const program = programs.find(p => p.id === activeProgramId);
+                const metricData = historyStack[historyStack.length - 1]?.data;
+                if (!program || !metricData) return <div className="text-center pt-24 text-slate-400">Programa no encontrado.</div>;
+                const { selectedWeekId, currentWeeks = [], weeklyAdherence = [], metricId } = metricData;
+                const displayedSessions = currentWeeks.find((w: any) => w.id === selectedWeekId)?.sessions ?? [];
+                const adaptiveCache = metricData.adaptiveCache ?? getCachedAdaptiveData();
+                const commonProps = { program, displayedSessions, history };
+                if (view === 'program-metric-volume') return <ProgramMetricVolumeDetail {...commonProps} settings={settings} isOnline={isOnline} />;
+                if (view === 'program-metric-strength') return <ProgramMetricStrengthDetail program={program} displayedSessions={displayedSessions} />;
+                if (view === 'program-metric-density') return <ProgramMetricDensityDetail program={program} displayedSessions={displayedSessions} />;
+                if (view === 'program-metric-frequency') return <ProgramMetricFrequencyDetail program={program} displayedSessions={displayedSessions} />;
+                if (view === 'program-metric-banister') return <ProgramMetricBanisterDetail program={program} adaptiveCache={adaptiveCache} />;
+                if (view === 'program-metric-recovery') return <ProgramMetricRecoveryDetail program={program} adaptiveCache={adaptiveCache} />;
+                if (view === 'program-metric-adherence') return <ProgramMetricAdherenceDetail program={program} totalAdherence={metricData.totalAdherence ?? 0} weeklyAdherence={weeklyAdherence} />;
+                if (view === 'program-metric-rpe') return <ProgramMetricRPEDetail program={program} displayedSessions={displayedSessions} />;
+                return null;
+            }
             
             default: return <Home onNavigate={handleHomeNavigation} onResumeWorkout={handleResumeWorkout} onEditSleepLog={setEditingSleepLog}/>;
         }
@@ -518,6 +553,12 @@ export const App: React.FC = () => {
         <div className="app-container fixed inset-0 w-full h-[100dvh] flex flex-col overflow-hidden bg-black">
             
             <AppBackground />
+
+            {!settings.hasSeenGeneralWizard && (
+                <GeneralOnboardingWizard
+                    onComplete={() => setSettings({ hasSeenGeneralWizard: true })}
+                />
+            )}
             
             <GlobalVoiceAssistant />
             
@@ -536,8 +577,8 @@ export const App: React.FC = () => {
                 </div>
             </main>
             
-            {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor and Nutrition Wizard/Landing */}
-            {view !== 'program-editor' && (view !== 'nutrition' || settings.hasSeenNutritionWizard) && (
+            {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor, Session Editor, and Nutrition Wizard/Landing */}
+            {view !== 'program-editor' && view !== 'session-editor' && (view !== 'nutrition' || settings.hasSeenNutritionWizard) && (
                 <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] border-t border-white/10 rounded-t-none backdrop-blur-xl ${tabBarContainerHeight}`}>
                      <div className="relative w-full h-full">
                         {/* SubTabBar is absolutely positioned inside here, pushed up */}

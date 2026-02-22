@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Program, ProgramWeek } from '../../types';
-import { XIcon, PlusIcon, ChevronDownIcon, CalendarIcon } from '../icons';
+import { XIcon, PlusIcon, ChevronDownIcon, CalendarIcon, AlertTriangleIcon } from '../icons';
 import { getAbsoluteWeekIndex, checkWeekHasEvent } from '../../utils/programHelpers';
 
 interface StructureDrawerProps {
@@ -31,6 +31,11 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
     onShowAdvancedTransition, onShowSimpleTransition, onOpenEventModal,
 }) => {
     const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['macro-0', 'block-0-0']));
+    const [showAddBlockConfirm, setShowAddBlockConfirm] = useState(false);
+    const [pendingAddBlockMacroIdx, setPendingAddBlockMacroIdx] = useState<number | null>(null);
+
+    const blockCount = program.macrocycles.reduce((acc, m) => acc + (m.blocks || []).length, 0);
+    const showSimpleWarning = isCyclic && blockCount === 1;
 
     const toggleNode = (id: string) => {
         setExpandedNodes(prev => {
@@ -69,6 +74,14 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                         <XIcon size={14} />
                     </button>
                 </div>
+
+                {/* Simple→Advanced warning */}
+                {showSimpleWarning && (
+                    <div className="px-3 py-2 border-b border-white/5 flex items-start gap-2">
+                        <AlertTriangleIcon size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                        <p className="text-[9px] text-amber-200/90">Si añades un bloque, el programa pasará a avanzado y los eventos se perderán.</p>
+                    </div>
+                )}
 
                 {/* Mini timeline */}
                 {totalWeeks > 0 && !isCyclic && (
@@ -196,12 +209,19 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                         {/* Add block */}
                                         {!isCyclic && (
                                             <button
-                                                onClick={() => update(p => {
-                                                    const macro = p.macrocycles[macroIdx]; if (!macro?.blocks) return; macro.blocks.push({
-                                                        id: crypto.randomUUID(), name: 'Nuevo Bloque',
-                                                        mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación' as any, weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }] }],
-                                                    });
-                                                })}
+                                                onClick={() => {
+                                                    if (isCyclic && blockCount === 1) {
+                                                        setPendingAddBlockMacroIdx(macroIdx);
+                                                        setShowAddBlockConfirm(true);
+                                                    } else {
+                                                        update(p => {
+                                                            const macro = p.macrocycles[macroIdx]; if (!macro?.blocks) return; macro.blocks.push({
+                                                                id: crypto.randomUUID(), name: 'Nuevo Bloque',
+                                                                mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación' as any, weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }] }],
+                                                            });
+                                                        });
+                                                    }
+                                                }}
                                                 className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[9px] text-[#48484A] hover:text-[#FC4C02] transition-colors"
                                             >
                                                 <PlusIcon size={10} /> Bloque
@@ -252,6 +272,49 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* Add block confirmation modal */}
+            {showAddBlockConfirm && (
+                <>
+                    <div className="fixed inset-0 z-[103] bg-black/60" onClick={() => { setShowAddBlockConfirm(false); setPendingAddBlockMacroIdx(null); }} />
+                    <div className="fixed inset-0 z-[104] flex items-center justify-center p-4">
+                        <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-start gap-3 mb-4">
+                                <AlertTriangleIcon size={24} className="text-amber-400 shrink-0" />
+                                <div>
+                                    <h3 className="text-sm font-bold text-white">Convertir a programa avanzado</h3>
+                                    <p className="text-xs text-[#8E8E93] mt-1">Al añadir un bloque, el programa se convierte en avanzado y los eventos cíclicos se perderán. ¿Continuar?</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => { setShowAddBlockConfirm(false); setPendingAddBlockMacroIdx(null); }}
+                                    className="flex-1 py-2.5 rounded-lg bg-white/5 text-xs font-bold text-[#8E8E93] hover:text-white transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (pendingAddBlockMacroIdx !== null) {
+                                            update(p => {
+                                                const macro = p.macrocycles[pendingAddBlockMacroIdx]; if (!macro?.blocks) return; macro.blocks.push({
+                                                    id: crypto.randomUUID(), name: 'Nuevo Bloque',
+                                                    mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación' as any, weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }] }],
+                                                });
+                                            });
+                                            setShowAddBlockConfirm(false);
+                                            setPendingAddBlockMacroIdx(null);
+                                        }
+                                    }}
+                                    className="flex-1 py-2.5 rounded-lg bg-[#FC4C02] text-xs font-bold text-white hover:bg-[#FC4C02]/90 transition-colors"
+                                >
+                                    Continuar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </>
     );
 };

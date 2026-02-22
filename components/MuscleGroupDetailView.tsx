@@ -4,7 +4,6 @@ import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { enrichWithWikipedia } from '../services/wikipediaEnrichment';
 import { ExerciseMuscleInfo, MuscleHierarchy, MuscleSubGroup } from '../types';
 import { SparklesIcon, ChevronRightIcon, DumbbellIcon, PencilIcon, StarIcon } from './icons';
-import Button from './ui/Button';
 import MuscleGroupEditorModal from './MuscleGroupEditorModal';
 import { MuscleTrainingAnalysis } from './MuscleTrainingAnalysis';
 
@@ -13,16 +12,16 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo, isFavorite?: boolea
     return (
         <div
             onClick={() => navigateTo('exercise-detail', { exerciseId: exercise.id })}
-            className="p-3 flex justify-between items-center cursor-pointer list-none hover:bg-slate-800/50 rounded-lg transition-colors"
+            className="p-4 flex justify-between items-center cursor-pointer list-none bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-orange-500/20 hover:border-orange-500/40 transition-all"
         >
             <div className="flex items-center gap-2">
                 {isFavorite && <StarIcon size={16} className="text-yellow-400" />}
                 <div>
-                    <h3 className="font-semibold text-white text-md">{exercise.name}</h3>
+                    <h3 className="font-bold text-white text-md">{exercise.name}</h3>
                     <p className="text-xs text-slate-400">{exercise.type} • {exercise.equipment}</p>
                 </div>
             </div>
-            <ChevronRightIcon className="text-slate-500" />
+            <ChevronRightIcon className="text-orange-500/50" size={18} />
         </div>
     );
 });
@@ -33,7 +32,7 @@ interface MuscleGroupDetailViewProps {
 }
 
 const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGroupId, isOnline }) => {
-    const { muscleGroupData, settings, exerciseList, muscleHierarchy, history } = useAppState();
+    const { muscleGroupData, settings, exerciseList, muscleHierarchy, history, jointDatabase, tendonDatabase } = useAppState();
     const { setCurrentBackgroundOverride, updateMuscleGroupInfo, navigateTo } = useAppDispatch();
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [wikiExtract, setWikiExtract] = useState<string | null>(null);
@@ -115,7 +114,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
     }
 
     return (
-        <div className="pb-20 animate-fade-in">
+        <div className="pb-[max(100px,calc(75px+env(safe-area-inset-bottom,0px)+16px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
             {isEditorOpen && (
                 <MuscleGroupEditorModal
                     isOpen={isEditorOpen}
@@ -123,21 +122,21 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                     muscleGroup={muscleInfo}
                 />
             )}
-            <header className="relative h-48 -mx-4">
+            <header className="relative h-48 -mx-4 border-b border-orange-500/20">
                 {muscleInfo.coverImage && <img src={muscleInfo.coverImage} alt={muscleInfo.name} className="w-full h-full object-cover" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
                  <div className="absolute top-2 right-2 flex gap-2">
-                    <Button onClick={() => setIsEditorOpen(true)} variant="secondary" className="!text-xs !py-1"><PencilIcon size={14}/> Editar Página</Button>
+                    <button onClick={() => setIsEditorOpen(true)} className="py-1.5 px-3 rounded-lg border border-orange-500/20 bg-[#0a0a0a]/90 text-[10px] font-mono text-orange-500/90 hover:border-orange-500/40 transition-colors"><PencilIcon size={12} className="inline mr-1"/> Editar Página</button>
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
-                    <h1 className="text-4xl font-bold text-white">{muscleInfo.name}</h1>
+                    <h1 className="text-3xl font-bold font-mono text-white">{muscleInfo.name}</h1>
                 </div>
             </header>
 
-             <div className="space-y-6 mt-6">
+             <div className="space-y-6 mt-6 px-4">
                  <MuscleTrainingAnalysis muscleName={muscleInfo.name} history={history} isOnline={isOnline} settings={settings} />
-                 <div className="glass-card-nested p-4">
-                    <h3 className="font-bold text-lg text-white mb-2">Información General</h3>
+                 <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Información General</h3>
                     <p className="whitespace-pre-wrap text-slate-300 text-sm">{muscleInfo.description}</p>
                     {!wikiExtract && (
                         <button
@@ -145,28 +144,54 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                                 const r = await enrichWithWikipedia(muscleInfo.name);
                                 if (r?.extract) setWikiExtract(r.extract);
                             }}
-                            className="mt-3 text-xs text-cyan-400 hover:text-cyan-300 font-medium"
+                            className="mt-3 text-xs text-orange-400/90 hover:text-orange-400 font-medium"
                         >
                             + Más información (Wikipedia)
                         </button>
                     )}
                     {wikiExtract && (
-                        <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-cyan-500/20">
+                        <div className="mt-3 p-3 bg-[#0a0a0a] rounded-lg border border-orange-500/20">
                             <p className="text-xs text-slate-400 italic">{wikiExtract}</p>
                         </div>
                     )}
                 </div>
 
+                {/* Rol mecánico */}
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a] space-y-3">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">Rol Mecánico</h3>
+                    {(muscleInfo.origin || muscleInfo.insertion) && (
+                        <div className="text-sm space-y-1">
+                            {muscleInfo.origin && <p><span className="font-mono text-slate-500 text-xs">Origen:</span> <span className="text-slate-300">{muscleInfo.origin}</span></p>}
+                            {muscleInfo.insertion && <p><span className="font-mono text-slate-500 text-xs">Inserción:</span> <span className="text-slate-300">{muscleInfo.insertion}</span></p>}
+                        </div>
+                    )}
+                    {muscleInfo.mechanicalFunctions && muscleInfo.mechanicalFunctions.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                            {muscleInfo.mechanicalFunctions.map((f, i) => (
+                                <span key={i} className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded text-xs text-orange-400/90 font-mono">{f}</span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Rol estético */}
+                {(muscleInfo.aestheticRole || muscleInfo.importance?.health) && (
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Rol Estético</h3>
+                        <p className="text-slate-300 text-sm">{muscleInfo.aestheticRole || muscleInfo.importance?.health}</p>
+                    </div>
+                )}
+
                 {/* Porciones / Cabezas: solo en músculos que tienen subdivisiones */}
                 {childMuscleInfos.length > 0 && (
-                    <details className="glass-card-nested !p-0" open>
-                        <summary className="p-4 cursor-pointer flex justify-between items-center list-none">
-                            <h3 className="font-bold text-white">Porciones / Cabezas</h3>
-                            <ChevronRightIcon className="details-arrow" />
+                    <details className="rounded-xl border border-orange-500/20 overflow-hidden" open>
+                        <summary className="p-4 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]">
+                            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">Porciones / Cabezas</h3>
+                            <ChevronRightIcon className="details-arrow text-orange-500/50" />
                         </summary>
-                        <div className="p-4 border-t border-slate-700/50 space-y-4">
+                        <div className="p-4 border-t border-white/5 space-y-4 bg-[#080808]">
                             {childMuscleInfos.map(portion => (
-                                <div key={portion.id} className="bg-slate-900/50 rounded-xl p-4 border border-white/5">
+                                <div key={portion.id} className="bg-[#0a0a0a] rounded-xl p-4 border border-orange-500/20">
                                     <h4 className="font-semibold text-white mb-2">{portion.name}</h4>
                                     <p className="text-sm text-slate-400 mb-2">{portion.description}</p>
                                     {(portion.origin || portion.insertion) && (
@@ -194,71 +219,62 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="glass-card-nested p-4">
-                        <h4 className="font-bold text-md text-white mb-2">Importancia en Movimiento</h4>
-                        <p className="text-sm text-slate-400">{muscleInfo.importance.movement}</p>
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h4 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Importancia en Movimiento</h4>
+                        <p className="text-sm text-slate-300">{muscleInfo.importance.movement}</p>
                     </div>
-                     <div className="glass-card-nested p-4">
-                        <h4 className="font-bold text-md text-white mb-2">Importancia en Salud</h4>
-                        <p className="text-sm text-slate-400">{muscleInfo.importance.health}</p>
+                     <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h4 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Importancia en Salud</h4>
+                        <p className="text-sm text-slate-300">{muscleInfo.importance.health}</p>
                     </div>
                 </div>
 
-                {/* Wiki/Lab: Origen e inserción */}
-                {(muscleInfo.origin || muscleInfo.insertion) && (
-                    <details className="glass-card-nested !p-0">
-                        <summary className="p-4 cursor-pointer flex justify-between items-center list-none">
-                            <h3 className="font-bold text-white">Origen e Inserción</h3>
-                            <ChevronRightIcon className="details-arrow" />
-                        </summary>
-                        <div className="p-4 border-t border-slate-700/50 space-y-2">
-                            {muscleInfo.origin && <p className="text-sm"><span className="text-slate-500 font-mono text-xs">Origen:</span> <span className="text-slate-300">{muscleInfo.origin}</span></p>}
-                            {muscleInfo.insertion && <p className="text-sm"><span className="text-slate-500 font-mono text-xs">Inserción:</span> <span className="text-slate-300">{muscleInfo.insertion}</span></p>}
-                        </div>
-                    </details>
-                )}
-
-                {/* Wiki/Lab: Funciones mecánicas */}
-                {muscleInfo.mechanicalFunctions && muscleInfo.mechanicalFunctions.length > 0 && (
-                    <div className="glass-card-nested p-4">
-                        <h3 className="font-bold text-white mb-2">Funciones Mecánicas</h3>
+                {/* Articulaciones relacionadas */}
+                {(muscleInfo.relatedJoints?.length || 0) > 0 && (
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Articulaciones Relacionadas</h3>
                         <div className="flex flex-wrap gap-2">
-                            {muscleInfo.mechanicalFunctions.map((f, i) => (
-                                <span key={i} className="px-2 py-1 bg-slate-800 rounded-lg text-sm text-slate-300">{f}</span>
-                            ))}
+                            {muscleInfo.relatedJoints?.map(jId => {
+                                const joint = jointDatabase?.find(j => j.id === jId);
+                                const label = joint?.name?.split('(')[0]?.trim() || jId.replace(/-/g, ' ');
+                                return (
+                                    <button key={jId} onClick={() => navigateTo('joint-detail', { jointId: jId })} className="px-3 py-1.5 bg-orange-500/10 border border-orange-500/30 rounded-lg text-xs font-mono text-orange-400/90 hover:bg-orange-500/20 hover:border-orange-500/50 transition-colors">
+                                        {label}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
 
-                {/* Wiki/Lab: Articulaciones y tendones relacionados */}
-                {((muscleInfo.relatedJoints?.length || 0) > 0 || (muscleInfo.relatedTendons?.length || 0) > 0) && (
-                    <div className="glass-card-nested p-4">
-                        <h3 className="font-bold text-white mb-2">Relaciones Anatómicas</h3>
+                {/* Tendones relacionados */}
+                {(muscleInfo.relatedTendons?.length || 0) > 0 && (
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Tendones Relacionados</h3>
                         <div className="flex flex-wrap gap-2">
-                            {muscleInfo.relatedJoints?.map(jId => (
-                                <button key={jId} onClick={() => navigateTo('joint-detail', { jointId: jId })} className="px-2 py-1 bg-cyan-900/40 border border-cyan-500/30 rounded-lg text-sm text-cyan-300 hover:bg-cyan-800/50 transition-colors">
-                                    Articulación: {jId.replace(/-/g, ' ')}
-                                </button>
-                            ))}
-                            {muscleInfo.relatedTendons?.map(tId => (
-                                <button key={tId} onClick={() => navigateTo('tendon-detail', { tendonId: tId })} className="px-2 py-1 bg-amber-900/40 border border-amber-500/30 rounded-lg text-sm text-amber-300 hover:bg-amber-800/50 transition-colors">
-                                    Tendón: {tId.replace(/tendon-|-/g, ' ')}
-                                </button>
-                            ))}
+                            {muscleInfo.relatedTendons?.map(tId => {
+                                const tendon = tendonDatabase?.find(t => t.id === tId);
+                                const label = tendon?.name || tId.replace(/tendon-|-/g, ' ');
+                                return (
+                                    <button key={tId} onClick={() => navigateTo('tendon-detail', { tendonId: tId })} className="px-3 py-1.5 bg-orange-500/10 border border-orange-500/30 rounded-lg text-xs font-mono text-orange-400/90 hover:bg-orange-500/20 hover:border-orange-500/50 transition-colors">
+                                        {label}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
 
-                {/* Wiki/Lab: Lesiones comunes */}
+                {/* Lesiones comunes */}
                 {muscleInfo.commonInjuries && muscleInfo.commonInjuries.length > 0 && (
-                    <details className="glass-card-nested !p-0">
-                        <summary className="p-4 cursor-pointer flex justify-between items-center list-none">
-                            <h3 className="font-bold text-red-400/90">Lesiones Comunes</h3>
-                            <ChevronRightIcon className="details-arrow" />
+                    <details className="rounded-xl border border-orange-500/20 overflow-hidden">
+                        <summary className="p-4 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]">
+                            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-red-400/90">Lesiones Comunes</h3>
+                            <ChevronRightIcon className="details-arrow text-orange-500/50" />
                         </summary>
-                        <div className="p-4 border-t border-slate-700/50 space-y-3">
+                        <div className="p-4 border-t border-white/5 space-y-3 bg-[#080808]">
                             {muscleInfo.commonInjuries.map((inj, i) => (
-                                <div key={i} className="bg-slate-900/50 rounded-lg p-3">
+                                <div key={i} className="bg-[#0a0a0a] rounded-lg p-3 border border-orange-500/20">
                                     <h4 className="font-semibold text-white text-sm">{inj.name}</h4>
                                     <p className="text-slate-400 text-xs mt-1">{inj.description}</p>
                                     {inj.returnProgressions && inj.returnProgressions.length > 0 && (
@@ -270,25 +286,25 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                     </details>
                 )}
 
-                 <div className="glass-card-nested p-4">
-                    <h3 className="font-bold text-lg text-white mb-3">Volumen Semanal Recomendado (series)</h3>
+                 <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Volumen Semanal Recomendado (series)</h3>
                     <div className="grid grid-cols-3 gap-2 text-center">
-                        <div><p className="text-2xl font-bold text-green-400">{muscleInfo.volumeRecommendations.mev}</p><p className="text-xs text-slate-400">MEV (Mínimo)</p></div>
-                        <div><p className="text-2xl font-bold text-yellow-400">{muscleInfo.volumeRecommendations.mav}</p><p className="text-xs text-slate-400">MAV (Adaptativo)</p></div>
-                        <div><p className="text-2xl font-bold text-red-400">{muscleInfo.volumeRecommendations.mrv}</p><p className="text-xs text-slate-400">MRV (Máximo)</p></div>
+                        <div><p className="text-xl font-mono font-bold text-green-400">{muscleInfo.volumeRecommendations.mev}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">MEV</p></div>
+                        <div><p className="text-xl font-mono font-bold text-yellow-400">{muscleInfo.volumeRecommendations.mav}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">MAV</p></div>
+                        <div><p className="text-xl font-mono font-bold text-red-400">{muscleInfo.volumeRecommendations.mrv}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">MRV</p></div>
                     </div>
                 </div>
                 
                  {recommendedExercises.length > 0 && (
-                    <div className="glass-card-nested p-4">
-                         <h3 className="font-bold text-lg text-white mb-3 flex items-center gap-2"><SparklesIcon/> Ejercicios Destacados para {muscleInfo.name}</h3>
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><SparklesIcon size={14}/> Ejercicios Destacados</h3>
                         {recommendedExercises.map(ex => <ExerciseItem key={ex.id} exercise={ex} isFavorite={ex.id === muscleInfo.favoriteExerciseId}/>)}
                     </div>
                  )}
                  
                  {allExercises.length > 0 && (
-                    <div className="glass-card-nested p-4">
-                         <h3 className="font-bold text-lg text-white mb-3 flex items-center gap-2"><DumbbellIcon/> Todos los Ejercicios</h3>
+                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><DumbbellIcon size={14}/> Ejercicios Principales</h3>
                         {allExercises.map(ex => <ExerciseItem key={ex.id} exercise={ex} />)}
                     </div>
                  )}
