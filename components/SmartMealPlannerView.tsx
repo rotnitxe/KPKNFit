@@ -1,43 +1,18 @@
 // components/SmartMealPlannerView.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { PantryItem, NutritionLog, LoggedFood, AIPantryMealPlan } from '../types';
-import { getNutritionalInfoForPantryItem, generateMealsFromPantry } from '../services/aiService';
+import { PantryItem } from '../types';
 import Card from './ui/Card';
 import Button from './ui/Button';
-import { ArrowLeftIcon, PlusIcon, TrashIcon, SparklesIcon, SaveIcon, BrainIcon } from './icons';
-import SkeletonLoader from './ui/SkeletonLoader';
+import { ArrowLeftIcon, PlusIcon, TrashIcon } from './icons';
 
 const SmartMealPlannerView: React.FC = () => {
-    const { pantryItems, settings, isOnline, nutritionLogs } = useAppState();
-    const { setPantryItems, handleBack, addToast, handleSaveNutritionLog } = useAppDispatch();
+    const { pantryItems } = useAppState();
+    const { setPantryItems, handleBack, addToast } = useAppDispatch();
     
     const [newItemName, setNewItemName] = useState('');
     const [newItem, setNewItem] = useState<Omit<PantryItem, 'id'>>({ name: '', calories: 0, protein: 0, carbs: 0, fats: 0, currentQuantity: 0, unit: 'g' });
-    const [suggestions, setSuggestions] = useState<AIPantryMealPlan | null>(null);
-    const [isEstimating, setIsEstimating] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
 
-    const handleEstimateMacros = async () => {
-        if (!newItemName.trim() || !isOnline) return;
-        setIsEstimating(true);
-        try {
-            const result = await getNutritionalInfoForPantryItem(newItemName, settings);
-            setNewItem(prev => ({
-                ...prev,
-                name: newItemName,
-                calories: result.calories,
-                protein: result.protein,
-                carbs: result.carbs,
-                fats: result.fats,
-            }));
-        } catch (e) {
-            addToast("No se pudo estimar la información nutricional.", "danger");
-        } finally {
-            setIsEstimating(false);
-        }
-    };
-    
     const handleAddItem = () => {
         if (!newItem.name.trim() || newItem.calories <= 0 || newItem.currentQuantity <= 0) {
             addToast("El nombre, las calorías y la cantidad inicial son obligatorios.", "danger");
@@ -59,72 +34,9 @@ const SmartMealPlannerView: React.FC = () => {
         setPantryItems(prev => prev.map(item => item.id === id ? { ...item, [field]: parseFloat(value) || 0 } : item));
     };
 
-    const handleGenerateSuggestion = async () => {
-        if (!isOnline || pantryItems.length === 0) return;
-        setIsGenerating(true);
-        setSuggestions(null);
-
-        const todayStr = new Date().toISOString().split('T')[0];
-        const todaysLogs = nutritionLogs.filter(log => log.date.startsWith(todayStr));
-        const dailyTotals = todaysLogs.reduce((acc, log) => {
-            log.foods.forEach(food => {
-                acc.calories += food.calories || 0;
-                acc.protein += food.protein || 0;
-                acc.carbs += food.carbs || 0;
-                acc.fats += food.fats || 0;
-            });
-            return acc;
-        }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
-
-        const remainingMacros = {
-            calories: (settings.dailyCalorieGoal || 0) - dailyTotals.calories,
-            protein: (settings.dailyProteinGoal || 0) - dailyTotals.protein,
-            carbs: (settings.dailyCarbGoal || 0) - dailyTotals.carbs,
-            fats: (settings.dailyFatGoal || 0) - dailyTotals.fats,
-        };
-        
-        if (remainingMacros.calories <= 50) {
-            addToast("¡Ya has cumplido tus metas de calorías para hoy!", "success");
-            setIsGenerating(false);
-            return;
-        }
-
-        try {
-            const result = await generateMealsFromPantry(pantryItems, settings);
-            setSuggestions(result);
-        } catch (e: any) {
-            addToast(e.message || "No se pudieron generar sugerencias.", "danger");
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-    
-    const handleAddSuggestionAsLog = (suggestion: AIPantryMealPlan['meals'][0]) => {
-        const foodsForLog: LoggedFood[] = suggestion.foods.map((f: any) => {
-            const pantryItem = pantryItems.find(p => p.name === f.name);
-            const ratio = f.grams / 100;
-            return {
-                id: crypto.randomUUID(),
-                pantryItemId: pantryItem?.id,
-                foodName: f.name,
-                amount: f.grams,
-                unit: pantryItem?.unit || 'g',
-                calories: Math.round((pantryItem?.calories || 0) * ratio),
-                protein: Math.round(((pantryItem?.protein || 0) * ratio) * 10) / 10,
-                carbs: Math.round(((pantryItem?.carbs || 0) * ratio) * 10) / 10,
-                fats: Math.round(((pantryItem?.fats || 0) * ratio) * 10) / 10,
-            };
-        });
-
-        const newLog: NutritionLog = {
-            id: crypto.randomUUID(),
-            date: new Date().toISOString(),
-            mealType: 'snack' as const, // Default to snack, user can change
-            foods: foodsForLog,
-            notes: `Sugerencia IA: ${suggestion.mealName}`
-        };
-        handleSaveNutritionLog(newLog);
-        addToast(`Comida "${suggestion.mealName}" registrada.`, "success");
+    const handleNameChange = (name: string) => {
+        setNewItemName(name);
+        setNewItem(prev => ({ ...prev, name }));
     };
 
     return (
@@ -158,11 +70,8 @@ const SmartMealPlannerView: React.FC = () => {
                          {pantryItems.length === 0 && <p className="text-center text-slate-500 py-4">Tu despensa está vacía.</p>}
                     </div>
                     <div className="space-y-3 pt-3 border-t border-slate-700">
-                        <div className="flex gap-2">
-                             <input type="text" value={newItemName} onChange={e => setNewItemName(e.target.value)} placeholder="Nombre del nuevo alimento" className="flex-grow"/>
-                             <Button onClick={handleEstimateMacros} isLoading={isEstimating} disabled={!isOnline || isEstimating} variant="secondary" className="!px-3"><BrainIcon size={16}/></Button>
-                        </div>
-                        {(isEstimating || newItem.calories > 0) && (
+                        <input type="text" value={newItemName} onChange={e => handleNameChange(e.target.value)} placeholder="Nombre del nuevo alimento" className="w-full"/>
+                        {newItemName.trim() && (
                             <div className="grid grid-cols-5 gap-2 text-xs animate-fade-in">
                                 <div><label>Cant.</label><input type="number" value={newItem.currentQuantity} onChange={e => setNewItem(p => ({...p, currentQuantity: parseFloat(e.target.value) || 0}))} className="w-full text-center" /></div>
                                 <div><label>Cal/100</label><input type="number" value={newItem.calories} onChange={e => setNewItem(p => ({...p, calories: parseFloat(e.target.value) || 0}))} className="w-full text-center" /></div>
@@ -173,35 +82,6 @@ const SmartMealPlannerView: React.FC = () => {
                         )}
                         <Button onClick={handleAddItem} className="w-full"><PlusIcon/> Añadir a Despensa</Button>
                     </div>
-                </Card>
-                <Card>
-                    <h2 className="text-xl font-bold text-white mb-3">Sugerencias de Comidas</h2>
-                    <Button onClick={handleGenerateSuggestion} isLoading={isGenerating} disabled={!isOnline || isGenerating || pantryItems.length === 0} className="w-full">
-                        <SparklesIcon/> Generar Sugerencias para Hoy
-                    </Button>
-                    {isGenerating && <SkeletonLoader className="mt-4" lines={4} />}
-                    {suggestions && (
-                        <div className="space-y-3 mt-4">
-                            {suggestions.meals.map((sug, i) => (
-                                <div key={i} className="glass-card-nested p-3">
-                                    <h4 className="font-semibold text-primary-color">{sug.mealName}</h4>
-                                    <ul className="text-sm text-slate-300 list-disc list-inside">
-                                        {sug.foods.map((food: any, j: number) => <li key={j}>{food.portion} de {food.name}</li>)}
-                                    </ul>
-                                    <div className="text-xs text-slate-400 mt-2">Total: {sug.totalMacros.calories}kcal, {sug.totalMacros.protein}g Prot</div>
-                                    <Button onClick={() => handleAddSuggestionAsLog(sug)} variant="secondary" className="!text-xs !py-1 w-full mt-2">Registrar Comida</Button>
-                                </div>
-                            ))}
-                            {suggestions.shoppingList.length > 0 && (
-                                <div className="glass-card-nested p-3">
-                                    <h4 className="font-semibold text-yellow-400">Lista de Compra Esencial</h4>
-                                    <ul className="text-sm text-slate-300 list-disc list-inside">
-                                        {suggestions.shoppingList.map((item, i) => <li key={i}>{item}</li>)}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </Card>
             </div>
         </div>

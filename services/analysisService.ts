@@ -357,19 +357,64 @@ export const calculateFFMIProgress = (bodyProgress: BodyProgressLog[], settings:
   return { current, initial, trend };
 };
 
-export const calculateDailyNutritionSummary = (nutritionLogs: NutritionLog[], settings: Settings): { consumed: { calories: number; protein: number; carbs: number; fats: number }; goals: { calories: number; protein: number; carbs: number; fats: number }; } => {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todaysLogs = nutritionLogs.filter(log => log.date && log.date.startsWith(todayStr));
-  const consumed = todaysLogs.reduce((acc, log) => {
+export const calculateDailyNutritionSummary = (
+  nutritionLogs: NutritionLog[],
+  settings: Settings,
+  dateStr?: string
+): {
+  consumed: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+    fatBreakdown?: { saturated: number; monounsaturated: number; polyunsaturated: number; trans: number };
+    micronutrients?: { name: string; amount: number; unit: string }[];
+  };
+  goals: { calories: number; protein: number; carbs: number; fats: number };
+} => {
+  const targetStr = dateStr || new Date().toISOString().split('T')[0];
+  const todaysLogs = nutritionLogs.filter(log => log.date && log.date.startsWith(targetStr));
+  const consumed = todaysLogs.reduce(
+    (acc, log) => {
       (log.foods || []).forEach(food => {
         acc.calories += food.calories || 0;
         acc.protein += food.protein || 0;
         acc.carbs += food.carbs || 0;
         acc.fats += food.fats || 0;
+        if (food.fatBreakdown) {
+          acc.fatBreakdown = acc.fatBreakdown || { saturated: 0, monounsaturated: 0, polyunsaturated: 0, trans: 0 };
+          acc.fatBreakdown.saturated += food.fatBreakdown.saturated || 0;
+          acc.fatBreakdown.monounsaturated += food.fatBreakdown.monounsaturated || 0;
+          acc.fatBreakdown.polyunsaturated += food.fatBreakdown.polyunsaturated || 0;
+          acc.fatBreakdown.trans += food.fatBreakdown.trans || 0;
+        }
+        (food.micronutrients || []).forEach(m => {
+          acc.micronutrients = acc.micronutrients || [];
+          const existing = acc.micronutrients.find(x => x.name === m.name);
+          if (existing) existing.amount += m.amount;
+          else acc.micronutrients.push({ ...m });
+        });
       });
       return acc;
-  }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
-  return { consumed, goals: { calories: settings.dailyCalorieGoal || 0, protein: settings.dailyProteinGoal || 0, carbs: settings.dailyCarbGoal || 0, fats: settings.dailyFatGoal || 0 } };
+    },
+    { calories: 0, protein: 0, carbs: 0, fats: 0 } as {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fats: number;
+      fatBreakdown?: { saturated: number; monounsaturated: number; polyunsaturated: number; trans: number };
+      micronutrients?: { name: string; amount: number; unit: string }[];
+    }
+  );
+  return {
+    consumed,
+    goals: {
+      calories: settings.dailyCalorieGoal || 0,
+      protein: settings.dailyProteinGoal || 0,
+      carbs: settings.dailyCarbGoal || 0,
+      fats: settings.dailyFatGoal || 0,
+    },
+  };
 };
 
 export const calculateHistoricalFatigueData = (history: WorkoutLog[], settings: Settings, exerciseList: ExerciseMuscleInfo[]): any[] => {

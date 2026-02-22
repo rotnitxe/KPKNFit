@@ -35,7 +35,7 @@ const defaultSettings: Settings = {
     readinessCheckEnabled: true,
     apiProvider: 'gemini',
     fallbackEnabled: true,
-    apiKeys: { gemini: '', deepseek: '', gpt: '' },
+    apiKeys: { gemini: '', deepseek: '', gpt: '', usda: 'zM7If362VYhfVVMbb25GSo7hzbO0birHlWLh5Hyt' },
     aiTemperature: 0.7,
     aiMaxTokens: 2048,
     aiVoice: 'Puck',

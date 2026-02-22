@@ -48,6 +48,7 @@ const defaultSettings: Settings = {
     gemini: '',
     deepseek: '',
     gpt: '',
+    usda: 'zM7If362VYhfVVMbb25GSo7hzbO0birHlWLh5Hyt',
   },
   aiTemperature: 0.7,
   aiMaxTokens: 2048,

@@ -4,12 +4,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { NutritionLog, FoodItem, Settings, LoggedFood, PantryItem } from '../types';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
-import { SparklesIcon, CameraIcon, PlusIcon, TrashIcon, SearchIcon, ChevronRightIcon } from './icons';
+import { PlusIcon, TrashIcon } from './icons';
 import { FOOD_DATABASE } from '../data/foodDatabase';
-import { getNutritionalInfo, analyzeMealPhoto } from '../services/aiService';
-import { takePicture } from '../services/cameraService';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import { queueFatigueDataPoint } from '../services/augeAdaptiveService';
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
@@ -35,7 +32,6 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
   const [logDate, setLogDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
   const [foods, setFoods] = useState<LoggedFood[]>([]);
   const [notes, setNotes] = useState('');
-  const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
   
   // Flattened UI State
   const [isAddingMode, setIsAddingMode] = useState(true); // Always visible add mode initially if empty
@@ -177,10 +173,6 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
              <AddFoodComponent 
                 onAddFood={addFoodToList} 
                 pantryItems={pantryItems} 
-                isOnline={isOnline} 
-                settings={settings}
-                isAnalyzingPhoto={isAnalyzingPhoto}
-                setIsAnalyzingPhoto={setIsAnalyzingPhoto}
              />
         </div>
 
@@ -214,49 +206,20 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
 const AddFoodComponent: React.FC<{
   onAddFood: (food: Omit<LoggedFood, 'id'>) => void;
   pantryItems: PantryItem[];
-  isOnline: boolean;
-  settings: Settings;
-  isAnalyzingPhoto: boolean;
-  setIsAnalyzingPhoto: (val: boolean) => void;
-}> = ({ onAddFood, pantryItems, isOnline, settings, isAnalyzingPhoto, setIsAnalyzingPhoto }) => {
+}> = ({ onAddFood, pantryItems }) => {
   const { addToast } = useAppDispatch();
-  const [mode, setMode] = useState<'search' | 'ai' | 'pantry'>('search');
+  const [mode, setMode] = useState<'search' | 'pantry'>('search');
   const [query, setQuery] = useState('');
-  
-  const handleAnalyzePhoto = async () => {
-      if (!isOnline) return;
-      const photoUri = await takePicture();
-      if (photoUri) {
-          setIsAnalyzingPhoto(true);
-          try {
-              const fileName = photoUri.split('/').pop();
-              if (!fileName) throw new Error("Ruta inválida");
-              const file = await Filesystem.readFile({ path: fileName, directory: Directory.Data });
-              const result = await analyzeMealPhoto(file.data as string, settings);
-              onAddFood({ foodName: result.name, amount: 1, unit: 'unit', calories: result.calories, protein: result.protein, carbs: result.carbs, fats: result.fats });
-          } catch (e: any) { addToast("Error al analizar foto", "danger"); } 
-          finally { setIsAnalyzingPhoto(false); }
-      }
-  };
 
-  const handleTextSubmit = async () => {
+  const handleTextSubmit = () => {
       if(!query.trim()) return;
-      
-      if (mode === 'ai') {
-           if (!isOnline) return;
-           addToast("Analizando...", "suggestion");
-           try {
-               const result = await getNutritionalInfo(query, settings);
-               onAddFood({ foodName: result.name, amount: result.servingSize, unit: result.unit, calories: result.calories, protein: result.protein, carbs: result.carbs, fats: result.fats });
-               setQuery('');
-           } catch(e) { addToast("Error AI", "danger"); }
-      } else if (mode === 'search') {
+      if (mode === 'search') {
            const result = FOOD_DATABASE.find(f => f.name.toLowerCase().includes(query.toLowerCase()));
            if (result) {
                onAddFood({ foodName: result.name, amount: result.servingSize, unit: result.unit, calories: result.calories, protein: result.protein, carbs: result.carbs, fats: result.fats });
                setQuery('');
            } else {
-               addToast("No encontrado en base de datos. Prueba con IA.", "suggestion");
+               addToast("No encontrado en base de datos. Intenta con otro nombre.", "suggestion");
            }
       }
   };
@@ -266,7 +229,6 @@ const AddFoodComponent: React.FC<{
         {/* Tabs */}
         <div className="flex gap-6 border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-2">
             <button onClick={() => setMode('search')} className={`pb-1 transition-colors ${mode === 'search' ? 'text-white border-b-2 border-white' : 'hover:text-slate-300'}`}>Buscar</button>
-            <button onClick={() => setMode('ai')} className={`pb-1 transition-colors ${mode === 'ai' ? 'text-purple-400 border-b-2 border-purple-400' : 'hover:text-slate-300'}`}>Texto IA</button>
             <button onClick={() => setMode('pantry')} className={`pb-1 transition-colors ${mode === 'pantry' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'hover:text-slate-300'}`}>Despensa</button>
         </div>
 
@@ -290,24 +252,15 @@ const AddFoodComponent: React.FC<{
                         value={query}
                         onChange={e => setQuery(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleTextSubmit()}
-                        placeholder={mode === 'ai' ? "Ej: 2 huevos y palta..." : "Ej: Manzana..."}
+                        placeholder="Ej: Manzana..."
                         className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 pl-4 pr-12 text-sm text-white outline-none placeholder-slate-600 focus:border-white/30 transition-colors"
                     />
                     <button onClick={handleTextSubmit} disabled={!query} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white disabled:opacity-30">
-                        {mode === 'ai' ? <SparklesIcon size={18}/> : <PlusIcon size={18}/>}
+                        <PlusIcon size={18}/>
                     </button>
                 </div>
             )}
         </div>
-        
-        {/* Quick Camera Action */}
-        <button 
-            onClick={handleAnalyzePhoto} 
-            disabled={isAnalyzingPhoto}
-            className="flex items-center justify-center gap-2 py-3 w-full text-[10px] font-bold uppercase text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors border border-white/5"
-        >
-            <CameraIcon size={14} /> {isAnalyzingPhoto ? 'Analizando...' : 'Escanear Foto'}
-        </button>
     </div>
   );
 };

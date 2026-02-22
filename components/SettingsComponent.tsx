@@ -162,7 +162,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
         setHasChanges(true);
     };
 
-    const handleApiKeyChange = (provider: 'gemini' | 'deepseek' | 'gpt', value: string) => {
+    const handleApiKeyChange = (provider: 'gemini' | 'deepseek' | 'gpt' | 'usda', value: string) => {
         setPendingSettings(prev => ({
             ...prev,
             apiKeys: { ...(prev.apiKeys || {}), [provider]: value }
@@ -266,6 +266,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                 <div className="grid grid-cols-1 gap-3">
                     <input type="password" value={pendingSettings.apiKeys?.gemini || ''} onChange={e => handleApiKeyChange('gemini', e.target.value)} placeholder="API Key Gemini" className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3 text-xs font-mono" />
                     <input type="password" value={pendingSettings.apiKeys?.gpt || ''} onChange={e => handleApiKeyChange('gpt', e.target.value)} placeholder="API Key OpenAI (opcional)" className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3 text-xs font-mono" />
+                    <input type="password" value={pendingSettings.apiKeys?.usda || ''} onChange={e => handleApiKeyChange('usda', e.target.value)} placeholder="API Key USDA FoodData Central (nutrición)" className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3 text-xs font-mono" />
                 </div>
 
                 <SettingsItem label="Creatividad (Temp)" description="Controla qué tan 'inventiva' es la IA." icon={<ZapIcon size={16}/>}>

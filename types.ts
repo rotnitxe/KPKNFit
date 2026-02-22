@@ -7,6 +7,14 @@ export type WeightUnit = 'kg' | 'lbs';
 export type HapticIntensity = 'soft' | 'medium' | 'heavy';
 export type OneRMFormula = 'brzycki' | 'epley' | 'lander';
 
+export interface CalorieGoalConfig {
+    formula: 'mifflin' | 'harris' | 'katch';
+    activityLevel: number;
+    goal: 'lose' | 'maintain' | 'gain';
+    weeklyChangeKg?: number;
+    healthMultiplier?: number;
+}
+
 // --- NUEVO: Tipos para el Algoritmo KPKN (Informe v3) ---
 export interface AthleteProfileScore {
   technicalScore: 1 | 2 | 3;
@@ -153,6 +161,7 @@ export interface Settings {
     gemini?: string;
     gpt?: string;
     deepseek?: string;
+    usda?: string;
   };
   aiTemperature: number; // 0.0 a 1.0 (Creatividad)
   aiMaxTokens: number;
@@ -225,6 +234,7 @@ export interface Settings {
   dailyProteinGoal?: number;
   dailyCarbGoal?: number;
   dailyFatGoal?: number;
+  calorieGoalConfig?: CalorieGoalConfig;
   waterIntakeGoal_L?: number;
   dietaryPreference?: 'omnivore' | 'vegetarian' | 'vegan' | 'keto';
   micronutrientFocus?: string[];
@@ -693,6 +703,15 @@ export interface BodyProgressLog {
     aiInsight?: string;
 }
 
+export type PortionPreset = 'small' | 'medium' | 'large' | 'extra';
+
+export const PORTION_MULTIPLIERS: Record<PortionPreset, number> = {
+    small: 0.6,
+    medium: 1,
+    large: 1.5,
+    extra: 2,
+};
+
 export interface LoggedFood {
     id: string;
     foodName: string;
@@ -703,6 +722,10 @@ export interface LoggedFood {
     carbs: number;
     fats: number;
     pantryItemId?: string;
+    tags?: string[];
+    fatBreakdown?: { saturated: number; monounsaturated: number; polyunsaturated: number; trans: number };
+    micronutrients?: { name: string; amount: number; unit: string }[];
+    portionPreset?: PortionPreset;
 }
 
 export interface NutritionLog {
@@ -902,6 +925,7 @@ export interface DailyWellbeingLog {
     stressLevel: number;
     doms: number;
     motivation: number;
+    readiness?: number; // 1-10, manual for rest days
     workHours?: number; 
     workIntensity?: IntensityLevel; 
     studyHours?: number; 

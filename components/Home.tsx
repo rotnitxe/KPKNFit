@@ -1,14 +1,11 @@
 // components/Home.tsx
-import React, { useMemo, useState, useEffect } from 'react';
-import { Program, Session, WorkoutLog, Settings, DailyWellbeingLog, SleepLog, View, OngoingWorkoutState, ProgramWeek, ExerciseMuscleInfo } from '../types';
-import Card from './ui/Card';
+import React, { useMemo } from 'react';
+import { Program, Session, SleepLog, View, ProgramWeek } from '../types';
 import Button from './ui/Button';
-import { PlayIcon, FlameIcon, TrophyIcon, ClockIcon, PlusIcon, ChevronRightIcon, ActivityIcon, TargetIcon, CalendarIcon, AlertTriangleIcon, CheckCircleIcon, InfoIcon, PencilIcon, RefreshCwIcon, StarIcon, SettingsIcon, TrendingUpIcon, XIcon } from './icons';
-import { calculateBrzycki1RM } from '../utils/calculations';
+import { PlusIcon, TargetIcon } from './icons';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import Modal from './ui/Modal';
 import { CaupolicanIcon } from './CaupolicanIcon';
-import SystemBatteryWidget from './MuscleRecoveryWidget';
+import { SessionTodayCard, BatteryCockpitWidget, ReadinessWidget, StreakWidget, QuickLogWidget } from './home/index';
 
 interface HomeProps {
   onNavigate: (view: View, program?: Program) => void;
@@ -16,135 +13,9 @@ interface HomeProps {
   onEditSleepLog: (log: SleepLog) => void;
 }
 
-// --- WIDGET 1RM PROGRESO (Miniatura -> Overlay) ---
-const Progress1RMWidget: React.FC<{ history: WorkoutLog[] }> = ({ history }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [selectedExercise, setSelectedExercise] = useState<string>('');
-    const [timePeriod, setTimePeriod] = useState<'1M'|'3M'|'6M'|'ALL'>('ALL');
-
-    const exerciseData = useMemo(() => {
-        const data: Record<string, {date: string, rm: number, rpe: number}[]> = {};
-        history.forEach(log => {
-            (log.completedExercises || []).forEach((ex: any) => {
-                const validSets = (ex.sets || []).filter((s: any) => s.weight > 0 && s.completedReps > 0);
-                if (validSets.length > 0) {
-                    const maxRM = Math.max(...validSets.map((s: any) => calculateBrzycki1RM(s.weight, s.completedReps)));
-                    const avgRPE = validSets.reduce((acc: number, s: any) => acc + (s.completedRPE || s.rpe || 8), 0) / validSets.length;
-                    if (!data[ex.exerciseName]) data[ex.exerciseName] = [];
-                    data[ex.exerciseName].push({ date: log.date, rm: maxRM, rpe: avgRPE });
-                }
-            });
-        });
-        Object.values(data).forEach(arr => arr.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-        return data;
-    }, [history]);
-
-    const exercises = Object.keys(exerciseData).sort();
-    useEffect(() => { if (exercises.length > 0 && !selectedExercise) setSelectedExercise(exercises[0]); }, [exercises, selectedExercise]);
-
-    const filteredData = useMemo(() => {
-        if (!selectedExercise || !exerciseData[selectedExercise]) return [];
-        const data = exerciseData[selectedExercise];
-        if (timePeriod === 'ALL') return data;
-        const limit = new Date().getTime() - ((timePeriod === '1M' ? 1 : timePeriod === '3M' ? 3 : 6) * 30 * 24 * 60 * 60 * 1000);
-        return data.filter(d => new Date(d.date).getTime() >= limit);
-    }, [selectedExercise, timePeriod, exerciseData]);
-
-    const stats = useMemo(() => {
-        if (filteredData.length < 2) return { trend: 0, kgPerWeek: 0, avgIntensity: 0 };
-        const first = filteredData[0];
-        const last = filteredData[filteredData.length - 1];
-        const weeks = (new Date(last.date).getTime() - new Date(first.date).getTime()) / (1000 * 60 * 60 * 24 * 7);
-        const trend = last.rm - first.rm;
-        const kgPerWeek = weeks > 0 ? trend / weeks : 0;
-        const avgIntensity = filteredData.reduce((acc, d) => acc + d.rpe, 0) / filteredData.length;
-        return { trend, kgPerWeek, avgIntensity };
-    }, [filteredData]);
-
-    if (exercises.length === 0) {
-        return (
-            <div className="bg-[#0a0a0a] border border-[#222] rounded-2xl p-4 flex flex-col justify-between h-32 cursor-default" data-testid="1rm-widget">
-                <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2"><TrendingUpIcon size={12}/> Analítica 1RM</h3>
-                <p className="text-[9px] text-zinc-600">Sin datos todavía. Completa entrenamientos para ver progreso.</p>
-            </div>
-        );
-    }
-
-    // Mini Widget View
-    return (
-        <>
-            <div onClick={() => setIsExpanded(true)} className="bg-[#0a0a0a] border border-[#222] rounded-2xl p-4 cursor-pointer hover:border-[#444] transition-all group flex flex-col justify-between h-32 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><TrendingUpIcon size={48}/></div>
-                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest relative z-10 flex items-center gap-2"><TrendingUpIcon size={12}/> Analítica 1RM</h3>
-                <div className="relative z-10">
-                    <p className="text-2xl font-black text-white leading-none">{stats.kgPerWeek > 0 ? '+' : ''}{stats.kgPerWeek.toFixed(1)} <span className="text-xs text-zinc-500">kg/sem</span></p>
-                    <p className="text-[9px] text-zinc-400 font-bold uppercase mt-1 truncate">Progreso Promedio</p>
-                </div>
-            </div>
-
-            {/* Overlay Full View */}
-            <Modal isOpen={isExpanded} onClose={() => setIsExpanded(false)} title="Análisis de Sobrecarga" useCustomContent={true}>
-                <div className="bg-[#0a0a0a] w-full max-w-lg mx-auto h-[85vh] sm:h-[650px] flex flex-col text-white">
-                    <div className="flex justify-between items-center p-5 border-b border-[#222] shrink-0">
-                        <h2 className="text-lg font-black uppercase tracking-tight flex items-center gap-2"><TrendingUpIcon className="text-blue-500"/> Laboratorio 1RM</h2>
-                        <button onClick={() => setIsExpanded(false)} className="text-zinc-500 hover:text-white transition-colors p-1"><XIcon size={20}/></button>
-                    </div>
-                    
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                        <select value={selectedExercise} onChange={(e) => setSelectedExercise(e.target.value)} className="w-full bg-[#111] border border-[#222] text-white text-sm font-black uppercase tracking-widest py-4 px-4 rounded-xl outline-none focus:border-zinc-500 transition-colors">
-                            {exercises.map(ex => <option key={ex} value={ex}>{ex}</option>)}
-                        </select>
-
-                        <div className="flex bg-[#111] p-1 rounded-xl border border-[#222]">
-                            {['1M', '3M', '6M', 'ALL'].map(period => (
-                                <button key={period} onClick={() => setTimePeriod(period as any)} className={`flex-1 py-2 rounded-lg text-[10px] font-black tracking-widest transition-all ${timePeriod === period ? 'bg-white text-black shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}>
-                                    {period}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Chart Area */}
-                        {filteredData.length > 0 ? (
-                            <div className="relative w-full h-[200px] bg-[#111] border border-[#222] rounded-2xl p-4">
-                                <svg viewBox={`0 0 300 100`} className="w-full h-full overflow-visible">
-                                    <polyline points={filteredData.map((d, i) => `${filteredData.length === 1 ? 150 : (i / (filteredData.length - 1)) * 300},${100 - ((d.rm - (Math.min(...filteredData.map(d => d.rm)) * 0.9)) / ((Math.max(...filteredData.map(d => d.rm), 1)) - (Math.min(...filteredData.map(d => d.rm)) * 0.9) || 1)) * 100}`).join(' ')} fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinejoin="round" />
-                                    {filteredData.map((d, i) => {
-                                        const x = filteredData.length === 1 ? 150 : (i / (filteredData.length - 1)) * 300;
-                                        const y = 100 - ((d.rm - (Math.min(...filteredData.map(d => d.rm)) * 0.9)) / ((Math.max(...filteredData.map(d => d.rm), 1)) - (Math.min(...filteredData.map(d => d.rm)) * 0.9) || 1)) * 100;
-                                        return (
-                                            <g key={i}>
-                                                <circle cx={x} cy={y} r="4" fill="#0a0a0a" stroke="#3b82f6" strokeWidth="2" />
-                                                {i === filteredData.length - 1 && <text x={x} y={y - 12} fill="white" fontSize="12" fontWeight="bold" textAnchor="end">{Math.round(d.rm)}kg</text>}
-                                            </g>
-                                        );
-                                    })}
-                                </svg>
-                            </div>
-                        ) : (
-                            <div className="h-[200px] border border-dashed border-[#222] rounded-2xl flex items-center justify-center text-zinc-600 text-xs font-bold uppercase tracking-widest">Sin datos</div>
-                        )}
-
-                        {/* Insight Cards */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-[#111] border border-[#222] p-4 rounded-xl">
-                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Tendencia Total</span>
-                                <span className={`text-xl font-black ${stats.trend >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{stats.trend > 0 ? '+' : ''}{stats.trend.toFixed(1)} kg</span>
-                            </div>
-                            <div className="bg-[#111] border border-[#222] p-4 rounded-xl">
-                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Intensidad Media</span>
-                                <span className="text-xl font-black text-white">RPE {stats.avgIntensity.toFixed(1)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Modal>
-        </>
-    );
-};
-
 // --- MAIN HOME COMPONENT ---
 const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
-    const { programs, history, activeProgramState, dailyWellbeingLogs, settings } = useAppState();
+    const { programs, history, activeProgramState } = useAppState();
     // Añadimos handleStartProgram para poder activar programas desde la Home
     const { handleStartWorkout, navigateTo, setIsStartWorkoutModalOpen, handleStartProgram } = useAppDispatch();
 
@@ -190,67 +61,43 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
             <div className="relative z-10 flex flex-col px-6 pt-16 w-full max-w-md mx-auto">
                 {activeProgram ? (
                     <>
-                        {/* HERO SECTION (Sesión de Hoy) */}
+                        {/* HUB HEADER - Cockpit style */}
                         <div className="mb-6">
-                            <h1 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{activeProgram.name}</h1>
-                            <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none mb-6">
-                                {todaySessions.length > 0 ? 'DÍA DE ACCIÓN' : 'DÍA DE DESCANSO'}
-                            </h2>
-
-                            {todaySessions.length > 0 ? (
-                                <div className="space-y-4">
-                                    {todaySessions.map((ts, idx) => (
-                                        <div key={idx} className={`relative p-6 rounded-[2rem] border transition-all overflow-hidden ${ts.isCompleted ? 'bg-[#0a0a0a] border-emerald-900/50' : 'bg-white border-white'}`}>
-                                            <div className="relative z-10">
-                                                {ts.isCompleted && <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest rounded-full mb-4 border border-emerald-500/30"><CheckCircleIcon size={12}/> Completada</div>}
-                                                <h3 className={`font-black uppercase tracking-tighter leading-[0.9] text-3xl mb-6 ${ts.isCompleted ? 'text-zinc-600' : 'text-black'}`}>{ts.session.name}</h3>
-                                                
-                                                {!ts.isCompleted && (
-                                                    <button onClick={() => handleStartWorkout(ts.session, ts.program, undefined, ts.location)} className="w-full py-4 bg-black text-white font-black uppercase text-xs tracking-widest rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl flex justify-center items-center gap-2">
-                                                        <PlayIcon size={16} fill="currentColor" /> INICIAR SESIÓN
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="p-8 rounded-[2rem] bg-[#0a0a0a] border border-[#222] text-center">
-                                    <CaupolicanIcon size={64} color="#333" />
-                                    <p className="text-sm font-bold text-zinc-300 mt-4">Recuperación Activa</p>
-                                    <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-1">El músculo crece cuando descansas.</p>
-                                </div>
-                            )}
+                            <h1 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.25em] font-mono mb-0.5">
+                                {activeProgram.name}
+                            </h1>
+                            <p className="text-[9px] font-mono text-zinc-600 tracking-widest">
+                                {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
                         </div>
 
-                        {/* ACCIONES RÁPIDAS */}
-                        <div className="flex gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
-                            {todaySessions.length > 0 && (
-                                <button onClick={() => navigateTo('session-editor', { programId: activeProgram.id, macroIndex: todaySessions[0].location.macroIndex, mesoIndex: todaySessions[0].location.mesoIndex, weekId: todaySessions[0].location.weekId, sessionId: todaySessions[0].session.id })} className="shrink-0 px-5 py-3 rounded-xl border border-[#222] bg-[#0a0a0a] text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:bg-white hover:text-black hover:border-white transition-colors flex items-center gap-2">
-                                    <PencilIcon size={14} /> Modificar
-                                </button>
-                            )}
-                            <button onClick={() => navigateTo('program-detail', { programId: activeProgram.id })} className="shrink-0 px-5 py-3 rounded-xl border border-[#222] bg-[#0a0a0a] text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:bg-white hover:text-black hover:border-white transition-colors flex items-center gap-2">
-                                <SettingsIcon size={14} /> Programa
-                            </button>
-                            <button onClick={() => setIsStartWorkoutModalOpen(true)} className="shrink-0 px-5 py-3 rounded-xl border border-[#222] bg-[#0a0a0a] text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:bg-white hover:text-black hover:border-white transition-colors flex items-center gap-2">
-                                <RefreshCwIcon size={14} /> Cambiar
-                            </button>
-                        </div>
-
-                        {/* WIDGETS DE ANÁLISIS (AUGE + 1RM) */}
-                        <div className="space-y-4" data-testid="home-analytics-section">
-                            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Análisis Biométrico</h3>
-                            <div data-testid="recovery-widget" aria-label="Recovery"><SystemBatteryWidget /></div>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                                <Progress1RMWidget history={history} />
-                                {/* Placeholder for another square widget if needed in the future, like Volume or Nutrition sum */}
-                                <div className="bg-[#0a0a0a] border border-[#222] rounded-2xl p-4 flex flex-col justify-between h-32 opacity-50">
-                                    <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Próximamente</h3>
-                                    <div className="w-8 h-1 bg-[#222] rounded-full"></div>
-                                </div>
+                        {/* Fila 1: Sesión | Batería (igual prioridad) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <SessionTodayCard
+                                programName={activeProgram.name}
+                                programId={activeProgram.id}
+                                todaySessions={todaySessions}
+                                onStartWorkout={handleStartWorkout}
+                                onEditSession={(programId, macroIndex, mesoIndex, weekId, sessionId) =>
+                                    navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, sessionId })
+                                }
+                                onViewProgram={(programId) => navigateTo('program-detail', { programId })}
+                                onOpenStartWorkoutModal={() => setIsStartWorkoutModalOpen(true)}
+                            />
+                            <div data-testid="recovery-widget" aria-label="Recovery">
+                                <BatteryCockpitWidget />
                             </div>
+                        </div>
+
+                        {/* Fila 2: Readiness | Streak */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <ReadinessWidget />
+                            <StreakWidget />
+                        </div>
+
+                        {/* Fila 3: Quick Log */}
+                        <div className="mb-8">
+                            <QuickLogWidget />
                         </div>
                     </>
                 ) : programs.length > 0 ? (

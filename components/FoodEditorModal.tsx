@@ -5,11 +5,10 @@ import { FoodItem } from '../types';
 import { useAppDispatch, useAppState } from '../contexts/AppContext';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
-import { SaveIcon, SparklesIcon, ImageIcon, SearchIcon, UploadIcon, BrainIcon, TrashIcon, PlusIcon, ChevronRightIcon, UtensilsIcon, ActivityIcon } from './icons';
-import { createAndPopulateFoodItem } from '../services/aiService';
+import { SaveIcon, UtensilsIcon, ActivityIcon } from './icons';
 
 const FoodEditorModal: React.FC = () => {
-    const { isFoodEditorOpen, editingFoodData, settings, isOnline } = useAppState();
+    const { isFoodEditorOpen, editingFoodData } = useAppState();
     const { closeFoodEditor, addOrUpdateFoodItem, addToast } = useAppDispatch();
 
     const getInitialFoodState = (): Partial<FoodItem> => ({
@@ -22,7 +21,6 @@ const FoodEditorModal: React.FC = () => {
     });
 
     const [food, setFood] = useState<Partial<FoodItem>>(getInitialFoodState());
-    const [isLoading, setIsLoading] = useState(false);
     
     useEffect(() => {
         if (isFoodEditorOpen) {
@@ -38,20 +36,6 @@ const FoodEditorModal: React.FC = () => {
         setFood(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleAIFill = async () => {
-        if (!food.name?.trim() || !isOnline) return;
-        setIsLoading(true);
-        try {
-            const result = await createAndPopulateFoodItem(food.name, settings);
-            setFood(prev => ({ ...prev, ...result }));
-            addToast("Valores estimados por IA aplicados.", "success");
-        } catch (e) {
-            addToast("No se pudo conectar con la IA.", "danger");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
     const handleSave = () => {
         if (!food.name?.trim()) {
             addToast("El nombre del alimento es obligatorio.", "danger");
@@ -88,18 +72,6 @@ const FoodEditorModal: React.FC = () => {
                                 className="w-full bg-slate-900/50 border border-white/10 rounded-2xl p-4 pl-12 font-bold text-white text-lg focus:border-orange-500 outline-none transition-all placeholder:text-slate-600"
                             />
                         </div>
-                    </div>
-                    
-                    {/* IA Button */}
-                    <div className="flex justify-end">
-                         <button 
-                            onClick={handleAIFill} 
-                            disabled={!isOnline || isLoading || !food.name}
-                            className="flex items-center gap-2 px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-xl border border-orange-500/20 transition-all active:scale-95 disabled:opacity-30 disabled:active:scale-100 text-xs font-bold uppercase tracking-wider"
-                        >
-                            <SparklesIcon size={14} />
-                            {isLoading ? 'Estimando...' : 'Autocompletar con IA'}
-                        </button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

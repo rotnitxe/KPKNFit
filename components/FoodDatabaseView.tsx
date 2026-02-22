@@ -3,9 +3,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { FoodItem } from '../types';
-import { ArrowLeftIcon, PlusIcon, UtensilsIcon, PencilIcon, BrainIcon, SparklesIcon, ChevronRightIcon, ActivityIcon } from './icons';
+import { ArrowLeftIcon, PlusIcon, UtensilsIcon, PencilIcon, ChevronRightIcon, ActivityIcon } from './icons';
 import Button from './ui/Button';
-import { generateFoodCategoryDescription } from '../services/aiService';
 
 type SortKey = 'name' | 'protein' | 'carbs' | 'fats';
 type Micronutrient = 'Hierro' | 'Calcio' | 'Vitamina D' | 'Magnesio';
@@ -72,8 +71,6 @@ const FoodDatabaseView: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedMicronutrient, setSelectedMicronutrient] = useState<Micronutrient | null>(null);
     const [sortKey, setSortKey] = useState<SortKey>('name');
-    const [categoryDescriptions, setCategoryDescriptions] = useState<Record<string, string>>({});
-    const [isLoadingDescription, setIsLoadingDescription] = useState(false);
 
     useEffect(() => {
         // Reset background when entering this view
@@ -103,19 +100,6 @@ const FoodDatabaseView: React.FC = () => {
         
         return { categories, allFiltered: filtered };
     }, [foodDatabase, searchQuery]);
-
-    const handleGenerateDescription = async () => {
-        if (!selectedCategory || !isOnline) return;
-        setIsLoadingDescription(true);
-        try {
-            const desc = await generateFoodCategoryDescription(selectedCategory, settings);
-            setCategoryDescriptions(prev => ({...prev, [selectedCategory!]: desc}));
-        } catch(e) {
-            addToast("No se pudo generar la descripción.", "danger");
-        } finally {
-            setIsLoadingDescription(false);
-        }
-    }
     
     // Unified Visual Style Colors
     const categoryStyles: Record<string, string> = {
@@ -209,11 +193,8 @@ const FoodDatabaseView: React.FC = () => {
                 
                 <div className="space-y-4">
                     <div className="glass-card-nested p-4 rounded-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10"><BrainIcon size={64}/></div>
-                        <p className="text-sm text-slate-300 italic relative z-10">{categoryDescriptions[selectedCategory] || `Alimentos ricos en ${selectedCategory.toLowerCase()}.`}</p>
-                        <Button onClick={handleGenerateDescription} isLoading={isLoadingDescription} disabled={!isOnline} variant="secondary" className="!text-[10px] !py-1 w-full mt-3 relative z-10 !bg-white/5 border-white/10">
-                            <SparklesIcon size={12} className="mr-1"/> Info Nutricional IA
-                        </Button>
+                        <div className="absolute top-0 right-0 p-4 opacity-10"><UtensilsIcon size={64}/></div>
+                        <p className="text-sm text-slate-300 italic relative z-10">Alimentos ricos en {selectedCategory.toLowerCase()}.</p>
                     </div>
 
                     <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
@@ -266,7 +247,7 @@ const FoodDatabaseView: React.FC = () => {
                 </div>
 
                 <div>
-                    <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2"><SparklesIcon size={14}/> Micronutrientes Clave</h2>
+                    <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2"><ActivityIcon size={14}/> Micronutrientes Clave</h2>
                     <div className="grid grid-cols-2 gap-3">
                         {micronutrients.map(micro => (
                              <div 
