@@ -142,21 +142,40 @@ async function searchUSDA(query: string, apiKey: string): Promise<FoodItem[]> {
     return searchUSDAOffline(query);
 }
 
-const USDA_OFFLINE_URL = '/data/usdaFoundationFoods.json';
+const USDA_OFFLINE_URL = '/data/usdaFoodsOffline.json';
+const USDA_OFFLINE_FALLBACK_URL = '/data/usdaFoundationFoods.json';
 let usdaOfflineCache: any[] | null = null;
+
+function parseUSDAOfflineData(data: unknown): any[] {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && 'FoundationFoods' in data) {
+        return (data as { FoundationFoods?: any[] }).FoundationFoods || [];
+    }
+    if (data && typeof data === 'object' && 'foods' in data) {
+        return (data as { foods?: any[] }).foods || [];
+    }
+    return [];
+}
 
 async function loadUSDAOffline(): Promise<any[]> {
     if (usdaOfflineCache) return usdaOfflineCache;
-    try {
-        const base = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '';
-        const res = await fetch(base + USDA_OFFLINE_URL);
-        const data = await res.json();
-        usdaOfflineCache = data.FoundationFoods || [];
-        return usdaOfflineCache;
-    } catch (_) {
-        usdaOfflineCache = [];
-        return [];
+    const base = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '';
+    for (const url of [USDA_OFFLINE_URL, USDA_OFFLINE_FALLBACK_URL]) {
+        try {
+            const res = await fetch(base + url);
+            if (!res.ok) continue;
+            const data = await res.json();
+            const arr = parseUSDAOfflineData(data);
+            if (arr.length > 0) {
+                usdaOfflineCache = arr;
+                return usdaOfflineCache;
+            }
+        } catch (_) {
+            /* intentar siguiente URL */
+        }
     }
+    usdaOfflineCache = [];
+    return [];
 }
 
 async function searchUSDAOffline(query: string): Promise<FoodItem[]> {
@@ -169,19 +188,85 @@ async function searchUSDAOffline(query: string): Promise<FoodItem[]> {
     return matches.slice(0, 15).map((f: any) => foodItemFromUSDA(f));
 }
 
-function deduplicateBySimilarName(items: FoodItem[]): FoodItem[] {
-    const seen = new Set<string>();
-    return items.filter(f => {
-        const key = f.name.toLowerCase().replace(/\s+/g, ' ').trim();
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
+/** Normaliza nombre para comparación: sin acentos, minúsculas, sin (cocido)/(crudo), sin marcas */
+function normalizeFoodName(name: string): string {
+    return name
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase()
+        .replace(/\s*\([^)]*\)\s*/g, ' ')
+        .replace(/\b(genérico|cocido|crudo|raw|cooked)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/** Tokens significativos (palabras > 2 chars) */
+function getTokens(normalized: string): Set<string> {
+    return new Set(
+        normalized
+            .split(/\s+/)
+            .filter(t => t.length > 2 && !/^\d+$/.test(t))
+    );
+}
+
+/** Prioridad de fuente: USDA > local > OFF */
+function getSourcePriority(id: string): number {
+    if (id.startsWith('usda-')) return 3;
+    if (id.startsWith('gen') || id.startsWith('cl') || id.startsWith('int') || id.startsWith('meal')) return 2;
+    if (id.startsWith('off-')) return 1;
+    return 2;
+}
+
+/** Comprueba si dos alimentos son similares (mismo concepto) */
+function areSimilarFoods(a: FoodItem, b: FoodItem): boolean {
+    const na = normalizeFoodName(a.name);
+    const nb = normalizeFoodName(b.name);
+    if (na === nb) return true;
+    const ta = getTokens(na);
+    const tb = getTokens(nb);
+    if (ta.size === 0 || tb.size === 0) return false;
+    const overlap = [...ta].filter(t => tb.has(t)).length;
+    const minSize = Math.min(ta.size, tb.size);
+    return overlap >= Math.ceil(minSize * 0.7);
+}
+
+/** Fusiona nutrientes: usa base, rellena con fallback si base es 0 o undefined */
+function mergeNutrients(base: FoodItem, fallback: FoodItem): FoodItem {
+    const out = { ...base };
+    if ((!out.calories || out.calories === 0) && fallback.calories) out.calories = fallback.calories;
+    if ((!out.protein || out.protein === 0) && fallback.protein) out.protein = fallback.protein;
+    if ((!out.carbs || out.carbs === 0) && fallback.carbs) out.carbs = fallback.carbs;
+    if ((!out.fats || out.fats === 0) && fallback.fats) out.fats = fallback.fats;
+    if (!out.fatBreakdown && fallback.fatBreakdown) out.fatBreakdown = fallback.fatBreakdown;
+    if (!out.micronutrients?.length && fallback.micronutrients?.length) out.micronutrients = fallback.micronutrients;
+    if (!out.carbBreakdown && fallback.carbBreakdown) out.carbBreakdown = fallback.carbBreakdown;
+    return out;
+}
+
+/** Agrupa por similitud, prioriza USDA, rellena macros faltantes */
+function mergeAndDeduplicate(local: FoodItem[], off: FoodItem[], usda: FoodItem[]): FoodItem[] {
+    const all = [...usda, ...local, ...off];
+    const result: FoodItem[] = [];
+    const used = new Set<string>();
+
+    for (const item of all) {
+        if (used.has(item.id)) continue;
+        const group = all.filter(o => !used.has(o.id) && areSimilarFoods(item, o));
+        const best = group.sort((a, b) => getSourcePriority(b.id) - getSourcePriority(a.id))[0];
+        let merged = { ...best };
+        for (const other of group) {
+            if (other.id !== best.id) merged = mergeNutrients(merged, other);
+        }
+        result.push(merged);
+        for (const g of group) used.add(g.id);
+    }
+
+    return result.slice(0, 20);
 }
 
 /**
  * Búsqueda unificada de alimentos
- * Consulta en paralelo: local, Open Food Facts, USDA (si hay API key)
+ * Consulta en paralelo: local, Open Food Facts, USDA (prioridad USDA, rellena macros faltantes)
  */
 export async function searchFoods(
     query: string,
@@ -204,11 +289,10 @@ export async function searchFoods(
         searchUSDA(q, usdaKey),
     ]);
 
-    const merged = [...local, ...off, ...usda];
-    const deduped = deduplicateBySimilarName(merged);
+    const merged = mergeAndDeduplicate(local, off, usda);
 
-    cache.set(q.toLowerCase(), { query: q, results: deduped, ts: Date.now() });
+    cache.set(q.toLowerCase(), { query: q, results: merged, ts: Date.now() });
     setCache(cache);
 
-    return deduped;
+    return merged;
 }

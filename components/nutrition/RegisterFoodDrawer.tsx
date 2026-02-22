@@ -4,10 +4,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionPreset } from '../../types';
 import { PORTION_MULTIPLIERS } from '../../types';
-import { parseNutritionDescription } from '../../utils/nutritionDescriptionParser';
+import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
+import { getCookingFactor } from '../../data/cookingMethodFactors';
 import { searchFoods } from '../../services/foodSearchService';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import { XIcon, PlusIcon, TrashIcon } from '../icons';
+import { FoodSearchModal } from '../FoodSearchModal';
 import Button from '../ui/Button';
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
@@ -20,6 +22,8 @@ const safeCreateISOStringFromDateInput = (dateString?: string): string => {
 interface TagWithFood {
     tag: string;
     portion: PortionPreset;
+    quantity: number;
+    cookingMethod?: string;
     foodItem: FoodItem | null;
     loggedFood: LoggedFood | null;
 }
@@ -61,71 +65,98 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const [logDate, setLogDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
     const [tagItems, setTagItems] = useState<TagWithFood[]>([]);
     const [isSearching, setIsSearching] = useState<Record<string, boolean>>({});
+    const [searchModalForTagIdx, setSearchModalForTagIdx] = useState<number | null>(null);
 
-    const parsed = useMemo(() => parseNutritionDescription(description), [description]);
+    const parsed = useMemo(() => parseMealDescription(description), [description]);
 
     const parseAndSetTags = useCallback(() => {
         if (!description.trim()) return;
-        const { tags, portion } = parsed;
-        if (tags.length === 0) {
-            setTagItems([{ tag: description.trim(), portion, foodItem: null, loggedFood: null }]);
+        const { items } = parsed;
+        if (items.length === 0) {
+            setTagItems([{ tag: description.trim(), portion: 'medium', quantity: 1, foodItem: null, loggedFood: null }]);
         } else {
-            setTagItems(tags.map(tag => ({ tag, portion, foodItem: null, loggedFood: null })));
+            setTagItems(items.map(i => ({
+                tag: i.tag,
+                portion: (typeof i.portion === 'string' ? i.portion : 'medium') as PortionPreset,
+                quantity: i.quantity,
+                cookingMethod: i.cookingMethod,
+                foodItem: null,
+                loggedFood: null,
+            })));
         }
     }, [description, parsed]);
 
     const handleDescriptionBlur = () => parseAndSetTags();
     const handleKeyDown = (e: React.KeyboardEvent) => e.key === 'Enter' && parseAndSetTags();
 
+    const buildLoggedFromItem = useCallback((item: FoodItem, tag: TagWithFood): LoggedFood => {
+        const mult = PORTION_MULTIPLIERS[tag.portion];
+        const amount = item.servingSize * mult * tag.quantity;
+        const ratio = amount / item.servingSize;
+        const factor = tag.cookingMethod ? getCookingFactor(tag.cookingMethod as any) : { caloriesFactor: 1, fatsFactor: 1 };
+        const baseCal = (item.calories / item.servingSize) * amount;
+        const baseFats = (item.fats / item.servingSize) * amount;
+        const logged: LoggedFood = {
+            id: crypto.randomUUID(),
+            foodName: item.name,
+            amount: Math.round(amount * 10) / 10,
+            unit: item.unit,
+            calories: Math.round(baseCal * factor.caloriesFactor),
+            protein: Math.round((item.protein / item.servingSize) * amount * 10) / 10,
+            carbs: Math.round((item.carbs / item.servingSize) * amount * 10) / 10,
+            fats: Math.round(baseFats * factor.fatsFactor * 10) / 10,
+            tags: [tag.tag],
+            portionPreset: tag.portion,
+            quantity: tag.quantity,
+            cookingMethod: tag.cookingMethod as any,
+        };
+        if (item.fatBreakdown) {
+            logged.fatBreakdown = {
+                saturated: Math.round((item.fatBreakdown.saturated || 0) * ratio * factor.fatsFactor * 10) / 10,
+                monounsaturated: Math.round((item.fatBreakdown.monounsaturated || 0) * ratio * 10) / 10,
+                polyunsaturated: Math.round((item.fatBreakdown.polyunsaturated || 0) * ratio * 10) / 10,
+                trans: Math.round((item.fatBreakdown.trans || 0) * ratio * 10) / 10,
+            };
+        }
+        if (item.micronutrients?.length) {
+            logged.micronutrients = item.micronutrients.map(m => ({
+                name: m.name,
+                amount: Math.round(m.amount * ratio * 10) / 10,
+                unit: m.unit,
+            }));
+        }
+        return logged;
+    }, []);
+
     const fetchFoodForTag = useCallback(async (tag: string, idx: number) => {
         setIsSearching(s => ({ ...s, [idx]: true }));
         try {
             const results = await searchFoods(tag, settings);
             const item = results[0] || null;
-            setTagItems(prev => {
-                const next = [...prev];
-                if (next[idx]) {
-                    next[idx] = { ...next[idx], foodItem: item };
-                    if (item) {
-                        const mult = PORTION_MULTIPLIERS[next[idx].portion];
-                        const amount = item.servingSize * mult;
-                        const ratio = amount / item.servingSize;
-                        const logged: LoggedFood = {
-                            id: crypto.randomUUID(),
-                            foodName: item.name,
-                            amount: Math.round(amount * 10) / 10,
-                            unit: item.unit,
-                            calories: Math.round((item.calories / item.servingSize) * amount),
-                            protein: Math.round((item.protein / item.servingSize) * amount * 10) / 10,
-                            carbs: Math.round((item.carbs / item.servingSize) * amount * 10) / 10,
-                            fats: Math.round((item.fats / item.servingSize) * amount * 10) / 10,
-                            tags: [tag],
-                            portionPreset: next[idx].portion,
-                        };
-                        if (item.fatBreakdown) {
-                            logged.fatBreakdown = {
-                                saturated: Math.round((item.fatBreakdown.saturated || 0) * ratio * 10) / 10,
-                                monounsaturated: Math.round((item.fatBreakdown.monounsaturated || 0) * ratio * 10) / 10,
-                                polyunsaturated: Math.round((item.fatBreakdown.polyunsaturated || 0) * ratio * 10) / 10,
-                                trans: Math.round((item.fatBreakdown.trans || 0) * ratio * 10) / 10,
-                            };
-                        }
-                        if (item.micronutrients?.length) {
-                            logged.micronutrients = item.micronutrients.map(m => ({
-                                name: m.name,
-                                amount: Math.round(m.amount * ratio * 10) / 10,
-                                unit: m.unit,
-                            }));
-                        }
-                        next[idx].loggedFood = logged;
+            if (item) {
+                setTagItems(prev => {
+                    const next = [...prev];
+                    if (next[idx]) {
+                        next[idx] = { ...next[idx], foodItem: item, loggedFood: buildLoggedFromItem(item, next[idx]) };
                     }
-                }
-                return next;
-            });
+                    return next;
+                });
+            }
         } finally {
             setIsSearching(s => ({ ...s, [idx]: false }));
         }
-    }, [settings]);
+    }, [settings, buildLoggedFromItem]);
+
+    const handleSearchModalSelect = useCallback((food: FoodItem, logged: LoggedFood, idx: number) => {
+        setTagItems(prev => {
+            const next = [...prev];
+            if (next[idx]) {
+                next[idx] = { ...next[idx], foodItem: food, loggedFood: logged };
+            }
+            return next;
+        });
+        setSearchModalForTagIdx(null);
+    }, []);
 
     const removeTag = (idx: number) => {
         setTagItems(prev => prev.filter((_, i) => i !== idx));
@@ -135,36 +166,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         setTagItems(prev => {
             const next = [...prev];
             if (next[idx]?.foodItem) {
-                const item = next[idx].foodItem!;
-                const mult = PORTION_MULTIPLIERS[portion];
-                const amount = item.servingSize * mult;
-                const ratio = amount / item.servingSize;
-                const base = next[idx].loggedFood!;
-                const logged: LoggedFood = {
-                    ...base,
-                    amount: Math.round(amount * 10) / 10,
-                    calories: Math.round((item.calories / item.servingSize) * amount),
-                    protein: Math.round((item.protein / item.servingSize) * amount * 10) / 10,
-                    carbs: Math.round((item.carbs / item.servingSize) * amount * 10) / 10,
-                    fats: Math.round((item.fats / item.servingSize) * amount * 10) / 10,
-                    portionPreset: portion,
-                };
-                if (item.fatBreakdown) {
-                    logged.fatBreakdown = {
-                        saturated: Math.round((item.fatBreakdown.saturated || 0) * ratio * 10) / 10,
-                        monounsaturated: Math.round((item.fatBreakdown.monounsaturated || 0) * ratio * 10) / 10,
-                        polyunsaturated: Math.round((item.fatBreakdown.polyunsaturated || 0) * ratio * 10) / 10,
-                        trans: Math.round((item.fatBreakdown.trans || 0) * ratio * 10) / 10,
-                    };
-                }
-                if (item.micronutrients?.length) {
-                    logged.micronutrients = item.micronutrients.map(m => ({
-                        name: m.name,
-                        amount: Math.round(m.amount * ratio * 10) / 10,
-                        unit: m.unit,
-                    }));
-                }
-                next[idx] = { ...next[idx], portion, loggedFood: logged };
+                const updated = { ...next[idx], portion };
+                next[idx] = { ...updated, loggedFood: buildLoggedFromItem(next[idx].foodItem!, updated) };
             } else {
                 next[idx] = { ...next[idx], portion };
             }
@@ -280,7 +283,10 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                         className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-2"
                                     >
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm font-bold text-white">{t.tag}</span>
+                                            <span className="text-sm font-bold text-white">
+                                                {t.quantity > 1 ? `${t.quantity}x ` : ''}{t.tag}
+                                                {t.cookingMethod && <span className="text-zinc-500 text-xs ml-1">({t.cookingMethod})</span>}
+                                            </span>
                                             <button
                                                 onClick={() => removeTag(idx)}
                                                 className="text-zinc-500 hover:text-red-400 p-1"
@@ -304,14 +310,22 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                             ))}
                                         </div>
                                         {!t.foodItem && (
-                                            <button
-                                                onClick={() => fetchFoodForTag(t.tag, idx)}
-                                                disabled={isSearching[idx]}
-                                                className="flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
-                                            >
-                                                {isSearching[idx] ? 'Buscando...' : 'Buscar en base de datos'}
-                                                <PlusIcon size={12} />
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => fetchFoodForTag(t.tag, idx)}
+                                                    disabled={isSearching[idx]}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
+                                                >
+                                                    {isSearching[idx] ? 'Buscando...' : 'Buscar automático'}
+                                                    <PlusIcon size={12} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setSearchModalForTagIdx(idx)}
+                                                    className="flex-1 py-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
+                                                >
+                                                    Elegir manual
+                                                </button>
+                                            </div>
                                         )}
                                         {t.loggedFood && (
                                             <p className="text-[10px] text-zinc-400 font-mono">
@@ -352,6 +366,15 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                     </Button>
                 </div>
             </div>
+
+            {searchModalForTagIdx !== null && (
+                <FoodSearchModal
+                    isOpen={true}
+                    onClose={() => setSearchModalForTagIdx(null)}
+                    onSelect={() => {}}
+                    onSelectWithFood={(food, logged) => handleSearchModalSelect(food, logged, searchModalForTagIdx!)}
+                />
+            )}
         </>
     );
 };

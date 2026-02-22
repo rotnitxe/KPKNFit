@@ -712,6 +712,29 @@ export const PORTION_MULTIPLIERS: Record<PortionPreset, number> = {
     extra: 2,
 };
 
+export type PortionUnit = 'g' | 'oz' | 'preset' | 'reference';
+export type PortionReference = 'palm' | 'fist' | 'tablespoon' | 'cup' | 'handful';
+
+export interface PortionInput {
+    type: PortionUnit;
+    value: number;
+    reference?: PortionReference;
+}
+
+export type CookingMethod = 'crudo' | 'cocido' | 'plancha' | 'horno' | 'frito' | 'empanizado_frito';
+
+export interface ParsedMealItem {
+    tag: string;
+    quantity: number;
+    cookingMethod?: CookingMethod;
+    portion?: PortionPreset | PortionInput;
+}
+
+export interface ParsedMealDescription {
+    items: ParsedMealItem[];
+    rawDescription: string;
+}
+
 export interface LoggedFood {
     id: string;
     foodName: string;
@@ -726,6 +749,9 @@ export interface LoggedFood {
     fatBreakdown?: { saturated: number; monounsaturated: number; polyunsaturated: number; trans: number };
     micronutrients?: { name: string; amount: number; unit: string }[];
     portionPreset?: PortionPreset;
+    portionInput?: PortionInput;
+    cookingMethod?: CookingMethod;
+    quantity?: number;
 }
 
 export interface NutritionLog {

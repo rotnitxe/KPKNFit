@@ -1,11 +1,11 @@
 
 // components/AddNutritionLogModal.tsx
 import React, { useState, useMemo, useEffect } from 'react';
-import { NutritionLog, FoodItem, Settings, LoggedFood, PantryItem } from '../types';
+import { NutritionLog, Settings, LoggedFood, PantryItem } from '../types';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
-import { PlusIcon, TrashIcon } from './icons';
-import { FOOD_DATABASE } from '../data/foodDatabase';
+import { PlusIcon, TrashIcon, SearchIcon } from './icons';
+import { FoodSearchModal } from './FoodSearchModal';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { queueFatigueDataPoint } from '../services/augeAdaptiveService';
 
@@ -202,37 +202,28 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
   );
 };
 
-// --- Compact Add Food Component ---
+// --- Compact Add Food Component (FoodSearchModal + Despensa) ---
 const AddFoodComponent: React.FC<{
   onAddFood: (food: Omit<LoggedFood, 'id'>) => void;
   pantryItems: PantryItem[];
 }> = ({ onAddFood, pantryItems }) => {
   const { addToast } = useAppDispatch();
   const [mode, setMode] = useState<'search' | 'pantry'>('search');
-  const [query, setQuery] = useState('');
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  const handleTextSubmit = () => {
-      if(!query.trim()) return;
-      if (mode === 'search') {
-           const result = FOOD_DATABASE.find(f => f.name.toLowerCase().includes(query.toLowerCase()));
-           if (result) {
-               onAddFood({ foodName: result.name, amount: result.servingSize, unit: result.unit, calories: result.calories, protein: result.protein, carbs: result.carbs, fats: result.fats });
-               setQuery('');
-           } else {
-               addToast("No encontrado en base de datos. Intenta con otro nombre.", "suggestion");
-           }
-      }
+  const handleSearchSelect = (logged: LoggedFood) => {
+    onAddFood(logged);
+    addToast(`${logged.foodName} añadido`, 'success');
+    setIsSearchModalOpen(false);
   };
 
   return (
     <div className="flex flex-col gap-4">
-        {/* Tabs */}
         <div className="flex gap-6 border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-2">
             <button onClick={() => setMode('search')} className={`pb-1 transition-colors ${mode === 'search' ? 'text-white border-b-2 border-white' : 'hover:text-slate-300'}`}>Buscar</button>
             <button onClick={() => setMode('pantry')} className={`pb-1 transition-colors ${mode === 'pantry' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'hover:text-slate-300'}`}>Despensa</button>
         </div>
 
-        {/* Input Area */}
         <div className="relative flex items-center">
             {mode === 'pantry' ? (
                  <select onChange={(e) => {
@@ -246,21 +237,21 @@ const AddFoodComponent: React.FC<{
                     {pantryItems.map(p => <option key={p.id} value={p.id} className="text-black">{p.name}</option>)}
                  </select>
             ) : (
-                <div className="w-full relative">
-                    <input 
-                        type="text" 
-                        value={query}
-                        onChange={e => setQuery(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleTextSubmit()}
-                        placeholder="Ej: Manzana..."
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 pl-4 pr-12 text-sm text-white outline-none placeholder-slate-600 focus:border-white/30 transition-colors"
-                    />
-                    <button onClick={handleTextSubmit} disabled={!query} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white disabled:opacity-30">
-                        <PlusIcon size={18}/>
-                    </button>
-                </div>
+                <button
+                    onClick={() => setIsSearchModalOpen(true)}
+                    className="w-full flex items-center gap-3 bg-slate-900 border border-slate-700 rounded-xl p-3 text-left text-slate-400 hover:text-white hover:border-slate-600 transition-colors"
+                >
+                    <SearchIcon size={18} className="text-slate-500 shrink-0" />
+                    <span>Buscar alimento (USDA, Open Food Facts...)</span>
+                </button>
             )}
         </div>
+
+        <FoodSearchModal
+            isOpen={isSearchModalOpen}
+            onClose={() => setIsSearchModalOpen(false)}
+            onSelect={handleSearchSelect}
+        />
     </div>
   );
 };

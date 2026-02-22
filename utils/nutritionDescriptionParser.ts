@@ -1,9 +1,10 @@
 // utils/nutritionDescriptionParser.ts
-// Parser automático de descripciones de comida a tags y porción
+// Parser de descripciones de comida: tags, cantidades, método de cocción, porciones
 
-import type { PortionPreset } from '../types';
+import type { PortionPreset, ParsedMealItem, ParsedMealDescription, CookingMethod } from '../types';
 import { resolveToCanonical } from '../data/foodSynonyms';
 import { FOOD_DATABASE } from '../data/foodDatabase';
+import { detectCookingMethod } from '../data/cookingMethodFactors';
 
 const PORTION_PATTERNS: { pattern: RegExp; preset: PortionPreset }[] = [
     { pattern: /\b(plato\s+)?(muy\s+)?grande\b/i, preset: 'extra' },
@@ -20,9 +21,11 @@ const PORTION_PATTERNS: { pattern: RegExp; preset: PortionPreset }[] = [
 
 const CONNECTORS = /\s+(de\s+|con\s+|y\s+|,\s*|\+\s*)\s*/gi;
 
-/**
- * Extrae el preset de porción de la descripción
- */
+const LITERAL_QUANTITIES: Record<string, number> = {
+    'un': 1, 'una': 1, 'uno': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5,
+    'media': 0.5, 'medio': 0.5, 'doble': 2, 'triple': 3,
+};
+
 function extractPortion(description: string): PortionPreset {
     for (const { pattern, preset } of PORTION_PATTERNS) {
         if (pattern.test(description)) return preset;
@@ -30,9 +33,6 @@ function extractPortion(description: string): PortionPreset {
     return 'medium';
 }
 
-/**
- * Elimina patrones de porción del texto para extraer solo alimentos
- */
 function removePortionPhrases(text: string): string {
     return text
         .replace(/\b(plato\s+)?(muy\s+)?(grande|mediano|pequeño)\b/gi, '')
@@ -47,38 +47,66 @@ function removePortionPhrases(text: string): string {
         .replace(/\s{2,}/g, ' ');
 }
 
-/**
- * Tokeniza la descripción en candidatos de alimentos
- */
-function tokenize(description: string): string[] {
-    const cleaned = removePortionPhrases(description);
-    const parts = cleaned.split(CONNECTORS).filter(Boolean);
-    const tokens: string[] = [];
-    for (const p of parts) {
-        const t = p.trim().toLowerCase();
-        if (t && t.length > 1 && !/^(de|con|y|la|el|los|las|un|una|unos|unas)$/.test(t)) {
-            tokens.push(t);
-        }
-    }
-    if (tokens.length === 0 && cleaned.trim()) {
-        tokens.push(cleaned.trim());
-    }
-    return tokens;
-}
-
-/**
- * Busca si un término existe en la base de datos (por nombre)
- */
 function findInDatabase(term: string): string | null {
     const normalized = term.toLowerCase();
-    const dbNames = FOOD_DATABASE.map(f => f.name.toLowerCase());
     const exact = FOOD_DATABASE.find(f => f.name.toLowerCase() === normalized);
     if (exact) return exact.name;
-    const partial = FOOD_DATABASE.find(f => 
+    const partial = FOOD_DATABASE.find(f =>
         f.name.toLowerCase().includes(normalized) || normalized.includes(f.name.toLowerCase())
     );
-    if (partial) return partial.name;
+    return partial?.name ?? null;
+}
+
+/** Parsea un fragmento "2 panes" o "pan" -> { tag, quantity } */
+function parseFragment(frag: string): { tag: string; qty: number } | null {
+    const t = frag.trim().toLowerCase();
+    if (!t || t.length < 2) return null;
+    const numMatch = t.match(/^(\d+(?:\.\d+)?)\s*(?:x\s*)?(.+)$/);
+    if (numMatch) {
+        const qty = parseFloat(numMatch[1]);
+        const food = numMatch[2].trim();
+        const canonical = resolveToCanonical(food);
+        const tag = findInDatabase(canonical) || canonical;
+        if (tag.length > 1 && qty > 0) return { tag, qty };
+    }
+    const literalQty = LITERAL_QUANTITIES[t];
+    if (literalQty != null) return null;
+    const canonical = resolveToCanonical(t);
+    const tag = findInDatabase(canonical) || canonical;
+    if (tag.length > 1) return { tag, qty: 1 };
     return null;
+}
+
+/** Extrae items con cantidades: "2 panes con huevo" -> [{tag: "pan", qty: 2}, {tag: "huevo", qty: 1}] */
+function extractItemsWithQuantities(description: string): ParsedMealItem[] {
+    const portion = extractPortion(description);
+    const cookingMethod = detectCookingMethod(description);
+    const cleaned = removePortionPhrases(description);
+    const items: ParsedMealItem[] = [];
+    const seen = new Set<string>();
+
+    const parts = cleaned.split(CONNECTORS).filter(Boolean);
+
+    for (const p of parts) {
+        const parsed = parseFragment(p);
+        if (parsed) {
+            const key = `${parsed.tag}:${parsed.qty}`;
+            if (!seen.has(parsed.tag)) {
+                seen.add(parsed.tag);
+                items.push({ tag: parsed.tag, quantity: parsed.qty, cookingMethod, portion });
+            } else {
+                const idx = items.findIndex(i => i.tag === parsed.tag);
+                if (idx >= 0) items[idx].quantity += parsed.qty;
+            }
+        }
+    }
+
+    if (items.length === 0 && cleaned.trim()) {
+        const parsed = parseFragment(cleaned.trim());
+        if (parsed) items.push({ tag: parsed.tag, quantity: parsed.qty, cookingMethod, portion });
+    }
+
+    return items;
 }
 
 export interface ParsedDescription {
@@ -88,28 +116,21 @@ export interface ParsedDescription {
 }
 
 /**
- * Parsea una descripción de comida en tags (alimentos) y porción
- * Ej: "plato grande de fideos con salsa y carne molida" -> { tags: ['fideos', 'salsa de tomate', 'carne molida'], portion: 'large' }
+ * Parsea descripción en items con cantidades y método de cocción
+ */
+export function parseMealDescription(description: string): ParsedMealDescription {
+    const trimmed = description.trim();
+    if (!trimmed) return { items: [], rawDescription: '' };
+    const items = extractItemsWithQuantities(trimmed);
+    return { items, rawDescription: trimmed };
+}
+
+/**
+ * Parsea una descripción de comida en tags (alimentos) y porción (legacy)
  */
 export function parseNutritionDescription(description: string): ParsedDescription {
-    const trimmed = description.trim();
-    if (!trimmed) return { tags: [], portion: 'medium', rawDescription: '' };
-
-    const portion = extractPortion(trimmed);
-    const tokens = tokenize(trimmed);
-    const tags: string[] = [];
-    const seen = new Set<string>();
-
-    for (const token of tokens) {
-        const canonical = resolveToCanonical(token);
-        const inDb = findInDatabase(canonical);
-        const finalName = inDb || canonical;
-        const key = finalName.toLowerCase();
-        if (!seen.has(key) && finalName.length > 1) {
-            seen.add(key);
-            tags.push(finalName);
-        }
-    }
-
-    return { tags, portion, rawDescription: trimmed };
+    const { items, rawDescription } = parseMealDescription(description);
+    const portion = items[0]?.portion ?? 'medium';
+    const tags = items.map(i => i.tag);
+    return { tags, portion, rawDescription };
 }
