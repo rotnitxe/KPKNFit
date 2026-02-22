@@ -285,7 +285,7 @@ export const App: React.FC = () => {
     // --- FIN VIP PASS ---
 
     // --- SISTEMA DE VERSIONES Y ESCUDO ANTI-CACHÉ ---
-    const APP_VERSION = "1.2.0";
+    const APP_VERSION = "1.3.0";
     const [showUpdateModal, setShowUpdateModal] = useState(false);
 
     useEffect(() => {
@@ -573,18 +573,20 @@ export const App: React.FC = () => {
                         <h2 className="text-xl font-black text-white uppercase text-center tracking-tight mb-2 relative z-10">¡KPKN Actualizado!</h2>
                         <p className="text-zinc-400 text-[11px] text-center font-bold uppercase tracking-widest mb-6 relative z-10">Versión Instalada: {APP_VERSION}</p>
                         
-                        <div className="bg-black/50 rounded-2xl p-5 mb-6 border border-white/5 space-y-3 relative z-10">
+                        <div className="bg-black/50 rounded-2xl p-5 mb-6 border border-white/5 space-y-3 relative z-10 max-h-[50vh] overflow-y-auto custom-scrollbar">
                             <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                                 Novedades v{APP_VERSION}:
                             </h3>
                             <ul className="text-[11px] text-zinc-300 space-y-2.5 font-bold">
-                                <li className="flex items-start gap-2"><span className="text-red-500 mt-0.5">•</span> <span>Caja Negra mejorada: errores se muestran en pantalla con botón de copiar en vez de pantalla negra.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Eliminar sesiones ahora funciona correctamente en todas las vistas.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Splits por bloque se respetan al crear programas avanzados.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Días de la semana se asignan correctamente al crear sesiones desde una vista semanal.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-yellow-500 mt-0.5">•</span> <span>Luces de jueceo movidas al entrenamiento en vivo (donde pertenecen).</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span>Vistas semanal y macrociclo sincronizadas correctamente entre bloques.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">•</span> <span><strong>Registro de comida rediseñado:</strong> detecta gramos (200g arroz), cantidades (2 huevos) y cocción (frito, plancha, horno) por alimento. Sin duplicados ni errores como &quot;200x pechuga&quot;.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">•</span> <span><strong>Tags automáticos:</strong> al escribir, los alimentos se convierten en etiquetas si hay coincidencia. Pulsa una etiqueta para editar gramos, porción o método de cocción.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span><strong>Nutrición + Batería AUGE:</strong> opción en Ajustes para conectar calorías y macros con la recuperación muscular. Lógica no lineal: superávit no siempre acelera la recuperación.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span><strong>Reporte de micronutrientes:</strong> al final del día verás si hay carencias específicas (hierro, calcio, vitaminas, etc.) según lo que comiste.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">•</span> <span><strong>Régimen de déficit calórico:</strong> si reportas déficit, la app te avisa en el editor de sesiones que el entrenamiento podría ser duro de recuperar y reduce los límites de volumen sugeridos.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span><strong>Bases de datos offline:</strong> USDA y Open Food Facts disponibles sin conexión. Productos con caloría 0 enriquecidos con valores genéricos.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span><strong>Búsqueda unificada:</strong> evita duplicados entre USDA y OFF; prioriza USDA y rellena macros faltantes desde la otra fuente.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-zinc-500 mt-0.5">•</span> <span>Guía de ayuda en el registro de comida con ejemplos y consejos para escribir descripciones correctamente.</span></li>
                             </ul>
                         </div>
 

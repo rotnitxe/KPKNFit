@@ -1,12 +1,12 @@
 {
   "name": "KPKN: ALL-IN-ONE Fitness App",
   "short_name": "KPKN",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
-  "display_override": [
-    "standalone"
-  ],
+  "display_override": ["standalone"],
   "display": "standalone",
+  "prefer_related_applications": false,
   "orientation": "portrait-primary",
   "background_color": "#000000",
   "theme_color": "#000000",
@@ -14,98 +14,14 @@
   "categories": ["fitness", "health", "sports"],
   "lang": "es",
   "icons": [
-    {
-      "src": "favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+    {"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
   ],
   "widgets": [
-    {
-      "name": "Próxima Sesión - KPKN",
-      "description": "Muestra tu próximo entrenamiento programado.",
-      "tag": "next_workout",
-      "template": "widget-template.html",
-      "screenshots": [
-        {
-          "src": "icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ],
-      "data": {
-        "title": "Cargando Próxima Sesión...",
-        "program": "Tu Programa",
-        "session": "Ninguna sesión hoy"
-      }
-    },
-    {
-      "name": "Macros de Hoy - KPKN",
-      "description": "Muestra un resumen de tus macronutrientes consumidos hoy.",
-      "tag": "macros_today",
-      "template": "widget-template.html",
-      "screenshots": [
-        {
-          "src": "icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ],
-      "data": {
-        "calories": "---",
-        "protein": "--",
-        "carbs": "--",
-        "fats": "--"
-      }
-    },
-    {
-      "name": "Batería Muscular - KPKN",
-      "description": "Muestra el estado de recuperación de tus músculos más fatigados.",
-      "tag": "muscle_battery",
-      "template": "widget-template.html",
-      "screenshots": [
-        {
-          "src": "icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ],
-      "data": {
-        "muscle1_name": "Cargando...",
-        "muscle1_score": "0",
-        "muscle2_name": "...",
-        "muscle2_score": "0"
-      }
-    },
-    {
-      "name": "Volumen Efectivo - KPKN",
-      "description": "Compara tu volumen efectivo semanal completado contra el planeado.",
-      "tag": "effective_volume",
-      "template": "widget-template.html",
-      "screenshots": [
-        {
-          "src": "icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ],
-      "data": {
-        "completed": "0",
-        "planned": "0"
-      }
-    }
+    {"name": "Próxima Sesión - KPKN", "description": "Muestra tu próximo entrenamiento programado.", "tag": "next_workout", "template": "widget-template.html", "screenshots": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}], "data": {"title": "Cargando Próxima Sesión...", "program": "Tu Programa", "session": "Ninguna sesión hoy"}},
+    {"name": "Macros de Hoy - KPKN", "description": "Muestra un resumen de tus macronutrientes consumidos hoy.", "tag": "macros_today", "template": "widget-template.html", "screenshots": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}], "data": {"calories": "---", "protein": "--", "carbs": "--", "fats": "--"}},
+    {"name": "Batería Muscular - KPKN", "description": "Muestra el estado de recuperación de tus músculos más fatigados.", "tag": "muscle_battery", "template": "widget-template.html", "screenshots": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}], "data": {"muscle1_name": "Cargando...", "muscle1_score": "0", "muscle2_name": "...", "muscle2_score": "0"}},
+    {"name": "Volumen Efectivo - KPKN", "description": "Compara tu volumen efectivo semanal completado contra el planeado.", "tag": "effective_volume", "template": "widget-template.html", "screenshots": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}], "data": {"completed": "0", "planned": "0"}}
   ]
 }
