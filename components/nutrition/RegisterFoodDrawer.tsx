@@ -2,17 +2,40 @@
 // Drawer lateral para registrar comida con parser de descripción y tags
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionPreset, CookingMethod } from '../../types';
+import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionPreset, CookingMethod, PortionInput } from '../../types';
 import { useMealTemplateStore } from '../../stores/mealTemplateStore';
 import { PORTION_MULTIPLIERS } from '../../types';
 import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
 import { getCookingFactor } from '../../data/cookingMethodFactors';
 import { searchFoods } from '../../services/foodSearchService';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
-import { XIcon, TrashIcon, InfoIcon, UtensilsIcon } from '../icons';
+import { XIcon, TrashIcon, InfoIcon, UtensilsIcon, SearchIcon } from '../icons';
 import { FoodSearchModal } from '../FoodSearchModal';
 import { MealTemplateSelector } from './MealTemplateSelector';
+import { PortionSelector } from '../PortionSelector';
 import Button from '../ui/Button';
+
+function foodToLoggedFood(food: FoodItem, amountGrams: number, portionInput?: PortionInput): LoggedFood {
+    const ratio = amountGrams / food.servingSize;
+    const logged: LoggedFood = {
+        id: crypto.randomUUID(),
+        foodName: food.name,
+        amount: Math.round(amountGrams * 10) / 10,
+        unit: food.unit || 'g',
+        calories: Math.round((food.calories / food.servingSize) * amountGrams),
+        protein: Math.round((food.protein / food.servingSize) * amountGrams * 10) / 10,
+        carbs: Math.round((food.carbs / food.servingSize) * amountGrams * 10) / 10,
+        fats: Math.round((food.fats / food.servingSize) * amountGrams * 10) / 10,
+        fatBreakdown: food.fatBreakdown ? {
+            saturated: Math.round((food.fatBreakdown.saturated || 0) * ratio * 10) / 10,
+            monounsaturated: Math.round((food.fatBreakdown.monounsaturated || 0) * ratio * 10) / 10,
+            polyunsaturated: Math.round((food.fatBreakdown.polyunsaturated || 0) * ratio * 10) / 10,
+            trans: Math.round((food.fatBreakdown.trans || 0) * ratio * 10) / 10,
+        } : undefined,
+    };
+    if (portionInput) logged.portionInput = portionInput;
+    return logged;
+}
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     if (dateString && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
@@ -82,8 +105,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const [searchModalForTagIdx, setSearchModalForTagIdx] = useState<number | null>(null);
     const [expandedTagIdx, setExpandedTagIdx] = useState<number | null>(null);
     const [showHelp, setShowHelp] = useState(false);
-    const [activeTab, setActiveTab] = useState<'description' | 'templates'>('description');
+    const [activeTab, setActiveTab] = useState<'description' | 'search' | 'hybrid' | 'templates'>('description');
     const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [selectedFoodForPortion, setSelectedFoodForPortion] = useState<FoodItem | null>(null);
+    const [hybridSuggestions, setHybridSuggestions] = useState<FoodItem[]>([]);
+    const [hybridSuggestionsLoading, setHybridSuggestionsLoading] = useState(false);
     const [templateName, setTemplateName] = useState('');
     const skipParseRef = useRef(false);
 
@@ -136,7 +165,6 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             return;
         }
         if (!description.trim()) {
-            setTagItems([]);
             return;
         }
         const { items } = parsed;
@@ -187,9 +215,100 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     }, [description, parsed, settings, buildLoggedFromItem]);
 
     useEffect(() => {
+        if (activeTab !== 'description' && activeTab !== 'hybrid') return;
+        if (activeTab === 'hybrid' && description.trim() && !hasStructuredContent(description)) {
+            return;
+        }
         const t = setTimeout(() => parseAndSetTags(), DEBOUNCE_MS);
         return () => clearTimeout(t);
-    }, [description, parseAndSetTags]);
+    }, [description, parseAndSetTags, activeTab, hasStructuredContent]);
+
+    const doSearch = useCallback(async (q: string) => {
+        if (!q.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        setSearchLoading(true);
+        try {
+            const items = await searchFoods(q, settings);
+            setSearchResults(items);
+        } finally {
+            setSearchLoading(false);
+        }
+    }, [settings]);
+
+    useEffect(() => {
+        if (activeTab !== 'search') return;
+        const t = setTimeout(() => doSearch(searchQuery), DEBOUNCE_MS);
+        return () => clearTimeout(t);
+    }, [searchQuery, activeTab, doSearch]);
+
+    const handleSearchPortionConfirm = useCallback((portion: PortionInput, amountGrams: number) => {
+        if (!selectedFoodForPortion) return;
+        const logged = foodToLoggedFood(selectedFoodForPortion, amountGrams, portion);
+        const tag: TagWithFood = {
+            tag: selectedFoodForPortion.name,
+            portion: 'medium',
+            quantity: 1,
+            amountGrams,
+            cookingMethod: undefined,
+            foodItem: selectedFoodForPortion,
+            loggedFood: logged,
+        };
+        setTagItems(prev => [...prev, tag]);
+        setSelectedFoodForPortion(null);
+        setSearchQuery('');
+    }, [selectedFoodForPortion]);
+
+    const addTagFromFoodItem = useCallback((food: FoodItem, amountGrams?: number) => {
+        const grams = amountGrams ?? food.servingSize * PORTION_MULTIPLIERS['medium'];
+        const logged = foodToLoggedFood(food, grams);
+        const tag: TagWithFood = {
+            tag: food.name,
+            portion: 'medium',
+            quantity: 1,
+            amountGrams: grams,
+            cookingMethod: undefined,
+            foodItem: food,
+            loggedFood: logged,
+        };
+        setTagItems(prev => [...prev, tag]);
+    }, []);
+
+    const hasStructuredContent = useCallback((text: string): boolean => {
+        const t = text.trim();
+        if (!t || t.length < 2) return false;
+        return (
+            /\d{1,4}\s*(g|gr|gramos?|kg)/i.test(t) ||
+            /^(dos|tres|cuatro|cinco|un|una|medio|media|doble|triple)\s+\w+/i.test(t) ||
+            /^\d+\s+(x\s*)?\w+/.test(t) ||
+            /(cocido|cocida|frito|frita|plancha|horno|crudo|empanizado)/i.test(t) ||
+            t.includes(',') ||
+            /\s+y\s+/.test(t) ||
+            /\s+con\s+/.test(t)
+        );
+    }, []);
+
+    useEffect(() => {
+        if (activeTab !== 'hybrid' || !description.trim()) {
+            setHybridSuggestions([]);
+            return;
+        }
+        if (hasStructuredContent(description)) {
+            setHybridSuggestions([]);
+            return;
+        }
+        const t = setTimeout(async () => {
+            setHybridSuggestionsLoading(true);
+            try {
+                const items = await searchFoods(description.trim(), settings);
+                setHybridSuggestions(items);
+            } finally {
+                setHybridSuggestionsLoading(false);
+            }
+        }, DEBOUNCE_MS);
+        return () => clearTimeout(t);
+    }, [description, activeTab, settings, hasStructuredContent]);
 
     const handleDescriptionBlur = () => parseAndSetTags();
     const handleKeyDown = (e: React.KeyboardEvent) => e.key === 'Enter' && parseAndSetTags();
@@ -310,6 +429,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         setDescription('');
         setTagItems([]);
         setExpandedTagIdx(null);
+        setSelectedFoodForPortion(null);
+        setSearchQuery('');
         onClose();
     };
 
@@ -361,22 +482,39 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         </div>
                     )}
 
-                    <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+                    <div className="flex gap-1 bg-white/5 p-1 rounded-lg overflow-x-auto">
                         <button
                             onClick={() => setActiveTab('description')}
-                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
                                 activeTab === 'description' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
                             Comida
                         </button>
                         <button
+                            onClick={() => setActiveTab('search')}
+                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                                activeTab === 'search' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                            }`}
+                        >
+                            <SearchIcon size={12} />
+                            Buscar
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('hybrid')}
+                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                                activeTab === 'hybrid' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                            }`}
+                        >
+                            Híbrido
+                        </button>
+                        <button
                             onClick={() => setActiveTab('templates')}
-                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
                                 activeTab === 'templates' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
-                            <UtensilsIcon size={14} />
+                            <UtensilsIcon size={12} />
                             Plantillas
                         </button>
                     </div>
@@ -390,6 +528,298 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 onSelect={handleTemplateSelect}
                                 onClose={() => setActiveTab('description')}
                             />
+                        </div>
+                    ) : activeTab === 'search' ? (
+                        <div className="space-y-4 animate-fade-in">
+                            <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                                Buscar alimento
+                            </label>
+                            {!selectedFoodForPortion ? (
+                                <>
+                                    <div className="relative">
+                                        <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                        <input
+                                            type="text"
+                                            value={searchQuery}
+                                            onChange={e => setSearchQuery(e.target.value)}
+                                            placeholder="Ej: pechuga de pollo, arroz..."
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
+                                        />
+                                    </div>
+                                    {searchLoading && <p className="text-xs text-zinc-500">Buscando...</p>}
+                                    <div className="overflow-y-auto max-h-48 custom-scrollbar space-y-0.5">
+                                        {searchResults.map(food => (
+                                            <button
+                                                key={food.id}
+                                                onClick={() => setSelectedFoodForPortion(food)}
+                                                className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                                    {food.image ? (
+                                                        <img src={food.image} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                                                    ) : (
+                                                        <UtensilsIcon size={14} className="text-zinc-500" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-medium text-white truncate">{food.name}</p>
+                                                    <p className="text-[10px] text-zinc-500 font-mono">
+                                                        {Math.round(food.calories)} kcal · P:{food.protein} C:{food.carbs} F:{food.fats}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        ))}
+                                        {!searchLoading && searchQuery && searchResults.length === 0 && (
+                                            <p className="text-center text-sm text-zinc-500 py-6">No se encontraron resultados</p>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <PortionSelector
+                                    food={selectedFoodForPortion}
+                                    onConfirm={handleSearchPortionConfirm}
+                                    onCancel={() => setSelectedFoodForPortion(null)}
+                                />
+                            )}
+                            {tagItems.length > 0 && (
+                                <div className="pt-2 border-t border-white/10">
+                                    <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                                        Añadidos
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {tagItems.map((t, idx) => (
+                                            <div key={idx} className="relative">
+                                                <button
+                                                    onClick={() => setExpandedTagIdx(prev => (prev === idx ? null : idx))}
+                                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                                        t.loggedFood
+                                                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                                                            : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
+                                                    }`}
+                                                >
+                                                    {t.quantity > 1 && <span>{t.quantity}x</span>}
+                                                    {t.amountGrams != null && <span>{t.amountGrams}g</span>}
+                                                    <span>{t.tag}</span>
+                                                    {t.loggedFood && (
+                                                        <span className="font-mono text-[10px] opacity-80">{t.loggedFood.calories}kcal</span>
+                                                    )}
+                                                </button>
+                                                {expandedTagIdx === idx && (
+                                                    <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-[#111] border border-white/10 shadow-xl space-y-2">
+                                                        <div>
+                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Gramos</label>
+                                                            <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Porción</label>
+                                                            <div className="flex gap-1 flex-wrap">
+                                                                {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(p => (
+                                                                    <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{portionLabels[p]}</button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Cocción</label>
+                                                            <div className="flex gap-1 flex-wrap">
+                                                                {(['crudo', 'cocido', 'plancha', 'horno', 'frito', 'empanizado_frito'] as CookingMethod[]).map(m => (
+                                                                    <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{cookingLabels[m]}</button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex justify-between pt-2 border-t border-white/5">
+                                                            <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
+                                                            {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}
+                                                        </div>
+                                                        {t.loggedFood && <p className="text-[10px] text-zinc-500 font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-2 flex items-center gap-4">
+                                        <span className="text-lg font-black text-white font-mono">{Math.round(totalMacros.calories)} kcal</span>
+                                        <span className="text-xs text-zinc-500">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
+                                    </div>
+                                    {!showSaveTemplate && (
+                                        <button
+                                            onClick={() => setShowSaveTemplate(true)}
+                                            className="mt-2 flex items-center gap-2 text-[10px] font-bold text-cyan-400 hover:text-cyan-300"
+                                        >
+                                            <UtensilsIcon size={14} />
+                                            Guardar como plantilla
+                                        </button>
+                                    )}
+                                    {showSaveTemplate && (
+                                        <div className="mt-2 p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                                            <input
+                                                type="text"
+                                                value={templateName}
+                                                onChange={e => setTemplateName(e.target.value)}
+                                                placeholder="Nombre de la plantilla"
+                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600"
+                                                autoFocus
+                                            />
+                                            <div className="flex gap-2">
+                                                <button onClick={handleSaveAsTemplate} className="flex-1 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 text-xs font-bold">Guardar</button>
+                                                <button onClick={() => { setShowSaveTemplate(false); setTemplateName(''); }} className="py-2 px-3 rounded-lg bg-white/5 text-zinc-500 text-xs font-bold">Cancelar</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ) : activeTab === 'hybrid' ? (
+                        <div className="animate-fade-in">
+                            <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                                Escribe o busca
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={description}
+                                    onChange={e => setDescription(e.target.value)}
+                                    onBlur={handleDescriptionBlur}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') {
+                                            if (hasStructuredContent(description)) {
+                                                parseAndSetTags();
+                                            } else if (hybridSuggestions.length > 0) {
+                                                addTagFromFoodItem(hybridSuggestions[0]);
+                                                setDescription('');
+                                            }
+                                        }
+                                    }}
+                                    placeholder="200g arroz cocido, 150g pechuga... o escribe 'pechuga' para buscar"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
+                                />
+                                {activeTab === 'hybrid' && description.trim() && !hasStructuredContent(description) && (
+                                    <div className="absolute top-full left-0 right-0 mt-1 z-20 max-h-48 overflow-y-auto rounded-xl bg-[#111] border border-white/10 shadow-xl custom-scrollbar">
+                                        {hybridSuggestionsLoading ? (
+                                            <p className="px-4 py-3 text-xs text-zinc-500">Buscando...</p>
+                                        ) : hybridSuggestions.length > 0 ? (
+                                            hybridSuggestions.map(food => (
+                                                <button
+                                                    key={food.id}
+                                                    onClick={() => {
+                                                        addTagFromFoodItem(food);
+                                                        setDescription('');
+                                                    }}
+                                                    className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 border-b border-white/5 last:border-0"
+                                                >
+                                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                                        {food.image ? (
+                                                            <img src={food.image} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                                                        ) : (
+                                                            <UtensilsIcon size={14} className="text-zinc-500" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-medium text-white truncate">{food.name}</p>
+                                                        <p className="text-[10px] text-zinc-500 font-mono">
+                                                            {Math.round(food.calories)} kcal · P:{food.protein} C:{food.carbs} F:{food.fats}
+                                                        </p>
+                                                    </div>
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <p className="px-4 py-3 text-xs text-zinc-500">No hay sugerencias</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            {tagItems.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {tagItems.map((t, idx) => (
+                                        <div key={idx} className="relative">
+                                            <button
+                                                onClick={() => setExpandedTagIdx(prev => (prev === idx ? null : idx))}
+                                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                                    t.loggedFood
+                                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                                                        : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
+                                                }`}
+                                            >
+                                                {t.quantity > 1 && <span>{t.quantity}x</span>}
+                                                {t.amountGrams != null && <span>{t.amountGrams}g</span>}
+                                                <span>{t.tag}</span>
+                                                {t.loggedFood && (
+                                                    <span className="font-mono text-[10px] opacity-80">{t.loggedFood.calories}kcal</span>
+                                                )}
+                                            </button>
+                                            {expandedTagIdx === idx && (
+                                                <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-[#111] border border-white/10 shadow-xl space-y-2">
+                                                    <div>
+                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Gramos</label>
+                                                        <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Porción</label>
+                                                        <div className="flex gap-1 flex-wrap">
+                                                            {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(p => (
+                                                                <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{portionLabels[p]}</button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Cocción</label>
+                                                        <div className="flex gap-1 flex-wrap">
+                                                            {(['crudo', 'cocido', 'plancha', 'horno', 'frito', 'empanizado_frito'] as CookingMethod[]).map(m => (
+                                                                <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{cookingLabels[m]}</button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between pt-2 border-t border-white/5">
+                                                        <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
+                                                        {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}
+                                                    </div>
+                                                    {t.loggedFood && <p className="text-[10px] text-zinc-500 font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {tagItems.length > 0 && foods.length > 0 && (
+                                <div className="mt-3 flex items-center gap-4">
+                                    <span className="text-lg font-black text-white font-mono">{Math.round(totalMacros.calories)} kcal</span>
+                                    <span className="text-xs text-zinc-500">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
+                                </div>
+                            )}
+                            {foods.length > 0 && !showSaveTemplate && (
+                                <button
+                                    onClick={() => setShowSaveTemplate(true)}
+                                    className="mt-3 flex items-center gap-2 text-[10px] font-bold text-cyan-400 hover:text-cyan-300"
+                                >
+                                    <UtensilsIcon size={14} />
+                                    Guardar como plantilla
+                                </button>
+                            )}
+                            {showSaveTemplate && (
+                                <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                                    <input
+                                        type="text"
+                                        value={templateName}
+                                        onChange={e => setTemplateName(e.target.value)}
+                                        placeholder="Nombre de la plantilla"
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600"
+                                        autoFocus
+                                    />
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleSaveAsTemplate}
+                                            className="flex-1 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 text-xs font-bold"
+                                        >
+                                            Guardar
+                                        </button>
+                                        <button
+                                            onClick={() => { setShowSaveTemplate(false); setTemplateName(''); }}
+                                            className="py-2 px-3 rounded-lg bg-white/5 text-zinc-500 text-xs font-bold"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ) : (
                     <div>
