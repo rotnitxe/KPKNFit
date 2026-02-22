@@ -195,6 +195,10 @@ def calculate_set_battery_drain(
     if accumulated_sets >= 6:
         junk_mult = 1.0 + (accumulated_sets - 5) * 0.35
 
+    # Parciales = volumen basura (fatiga en desmedro del estímulo)
+    partial_reps = set_data.get("partialReps") or 0
+    junk_from_partials = 1 + (partial_reps * 0.2) if partial_reps > 0 else 1.0
+
     # Rest factor
     if rest_time <= 45:
         rest_factor = 1.3
@@ -203,7 +207,7 @@ def calculate_set_battery_drain(
     else:
         rest_factor = 1.0
 
-    raw_musc = auge["efc"] * reps_musc * intensity_mult * junk_mult * rest_factor * 8.0
+    raw_musc = auge["efc"] * reps_musc * intensity_mult * junk_mult * rest_factor * junk_from_partials * 8.0
     raw_cns = auge["cnc"] * reps_cns * intensity_mult * rest_factor * 6.0
     weight_factor = (set_data.get("weight") or 0) * 0.05 if set_data.get("weight") else auge["efc"] * 2.0
     raw_spinal = auge["ssc"] * reps_spine * intensity_mult * weight_factor * 4.0

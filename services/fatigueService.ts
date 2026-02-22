@@ -199,15 +199,21 @@ export const calculateSetBatteryDrain = (
     if (restTime <= 45) restFactor = 1.3; // Superseries drenan más rápido
     else if (restTime >= 180) restFactor = 0.85; // Descansos largos protegen el SNC
 
-    // 5. CÁLCULO DE DAÑO BRUTO
-    const rawMuscular = auge.efc * repsMuscMult * intensityMult * junkVolumeMult * restFactor * 8.0;
+    // 5. PARCIALES = VOLUMEN BASURA (fatiga en desmedro del estímulo)
+    // Las reps parciales aumentan fatiga metabólica sin aportar estímulo de fuerza.
+    // Penalizan la batería muscular (más drenaje) sin aumentar SNC/espinal proporcionalmente.
+    const partialReps = set.partialReps || 0;
+    const junkVolumeFromPartials = partialReps > 0 ? 1 + (partialReps * 0.2) : 1; // +20% muscular drain por cada parcial
+
+    // 6. CÁLCULO DE DAÑO BRUTO
+    const rawMuscular = auge.efc * repsMuscMult * intensityMult * junkVolumeMult * restFactor * junkVolumeFromPartials * 8.0;
     const rawCns = auge.cnc * repsCnsMult * intensityMult * restFactor * 6.0;
     
     // El estrés espinal requiere el peso. Si no hay peso, lo estimamos con RPE y EFC.
     const weightFactor = set.weight ? (set.weight * 0.05) : (auge.efc * 2.0); 
     const rawSpinal = auge.ssc * repsSpineMult * intensityMult * weightFactor * 4.0;
 
-    // 6. CONVERSIÓN A PORCENTAJE DE BATERÍA DRENADA
+    // 7. CONVERSIÓN A PORCENTAJE DE BATERÍA DRENADA
     return {
         muscularDrainPct: (rawMuscular / tanks.muscularTank) * 100,
         cnsDrainPct: (rawCns / tanks.cnsTank) * 100,
@@ -336,4 +342,40 @@ export const calculateCompletedSessionStress = (
     });
 
     return totalStress;
+};
+
+/**
+ * --- DESGLOSE DE DRENAJE POR SISTEMA (AUGE → Banister/Bayesian) ---
+ * Retorna el drenaje por SNC, muscular y espinal para alimentar Banister y métricas de recuperación.
+ * Lo que el usuario ingresa en WorkoutSession (reps, peso, RPE, parciales, dropsets, etc.)
+ * fluye aquí y afecta AUGE, Banister y Bayesian.
+ */
+export const calculateCompletedSessionDrainBreakdown = (
+    completedExercises: CompletedExercise[],
+    exerciseList: ExerciseMuscleInfo[],
+    settings?: any
+): { totalStress: number; cnsDrain: number; muscularDrain: number; spinalDrain: number } => {
+    const tanks = calculatePersonalizedBatteryTanks(settings || {});
+    let totalCns = 0, totalMuscular = 0, totalSpinal = 0;
+    const muscleVolumeMap: Record<string, number> = {};
+    const exIndex = buildExerciseIndex(exerciseList);
+
+    completedExercises.forEach(ex => {
+        const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
+        const primaryMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
+        let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
+
+        ex.sets.forEach((s: any) => {
+            if (s.type === 'warmup') return;
+            accumulatedSets += 1;
+            const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, 90);
+            totalCns += drain.cnsDrainPct;
+            totalMuscular += drain.muscularDrainPct;
+            totalSpinal += drain.spinalDrainPct;
+        });
+        muscleVolumeMap[primaryMuscle] = accumulatedSets;
+    });
+
+    const totalStress = totalCns + totalMuscular + totalSpinal;
+    return { totalStress, cnsDrain: totalCns, muscularDrain: totalMuscular, spinalDrain: totalSpinal };
 };

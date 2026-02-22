@@ -32,7 +32,8 @@ import { routerNavigate, routerBack } from '../routes/navigation';
 import * as aiService from '../services/aiService';
 import { getWeekId, estimatePercent1RM, getRepDebtContextKey, calculateBrzycki1RM } from '../utils/calculations';
 import { cacheService } from '../services/cacheService';
-import { calculateCompletedSessionStress } from '../services/auge';
+import { calculateCompletedSessionStress, calculateCompletedSessionDrainBreakdown } from '../services/auge';
+import { queueFatigueDataPoint, queueTrainingImpulse } from '../services/augeAdaptiveService';
 import { UIProvider, UIState, UIDispatch } from './UIContext';
 
 const AppStateContext = createContext<AppContextState | undefined>(undefined);
@@ -696,6 +697,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!ongoingWorkout) return;
         const logId = crypto.randomUUID();
         const sessionStressScore = calculateCompletedSessionStress(completedExercises, exerciseList);
+        const drainBreakdown = calculateCompletedSessionDrainBreakdown(completedExercises, exerciseList, settings);
+
+        queueFatigueDataPoint({
+            hours_since_session: 0,
+            session_stress: sessionStressScore,
+            sleep_hours: 7,
+            nutrition_status: 1,
+            stress_level: 3,
+            age: settings.userVitals?.age || 25,
+            is_compound_dominant: true,
+            observed_fatigue_fraction: Math.min(1, sessionStressScore / 100),
+        });
+        queueTrainingImpulse({
+            timestamp_hours: 0,
+            impulse: drainBreakdown.totalStress,
+            cns_impulse: drainBreakdown.cnsDrain,
+            spinal_impulse: drainBreakdown.spinalDrain,
+        });
 
         if (sessionStressScore > 200) {
             let avgWakeHour = 7, avgWakeMinute = 0;

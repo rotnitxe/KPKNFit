@@ -17,6 +17,13 @@ import { getCachedAdaptiveData, getConfidenceLabel, getConfidenceColor } from '.
 import { GPFatigueCurve, BayesianConfidence, BanisterTrend } from './ui/AugeDeepView';
 import { calculateUnifiedMuscleVolume, normalizeMuscleGroup } from '../services/volumeCalculator';
 import ToggleSwitch from './ui/ToggleSwitch';
+import ContextualHeader from './session-editor/ContextualHeader';
+import ExerciseRow from './session-editor/ExerciseRow';
+import PartSection from './session-editor/PartSection';
+import SaveBar from './session-editor/SaveBar';
+import AugeFAB from './session-editor/AugeFAB';
+import AugeDrawerComponent from './session-editor/AugeDrawer';
+import { TransferDrawer, HistoryDrawer, RulesDrawer, SaveDrawer } from './session-editor/DrawerSystem';
 
 export interface SessionEditorProps {
   // Ahora onSave puede recibir un array de sesiones modificadas para el guardado en lote
@@ -1271,7 +1278,8 @@ const SupersetManagementBlock: React.FC<{
 const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel, existingSessionInfo, isOnline, settings, saveTrigger, addExerciseTrigger, exerciseList }) => {
     const { isDirty, setIsDirty, addToast, programs = [] } = useAppContext(); // <--- PROTECCIÓN 1
     const [isBgModalOpen, setIsBgModalOpen] = useState(false);
-    const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(false);
+    // Analysis expanded state (legacy, kept for compatibility)
+    const isAnalysisExpanded = false;
     const [openColorPickerIndex, setOpenColorPickerIndex] = useState<number | null>(null);
     const [collapsedParts, setCollapsedParts] = useState<Record<string, boolean>>({});
 
@@ -1317,13 +1325,13 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     const [activeSessionId, setActiveSessionId] = useState<string>(existingSessionInfo?.session.id || weekSessions[0].id);
     const [modifiedSessionIds, setModifiedSessionIds] = useState<Set<string>>(new Set());
-    const [isMultiSaveModalOpen, setIsMultiSaveModalOpen] = useState(false);
+    // Old modal states removed — migrated to drawers
 
     // NUEVOS ESTADOS ROADMAP, GUARDADO Y REGLAS
     const [emptyDaySelected, setEmptyDaySelected] = useState<number | null>(null);
     const [globalSessionAlerts, setGlobalSessionAlerts] = useState<{ muscle: string; volume: number; threshold: number; failRatio: number; message?: string }[]>([]);
     const [notifiedAlerts, setNotifiedAlerts] = useState<Set<string>>(new Set());
-    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    // Transfer modal removed — migrated to TransferDrawer
 
     // Derivamos la "sesión actual" del búfer en tiempo real aquí arriba para que la lógica de volumen basura la pueda leer
     const session = useMemo(() => weekSessions.find(s => s.id === activeSessionId) || weekSessions[0], [weekSessions, activeSessionId]);
@@ -1411,18 +1419,18 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         setNeuralAlerts(newAlerts);
         return culprits;
     }, [session, settings.volumeLimits, exerciseList]);
-    const [transferMode, setTransferMode] = useState<'export'|'import'>('export');
-    const [transferTargetId, setTransferTargetId] = useState<string>('');
-    const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
-    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    // Transfer mode states removed — migrated to TransferDrawer
+    // Rules and history modals removed — migrated to drawers
     const [sessionHistory, setSessionHistory] = useState<Session[]>([]);
     
-    const [applyToWholeBlock, setApplyToWholeBlock] = useState(false);
+    // applyToWholeBlock removed — managed inside SaveDrawer
 
-    // Escuchador para conectar con la TabBar nativa de App.tsx
+    const [isRulesDrawerFromEvent, setIsRulesDrawerFromEvent] = useState(false);
+    const [isHistoryDrawerFromEvent, setIsHistoryDrawerFromEvent] = useState(false);
+
     useEffect(() => {
-        const openRules = () => setIsRulesModalOpen(true);
-        const openHistory = () => setIsHistoryModalOpen(true);
+        const openRules = () => setIsRulesDrawerFromEvent(true);
+        const openHistory = () => setIsHistoryDrawerFromEvent(true);
         window.addEventListener('openSessionRules', openRules);
         window.addEventListener('openSessionHistory', openHistory);
         return () => {
@@ -1430,8 +1438,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             window.removeEventListener('openSessionHistory', openHistory);
         };
     }, []);
-    const [isSingleSaveModalOpen, setIsSingleSaveModalOpen] = useState(false);
-    const [blockScopeSelection, setBlockScopeSelection] = useState<Record<string, boolean>>({});
+    // Single save modal removed — migrated to SaveDrawer
     
     const sessionRef = useRef(session);
     const weekSessionsRef = useRef(weekSessions);
@@ -1510,30 +1517,21 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         return clone;
     };
 
+    const [isSaveDrawerOpenState, setIsSaveDrawerOpenState] = useState(false);
+
     const executeFinalSave = async (sessionsToSave: Session[]) => {
         const currentOnSave = onSaveRef.current;
         const currentInfo = infoRef.current;
 
-        const finalSessions = sessionsToSave.map(s => {
-            const sCopy = { ...s };
-            // Inyectamos bandera temporal para el AppContext
-            if (applyToWholeBlock || blockScopeSelection[s.id]) {
-                (sCopy as any)._applyToBlock = true;
-            }
-            return sCopy;
-        });
-
         if (currentInfo) {
-            const payload = finalSessions.length === 1 ? finalSessions[0] : finalSessions;
+            const payload = sessionsToSave.length === 1 ? sessionsToSave[0] : sessionsToSave;
             // @ts-ignore
             currentOnSave(payload, currentInfo.programId, currentInfo.macroIndex, currentInfo.mesoIndex, currentInfo.weekId);
        } else {
-            currentOnSave(finalSessions[0]); 
+            currentOnSave(sessionsToSave[0]); 
        }
         await storageService.remove(SESSION_DRAFT_KEY);
         setIsDirty(false);
-        setIsMultiSaveModalOpen(false);
-        setIsSingleSaveModalOpen(false);
     };
 
     const handleSave = useCallback(async () => {
@@ -1541,10 +1539,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             addToast("La sesión debe tener un nombre antes de guardar.", "danger"); return;
         }
 
-        if (modifiedIdsRef.current.size > 1 && existingSessionInfo) {
-            setIsMultiSaveModalOpen(true);
-        } else if (existingSessionInfo && existingSessionInfo.macroIndex !== undefined) {
-            setIsSingleSaveModalOpen(true);
+        if ((modifiedIdsRef.current.size > 1 && existingSessionInfo) || (existingSessionInfo && existingSessionInfo.macroIndex !== undefined)) {
+            setIsSaveDrawerOpenState(true);
         } else {
             executeFinalSave([sessionRef.current]);
         }
@@ -1601,15 +1597,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     
     // ... (Bulk Apply logic unchanged) ...
 
-    const { gradient } = useImageGradient(session.background?.type === 'image' ? session.background.value : undefined);
-    const headerStyle: React.CSSProperties = { backgroundImage: session.background?.type === 'image' ? `url(${session.background.value})` : gradient };
-    const [useCustomLabel, setUseCustomLabel] = useState(!!session.scheduleLabel);
-
-    const getFilterString = () => {
-        if (!session.coverStyle?.filters) return 'none';
-        const f = session.coverStyle.filters;
-        return `contrast(${f.contrast}%) saturate(${f.saturation}%) brightness(${f.brightness}%) grayscale(${f.grayscale}%) sepia(${f.sepia}%)`;
-    };
+    // Header styling moved to ContextualHeader component
 
     const handleReorderExercise = (partIndex: number, exIndex: number, direction: 'up' | 'down') => {
         updateSession(draft => {
@@ -1661,57 +1649,330 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         });
     }, [updateSession]);
 
+    const [isAugeDrawerOpen, setIsAugeDrawerOpen] = useState(false);
+    const [isTransferDrawerOpen, setIsTransferDrawerOpen] = useState(false);
+    const [isHistoryDrawerOpen, setIsHistoryDrawerOpen] = useState(false);
+    const [isRulesDrawerOpen, setIsRulesDrawerOpen] = useState(false);
+
+    const exerciseRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+    const scrollToExerciseByName = useCallback((name: string) => {
+        const entry = Object.entries(exerciseRefs.current).find(([, el]) => el?.getAttribute('data-name') === name);
+        if (entry?.[1]) entry[1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, []);
+
+    const totalAlertCount = globalSessionAlerts.length + neuralAlerts.length;
+    const hasCriticalAlerts = neuralAlerts.some(a => a.severity === 'critical');
+    const hasWarningAlerts = globalSessionAlerts.length > 0 || neuralAlerts.some(a => a.severity === 'warning');
+
+    const augeSuggestions = useMemo(() => {
+        const suggestions: { id: string; message: string; exerciseName?: string; action?: () => void }[] = [];
+        neuralAlerts.forEach((a, i) => {
+            if (a.type === 'Espinal') {
+                suggestions.push({ id: `sug-spinal-${i}`, message: 'Considera cambiar ejercicios libres por máquinas para reducir carga espinal.', action: undefined });
+            }
+        });
+        return suggestions;
+    }, [neuralAlerts]);
+
+    const sessionDrainEstimate = useMemo(() => {
+        let msc = 0, snc = 0, spinal = 0, totalSets = 0;
+        const allEx = [...(session?.exercises || [])];
+        (session?.parts || []).forEach(p => allEx.push(...p.exercises));
+        const tanks = calculatePersonalizedBatteryTanks(settings);
+        allEx.forEach(ex => {
+            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+            if (!info) return;
+            const validSets = ex.sets?.filter(s => (s as any).type !== 'warmup') || [];
+            totalSets += validSets.length;
+            validSets.forEach(set => {
+                const drain = calculateSetBatteryDrain(set, info, tanks, 0, ex.restTime || 90);
+                msc += drain.muscularDrainPct;
+                snc += drain.cnsDrainPct;
+                spinal += (info.axialLoadFactor || 0) * 2;
+            });
+        });
+        return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal), totalSets, estimatedDuration: Math.round(totalSets * 2.5) };
+    }, [session, exerciseList, settings]);
+
+    const getExerciseFatigue = useCallback((ex: Exercise) => {
+        const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+        if (!info) return { msc: 0, snc: 0, spinal: 0 };
+        const tanks = calculatePersonalizedBatteryTanks(settings);
+        let msc = 0, snc = 0, spinal = 0;
+        (ex.sets || []).forEach(set => {
+            const drain = calculateSetBatteryDrain(set, info, tanks, 0, ex.restTime || 90);
+            msc += drain.muscularDrainPct;
+            snc += drain.cnsDrainPct;
+            spinal += (info.axialLoadFactor || 0) * 2;
+        });
+        return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal) };
+    }, [exerciseList, settings]);
+
+    const getExerciseSuggestion = useCallback((ex: Exercise): string | null => {
+        const fatigue = getExerciseFatigue(ex);
+        if (fatigue.spinal > 60) return `Fatiga espinal alta (${Math.round(fatigue.spinal)}%). Considera cambiar a máquina o reducir RPE.`;
+        if (fatigue.snc > 70) return `Carga neural elevada (${Math.round(fatigue.snc)}%). Reduce RPE o limita series.`;
+        if (fatigue.msc > 80) return `Volumen muscular alto (${Math.round(fatigue.msc)}%). Quizás sobra una serie.`;
+        return null;
+    }, [getExerciseFatigue]);
+
+    const dayLabel = useMemo(() => {
+        if (!session.dayOfWeek) return undefined;
+        const dayObj = orderedDays.find(d => d.value === session.dayOfWeek);
+        return dayObj?.label;
+    }, [session.dayOfWeek, orderedDays]);
+
+    const handleTransfer = useCallback((mode: 'export' | 'import', targetId: string) => {
+        const targetSession = weekSessions.find(s => s.id === targetId);
+        if (!targetSession) return;
+        if (mode === 'export') {
+            setWeekSessions(prev => prev.map(s => s.id === targetId ? { ...s, parts: [...(s.parts || []), ...JSON.parse(JSON.stringify(session.parts || []))] } : s));
+            setModifiedSessionIds(prev => new Set(prev).add(targetId));
+        } else {
+            updateSession(draft => { draft.parts = [...(draft.parts || []), ...JSON.parse(JSON.stringify(targetSession.parts || []))]; });
+        }
+        addToast("Transferencia completada", "success");
+    }, [weekSessions, session, updateSession, addToast]);
+
+    const handleHistoryRestore = useCallback((hist: Session) => {
+        setWeekSessions(prev => prev.map(s => s.id === activeSessionId ? JSON.parse(JSON.stringify(hist)) : s));
+        addToast("Sesión restaurada", "success");
+    }, [activeSessionId, addToast]);
+
+    const handleRulesApply = useCallback((sets: number, reps: number, rpe: number) => {
+        updateSession(draft => {
+            draft.parts?.forEach(p => p.exercises.forEach(ex => {
+                ex.sets = Array.from({ length: sets }).map(() => ({ id: crypto.randomUUID(), targetReps: reps, targetRPE: rpe, intensityMode: 'rpe' as const }));
+            }));
+        });
+        addToast("Métricas aplicadas a toda la sesión", "success");
+    }, [updateSession, addToast]);
+
+    const handleSaveSingle = useCallback((applyBlock: boolean) => {
+        if (applyBlock) {
+            const sCopy = { ...session, _applyToBlock: true } as any;
+            executeFinalSave([sCopy]);
+        } else {
+            executeFinalSave([session]);
+        }
+    }, [session]);
+
+    const handleSaveMultiple = useCallback((sessions: Session[], blockSelections: Record<string, boolean>) => {
+        const final = sessions.map(s => {
+            if (blockSelections[s.id]) return { ...s, _applyToBlock: true } as any;
+            return s;
+        });
+        executeFinalSave(final);
+    }, []);
+
     return (
         <div className="fixed inset-0 z-[9999] bg-black text-white animate-slide-up flex flex-col">
-            
-            {/* --- HEADER COMPACTO --- */}
-            <div className="relative flex-shrink-0 bg-black border-b border-white/10 z-20">
-                <button onClick={onCancel} className="absolute top-3 right-3 z-50 p-2 bg-black/60 backdrop-blur-md rounded-full text-zinc-400 hover:text-white transition-colors border border-white/10">
-                    <XIcon size={16} />
-                </button>
 
-                {session.background?.type === 'image' && (
-                    <div className="absolute inset-0 z-0 opacity-15" style={{ backgroundImage: `url(${session.background.value})`, backgroundSize: 'cover' }}></div>
+            {/* ═══ Contextual Header ═══ */}
+            <ContextualHeader
+                session={session}
+                updateSession={updateSession}
+                onCancel={onCancel}
+                onOpenBgDrawer={() => setIsBgModalOpen(true)}
+                onOpenTransferDrawer={() => setIsTransferDrawerOpen(true)}
+                onOpenHistoryDrawer={() => setIsHistoryDrawerOpen(true)}
+                activeSessionId={activeSessionId}
+                dayLabel={dayLabel}
+            />
+
+            {/* ═══ Week Roadmap ═══ */}
+            {existingSessionInfo && (
+                <div className="flex flex-col border-b border-white/[0.05] shrink-0 bg-black">
+                    <div className="px-5 py-3 flex items-center justify-between relative overflow-hidden">
+                        <div className="absolute top-1/2 left-6 right-6 h-px bg-white/[0.04] -translate-y-1/2 z-0" />
+                        {orderedDays.map(day => {
+                            const daySessions = weekSessions.filter(s => s.dayOfWeek === day.value);
+                            const isActive = daySessions.some(s => s.id === activeSessionId) || emptyDaySelected === day.value;
+                            const hasSession = daySessions.length > 0;
+                            const isModified = daySessions.some(s => modifiedSessionIds.has(s.id));
+                            return (
+                                <button key={day.value} onClick={() => handleDayClick(day.value, daySessions)} className="relative z-10 flex flex-col items-center gap-1.5 group outline-none">
+                                    <div className={`w-3 h-3 rounded-full transition-all relative ${isActive ? 'bg-[#FC4C02] shadow-[0_0_10px_rgba(252,76,2,0.3)] scale-110' : hasSession ? 'bg-[#999] hover:bg-white' : 'bg-white/10 hover:bg-white/20'}`}>
+                                        {isModified && !isActive && <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-[#FC4C02] rounded-full" />}
+                                    </div>
+                                    <span className={`text-[8px] font-bold uppercase tracking-wider transition-colors ${isActive ? 'text-white' : hasSession ? 'text-[#555]' : 'text-white/10'}`}>{day.label.slice(0, 2)}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {activeSessionId !== 'empty' && weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).length > 1 && (
+                        <div className="flex px-4 gap-1.5 overflow-x-auto no-scrollbar pb-2">
+                            {weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).map((s, idx) => (
+                                <button key={s.id} onClick={() => setActiveSessionId(s.id)} className={`px-3 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors border ${activeSessionId === s.id ? 'bg-[#FC4C02] text-white border-[#FC4C02]' : 'bg-transparent text-[#555] border-white/[0.08] hover:border-white/20'}`}>
+                                    {s.name || `Sesión ${idx + 1}`}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ═══ Main Content ═══ */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {/* Meet Day panel */}
+                {session.isMeetDay && (
+                    <div className="mx-4 mt-4 p-4 rounded-lg bg-yellow-400/5 border border-yellow-400/10">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                                <TrophyIcon size={14} className="text-yellow-400" /> Competición
+                            </h3>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] text-[#555]">BW</span>
+                                <input type="number" value={session.meetBodyweight || ''} onChange={e => updateSession(d => { d.meetBodyweight = parseFloat(e.target.value); })} className="w-14 bg-transparent border-b border-white/10 focus:border-yellow-400 text-xs font-mono text-white text-center py-0.5 outline-none" placeholder="kg" />
+                            </div>
+                        </div>
+                        {(() => {
+                            const compLifts = (session.parts || []).flatMap(p => p.exercises.filter(ex => ex.isCompetitionLift));
+                            if (compLifts.length === 0) return <p className="text-[10px] text-[#555] text-center py-2">Marca ejercicios como competición para planificar intentos.</p>;
+                            return compLifts.map((ex, i) => (
+                                <div key={i} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
+                                    <span className="text-xs font-medium text-white">{ex.name}</span>
+                                    <span className="text-[10px] font-bold text-yellow-400">{ex.sets.length} intentos</span>
+                                </div>
+                            ));
+                        })()}
+                    </div>
                 )}
-                <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/40 to-black"></div>
 
-                <div className="relative z-10 px-5 pt-6 pb-4 space-y-2">
-                    <input
-                        type="text"
-                        value={session.name}
-                        onChange={e => updateSession(d => { d.name = e.target.value; })}
-                        placeholder="NOMBRE DE LA SESIÓN"
-                        className="text-2xl font-black text-white bg-transparent border-none focus:ring-0 w-[85%] p-0 leading-tight tracking-tighter uppercase placeholder-zinc-700"
-                    />
-                    <input
-                        type="text"
-                        value={session.description}
-                        onChange={e => updateSession(d => { d.description = e.target.value; })}
-                        placeholder="Descripción..."
-                        className="text-[11px] text-zinc-400 bg-transparent border-none focus:ring-0 w-full p-0 placeholder-zinc-700 font-medium"
-                    />
-
-                    <div className="flex items-center gap-2 pt-1">
-                        <button onClick={() => setIsBgModalOpen(true)} className="p-2 rounded-lg border border-white/10 text-zinc-500 hover:text-white hover:bg-white/5 transition-all" title="Fondo">
-                            <ImageIcon size={14} />
-                        </button>
-                        {activeSessionId !== 'empty' && (
-                            <button onClick={() => setIsTransferModalOpen(true)} className="px-3 py-1.5 bg-zinc-900 border border-white/10 hover:bg-zinc-800 rounded-lg text-[9px] font-bold uppercase text-zinc-400 hover:text-white transition-all flex items-center gap-1.5">
-                                <LayersIcon size={12} /> Transferir
-                            </button>
-                        )}
-                        <button
-                            onClick={() => updateSession(d => { d.isMeetDay = !d.isMeetDay; })}
-                            className={`p-2 rounded-lg border transition-all ${session.isMeetDay ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400' : 'border-white/10 text-zinc-500 hover:text-white hover:bg-white/5'}`}
-                            title="Competición"
-                        >
-                            <TrophyIcon size={14} />
+                {activeSessionId === 'empty' ? (
+                    <div className="flex flex-col items-center justify-center text-center space-y-4 pt-20">
+                        <LayersIcon size={32} className="text-white/10" />
+                        <div>
+                            <p className="text-sm font-medium text-[#999]">Día libre</p>
+                            <p className="text-xs text-[#555] mt-1">No hay sesión para este día.</p>
+                        </div>
+                        <button onClick={() => handleCreateFirstSession(emptyDaySelected!)} className="px-6 py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">
+                            Crear Sesión
                         </button>
                     </div>
-                </div>
+                ) : (
+                    <div className="pb-32">
+                        {/* ═══ Parts & Exercises ═══ */}
+                        {session.parts?.map((part, pi) => (
+                            <PartSection
+                                key={part.id}
+                                partName={part.name}
+                                partIndex={pi}
+                                exerciseCount={part.exercises.length}
+                                color={part.color || '#FC4C02'}
+                                isCollapsed={collapsedParts[part.id] || false}
+                                onToggleCollapse={() => togglePartCollapse(part.id)}
+                                onRename={name => updateSession(d => { d.parts![pi].name = name; })}
+                                onChangeColor={color => updateSession(d => { d.parts![pi].color = color; })}
+                                onAddExercise={() => handleAddExercise(pi)}
+                            >
+                                {part.exercises.map((ex, ei) => (
+                                    <ExerciseRow
+                                        key={ex.id}
+                                        exercise={ex}
+                                        exerciseIndex={ei}
+                                        partIndex={pi}
+                                        exerciseList={exerciseList}
+                                        isCulprit={culpritExerciseIds.has(ex.id)}
+                                        isExpertMode={false}
+                                        fatigue={getExerciseFatigue(ex)}
+                                        augeSuggestion={getExerciseSuggestion(ex)}
+                                        onUpdate={handleExerciseUpdate}
+                                        onRemove={handleExerciseRemove}
+                                        onReorder={handleReorderExercise}
+                                        onLink={handleLinkWithNext}
+                                        onUnlink={handleUnlink}
+                                        onAmrapToggle={(pIdx, eIdx, sIdx) => {
+                                            updateSession(d => {
+                                                const set = d.parts?.[pIdx]?.exercises?.[eIdx]?.sets?.[sIdx];
+                                                if (set) set.isAmrap = !set.isAmrap;
+                                            });
+                                        }}
+                                        scrollRef={el => { exerciseRefs.current[ex.id] = el; if (el) el.setAttribute('data-name', ex.name); }}
+                                    />
+                                ))}
+                            </PartSection>
+                        ))}
+
+                        {/* Add section button */}
+                        <div className="px-4 py-3">
+                            <button onClick={handleAddPart} className="w-full py-2.5 border border-dashed border-white/[0.08] hover:border-white/15 text-[#555] hover:text-[#FC4C02] rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-1.5">
+                                <LayersIcon size={14} /> Nueva Sección
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* MODAL DE FONDO */}
+            {/* ═══ AUGE FAB ═══ */}
+            {activeSessionId !== 'empty' && (
+                <AugeFAB
+                    alertCount={totalAlertCount}
+                    hasWarnings={hasWarningAlerts}
+                    hasCritical={hasCriticalAlerts}
+                    onClick={() => setIsAugeDrawerOpen(true)}
+                />
+            )}
+
+            {/* ═══ Save Bar ═══ */}
+            {activeSessionId !== 'empty' && (
+                <SaveBar
+                    hasChanges={modifiedSessionIds.size > 0}
+                    modifiedCount={modifiedSessionIds.size}
+                    onSave={handleSave}
+                    onCancel={onCancel}
+                />
+            )}
+
+            {/* ═══ Drawers ═══ */}
+            <AugeDrawerComponent
+                isOpen={isAugeDrawerOpen}
+                onClose={() => setIsAugeDrawerOpen(false)}
+                volumeAlerts={globalSessionAlerts}
+                neuralAlerts={neuralAlerts}
+                suggestions={augeSuggestions}
+                totalSets={sessionDrainEstimate.totalSets}
+                estimatedDuration={sessionDrainEstimate.estimatedDuration}
+                drainMsc={sessionDrainEstimate.msc}
+                drainSnc={sessionDrainEstimate.snc}
+                drainSpinal={sessionDrainEstimate.spinal}
+                onAlertClick={scrollToExerciseByName}
+            />
+
+            <TransferDrawer
+                isOpen={isTransferDrawerOpen}
+                onClose={() => setIsTransferDrawerOpen(false)}
+                weekSessions={weekSessions}
+                activeSessionId={activeSessionId}
+                session={session}
+                onTransfer={handleTransfer}
+            />
+
+            <HistoryDrawer
+                isOpen={isHistoryDrawerOpen || isHistoryDrawerFromEvent}
+                onClose={() => { setIsHistoryDrawerOpen(false); setIsHistoryDrawerFromEvent(false); }}
+                sessionHistory={sessionHistory}
+                onRestore={handleHistoryRestore}
+            />
+
+            <RulesDrawer
+                isOpen={isRulesDrawerOpen || isRulesDrawerFromEvent}
+                onClose={() => { setIsRulesDrawerOpen(false); setIsRulesDrawerFromEvent(false); }}
+                onApply={handleRulesApply}
+            />
+
+            <SaveDrawer
+                isOpen={isSaveDrawerOpenState}
+                onClose={() => setIsSaveDrawerOpenState(false)}
+                sessionName={session.name}
+                modifiedSessions={weekSessions.filter(s => modifiedSessionIds.has(s.id))}
+                showBlockOption={!!existingSessionInfo?.macroIndex}
+                onSaveSingle={handleSaveSingle}
+                onSaveMultiple={handleSaveMultiple}
+            />
+
+            {/* Background editor (kept as modal for image editing) */}
             {isBgModalOpen && (
                 <BackgroundEditorModal
                     isOpen={isBgModalOpen}
@@ -1727,366 +1988,6 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     previewTitle={session.name}
                     isOnline={isOnline}
                 />
-            )}
-
-            {/* MODALES DE ACCIÓN CONTEXTUAL */}
-            <Modal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} title="Transferencia de Sesión">
-                <div className="p-2 space-y-4">
-                    <div className="flex gap-2 mb-4 bg-zinc-900 p-1 rounded-xl">
-                        <button onClick={() => setTransferMode('export')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${transferMode === 'export' ? 'bg-white text-black' : 'text-zinc-500'}`}>Exportar (Copiar a...)</button>
-                        <button onClick={() => setTransferMode('import')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${transferMode === 'import' ? 'bg-white text-black' : 'text-zinc-500'}`}>Importar (Recibir de...)</button>
-                    </div>
-                    <p className="text-xs text-zinc-300">Selecciona la sesión de {transferMode === 'export' ? 'destino' : 'origen'}:</p>
-                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scrollbar">
-                        {weekSessions.filter(s => s.id !== activeSessionId).map(s => (
-                            <button key={s.id} onClick={() => setTransferTargetId(s.id)} className={`p-3 text-left rounded-xl border text-xs font-bold transition-all ${transferTargetId === s.id ? 'bg-blue-500/20 border-blue-500 text-white' : 'bg-black border-zinc-800 text-zinc-400 hover:border-zinc-500'}`}>
-                                {s.name || `Sesión Día ${s.dayOfWeek}`}<br/>
-                                <span className="text-[9px] text-zinc-500 font-normal">{s.parts?.reduce((acc, p) => acc + p.exercises.length, 0) || 0} Ejercicios</span>
-                            </button>
-                        ))}
-                    </div>
-                    {transferTargetId && (
-                        <div className="pt-4 mt-2 border-t border-white/10">
-                            <Button onClick={() => {
-                                const targetSession = weekSessions.find(s => s.id === transferTargetId);
-                                if (!targetSession) return;
-                                if (transferMode === 'export') {
-                                    setWeekSessions(prev => prev.map(s => s.id === transferTargetId ? { ...s, parts: [...(s.parts || []), ...JSON.parse(JSON.stringify(session.parts || []))] } : s));
-                                    setModifiedSessionIds(prev => new Set(prev).add(transferTargetId));
-                                } else {
-                                    updateSession(draft => { draft.parts = [...(draft.parts || []), ...JSON.parse(JSON.stringify(targetSession.parts || []))]; });
-                                }
-                                setIsTransferModalOpen(false);
-                                addToast("Transferencia completada", "success");
-                            }} className="w-full">Confirmar Transferencia</Button>
-                        </div>
-                    )}
-                </div>
-            </Modal>
-
-            <Modal isOpen={isRulesModalOpen} onClose={() => setIsRulesModalOpen(false)} title="Reglas y Métricas Macro">
-                <div className="p-2 space-y-6">
-                    <p className="text-xs text-zinc-400 leading-relaxed">Aplica reglas masivas a todos los ejercicios de esta sesión para ahorrar tiempo.</p>
-                    <div className="bg-zinc-900 border border-white/10 p-4 rounded-xl space-y-4">
-                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest">Sobreescribir Series y Repeticiones</h4>
-                        <div className="grid grid-cols-3 gap-2">
-                            <div><label className="text-[9px] text-zinc-500 uppercase font-bold">Series</label><input type="number" id="macroSets" defaultValue={3} className="w-full bg-black border border-zinc-800 text-white rounded p-2 text-center text-xs"/></div>
-                            <div><label className="text-[9px] text-zinc-500 uppercase font-bold">Reps</label><input type="number" id="macroReps" defaultValue={10} className="w-full bg-black border border-zinc-800 text-white rounded p-2 text-center text-xs"/></div>
-                            <div><label className="text-[9px] text-zinc-500 uppercase font-bold">RPE</label><input type="number" id="macroRPE" defaultValue={8} className="w-full bg-black border border-zinc-800 text-white rounded p-2 text-center text-xs"/></div>
-                        </div>
-                        <Button onClick={() => {
-                            const sets = parseInt((document.getElementById('macroSets') as HTMLInputElement).value);
-                            const reps = parseInt((document.getElementById('macroReps') as HTMLInputElement).value);
-                            const rpe = parseFloat((document.getElementById('macroRPE') as HTMLInputElement).value);
-                            updateSession(draft => {
-                                draft.parts?.forEach(p => p.exercises.forEach(ex => {
-                                    ex.sets = Array.from({length: sets}).map(() => ({ id: crypto.randomUUID(), targetReps: reps, targetRPE: rpe, intensityMode: 'rpe' }));
-                                }));
-                            });
-                            setIsRulesModalOpen(false);
-                            addToast("Métricas aplicadas a toda la sesión", "success");
-                        }} className="w-full !py-2 !text-[10px]">Aplicar a toda la Sesión</Button>
-                    </div>
-                </div>
-            </Modal>
-
-            <Modal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} title="Historial de Cambios">
-                <div className="p-2 space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                    {sessionHistory.length === 0 ? <p className="text-xs text-zinc-500">No hay cambios recientes.</p> : sessionHistory.map((hist, idx) => (
-                        <button key={idx} onClick={() => {
-                            setWeekSessions(prev => prev.map(s => s.id === activeSessionId ? JSON.parse(JSON.stringify(hist)) : s));
-                            setIsHistoryModalOpen(false);
-                            addToast("Sesión restaurada", "success");
-                        }} className="w-full text-left p-3 bg-zinc-900 border border-white/5 hover:border-white/20 rounded-xl text-xs flex justify-between items-center group">
-                            <span className="text-white font-bold group-hover:text-blue-400">Estado anterior #{sessionHistory.length - idx}</span>
-                            <span className="text-[10px] text-zinc-500 uppercase">Restaurar</span>
-                        </button>
-                    )).reverse()}
-                </div>
-            </Modal>
-
-            {/* MODAL GUARDADO ÚNICO */}
-            <Modal isOpen={isSingleSaveModalOpen} onClose={() => setIsSingleSaveModalOpen(false)} title="Confirmar Cambios">
-                <div className="p-2 space-y-4">
-                    <p className="text-sm text-zinc-300">Vas a guardar los cambios en <strong className="text-white">{session.name}</strong>.</p>
-                    {existingSessionInfo?.macroIndex !== undefined && (
-                        <label className="flex items-center gap-3 p-3 bg-zinc-900/50 border border-white/10 rounded-xl cursor-pointer hover:bg-zinc-800/50 transition-colors">
-                            <input type="checkbox" checked={applyToWholeBlock} onChange={e => setApplyToWholeBlock(e.target.checked)} className="rounded border-zinc-700 text-white focus:ring-0 bg-black w-4 h-4" />
-                            <div className="flex flex-col">
-                                <span className="text-xs font-bold text-white uppercase">Aplicar a todo el bloque</span>
-                                <span className="text-[10px] text-zinc-500">Aplica este cambio para este día en todas las semanas restantes.</span>
-                            </div>
-                        </label>
-                    )}
-                    <div className="flex gap-2 pt-2">
-                        <Button variant="secondary" onClick={() => setIsSingleSaveModalOpen(false)} className="flex-1">Cancelar</Button>
-                        <Button onClick={() => executeFinalSave([session])} className="flex-1 bg-white text-black">Guardar</Button>
-                    </div>
-                </div>
-            </Modal>
-
-            {/* MODAL MULTI-SAVE */}
-            <Modal isOpen={isMultiSaveModalOpen} onClose={() => setIsMultiSaveModalOpen(false)} title="Guardado Múltiple Semanal">
-                <div className="p-2 space-y-4">
-                    <p className="text-sm text-zinc-300">Has ajustado múltiples sesiones. Selecciona cómo aplicar los cambios:</p>
-                    <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden max-h-60 overflow-y-auto custom-scrollbar">
-                        {weekSessions.filter(s => modifiedSessionIds.has(s.id)).map(s => (
-                            <div key={s.id} className="flex flex-col gap-2 p-3 border-b border-[#222] last:border-0">
-                                <div className="flex items-center gap-3">
-                                    <CheckIcon size={16} className="text-white"/>
-                                    <div>
-                                        <span className="text-xs font-bold text-white block">{s.name}</span>
-                                        <span className="text-[9px] text-zinc-500 uppercase tracking-widest block">{s.dayOfWeek !== undefined ? orderedDays.find(d => d.value === s.dayOfWeek)?.label : 'Sin Día'}</span>
-                                    </div>
-                                </div>
-                                {existingSessionInfo?.macroIndex !== undefined && (
-                                    <label className="flex items-center gap-2 pl-7 cursor-pointer mt-1">
-                                        <input type="checkbox" checked={blockScopeSelection[s.id] || false} onChange={e => setBlockScopeSelection(prev => ({...prev, [s.id]: e.target.checked}))} className="rounded border-zinc-700 text-white focus:ring-0 bg-black w-3 h-3" />
-                                        <span className="text-[9px] text-zinc-400 font-bold uppercase">Aplicar a todo el bloque</span>
-                                    </label>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                        <Button variant="secondary" onClick={() => executeFinalSave([session])} className="flex-1 !py-3 !text-[10px]">Solo Sesión Actual</Button>
-                        <Button onClick={() => executeFinalSave(weekSessions.filter(s => modifiedSessionIds.has(s.id)))} className="flex-1 !py-3 !text-[10px] bg-white text-black">Guardar Seleccionadas</Button>
-                    </div>
-                </div>
-            </Modal>
-
-            {/* --- ROADMAP SEMANAL COMPACTO --- */}
-            {existingSessionInfo && (
-                <div className="flex flex-col border-b border-white/5 flex-shrink-0 bg-black">
-                    <div className="px-5 py-4 flex items-center justify-between relative overflow-hidden">
-                        <div className="absolute top-1/2 left-6 right-6 h-px bg-white/5 -translate-y-1/2 z-0"></div>
-                        {orderedDays.map(day => {
-                            const daySessions = weekSessions.filter(s => s.dayOfWeek === day.value);
-                            const isActive = daySessions.some(s => s.id === activeSessionId) || emptyDaySelected === day.value;
-                            const hasSession = daySessions.length > 0;
-                            const isModified = daySessions.some(s => modifiedSessionIds.has(s.id));
-                            
-                            return (
-                                <button 
-                                    key={day.value} 
-                                    onClick={() => handleDayClick(day.value, daySessions)}
-                                    className="relative z-10 flex flex-col items-center gap-1.5 group outline-none"
-                                >
-                                    <div className={`w-3.5 h-3.5 rounded-full border-[3px] transition-all duration-200 relative ${isActive ? 'bg-white border-white scale-125 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : hasSession ? 'bg-zinc-700 border-zinc-800 hover:bg-zinc-500' : 'bg-black border-zinc-800 hover:border-zinc-600'}`}>
-                                        {isModified && !isActive && <div className="absolute -top-1.5 -right-1.5 w-1.5 h-1.5 bg-orange-500 rounded-full"></div>}
-                                    </div>
-                                    <span className={`text-[8px] font-black uppercase tracking-wider transition-colors ${isActive ? 'text-white' : hasSession ? 'text-zinc-600' : 'text-zinc-800'}`}>{day.label.slice(0,2)}</span>
-                                </button>
-                            )
-                        })}
-                    </div>
-                    {activeSessionId !== 'empty' && weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).length > 1 && (
-                        <div className="flex px-4 gap-1.5 overflow-x-auto hide-scrollbar pb-2">
-                            {weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).map((s, idx) => (
-                                <button 
-                                    key={s.id} 
-                                    onClick={() => setActiveSessionId(s.id)} 
-                                    className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap transition-colors border ${activeSessionId === s.id ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-600 border-zinc-800 hover:border-zinc-500'}`}
-                                >
-                                    {s.name || `Sesión ${idx + 1}`}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* --- MAIN CONTENT --- */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="flex flex-col p-4 space-y-4 bg-black w-full pb-32">
-                    {/* Meet Day panel (compact) */}
-                    {session.isMeetDay && (
-                        <div className="bg-yellow-950/20 border border-yellow-500/30 p-4 rounded-2xl flex flex-col gap-3 animate-fade-in">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-2"><TrophyIcon size={16} className="text-yellow-400"/> Game Day</h3>
-                                <div className="flex items-center gap-1.5 bg-black border border-yellow-500/20 px-2 py-1.5 rounded-lg">
-                                    <span className="text-[8px] text-zinc-500 uppercase font-bold">BW</span>
-                                    <input type="number" value={session.meetBodyweight || ''} onChange={e => updateSession(d => {d.meetBodyweight = parseFloat(e.target.value)})} className="w-12 bg-transparent text-white font-bold text-xs p-0 border-none focus:ring-0 text-center" placeholder="kg"/>
-                                </div>
-                            </div>
-                            {(() => {
-                                const compLifts = (session.parts || []).flatMap(p => p.exercises.filter(ex => ex.isCompetitionLift));
-                                if (compLifts.length === 0) return (
-                                    <p className="text-[9px] text-zinc-500 text-center py-2">Marca ejercicios como competición para planificar intentos.</p>
-                                );
-                                return compLifts.map((ex, i) => (
-                                    <div key={i} className="bg-black/40 border border-white/5 p-2.5 rounded-xl flex items-center justify-between">
-                                        <span className="text-[11px] font-bold text-white">{ex.name}</span>
-                                        <span className="text-[9px] font-black text-yellow-400">{ex.sets.length} intentos</span>
-                                    </div>
-                                ));
-                            })()}
-                        </div>
-                    )}
-
-                    {activeSessionId === 'empty' ? (
-                        <div className="flex flex-col items-center justify-center text-center space-y-4 pt-16">
-                            <LayersIcon size={40} className="text-zinc-800" />
-                            <div>
-                                <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Día libre</p>
-                                <p className="text-[11px] text-zinc-600 mt-1">No hay sesión para este día.</p>
-                            </div>
-                            <Button onClick={() => handleCreateFirstSession(emptyDaySelected!)} className="mt-4 !text-xs">
-                                Crear Sesión
-                            </Button>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Parts & Exercises */}
-                            <div className="space-y-6">
-                                {session.parts?.map((part, pi) => {
-                                    const groupedExercises = groupExercises(part.exercises);
-                                    const isColorPickerOpen = openColorPickerIndex === pi;
-                                    const themeColor = part.color || '#3b82f6';
-                                    const isCollapsed = collapsedParts[part.id] || false;
-                                    
-                                    return (
-                                        <div key={part.id} className={`relative transition-all ${draggedPartIndex === pi ? 'opacity-50' : ''}`} draggable onDragStart={() => handleDragStart(pi)} onDragOver={handleDragOver} onDrop={() => handleDrop(pi)}>
-                                            
-                                            {/* Part Header - clean and minimal */}
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <DragHandleIcon className="text-zinc-700 cursor-grab active:cursor-grabbing" size={14} />
-                                                <button onClick={(e) => { e.preventDefault(); togglePartCollapse(part.id); }} className="text-zinc-600 hover:text-white transition-colors">
-                                                    <ChevronRightIcon size={14} className={`transition-transform duration-200 ${isCollapsed ? '' : 'rotate-90'}`} />
-                                                </button>
-                                                <button onClick={() => setOpenColorPickerIndex(isColorPickerOpen ? null : pi)} className="w-1.5 h-5 rounded-sm shrink-0" style={{ backgroundColor: themeColor }} title="Color"/>
-                                                
-                                                <input 
-                                                    value={part.name} 
-                                                    onChange={e => updateSession(d => { d.parts![pi].name = e.target.value; })} 
-                                                    className="bg-transparent text-sm font-black text-white flex-1 min-w-0 outline-none border-none p-0 focus:ring-0 uppercase tracking-tight placeholder-zinc-800" 
-                                                    placeholder="SECCIÓN" 
-                                                />
-                                                <span className="text-[9px] font-bold text-zinc-600">{part.exercises.length} ej.</span>
-                                                <button onClick={(e) => handleRemovePart(pi, e)} className="text-zinc-700 hover:text-red-500 transition-colors"><TrashIcon size={14}/></button>
-                                            </div>
-
-                                            <div className={`transition-all duration-200 overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[5000px] opacity-100'}`}>
-                                                {/* Color Picker inline */}
-                                                {isColorPickerOpen && (
-                                                    <div className="flex flex-wrap gap-2 p-2 mb-3 border border-white/5 rounded-xl bg-zinc-900/30 animate-fade-in">
-                                                        {PRESET_PART_COLORS.map(color => (
-                                                            <button key={color} onClick={() => { updateSession(d => { d.parts![pi].color = color; }); setOpenColorPickerIndex(null); }} className={`w-5 h-5 rounded-full border transition-all hover:scale-110 ${part.color === color ? 'ring-2 ring-white scale-110 border-white' : 'border-white/10'}`} style={{ backgroundColor: color }}/>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Exercises - compact cards */}
-                                                <div className="space-y-2 pl-6">
-                                                    {groupedExercises.map((group, groupIdx) => {
-                                                        if (group.type === 'superset') {
-                                                            return (
-                                                                <SupersetManagementBlock
-                                                                    key={`group-${group.id}-${groupIdx}`}
-                                                                    exercises={group.items}
-                                                                    onUpdateSession={updateSession}
-                                                                    partIndex={pi}
-                                                                    partColor={part.color}
-                                                                    onReorderExercise={handleReorderExercise}
-                                                                    onToggleSelect={handleToggleSelectExercise}
-                                                                    selectedIds={selectedExerciseIds}
-                                                                    isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'}
-                                                                    onUnlink={handleUnlink}
-                                                                    onLinkNext={handleLinkWithNext}
-                                                                    culpritIds={culpritExerciseIds}
-                                                                />
-                                                            )
-                                                        } else {
-                                                            const { ex, index: ei } = group;
-                                                            return <MemoizedExerciseCard key={ex.id} exercise={ex} categoryColor={part.color} isInSuperset={false} isJunkVolumeCulprit={culpritExerciseIds.has(ex.id)} onExerciseChange={(f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei] as any)[f] = v; else d.parts![pi].exercises[ei] = {...d.parts![pi].exercises[ei], ...f}; }); }} onSetChange={(si, f, v) => { updateSession(d => { if (typeof f === 'string') (d.parts![pi].exercises[ei].sets[si] as any)[f] = v; else d.parts![pi].exercises[ei].sets[si] = {...d.parts![pi].exercises[ei].sets[si], ...f}; }); }} onAddSet={() => updateSession(d => { d.parts![pi].exercises[ei].sets.push({ id: crypto.randomUUID(), targetReps: 8, intensityMode: 'rpe', targetRPE: 8 }); })} onRemoveSet={(si) => updateSession(d => { d.parts![pi].exercises[ei].sets.splice(si, 1); })} onRemoveExercise={() => updateSession(d => { d.parts![pi].exercises.splice(ei, 1); })} onReorder={(dir) => handleReorderExercise(pi, ei, dir)} onLinkNext={() => handleLinkWithNext(pi, ei)} isFirst={pi === 0 && ei === 0} isLast={pi === (session.parts?.length || 0) - 1 && ei === part.exercises.length - 1} isSelectionMode={isAnalysisExpanded && bulkScope === 'manual'} isSelected={selectedExerciseIds.has(ex.id)} onToggleSelect={() => handleToggleSelectExercise(ex.id)}/>
-                                                        }
-                                                    })}
-                                                    
-                                                    <button onClick={() => handleAddExercise(pi)} className="w-full py-3 border border-dashed border-white/10 hover:border-white/30 text-zinc-600 hover:text-white rounded-xl transition-all text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5">
-                                                        <PlusIcon size={10}/> Ejercicio
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                                
-                                <button onClick={handleAddPart} className="w-full py-3 bg-zinc-900/30 hover:bg-zinc-900/60 border border-white/5 hover:border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all flex items-center justify-center gap-1.5">
-                                    <LayersIcon size={12}/> Nueva Sección
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-
-            {/* --- AUGE BOTTOM PANEL --- */}
-            {activeSessionId !== 'empty' && (
-                <div className="flex-shrink-0">
-                    <button
-                        onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)}
-                        className={`w-full flex items-center justify-between px-5 py-2.5 border-t transition-all ${
-                            isAnalysisExpanded ? 'bg-zinc-900 border-white/10' : 'bg-black border-white/5'
-                        }`}
-                    >
-                        <div className="flex items-center gap-2">
-                            <ActivityIcon size={12} className="text-blue-400" />
-                            <span className="text-[9px] font-black text-white uppercase tracking-widest">AUGE</span>
-                            {(globalSessionAlerts.length > 0 || neuralAlerts.length > 0) && (
-                                <span className="px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 text-[8px] font-black">
-                                    {globalSessionAlerts.length + neuralAlerts.length}
-                                </span>
-                            )}
-                        </div>
-                        <ChevronRightIcon size={12} className={`text-zinc-600 transition-transform ${isAnalysisExpanded ? 'rotate-90' : '-rotate-90'}`} />
-                    </button>
-                    
-                    {isAnalysisExpanded && (
-                        <div className="bg-zinc-950 border-t border-white/5 max-h-[40vh] overflow-y-auto custom-scrollbar p-4 animate-fade-in">
-                            <SessionAugeDashboard 
-                                currentSession={session} 
-                                weekSessions={weekSessions}
-                                exerciseList={exerciseList} 
-                            />
-                            {/* Inline alerts */}
-                            {(globalSessionAlerts.length > 0 || neuralAlerts.length > 0) && (
-                                <div className="mt-4 space-y-2">
-                                    {globalSessionAlerts.map((a: any) => (
-                                        <div key={a.muscle} className="bg-red-950/30 border border-red-500/20 rounded-xl p-2.5 flex items-start gap-2">
-                                            <AlertTriangleIcon className="text-red-400 shrink-0 mt-0.5" size={12} />
-                                            <div>
-                                                <span className="text-[10px] font-black text-red-400">{a.muscle}</span>
-                                                <p className="text-[9px] text-zinc-400">{a.message || 'Límite de volumen superado.'}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {neuralAlerts.map((alert, idx) => (
-                                        <div key={idx} className={`rounded-xl p-2.5 flex items-start gap-2 border ${alert.severity === 'critical' ? 'bg-orange-950/30 border-orange-500/20' : 'bg-yellow-950/30 border-yellow-500/20'}`}>
-                                            <ActivityIcon size={12} className={alert.severity === 'critical' ? 'text-orange-400' : 'text-yellow-400'} />
-                                            <div>
-                                                <span className={`text-[10px] font-black ${alert.severity === 'critical' ? 'text-orange-400' : 'text-yellow-400'}`}>{alert.type}</span>
-                                                <p className="text-[9px] text-zinc-400">{alert.message}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* --- SAVE BUTTON (fixed bottom) --- */}
-            {activeSessionId !== 'empty' && (
-                <div className="flex-shrink-0 p-4 bg-black border-t border-white/5">
-                    <button 
-                        onClick={handleSave} 
-                        className="w-full bg-white text-black py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.15em] hover:bg-zinc-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                    >
-                        <CheckIcon size={16}/>
-                        Guardar Sesión
-                    </button>
-                </div>
             )}
         </div>
     );

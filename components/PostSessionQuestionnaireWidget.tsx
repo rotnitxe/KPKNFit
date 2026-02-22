@@ -101,6 +101,8 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
         if (Math.abs(cnsLevel - augePredictions['__cns']) <= 2) matches++;
         total++;
 
+        const log = history.find(h => h.id === questionnaire.logId);
+        const sessionStress = log?.sessionStressScore ?? 50;
         allEvalMuscles.forEach(m => {
             const predicted = getMuscleDomsPrediction(m);
             const actual = feedback[m]?.doms ?? 1;
@@ -109,7 +111,7 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
             queueOutcome({ prediction_id: predId, actual_value: actual, feedback_source: 'post_session_doms' });
             queueRecoveryObservation({
                 muscle: m,
-                session_stress: 50,
+                session_stress: sessionStress,
                 hours_since_session: 1,
                 predicted_battery: 100 - predicted * 20,
                 actual_battery: 100 - actual * 20,

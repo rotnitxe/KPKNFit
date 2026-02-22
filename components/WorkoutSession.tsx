@@ -13,7 +13,7 @@ const hapticImpact = (style?: any) => _hapticImpact(style);
 const hapticNotification = (type?: any) => _hapticNotification(type);
 import { calculateSpinalScore, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from '../services/auge';
 import { normalizeMuscleGroup } from '../services/volumeCalculator';
-import { getCachedAdaptiveData, queueFatigueDataPoint, AugeAdaptiveCache } from '../services/augeAdaptiveService';
+import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 import { GPFatigueCurve } from './ui/AugeDeepView';
 import FinishWorkoutModal from './FinishWorkoutModal';
 import ExerciseHistoryModal from './ExerciseHistoryModal';
@@ -614,6 +614,7 @@ const SetDetails: React.FC<{
     const [showFailedModal, setShowFailedModal] = useState(false); 
     const [isStagnant, setIsStagnant] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); // CANDADO ANTI-DOBLE TOQUE
+    const [showAdvancedTechniques, setShowAdvancedTechniques] = useState(false);
 
     const currentInputs: SetInputState = isUnilateral ? (inputs as UnilateralSetInputs)[activeSide] : (inputs as SetInputState);
     const safeInputs: SetInputState = currentInputs || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, isIneffective: false, isPartial: false, duration: '', notes: '', advancedTechnique: '', dropSets: [], restPauses: [], performanceMode: 'target', partialReps: '', technicalQuality: '8', discomfortLevel: '0', discomfortNotes: '', tempo: '' };
@@ -874,6 +875,42 @@ const SetDetails: React.FC<{
                          )}
                     </div>
                 )}
+
+                <div className="mx-2 mt-2">
+                    <button onClick={() => setShowAdvancedTechniques(!showAdvancedTechniques)} className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg border text-[10px] font-black uppercase transition-all ${showAdvancedTechniques ? 'bg-slate-700 border-slate-600 text-white' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'}`}>
+                        <LayersIcon size={12} /> Técnicas avanzadas {((safeInputs.dropSets?.length || 0) + (safeInputs.restPauses?.length || 0)) > 0 && <span className="bg-amber-500/30 text-amber-400 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.dropSets?.length || 0) + (safeInputs.restPauses?.length || 0)}</span>}
+                    </button>
+                    {showAdvancedTechniques && (
+                        <div className="mt-2 space-y-3 p-3 bg-slate-900/50 border border-slate-700 rounded-xl animate-fade-in">
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Dropsets</span>
+                                    <button onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-white"><PlusIcon size={12}/></button>
+                                </div>
+                                {(safeInputs.dropSets || []).map((ds, i) => (
+                                    <div key={i} className="flex gap-2 items-center mb-2">
+                                        <input type="number" step="0.5" placeholder="Peso" value={ds.weight || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: parseFloat(e.target.value) || 0, reps: arr[i].reps }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-16" />
+                                        <input type="number" placeholder="Reps" value={ds.reps || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: arr[i].weight, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-14" />
+                                        <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Rest-pause</span>
+                                    <button onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-white"><PlusIcon size={12}/></button>
+                                </div>
+                                {(safeInputs.restPauses || []).map((rp, i) => (
+                                    <div key={i} className="flex gap-2 items-center mb-2">
+                                        <input type="number" placeholder="Descanso (s)" value={rp.restTime || ''} onChange={e => { const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: parseInt(e.target.value, 10) || 0, reps: arr[i].reps }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-20" />
+                                        <input type="number" placeholder="Reps" value={rp.reps || ''} onChange={e => { const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: arr[i].restTime, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-14" />
+                                        <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {exercise.isCompetitionLift && (
@@ -1045,14 +1082,21 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     const completedDataRaw = completedSets[String(set.id)] as { left: OngoingSetData | null, right: OngoingSetData | null };
                     const completedData = ex.isUnilateral ? (completedDataRaw?.left || completedDataRaw?.right) : completedDataRaw?.left;
                     
-                    // Mezclamos la data de la serie base con lo que el usuario realmente hizo
+                    // Mezclamos la data de la serie base con lo que el usuario realmente hizo.
+                    // Incluimos partialReps, dropSets, restPauses para que AUGE calcule correctamente
+                    // el drenaje de batería (parciales = más fatiga/volumen basura, menos estímulo).
                     const setToCalculate = completedData ? {
                         ...set,
                         completedReps: completedData.reps,
                         completedRPE: completedData.rpe,
                         weight: completedData.weight,
                         isFailure: completedData.isFailure,
-                        intensityMode: completedData.performanceMode === 'failure' ? 'failure' : set.intensityMode
+                        intensityMode: completedData.performanceMode === 'failure' ? 'failure' : set.intensityMode,
+                        partialReps: completedData.partialReps,
+                        dropSets: completedData.dropSets,
+                        restPauses: completedData.restPauses,
+                        performanceMode: completedData.performanceMode,
+                        isAmrap: completedData.isAmrap
                     } : set;
 
                     const drain = calculateSetBatteryDrain(setToCalculate, info, tanks, accumulatedSets, ex.restTime || 90);
@@ -1072,25 +1116,6 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     }, [allExercises, completedSets, settings, exerciseList]);
 
     const [adaptiveCache] = useState<AugeAdaptiveCache | null>(() => getCachedAdaptiveData());
-
-    const prevCompletedCountRef = useRef(Object.keys(completedSets).length);
-    useEffect(() => {
-        const currentCount = Object.keys(completedSets).length;
-        if (currentCount > prevCompletedCountRef.current) {
-            const totalDrain = (liveBatteryDrain.cns + liveBatteryDrain.muscular + liveBatteryDrain.spinal) / 3;
-            queueFatigueDataPoint({
-                hours_since_session: 0,
-                session_stress: totalDrain,
-                sleep_hours: 7,
-                nutrition_status: 1,
-                stress_level: 3,
-                age: settings.age || 25,
-                is_compound_dominant: true,
-                observed_fatigue_fraction: totalDrain / 100,
-            });
-        }
-        prevCompletedCountRef.current = currentCount;
-    }, [completedSets, liveBatteryDrain, settings.age]);
 
     const activePartInfo = useMemo(() => {
         if (!activeExerciseId || !renderExercises || renderExercises.length === 0) return null;
@@ -1116,6 +1141,15 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             setSetInputs(prev => {
                 const newInputs = { ...prev };
                 let hasChanges = false;
+                const completedSetsForExercise: { reps?: number; weight: number; machineBrand?: string }[] = currentExercise.sets.map(s => {
+                    const dataRaw = completedSets[String(s.id)];
+                    if (!dataRaw) return { weight: 0 };
+                    const data = dataRaw as { left: OngoingSetData | null; right: OngoingSetData | null };
+                    const primary = currentExercise.isUnilateral ? (data.left || data.right) : data.left;
+                    if (!primary || (primary.weight === 0 && !primary.reps)) return { weight: 0 };
+                    return { weight: primary.weight || 0, reps: primary.reps, machineBrand: primary.machineBrand };
+                });
+
                 currentExercise.sets.forEach((set, index) => {
                      if (!newInputs[set.id]) {
                          hasChanges = true;
@@ -1136,7 +1170,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                              partialReps: '', technicalQuality: '8', discomfortLevel: '0', discomfortNotes: '', tempo: ''
                          };
                          const exerciseInfo = exerciseList.find(e => e.id === currentExercise.exerciseDbId);
-                         const suggestion = getWeightSuggestionForSet(currentExercise, exerciseInfo, index, [], settings, history, selectedTags[currentExercise.id], sessionAdjusted1RMs[currentExercise.id]);
+                         const suggestion = getWeightSuggestionForSet(currentExercise, exerciseInfo, index, completedSetsForExercise, settings, history, selectedTags[currentExercise.id], sessionAdjusted1RMs[currentExercise.id]);
                          if (suggestion) defaultInput.weight = suggestion.toString();
                          newInputs[set.id] = currentExercise.isUnilateral ? { left: { ...defaultInput }, right: { ...defaultInput } } : defaultInput;
                      }
@@ -1149,7 +1183,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                  if (suggestion) setConsolidatedWeights(prev => ({...prev, [currentExercise.id]: suggestion}));
              }
         }
-    }, [activeExerciseId, allExercises, settings, history, selectedTags, exerciseList, sessionAdjusted1RMs, consolidatedWeights]);
+    }, [activeExerciseId, allExercises, completedSets, settings, history, selectedTags, exerciseList, sessionAdjusted1RMs, consolidatedWeights]);
     
     useEffect(() => {
         const timer = setInterval(() => { setDuration(Math.floor((Date.now() - startTime) / 1000)); }, 1000);
@@ -1280,12 +1314,37 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             setCompletedSets(prev => ({ ...prev, [String(set.id)]: setDataToSave }));
             hapticImpact(ImpactStyle.Light);
             
+            // --- AMRAP CALIBRADOR: Actualizar sessionAdjusted1RMs para ejercicios del mismo músculo ---
+            if (isCalibrator && primaryData.weight && primaryData.reps && primaryData.reps > 0) {
+                const newE1RM = calculateBrzycki1RM(primaryData.weight, primaryData.reps, true);
+                if (newE1RM > 0) {
+                    const conservative1RM = newE1RM * 0.95; // Factor conservador para siguientes ejercicios
+                    const exInfo = exerciseList.find(e => e.id === exercise.exerciseDbId || e.name === exercise.name);
+                    const rawMuscle = exInfo?.involvedMuscles?.find(m => m.role === 'primary')?.muscle || 'General';
+                    const calibMuscle = normalizeMuscleGroup(rawMuscle);
+                    
+                    setSessionAdjusted1RMs(prev => {
+                        const next = { ...prev };
+                        next[exercise.id] = newE1RM; // Mismo ejercicio: 1RM completo para sets siguientes
+                        const currentIdx = allExercises.findIndex(e => e.id === exercise.id);
+                        allExercises.forEach((ex, idx) => {
+                            if (idx <= currentIdx) return;
+                            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+                            const exMuscle = normalizeMuscleGroup(info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle || 'General');
+                            if (exMuscle === calibMuscle) next[ex.id] = conservative1RM;
+                        });
+                        return next;
+                    });
+                    addToast(`AMRAP Calibrador: 1RMe ${newE1RM.toFixed(1)}${settings.weightUnit}. Cargas ajustadas para ejercicios de ${calibMuscle}.`, "suggestion");
+                }
+            }
+            
             playSound('set-logged-sound');
             moveToNextSet(); 
             
             if (adaptiveRestTime > 0 && !isUnilateral) handleStartRest(adaptiveRestTime, exercise.name);
         }
-    }, [setInputs, selectedTags, handleStartRest, moveToNextSet, addToast, settings.algorithmSettings, completedSets, exerciseFeedback, allExercises, program.mode, (program as any).goals, settings.weightUnit]);
+    }, [setInputs, selectedTags, handleStartRest, moveToNextSet, addToast, settings.algorithmSettings, settings.weightUnit, completedSets, exerciseFeedback, allExercises, program.mode, (program as any).goals, exerciseList]);
 
     const handleGoalAnimationComplete = () => {
         setStarGoalProgress(null);

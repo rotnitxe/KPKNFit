@@ -10,6 +10,11 @@ export const REP_TO_PERCENT_1RM: { [key: number]: number } = {
 export const rpeToRir = (rpe: number): number => Math.max(0, 10 - Math.max(0, rpe));
 export const rirToRpe = (rir: number): number => Math.max(0, 10 - Math.max(0, rir));
 
+/**
+ * Calcula 1RM estimado con fórmula Brzycki.
+ * Nota: Las reps parciales NO se incluyen - aumentan fatiga en desmedro del estímulo,
+ * no aportan al 1RM. Se conectan a AUGE como volumen potencialmente basura.
+ */
 export const calculateBrzycki1RM = (weight: number, reps: number, isAmrap: boolean = false): number => {
   if (!weight || weight <= 0 || !reps || reps <= 0) return 0;
   if (reps === 1) return weight;
