@@ -1,3 +1,9 @@
+export { default as CompactHeroBanner } from './CompactHeroBanner';
+export { default as TrainingCalendarGrid } from './TrainingCalendarGrid';
+export { default as AnalyticsDashboard } from './AnalyticsDashboard';
+export { default as StructureDrawer } from './StructureDrawer';
+
+// Legacy exports kept for backwards compatibility
 export { default as HeroBanner } from './HeroBanner';
 export { default as QuickStatsBar } from './QuickStatsBar';
 export { default as TrainingCard } from './TrainingCard';
