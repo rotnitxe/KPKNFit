@@ -42,7 +42,7 @@ export const CalorieGoalCard: React.FC<{
                 onClick={onEditClick}
                 className="text-[9px] font-bold text-zinc-500 uppercase hover:text-white transition-colors"
             >
-                Editar
+                Editar plan
             </button>
         </div>
     );

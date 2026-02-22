@@ -7,7 +7,7 @@ export const TENDON_DATABASE: TendonInfo[] = [
     id: 'tendon-supraespinoso',
     name: 'Tendón del Supraespinoso',
     description: 'Tendón del músculo supraespinoso, parte del manguito rotador. Pasa por el espacio subacromial y es el más susceptible a impingement.',
-    muscleId: 'deltoides-lateral', // Supraespinoso no está en nuestra DB; usamos deltoides como referencia
+    muscleId: 'supraespinoso',
     jointId: 'glenohumeral',
     commonInjuries: [
       { name: 'Tendinopatía del supraespinoso', description: 'Degeneración del tendón por sobreuso o impingement.', riskExercises: ['db_bench_press_tng', 'db_overhead_press', 'db_dips'], contraindications: ['Evitar elevaciones repetitivas por encima de 90°'], returnProgressions: ['Rotaciones externas', 'Face pulls', 'Progresión a press'] },
@@ -17,7 +17,7 @@ export const TENDON_DATABASE: TendonInfo[] = [
     id: 'tendon-infraespinoso',
     name: 'Tendón del Infraespinoso',
     description: 'Tendón del músculo infraespinoso, parte del manguito rotador. Responsable de la rotación externa del hombro.',
-    muscleId: 'deltoides-posterior',
+    muscleId: 'infraespinoso',
     jointId: 'glenohumeral',
     commonInjuries: [
       { name: 'Tendinopatía del infraespinoso', description: 'Suele asociarse a desbalances de rotadores.', riskExercises: ['db_bench_press_tng'], contraindications: [], returnProgressions: ['Rotaciones externas', 'Estiramiento de pectoral', 'Face pulls'] },

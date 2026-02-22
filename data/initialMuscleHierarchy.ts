@@ -24,6 +24,7 @@ export const INITIAL_MUSCLE_HIERARCHY: MuscleHierarchy = {
     ],
     'Hombros': [
         { 'Deltoides': ['Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior'] },
+        { 'Manguito rotador': ['Supraespinoso', 'Infraespinoso'] },
         'Serrato Anterior'
     ],
     'Pecho': [
@@ -80,6 +81,8 @@ export const INITIAL_MUSCLE_HIERARCHY: MuscleHierarchy = {
     'Deltoides Anterior': 'Hombros',
     'Deltoides Lateral': 'Hombros',
     'Deltoides Posterior': 'Hombros',
+    'Supraespinoso': 'Hombros',
+    'Infraespinoso': 'Hombros',
     'Serrato Anterior': 'Hombros',
     // Pecho
     'Pectoral': 'Pecho',

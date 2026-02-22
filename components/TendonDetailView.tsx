@@ -58,9 +58,9 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
           <p className="text-slate-300 text-sm">{tendon.description}</p>
         </div>
 
-        {muscle && (
-          <div className="glass-card-nested p-4">
-            <h3 className="font-bold text-white mb-2">Músculo asociado</h3>
+        <div className="glass-card-nested p-4">
+          <h3 className="font-bold text-white mb-2">Músculo asociado</h3>
+          {muscle ? (
             <div
               onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: muscle.id })}
               className="p-3 flex justify-between items-center rounded-lg bg-slate-900/50 hover:bg-slate-800 cursor-pointer transition-colors"
@@ -68,8 +68,14 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
               <span className="font-semibold text-slate-200">{muscle.name}</span>
               <ChevronRightIcon className="text-slate-500" size={16} />
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="p-3 rounded-lg bg-slate-900/50 text-slate-500 text-sm italic">
+              {tendon.muscleId
+                ? `Músculo referenciado no disponible en la base de datos.`
+                : 'Sin músculo asociado registrado.'}
+            </p>
+          )}
+        </div>
 
         {joint && (
           <div className="glass-card-nested p-4">

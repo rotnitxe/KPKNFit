@@ -31,6 +31,7 @@ import AddPantryItemModal from './components/AddPantryItemModal';
 import { SleepWidgetHeader } from './components/SleepWidgetHeader';
 import { PostSessionQuestionnaireWidget } from './components/PostSessionQuestionnaireWidget';
 import AthleteIDDashboard from './components/AthleteIDDashboard';
+import { UpdateNoveltiesModal } from './components/UpdateNoveltiesModal';
 
 // Icons for header & new menu
 import { ArrowLeftIcon, IdCardIcon } from './components/icons';
@@ -291,7 +292,7 @@ export const App: React.FC = () => {
     // --- FIN VIP PASS ---
 
     // --- SISTEMA DE VERSIONES Y ESCUDO ANTI-CACHÉ ---
-    const APP_VERSION = "1.3.0";
+    const APP_VERSION = "1.4.0";
     const [showUpdateModal, setShowUpdateModal] = useState(false);
 
     useEffect(() => {
@@ -535,8 +536,8 @@ export const App: React.FC = () => {
                 </div>
             </main>
             
-            {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor to allow full screen Wizard */}
-            {view !== 'program-editor' && (
+            {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor and Nutrition Wizard/Landing */}
+            {view !== 'program-editor' && (view !== 'nutrition' || settings.hasSeenNutritionWizard) && (
                 <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] border-t border-white/10 rounded-t-none backdrop-blur-xl ${tabBarContainerHeight}`}>
                      <div className="relative w-full h-full">
                         {/* SubTabBar is absolutely positioned inside here, pushed up */}
@@ -568,46 +569,12 @@ export const App: React.FC = () => {
             {state.isLogActionSheetOpen && <LogActionSheet />}
             <SpecialSessionLoggerModal />
 
-            {/* --- MODAL DE NOVEDADES (ACTUALIZACIÓN) --- */}
-            {showUpdateModal && (
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-                    <div className="bg-zinc-900 border border-blue-500/30 rounded-3xl p-6 w-full max-w-sm shadow-2xl shadow-blue-500/10 animate-slide-up relative overflow-hidden">
-                        {/* Glow Background */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full pointer-events-none"></div>
-
-                        <div className="w-16 h-16 bg-blue-500/20 border border-blue-500/30 rounded-full flex items-center justify-center text-blue-400 mb-6 mx-auto relative z-10 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                        </div>
-                        
-                        <h2 className="text-xl font-black text-white uppercase text-center tracking-tight mb-2 relative z-10">¡KPKN Actualizado!</h2>
-                        <p className="text-zinc-400 text-[11px] text-center font-bold uppercase tracking-widest mb-6 relative z-10">Versión Instalada: {APP_VERSION}</p>
-                        
-                        <div className="bg-black/50 rounded-2xl p-5 mb-6 border border-white/5 space-y-3 relative z-10 max-h-[50vh] overflow-y-auto custom-scrollbar">
-                            <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                                Novedades v{APP_VERSION}:
-                            </h3>
-                            <ul className="text-[11px] text-zinc-300 space-y-2.5 font-bold">
-                                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">•</span> <span><strong>Registro de comida rediseñado:</strong> detecta gramos (200g arroz), cantidades (2 huevos) y cocción (frito, plancha, horno) por alimento. Sin duplicados ni errores como &quot;200x pechuga&quot;.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">•</span> <span><strong>Tags automáticos:</strong> al escribir, los alimentos se convierten en etiquetas si hay coincidencia. Pulsa una etiqueta para editar gramos, porción o método de cocción.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span><strong>Nutrición + Batería AUGE:</strong> opción en Ajustes para conectar calorías y macros con la recuperación muscular. Lógica no lineal: superávit no siempre acelera la recuperación.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span><strong>Reporte de micronutrientes:</strong> al final del día verás si hay carencias específicas (hierro, calcio, vitaminas, etc.) según lo que comiste.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">•</span> <span><strong>Régimen de déficit calórico:</strong> si reportas déficit, la app te avisa en el editor de sesiones que el entrenamiento podría ser duro de recuperar y reduce los límites de volumen sugeridos.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span><strong>Bases de datos offline:</strong> USDA y Open Food Facts disponibles sin conexión. Productos con caloría 0 enriquecidos con valores genéricos.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span> <span><strong>Búsqueda unificada:</strong> evita duplicados entre USDA y OFF; prioriza USDA y rellena macros faltantes desde la otra fuente.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-zinc-500 mt-0.5">•</span> <span>Guía de ayuda en el registro de comida con ejemplos y consejos para escribir descripciones correctamente.</span></li>
-                            </ul>
-                        </div>
-
-                        <button 
-                            onClick={() => setShowUpdateModal(false)}
-                            className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] relative z-10 active:scale-95"
-                        >
-                            ¡Entendido, a entrenar!
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* --- MODAL DE NOVEDADES (SEMI-WIZARD) --- */}
+            <UpdateNoveltiesModal
+                isOpen={showUpdateModal}
+                version={APP_VERSION}
+                onClose={() => setShowUpdateModal(false)}
+            />
 
             {/* --- VIP PASS IOS BANNER --- */}
             {showIOSPrompt && (

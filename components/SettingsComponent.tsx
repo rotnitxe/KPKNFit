@@ -15,6 +15,7 @@ import {
 } from './icons';
 import { storageService } from '../services/storageService';
 import BackgroundEditorModal from './SessionBackgroundModal';
+import { NutritionPlanEditorModal } from './nutrition/NutritionPlanEditorModal';
 import { useAppDispatch } from '../contexts/AppContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 
@@ -141,6 +142,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
     const [pendingSettings, setPendingSettings] = useState<Settings>(settings);
     const [hasChanges, setHasChanges] = useState(false);
     const [isBgModalOpen, setIsBgModalOpen] = useState(false);
+    const [isNutritionPlanEditorOpen, setIsNutritionPlanEditorOpen] = useState(false);
     const [snapshots, setSnapshots] = useLocalStorage<LocalSnapshot[]>('yourprime-snapshots', []);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { navigateTo, importExerciseDatabase } = useAppDispatch();
@@ -332,8 +334,15 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                             onChange={(c) => handleAlgorithmChange('augeEnableSleepTracking', c)} 
                         />
                     </div>
+                    <div className="border-t border-white/5 pt-3 relative z-10">
+                        <Button onClick={() => setIsNutritionPlanEditorOpen(true)} variant="secondary" className="w-full">
+                            <CalculatorIcon size={16} className="mr-2" />
+                            Editar plan de alimentación
+                        </Button>
+                    </div>
                 </div>
             </SettingsSection>
+            <NutritionPlanEditorModal isOpen={isNutritionPlanEditorOpen} onClose={() => setIsNutritionPlanEditorOpen(false)} />
 
             {/* --- SECCIÓN: UI / UX / ESTÉTICA --- */}
             <SettingsSection title="Interfaz & Estética" icon={<PaletteIcon />}>

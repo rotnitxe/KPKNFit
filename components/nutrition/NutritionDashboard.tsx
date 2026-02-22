@@ -7,7 +7,8 @@ import type { NutritionLog, LoggedFood } from '../../types';
 import { calculateDailyCalorieGoal } from '../../utils/calorieFormulas';
 import { getMicronutrientDeficiencies } from '../../services/nutritionRecoveryService';
 import { UtensilsIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, AlertTriangleIcon } from '../icons';
-import { CalorieGoalCard, CalorieGoalModal } from './CalorieGoalCard';
+import { CalorieGoalCard } from './CalorieGoalCard';
+import { NutritionPlanEditorModal } from './NutritionPlanEditorModal';
 
 const mealOrder: NutritionLog['mealType'][] = ['breakfast', 'lunch', 'dinner', 'snack'];
 const mealNames: Record<NutritionLog['mealType'], string> = {
@@ -270,7 +271,7 @@ export const NutritionDashboard: React.FC<{
                 calorieGoal={calorieGoal}
                 onEditClick={() => setIsGoalModalOpen(true)}
             />
-            <CalorieGoalModal
+            <NutritionPlanEditorModal
                 isOpen={isGoalModalOpen}
                 onClose={() => setIsGoalModalOpen(false)}
             />
