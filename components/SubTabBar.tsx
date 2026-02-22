@@ -4,7 +4,7 @@ import { useAppContext, useAppDispatch } from '../contexts/AppContext';
 import { SearchIcon, DumbbellIcon, ClipboardListIcon, PlusIcon, UtensilsIcon, BrainIcon, TrendingUpIcon, BodyIcon, ActivityIcon, PencilIcon, ClipboardPlusIcon } from './icons';
 
 interface SubTabBarProps {
-  context: 'your-lab' | 'food-database' | 'progress' | 'athlete-profile' | null;
+  context: 'kpkn' | 'food-database' | 'progress' | 'athlete-profile' | null;
   isActive: boolean;
   viewingExerciseId?: string | null;
   onEditExercisePress?: () => void;
@@ -27,7 +27,7 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
         }
     };
 
-    const isDatabaseContext = context === 'your-lab' || context === 'food-database';
+    const isDatabaseContext = context === 'kpkn' || context === 'food-database';
 
     const activeSubTab = context ? (activeSubTabs[context] || (context === 'progress' ? 'cuerpo' : context === 'athlete-profile' ? 'vitals' : 'Explorar')) : null;
 
@@ -50,7 +50,7 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
             {/* Icon Actions */}
             <div className="flex gap-1">
                 {/* DATABASE TOGGLE SWITCH */}
-                {view === 'your-lab' ? (
+                {view === 'kpkn' ? (
                      <button 
                         onClick={() => navigateTo('food-database')}
                         className="p-2.5 rounded-xl bg-black/80 text-slate-400 hover:text-orange-400 hover:bg-orange-900/20 border border-white/10 transition-all"
@@ -60,7 +60,7 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
                     </button>
                 ) : (
                     <button 
-                        onClick={() => navigateTo('your-lab')}
+                        onClick={() => navigateTo('kpkn')}
                         className="p-2.5 rounded-xl bg-black/80 text-slate-400 hover:text-blue-400 hover:bg-blue-900/20 border border-white/10 transition-all"
                         title="Ir a Ejercicios"
                     >
@@ -69,9 +69,9 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
                 )}
 
                 {/* Context-Specific Actions */}
-                {view === 'your-lab' && (
+                {view === 'kpkn' && (
                      <button 
-                        onClick={() => { setActiveSubTabs(p => ({...p, 'your-lab': activeSubTab === 'Mis Listas' ? 'Explorar' : 'Mis Listas'})); }}
+                        onClick={() => { setActiveSubTabs(p => ({...p, 'kpkn': activeSubTab === 'Mis Listas' ? 'Explorar' : 'Mis Listas'})); }}
                         className={`p-2.5 rounded-xl transition-all border border-white/10 ${activeSubTab === 'Mis Listas' ? 'bg-white text-black shadow-lg' : 'bg-black/80 text-slate-400 hover:text-white'}`}
                         title="Mis Listas"
                     >

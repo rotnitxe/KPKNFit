@@ -1,0 +1,17 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5500",
+  "executionArgs": {
+    "projectName": "kpkn-fit-(beta-test)",
+    "projectPath": "c:/Users/valen/Downloads/kpkn-fit-(beta-test)",
+    "testIds": [],
+    "additionalInstruction": "",
+    "envs": {
+      "API_KEY": "sk-user-KFSJcDFZhcbH0HKlOhDOE96GbdxxHSfN1LtGZU4E_Sj7ylwiJ0rej3q9AFpex1_DWSOIR5QSRIVrCm1cuBlS4XfQdxeunWiTQKPhcQnTGySKEC8lcXg07nrGNAeae9wYfgA"
+    }
+  },
+  "serverPort": 61007,
+  "proxy": "http://4c06de22-43ea-41f6-b13b-4400f78f763d:tlrJ7beKSMBcHnVniiNSTBO5LmePruQK@tun.testsprite.com:8080"
+}

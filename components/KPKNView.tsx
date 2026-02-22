@@ -1,5 +1,5 @@
 
-// components/YourLab.tsx
+// components/KPKNView.tsx
 import React, { useState, useMemo } from 'react';
 import { ExerciseMuscleInfo, ExercisePlaylist } from '../types';
 import { ChevronRightIcon, PlusIcon, TrashIcon, TrophyIcon, ActivityIcon, TargetIcon, BrainIcon, DumbbellIcon, ClipboardListIcon } from './icons';
@@ -24,17 +24,17 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ e
     );
 });
 
-const YourLab: React.FC = () => {
+const KPKNView: React.FC = () => {
     const { exerciseList, exercisePlaylists, addOrUpdatePlaylist, deletePlaylist, muscleHierarchy, activeSubTabs, searchQuery, settings } = useAppContext();
     const { setSettings, navigateTo } = useAppDispatch();
     
     // SubTabBar controls the view logic via activeSubTabs context, or we default to 'Explorar'
-    const currentTab = activeSubTabs['your-lab'] || 'Explorar';
+    const currentTab = activeSubTabs['kpkn'] || 'Explorar';
     
     const [newPlaylistName, setNewPlaylistName] = useState('');
     const [isCreatingNew, setIsCreatingNew] = useState(false);
 
-    const handleDismissTour = () => setSettings({ hasSeenYourLabTour: true });
+    const handleDismissTour = () => setSettings({ hasSeenKPKNTour: true });
 
     const handleCreatePlaylist = () => {
         if (!newPlaylistName.trim()) return;
@@ -205,9 +205,9 @@ const YourLab: React.FC = () => {
 
     return (
         <div className="pt-4 pb-32 px-4 max-w-4xl mx-auto">
-             {!settings.hasSeenYourLabTour && (
+             {!settings.hasSeenKPKNTour && (
                 <CoachMark 
-                    title="YourLab: Base de Conocimiento" 
+                    title="KPKN: Base de Conocimiento" 
                     description="Aquí encontrarás todos los ejercicios y alimentos disponibles. Crea listas, busca por músculo o explora nuestra base de datos." 
                     onClose={handleDismissTour}
                 />
@@ -228,4 +228,4 @@ const YourLab: React.FC = () => {
     );
 };
 
-export default YourLab;
+export default KPKNView;

@@ -114,7 +114,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [foodItemToAdd_to_pantry, setFoodItemToAdd_to_pantry] = useState<FoodItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeSubTabs, setActiveSubTabs] = useState<AppContextState['activeSubTabs']>({});
-    const [yourLabAction, setYourLabAction] = useState<any>(null);
+    const [kpknAction, setKpknaction] = useState<any>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Global Voice State
@@ -295,7 +295,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // EXERCISE CREATION
     const createAndAddExerciseToDB = useCallback(async (exerciseName: string): Promise<ExerciseMuscleInfo | null> => {
-        addToast(`Creando "${exerciseName}" en YourLab...`, "suggestion", "IA en Progreso");
+        addToast(`Creando "${exerciseName}" en KPKN...`, "suggestion", "IA en Progreso");
         try {
             const populatedData = await aiService.createAndPopulateExercise(exerciseName, settings);
             const newExercise: ExerciseMuscleInfo = {
@@ -311,7 +311,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 isCustom: true,
             };
             addOrUpdateCustomExercise(newExercise);
-            addToast(`"${exerciseName}" añadido a YourLab!`, 'success');
+            addToast(`"${exerciseName}" añadido a KPKN!`, 'success');
             return newExercise;
         } catch (error: any) {
             addToast(error.message || `Error al crear "${exerciseName}"`, 'danger');
@@ -327,7 +327,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             );
 
             if (nonDuplicates.length > 0) {
-                addToast(`${nonDuplicates.length} nuevos ejercicios añadidos a YourLab!`, 'success');
+                addToast(`${nonDuplicates.length} nuevos ejercicios añadidos a KPKN!`, 'success');
             } else if (newExercises.length > 0) {
                 addToast('Todos los ejercicios sugeridos ya existen en tu base de datos.', 'suggestion');
             }
@@ -1263,7 +1263,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         editingFoodData, pendingWorkoutForReadinessCheck, editingWorkoutSessionInfo,
         editingCategoryInfo, pendingNavigation, saveSessionTrigger, addExerciseTrigger,
         saveProgramTrigger, saveLoggedWorkoutTrigger, modifyWorkoutTrigger, searchQuery,
-        activeSubTabs, currentBackgroundOverride, restTimer, isDirty, yourLabAction,
+        activeSubTabs, currentBackgroundOverride, restTimer, isDirty, kpknAction,
         pendingCoachBriefing, pendingWorkoutAfterBriefing,
         sleepLogs,
         sleepStartTime,
@@ -1357,7 +1357,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         handleLogPress: () => setIsLogActionSheetOpen(true),
         addOrUpdateCustomExercise, batchAddExercises, createAndAddExerciseToDB, setExerciseList,
         exportExerciseDatabase, importExerciseDatabase, setIsDirty, handleModifyWorkout,
-        handleSaveModifiedWorkout, setIsWorkoutEditorOpen, setYourLabAction,
+        handleSaveModifiedWorkout, setIsWorkoutEditorOpen, setKpknaction,
         handleLogSleep,
         setSleepLogs,
         handleSavePostSessionFeedback,

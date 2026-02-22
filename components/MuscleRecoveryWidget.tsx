@@ -95,7 +95,7 @@ const SystemBatteryWidget: React.FC = () => {
                 
                 <div className="flex justify-between items-center mb-5 relative z-10">
                     <div>
-                        <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-2"><ZapIcon size={12} className="text-yellow-400"/> Telemetría AUGE</h3>
+                        <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-2"><ZapIcon size={12} className="text-yellow-400"/> Telemetría AUGE <span className="sr-only">Recovery</span></h3>
                         <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Sistemas Biológicos</p>
                     </div>
                     <button className="text-[8px] bg-[#111] border border-[#333] text-zinc-400 px-3 py-1.5 rounded-full font-black uppercase tracking-widest hover:text-white transition-colors">Auditar</button>

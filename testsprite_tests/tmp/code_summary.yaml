@@ -1,0 +1,142 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - React
+  - React 19
+  - Tailwind CSS
+  - Capacitor
+  - Recharts
+  - esbuild
+  - Zod
+routes:
+  - path: /
+    file: index.html
+    auth_required: false
+    description: Single-page app entry, client-side routing via state
+features:
+  - name: Home Dashboard
+    description: Main home screen with active program, quick actions, 1RM analytics widget, muscle recovery
+    files:
+      - components/Home.tsx
+      - App.tsx
+    entry_route: /
+    user_interactions:
+      - View home dashboard with active program card
+      - Tap Programs tab to open programs list
+      - Tap Nutrition tab to open nutrition view
+      - Tap Your Lab tab to open exercise/food database
+      - Tap Plus button for log hub
+      - Tap active program card to open program detail
+    api_calls: []
+    auth_required: false
+  - name: Programs List
+    description: List of training programs, create new, swipe to delete, tap to open detail
+    files:
+      - components/ProgramsView.tsx
+      - App.tsx
+    entry_route: /
+    user_interactions:
+      - View list of programs
+      - Tap Nuevo to create program
+      - Tap program card to open program detail
+      - Swipe program card left to delete
+    api_calls: []
+    auth_required: false
+  - name: Program Detail
+    description: Program overview with macrocycle/weekly view, sessions, start workout
+    files:
+      - components/ProgramDetail.tsx
+      - App.tsx
+    entry_route: /
+    user_interactions:
+      - View program structure and sessions
+      - Switch between weekly and macrocycle view
+      - Tap session to edit
+      - Tap Start workout button
+      - Use back button to return to programs list
+    api_calls: []
+    auth_required: false
+  - name: Program Editor
+    description: Create or edit training programs with wizard or advanced editor
+    files:
+      - components/ProgramEditor.tsx
+      - App.tsx
+    entry_route: /
+    user_interactions:
+      - Create new program via wizard
+      - Edit existing program in advanced editor
+      - Configure blocks, mesocycles, weeks
+      - Save or cancel
+    api_calls: []
+    auth_required: false
+  - name: Session Editor
+    description: Edit individual session with exercises and sets
+    files:
+      - components/SessionEditor.tsx
+      - App.tsx
+    entry_route: /
+    user_interactions:
+      - Add or remove exercises
+      - Edit sets, reps, weight, RPE
+      - Mark competition lifts
+      - Save session
+    api_calls: []
+    auth_required: false
+  - name: Workout Session
+    description: Live workout tracking with set completion, timers, judging lights for competition lifts
+    files:
+      - components/WorkoutSession.tsx
+      - App.tsx
+    entry_route: /
+    user_interactions:
+      - Complete sets with weight and reps
+      - Use rest timer
+      - Tap judging lights for competition lifts
+      - Finish or cancel workout
+    api_calls: []
+    auth_required: false
+  - name: Nutrition View
+    description: Nutrition tracking and meal logging
+    files:
+      - components/NutritionView.tsx
+      - App.tsx
+    entry_route: /
+    user_interactions:
+      - View nutrition dashboard
+      - Log meals
+      - Navigate to food database
+    api_calls: []
+    auth_required: false
+  - name: KPKN
+    description: Exercise and food database, custom exercises
+    files:
+      - components/KPKNView.tsx
+      - components/ExerciseDatabaseView.tsx
+      - components/FoodDatabaseView.tsx
+    entry_route: /
+    user_interactions:
+      - Browse exercise database
+      - Add custom exercises
+      - Browse food database
+    api_calls: []
+    auth_required: false
+  - name: Settings
+    description: App settings, theme, preferences
+    files:
+      - components/SettingsComponent.tsx
+      - App.tsx
+    entry_route: /
+    user_interactions:
+      - Change theme
+      - Toggle haptics and sound
+      - Manage data
+    api_calls: []
+    auth_required: false
+known_limitations:
+  - issue: Navigation is state-based, no URL routes; all views reached via tab bar and buttons
+    location: contexts/AppContext.tsx
+    impact: TestSprite must interact with UI elements to navigate, not URL navigation
+  - issue: Data stored in localStorage, no backend API
+    location: services/storageService.ts
+    impact: No API calls to test; all data is client-side

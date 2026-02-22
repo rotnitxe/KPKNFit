@@ -42,7 +42,7 @@ const functionDeclarations: FunctionDeclaration[] = [
     {
         name: 'navigateTo',
         description: 'Navega a una sección específica de la aplicación.',
-        parameters: { type: Type.OBJECT, properties: { view: { type: Type.STRING, enum: ['home', 'progress', 'nutrition', 'settings', 'your-lab'], description: 'La vista a la que navegar.' } }, required: ['view'] }
+        parameters: { type: Type.OBJECT, properties: { view: { type: Type.STRING, enum: ['home', 'progress', 'nutrition', 'settings', 'kpkn'], description: 'La vista a la que navegar.' } }, required: ['view'] }
     },
     {
         name: 'deleteProgram',

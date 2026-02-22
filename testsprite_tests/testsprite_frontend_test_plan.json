@@ -1,0 +1,2427 @@
+[
+  {
+    "id": "TC001",
+    "title": "Home dashboard renders with core sections visible",
+    "description": "Verifies the home dashboard loads and shows key navigation and summary widgets.",
+    "category": "Home Dashboard",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Home dashboard\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Programs\" tab is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Nutrition\" tab is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Your Lab\" tab is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Plus\" button is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"1RM\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Open program detail from active program card",
+    "description": "Verifies tapping the active program card opens the program detail screen.",
+    "category": "Home Dashboard",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Active program\" card is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Active program\" card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Program detail\" screen is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Program\" title is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "No active program state shows message and allows opening log hub",
+    "description": "Verifies the empty state for no active program is shown and the Plus log hub can be opened.",
+    "category": "Home Dashboard",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No active program\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Plus\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Log hub\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Log\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Navigate to Programs view from Home via Programs tab",
+    "description": "Verifies the Programs tab from the home dashboard opens the programs list view.",
+    "category": "Home Dashboard",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Programs\" tab is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Programs\" view is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Navigate to Nutrition view from Home via Nutrition tab",
+    "description": "Verifies the Nutrition tab from the home dashboard opens the nutrition view.",
+    "category": "Home Dashboard",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Nutrition\" tab is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Nutrition\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Nutrition\" view is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Nutrition\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Navigate to Your Lab view from Home via Your Lab tab",
+    "description": "Verifies the Your Lab tab from the home dashboard opens the exercise/food database view.",
+    "category": "Home Dashboard",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Your Lab\" tab is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Your Lab\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Your Lab\" view is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Your Lab\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Plus button opens log hub from Home",
+    "description": "Verifies the Plus button consistently opens the log hub from the home dashboard.",
+    "category": "Home Dashboard",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Plus\" button is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Plus\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Log hub\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Close\" control is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Home analytics and recovery indicators are visible on initial load",
+    "description": "Verifies 1RM analytics and recovery indicators are present on the home dashboard.",
+    "category": "Home Dashboard",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"1RM\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"1RM analytics\" widget is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Recovery\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Recovery\" indicator is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Open Programs list from the app entry",
+    "description": "Verifies the user can navigate to the Programs list view and see the Programs screen content.",
+    "category": "Programs List",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Nuevo\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"list of programs\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Create a new program successfully and see it in the list",
+    "description": "Verifies a user can create a program with a valid name, complete configuration steps, save, and see it appear in the Programs list.",
+    "category": "Programs List",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"E2E Program A\" into the \"Program name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Configure blocks\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Configure mesocycles\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Configure weeks\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save program\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"E2E Program A\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Program name required validation on create",
+    "description": "Verifies a validation error appears when attempting to save a new program without a name.",
+    "category": "Programs List",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save program\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Name required\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Cancel program creation without saving (no new program added)",
+    "description": "Verifies exiting the create program flow without saving does not add a new program to the list.",
+    "category": "Programs List",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"E2E Program Unsaved\" into the \"Program name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Escape\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"list of programs\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"E2E Program Unsaved\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Prevent saving when only whitespace is entered as program name",
+    "description": "Verifies the create program form rejects a name that is only spaces and shows the required-name error.",
+    "category": "Programs List",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"   \" into the \"Program name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save program\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Name required\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Open Program Detail from Programs list and view structure and sessions",
+    "description": "Verifies a user can navigate to Programs, open a program detail page, and see the program structure and session list.",
+    "category": "Program Detail",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab in the tab bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible program card in the programs list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Program\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Macrocycle\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Weekly\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sessions\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Switch between Weekly and Macrocycle views in Program Detail",
+    "description": "Verifies the user can toggle between Weekly and Macrocycle views and the view content updates visibly.",
+    "category": "Program Detail",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab in the tab bar"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Weekly\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Week\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Macrocycle\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Macrocycle\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Start workout from Program Detail when sessions exist",
+    "description": "Verifies the Start workout action from Program Detail opens the workout session screen when sessions are defined.",
+    "category": "Program Detail",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab in the tab bar"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible program card in the programs list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Start workout\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start workout\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Workout\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Session\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Show error when Start workout is tapped with no sessions defined",
+    "description": "Verifies the app shows the expected error message when attempting to start a workout from a program with no sessions.",
+    "category": "Program Detail",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab in the tab bar"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card that indicates it has no sessions (if labeled) or an empty sessions state is visible after opening"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Start workout\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start workout\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No sessions defined\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Open a session from Program Detail to edit",
+    "description": "Verifies a user can tap a session from the Program Detail sessions list and is taken to a session edit/details screen.",
+    "category": "Program Detail",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab in the tab bar"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible program card in the programs list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sessions\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible session item in the sessions list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Session\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Edit\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Use back button from Program Detail to return to Programs list",
+    "description": "Verifies the in-app back control returns the user from Program Detail to the Programs list view.",
+    "category": "Program Detail",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab in the tab bar"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible program card in the programs list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Back\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Back\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Programs\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Program Detail handles long session lists by allowing scrolling to Start workout",
+    "description": "Verifies the user can scroll within Program Detail and still access the Start workout button when content is long.",
+    "category": "Program Detail",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab in the tab bar"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card likely to have many sessions (if labeled), otherwise open any program"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sessions\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the \"Start workout\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Start workout\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start workout\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Workout\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Create a new program via wizard and save",
+    "description": "Verifies a user can create a new program through the wizard steps and save it, returning to the programs list with the new item visible.",
+    "category": "Program Editor",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Wizard\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Wizard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Cancel program creation from wizard and confirm no new program is added",
+    "description": "Verifies canceling the wizard creation returns to the programs list without saving a new program.",
+    "category": "Program Editor",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Wizard\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Wizard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Cancel\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Nuevo\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Wizard step navigation: configure blocks then proceed to mesocycles",
+    "description": "Verifies the wizard supports progressing from the blocks configuration step to the mesocycles step.",
+    "category": "Program Editor",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Wizard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Blocks\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Next\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Mesocycles\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Wizard step navigation: configure mesocycles then proceed to weeks",
+    "description": "Verifies the wizard supports progressing from the mesocycles configuration step to the weeks step.",
+    "category": "Program Editor",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Wizard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Next\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Mesocycles\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Next\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Weeks\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Wizard save is blocked when required fields are missing (validation visible)",
+    "description": "Verifies attempting to save with incomplete required configuration shows a visible validation message and does not exit the editor.",
+    "category": "Program Editor",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Wizard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Save\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Cancel from a later wizard step returns to programs list",
+    "description": "Verifies cancel works not only at the start but also after progressing to later steps, returning to the programs list.",
+    "category": "Program Editor",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Wizard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Next\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Mesocycles\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Cancel\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Save a newly created program appears in the list after returning",
+    "description": "Verifies that after saving a new program, the programs list shows at least one program entry and the new entry is visible.",
+    "category": "Program Editor",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Nuevo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Wizard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Program list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "Edit a session end-to-end and save changes successfully",
+    "description": "Verifies a user can open a program session, add an exercise, fully edit set details including RPE, optionally mark competition lift, and save to see updates reflected in program detail.",
+    "category": "Session Editor",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Program\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a session item to edit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Session\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add exercise\""
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Save should be blocked when set details are incomplete",
+    "description": "Verifies validation prevents saving when an added exercise has incomplete set details and shows the expected validation message.",
+    "category": "Session Editor",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on a session item to edit"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add exercise\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save session\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Complete set details\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "Remove an exercise from a session and save",
+    "description": "Verifies an exercise can be removed from a session and the session can be saved with the removal reflected afterwards.",
+    "category": "Session Editor",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on a session item to edit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Save session\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Remove exercise\" for an exercise in the session"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save session\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Session\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC031",
+    "title": "Edit sets count for an exercise and save",
+    "description": "Verifies the user can change the number of sets for an exercise and successfully save the session.",
+    "category": "Session Editor",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on a session item to edit"
+      },
+      {
+        "type": "action",
+        "description": "Click on an exercise in the session to edit set details"
+      },
+      {
+        "type": "action",
+        "description": "Type \"3\" into the \"Sets\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save session\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Session\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC032",
+    "title": "Edit reps value for a set and save",
+    "description": "Verifies the user can edit reps for a set within an exercise and save the updated session.",
+    "category": "Session Editor",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on a session item to edit"
+      },
+      {
+        "type": "action",
+        "description": "Click on an exercise in the session to edit set details"
+      },
+      {
+        "type": "action",
+        "description": "Type \"8\" into the \"Reps\" field for the first set"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save session\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Session\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC033",
+    "title": "Edit weight value for a set and save",
+    "description": "Verifies the user can edit the weight for a set and save the session successfully.",
+    "category": "Session Editor",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on a session item to edit"
+      },
+      {
+        "type": "action",
+        "description": "Click on an exercise in the session to edit set details"
+      },
+      {
+        "type": "action",
+        "description": "Type \"100\" into the \"Weight\" field for the first set"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save session\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Session\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC034",
+    "title": "Edit RPE value for a set and save",
+    "description": "Verifies the user can set or change the RPE value for a set and save the session successfully.",
+    "category": "Session Editor",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on a session item to edit"
+      },
+      {
+        "type": "action",
+        "description": "Click on an exercise in the session to edit set details"
+      },
+      {
+        "type": "action",
+        "description": "Type \"8\" into the \"RPE\" field for the first set"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save session\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Session\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC035",
+    "title": "Mark an exercise as a competition lift and save",
+    "description": "Verifies the user can mark an exercise as a competition lift and save the session with the indicator shown in the editor.",
+    "category": "Session Editor",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on a session item to edit"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add exercise\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Competition lift\" toggle or checkbox for the added exercise"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save session\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Competition\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC036",
+    "title": "Start a workout session from a program and verify the workout session screen opens",
+    "description": "Verifies a user can navigate from the Programs list into a program and start a workout session.",
+    "category": "Workout Session",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Programs\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Start workout\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Workout\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC037",
+    "title": "Complete one set by entering weight and reps and verify the set is marked completed",
+    "description": "Verifies set completion by entering weight and reps updates the visible set state in the live workout.",
+    "category": "Workout Session",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"100\" into the \"Weight\" field for the first set"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"5\" into the \"Reps\" field for the first set"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Complete\" button for the first set"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Completed\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC038",
+    "title": "Use the rest timer between sets and verify timer UI appears and counts down/runs",
+    "description": "Verifies the rest timer can be started during a workout and is visible while running.",
+    "category": "Workout Session",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Rest timer\" control"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Rest\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Timer\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Wait for 2 seconds"
+      }
+    ]
+  },
+  {
+    "id": "TC039",
+    "title": "Pause and resume the rest timer during a workout",
+    "description": "Verifies the rest timer supports pausing and resuming from the workout session UI.",
+    "category": "Workout Session",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Rest timer\" control"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Pause\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Pause\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Resume\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Resume\" button"
+      }
+    ]
+  },
+  {
+    "id": "TC040",
+    "title": "Use judging lights for a competition lift and verify a decision state is shown",
+    "description": "Verifies judging lights can be tapped and a visible result/decision is displayed for competition lifts when available.",
+    "category": "Workout Session",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the judging lights section (if not visible)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Judging\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"White light\" control"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Good lift\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC041",
+    "title": "Finish a workout and verify the workout summary is displayed",
+    "description": "Verifies a user can finish a workout session and see a summary screen.",
+    "category": "Workout Session",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Finish workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Confirm\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Workout summary\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC042",
+    "title": "Cancel a workout and confirm cancellation returns to program detail",
+    "description": "Verifies a user can cancel a workout session and return to the program detail view.",
+    "category": "Workout Session",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Cancel workout\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Cancel workout\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Confirm cancel\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Start workout\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC043",
+    "title": "Cancel a workout and verify unsaved workout progress is not retained when starting again",
+    "description": "Verifies that after canceling and confirming, restarting the workout does not show the previously entered (unsaved) set inputs as completed.",
+    "category": "Workout Session",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Programs\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on a program card in the programs list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"80\" into the \"Weight\" field for the first set"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Cancel workout\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Confirm cancel\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Start workout\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Completed\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC044",
+    "title": "Log a meal from the food database and see the dashboard update",
+    "description": "Verifies a user can log a meal by searching and selecting a food, entering a portion, saving, and seeing the nutrition dashboard reflect the new entry.",
+    "category": "Nutrition View",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Nutrition\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Nutrition\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Log meal\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"chicken\" into the food search field"
+      },
+      {
+        "type": "action",
+        "description": "Click on a food item in the search results"
+      },
+      {
+        "type": "action",
+        "description": "Type \"1\" into the portion field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save meal\""
+      }
+    ]
+  },
+  {
+    "id": "TC045",
+    "title": "After saving a meal, verify the nutrition dashboard shows the new meal entry",
+    "description": "Verifies that saving a logged meal returns to the nutrition dashboard and displays the newly added meal in the visible list/summary.",
+    "category": "Nutrition View",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Nutrition\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Log meal\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"rice\" into the food search field"
+      },
+      {
+        "type": "action",
+        "description": "Click on a food item in the search results"
+      },
+      {
+        "type": "action",
+        "description": "Type \"200\" into the portion field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save meal\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"rice\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC046",
+    "title": "Portion is required validation when saving a meal",
+    "description": "Verifies that leaving the portion empty prevents saving and displays the validation error message.",
+    "category": "Nutrition View",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Nutrition\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Log meal\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"banana\" into the food search field"
+      },
+      {
+        "type": "action",
+        "description": "Click on a food item in the search results"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save meal\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Portion required\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC047",
+    "title": "Cancel out of meal logging without saving",
+    "description": "Verifies the user can exit the meal logging flow without saving and returns to the nutrition dashboard.",
+    "category": "Nutrition View",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Nutrition\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Log meal\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Search\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Cancel\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Nutrition\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC048",
+    "title": "Search food database with no matches shows an empty state",
+    "description": "Verifies the food search handles an uncommon query and shows a visible no-results/empty state rather than incorrect results.",
+    "category": "Nutrition View",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Nutrition\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Log meal\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"zzzznonexistentfood\" into the food search field"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC049",
+    "title": "Portion field rejects non-numeric input (or prevents save)",
+    "description": "Verifies that entering a non-numeric portion does not allow a successful save and provides visible feedback.",
+    "category": "Nutrition View",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Nutrition\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Log meal\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"milk\" into the food search field"
+      },
+      {
+        "type": "action",
+        "description": "Click on a food item in the search results"
+      },
+      {
+        "type": "action",
+        "description": "Type \"abc\" into the portion field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save meal\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Portion\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC050",
+    "title": "View nutrition dashboard on opening the Nutrition tab",
+    "description": "Verifies the Nutrition tab opens the nutrition dashboard view and key dashboard content is visible.",
+    "category": "Nutrition View",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Nutrition\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Nutrition\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Nutrition dashboard\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Log meal\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC051",
+    "title": "Open Your Lab and browse the exercise database list",
+    "description": "Verifies the user can reach Your Lab from the app entry and see the exercise database list for browsing.",
+    "category": "Your Lab (Exercise & Food Database)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Your Lab\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Your Lab\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Exercise\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Food\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC052",
+    "title": "Open an exercise detail from the exercise database",
+    "description": "Verifies the user can open an exercise detail view from the exercise database list.",
+    "category": "Your Lab (Exercise & Food Database)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Your Lab\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first exercise in the exercise list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise detail\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise name\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC053",
+    "title": "Add a custom exercise and confirm it appears in the database",
+    "description": "Verifies the user can create a custom exercise by filling required fields, saving it, and seeing it in the exercise database list.",
+    "category": "Your Lab (Exercise & Food Database)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Your Lab\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add custom exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"New Exercise\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"E2E Custom Exercise A\" into the \"Exercise name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"E2E Custom Exercise A\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC054",
+    "title": "Add a custom exercise from within an exercise detail view",
+    "description": "Verifies the user can open an exercise detail and still initiate adding a custom exercise, then save successfully.",
+    "category": "Your Lab (Exercise & Food Database)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Your Lab\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first exercise in the exercise list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise detail\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add custom exercise\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"E2E Custom Exercise B\" into the \"Exercise name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"E2E Custom Exercise B\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC055",
+    "title": "Prevent saving a custom exercise with a duplicate name",
+    "description": "Verifies saving a custom exercise with a duplicate name shows the expected duplicate-name error message.",
+    "category": "Your Lab (Exercise & Food Database)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Your Lab\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add custom exercise\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"E2E Duplicate Exercise\" into the \"Exercise name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"E2E Duplicate Exercise\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add custom exercise\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"E2E Duplicate Exercise\" into the \"Exercise name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Duplicate exercise name\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC056",
+    "title": "Required field validation when saving a custom exercise with an empty name",
+    "description": "Verifies the user cannot save a custom exercise without providing the required name field.",
+    "category": "Your Lab (Exercise & Food Database)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Your Lab\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add custom exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"New Exercise\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Exercise name is required\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC057",
+    "title": "Cancel out of adding a custom exercise without creating it",
+    "description": "Verifies the user can exit the add-custom-exercise form without saving and the new exercise does not appear in the list.",
+    "category": "Your Lab (Exercise & Food Database)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Your Lab\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add custom exercise\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"E2E Unsaved Exercise\" into the \"Exercise name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Cancel\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"E2E Unsaved Exercise\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC058",
+    "title": "Switch between Exercise and Food sections within Your Lab",
+    "description": "Verifies the user can toggle between Exercise and Food views in Your Lab and see the correct section content.",
+    "category": "Your Lab (Exercise & Food Database)",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Your Lab\" tab"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Food\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Food list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Exercise\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Exercise list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC059",
+    "title": "Update preferences: change theme, toggle haptics and sound, and save",
+    "description": "Verifies a user can change theme, toggle haptics and sound, save, and see the updated settings reflected in the UI.",
+    "category": "Settings",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Settings\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Dark\" from the theme dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Haptics\" toggle"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sound\" toggle"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save preferences\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Preferences saved\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC060",
+    "title": "Manage data: clear local data and confirm success message",
+    "description": "Verifies a user can clear local data from Settings and sees the confirmation notification and return to the home dashboard.",
+    "category": "Settings",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Manage data\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Clear local data\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Confirm\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Data cleared\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dashboard\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC061",
+    "title": "Cancel clear local data from confirmation prompt",
+    "description": "Verifies that canceling the clear-data confirmation does not clear data and keeps the user in Settings.",
+    "category": "Settings",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Manage data\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Clear local data\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Cancel\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Data cleared\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Settings\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC062",
+    "title": "Theme selection UI reflects the chosen theme after saving",
+    "description": "Verifies that the selected theme option remains selected after saving preferences.",
+    "category": "Settings",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "action",
+        "description": "Select \"Light\" from the theme dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save preferences\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Preferences saved\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the theme dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Light\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC063",
+    "title": "Haptics toggle state persists after saving and revisiting Settings",
+    "description": "Verifies the haptics preference remains as set after saving and re-opening Settings within the session.",
+    "category": "Settings",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Haptics\" toggle"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save preferences\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Preferences saved\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Home\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Haptics toggle (current state)\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC064",
+    "title": "Sound toggle state persists after saving and revisiting Settings",
+    "description": "Verifies the sound preference remains as set after saving and re-opening Settings within the session.",
+    "category": "Settings",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sound\" toggle"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save preferences\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Preferences saved\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Home\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sound toggle (current state)\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC065",
+    "title": "Attempt to save without changing anything shows no error and stays in Settings",
+    "description": "Verifies saving with no changes does not produce an error and keeps Settings usable.",
+    "category": "Settings",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Settings\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save preferences\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Preferences saved\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Settings\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to \"Manage data\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Manage data\" is visible"
+      }
+    ]
+  }
+]

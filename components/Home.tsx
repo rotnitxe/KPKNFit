@@ -62,7 +62,14 @@ const Progress1RMWidget: React.FC<{ history: WorkoutLog[] }> = ({ history }) => 
         return { trend, kgPerWeek, avgIntensity };
     }, [filteredData]);
 
-    if (exercises.length === 0) return null;
+    if (exercises.length === 0) {
+        return (
+            <div className="bg-[#0a0a0a] border border-[#222] rounded-2xl p-4 flex flex-col justify-between h-32 cursor-default" data-testid="1rm-widget">
+                <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2"><TrendingUpIcon size={12}/> Analítica 1RM</h3>
+                <p className="text-[9px] text-zinc-600">Sin datos todavía. Completa entrenamientos para ver progreso.</p>
+            </div>
+        );
+    }
 
     // Mini Widget View
     return (
@@ -233,9 +240,9 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                         </div>
 
                         {/* WIDGETS DE ANÁLISIS (AUGE + 1RM) */}
-                        <div className="space-y-4">
+                        <div className="space-y-4" data-testid="home-analytics-section">
                             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Análisis Biométrico</h3>
-                            <SystemBatteryWidget />
+                            <div data-testid="recovery-widget" aria-label="Recovery"><SystemBatteryWidget /></div>
                             
                             <div className="grid grid-cols-2 gap-4">
                                 <Progress1RMWidget history={history} />

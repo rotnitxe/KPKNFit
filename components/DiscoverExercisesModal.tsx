@@ -113,7 +113,7 @@ const DiscoverExercisesModal: React.FC<DiscoverExercisesModalProps> = ({ isOpen,
                 <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
                     <Button variant="secondary" onClick={onClose}>Cancelar</Button>
                     <Button onClick={handleSave} disabled={selected.size === 0}>
-                        Añadir {selected.size} a YourLab
+                        Añadir {selected.size} a KPKN
                     </Button>
                 </div>
             </div>

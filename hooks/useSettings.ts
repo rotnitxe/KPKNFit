@@ -11,7 +11,7 @@ const defaultSettings: Settings = {
   hasSeenHomeTour: false,
   hasSeenProgramEditorTour: false,
   hasSeenSessionEditorTour: false,
-  hasSeenYourLabTour: false,
+  hasSeenKPKNTour: false,
   
   username: "Atleta",
   profilePicture: undefined,

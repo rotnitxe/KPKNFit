@@ -82,7 +82,7 @@ const TabBarCustomizer: React.FC<{
         { id: 'nutrition', label: 'Nutrición', icon: UtensilsIcon },
         { id: 'recovery', label: 'Batería', icon: ActivityIcon },
         { id: 'sleep', label: 'Descanso', icon: MoonIcon },
-        { id: 'your-lab', label: 'YourLab', icon: ClipboardListIcon },
+        { id: 'kpkn', label: 'KPKN', icon: ClipboardListIcon },
         { id: 'progress', label: 'Progreso', icon: TrendingUpIcon },
         { id: 'coach', label: 'Coach IA', icon: BrainIcon },
         { id: 'tasks', label: 'Tareas', icon: CheckCircleIcon }

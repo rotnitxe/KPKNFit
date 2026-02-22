@@ -5,6 +5,8 @@
 *.log
 .DS_Store
 
+.testsprite_tests/
+
 # Dependencias y Build
 node_modules/
 dist/

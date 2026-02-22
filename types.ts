@@ -33,7 +33,7 @@ export type View =
   | 'log-hub' 
   | 'achievements' 
   | 'log-workout' 
-  | 'your-lab' 
+  | 'kpkn' 
   | 'ai-art-studio' 
   | 'body-lab' 
   | 'mobility-lab' 
@@ -116,7 +116,7 @@ export interface Settings {
   hasSeenHomeTour: boolean;
   hasSeenProgramEditorTour: boolean;
   hasSeenSessionEditorTour: boolean;
-  hasSeenYourLabTour: boolean;
+  hasSeenKPKNTour: boolean;
   
   // Perfil
   username?: string;
@@ -1130,7 +1130,7 @@ export interface AppContextState {
     currentBackgroundOverride: SessionBackground | undefined;
     restTimer: { duration: number; remaining: number; key: number; exerciseName: string; endTime: number; } | null;
     isDirty: boolean;
-    yourLabAction: any;
+    kpknAction: any;
     pendingCoachBriefing: string | null;
     pendingWorkoutAfterBriefing: { session: Session; program: Program; weekVariant?: 'A' | 'B' | 'C' | 'D', location?: { macroIndex: number, mesoIndex: number, weekId: string } } | null;
     sleepLogs: SleepLog[];
@@ -1297,7 +1297,7 @@ export interface AppContextDispatch {
     handleModifyWorkout: () => void;
     handleSaveModifiedWorkout: (session: Session) => void;
     setIsWorkoutEditorOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    setYourLabAction: React.Dispatch<any>;
+    setKpknaction: React.Dispatch<any>;
     handleLogSleep: (action: 'start' | 'end') => void;
     setSleepLogs: React.Dispatch<React.SetStateAction<SleepLog[]>>;
     handleSavePostSessionFeedback: (feedback: PostSessionFeedback) => void;

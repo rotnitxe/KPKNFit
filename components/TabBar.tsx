@@ -22,9 +22,11 @@ const NavButton: React.FC<{
     icon: React.FC<any>;
     isActive: boolean;
     onClick: () => void;
-}> = ({ icon: Icon, isActive, onClick }) => (
+    label?: string;
+}> = ({ icon: Icon, isActive, onClick, label }) => (
     <button
         onClick={onClick}
+        aria-label={label}
         className="relative z-10 flex flex-col items-center justify-center w-full h-full outline-none group"
     >
         <Icon 
@@ -32,6 +34,7 @@ const NavButton: React.FC<{
             className={`transition-colors duration-500 ease-out ${isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} 
             strokeWidth={isActive ? 2.5 : 2} 
         />
+        {label && <span className="sr-only">{label}</span>}
     </button>
 );
 
@@ -39,13 +42,13 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
     const { programs, navigateTo, activeProgramState } = useAppContext();
 
     // NUEVA CONFIGURACIÓN DE TABS
-    const forceTabs = ['home', 'programs', 'nutrition', 'your-lab'];
+    const forceTabs = ['home', 'programs', 'nutrition', 'kpkn'];
     
     const TAB_CONFIG: Record<string, { icon: React.FC<any>, label: string, view: View }> = {
         'home': { icon: HomeIcon, label: 'Inicio', view: 'home' },
         'programs': { icon: DumbbellIcon, label: 'Programas', view: 'programs' },
         'nutrition': { icon: UtensilsIcon, label: 'Nutrición', view: 'nutrition' },
-        'your-lab': { icon: ClipboardListIcon, label: 'YourLab', view: 'your-lab' },
+        'kpkn': { icon: ClipboardListIcon, label: 'KPKN', view: 'kpkn' },
     };
 
     const handleNavClick = (view: View) => {
@@ -85,7 +88,7 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
 
             {leftTabs.map(tabKey => (
                 <div key={tabKey} className="flex-1 h-full">
-                    <NavButton icon={TAB_CONFIG[tabKey].icon} isActive={activeView === TAB_CONFIG[tabKey].view} onClick={() => handleNavClick(TAB_CONFIG[tabKey].view)} />
+                    <NavButton icon={TAB_CONFIG[tabKey].icon} isActive={activeView === TAB_CONFIG[tabKey].view} onClick={() => handleNavClick(TAB_CONFIG[tabKey].view)} label={TAB_CONFIG[tabKey].label} />
                 </div>
             ))}
 
@@ -99,7 +102,7 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
 
             {rightTabs.map(tabKey => (
                 <div key={tabKey} className="flex-1 h-full">
-                    <NavButton icon={TAB_CONFIG[tabKey].icon} isActive={activeView === TAB_CONFIG[tabKey].view} onClick={() => handleNavClick(TAB_CONFIG[tabKey].view)} />
+                    <NavButton icon={TAB_CONFIG[tabKey].icon} isActive={activeView === TAB_CONFIG[tabKey].view} onClick={() => handleNavClick(TAB_CONFIG[tabKey].view)} label={TAB_CONFIG[tabKey].label} />
                 </div>
             ))}
         </div>

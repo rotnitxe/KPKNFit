@@ -50,7 +50,7 @@ import PhysicalProgress from './components/PhysicalProgress';
 import LogHub from './components/LogHub';
 import AchievementsView from './components/AchievementsView';
 import LogWorkoutView from './components/LogWorkoutView';
-import YourLab from './components/YourLab';
+import KPKNView from './components/KPKNView';
 import { ExerciseDetailView } from './components/ExerciseDetailView';
 import MuscleGroupDetailView from './components/MuscleGroupDetailView';
 import HallOfFameView from './components/HallOfFameView';
@@ -323,7 +323,7 @@ export const App: React.FC = () => {
     }, [addToast]);
     // --- FIN CAJA NEGRA ---
 
-    const isTopLevelView = useMemo(() => ['home', 'nutrition', 'recovery', 'sleep', 'your-lab', 'progress', 'tasks'].includes(view), [view]);
+    const isTopLevelView = useMemo(() => ['home', 'nutrition', 'recovery', 'sleep', 'kpkn', 'progress', 'tasks'].includes(view), [view]);
     
     const onMenuClick = useCallback(() => setIsMenuOpen(prev => !prev), [setIsMenuOpen]);
     const viewingExercise = useMemo(() => viewingExerciseId ? exerciseList.find(e => e.id === viewingExerciseId) : null, [exerciseList, viewingExerciseId]);
@@ -382,7 +382,7 @@ export const App: React.FC = () => {
     }), [handleLogPress, onFinishWorkoutPress, onTimeSaverPress, onModifyPress, onTimersPress, onCancelWorkout, onPauseWorkoutPress, onSaveSessionPress, onAddExercisePress, handleBack, onSaveProgramPress, onSaveLoggedWorkoutPress, onAddCustomExercisePress, onCoachPress, onEditExercisePress, onAnalyzeTechniquePress, onAddToPlaylistPress, addToast]);
 
      const subTabBarContext = useMemo(() => {
-        if (['your-lab', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'hall-of-fame'].includes(view)) return 'your-lab';
+        if (['kpkn', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'hall-of-fame'].includes(view)) return 'kpkn';
         if (['food-database', 'food-detail'].includes(view)) return 'food-database';
         if (['progress'].includes(view)) return 'progress';
         return null;
@@ -482,7 +482,7 @@ export const App: React.FC = () => {
                 }
                 return null;
             }
-            case 'your-lab': return <YourLab />;
+            case 'kpkn': return <KPKNView />;
             case 'ai-art-studio': return <Suspense fallback={<div>Cargando...</div>}><AIArtStudioView /></Suspense>;
             case 'body-lab': return <BodyLabView />;
             case 'mobility-lab': return <Suspense fallback={<div>Cargando...</div>}><MobilityLabView /></Suspense>;

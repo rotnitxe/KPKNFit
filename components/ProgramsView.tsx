@@ -102,7 +102,7 @@ const ProgramsView: React.FC<ProgramsViewProps> = ({ programs, onSelectProgram, 
                     <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full"></div>
                     <DumbbellIcon size={40} className="text-zinc-500 relative z-10" />
                 </div>
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-3">Tu Laboratorio está vacío</h2>
+                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-3">KPKN está vacío</h2>
                 <p className="text-xs text-zinc-500 font-bold mb-10 max-w-[250px] leading-relaxed">El primer paso para el éxito es la planificación. Diseña tu primer bloque de entrenamiento.</p>
                 <button 
                     onClick={onCreateProgram}

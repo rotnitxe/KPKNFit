@@ -1665,6 +1665,11 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
       setWizardStep(1);
   };
   const handleCreate = (isDraft: boolean = false) => {
+    if (!programName.trim()) {
+        addToast("Nombre requerido. Introduce un nombre para tu programa.", "danger");
+        nameInputRef.current?.focus();
+        return;
+    }
     const template = TEMPLATES.find(t => t.id === selectedTemplateId)!;
     const totalWeeks = template.weeks; // Para modos simples
 
@@ -2761,6 +2766,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                     {/* Botón Principal */}
                                     <button 
                                         onClick={() => handleCreate(false)} 
+                                        aria-label="Guardar"
                                         className="bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-transparent hover:border-black"
                                     >
                                         <SaveIcon size={16}/>

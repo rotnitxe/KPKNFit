@@ -10,6 +10,7 @@ interface ActionItem {
     color: string;
     delay: number;
     condition?: boolean; // Optional condition to show
+    ariaLabel?: string;
 }
 
 const LogActionSheet: React.FC = () => {
@@ -121,8 +122,8 @@ const LogActionSheet: React.FC = () => {
         // Fila 3: Navegación
         { 
             icon: ClipboardListIcon, 
-            label: "YourLab", 
-            action: () => navigateTo('your-lab'),
+            label: "KPKN", 
+            action: () => navigateTo('kpkn'),
             color: "bg-slate-700",
             delay: 300
         },
@@ -138,7 +139,8 @@ const LogActionSheet: React.FC = () => {
             label: "Ajustes", 
             action: () => navigateTo('settings'),
             color: "bg-slate-700",
-            delay: 400
+            delay: 400,
+            ariaLabel: "Settings"
         }
     ];
     
@@ -157,13 +159,15 @@ const LogActionSheet: React.FC = () => {
                         <div 
                             key={index}
                             onClick={() => handleAction(item)}
+                            role="button"
+                            aria-label={item.ariaLabel || item.label}
                             className={`flex flex-col items-center gap-3 cursor-pointer group animate-emerge-up`}
                             style={{ animationDelay: `${item.delay}ms`, opacity: 0, animationFillMode: 'forwards' }}
                         >
                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${item.color} transition-transform duration-300 group-hover:scale-110 active:scale-95 border border-white/10`}>
                                 <item.icon size={24} className="text-white" strokeWidth={2.5} />
                             </div>
-                            <span className="text-[10px] font-bold text-white/80 tracking-wide text-center uppercase group-hover:text-white transition-colors leading-tight">{item.label}</span>
+                            <span className="text-[10px] font-bold text-white/80 tracking-wide text-center uppercase group-hover:text-white transition-colors leading-tight">{item.label}{item.ariaLabel && item.ariaLabel !== item.label ? <span className="sr-only"> {item.ariaLabel}</span> : null}</span>
                         </div>
                     ))}
                 </div>
