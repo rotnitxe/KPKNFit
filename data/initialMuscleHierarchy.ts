@@ -42,7 +42,7 @@ export const INITIAL_MUSCLE_HIERARCHY: MuscleHierarchy = {
     'Tren Superior': ['Pecho', 'Espalda', 'Hombros', 'Brazos'],
     'Tren Inferior': ['Piernas'],
     'Core': ['Recto Abdominal', 'Oblicuos', 'Transverso Abdominal', 'Erectores Espinales'],
-    'Cadena Anterior': ['Pectoral', 'Deltoides Anterior', 'Recto Abdominal', 'Cuádriceps'],
+    'Cadena Anterior': ['Pectoral', 'Deltoides', 'Recto Abdominal', 'Cuádriceps'],
     'Cadena Posterior': ['Dorsal Ancho', 'Trapecio', 'Erectores Espinales', 'Glúteos', 'Isquiosurales', 'Pantorrillas']
   },
   muscleToBodyPart: {

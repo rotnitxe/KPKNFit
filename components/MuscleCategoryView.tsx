@@ -47,33 +47,15 @@ const MuscleCategoryView: React.FC<MuscleCategoryViewProps> = ({ categoryName })
                 </div>
             );
         } else {
+            // Músculo con porciones/cabezas: solo mostramos el padre; las porciones están en su página dedicada
             const parentMuscle = Object.keys(muscle)[0];
-            const childMuscles = muscle[parentMuscle];
             const parentMuscleGroupId = parentMuscle.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '');
 
             return (
-                <details key={parentMuscle} className="glass-card !p-0" open>
-                    <summary 
-                        className="p-4 cursor-pointer list-none flex justify-between items-center"
-                    >
-                        <h2 className="text-xl font-bold text-white">{parentMuscle}</h2>
-                        <div className="flex items-center gap-4">
-                             <Button onClick={(e) => { e.stopPropagation(); navigateTo('muscle-group-detail', { muscleGroupId: parentMuscleGroupId })}} variant="secondary" className="!py-1 !px-3 !text-xs">Ver Músculo</Button>
-                             <ChevronRightIcon className="details-arrow transition-transform" />
-                        </div>
-                    </summary>
-                    <div className="border-t border-slate-700/50 p-2 space-y-1">
-                        {childMuscles.map(child => {
-                            const childMuscleGroupId = child.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '');
-                            return (
-                                <div key={child} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: childMuscleGroupId })} className="p-3 flex justify-between items-center cursor-pointer list-none hover:bg-slate-800/50 rounded-lg transition-colors">
-                                    <h3 className="font-semibold text-white text-md">{child}</h3>
-                                    <ChevronRightIcon className="text-slate-500" />
-                                </div>
-                            );
-                        })}
-                    </div>
-                </details>
+                <div key={parentMuscle} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: parentMuscleGroupId })} className="p-4 flex justify-between items-center cursor-pointer list-none hover:bg-slate-800/50 rounded-lg transition-colors glass-card">
+                    <h2 className="text-xl font-bold text-primary-color">{parentMuscle}</h2>
+                    <ChevronRightIcon className="text-slate-500" />
+                </div>
             );
         }
     };

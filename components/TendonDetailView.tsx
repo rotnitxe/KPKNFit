@@ -9,11 +9,28 @@ interface TendonDetailViewProps {
 }
 
 const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
-  const { tendonDatabase, muscleGroupData, jointDatabase } = useAppState();
+  const { tendonDatabase, muscleGroupData, jointDatabase, muscleHierarchy } = useAppState();
   const { navigateTo } = useAppDispatch();
 
   const tendon = tendonDatabase?.find(t => t.id === tendonId);
-  const muscle = tendon ? muscleGroupData.find(m => m.id === tendon.muscleId) : null;
+  const rawMuscle = tendon ? muscleGroupData.find(m => m.id === tendon.muscleId) : null;
+  const muscle = React.useMemo(() => {
+    if (!rawMuscle) return null;
+    const childToParent = new Map<string, string>();
+    Object.values(muscleHierarchy?.bodyPartHierarchy || {}).forEach(subgroups => {
+      subgroups.forEach(sg => {
+        if (typeof sg === 'object' && sg !== null) {
+          const parent = Object.keys(sg)[0];
+          (sg as Record<string, string[]>)[parent]?.forEach(child => {
+            childToParent.set(child, parent);
+          });
+        }
+      });
+    });
+    const parentName = childToParent.get(rawMuscle.name) || rawMuscle.name;
+    const parentEntry = muscleGroupData?.find(mg => mg.name === parentName);
+    return parentEntry || rawMuscle;
+  }, [rawMuscle, muscleGroupData, muscleHierarchy]);
   const joint = tendon?.jointId ? jointDatabase?.find(j => j.id === tendon.jointId) : null;
 
   if (!tendon) {

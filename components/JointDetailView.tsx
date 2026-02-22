@@ -18,11 +18,37 @@ interface JointDetailViewProps {
 }
 
 const JointDetailView: React.FC<JointDetailViewProps> = ({ jointId }) => {
-  const { jointDatabase, muscleGroupData, tendonDatabase } = useAppState();
+  const { jointDatabase, muscleGroupData, tendonDatabase, muscleHierarchy } = useAppState();
   const { navigateTo } = useAppDispatch();
 
   const joint = jointDatabase?.find(j => j.id === jointId);
-  const relatedMuscles = joint?.musclesCrossing?.map(mId => muscleGroupData.find(m => m.id === mId)).filter(Boolean) || [];
+
+  const relatedMuscles = React.useMemo(() => {
+    const childNameToParentName = new Map<string, string>();
+    Object.values(muscleHierarchy?.bodyPartHierarchy || {}).forEach(subgroups => {
+      subgroups.forEach(sg => {
+        if (typeof sg === 'object' && sg !== null) {
+          const parent = Object.keys(sg)[0];
+          (sg as Record<string, string[]>)[parent]?.forEach(child => {
+            childNameToParentName.set(child, parent);
+          });
+        }
+      });
+    });
+    const seen = new Set<string>();
+    const result: { id: string; name: string }[] = [];
+    joint?.musclesCrossing?.forEach(mId => {
+      const m = muscleGroupData?.find(mg => mg.id === mId);
+      if (!m) return;
+      const parentName = childNameToParentName.get(m.name) || m.name;
+      const parentEntry = muscleGroupData?.find(mg => mg.name === parentName);
+      const parentId = parentEntry?.id || mId;
+      if (seen.has(parentId)) return;
+      seen.add(parentId);
+      result.push({ id: parentId, name: parentEntry?.name || m.name });
+    });
+    return result;
+  }, [joint?.musclesCrossing, muscleGroupData, muscleHierarchy]);
   const relatedTendons = joint?.tendonsRelated?.map(tId => tendonDatabase?.find(t => t.id === tId)).filter(Boolean) || [];
 
   if (!joint) {
@@ -58,7 +84,7 @@ const JointDetailView: React.FC<JointDetailViewProps> = ({ jointId }) => {
               <span className="text-purple-400">●</span> Músculos que la cruzan
             </h3>
             <div className="space-y-2">
-              {relatedMuscles.map(m => m && (
+              {relatedMuscles.map(m => (
                 <div
                   key={m.id}
                   onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: m.id })}

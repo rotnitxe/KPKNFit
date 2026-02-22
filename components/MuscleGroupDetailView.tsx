@@ -62,23 +62,32 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
             .filter((ex): ex is ExerciseMuscleInfo => !!ex);
     }, [muscleInfo, exerciseList]);
 
-    const allExercises = useMemo(() => {
+    const childMuscleNames = useMemo(() => {
         if (!muscleInfo) return [];
-
-        let childMuscles: string[] = [];
-        // Fix: Explicitly cast subgroups and use proper type checking to resolve "forEach does not exist on type unknown"
+        let children: string[] = [];
         Object.values(muscleHierarchy.bodyPartHierarchy).forEach((subgroups: MuscleSubGroup[]) => {
             subgroups.forEach(subgroup => {
                 if (typeof subgroup === 'object' && subgroup !== null) {
                     const parentName = Object.keys(subgroup)[0];
                     if (parentName === muscleInfo.name) {
-                        childMuscles = subgroup[parentName];
+                        children = subgroup[parentName];
                     }
                 }
             });
         });
+        return children;
+    }, [muscleInfo, muscleHierarchy]);
 
-        const relevantMuscleNames = [muscleInfo.name, ...childMuscles];
+    const childMuscleInfos = useMemo(() => {
+        return childMuscleNames
+            .map(name => muscleGroupData.find(m => m.name === name))
+            .filter((m): m is NonNullable<typeof m> => !!m);
+    }, [childMuscleNames, muscleGroupData]);
+
+    const allExercises = useMemo(() => {
+        if (!muscleInfo) return [];
+
+        const relevantMuscleNames = [muscleInfo.name, ...childMuscleNames];
         
         const filteredExercises = exerciseList.filter(ex => {
             if (relevantMuscleNames.includes(ex.subMuscleGroup || '')) {
@@ -88,7 +97,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
         });
         
         // Prioritize exercises that specifically target the sub-muscle if it's not a parent
-        if (childMuscles.length === 0) {
+        if (childMuscleNames.length === 0) {
             filteredExercises.sort((a, b) => {
                 const aIsSpecific = a.subMuscleGroup === muscleInfo.name;
                 const bIsSpecific = b.subMuscleGroup === muscleInfo.name;
@@ -99,7 +108,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
         }
 
         return filteredExercises;
-    }, [exerciseList, muscleInfo, muscleHierarchy]);
+    }, [exerciseList, muscleInfo, muscleHierarchy, childMuscleNames]);
 
     if (!muscleInfo) {
         return <div className="pt-[65px] text-center"><h2 className="text-2xl font-bold text-red-400">Error</h2><p className="text-slate-300 mt-2">No se encontró información para el grupo muscular con ID: "{muscleGroupId}". Asegúrese de que existe en la base de datos.</p></div>;
@@ -147,6 +156,42 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                         </div>
                     )}
                 </div>
+
+                {/* Porciones / Cabezas: solo en músculos que tienen subdivisiones */}
+                {childMuscleInfos.length > 0 && (
+                    <details className="glass-card-nested !p-0" open>
+                        <summary className="p-4 cursor-pointer flex justify-between items-center list-none">
+                            <h3 className="font-bold text-white">Porciones / Cabezas</h3>
+                            <ChevronRightIcon className="details-arrow" />
+                        </summary>
+                        <div className="p-4 border-t border-slate-700/50 space-y-4">
+                            {childMuscleInfos.map(portion => (
+                                <div key={portion.id} className="bg-slate-900/50 rounded-xl p-4 border border-white/5">
+                                    <h4 className="font-semibold text-white mb-2">{portion.name}</h4>
+                                    <p className="text-sm text-slate-400 mb-2">{portion.description}</p>
+                                    {(portion.origin || portion.insertion) && (
+                                        <div className="text-xs text-slate-500 space-y-1 mt-2">
+                                            {portion.origin && <p><span className="font-mono">Origen:</span> {portion.origin}</p>}
+                                            {portion.insertion && <p><span className="font-mono">Inserción:</span> {portion.insertion}</p>}
+                                        </div>
+                                    )}
+                                    {portion.mechanicalFunctions && portion.mechanicalFunctions.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                            {portion.mechanicalFunctions.map((f, i) => (
+                                                <span key={i} className="px-2 py-0.5 bg-slate-800 rounded text-xs text-slate-400">{f}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {portion.volumeRecommendations && (
+                                        <p className="text-xs text-slate-500 mt-2">
+                                            MEV: {portion.volumeRecommendations.mev} · MAV: {portion.volumeRecommendations.mav} · MRV: {portion.volumeRecommendations.mrv}
+                                        </p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </details>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="glass-card-nested p-4">

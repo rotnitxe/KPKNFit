@@ -26,7 +26,7 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ e
 });
 
 const KPKNView: React.FC = () => {
-    const { exerciseList, exercisePlaylists, addOrUpdatePlaylist, deletePlaylist, settings, muscleGroupData, jointDatabase, tendonDatabase, movementPatternDatabase } = useAppContext();
+    const { exerciseList, exercisePlaylists, addOrUpdatePlaylist, deletePlaylist, settings, muscleGroupData, muscleHierarchy, jointDatabase, tendonDatabase, movementPatternDatabase } = useAppContext();
     const { setSettings, navigateTo } = useAppDispatch();
     const { activeSubTabs, searchQuery } = useUIState();
     
@@ -64,8 +64,30 @@ const KPKNView: React.FC = () => {
             (ex.alias && ex.alias.toLowerCase().includes(q)) ||
             ex.involvedMuscles.some(m => m.muscle.toLowerCase().includes(q))
         ).slice(0, 15);
-        const muscles = (muscleGroupData || []).filter(m =>
-            m.name.toLowerCase().includes(q) || (m.description || '').toLowerCase().includes(q)
+
+        // Músculos: solo mostrar padres (Pectoral, Deltoides, etc.), no porciones aisladas
+        const childNames = new Set<string>();
+        const childToParent = new Map<string, string>();
+        Object.values(muscleHierarchy?.bodyPartHierarchy || {}).forEach(subgroups => {
+            subgroups.forEach(sg => {
+                if (typeof sg === 'object' && sg !== null) {
+                    const parent = Object.keys(sg)[0];
+                    (sg as Record<string, string[]>)[parent]?.forEach(child => {
+                        childNames.add(child);
+                        childToParent.set(child, parent);
+                    });
+                }
+            });
+        });
+        const parentMuscles = (muscleGroupData || []).filter(m => !childNames.has(m.name));
+        const parentsToIncludeFromChildMatch = new Set<string>();
+        childToParent.forEach((parent, child) => {
+            if (child.toLowerCase().includes(q)) parentsToIncludeFromChildMatch.add(parent);
+        });
+        const muscles = parentMuscles.filter(m =>
+            m.name.toLowerCase().includes(q) ||
+            (m.description || '').toLowerCase().includes(q) ||
+            parentsToIncludeFromChildMatch.has(m.name)
         ).slice(0, 10);
         const joints = (jointDatabase || []).filter(j =>
             j.name.toLowerCase().includes(q) || (j.description || '').toLowerCase().includes(q)
@@ -77,7 +99,7 @@ const KPKNView: React.FC = () => {
             p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q)
         ).slice(0, 8);
         return { exercises, muscles, joints, tendons, patterns };
-    }, [searchQuery, exerciseList, muscleGroupData, jointDatabase, tendonDatabase, movementPatternDatabase]);
+    }, [searchQuery, exerciseList, muscleGroupData, muscleHierarchy, jointDatabase, tendonDatabase, movementPatternDatabase]);
     
     const renderExploreTab = () => {
         const hasResults = searchQuery.length >= 2 && (

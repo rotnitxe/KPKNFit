@@ -9,11 +9,36 @@ interface MovementPatternDetailViewProps {
 }
 
 const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ movementPatternId }) => {
-  const { movementPatternDatabase, muscleGroupData, jointDatabase, exerciseList } = useAppState();
+  const { movementPatternDatabase, muscleGroupData, jointDatabase, exerciseList, muscleHierarchy } = useAppState();
   const { navigateTo } = useAppDispatch();
 
   const pattern = movementPatternDatabase?.find(p => p.id === movementPatternId);
-  const relatedMuscles = pattern?.primaryMuscles?.map(mName => muscleGroupData.find(m => m.name === mName || m.id === mName)).filter(Boolean) || [];
+  const relatedMuscles = React.useMemo(() => {
+    const childToParent = new Map<string, string>();
+    Object.values(muscleHierarchy?.bodyPartHierarchy || {}).forEach(subgroups => {
+      subgroups.forEach(sg => {
+        if (typeof sg === 'object' && sg !== null) {
+          const parent = Object.keys(sg)[0];
+          (sg as Record<string, string[]>)[parent]?.forEach(child => {
+            childToParent.set(child, parent);
+          });
+        }
+      });
+    });
+    const seen = new Set<string>();
+    const result: { id: string; name: string }[] = [];
+    pattern?.primaryMuscles?.forEach(mRef => {
+      const m = muscleGroupData?.find(mg => mg.name === mRef || mg.id === mRef);
+      if (!m) return;
+      const parentName = childToParent.get(m.name) || m.name;
+      const parentEntry = muscleGroupData?.find(mg => mg.name === parentName);
+      const parentId = parentEntry?.id || m.id;
+      if (seen.has(parentId)) return;
+      seen.add(parentId);
+      result.push({ id: parentId, name: parentEntry?.name || m.name });
+    });
+    return result;
+  }, [pattern?.primaryMuscles, muscleGroupData, muscleHierarchy]);
   const relatedJoints = pattern?.primaryJoints?.map(jId => jointDatabase?.find(j => j.id === jId)).filter(Boolean) || [];
   const exampleExercises = pattern?.exampleExercises?.map(exId => exerciseList.find(e => e.id === exId)).filter(Boolean) || [];
 
@@ -57,7 +82,7 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
           <div className="glass-card-nested p-4">
             <h3 className="font-bold text-white mb-3">Músculos principales</h3>
             <div className="space-y-2">
-              {relatedMuscles.map(m => m && (
+              {relatedMuscles.map(m => (
                 <div
                   key={m.id}
                   onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: m.id })}
