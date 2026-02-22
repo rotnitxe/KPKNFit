@@ -70,12 +70,12 @@ def has_valid_nutriments_strict(p: dict) -> bool:
     has_fat = nut.get("fat_100g") is not None or nut.get("fat") is not None
     if not (has_energy and has_protein and has_carbs and has_fat):
         return False
-    # Valores numéricos razonables
+    # Valores numéricos razonables (rechazar kcal <= 0)
     try:
         kcal = nut.get("energy-kcal_100g") or nut.get("energy-kcal")
         if kcal is None and nut.get("energy_100g") is not None:
             kcal = nut["energy_100g"] / 4.184
-        if kcal is not None and (kcal < 0 or kcal > 1000):
+        if kcal is not None and (kcal <= 0 or kcal > 1000):
             return False
     except (TypeError, ZeroDivisionError):
         return False

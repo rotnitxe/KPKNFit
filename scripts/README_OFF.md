@@ -38,7 +38,7 @@ python scripts/build_openfoodfacts_offline_db.py "C:\ruta\products.jsonl" --slim
 
 1. **Macros completos**: debe tener energía (kcal), proteína, carbohidratos y grasas
 2. **Nombre válido**: entre 1 y 120 caracteres
-3. **Valores razonables**: calorías entre 0 y 1000 kcal/100g
+3. **Valores razonables**: calorías > 0 y ≤ 1000 kcal/100g (se excluyen productos con kcal 0)
 4. **Opcional** (`--exclude-branded`): sin marca o marca genérica
 
 ## Resultado
@@ -54,3 +54,13 @@ python scripts/build_openfoodfacts_offline_db.py "C:\Users\valen\Downloads\openf
 ```
 
 Si tus archivos están en `C:\Users\valen\Downloads\openfoodfacts\products.jsonl`, el script los procesará en streaming.
+
+## Enriquecimiento de productos con caloría 0
+
+Si tras generar el JSON quedan productos con calorías 0, ejecuta:
+
+```powershell
+python scripts/enrich_off_zero_calories.py
+```
+
+Rellena calorías, macros y micronutrientes con valores genéricos por categoría (helado, pan, carne, etc.) inferida del nombre del producto.

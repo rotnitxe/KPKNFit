@@ -37,10 +37,30 @@ function setCache(map: Map<string, CacheEntry>) {
     } catch (_) {}
 }
 
+const OFF_MICRO_MAP: Record<string, { name: string; unit: string }> = {
+    'iron_100g': { name: 'Hierro', unit: 'mg' },
+    'calcium_100g': { name: 'Calcio', unit: 'mg' },
+    'sodium_100g': { name: 'Sodio', unit: 'mg' },
+    'vitamin-a_100g': { name: 'Vitamina A', unit: 'µg' },
+    'vitamin-c_100g': { name: 'Vitamina C', unit: 'mg' },
+    'vitamin-d_100g': { name: 'Vitamina D', unit: 'µg' },
+    'vitamin-b12_100g': { name: 'Vitamina B12', unit: 'µg' },
+    'magnesium_100g': { name: 'Magnesio', unit: 'mg' },
+    'zinc_100g': { name: 'Zinc', unit: 'mg' },
+    'potassium_100g': { name: 'Potasio', unit: 'mg' },
+};
+
 function foodItemFromOFF(product: any): FoodItem {
     const nut = product.nutriments || {};
     const kcal100 = nut['energy-kcal_100g'] ?? nut['energy-kcal'] ?? (nut['energy_100g'] ? nut['energy_100g'] / 4.184 : 0);
     const servingSize = 100;
+    const micronutrients: { name: string; amount: number; unit: string }[] = [];
+    for (const [key, meta] of Object.entries(OFF_MICRO_MAP)) {
+        const val = nut[key];
+        if (val != null && typeof val === 'number' && val > 0) {
+            micronutrients.push({ name: meta.name, amount: Math.round(val * 10) / 10, unit: meta.unit });
+        }
+    }
     return {
         id: `off-${product.code || product.id || crypto.randomUUID()}`,
         name: product.product_name || product.product_name_es || 'Sin nombre',
@@ -60,6 +80,7 @@ function foodItemFromOFF(product: any): FoodItem {
             polyunsaturated: nut['polyunsaturated-fat_100g'] ?? 0,
             trans: nut['trans-fat_100g'] ?? 0,
         } : undefined,
+        micronutrients: micronutrients.length > 0 ? micronutrients : undefined,
     };
 }
 
