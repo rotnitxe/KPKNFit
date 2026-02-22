@@ -726,6 +726,7 @@ export type CookingMethod = 'crudo' | 'cocido' | 'plancha' | 'horno' | 'frito' |
 export interface ParsedMealItem {
     tag: string;
     quantity: number;
+    amountGrams?: number;
     cookingMethod?: CookingMethod;
     portion?: PortionPreset | PortionInput;
 }

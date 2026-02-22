@@ -1,14 +1,14 @@
 // components/nutrition/RegisterFoodDrawer.tsx
 // Drawer lateral para registrar comida con parser de descripción y tags
 
-import React, { useState, useMemo, useCallback } from 'react';
-import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionPreset } from '../../types';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionPreset, CookingMethod } from '../../types';
 import { PORTION_MULTIPLIERS } from '../../types';
 import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
 import { getCookingFactor } from '../../data/cookingMethodFactors';
 import { searchFoods } from '../../services/foodSearchService';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
-import { XIcon, PlusIcon, TrashIcon } from '../icons';
+import { XIcon, PlusIcon, TrashIcon, InfoIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
 import { FoodSearchModal } from '../FoodSearchModal';
 import Button from '../ui/Button';
 
@@ -19,11 +19,14 @@ const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     return new Date().toISOString();
 };
 
+const DEBOUNCE_MS = 400;
+
 interface TagWithFood {
     tag: string;
     portion: PortionPreset;
     quantity: number;
-    cookingMethod?: string;
+    amountGrams?: number;
+    cookingMethod?: CookingMethod;
     foodItem: FoodItem | null;
     loggedFood: LoggedFood | null;
 }
@@ -51,6 +54,15 @@ const portionLabels: Record<PortionPreset, string> = {
     extra: 'Extra',
 };
 
+const cookingLabels: Record<CookingMethod, string> = {
+    crudo: 'Crudo',
+    cocido: 'Cocido',
+    plancha: 'Plancha',
+    horno: 'Horno',
+    frito: 'Frito',
+    empanizado_frito: 'Empanizado',
+};
+
 export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     isOpen,
     onClose,
@@ -66,34 +78,18 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const [tagItems, setTagItems] = useState<TagWithFood[]>([]);
     const [isSearching, setIsSearching] = useState<Record<string, boolean>>({});
     const [searchModalForTagIdx, setSearchModalForTagIdx] = useState<number | null>(null);
+    const [expandedTagIdx, setExpandedTagIdx] = useState<number | null>(null);
+    const [showHelp, setShowHelp] = useState(false);
 
     const parsed = useMemo(() => parseMealDescription(description), [description]);
 
-    const parseAndSetTags = useCallback(() => {
-        if (!description.trim()) return;
-        const { items } = parsed;
-        if (items.length === 0) {
-            setTagItems([{ tag: description.trim(), portion: 'medium', quantity: 1, foodItem: null, loggedFood: null }]);
-        } else {
-            setTagItems(items.map(i => ({
-                tag: i.tag,
-                portion: (typeof i.portion === 'string' ? i.portion : 'medium') as PortionPreset,
-                quantity: i.quantity,
-                cookingMethod: i.cookingMethod,
-                foodItem: null,
-                loggedFood: null,
-            })));
-        }
-    }, [description, parsed]);
-
-    const handleDescriptionBlur = () => parseAndSetTags();
-    const handleKeyDown = (e: React.KeyboardEvent) => e.key === 'Enter' && parseAndSetTags();
-
     const buildLoggedFromItem = useCallback((item: FoodItem, tag: TagWithFood): LoggedFood => {
-        const mult = PORTION_MULTIPLIERS[tag.portion];
-        const amount = item.servingSize * mult * tag.quantity;
+        const amount =
+            tag.amountGrams != null
+                ? tag.amountGrams * tag.quantity
+                : item.servingSize * PORTION_MULTIPLIERS[tag.portion] * tag.quantity;
         const ratio = amount / item.servingSize;
-        const factor = tag.cookingMethod ? getCookingFactor(tag.cookingMethod as any) : { caloriesFactor: 1, fatsFactor: 1 };
+        const factor = tag.cookingMethod ? getCookingFactor(tag.cookingMethod) : { caloriesFactor: 1, fatsFactor: 1 };
         const baseCal = (item.calories / item.servingSize) * amount;
         const baseFats = (item.fats / item.servingSize) * amount;
         const logged: LoggedFood = {
@@ -108,7 +104,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             tags: [tag.tag],
             portionPreset: tag.portion,
             quantity: tag.quantity,
-            cookingMethod: tag.cookingMethod as any,
+            cookingMethod: tag.cookingMethod,
         };
         if (item.fatBreakdown) {
             logged.fatBreakdown = {
@@ -128,24 +124,87 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         return logged;
     }, []);
 
-    const fetchFoodForTag = useCallback(async (tag: string, idx: number) => {
-        setIsSearching(s => ({ ...s, [idx]: true }));
-        try {
-            const results = await searchFoods(tag, settings);
-            const item = results[0] || null;
-            if (item) {
-                setTagItems(prev => {
-                    const next = [...prev];
-                    if (next[idx]) {
-                        next[idx] = { ...next[idx], foodItem: item, loggedFood: buildLoggedFromItem(item, next[idx]) };
-                    }
-                    return next;
-                });
-            }
-        } finally {
-            setIsSearching(s => ({ ...s, [idx]: false }));
+    const parseAndSetTags = useCallback(() => {
+        if (!description.trim()) {
+            setTagItems([]);
+            return;
         }
-    }, [settings, buildLoggedFromItem]);
+        const { items } = parsed;
+        if (items.length === 0) {
+            setTagItems([
+                {
+                    tag: description.trim(),
+                    portion: 'medium',
+                    quantity: 1,
+                    amountGrams: undefined,
+                    cookingMethod: undefined,
+                    foodItem: null,
+                    loggedFood: null,
+                },
+            ]);
+        } else {
+            const newItems: TagWithFood[] = items.map(i => ({
+                tag: i.tag,
+                portion: (typeof i.portion === 'string' ? i.portion : 'medium') as PortionPreset,
+                quantity: i.quantity,
+                amountGrams: i.amountGrams,
+                cookingMethod: i.cookingMethod,
+                foodItem: null,
+                loggedFood: null,
+            }));
+            setTagItems(newItems);
+            newItems.forEach((tagData, idx) => {
+                if (tagData.tag.length >= 2) {
+                    searchFoods(tagData.tag, settings).then(results => {
+                        const foodItem = results[0] || null;
+                        if (foodItem) {
+                            setTagItems(prev => {
+                                const next = [...prev];
+                                if (next[idx]?.tag === tagData.tag && !next[idx].foodItem) {
+                                    next[idx] = {
+                                        ...next[idx],
+                                        foodItem,
+                                        loggedFood: buildLoggedFromItem(foodItem, next[idx]),
+                                    };
+                                }
+                                return next;
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }, [description, parsed, settings, buildLoggedFromItem]);
+
+    useEffect(() => {
+        const t = setTimeout(() => parseAndSetTags(), DEBOUNCE_MS);
+        return () => clearTimeout(t);
+    }, [description, parseAndSetTags]);
+
+    const handleDescriptionBlur = () => parseAndSetTags();
+    const handleKeyDown = (e: React.KeyboardEvent) => e.key === 'Enter' && parseAndSetTags();
+
+    const fetchFoodForTag = useCallback(
+        async (tag: string, idx: number) => {
+            setIsSearching(s => ({ ...s, [idx]: true }));
+            try {
+                const results = await searchFoods(tag, settings);
+                const item = results[0] || null;
+                if (item) {
+                    setTagItems(prev => {
+                        const next = [...prev];
+                        if (next[idx]?.tag === tag) {
+                            next[idx] = { ...next[idx], foodItem: item, loggedFood: buildLoggedFromItem(item, next[idx]) };
+                        }
+                        return next;
+                    });
+                }
+            } finally {
+                setIsSearching(s => ({ ...s, [idx]: false }));
+            }
+        },
+        [settings, buildLoggedFromItem]
+    );
 
     const handleSearchModalSelect = useCallback((food: FoodItem, logged: LoggedFood, idx: number) => {
         setTagItems(prev => {
@@ -160,6 +219,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
     const removeTag = (idx: number) => {
         setTagItems(prev => prev.filter((_, i) => i !== idx));
+        if (expandedTagIdx === idx) setExpandedTagIdx(null);
+        else if (expandedTagIdx != null && expandedTagIdx > idx) setExpandedTagIdx(expandedTagIdx - 1);
     };
 
     const setPortionForTag = (idx: number, portion: PortionPreset) => {
@@ -170,6 +231,30 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                 next[idx] = { ...updated, loggedFood: buildLoggedFromItem(next[idx].foodItem!, updated) };
             } else {
                 next[idx] = { ...next[idx], portion };
+            }
+            return next;
+        });
+    };
+
+    const setAmountGramsForTag = (idx: number, amountGrams: number | undefined) => {
+        setTagItems(prev => {
+            const next = [...prev];
+            const updated = { ...next[idx], amountGrams };
+            next[idx] = updated;
+            if (next[idx]?.foodItem) {
+                next[idx] = { ...updated, loggedFood: buildLoggedFromItem(next[idx].foodItem!, updated) };
+            }
+            return next;
+        });
+    };
+
+    const setCookingForTag = (idx: number, cookingMethod: CookingMethod | undefined) => {
+        setTagItems(prev => {
+            const next = [...prev];
+            const updated = { ...next[idx], cookingMethod };
+            next[idx] = updated;
+            if (next[idx]?.foodItem) {
+                next[idx] = { ...updated, loggedFood: buildLoggedFromItem(next[idx].foodItem!, updated) };
             }
             return next;
         });
@@ -209,8 +294,11 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         addToast('Comida registrada.', 'success');
         setDescription('');
         setTagItems([]);
+        setExpandedTagIdx(null);
         onClose();
     };
+
+    const multiFoodWarning = tagItems.length >= 4;
 
     if (!isOpen) return null;
 
@@ -223,12 +311,41 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 shrink-0">
                     <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Registrar Comida</h3>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors p-1">
-                        <XIcon size={18} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => setShowHelp(!showHelp)}
+                            className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-colors"
+                            title="Ayuda"
+                        >
+                            <InfoIcon size={18} />
+                        </button>
+                        <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors p-1">
+                            <XIcon size={18} />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+                    {showHelp && (
+                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+                            <h4 className="text-xs font-bold text-white">Cómo escribir la descripción</h4>
+                            <ul className="text-[11px] text-zinc-400 space-y-1.5 list-disc list-inside">
+                                <li><strong className="text-zinc-300">Gramos:</strong> 200g arroz, 150g pechuga</li>
+                                <li><strong className="text-zinc-300">Cantidad:</strong> 2 huevos, 3 panes</li>
+                                <li><strong className="text-zinc-300">Cocción:</strong> cocido, frito, a la plancha, al horno</li>
+                                <li><strong className="text-zinc-300">Porción:</strong> grande, mediano, chico</li>
+                                <li>Separa con comas o &quot;y&quot;: 200g arroz, 150g pollo</li>
+                            </ul>
+                            <p className="text-[10px] text-zinc-500">Ejemplos: 300g arroz cocido y 200g pechuga a la plancha</p>
+                            <button
+                                onClick={() => setShowHelp(false)}
+                                className="text-[10px] font-bold text-zinc-500 hover:text-white"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
                             Descripción
@@ -239,10 +356,19 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             onChange={e => setDescription(e.target.value)}
                             onBlur={handleDescriptionBlur}
                             onKeyDown={handleKeyDown}
-                            placeholder="Ej: plato grande de fideos con salsa y carne molida"
+                            placeholder="Ej: 200g arroz cocido, 150g pechuga a la plancha"
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
                         />
                     </div>
+
+                    {multiFoodWarning && (
+                        <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-950/30 border border-amber-500/20">
+                            <InfoIcon size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                            <p className="text-[11px] text-amber-200/90">
+                                Has añadido varios alimentos. Revisa que cada uno tenga la cantidad correcta.
+                            </p>
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
@@ -280,57 +406,141 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 {tagItems.map((t, idx) => (
                                     <div
                                         key={idx}
-                                        className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-2"
+                                        className="bg-white/5 border border-white/10 rounded-xl overflow-hidden"
                                     >
-                                        <div className="flex justify-between items-center">
+                                        <button
+                                            onClick={() => setExpandedTagIdx(prev => (prev === idx ? null : idx))}
+                                            className="w-full p-3 flex justify-between items-center text-left hover:bg-white/5 transition-colors"
+                                        >
                                             <span className="text-sm font-bold text-white">
-                                                {t.quantity > 1 ? `${t.quantity}x ` : ''}{t.tag}
-                                                {t.cookingMethod && <span className="text-zinc-500 text-xs ml-1">({t.cookingMethod})</span>}
+                                                {t.quantity > 1 ? `${t.quantity}x ` : ''}
+                                                {t.amountGrams != null ? `${t.amountGrams}g ` : ''}
+                                                {t.tag}
+                                                {t.cookingMethod && (
+                                                    <span className="text-zinc-500 text-xs ml-1">
+                                                        ({cookingLabels[t.cookingMethod]})
+                                                    </span>
+                                                )}
                                             </span>
-                                            <button
-                                                onClick={() => removeTag(idx)}
-                                                className="text-zinc-500 hover:text-red-400 p-1"
-                                            >
-                                                <TrashIcon size={14} />
-                                            </button>
-                                        </div>
-                                        <div className="flex gap-1">
-                                            {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(p => (
-                                                <button
-                                                    key={p}
-                                                    onClick={() => setPortionForTag(idx, p)}
-                                                    className={`px-2 py-1 rounded text-[9px] font-bold transition-all ${
-                                                        t.portion === p
-                                                            ? 'bg-white text-black'
-                                                            : 'bg-white/5 text-zinc-500 hover:text-white'
-                                                    }`}
-                                                >
-                                                    {portionLabels[p]}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        {!t.foodItem && (
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => fetchFoodForTag(t.tag, idx)}
-                                                    disabled={isSearching[idx]}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
-                                                >
-                                                    {isSearching[idx] ? 'Buscando...' : 'Buscar automático'}
-                                                    <PlusIcon size={12} />
-                                                </button>
-                                                <button
-                                                    onClick={() => setSearchModalForTagIdx(idx)}
-                                                    className="flex-1 py-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
-                                                >
-                                                    Elegir manual
-                                                </button>
+                                            {expandedTagIdx === idx ? (
+                                                <ChevronUpIcon size={14} className="text-zinc-500" />
+                                            ) : (
+                                                <ChevronDownIcon size={14} className="text-zinc-500" />
+                                            )}
+                                        </button>
+                                        {expandedTagIdx === idx && (
+                                            <div className="px-3 pb-3 pt-0 space-y-3 border-t border-white/5">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">
+                                                        Gramos
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={t.amountGrams ?? ''}
+                                                        onChange={e =>
+                                                            setAmountGramsForTag(
+                                                                idx,
+                                                                e.target.value ? parseFloat(e.target.value) : undefined
+                                                            )
+                                                        }
+                                                        placeholder="Ej: 200"
+                                                        min={1}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">
+                                                        Porción
+                                                    </label>
+                                                    <div className="flex gap-1 flex-wrap">
+                                                        {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(
+                                                            p => (
+                                                                <button
+                                                                    key={p}
+                                                                    onClick={() => setPortionForTag(idx, p)}
+                                                                    className={`px-2 py-1 rounded text-[9px] font-bold transition-all ${
+                                                                        t.portion === p
+                                                                            ? 'bg-white text-black'
+                                                                            : 'bg-white/5 text-zinc-500 hover:text-white'
+                                                                    }`}
+                                                                >
+                                                                    {portionLabels[p]}
+                                                                </button>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">
+                                                        Cocción
+                                                    </label>
+                                                    <div className="flex gap-1 flex-wrap">
+                                                        {(
+                                                            ['crudo', 'cocido', 'plancha', 'horno', 'frito', 'empanizado_frito'] as CookingMethod[]
+                                                        ).map(m => (
+                                                            <button
+                                                                key={m}
+                                                                onClick={() =>
+                                                                    setCookingForTag(idx, t.cookingMethod === m ? undefined : m)
+                                                                }
+                                                                className={`px-2 py-1 rounded text-[9px] font-bold transition-all ${
+                                                                    t.cookingMethod === m
+                                                                        ? 'bg-white text-black'
+                                                                        : 'bg-white/5 text-zinc-500 hover:text-white'
+                                                                }`}
+                                                            >
+                                                                {cookingLabels[m]}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <button
+                                                        onClick={() => removeTag(idx)}
+                                                        className="text-[10px] text-red-400 hover:text-red-300 font-bold"
+                                                    >
+                                                        Eliminar
+                                                    </button>
+                                                    {!t.foodItem && (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => fetchFoodForTag(t.tag, idx)}
+                                                                disabled={isSearching[idx]}
+                                                                className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
+                                                            >
+                                                                {isSearching[idx] ? 'Buscando...' : 'Buscar'}
+                                                                <PlusIcon size={10} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setSearchModalForTagIdx(idx)}
+                                                                className="py-1.5 px-2 text-[10px] font-bold text-zinc-400 hover:text-white bg-white/5 rounded-lg"
+                                                            >
+                                                                Elegir manual
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {t.loggedFood && (
+                                                    <p className="text-[10px] text-zinc-400 font-mono">
+                                                        {t.loggedFood.calories} kcal · {t.loggedFood.protein}g P ·{' '}
+                                                        {t.loggedFood.amount}
+                                                        {t.loggedFood.unit}
+                                                    </p>
+                                                )}
                                             </div>
                                         )}
-                                        {t.loggedFood && (
-                                            <p className="text-[10px] text-zinc-400 font-mono">
-                                                {t.loggedFood.calories} kcal · {t.loggedFood.protein}g P
-                                            </p>
+                                        {expandedTagIdx !== idx && (
+                                            <div className="px-3 pb-2 flex justify-end">
+                                                <button
+                                                    onClick={e => {
+                                                        e.stopPropagation();
+                                                        removeTag(idx);
+                                                    }}
+                                                    className="text-zinc-500 hover:text-red-400 p-1"
+                                                >
+                                                    <TrashIcon size={14} />
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 ))}
