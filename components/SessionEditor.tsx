@@ -1292,7 +1292,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     useEffect(() => { infoRef.current = existingSessionInfo; }, [existingSessionInfo]);
 
     // --- NUEVO: MOTOR DE BÚFER SEMANAL ---
-    // Cargamos TODA la semana si venimos de un programa
+    // Cargamos TODA la semana si venimos de un programa.
+    // Si el usuario abrió desde "Añadir sesión" (día sin sesión), la sesión nueva DEBE estar en weekSessions.
     const [weekSessions, setWeekSessions] = useState<Session[]>(() => {
         let sessions: Session[] = [];
         if (existingSessionInfo && programs && programs.length > 0) {
@@ -1313,10 +1314,17 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 }
             }
         }
+        const newSessionFromAdd = existingSessionInfo?.session;
+        const isAddMode = newSessionFromAdd && (existingSessionInfo?.dayOfWeek !== undefined || !existingSessionInfo?.sessionId);
         if (sessions.length === 0) {
-            const initial = JSON.parse(JSON.stringify(existingSessionInfo?.session || { id: crypto.randomUUID(), name: '', description: '', exercises: [], warmup: [] }));
+            const initial = JSON.parse(JSON.stringify(newSessionFromAdd || { id: crypto.randomUUID(), name: '', description: '', exercises: [], warmup: [] }));
             if (!initial.parts) initial.parts = [{ id: crypto.randomUUID(), name: 'Principal', exercises: initial.exercises || [] }];
             sessions = [initial];
+        } else if (isAddMode && newSessionFromAdd && !sessions.some(s => s.id === newSessionFromAdd.id)) {
+            // Semana tiene sesiones del split, pero el usuario añadió una para un día vacío: incluir la nueva sesión
+            const toAdd = JSON.parse(JSON.stringify(newSessionFromAdd));
+            if (!toAdd.parts) toAdd.parts = [{ id: crypto.randomUUID(), name: 'Principal', exercises: toAdd.exercises || [] }];
+            sessions = [...sessions, toAdd];
         }
         const prog = existingSessionInfo ? programs.find(p => p.id === existingSessionInfo.programId) : null;
         const firstDay = getOrderedDaysOfWeek(prog?.startDay ?? settings.startWeekOn)[0]?.value ?? 1;
