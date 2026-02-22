@@ -112,19 +112,48 @@ function searchLocal(query: string): FoodItem[] {
     ).slice(0, 15);
 }
 
+const OFF_OFFLINE_URL = '/data/openFoodFactsOffline.json';
+let offOfflineCache: any[] | null = null;
+
+async function loadOFFOffline(): Promise<any[]> {
+    if (offOfflineCache) return offOfflineCache;
+    const base = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '';
+    try {
+        const res = await fetch(base + OFF_OFFLINE_URL);
+        if (!res.ok) return [];
+        const data = await res.json();
+        const arr = Array.isArray(data) ? data : (data?.products || []);
+        if (arr.length > 0) offOfflineCache = arr;
+        return offOfflineCache ?? [];
+    } catch (_) {
+        return [];
+    }
+}
+
+async function searchOFFOffline(query: string): Promise<FoodItem[]> {
+    const products = await loadOFFOffline();
+    const q = query.toLowerCase().trim();
+    if (!q || products.length === 0) return [];
+    const name = (p: any) => (p.product_name || p.product_name_es || '').toLowerCase();
+    const matches = products.filter((p: any) => name(p).includes(q));
+    return matches.slice(0, 15).map((p: any) => foodItemFromOFF(p));
+}
+
 async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
     try {
         const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&json=1&page_size=10`;
         const res = await fetch(url);
         const data = await res.json();
         const products = data.products || [];
-        return products
+        const items = products
             .filter((p: any) => p.product_name && (p.nutriments?.['energy-kcal_100g'] != null || p.nutriments?.proteins_100g != null))
             .slice(0, 10)
             .map((p: any) => foodItemFromOFF(p));
+        if (items.length > 0) return items;
     } catch (_) {
-        return [];
+        /* Fallback a offline */
     }
+    return searchOFFOffline(query);
 }
 
 async function searchUSDA(query: string, apiKey: string): Promise<FoodItem[]> {
