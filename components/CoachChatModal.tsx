@@ -5,7 +5,7 @@ import { getCoachChatResponseStream } from '../services/aiService';
 import Button from './ui/Button';
 import { CoachIcon, TrashIcon } from './icons';
 import useLocalStorage from '../hooks/useLocalStorage';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 
 interface CoachChatModalProps {
   isOpen: boolean;
@@ -69,7 +69,7 @@ const CoachChatModal: React.FC<CoachChatModalProps> = ({ isOpen, onClose, progra
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Consulta al Coach IA">
+    <TacticalModal isOpen={isOpen} onClose={onClose} title="Consulta al Coach IA">
         <div className="flex flex-col h-[70vh] max-h-[500px]">
             <div className="flex justify-between items-center mb-2">
                 <p className="text-sm text-slate-400">El coach tiene acceso a tu historial y programas.</p>
@@ -110,7 +110,7 @@ const CoachChatModal: React.FC<CoachChatModalProps> = ({ isOpen, onClose, progra
                 </Button>
             </form>
         </div>
-    </Modal>
+    </TacticalModal>
   );
 };
 

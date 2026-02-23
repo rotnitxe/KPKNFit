@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FoodItem } from '../types';
 import { useAppDispatch, useAppState } from '../contexts/AppContext';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { SaveIcon, UtensilsIcon, ActivityIcon } from './icons';
 
@@ -52,7 +52,7 @@ const FoodEditorModal: React.FC = () => {
     };
 
     return (
-        <Modal isOpen={isFoodEditorOpen} onClose={closeFoodEditor} title={food.id ? "Editar Alimento" : "Nuevo Alimento"} useCustomContent={true}>
+        <TacticalModal isOpen={isFoodEditorOpen} onClose={closeFoodEditor} title={food.id ? "Editar Alimento" : "Nuevo Alimento"} useCustomContent={true}>
             {/* Contenedor Flex para layout personalizado */}
             <div className="flex flex-col h-full overflow-hidden">
                 
@@ -159,7 +159,7 @@ const FoodEditorModal: React.FC = () => {
                     </Button>
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 

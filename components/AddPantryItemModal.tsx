@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { PantryItem } from '../types';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 
 const AddPantryItemModal: React.FC = () => {
@@ -42,7 +42,7 @@ const AddPantryItemModal: React.FC = () => {
     };
 
     return (
-        <Modal isOpen={isAddPantryItemModalOpen} onClose={closeAddPantryItemModal} title={`Añadir a Despensa: ${foodItemToAdd_to_pantry?.name}`}>
+        <TacticalModal isOpen={isAddPantryItemModalOpen} onClose={closeAddPantryItemModal} title={`Añadir a Despensa: ${foodItemToAdd_to_pantry?.name}`}>
             <div className="space-y-4">
                 <p>Introduce la cantidad que quieres añadir a tu despensa.</p>
                 <div>
@@ -61,7 +61,7 @@ const AddPantryItemModal: React.FC = () => {
                     <Button onClick={handleSave}>Añadir</Button>
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 

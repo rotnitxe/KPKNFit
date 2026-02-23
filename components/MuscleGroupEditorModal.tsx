@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MuscleGroupInfo, SessionBackground, CoverStyle } from '../types';
 import { useAppDispatch, useAppState } from '../contexts/AppContext';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { SaveIcon, SparklesIcon, Wand2Icon, PlusIcon, TrashIcon, StarIcon } from './icons';
 import BackgroundEditorModal from './SessionBackgroundModal';
@@ -100,7 +100,7 @@ const MuscleGroupEditorModal: React.FC<MuscleGroupEditorModalProps> = ({ isOpen,
                 isOnline={isOnline}
             />
         )}
-        <Modal isOpen={isOpen} onClose={onClose} title={`Editar: ${muscleGroup.name}`}>
+        <TacticalModal isOpen={isOpen} onClose={onClose} title={`Editar: ${muscleGroup.name}`}>
         <div className="space-y-4 max-h-[70vh] overflow-y-auto p-1">
             
             <Button onClick={() => setIsBgModalOpen(true)} variant="secondary" className="w-full">
@@ -203,7 +203,7 @@ const MuscleGroupEditorModal: React.FC<MuscleGroupEditorModalProps> = ({ isOpen,
             <Button onClick={handleSave}><SaveIcon /> Guardar Cambios</Button>
             </div>
         </div>
-        </Modal>
+        </TacticalModal>
     </>
   );
 };

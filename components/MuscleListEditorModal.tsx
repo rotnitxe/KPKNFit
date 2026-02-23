@@ -1,7 +1,7 @@
 // components/MuscleListEditorModal.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { SaveIcon, TrashIcon, PlusIcon } from './icons';
 import { MuscleSubGroup } from '../types';
@@ -96,7 +96,7 @@ const MuscleListEditorModal: React.FC<MuscleListEditorModalProps> = ({ isOpen, o
                     <Button onClick={handleSave}><SaveIcon /> Guardar Cambios</Button>
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { Program, Session, ProgramWeek } from '../types';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import { ChevronRightIcon, PlayIcon, DumbbellIcon } from './icons';
 import Button from './ui/Button';
 
@@ -137,9 +137,9 @@ const StartWorkoutModal: React.FC<StartWorkoutModalProps> = ({ isOpen, onClose }
     );
     
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Entrenar Igual">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Entrenar Igual">
             {sessionToStart ? renderVariantSelector() : renderProgramList()}
-        </Modal>
+        </TacticalModal>
     );
 };
 

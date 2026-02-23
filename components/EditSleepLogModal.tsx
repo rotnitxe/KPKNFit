@@ -2,7 +2,7 @@
 // components/EditSleepLogModal.tsx
 import React, { useState, useEffect } from 'react';
 import { SleepLog } from '../types';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { SaveIcon } from './icons';
 
@@ -42,7 +42,7 @@ const EditSleepLogModal: React.FC<EditSleepLogModalProps> = ({ isOpen, onClose, 
   if (!log) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Editar Sueño`} className="!bg-[#2d1622] border border-pink-900/50">
+    <TacticalModal isOpen={isOpen} onClose={onClose} title={`Editar Sueño`} className="!bg-[#2d1622] border border-pink-900/50">
       <div className="space-y-6 p-2">
         <p className="text-sm text-pink-200/70 text-center">
           Ajusta el registro del {new Date(log.startTime).toLocaleDateString()}.
@@ -67,7 +67,7 @@ const EditSleepLogModal: React.FC<EditSleepLogModalProps> = ({ isOpen, onClose, 
           <Button onClick={handleSave} className="!bg-pink-600 hover:!bg-pink-500 !border-none text-white"><SaveIcon /> Guardar</Button>
         </div>
       </div>
-    </Modal>
+    </TacticalModal>
   );
 };
 

@@ -5,7 +5,7 @@ import { useAppDispatch, useAppState } from '../contexts/AppContext';
 import { SunIcon, MoonIcon, CalendarIcon, BriefcaseIcon, ActivityIcon, SparklesIcon, SettingsIcon, CheckIcon, BedIcon, XIcon, BrainIcon, AlertTriangleIcon, PencilIcon, ClockIcon } from './icons';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import { SleepLog, DailyWellbeingLog, IntensityLevel } from '../types';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { calculateSleepRecommendations } from '../services/auge';
 import { scheduleBedtimeReminder } from '../services/notificationService';
@@ -56,7 +56,7 @@ const ActivityLogModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
     ];
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Registro de Actividad">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Registro de Actividad">
             <div className="space-y-8 p-1 pb-6">
                 {/* TRABAJO */}
                 <div className="bg-white/5 p-4 rounded-3xl border border-white/10 space-y-4">
@@ -119,7 +119,7 @@ const ActivityLogModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
 
                 <Button onClick={handleSave} className="w-full !py-4 shadow-xl">Guardar Reporte Diario</Button>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 
@@ -143,7 +143,7 @@ const ManualSleepModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Registro Manual de Sueño">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Registro Manual de Sueño">
             <div className="space-y-6 p-2 pb-6">
                 <div className="text-center">
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mb-2">Horas Totales</p>
@@ -156,7 +156,7 @@ const ManualSleepModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
                 </div>
                 <Button onClick={handleSave} className="w-full !py-4 !bg-indigo-600 !border-none">Guardar Registro</Button>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 

@@ -5,7 +5,7 @@ import React, { useState, useMemo } from 'react';
 import type { CalorieGoalConfig, Settings } from '../../types';
 import { mifflinStJeor, katchMcArdle } from '../../utils/calorieFormulas';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
-import Modal from '../ui/Modal';
+import { TacticalModal } from '../ui/TacticalOverlays';
 import Button from '../ui/Button';
 import { ChevronDownIcon, ChevronUpIcon } from '../icons';
 
@@ -197,7 +197,7 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
     const labelClass = 'block text-[10px] font-bold text-slate-500 uppercase mb-1';
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Editor de plan de alimentación" useCustomContent>
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Editor de plan de alimentación" useCustomContent>
             <div className="flex flex-col flex-1 min-h-0">
             <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 custom-scrollbar space-y-2">
                 <Section title="Objetivo">
@@ -385,6 +385,6 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
                 <Button onClick={handleSave} className="flex-1">Guardar cambios</Button>
             </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };

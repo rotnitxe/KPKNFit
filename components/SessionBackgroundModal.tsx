@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { SessionBackground, CoverStyle } from '../types';
 import { optimizeImage } from '../services/imageService';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { UploadIcon, SearchIcon, ImageIcon, CheckCircleIcon, Wand2Icon } from './icons';
 import { useAppState } from '../contexts/AppContext';
@@ -124,7 +124,7 @@ const BackgroundEditorModal: React.FC<BackgroundEditorModalProps> = ({
         initialQuery={previewTitle}
       />
       
-      <Modal isOpen={isOpen} onClose={onClose} title="Prime Art Studio" className="!max-w-2xl !bg-slate-950">
+      <TacticalModal isOpen={isOpen} onClose={onClose} title="Prime Art Studio" className="!max-w-2xl !bg-slate-950">
         <div className="flex flex-col h-[75vh]">
             
             {/* --- PREVIEW AREA (Top) --- */}
@@ -272,7 +272,7 @@ const BackgroundEditorModal: React.FC<BackgroundEditorModalProps> = ({
                  <Button onClick={handleSave} className="flex-[2] !py-3 !text-xs font-black uppercase shadow-xl shadow-primary-color/20"><CheckCircleIcon size={16} className="mr-2"/> Guardar Diseño</Button>
             </div>
         </div>
-      </Modal>
+      </TacticalModal>
     </>
   );
 };

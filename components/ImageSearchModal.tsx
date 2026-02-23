@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { generateImages, searchGoogleImages } from '../services/aiService';
 import { useAppState } from '../contexts/AppContext';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { SparklesIcon, SearchIcon } from './icons';
 import SkeletonLoader from './ui/SkeletonLoader';
@@ -64,7 +64,7 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Buscar o Generar Imagen">
+    <TacticalModal isOpen={isOpen} onClose={onClose} title="Buscar o Generar Imagen">
       <div className="space-y-4">
         <div className="flex bg-slate-800 p-1 rounded-full">
             <button onClick={() => setActiveTab('generate')} className={`flex-1 py-1 rounded-full text-sm flex items-center justify-center gap-1 ${activeTab === 'generate' ? 'bg-primary-color' : ''}`}><SparklesIcon size={14}/> Generar (IA)</button>
@@ -105,7 +105,7 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
           </div>
         )}
       </div>
-    </Modal>
+    </TacticalModal>
   );
 };
 

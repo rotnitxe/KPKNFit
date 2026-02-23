@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { batchGenerateExercises } from '../services/aiService';
 import { ExerciseMuscleInfo } from '../types';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { SparklesIcon } from './icons';
 import SkeletonLoader from './ui/SkeletonLoader';
@@ -67,7 +67,7 @@ const DiscoverExercisesModal: React.FC<DiscoverExercisesModalProps> = ({ isOpen,
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Descubrir Nuevos Ejercicios">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Descubrir Nuevos Ejercicios">
             <div className="space-y-4 max-h-[70vh] flex flex-col">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -117,7 +117,7 @@ const DiscoverExercisesModal: React.FC<DiscoverExercisesModalProps> = ({ isOpen,
                     </Button>
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 

@@ -1,6 +1,6 @@
 // components/TimersModal.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { playSound } from '../services/soundService';
 import { hapticImpact, hapticNotification, ImpactStyle, NotificationType } from '../services/hapticsService';
@@ -127,7 +127,7 @@ interface TimersModalProps {
 const TimersModal: React.FC<TimersModalProps> = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState<'stopwatch' | 'timer'>('stopwatch');
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Cronómetros">
+    <TacticalModal isOpen={isOpen} onClose={onClose} title="Cronómetros">
       <div className="space-y-4">
         <div className="flex bg-slate-800 p-1 rounded-full">
             <button onClick={() => setActiveTab('stopwatch')} className={`w-full py-1.5 rounded-full text-sm ${activeTab === 'stopwatch' ? 'bg-primary-color' : ''}`}>Cronómetro</button>
@@ -135,7 +135,7 @@ const TimersModal: React.FC<TimersModalProps> = ({ isOpen, onClose }) => {
         </div>
         {activeTab === 'stopwatch' ? <Stopwatch /> : <Timer />}
       </div>
-    </Modal>
+    </TacticalModal>
   );
 };
 

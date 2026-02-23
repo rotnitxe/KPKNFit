@@ -2,7 +2,7 @@
 // components/AddNutritionLogModal.tsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { NutritionLog, Settings, LoggedFood, PantryItem } from '../types';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { PlusIcon, TrashIcon, SearchIcon } from './icons';
 import { FoodSearchModal } from './FoodSearchModal';
@@ -119,7 +119,7 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="">
+    <TacticalModal isOpen={isOpen} onClose={onClose} title="">
       <div className="flex flex-col h-full space-y-6">
         
         {/* --- Header: Date & Meal Type Selection (Compact) --- */}
@@ -198,7 +198,7 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
         </div>
 
       </div>
-    </Modal>
+    </TacticalModal>
   );
 };
 

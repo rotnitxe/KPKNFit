@@ -1,7 +1,7 @@
 
 // components/FinishWorkoutModal.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import WorkoutDrawer from './workout/WorkoutDrawer';
 import Button from './ui/Button';
 import { DISCOMFORT_LIST } from '../data/discomfortList';
@@ -336,9 +336,9 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     );
   }
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <TacticalModal isOpen={isOpen} onClose={onClose} title={title}>
       {content}
-    </Modal>
+    </TacticalModal>
   );
 };
 

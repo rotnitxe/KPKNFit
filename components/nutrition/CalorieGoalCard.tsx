@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import type { CalorieGoalConfig, Settings } from '../../types';
 import { calculateDailyCalorieGoal } from '../../utils/calorieFormulas';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
-import Modal from '../ui/Modal';
+import { TacticalModal } from '../ui/TacticalOverlays';
 import Button from '../ui/Button';
 
 const FORMULA_OPTIONS: { id: CalorieGoalConfig['formula']; label: string }[] = [
@@ -93,7 +93,7 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Objetivo Calórico">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Objetivo Calórico">
             <div className="space-y-5">
                 <div>
                     <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
@@ -209,6 +209,6 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
                     </Button>
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };

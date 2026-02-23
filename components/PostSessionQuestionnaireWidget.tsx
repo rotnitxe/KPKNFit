@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { PendingQuestionnaire, PostSessionFeedback, ExerciseMuscleInfo } from '../types';
 import { useAppDispatch, useAppState } from '../contexts/AppContext';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { CheckCircleIcon, SparklesIcon, DumbbellIcon, BrainIcon, PlusIcon, SearchIcon, ZapIcon } from './icons';
 import { MUSCLE_GROUPS } from '../data/exerciseList';
@@ -144,7 +144,7 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Estado Post-Entrenamiento">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Estado Post-Entrenamiento">
             <div className="space-y-6 p-2 max-h-[80vh] overflow-y-auto custom-scrollbar">
                 {/* SNC EVALUATION */}
                 <div className="bg-gradient-to-br from-purple-900/40 to-slate-900 p-4 rounded-2xl border border-purple-500/30">
@@ -229,6 +229,6 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
 
                 <Button onClick={handleSubmit} className="w-full !py-4 shadow-xl">Guardar Evaluación</Button>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };

@@ -1,7 +1,7 @@
 
 // components/ProfilePictureModal.tsx
 import React, { useState, useRef } from 'react';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { CameraIcon, UploadIcon, SparklesIcon, TrashIcon } from './icons';
 import { takePicture } from '../services/cameraService';
@@ -71,7 +71,7 @@ const ProfilePictureModal: React.FC<ProfilePictureModalProps> = ({ isOpen, onClo
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Foto de Perfil">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Foto de Perfil">
             <div className="space-y-6 p-2">
                 
                 {/* Preview Circle */}
@@ -132,7 +132,7 @@ const ProfilePictureModal: React.FC<ProfilePictureModalProps> = ({ isOpen, onClo
                     <Button onClick={handleSave}>Guardar Perfil</Button>
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 

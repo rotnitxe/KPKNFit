@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import { Program, WorkoutLog, Exercise } from '../types';
 import { XIcon, ChevronRightIcon, SearchIcon } from './icons';
 import { useAppContext } from '../contexts/AppContext';
@@ -57,7 +57,7 @@ export const ExerciseHistoryPickerModal: React.FC<Props> = ({ isOpen, onClose, p
         .sort((a, b) => a.name.localeCompare(b.name));
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Historial por Ejercicio">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Historial por Ejercicio">
             <div className="p-2 h-[70vh] flex flex-col">
                 <div className="relative mb-4">
                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
@@ -89,6 +89,6 @@ export const ExerciseHistoryPickerModal: React.FC<Props> = ({ isOpen, onClose, p
                     )}
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };

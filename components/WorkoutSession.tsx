@@ -17,7 +17,7 @@ import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdapti
 import { GPFatigueCurve } from './ui/AugeDeepView';
 import FinishWorkoutModal from './FinishWorkoutModal';
 import ExerciseHistoryModal from './ExerciseHistoryModal';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import WarmupDrawer from './workout/WarmupDrawer';
 import PostExerciseDrawer from './workout/PostExerciseDrawer';
 import WorkoutDrawer from './workout/WorkoutDrawer';
@@ -827,7 +827,7 @@ const SetDetails: React.FC<{
             )}
 
             {showFailedModal && (
-                <Modal isOpen={showFailedModal} onClose={() => setShowFailedModal(false)} title="Serie Fallida">
+                <TacticalModal isOpen={showFailedModal} onClose={() => setShowFailedModal(false)} title="Serie Fallida">
                     <div className="space-y-4 p-2">
                         <p className="text-sm text-slate-300 text-center mb-4">No se pudo completar ninguna repetición. ¿Cuál fue la causa?</p>
                         <div className="space-y-2">
@@ -836,7 +836,7 @@ const SetDetails: React.FC<{
                              <Button onClick={() => handleFailedSet('Fallo Técnico')} variant="secondary" className="w-full">Fallo Técnico</Button>
                         </div>
                     </div>
-                </Modal>
+                </TacticalModal>
             )}
 
             <div className="mt-4 px-2">

@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { SPLIT_TEMPLATES, SplitTemplate, SplitTag } from '../data/splitTemplates';
-import Modal from './ui/Modal';
 import Button from './ui/Button';
 import { SearchIcon, CheckCircleIcon, XIcon, AlertTriangleIcon, ChevronDownIcon } from './icons';
 

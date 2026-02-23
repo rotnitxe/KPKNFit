@@ -6,7 +6,7 @@ import { calculateGlobalBatteriesAsync } from '../services/computeWorkerService'
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 import AugeDeepView, { SelfImprovementScore } from './ui/AugeDeepView';
 import { ActivityIcon, BrainIcon, SettingsIcon, XIcon, ZapIcon, InfoIcon, TargetIcon, LayersIcon } from './icons';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import SkeletonLoader from './ui/SkeletonLoader';
 
 const BatteryRing: React.FC<{ label: string; value: number; colorClass: string; icon: React.ReactNode }> = ({ label, value, colorClass, icon }) => {
@@ -145,7 +145,7 @@ const SystemBatteryWidget: React.FC = () => {
             )}
 
             {/* MODAL AUDITORÍA (RECIBO DE BANCO) */}
-            <Modal isOpen={isAuditModalOpen} onClose={() => setIsAuditModalOpen(false)} title="Auditoría de Sistemas" useCustomContent={true}>
+            <TacticalModal isOpen={isAuditModalOpen} onClose={() => setIsAuditModalOpen(false)} title="Auditoría de Sistemas" useCustomContent={true}>
                 <div className="bg-[#050505] w-full max-w-md mx-auto h-[85vh] sm:h-[700px] flex flex-col text-white">
                     <div className="flex justify-between items-center p-5 border-b border-[#222] shrink-0 bg-black relative z-20">
                         <h2 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2"><SettingsIcon size={16} className="text-white"/> Diagnóstico</h2>
@@ -238,7 +238,7 @@ const SystemBatteryWidget: React.FC = () => {
                         )}
                     </div>
                 </div>
-            </Modal>
+            </TacticalModal>
         </>
     );
 };

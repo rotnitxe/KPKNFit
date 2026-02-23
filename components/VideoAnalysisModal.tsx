@@ -1,6 +1,6 @@
 // components/VideoAnalysisModal.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { startRecording, stopRecording } from '../services/videoService';
 import { analyzeExerciseVideo } from '../services/aiService';
@@ -85,7 +85,7 @@ const VideoAnalysisModal: React.FC<VideoAnalysisModalProps> = ({ isOpen, onClose
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={`Análisis de Técnica: ${exerciseName}`}>
+    <TacticalModal isOpen={isOpen} onClose={handleClose} title={`Análisis de Técnica: ${exerciseName}`}>
       <div className="space-y-4">
         <div className="bg-black rounded-lg aspect-video flex items-center justify-center">
           <video ref={videoRef} className="w-full h-full rounded-lg" muted playsInline />
@@ -119,7 +119,7 @@ const VideoAnalysisModal: React.FC<VideoAnalysisModalProps> = ({ isOpen, onClose
             </div>
         )}
       </div>
-    </Modal>
+    </TacticalModal>
   );
 };
 

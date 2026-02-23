@@ -1,6 +1,6 @@
 import React from 'react';
 import { Exercise, WorkoutLog, Settings } from '../types';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import { BarChartIcon } from './icons';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -53,7 +53,7 @@ const ExerciseHistoryModal: React.FC<ExerciseHistoryModalProps> = ({ exercise, p
     }, [exerciseHistory]);
 
     return (
-        <Modal isOpen={true} onClose={onClose} title={`Historial: ${exercise.name}`}>
+        <TacticalModal isOpen={true} onClose={onClose} title={`Historial: ${exercise.name}`}>
             <div className="p-2 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 {/* Chart Section */}
                 {chartData.length > 1 ? (
@@ -113,7 +113,7 @@ const ExerciseHistoryModal: React.FC<ExerciseHistoryModalProps> = ({ exercise, p
                     )}
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 

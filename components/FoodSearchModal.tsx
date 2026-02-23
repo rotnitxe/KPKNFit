@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import type { FoodItem, PortionInput, LoggedFood, Settings } from '../types';
 import { searchFoods } from '../services/foodSearchService';
 import { useAppState } from '../contexts/AppContext';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import { SearchIcon, UtensilsIcon } from './icons';
 import { PortionSelector } from './PortionSelector';
 
@@ -86,7 +86,7 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Buscar alimento">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Buscar alimento">
             <div className="space-y-4 max-h-[70vh] flex flex-col">
                 {!selectedFood ? (
                     <>
@@ -139,6 +139,6 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
                     />
                 )}
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };

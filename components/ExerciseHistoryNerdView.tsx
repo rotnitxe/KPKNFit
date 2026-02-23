@@ -3,7 +3,7 @@
 
 import React, { useMemo } from 'react';
 import { WorkoutLog, Settings } from '../types';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import { BarChartIcon, ActivityIcon } from './icons';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -67,7 +67,7 @@ export const ExerciseHistoryNerdView: React.FC<ExerciseHistoryNerdViewProps> = (
     }, [exerciseHistory]);
 
     return (
-        <Modal isOpen={true} onClose={onClose} title={`${exerciseName}`} useCustomContent>
+        <TacticalModal isOpen={true} onClose={onClose} title={`${exerciseName}`} useCustomContent>
             <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar bg-[#0a0a0a]">
                 <div className="grid grid-cols-3 gap-2">
                     <div className="bg-black/50 border border-white/5 rounded-lg p-3 text-center">
@@ -147,6 +147,6 @@ export const ExerciseHistoryNerdView: React.FC<ExerciseHistoryNerdViewProps> = (
                     )}
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };

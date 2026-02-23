@@ -5,7 +5,7 @@ import { Session, Exercise, ExerciseSet, Settings, ExerciseMuscleInfo, WarmupSet
 import { PlusIcon, TrashIcon, SparklesIcon, StarIcon, ArrowDownIcon, ArrowUpIcon, InfoIcon, ChevronRightIcon, XIcon, ImageIcon, BarChartIcon, LinkIcon, ZapIcon, DragHandleIcon, CheckIcon, ClockIcon, TargetIcon, FlameIcon, ActivityIcon, PaletteIcon, LayersIcon, RefreshCwIcon, SearchIcon, DumbbellIcon, SettingsIcon, AlertTriangleIcon } from './icons';
 import Button from './ui/Button';
 import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, calculateHybrid1RM, roundWeight, getOrderedDaysOfWeek, calculateWeightFrom1RMAndIntensity, suggestRestSeconds } from '../utils/calculations';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import BackgroundEditorModal from './SessionBackgroundModal';
 import { useAppContext } from '../contexts/AppContext';
 import { storageService } from '../services/storageService';
@@ -70,7 +70,7 @@ const AmrapSelectionModal: React.FC<{
     onConfirm: (isCalibrator: boolean) => void;
 }> = ({ isOpen, onClose, onConfirm }) => {
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Configuración AMRAP">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Configuración AMRAP">
             <div className="space-y-6 p-2">
                 <div className="bg-yellow-900/20 p-4 rounded-xl border border-yellow-500/30 text-center">
                     <FlameIcon size={48} className="mx-auto text-yellow-400 mb-2 animate-pulse"/>
@@ -90,7 +90,7 @@ const AmrapSelectionModal: React.FC<{
                 </div>
                 <div className="flex justify-center"><Button onClick={onClose} variant="secondary" className="!text-xs">Cancelar</Button></div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 
@@ -441,7 +441,7 @@ const WarmupConfigModal: React.FC<{
     };
     const handleSave = () => { onSave(sets); onClose(); };
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Aproximación: ${exerciseName}`}>
+        <TacticalModal isOpen={isOpen} onClose={onClose} title={`Aproximación: ${exerciseName}`}>
             <div className="space-y-4 p-1">
                 <p className="text-sm text-slate-400">Define tus series de calentamiento como un porcentaje del peso efectivo (o 1RMe).</p>
                 <div className="space-y-2">
@@ -466,7 +466,7 @@ const WarmupConfigModal: React.FC<{
                     <Button onClick={handleSave}>Guardar Configuración</Button>
                 </div>
             </div>
-        </Modal>
+        </TacticalModal>
     );
 };
 

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { BodyProgressLog, Settings } from '../types';
 import { takePicture } from '../services/cameraService';
 import { optimizeImage } from '../services/imageService';
-import Modal from './ui/Modal';
+import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { SaveIcon, CameraIcon, TrashIcon, SparklesIcon } from './icons';
 import { useAppDispatch } from '../contexts/AppContext';
@@ -92,7 +92,7 @@ const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({ isOpen, onClose, onSa
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Añadir Registro Corporal">
+    <TacticalModal isOpen={isOpen} onClose={onClose} title="Añadir Registro Corporal">
       <div className="space-y-4 max-h-[70vh] overflow-y-auto p-1">
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -167,7 +167,7 @@ const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({ isOpen, onClose, onSa
           <Button onClick={handleSave}><SaveIcon size={16}/> Guardar Registro</Button>
         </div>
       </div>
-    </Modal>
+    </TacticalModal>
   );
 };
 
