@@ -1445,6 +1445,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     
     // applyToWholeBlock removed — managed inside SaveDrawer
 
+    const [sessionRules, setSessionRules] = useState<{ maxRPE?: number; maxExercisesPerMuscle?: number }>({});
     const [isRulesDrawerFromEvent, setIsRulesDrawerFromEvent] = useState(false);
     const [isHistoryDrawerFromEvent, setIsHistoryDrawerFromEvent] = useState(false);
     const [dismissedAvisoIds, setDismissedAvisoIds] = useState<Set<string>>(new Set());
@@ -1739,7 +1740,6 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const [isTransferDrawerOpen, setIsTransferDrawerOpen] = useState(false);
     const [isHistoryDrawerOpen, setIsHistoryDrawerOpen] = useState(false);
     const [isRulesDrawerOpen, setIsRulesDrawerOpen] = useState(false);
-    const [sessionRules, setSessionRules] = useState<{ maxRPE?: number; maxExercisesPerMuscle?: number }>({});
 
     const exerciseRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
