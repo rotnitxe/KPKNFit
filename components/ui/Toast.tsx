@@ -58,11 +58,11 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
       <div className={`
           relative overflow-hidden
           flex items-center gap-4 px-5 py-3.5
-          rounded-2xl
-          bg-black/80 backdrop-blur-xl
-          border ${GRADIENTS[toast.type]}
-          shadow-[0_8px_32px_rgba(0,0,0,0.5)]
+          rounded-sm
+          bg-[#15171E] border border-[#2A2D38]
+          shadow-[0_2px_8px_rgba(0,0,0,0.4)]
           group hover:scale-[1.02] active:scale-95 transition-transform
+          ${GRADIENTS[toast.type]}
       `}>
           {/* Subtle Glow Background */}
           <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-50 pointer-events-none" />

@@ -43,3 +43,38 @@
     50% { transform: scale(1.08); }
 }
 .animate-zoom-slow { animation: zoom-slow 12s ease-in-out infinite; }
+
+/* --- TACTICAL OVERLAYS (Cyber-Araucanian) --- */
+@keyframes tactical-modal-enter {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes tactical-modal-exit {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(10px); }
+}
+.animate-tactical-enter { animation: tactical-modal-enter 200ms ease-out forwards; }
+.animate-tactical-exit { animation: tactical-modal-exit 200ms ease-out forwards; }
+
+.tactical-backdrop {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.tactical-backdrop-toast {
+    background: rgba(0,0,0,0.4);
+}
+.tactical-modal-base {
+    border-radius: 2px;
+    border: 1px solid #2A2D38;
+    background: #15171E;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.tactical-modal-critical-failure {
+    border-color: #FF2E43;
+    box-shadow: 0 0 12px rgba(255,46,67,0.3);
+}
+.tactical-modal-critical-pr {
+    border-color: #FF7B00;
+    box-shadow: 0 0 12px rgba(255,123,0,0.4);
+}
