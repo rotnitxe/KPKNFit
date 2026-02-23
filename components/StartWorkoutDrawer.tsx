@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { Program, Session, ProgramWeek } from '../types';
+import { getSessionExerciseCount } from '../utils/calculations';
 import WorkoutDrawer from './workout/WorkoutDrawer';
 import { ChevronRightIcon, PlayIcon, DumbbellIcon } from './icons';
 import Button from './ui/Button';
@@ -11,13 +12,6 @@ interface StartWorkoutDrawerProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const getExerciseCount = (session: Session) => {
-  if (session.parts && session.parts.length > 0) {
-    return session.parts.reduce((acc, p) => acc + (p.exercises?.length || 0), 0);
-  }
-  return session.exercises?.length || 0;
-};
 
 const StartWorkoutDrawer: React.FC<StartWorkoutDrawerProps> = ({ isOpen, onClose }) => {
   const { programs } = useAppState();
@@ -119,7 +113,7 @@ const StartWorkoutDrawer: React.FC<StartWorkoutDrawerProps> = ({ isOpen, onClose
                           <div key={session.id} onClick={() => handleSessionClick(session, program, week.variant)} className="flex justify-between items-center p-3 hover:bg-orange-500/10 bg-[#0a0a0a] rounded-xl cursor-pointer transition-colors border border-orange-500/10 hover:border-orange-500/30 group">
                             <div className="min-w-0">
                               <p className="text-slate-200 font-mono font-bold text-sm truncate group-hover:text-white">{session.name}</p>
-                              <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">{getExerciseCount(session)} ejercicios</p>
+                              <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">{getSessionExerciseCount(session)} ejercicios</p>
                             </div>
                             <PlayIcon size={20} className="text-orange-500/70 group-hover:text-orange-500" />
                           </div>

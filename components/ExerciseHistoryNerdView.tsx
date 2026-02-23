@@ -21,11 +21,15 @@ export const ExerciseHistoryNerdView: React.FC<ExerciseHistoryNerdViewProps> = (
     onClose,
 }) => {
     const exerciseHistory = useMemo(() => {
+        const searchName = (exerciseName || '').trim().toLowerCase();
         return history
             .map(log => {
-                const completedEx = log.completedExercises.find(
-                    ce => ce.exerciseName === exerciseName || (ce.exerciseId && String(ce.exerciseId) === exerciseName)
-                );
+                const completedEx = log.completedExercises.find(ce => {
+                    const ceName = (ce.exerciseName || '').trim().toLowerCase();
+                    if (ceName && searchName && ceName === searchName) return true;
+                    if (ce.exerciseId && String(ce.exerciseId) === exerciseName) return true;
+                    return false;
+                });
                 if (completedEx) {
                     return {
                         date: log.date,

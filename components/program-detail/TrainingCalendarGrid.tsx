@@ -254,7 +254,9 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                                         return (
                                             <div key={dayIdx} className="flex flex-col">
                                                 {sessions.length > 0 ? sessions.map((session) => {
-                                                    const exerciseCount = (session.exercises || []).length;
+                                                    const exerciseCount = (session.parts && session.parts.length > 0)
+                                                        ? session.parts.reduce((a, p) => a + (p.exercises?.length || 0), 0)
+                                                        : (session.exercises || []).length;
                                                     const estimatedMin = exerciseCount * 8;
                                                     const isCompleted = completedSessionIds.has(session.id);
                                                     const block = roadmapBlocks.find(b => b.id === selectedBlockId);

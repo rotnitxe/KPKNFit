@@ -68,7 +68,11 @@ export const TransferDrawer: React.FC<TransferDrawerProps> = ({ isOpen, onClose,
                     {weekSessions.filter(s => s.id !== activeSessionId).map(s => (
                         <button key={s.id} onClick={() => setTargetId(s.id)} className={`w-full p-3 text-left rounded-lg border text-xs font-medium transition-all ${targetId === s.id ? 'bg-[#FC4C02]/10 border-[#FC4C02]/30 text-white' : 'bg-white/[0.02] border-white/[0.06] text-[#999] hover:border-white/10'}`}>
                             {s.name || `Sesión Día ${s.dayOfWeek}`}
-                            <span className="block text-[10px] text-[#555] mt-0.5">{s.parts?.reduce((acc, p) => acc + p.exercises.length, 0) || 0} Ejercicios</span>
+                            <span className="block text-[10px] text-[#555] mt-0.5">
+                            {(s.parts && s.parts.length > 0)
+                                ? s.parts.reduce((acc, p) => acc + (p.exercises?.length || 0), 0)
+                                : (s.exercises?.length || 0)
+                            } Ejercicios</span>
                         </button>
                     ))}
                 </div>

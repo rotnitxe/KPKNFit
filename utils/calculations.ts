@@ -1,6 +1,14 @@
 
 // utils/calculations.ts
-import { Exercise, ExerciseSet, Settings, WorkoutLog, ExerciseMuscleInfo } from '../types';
+import { Exercise, ExerciseSet, Settings, WorkoutLog, ExerciseMuscleInfo, Session } from '../types';
+
+/** Cuenta ejercicios en sesión (parts o exercises) */
+export const getSessionExerciseCount = (session: Session): number => {
+  if (session.parts && session.parts.length > 0) {
+    return session.parts.reduce((acc, p) => acc + (p.exercises?.length || 0), 0);
+  }
+  return session.exercises?.length || 0;
+};
 
 export const REP_TO_PERCENT_1RM: { [key: number]: number } = {
     1: 100, 2: 95, 3: 93, 4: 90, 5: 87, 6: 85, 7: 83, 8: 80, 9: 77, 10: 75,

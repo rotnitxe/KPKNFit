@@ -124,7 +124,11 @@ const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onS
                                                                 >
                                                                     <div className="flex-1 pr-2 truncate">
                                                                         <h4 className="text-[11px] font-black text-white uppercase truncate">{session.name}</h4>
-                                                                        <span className="text-[9px] text-zinc-500 font-bold">{(session.exercises || []).length} ejs.</span>
+                                                                        <span className="text-[9px] text-zinc-500 font-bold">
+                                                                        {(session.parts && session.parts.length > 0)
+                                                                            ? session.parts.reduce((a, p) => a + (p.exercises?.length || 0), 0)
+                                                                            : (session.exercises || []).length
+                                                                        } ejs.</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-1 shrink-0">
                                                                         <button 

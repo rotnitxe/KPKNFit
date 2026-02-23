@@ -13,25 +13,30 @@ interface ExerciseHistoryModalProps {
 }
 
 const ExerciseHistoryModal: React.FC<ExerciseHistoryModalProps> = ({ exercise, programId, history, settings, onClose }) => {
-    // 1. Filtrar historial para este ejercicio en este programa
+    // 1. Filtrar historial para este ejercicio (primero en este programa, si vacío buscar en todo)
     const exerciseHistory = React.useMemo(() => {
-        return history
-            .filter(log => log.programId === programId)
-            .map(log => {
-                const completedEx = log.completedExercises.find(
-                    ce => ce.exerciseId === exercise.id || ce.exerciseName === exercise.name
-                );
-                if (completedEx) {
-                    return {
-                        date: log.date,
-                        sets: completedEx.sets
-                    };
-                }
-                return null;
-            })
-            .filter((log): log is { date: string; sets: any[] } => log !== null)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [history, programId, exercise.id, exercise.name]);
+        const matchExercise = (ce: { exerciseId?: string; exerciseDbId?: string; exerciseName?: string }) => {
+            if (ce.exerciseDbId && exercise.exerciseDbId && ce.exerciseDbId === exercise.exerciseDbId) return true;
+            if (ce.exerciseId === exercise.id) return true;
+            const ceName = (ce.exerciseName || '').trim().toLowerCase();
+            const exName = (exercise.name || '').trim().toLowerCase();
+            if (ceName && exName && ceName === exName) return true;
+            return false;
+        };
+        const extractFromLogs = (logs: typeof history) =>
+            logs
+                .map(log => {
+                    const completedEx = log.completedExercises.find(matchExercise);
+                    if (completedEx) return { date: log.date, sets: completedEx.sets };
+                    return null;
+                })
+                .filter((log): log is { date: string; sets: any[] } => log !== null)
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        const fromProgram = extractFromLogs(history.filter(log => log.programId === programId));
+        if (fromProgram.length > 0) return fromProgram;
+        return extractFromLogs(history);
+    }, [history, programId, exercise.id, exercise.exerciseDbId, exercise.name]);
 
     // 2. Preparar datos para el gráfico
     const chartData = React.useMemo(() => {

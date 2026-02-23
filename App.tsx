@@ -548,7 +548,7 @@ export const App: React.FC = () => {
     }, [view, programs, history, settings, isOnline, activeProgramId, editingProgramId, editingSessionInfo, loggingSessionInfo, viewingSessionInfo, activeSession, viewingExerciseId, viewingMuscleGroupId, viewingJointId, viewingTendonId, viewingMovementPatternId, viewingBodyPartId, viewingChainId, viewingMuscleCategoryName, ongoingWorkout, isFinishModalOpen, isTimeSaverModalOpen, isTimersModalOpen, isLogFinishModalOpen, exerciseList, muscleHierarchy, saveProgramTrigger, saveSessionTrigger, saveLoggedWorkoutTrigger, addExerciseTrigger]);
     
     
-    const tabBarContainerHeight = 'h-[75px]'; // Standard height for anchored nav + safe area
+    const tabBarContainerHeight = 'h-[88px]'; // Barra más ancha, diseño plano
 
     return (
         <div className="app-container fixed inset-0 w-full h-[100dvh] flex flex-col overflow-hidden bg-black">
@@ -583,7 +583,7 @@ export const App: React.FC = () => {
             
             {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor, Session Editor, and Nutrition Wizard/Landing */}
             {view !== 'program-editor' && view !== 'session-editor' && (view !== 'nutrition' || settings.hasSeenNutritionWizard) && (
-                <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] border-t border-white/10 rounded-t-none backdrop-blur-xl ${tabBarContainerHeight}`}>
+                <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] rounded-t-none ${tabBarContainerHeight}`}>
                      <div className="relative w-full h-full">
                         {/* SubTabBar is absolutely positioned inside here, pushed up */}
                         <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />
