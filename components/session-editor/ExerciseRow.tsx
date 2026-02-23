@@ -97,7 +97,15 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
         });
     }, [partIndex, exerciseIndex, onUpdate]);
 
-    // Calcular reference1RM desde PR cuando prFor1RM está definido (modo percent)
+    // RM efectivo para mostrar cargas sugeridas: usa reference1RM o lo calcula de prFor1RM al vuelo
+    const effectiveReference1RM = useMemo(() => {
+        if (exercise.reference1RM && exercise.reference1RM > 0) return exercise.reference1RM;
+        if (exercise.prFor1RM?.weight && exercise.prFor1RM?.reps)
+            return calculateHybrid1RM(exercise.prFor1RM.weight, exercise.prFor1RM.reps);
+        return undefined;
+    }, [exercise.reference1RM, exercise.prFor1RM?.weight, exercise.prFor1RM?.reps]);
+
+    // Persistir reference1RM desde PR cuando prFor1RM está definido (modo percent)
     useEffect(() => {
         if (exercise.trainingMode !== 'percent' || !exercise.prFor1RM?.weight || !exercise.prFor1RM?.reps) return;
         const e1rm = calculateHybrid1RM(exercise.prFor1RM.weight, exercise.prFor1RM.reps);
@@ -114,7 +122,16 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
-    if (isSearching) {
+    // Si hay modal disponible, abrir el modal con categorías y AUGE en lugar del dropdown inline
+    useEffect(() => {
+        if (isSearching && onOpenExerciseModal) {
+            onOpenExerciseModal(partIndex, exerciseIndex);
+            setIsSearching(false);
+        }
+    }, [isSearching, onOpenExerciseModal, partIndex, exerciseIndex]);
+
+    if (isSearching && !onOpenExerciseModal) {
+        // Fallback: dropdown inline solo cuando no hay modal (ej. ProgramEditor u otros contextos)
         return (
             <div ref={scrollRef} className="px-4 py-3 border-b border-white/5 animate-fade-in">
                 <div className="relative mb-2">
@@ -341,7 +358,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         onAddSet={handleAddSet}
                         onRemoveSet={handleRemoveSet}
                         onAmrapToggle={onAmrapToggle ? (setIdx) => onAmrapToggle(partIndex, exerciseIndex, setIdx) : undefined}
-                        reference1RM={exercise.reference1RM}
+                        reference1RM={effectiveReference1RM}
                     />
                 </div>
             )}
