@@ -9,7 +9,6 @@ export { default as InlineSetTable } from './InlineSetTable';
 export { default as FatigueIndicators } from './FatigueIndicators';
 export { default as ContextualHeader } from './ContextualHeader';
 export { default as PartSection } from './PartSection';
-export { default as SaveBar } from './SaveBar';
 export { default as AugeFAB } from './AugeFAB';
 export { default as AugeDrawer } from './AugeDrawer';
 export { TransferDrawer, WarmupDrawer, HistoryDrawer, RulesDrawer, SaveDrawer, Drawer } from './DrawerSystem';

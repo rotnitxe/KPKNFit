@@ -20,12 +20,12 @@ import ToggleSwitch from './ui/ToggleSwitch';
 import ContextualHeader from './session-editor/ContextualHeader';
 import ExerciseRow from './session-editor/ExerciseRow';
 import PartSection from './session-editor/PartSection';
-import SaveBar from './session-editor/SaveBar';
 import { SessionMetricsBlock } from './session-editor/SessionMetricsBlock';
 import AugeFAB from './session-editor/AugeFAB';
 import AugeDrawerComponent from './session-editor/AugeDrawer';
 import { TransferDrawer, HistoryDrawer, RulesDrawer, SaveDrawer, RulesApplyPayload } from './session-editor/DrawerSystem';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { useKeyboardOverlayMode } from '../hooks/useKeyboardOverlayMode';
 
 export interface SessionEditorProps {
   // Ahora onSave puede recibir un array de sesiones modificadas para el guardado en lote
@@ -1343,6 +1343,7 @@ const PCE_BANNER_KEY = 'pce-pending-modification';
 
 const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel, existingSessionInfo, isOnline, settings, saveTrigger, addExerciseTrigger, exerciseList }) => {
     const { isDirty, setIsDirty, addToast, programs = [], openCustomExerciseEditor, setOnExerciseCreated } = useAppContext();
+    useKeyboardOverlayMode(true);
     const [isBgModalOpen, setIsBgModalOpen] = useState(false);
     const [pceBanner, setPceBanner] = useState<{ score: number; message: string } | null>(() => {
         try {
@@ -1585,6 +1586,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const [dismissedAvisoIds, setDismissedAvisoIds] = useState<Set<string>>(new Set());
     const [exercisePickerTarget, setExercisePickerTarget] = useState<{ partIndex: number; exerciseIndex: number } | null>(null);
     const [pendingRemoveExercise, setPendingRemoveExercise] = useState<{ partIndex: number; exerciseIndex: number; name: string } | null>(null);
+    const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
 
     useEffect(() => {
         const openRules = () => setIsRulesDrawerFromEvent(true);
@@ -1743,6 +1745,38 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             executeFinalSave([sessionRef.current]);
         }
     }, [activeSessionId, addToast, existingSessionInfo, validateSessionRules]);
+
+    const handleCancelOrConfirm = useCallback(() => {
+        if (modifiedSessionIds.size > 0) {
+            setShowExitConfirmModal(true);
+        } else {
+            onCancel();
+        }
+    }, [modifiedSessionIds.size, onCancel]);
+
+    const handleExitWithoutSaving = useCallback(() => {
+        setShowExitConfirmModal(false);
+        setIsDirty(false);
+        onCancel();
+    }, [onCancel, setIsDirty]);
+
+    const handleSaveDraftAndExit = useCallback(async () => {
+        try {
+            const payload = { weekSessions, activeSessionId, existingSessionInfo: infoRef.current };
+            await storageService.set(SESSION_DRAFT_KEY, payload);
+            try { sessionStorage.setItem('session-draft-just-saved', '1'); } catch (_) {}
+            setShowExitConfirmModal(false);
+            setModifiedSessionIds(new Set());
+            setIsDirty(false);
+            onCancel();
+        } catch (e) {
+            addToast("No se pudo guardar el borrador.", "danger");
+        }
+    }, [weekSessions, activeSessionId, onCancel, addToast, setIsDirty]);
+
+    const handleContinueEditing = useCallback(() => {
+        setShowExitConfirmModal(false);
+    }, []);
 
     useEffect(() => {
         if (saveTrigger !== lastSaveTrigger.current) {
@@ -2141,7 +2175,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             <ContextualHeader
                 session={session}
                 updateSession={updateSession}
-                onCancel={onCancel}
+                onCancel={handleCancelOrConfirm}
+                onSave={handleSave}
+                hasChanges={modifiedSessionIds.size > 0}
                 onOpenBgDrawer={() => setIsBgModalOpen(true)}
                 onOpenTransferDrawer={() => setIsTransferDrawerOpen(true)}
                 onOpenHistoryDrawer={() => setIsHistoryDrawerOpen(true)}
@@ -2235,7 +2271,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                                                 {part.exercises.map((ex, ei) => (
                                                     <Draggable key={ex.id} draggableId={`ex-${pi}-${ei}`} index={ei}>
                                                         {(provided, snapshot) => (
-                                                            <div ref={provided.innerRef} {...provided.draggableProps} className={snapshot.isDragging ? 'opacity-80' : ''}>
+                                                            <div ref={provided.innerRef} {...provided.draggableProps} className={`py-1 ${snapshot.isDragging ? 'opacity-80' : ''}`}>
                                                                 <ExerciseRow
                                                                     exercise={ex}
                                                                     exerciseIndex={ei}
@@ -2289,16 +2325,6 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     sessionStatus={augeSessionStatus}
                     hasCritical={hasCriticalAlerts}
                     onClick={() => setIsAugeDrawerOpen(true)}
-                />
-            )}
-
-            {/* ═══ Save Bar ═══ */}
-            {activeSessionId !== 'empty' && (
-                <SaveBar
-                    hasChanges={modifiedSessionIds.size > 0}
-                    modifiedCount={modifiedSessionIds.size}
-                    onSave={handleSave}
-                    onCancel={onCancel}
                 />
             )}
 
@@ -2385,6 +2411,26 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 onSaveSingle={handleSaveSingle}
                 onSaveMultiple={handleSaveMultiple}
             />
+
+            {/* Confirmación salir con cambios */}
+            {showExitConfirmModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#111] border border-white/10 rounded-xl p-6 max-w-sm w-full">
+                        <p className="text-sm text-white mb-4">Hay cambios sin guardar. ¿Qué deseas hacer?</p>
+                        <div className="flex flex-col gap-2">
+                            <button onClick={handleSaveDraftAndExit} className="w-full py-2.5 rounded-lg border border-white/10 text-[#999] hover:text-white hover:bg-white/5 transition-colors text-sm font-medium">
+                                Guardar borrador y salir
+                            </button>
+                            <button onClick={handleExitWithoutSaving} className="w-full py-2.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium">
+                                Salir sin guardar
+                            </button>
+                            <button onClick={handleContinueEditing} className="w-full py-2.5 rounded-lg bg-[#FC4C02] text-white hover:brightness-110 transition-colors text-sm font-bold">
+                                Continuar editando
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Confirmación borrar ejercicio */}
             {pendingRemoveExercise && (

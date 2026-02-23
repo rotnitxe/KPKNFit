@@ -31,6 +31,24 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
     onLink, onUnlink, onAmrapToggle, onOpenExerciseModal, scrollRef, dragHandleProps,
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const wrapperRef = React.useRef<HTMLDivElement | null>(null);
+
+    const setRef = useCallback((el: HTMLDivElement | null) => {
+        wrapperRef.current = el;
+        scrollRef?.(el);
+    }, [scrollRef]);
+
+    useEffect(() => {
+        const el = wrapperRef.current;
+        if (!el) return;
+        const handler = () => {
+            requestAnimationFrame(() => {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            });
+        };
+        el.addEventListener('focusin', handler);
+        return () => el.removeEventListener('focusin', handler);
+    }, [exercise.id]);
     const [isSearching, setIsSearching] = useState(!exercise.name);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -133,7 +151,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
     if (isSearching && !onOpenExerciseModal) {
         // Fallback: dropdown inline solo cuando no hay modal (ej. ProgramEditor u otros contextos)
         return (
-            <div ref={scrollRef} className="px-4 py-3 border-b border-white/5 animate-fade-in">
+            <div ref={setRef} className="px-4 py-3 border-b border-white/5 animate-fade-in scroll-mb-48">
                 <div className="relative mb-2">
                     <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555]" />
                     <input
@@ -170,8 +188,8 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
 
     return (
         <div
-            ref={scrollRef}
-            className={`border-b transition-colors ${isCulprit ? 'border-red-500/20 bg-red-950/5' : 'border-white/5'}`}
+            ref={setRef}
+            className={`border-b transition-colors scroll-mb-48 ${isCulprit ? 'border-red-500/20 bg-red-950/5' : 'border-white/5'}`}
         >
             {/* Collapsed row */}
             <button

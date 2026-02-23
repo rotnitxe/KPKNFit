@@ -21,6 +21,7 @@ import Modal from './ui/Modal';
 import WarmupDrawer from './workout/WarmupDrawer';
 import PostExerciseDrawer from './workout/PostExerciseDrawer';
 import WorkoutDrawer from './workout/WorkoutDrawer';
+import { useKeyboardOverlayMode } from '../hooks/useKeyboardOverlayMode';
 
 const InCardTimer: React.FC<{ initialTime: number; onSave: (duration: number) => void; }> = ({ initialTime, onSave }) => {
     const [time, setTime] = useState(initialTime * 1000);
@@ -476,6 +477,18 @@ const SetDetails: React.FC<{
     suggestedWeight?: number;
     selectedTag?: string;
 }> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast, suggestedWeight, selectedTag }) => {
+    const cardRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const el = cardRef.current;
+        if (!el) return;
+        const handler = () => {
+            requestAnimationFrame(() => {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            });
+        };
+        el.addEventListener('focusin', handler);
+        return () => el.removeEventListener('focusin', handler);
+    }, []);
     
     const isUnilateral = exercise.isUnilateral || false;
     const isTimeMode = exercise.trainingMode === 'time';
@@ -612,7 +625,7 @@ const SetDetails: React.FC<{
     else if (cardAnimation === 'failure') containerClass += " shadow-[0_0_40px_rgba(239,68,68,0.3)] border border-red-500 bg-red-900/20";
 
     return (
-        <div className={containerClass}>
+        <div ref={cardRef} className={`${containerClass} scroll-mb-48`}>
             {set.isAmrap && !cardAnimation && <div className="absolute inset-0 bg-yellow-500/5 z-0 animate-pulse pointer-events-none"></div>}
             {isStagnant && <div className="bg-red-900/20 border border-red-500/30 p-2 mb-2 rounded text-center text-xs text-red-300 font-bold flex items-center justify-center gap-2 mx-2 mt-2"><AlertTriangleIcon size={14}/> Estancamiento Detectado (3 sesiones)</div>}
 
@@ -858,6 +871,7 @@ interface WorkoutSessionProps {
 export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program, programId, settings, history, onFinish, onCancel, onUpdateExercise1RM, isFinishModalOpen, setIsFinishModalOpen, exerciseList, onUpdateSessionInProgram, isTimeSaverModalOpen, setIsTimeSaverModalOpen, onUpdateExerciseInProgram: updateExInProg, isTimersModalOpen, setIsTimersModalOpen }) => {
     const { ongoingWorkout, isLiveCoachActive, isOnline, muscleHierarchy, restTimer } = useAppState();
     const dispatch = useAppDispatch();
+    useKeyboardOverlayMode(true);
     const { setOngoingWorkout, handleStartRest, handleSkipRestTimer, addToast, setIsLiveCoachActive, addOrUpdateCustomExercise } = dispatch;
     
     const [isFocusMode, setIsFocusMode] = useState(true); 
