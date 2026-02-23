@@ -1,11 +1,12 @@
 import { storageService } from '../services/storageService';
-import type { StateStorage } from 'zustand/middleware';
+import { createJSONStorage, type StateStorage } from 'zustand/middleware';
 
 /**
  * Maps each Zustand store field to its own IndexedDB key,
  * preserving backward compatibility with the legacy per-key storage layout.
+ * Returns StateStorage (string-based) for use with createJSONStorage.
  */
-export function createMultiKeyStorage(keyMap: Record<string, string>): StateStorage {
+function createMultiKeyStorage(keyMap: Record<string, string>): StateStorage {
     return {
         getItem: async (_name: string): Promise<string | null> => {
             const state: Record<string, any> = {};
@@ -27,7 +28,11 @@ export function createMultiKeyStorage(keyMap: Record<string, string>): StateStor
 
         setItem: async (_name: string, value: string): Promise<void> => {
             try {
-                const { state } = JSON.parse(value);
+                const parsed = JSON.parse(value);
+                // Zustand persist pasa { state, version }; legacy puede ser { settings } directo
+                const state = parsed?.state ?? parsed;
+                if (!state || typeof state !== 'object') return;
+
                 await Promise.all(
                     Object.entries(keyMap).map(async ([field, storageKey]) => {
                         if (field in state) {
@@ -46,4 +51,14 @@ export function createMultiKeyStorage(keyMap: Record<string, string>): StateStor
             );
         },
     };
+}
+
+/**
+ * PersistStorage-compatible wrapper for createMultiKeyStorage.
+ * Zustand persist expects object-based storage; createJSONStorage adapts our
+ * string-based storage to that interface so settings (hasSeenWelcome, etc.)
+ * persist correctly across app restarts.
+ */
+export function createPersistMultiKeyStorage(keyMap: Record<string, string>) {
+    return createJSONStorage(() => createMultiKeyStorage(keyMap));
 }

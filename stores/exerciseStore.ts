@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { createMultiKeyStorage } from './storageAdapter';
+import { createPersistMultiKeyStorage } from './storageAdapter';
 import { FULL_EXERCISE_LIST } from '../data/exerciseDatabaseMerged';
 import { INITIAL_MUSCLE_GROUP_DATA } from '../data/initialMuscleGroupDatabase';
 import { INITIAL_MUSCLE_HIERARCHY } from '../data/initialMuscleHierarchy';
@@ -67,7 +67,7 @@ export const useExerciseStore = create<ExerciseStoreState>()(
         })),
         {
             name: 'kpkn-exercise-store',
-            storage: createMultiKeyStorage({
+            storage: createPersistMultiKeyStorage({
                 exerciseList: 'yourprime-exercise-database',
                 exercisePlaylists: 'yourprime-playlists',
                 muscleGroupData: 'yourprime-muscle-group-data',

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { createMultiKeyStorage } from './storageAdapter';
+import { createPersistMultiKeyStorage } from './storageAdapter';
 import type { Program, ActiveProgramState } from '../types';
 
 type Updater<T> = T | ((prev: T) => T);
@@ -36,7 +36,7 @@ export const useProgramStore = create<ProgramStoreState>()(
         })),
         {
             name: 'kpkn-program-store',
-            storage: createMultiKeyStorage({
+            storage: createPersistMultiKeyStorage({
                 programs: 'programs',
                 activeProgramState: 'yourprime-active-program-state',
             }),

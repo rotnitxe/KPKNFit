@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { createMultiKeyStorage } from './storageAdapter';
+import { createPersistMultiKeyStorage } from './storageAdapter';
 import type { BodyProgressLog, BodyLabAnalysis, BiomechanicalData, BiomechanicalAnalysis } from '../types';
 
 type Updater<T> = T | ((prev: T) => T);
@@ -50,7 +50,7 @@ export const useBodyStore = create<BodyStoreState>()(
         })),
         {
             name: 'kpkn-body-store',
-            storage: createMultiKeyStorage({
+            storage: createPersistMultiKeyStorage({
                 bodyProgress: 'body-progress',
                 bodyLabAnalysis: 'yourprime-bodylab-analysis',
                 biomechanicalData: 'yourprime-biomechanical-data',

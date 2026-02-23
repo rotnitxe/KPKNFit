@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { createMultiKeyStorage } from './storageAdapter';
+import { createPersistMultiKeyStorage } from './storageAdapter';
 import type {
     SleepLog, WaterLog, DailyWellbeingLog,
     PostSessionFeedback, PendingQuestionnaire,
@@ -61,7 +61,7 @@ export const useWellbeingStore = create<WellbeingStoreState>()(
         })),
         {
             name: 'kpkn-wellbeing-store',
-            storage: createMultiKeyStorage({
+            storage: createPersistMultiKeyStorage({
                 sleepLogs: 'yourprime-sleep-logs',
                 sleepStartTime: 'yourprime-sleep-start-time',
                 waterLogs: 'yourprime-water-logs',

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { createMultiKeyStorage } from './storageAdapter';
+import { createPersistMultiKeyStorage } from './storageAdapter';
 import { FOOD_DATABASE } from '../data/foodDatabase';
 import type { NutritionLog, PantryItem, FoodItem, AINutritionPlan } from '../types';
 
@@ -55,7 +55,7 @@ export const useNutritionStore = create<NutritionStoreState>()(
         })),
         {
             name: 'kpkn-nutrition-store',
-            storage: createMultiKeyStorage({
+            storage: createPersistMultiKeyStorage({
                 nutritionLogs: 'nutrition-logs',
                 pantryItems: 'yourprime-pantry-items',
                 foodDatabase: 'yourprime-food-database',

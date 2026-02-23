@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { createMultiKeyStorage } from './storageAdapter';
+import { createPersistMultiKeyStorage } from './storageAdapter';
 import type { Settings } from '../types';
 
 const defaultSettings: Settings = {
@@ -99,7 +99,7 @@ export const useSettingsStore = create<SettingsStoreState>()(
         })),
         {
             name: 'kpkn-settings-store',
-            storage: createMultiKeyStorage({
+            storage: createPersistMultiKeyStorage({
                 settings: 'yourprime-settings',
             }),
             partialize: (state) => ({ settings: state.settings }),

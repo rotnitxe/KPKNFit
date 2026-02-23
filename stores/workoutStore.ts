@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { createMultiKeyStorage } from './storageAdapter';
+import { createPersistMultiKeyStorage } from './storageAdapter';
 import type { WorkoutLog, SkippedWorkoutLog, OngoingWorkoutState } from '../types';
 
 type Updater<T> = T | ((prev: T) => T);
@@ -54,7 +54,7 @@ export const useWorkoutStore = create<WorkoutStoreState>()(
         })),
         {
             name: 'kpkn-workout-store',
-            storage: createMultiKeyStorage({
+            storage: createPersistMultiKeyStorage({
                 history: 'history',
                 skippedLogs: 'skipped-logs',
                 ongoingWorkout: 'ongoing-workout-session',

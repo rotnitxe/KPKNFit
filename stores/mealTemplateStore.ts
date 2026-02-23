@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { createMultiKeyStorage } from './storageAdapter';
+import { createPersistMultiKeyStorage } from './storageAdapter';
 import type { MealTemplate, LoggedFood } from '../types';
 
 type Updater<T> = T | ((prev: T) => T);
@@ -78,7 +78,7 @@ export const useMealTemplateStore = create<MealTemplateStoreState>()(
         })),
         {
             name: 'kpkn-meal-templates',
-            storage: createMultiKeyStorage({
+            storage: createPersistMultiKeyStorage({
                 mealTemplates: 'yourprime-meal-templates',
             }),
             partialize: (state) => ({ mealTemplates: state.mealTemplates }),
