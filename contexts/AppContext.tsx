@@ -797,11 +797,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             } catch (e) { console.error("Achievement check error:", e); }
         };
 
+        saveLog(validatedLog);  // Siempre guardar en history (fuente local de verdad)
         if (!ui.isOnline) {
             setSyncQueue(prev => [...prev, validatedLog]);
-            addToast('Sin conexión. Guardado en cola.', 'suggestion');
-        } else {
-            saveLog(validatedLog);
+            addToast('Sin conexión. Guardado en cola para sincronizar.', 'suggestion');
         }
 
         completedExercises.forEach(ex => {

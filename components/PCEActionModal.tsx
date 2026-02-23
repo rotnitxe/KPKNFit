@@ -26,13 +26,15 @@ export const PCEActionModal: React.FC = () => {
 
     const handleTrainingAction = () => {
         if (pceData.isExtreme) {
-            // Aquí iría tu lógica interna para marcar el día de mañana como descanso en el Planner
             addToast('Sesión de mañana cancelada. Día de descanso obligatorio establecido.', 'success');
         } else {
-            // Llevamos al usuario al editor de la sesión de mañana
-            navigateTo('session-editor'); 
+            try {
+                sessionStorage.setItem('pce-pending-modification', JSON.stringify({ score: pceData.score, message: 'AUGE sugirió reducir el volumen de tu próxima sesión.' }));
+            } catch (_) {}
+            addToast('Al abrir el Session Editor verás la sugerencia de AUGE.', 'suggestion');
+            navigateTo('home');
         }
-        setPceData(null); // Cierra el modal
+        setPceData(null);
     };
 
     return (

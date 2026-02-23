@@ -124,6 +124,11 @@ const MuscleGroupEditorModal: React.FC<MuscleGroupEditorModalProps> = ({ isOpen,
             </div>
 
             <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Importancia en la Estética</label>
+                <textarea value={localData.aestheticImportance || ''} onChange={e => handleChange('aestheticImportance', e.target.value)} rows={3} className="w-full" placeholder="Relevancia estética del músculo: forma, visibilidad, proporciones..." />
+            </div>
+
+            <div>
                 <h4 className="font-semibold text-white mb-2">Volumen Semanal Recomendado</h4>
                 <div className="grid grid-cols-3 gap-2">
                     <div>

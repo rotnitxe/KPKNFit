@@ -78,10 +78,29 @@ export async function fetchWikipediaSummary(term: string, lang: 'es' | 'en' = 'e
   }
 }
 
+const MUSCLE_SEARCH_VARIANTS: Record<string, string[]> = {
+  'Pectoral': ['Pectoral mayor', 'Músculo pectoral mayor'],
+  'Deltoides': ['Músculo deltoides', 'Deltoides'],
+  'Bíceps': ['Bíceps braquial', 'Músculo bíceps braquial'],
+  'Tríceps': ['Tríceps braquial', 'Músculo tríceps braquial'],
+  'Cuádriceps': ['Cuádriceps femoral', 'Músculo cuádriceps'],
+  'Glúteos': ['Glúteo mayor', 'Músculo glúteo mayor'],
+  'Dorsal Ancho': ['Dorsal ancho', 'Músculo dorsal ancho', 'Latissimus dorsi'],
+  'Trapecio': ['Músculo trapecio', 'Trapecio'],
+  'Isquiosurales': ['Isquiotibiales', 'Músculos isquiotibiales'],
+  'Pantorrillas': ['Pantorrilla', 'Músculos de la pantorrilla'],
+  'Abdomen': ['Músculos abdominales', 'Abdomen'],
+};
+
 export async function enrichWithWikipedia(term: string): Promise<{ extract?: string; title?: string; lang: string } | null> {
-  const es = await fetchWikipediaSummary(term, 'es');
-  if (es) return es;
-  const en = await fetchWikipediaSummary(term, 'en');
-  if (en) return en;
+  const variants = MUSCLE_SEARCH_VARIANTS[term] || [term, `Músculo ${term}`, `${term} (anatomía)`];
+  for (const t of variants) {
+    const es = await fetchWikipediaSummary(t, 'es');
+    if (es) return es;
+  }
+  for (const t of variants) {
+    const en = await fetchWikipediaSummary(t, 'en');
+    if (en) return en;
+  }
   return null;
 }

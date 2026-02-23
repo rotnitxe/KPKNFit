@@ -166,6 +166,35 @@ const KPKNView: React.FC = () => {
                                 ))}
                             </div>
                         </div>
+                        <div>
+                            <h2 className="text-[10px] font-mono font-black text-cyan-500/90 uppercase tracking-widest mb-3">Articulaciones y Tendones</h2>
+                            <div className="space-y-2">
+                                <div className="mb-2">
+                                    <span className="text-[10px] font-mono text-slate-500 uppercase">Articulaciones</span>
+                                    <div className="mt-1 space-y-2">
+                                        {(jointDatabase || []).slice(0, 12).map(j => (
+                                            <div key={j.id} onClick={() => navigateTo('joint-detail', { jointId: j.id })}
+                                                className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-orange-500/20 hover:border-orange-500/40 cursor-pointer transition-all">
+                                                <span className="font-mono font-semibold text-slate-200 text-sm">{j.name?.split('(')[0]?.trim() || j.name}</span>
+                                                <ChevronRightIcon className="text-slate-500" size={18} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-mono text-slate-500 uppercase">Tendones</span>
+                                    <div className="mt-1 space-y-2">
+                                        {(tendonDatabase || []).slice(0, 8).map(t => (
+                                            <div key={t.id} onClick={() => navigateTo('tendon-detail', { tendonId: t.id })}
+                                                className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-orange-500/20 hover:border-orange-500/40 cursor-pointer transition-all">
+                                                <span className="font-mono font-semibold text-slate-200 text-sm">{t.name}</span>
+                                                <ChevronRightIcon className="text-slate-500" size={18} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         {specialCategories.length > 0 && (
                             <div>
                                 <h2 className="text-[10px] font-mono font-black text-purple-500/90 uppercase tracking-widest mb-3">Grupos funcionales</h2>

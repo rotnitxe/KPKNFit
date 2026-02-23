@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Exercise, ExerciseSet, ExerciseMuscleInfo } from '../../types';
 import { StarIcon, TrashIcon, ChevronRightIcon, ClockIcon, LinkIcon, ArrowUpIcon, ArrowDownIcon, SearchIcon, PlusIcon } from '../icons';
+import { suggestRestSeconds } from '../../utils/calculations';
 import SetCardGrid from './SetCardGrid';
 
 interface ExerciseCardCompactProps {
@@ -218,22 +219,31 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                     <div className="grid grid-cols-2 gap-2">
                         <div>
                             <label className="text-[8px] font-bold text-zinc-600 uppercase block mb-1">Descanso</label>
-                            <input
-                                type="text"
-                                value={formatRest(exercise.restTime || 90)}
-                                onChange={e => {
-                                    const val = e.target.value;
-                                    let seconds = 90;
-                                    if (val.includes(':')) {
-                                        const [m, s] = val.split(':').map(Number);
-                                        seconds = (m * 60) + (s || 0);
-                                    } else {
-                                        seconds = parseInt(val) || 0;
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="time"
+                                    step="15"
+                                    value={(() => { const s = exercise.restTime || 90; const m = Math.floor(s / 60); const sec = s % 60; return `00:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
+                                    onChange={e => {
+                                        const v = e.target.value;
+                                        if (v) {
+                                            const parts = v.split(':').map(Number);
+                                            const seconds = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+                                            onUpdate(partIndex, exerciseIndex, d => { d.restTime = seconds; });
+                                        }
+                                    }}
+                                    className="flex-1 min-w-0 bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
+                                />
+                                {exercise.sets?.length > 0 && (() => {
+                                    const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
+                                    const suggested = suggestRestSeconds(exercise.sets.length, avgRPE);
+                                    const current = exercise.restTime || 90;
+                                    if (Math.abs(suggested - current) > 15) {
+                                        return <button type="button" onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.restTime = suggested; })} className="text-[7px] font-bold text-orange-500 hover:text-orange-400 shrink-0">Sug</button>;
                                     }
-                                    onUpdate(partIndex, exerciseIndex, d => { d.restTime = seconds; });
-                                }}
-                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
-                            />
+                                    return null;
+                                })()}
+                            </div>
                         </div>
                         <div>
                             <label className="text-[8px] font-bold text-zinc-600 uppercase block mb-1">Modo</label>

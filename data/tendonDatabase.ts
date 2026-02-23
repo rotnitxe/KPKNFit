@@ -12,6 +12,7 @@ export const TENDON_DATABASE: TendonInfo[] = [
     commonInjuries: [
       { name: 'Tendinopatía del supraespinoso', description: 'Degeneración del tendón por sobreuso o impingement.', riskExercises: ['db_bench_press_tng', 'db_overhead_press', 'db_dips'], contraindications: ['Evitar elevaciones repetitivas por encima de 90°'], returnProgressions: ['Rotaciones externas', 'Face pulls', 'Progresión a press'] },
     ],
+    protectiveExercises: ['db_face_pulls', 'db_lateral_raise', 'db_seated_cable_row'],
   },
   {
     id: 'tendon-infraespinoso',
@@ -66,6 +67,7 @@ export const TENDON_DATABASE: TendonInfo[] = [
     commonInjuries: [
       { name: 'Tendinopatía rotuliana (rodilla del saltador)', description: 'Dolor en el tendón por debajo de la rótula.', riskExercises: ['Sentadilla', 'Salto', 'Estocadas'], contraindications: ['Evitar saltos y sentadillas profundas en fase aguda'], returnProgressions: ['Sentadilla isométrica', 'Excéntricos de cuádriceps', 'Progresión a sentadilla'] },
     ],
+    protectiveExercises: ['db_goblet_squat', 'db_romanian_deadlift', 'db_squat_high_bar', 'db_plank'],
   },
   {
     id: 'tendon-cuádriceps',
@@ -88,6 +90,7 @@ export const TENDON_DATABASE: TendonInfo[] = [
     commonInjuries: [
       { name: 'Tendinopatía aquílea', description: 'Degeneración del tendón de Aquiles, común en corredores y deportes de salto.', riskExercises: ['Elevación de talones', 'Salto', 'Sentadilla'], contraindications: ['Evitar saltos y carreras en fase aguda'], returnProgressions: ['Excéntricos de sóleo', 'Elevaciones bilaterales', 'Progresión a pliometría'] },
     ],
+    protectiveExercises: ['db_plank', 'db_goblet_squat'],
   },
 
   // === MANO/MUÑECA ===

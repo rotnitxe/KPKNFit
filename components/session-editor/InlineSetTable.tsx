@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ExerciseSet } from '../../types';
 import { PlusIcon, XIcon, FlameIcon } from '../icons';
-import { calculateWeightFrom1RMHybrid } from '../../utils/calculations';
+import { calculateWeightFrom1RMAndIntensity } from '../../utils/calculations';
 
 interface InlineSetTableProps {
     sets: ExerciseSet[];
@@ -18,48 +18,77 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
 }) => {
     const isPercent = trainingMode === 'percent';
     const isTime = trainingMode === 'time';
-    const showWeightColumn = isPercent; // Modo REPS: no mostrar columna Peso (se usa peso consolidado a nivel ejercicio)
+    const showWeightColumn = isPercent;
 
-    const getEstimatedWeight = (set: ExerciseSet) => {
+    const getEstimatedWeight = (set: ExerciseSet): number | null => {
         if (!reference1RM) return null;
-        if (set.targetPercentageRM) return Math.round((reference1RM * set.targetPercentageRM / 100) * 4) / 4;
-        if (set.targetReps) return Math.round(calculateWeightFrom1RMHybrid(reference1RM, set.targetReps) * 4) / 4;
-        return null;
+        const mode = set.intensityMode || (isPercent ? 'solo_rm' : 'rpe');
+        if (mode === 'load' && set.targetPercentageRM) {
+            return Math.round((reference1RM * set.targetPercentageRM / 100) * 4) / 4;
+        }
+        const w = calculateWeightFrom1RMAndIntensity(reference1RM, set);
+        return w != null ? Math.round(w * 4) / 4 : null;
     };
+
+    // Autocompletar peso en modo RM cuando hay reference1RM y reps
+    useEffect(() => {
+        if (!isPercent || !reference1RM) return;
+        sets.forEach((set, i) => {
+            const mode = set.intensityMode || 'solo_rm';
+            const useIntensity = mode === 'solo_rm' || mode === 'rpe' || mode === 'rir' || mode === 'failure' || mode === 'amrap';
+            if (!useIntensity && mode === 'load' && set.targetPercentageRM) {
+                const w = Math.round((reference1RM * set.targetPercentageRM / 100) * 4) / 4;
+                if (w > 0 && (set.weight == null || Math.abs(set.weight - w) > 0.01)) {
+                    onSetChange(i, 'weight', w);
+                }
+                return;
+            }
+            const calculated = calculateWeightFrom1RMAndIntensity(reference1RM, set);
+            if (calculated != null && calculated > 0) {
+                const rounded = Math.round(calculated * 4) / 4;
+                if (set.weight == null || Math.abs(set.weight - rounded) > 0.01) {
+                    onSetChange(i, 'weight', rounded);
+                }
+            }
+        });
+    }, [isPercent, reference1RM, sets, onSetChange]);
+
+    const showPercentColumn = isPercent && sets.some(s => (s.intensityMode || 'solo_rm') === 'load' && s.targetPercentageRM != null);
 
     return (
         <div className="w-full overflow-x-auto">
-            <div className="min-w-[420px]">
-                {/* Column headers */}
+            <div className="min-w-[380px]">
                 <div className="flex items-center gap-1 px-1 pb-1.5 border-b border-white/5">
                     <span className="w-8 text-[10px] font-bold text-[#555] uppercase text-center">Set</span>
-                    <span className="flex-1 min-w-[48px] text-[10px] font-bold text-[#555] uppercase">{isTime ? 'Seg' : 'Reps'}</span>
-                    {isPercent && <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-right">%1RM</span>}
+                    <span className="w-12 max-w-[48px] text-[10px] font-bold text-[#555] uppercase">{isTime ? 'Seg' : 'Reps'}</span>
+                    {showPercentColumn && <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-right">%1RM</span>}
                     {showWeightColumn && <span className="w-16 text-[10px] font-bold text-[#555] uppercase text-right">Peso</span>}
                     <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-center">Int.</span>
                     <span className="w-20 text-[10px] font-bold text-[#555] uppercase text-center">Tipo</span>
                     <span className="w-7" />
                 </div>
 
-                {/* Set rows */}
                 {sets.map((set, i) => {
                     const mode = set.intensityMode || (isPercent ? 'solo_rm' : 'rpe');
                     const isAmrap = set.isAmrap || set.isCalibrator;
                     const isSoloRm = mode === 'solo_rm';
-                    const estimatedKg = isPercent && isSoloRm ? getEstimatedWeight(set) : null;
+                    const useIntensityWeight = isPercent && (mode === 'solo_rm' || mode === 'rpe' || mode === 'rir' || mode === 'failure' || mode === 'amrap');
+                    const estimatedKg = useIntensityWeight ? getEstimatedWeight(set) : (mode === 'load' && set.targetPercentageRM ? getEstimatedWeight(set) : null);
                     const displayWeight = set.weight ?? (isPercent && reference1RM && set.targetPercentageRM ? Math.round((reference1RM * set.targetPercentageRM / 100) * 4) / 4 : estimatedKg);
                     return (
                         <div key={set.id || i} className="flex items-center gap-1 px-1 py-2 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors group min-h-[40px]">
                             <span className="w-8 text-center text-xs font-mono text-[#999] font-bold">{i + 1}</span>
 
-                            <div className="flex-1 min-w-[48px]">
+                            <div className="w-12 max-w-[48px]">
                                 <input
                                     type="number"
                                     min={0}
                                     max={isTime ? 9999 : 99}
-                                    value={isTime ? (set.targetDuration || '') : (set.targetReps || '')}
+                                    maxLength={isTime ? 4 : 2}
+                                    value={isTime ? (set.targetDuration ?? '') : (set.targetReps ?? '')}
                                     onChange={e => {
                                         const raw = e.target.value;
+                                        if (raw === '') { onSetChange(i, isTime ? 'targetDuration' : 'targetReps', undefined); return; }
                                         const val = parseInt(raw) || 0;
                                         const clamped = isTime ? val : Math.min(99, Math.max(0, val));
                                         onSetChange(i, isTime ? 'targetDuration' : 'targetReps', clamped);
@@ -69,12 +98,12 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                 />
                             </div>
 
-                            {isPercent && (
+                            {showPercentColumn && mode === 'load' && (
                                 <div className="w-14">
                                     <input
                                         type="number"
-                                        value={set.targetPercentageRM || ''}
-                                        onChange={e => onSetChange(i, 'targetPercentageRM', parseInt(e.target.value) || 0)}
+                                        value={set.targetPercentageRM ?? ''}
+                                        onChange={e => onSetChange(i, 'targetPercentageRM', e.target.value === '' ? undefined : parseInt(e.target.value))}
                                         className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-orange-900/50"
                                         placeholder="%"
                                     />
@@ -83,14 +112,14 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
 
                             {showWeightColumn && (
                                 <div className="w-16 flex flex-col items-end">
-                                    {isSoloRm && estimatedKg != null ? (
+                                    {useIntensityWeight && estimatedKg != null ? (
                                         <span className="text-[10px] font-mono text-orange-400/90">{estimatedKg}kg</span>
                                     ) : (
                                         <input
                                             type="number"
                                             step="0.5"
                                             value={displayWeight ?? ''}
-                                            onChange={e => onSetChange(i, 'weight', parseFloat(e.target.value) || 0)}
+                                            onChange={e => onSetChange(i, 'weight', e.target.value === '' ? undefined : (parseFloat(e.target.value) || 0))}
                                             className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-orange-900/50"
                                             placeholder="kg"
                                         />
@@ -113,8 +142,10 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                         max={10}
                                         value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')}
                                         onChange={e => {
-                                            const val = parseFloat(e.target.value);
-                                            onSetChange(i, mode === 'rir' ? 'targetRIR' : 'targetRPE', val);
+                                            const raw = e.target.value;
+                                            if (raw === '') { onSetChange(i, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); return; }
+                                            const val = parseFloat(raw);
+                                            if (!isNaN(val)) onSetChange(i, mode === 'rir' ? 'targetRIR' : 'targetRPE', val);
                                         }}
                                         className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-center rounded transition-colors outline-none placeholder-orange-900/50"
                                         placeholder={mode === 'rir' ? 'RIR' : 'RPE'}

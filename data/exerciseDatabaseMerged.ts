@@ -64,6 +64,24 @@ const extendedExercises: ExerciseMuscleInfo[] = Array.isArray(extendedRaw)
   ? (extendedRaw as Record<string, unknown>[]).map(normalizeExtended)
   : [];
 
+function enrichWithOperationalData(ex: ExerciseMuscleInfo): ExerciseMuscleInfo {
+  const hasCore = ex.involvedMuscles?.some(m =>
+    ['Core', 'Abdomen', 'Espalda Baja', 'Recto Abdominal', 'Transverso Abdominal'].includes(m.muscle) && (m.activation || 0) >= 0.3
+  );
+  const isCompound = ex.type === 'Básico' && ['Barra', 'Peso Corporal'].includes(ex.equipment || '');
+  const isPull = ex.force === 'Tirón' || ex.force === 'Bisagra';
+  const isHeavyPull = isPull && (ex.equipment === 'Barra' || ex.subMuscleGroup?.toLowerCase().includes('dorsal'));
+
+  return {
+    ...ex,
+    averageRestSeconds: ex.averageRestSeconds ?? (ex.type === 'Básico' ? 120 : ex.type === 'Aislamiento' ? 60 : 90),
+    coreInvolvement: ex.coreInvolvement ?? (hasCore ? (isCompound ? 'high' as const : 'medium' as const) : 'low' as const),
+    bracingRecommended: ex.bracingRecommended ?? (isCompound && (ex.force === 'Sentadilla' || ex.force === 'Bisagra' || ex.force === 'Empuje')),
+    strapsRecommended: ex.strapsRecommended ?? (isHeavyPull && (ex.name?.toLowerCase().includes('peso muerto') || ex.name?.toLowerCase().includes('remo') || ex.name?.toLowerCase().includes('dominada') || ex.name?.toLowerCase().includes('jalón'))),
+    bodybuildingScore: ex.bodybuildingScore ?? (ex.category === 'Hipertrofia' ? (ex.type === 'Básico' ? 8 : ex.type === 'Aislamiento' ? 7 : 7.5) : 6),
+  };
+}
+
 const existingIds = new Set(DETAILED_EXERCISE_LIST.map(e => e.id));
 const merged: ExerciseMuscleInfo[] = [...DETAILED_EXERCISE_LIST];
 for (const ex of extendedExercises) {
@@ -73,4 +91,4 @@ for (const ex of extendedExercises) {
   }
 }
 
-export const FULL_EXERCISE_LIST: ExerciseMuscleInfo[] = merged;
+export const FULL_EXERCISE_LIST: ExerciseMuscleInfo[] = merged.map(enrichWithOperationalData);

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Session, Exercise, ExerciseSet, Settings, ExerciseMuscleInfo, WarmupSetDefinition, CoverStyle, SessionBackground } from '../types';
 import { PlusIcon, TrashIcon, SparklesIcon, StarIcon, ArrowDownIcon, ArrowUpIcon, InfoIcon, ChevronRightIcon, XIcon, ImageIcon, BarChartIcon, LinkIcon, ZapIcon, DragHandleIcon, CheckIcon, ClockIcon, TargetIcon, FlameIcon, ActivityIcon, PaletteIcon, LayersIcon, RefreshCwIcon, SearchIcon, DumbbellIcon, SettingsIcon, AlertTriangleIcon } from './icons';
 import Button from './ui/Button';
-import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, calculateHybrid1RM, roundWeight, getOrderedDaysOfWeek } from '../utils/calculations';
+import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, calculateHybrid1RM, roundWeight, getOrderedDaysOfWeek, calculateWeightFrom1RMAndIntensity, suggestRestSeconds } from '../utils/calculations';
 import Modal from './ui/Modal';
 import BackgroundEditorModal from './SessionBackgroundModal';
 import { useAppContext } from '../contexts/AppContext';
@@ -835,6 +835,29 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
         }
     }, [prWeight, prReps, rmInputMode, exercise.trainingMode]);
 
+    // Autocompletar peso en modo percent cuando hay reference1RM
+    useEffect(() => {
+        if (exercise.trainingMode !== 'percent' || !exercise.reference1RM) return;
+        (exercise.sets || []).forEach((set, i) => {
+            const mode = set.intensityMode || 'solo_rm';
+            const useIntensity = mode === 'solo_rm' || mode === 'rpe' || mode === 'rir' || mode === 'failure' || mode === 'amrap';
+            if (useIntensity) {
+                const w = calculateWeightFrom1RMAndIntensity(exercise.reference1RM!, set);
+                if (w != null && w > 0) {
+                    const rounded = Math.round(w * 4) / 4;
+                    if (set.weight == null || Math.abs(set.weight - rounded) > 0.01) {
+                        onSetChange(i, 'weight', rounded);
+                    }
+                }
+            } else if (mode === 'load' && set.targetPercentageRM) {
+                const w = Math.round((exercise.reference1RM! * set.targetPercentageRM / 100) * 4) / 4;
+                if (set.weight == null || Math.abs(set.weight - w) > 0.01) {
+                    onSetChange(i, 'weight', w);
+                }
+            }
+        });
+    }, [exercise.trainingMode, exercise.reference1RM, exercise.sets, onSetChange]);
+
     // Manejador Inteligente de Cambios en Sets (soporta campo+valor o objeto parcial)
     const handleSetChange = (setIndex: number, fieldOrPartial: keyof ExerciseSet | Partial<ExerciseSet>, value?: any) => {
         const isPartial = typeof fieldOrPartial === 'object';
@@ -1009,7 +1032,24 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs items-start">
                         <div>
                             <label className={`text-[9px] font-black uppercase tracking-wider ${isInSuperset && !isSupersetLast ? 'text-white' : 'text-zinc-500'}`}>{restLabel}</label>
-                            <input type="number" step="5" value={exercise.restTime || ''} onChange={(e) => onExerciseChange('restTime', parseInt(e.target.value))} className="w-full mt-1 bg-transparent border-b border-zinc-700 text-white font-mono focus:border-white focus:ring-0 p-1"/>
+                            <div className="flex items-center gap-1 mt-1">
+                                <input
+                                    type="time"
+                                    step="15"
+                                    value={(() => { const s = exercise.restTime || 90; const m = Math.floor(s / 60); const sec = s % 60; return `00:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
+                                    onChange={e => { const v = e.target.value; if (v) { const [h, m, s] = v.split(':').map(Number); onExerciseChange('restTime', (h || 0) * 3600 + (m || 0) * 60 + (s || 0)); } }}
+                                    className="flex-1 min-w-0 bg-transparent border-b border-zinc-700 text-white font-mono focus:border-white focus:ring-0 p-1 text-xs"
+                                />
+                                {exercise.sets?.length > 0 && (() => {
+                                    const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
+                                    const suggested = suggestRestSeconds(exercise.sets.length, avgRPE);
+                                    const current = exercise.restTime || 90;
+                                    if (Math.abs(suggested - current) > 15) {
+                                        return <button type="button" onClick={() => onExerciseChange('restTime', suggested)} className="text-[8px] font-bold uppercase text-orange-500 hover:text-orange-400 whitespace-nowrap">Sug: {Math.floor(suggested/60)}:{String(suggested%60).padStart(2,'0')}</button>;
+                                    }
+                                    return null;
+                                })()}
+                            </div>
                         </div>
                         <div>
                             <label className="text-[9px] text-zinc-500 font-black uppercase tracking-wider">Modo</label>
@@ -1093,9 +1133,16 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                             <div className="flex gap-2 overflow-x-auto pb-8 custom-scrollbar snap-x items-stretch relative z-20 pointer-events-auto">
                                 {exercise.sets.map((set, setIndex) => {
                                     const isAmrap = set.isAmrap || set.intensityMode === 'amrap';
+                                    const ref1RM = exercise.reference1RM;
+                                    const mode = set.intensityMode || (exercise.trainingMode === 'percent' ? 'solo_rm' : 'rpe');
+                                    const useIntensityWeight = exercise.trainingMode === 'percent' && (mode === 'solo_rm' || mode === 'rpe' || mode === 'rir' || mode === 'failure' || mode === 'amrap');
+                                    const useLoadPercent = exercise.trainingMode === 'percent' && mode === 'load' && set.targetPercentageRM != null;
                                     let estimatedLoad: number | null = null;
-                                    if (exercise.trainingMode === 'percent' && exercise.reference1RM && set.targetPercentageRM) {
-                                        estimatedLoad = Math.round((exercise.reference1RM * set.targetPercentageRM) / 100);
+                                    if (useIntensityWeight && ref1RM) {
+                                        estimatedLoad = calculateWeightFrom1RMAndIntensity(ref1RM, set);
+                                        if (estimatedLoad != null) estimatedLoad = Math.round(estimatedLoad * 4) / 4;
+                                    } else if (useLoadPercent && ref1RM) {
+                                        estimatedLoad = Math.round((ref1RM * (set.targetPercentageRM || 0) / 100) * 4) / 4;
                                     }
 
                                     return (
@@ -1110,9 +1157,9 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                             <div className="flex flex-col items-center mb-3 bg-black/50 p-2 rounded-xl">
                                                 <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mb-1">{exercise.trainingMode === 'time' ? 'Segundos' : isAmrap ? 'Mínimo Reps' : 'Reps Target'}</span>
                                                 {exercise.trainingMode === 'time' ? (
-                                                    <input type="number" value={set.targetDuration ?? ''} onChange={e => handleSetChange(setIndex, 'targetDuration', parseInt(e.target.value))} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white" placeholder="0"/>
+                                                    <input type="number" maxLength={4} value={set.targetDuration ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetDuration', v === '' ? undefined : parseInt(v)); }} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white max-w-[48px]" placeholder="0"/>
                                                 ) : (
-                                                    <input type="number" value={set.targetReps ?? ''} onChange={e => handleSetChange(setIndex, 'targetReps', parseInt(e.target.value))} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 ${isAmrap ? 'text-yellow-400' : 'text-white'}`}/>
+                                                    <input type="number" maxLength={2} max={99} value={set.targetReps ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetReps', v === '' ? undefined : Math.min(99, Math.max(0, parseInt(v) || 0))); }} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 max-w-[48px] ${isAmrap ? 'text-yellow-400' : 'text-white'}`}/>
                                                 )}
                                             </div>
 
@@ -1122,19 +1169,27 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                                     <div className="flex-1 bg-yellow-900/20 border border-yellow-600/30 rounded p-1.5 flex justify-center text-center"><span className="text-[8px] font-black text-yellow-500 uppercase leading-none">{set.isCalibrator ? 'Calibrador' : 'Al Fallo'}</span></div>
                                                 ) : (
                                                     <div className="flex flex-col flex-1 bg-zinc-900 p-1.5 rounded-lg border border-zinc-800">
-                                                        <select value={set.intensityMode || 'rpe'} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[8px] text-zinc-500 font-bold border-none focus:ring-0 uppercase p-0 mb-0.5"><option value="rpe">RPE</option><option value="rir">RIR</option><option value="failure">FAIL</option></select>
-                                                        {set.intensityMode !== 'failure' && (
-                                                            <input type="number" step="0.5" value={set.intensityMode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => handleSetChange(setIndex, set.intensityMode === 'rir' ? 'targetRIR' : 'targetRPE', parseFloat(e.target.value))} className="w-full bg-transparent text-sm font-bold text-white focus:border-white p-0 border-none" placeholder="-"/>
+                                                        <select value={mode} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[8px] text-zinc-500 font-bold border-none focus:ring-0 uppercase p-0 mb-0.5">
+                                                            {exercise.trainingMode === 'percent' && <option value="solo_rm">RM</option>}
+                                                            <option value="rpe">RPE</option><option value="rir">RIR</option><option value="failure">FAIL</option>
+                                                            {exercise.trainingMode === 'percent' && <option value="load">%</option>}
+                                                        </select>
+                                                        {mode !== 'failure' && mode !== 'solo_rm' && (
+                                                            <input type="number" step="0.5" value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => { const v = e.target.value; if (v === '') handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); else { const n = parseFloat(v); if (!isNaN(n)) handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', n); } }} className="w-full bg-transparent text-sm font-bold text-white focus:border-white p-0 border-none" placeholder="-"/>
                                                         )}
                                                     </div>
                                                 )}
 
                                                 {exercise.trainingMode === 'percent' && (
                                                     <div className="flex flex-col flex-1 bg-blue-900/10 p-1.5 rounded-lg border border-blue-500/20 items-center">
-                                                        <div className="flex items-center justify-center">
-                                                            <input type="number" value={set.targetPercentageRM ?? ''} onChange={e => handleSetChange(setIndex, 'targetPercentageRM', parseFloat(e.target.value))} className="w-8 text-center bg-transparent text-sm font-black p-0 border-none focus:ring-0 text-blue-400" placeholder="%"/>
-                                                        </div>
-                                                        {estimatedLoad !== null && <span className="text-[8px] font-mono text-zinc-400 mt-0.5">{estimatedLoad}kg</span>}
+                                                        {mode === 'load' ? (
+                                                            <>
+                                                                <input type="number" value={set.targetPercentageRM ?? ''} onChange={e => handleSetChange(setIndex, 'targetPercentageRM', e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-8 text-center bg-transparent text-sm font-black p-0 border-none focus:ring-0 text-blue-400" placeholder="%"/>
+                                                                {estimatedLoad != null && <span className="text-[8px] font-mono text-zinc-400 mt-0.5">{estimatedLoad}kg</span>}
+                                                            </>
+                                                        ) : (
+                                                            estimatedLoad != null && <span className="text-[10px] font-mono text-orange-400 font-bold">{estimatedLoad}kg</span>
+                                                        )}
                                                     </div>
                                                 )}
                                                 
@@ -1284,9 +1339,21 @@ const SupersetManagementBlock: React.FC<{
     );
 };
 
+const PCE_BANNER_KEY = 'pce-pending-modification';
+
 const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel, existingSessionInfo, isOnline, settings, saveTrigger, addExerciseTrigger, exerciseList }) => {
     const { isDirty, setIsDirty, addToast, programs = [], openCustomExerciseEditor, setOnExerciseCreated } = useAppContext();
     const [isBgModalOpen, setIsBgModalOpen] = useState(false);
+    const [pceBanner, setPceBanner] = useState<{ score: number; message: string } | null>(() => {
+        try {
+            const raw = sessionStorage.getItem(PCE_BANNER_KEY);
+            if (raw) {
+                const data = JSON.parse(raw);
+                return { score: data.score ?? 0, message: data.message ?? 'AUGE sugirió reducir el volumen de esta sesión.' };
+            }
+        } catch (_) {}
+        return null;
+    });
     // Analysis expanded state (legacy, kept for compatibility)
     const isAnalysisExpanded = false;
     const [openColorPickerIndex, setOpenColorPickerIndex] = useState<number | null>(null);
@@ -1351,6 +1418,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     // Alertas AUGE: sesión en vivo + contexto semanal (volumen basura por cruce con otras sesiones)
     const globalSessionAlerts = useMemo(() => {
+        const hasExercises = (session?.exercises?.length || 0) + ((session?.parts || []).reduce((acc, p) => acc + (p.exercises?.length || 0), 0)) > 0;
+        if (!hasExercises) return [];
         const hyperMap: Record<string, { flat: number; effective: number; fail: number }> = {};
         const weeklyHyperMap: Record<string, { flat: number; effective: number }> = {};
         const limits = settings?.volumeLimits || {};
@@ -2083,6 +2152,23 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
             {/* ═══ Main Content ═══ */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {pceBanner && (
+                    <div className="mx-4 mt-4 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30 flex items-center justify-between gap-3">
+                        <div>
+                            <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Sugerencia AUGE (PCE)</p>
+                            <p className="text-[10px] text-zinc-400 mt-0.5">{pceBanner.message} Revisa series e intensidad.</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                try { sessionStorage.removeItem(PCE_BANNER_KEY); } catch (_) {}
+                                setPceBanner(null);
+                            }}
+                            className="shrink-0 px-3 py-1.5 rounded-lg bg-black/40 text-[10px] font-bold text-white hover:bg-black/60 transition-colors"
+                        >
+                            Descartar
+                        </button>
+                    </div>
+                )}
                 {/* Meet Day panel */}
                 {session.isMeetDay && (
                     <div className="mx-4 mt-4 p-4 rounded-lg bg-yellow-400/5 border border-yellow-400/10">

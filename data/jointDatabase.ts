@@ -16,6 +16,7 @@ export const JOINT_DATABASE: JointInfo[] = [
       { name: 'Impingement subacromial', description: 'Compresión del manguito rotador bajo el acromion.', riskExercises: ['db_bench_press_tng', 'db_overhead_press'], contraindications: ['Evitar elevaciones por encima de 90° con carga en fase aguda'], returnProgressions: ['Pendulums de Codman', 'Rotaciones externas con banda', 'Press con agarre neutro'] },
       { name: 'Tendinopatía del manguito', description: 'Degeneración o inflamación de los tendones del manguito rotador.', riskExercises: ['db_dips', 'db_overhead_press'], contraindications: ['Evitar movimientos overhead repetitivos'], returnProgressions: ['Face pulls', 'Rotaciones externas', 'Progresión a press por encima de la cabeza'] },
     ],
+    protectiveExercises: ['db_face_pulls', 'db_plank', 'db_lateral_raise', 'db_seated_cable_row'],
   },
   {
     id: 'acromioclavicular',
@@ -54,6 +55,7 @@ export const JOINT_DATABASE: JointInfo[] = [
       { name: 'Codo de tenista (epicondilitis lateral)', description: 'Inflamación de los tendones extensores del antebrazo en el epicóndilo lateral.', riskExercises: ['Curl con barra', 'Extensión de tríceps'], contraindications: ['Evitar agarre prono repetitivo con carga'], returnProgressions: ['Ejercicios excéntricos de extensores', 'Curl martillo', 'Progresión a curl con barra'] },
       { name: 'Codo de golfista (epicondilitis medial)', description: 'Inflamación de los tendones flexores en el epicóndilo medial.', riskExercises: ['Curl con barra', 'Remo'], contraindications: ['Evitar agarre fuerte repetitivo'], returnProgressions: ['Ejercicios excéntricos de flexores', 'Estiramientos de muñeca', 'Progresión gradual'] },
     ],
+    protectiveExercises: ['db_hammer_curl', 'db_plank', 'db_triceps_pushdown'],
   },
   {
     id: 'radiocubital-proximal',
@@ -118,6 +120,7 @@ export const JOINT_DATABASE: JointInfo[] = [
       { name: 'Lumbalgia mecánica', description: 'Dolor lumbar por disfunción muscular o postural.', riskExercises: ['Peso muerto convencional', 'Sentadilla frontal'], contraindications: ['Evitar flexión lumbar repetitiva bajo carga'], returnProgressions: ['Bird dogs', 'Planchas', 'Puentes de glúteo', 'Progresión a bisagras'] },
       { name: 'Hernia discal lumbar', description: 'Protrusión del disco intervertebral.', riskExercises: ['Peso muerto', 'Sentadilla'], contraindications: ['Evitar flexión y compresión axial en fase aguda'], returnProgressions: ['McKenzie extensiones', 'Estabilización core', 'Progresión muy gradual'] },
     ],
+    protectiveExercises: ['db_plank', 'db_ab_wheel', 'db_hanging_leg_raises', 'db_romanian_deadlift'],
   },
 
   // === TREN INFERIOR ===
@@ -161,6 +164,7 @@ export const JOINT_DATABASE: JointInfo[] = [
       { name: 'Tendinopatía rotuliana', description: 'Dolor en el tendón rotuliano por sobrecarga.', riskExercises: ['Sentadilla', 'Salto'], contraindications: ['Evitar saltos y sentadillas profundas en fase aguda'], returnProgressions: ['Ejercicios excéntricos', 'Sentadilla isométrica', 'Progresión a sentadilla'] },
       { name: 'Síndrome patelofemoral', description: 'Dolor anterior de rodilla por mala alineación de la rótula.', riskExercises: ['Sentadilla', 'Estocadas'], contraindications: ['Evitar flexión profunda con valgo'], returnProgressions: ['Vasto medial', 'Glúteo medio', 'Progresión a sentadilla'] },
     ],
+    protectiveExercises: ['db_goblet_squat', 'db_plank', 'db_romanian_deadlift', 'db_squat_high_bar'],
   },
   {
     id: 'tobillo',

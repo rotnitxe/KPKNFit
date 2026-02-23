@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { ExerciseMuscleInfo, MuscleHierarchy } from '../types';
-import { getAICoachAnalysis, getCommunityOpinionForExercise, generateImage, searchGoogleImages, searchWebForExerciseVideos, estimateSFR } from '../services/aiService';
+import { getAICoachAnalysis, getCommunityOpinionForExercise, generateImage, searchGoogleImages, searchWebForExerciseVideos } from '../services/aiService';
 import { StarIcon, SparklesIcon, BrainIcon, UploadIcon, VideoIcon, ImageIcon, PlusIcon, TrendingUpIcon, CheckCircleIcon, XCircleIcon, ChevronRightIcon, DumbbellIcon, ActivityIcon, UsersIcon, AlertTriangleIcon, ArrowUpIcon, ArrowDownIcon, PencilIcon } from './icons';
 import { ExerciseLink } from './ExerciseLink';
 import { InfoTooltip } from './ui/InfoTooltip';
@@ -247,7 +247,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     const { settings, exerciseList, programs } = useAppState();
     const { setCurrentBackgroundOverride, addOrUpdateCustomExercise, openCustomExerciseEditor } = useAppDispatch();
     const [exercise, setExercise] = useState<ExerciseMuscleInfo | null>(null);
-    const [isLoading, setIsLoading] = useState({ analysis: false, community: false, sfr: false });
+    const [isLoading, setIsLoading] = useState({ analysis: false, community: false });
     
     useEffect(() => {
         const foundExercise = exerciseList.find(e => e.id === exerciseId);
@@ -292,7 +292,6 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
         if (foundExercise && isOnline) {
             if (!foundExercise.aiCoachAnalysis) fetchAICoachAnalysis(foundExercise);
             if (!foundExercise.communityOpinion) fetchCommunityOpinion(foundExercise);
-            if (!foundExercise.sfr) fetchSFR(foundExercise);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [exerciseId, isOnline]); // Fetch AI data only when ID changes
@@ -326,16 +325,6 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
         }
     };
 
-    const fetchSFR = async (ex: ExerciseMuscleInfo) => {
-        setIsLoading(prev => ({ ...prev, sfr: true }));
-        try {
-            const sfr = await estimateSFR(ex.name, settings);
-            updateExerciseState({ sfr });
-        } catch (e) { console.error(e); } finally {
-            setIsLoading(prev => ({ ...prev, sfr: false }));
-        }
-    };
-
     const handleUserRating = (rating: number) => updateExerciseState({ userRating: rating });
     const handleFavoriteToggle = () => updateExerciseState({ isFavorite: !exercise?.isFavorite });
     const handleMediaUpdate = (images: string[], videos: string[]) => updateExerciseState({ images, videos });
@@ -354,12 +343,6 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     if (!exercise) {
         return <div className="pt-24 text-center text-slate-400 font-mono">Cargando ejercicio...</div>;
     }
-
-    const getSfrColor = (score: number | undefined) => {
-        if (score === undefined) return 'hsl(0, 0%, 50%)';
-        const hue = score * 12; // 1 -> 12 (red), 10 -> 120 (green)
-        return `hsl(${hue}, 80%, 45%)`;
-    };
 
     return (
         <div className="pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
@@ -424,46 +407,6 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                         </div>
                     </div>
                 )}
-
-                {/* Mini-widgets NERD */}
-                <div className="grid grid-cols-2 gap-2">
-                    {exercise.setupTime != null && (
-                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                            <p className="text-[10px] font-mono text-slate-500 uppercase">Setup (1-10)</p>
-                            <p className="text-lg font-mono text-orange-400">{exercise.setupTime}</p>
-                        </div>
-                    )}
-                    {exercise.averageRestSeconds != null && (
-                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                            <p className="text-[10px] font-mono text-slate-500 uppercase">Descanso (s)</p>
-                            <p className="text-lg font-mono text-orange-400">{exercise.averageRestSeconds}</p>
-                        </div>
-                    )}
-                    {exercise.coreInvolvement && (
-                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                            <p className="text-[10px] font-mono text-slate-500 uppercase">Core</p>
-                            <p className="text-sm font-mono text-orange-400 capitalize">{exercise.coreInvolvement}</p>
-                        </div>
-                    )}
-                    {exercise.bracingRecommended != null && (
-                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                            <p className="text-[10px] font-mono text-slate-500 uppercase">Bracing</p>
-                            <p className="text-sm font-mono text-orange-400">{exercise.bracingRecommended ? 'Sí' : 'No'}</p>
-                        </div>
-                    )}
-                    {exercise.strapsRecommended != null && (
-                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                            <p className="text-[10px] font-mono text-slate-500 uppercase">Straps</p>
-                            <p className="text-sm font-mono text-orange-400">{exercise.strapsRecommended ? 'Recomendado' : 'Opcional'}</p>
-                        </div>
-                    )}
-                    {exercise.bodybuildingScore != null && (
-                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                            <p className="text-[10px] font-mono text-slate-500 uppercase">Culturismo</p>
-                            <p className="text-lg font-mono text-orange-400">{exercise.bodybuildingScore}/10</p>
-                        </div>
-                    )}
-                </div>
 
                 {exercise.functionalTransfer && (
                     <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
@@ -536,31 +479,50 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 text-center">Análisis de Rendimiento</h3>
                     <div className="space-y-4">
-                        {exercise.sfr ? (
-                            <div className="flex flex-col items-center gap-4 text-center">
-                                <div className="relative w-40 h-40">
-                                    <svg className="w-full h-full" viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
-                                        <path className="text-slate-700" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="2.5"></path>
-                                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeDasharray={`${exercise.sfr.score * 10}, 100`} style={{ stroke: getSfrColor(exercise.sfr.score), transition: 'stroke-dasharray 0.5s ease-out' }}></path>
-                                    </svg>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-6xl font-black" style={{ color: getSfrColor(exercise.sfr.score) }}>{exercise.sfr.score}</span>
-                                        <span className="text-sm font-bold text-slate-400">SFR</span>
-                                    </div>
-                                </div>
-                                <div className="max-w-xs">
-                                    <h4 className="font-semibold text-white">Ratio Estímulo-Fatiga</h4>
-                                    <p className="text-xs text-slate-400">{exercise.sfr.justification}</p>
+                        <div className="space-y-4">
+                            {exercise.setupTime != null && <IndicatorBar label="Tiempo de Preparación" value={exercise.setupTime} />}
+                            {exercise.technicalDifficulty != null && <IndicatorBar label="Curva de Aprendizaje" value={exercise.technicalDifficulty} />}
+                            {exercise.injuryRisk && <IndicatorBar label="Riesgo Lesivo por Mala Técnica" value={exercise.injuryRisk.level} details={exercise.injuryRisk.details} />}
+                            {exercise.transferability != null && <IndicatorBar label="Transferencia Funcional" value={exercise.transferability} />}
+                        </div>
+
+                        {((exercise.averageRestSeconds != null) || exercise.coreInvolvement || (exercise.bracingRecommended != null) || (exercise.strapsRecommended != null) || (exercise.bodybuildingScore != null)) && (
+                            <div className="pt-4 border-t border-white/5">
+                                <p className="text-[10px] font-mono text-slate-500 uppercase mb-2">Detalle operativo</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {exercise.averageRestSeconds != null && (
+                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                            <p className="text-[10px] font-mono text-slate-500 uppercase">Descanso (s)</p>
+                                            <p className="text-lg font-mono text-orange-400">{exercise.averageRestSeconds}</p>
+                                        </div>
+                                    )}
+                                    {exercise.coreInvolvement && (
+                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                            <p className="text-[10px] font-mono text-slate-500 uppercase">Core</p>
+                                            <p className="text-sm font-mono text-orange-400 capitalize">{exercise.coreInvolvement}</p>
+                                        </div>
+                                    )}
+                                    {exercise.bracingRecommended != null && (
+                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                            <p className="text-[10px] font-mono text-slate-500 uppercase">Bracing</p>
+                                            <p className="text-sm font-mono text-orange-400">{exercise.bracingRecommended ? 'Sí' : 'No'}</p>
+                                        </div>
+                                    )}
+                                    {exercise.strapsRecommended != null && (
+                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                            <p className="text-[10px] font-mono text-slate-500 uppercase">Straps</p>
+                                            <p className="text-sm font-mono text-orange-400">{exercise.strapsRecommended ? 'Recomendado' : 'Opcional'}</p>
+                                        </div>
+                                    )}
+                                    {exercise.bodybuildingScore != null && (
+                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                            <p className="text-[10px] font-mono text-slate-500 uppercase">Culturismo</p>
+                                            <p className="text-lg font-mono text-orange-400">{exercise.bodybuildingScore}/10</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        ) : isLoading.sfr ? <div className="flex justify-center"><SkeletonLoader type="circle" className="w-40 h-40" /></div> : null}
-
-                        <div className="space-y-4 pt-4 border-t border-white/5">
-                            {exercise.setupTime && <IndicatorBar label="Tiempo de Preparación" value={exercise.setupTime} />}
-                            {exercise.technicalDifficulty && <IndicatorBar label="Dificultad Técnica" value={exercise.technicalDifficulty} />}
-                            {exercise.injuryRisk && <IndicatorBar label="Riesgo Lesivo" value={exercise.injuryRisk.level} details={exercise.injuryRisk.details} />}
-                            {exercise.transferability && <IndicatorBar label="Transferencia Funcional" value={exercise.transferability} />}
-                        </div>
+                        )}
                     </div>
                 </div>
 

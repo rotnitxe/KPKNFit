@@ -91,6 +91,58 @@ export const calculateWeightFrom1RMHybrid = (e1rm: number, reps: number): number
   return Math.max(0, parseFloat(weight.toFixed(1)));
 };
 
+/**
+ * Calcula el peso sugerido a partir de 1RM, reps objetivo e intensidad (RPE/RIR/failure).
+ * effectiveReps = reps a fallo: targetReps (failure) o targetReps + RIR o targetReps + (10 - RPE).
+ */
+export const calculateWeightFrom1RMAndIntensity = (
+  reference1RM: number,
+  set: { targetReps?: number; targetRPE?: number; targetRIR?: number; intensityMode?: string }
+): number | null => {
+  if (!reference1RM || reference1RM <= 0) return null;
+  const reps = set.targetReps ?? 0;
+  if (reps <= 0) return null;
+  let effectiveReps: number;
+  if (set.intensityMode === 'failure' || set.intensityMode === 'amrap' || set.intensityMode === 'solo_rm') {
+    effectiveReps = reps;
+  } else if (set.targetRIR !== undefined && set.targetRIR !== null) {
+    effectiveReps = reps + set.targetRIR;
+  } else if (set.targetRPE !== undefined && set.targetRPE !== null) {
+    effectiveReps = reps + (10 - set.targetRPE);
+  } else {
+    effectiveReps = reps + 2; // default RPE 8
+  }
+  if (effectiveReps <= 0) return null;
+  const weight = calculateWeightFrom1RMHybrid(reference1RM, effectiveReps);
+  return weight > 0 ? weight : null;
+};
+
+/**
+ * Sugiere descanso (segundos) según series, intensidad y cercanía al 1RM.
+ */
+export const suggestRestSeconds = (
+  setsCount: number,
+  avgRPE?: number,
+  avgPercent1RM?: number
+): number => {
+  const rpe = avgRPE ?? 8;
+  const nearFailure = rpe >= 9;
+  const highIntensity = rpe >= 8;
+  const percent = avgPercent1RM ?? 0;
+  const near1RM = percent >= 85;
+
+  let baseSeconds = 90;
+  if (setsCount <= 4 && (nearFailure || near1RM)) baseSeconds = 210; // 3–3.5 min
+  else if (setsCount <= 4 && highIntensity) baseSeconds = 180; // 3 min
+  else if (setsCount <= 4) baseSeconds = 150; // 2.5 min
+  else if (setsCount <= 8 && highIntensity) baseSeconds = 150; // 2.5 min
+  else if (setsCount <= 8) baseSeconds = 120; // 2 min
+  else baseSeconds = 90; // 1.5 min
+
+  if (near1RM) baseSeconds += 30;
+  return baseSeconds;
+};
+
 export const getOrderedDaysOfWeek = (startWeekOn: number) => {
     const days = [
         { label: 'Domingo', value: 0 },

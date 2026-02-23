@@ -9,10 +9,17 @@ interface TendonDetailViewProps {
 }
 
 const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
-  const { tendonDatabase, muscleGroupData, jointDatabase, muscleHierarchy } = useAppState();
+  const { tendonDatabase, muscleGroupData, jointDatabase, muscleHierarchy, exerciseList } = useAppState();
   const { navigateTo } = useAppDispatch();
 
   const tendon = tendonDatabase?.find(t => t.id === tendonId);
+
+  const protectiveExercises = React.useMemo(() => {
+    if (!tendon?.protectiveExercises?.length || !exerciseList) return [];
+    return tendon.protectiveExercises!
+      .map(id => exerciseList.find(e => e.id === id))
+      .filter((e): e is NonNullable<typeof e> => !!e);
+  }, [tendon?.protectiveExercises, exerciseList]);
   const rawMuscle = tendon ? muscleGroupData.find(m => m.id === tendon.muscleId) : null;
   const muscle = React.useMemo(() => {
     if (!rawMuscle) return null;
@@ -76,6 +83,25 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
             </p>
           )}
         </div>
+
+        {protectiveExercises.length > 0 && (
+          <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-green-500/90 mb-2">Ejercicios que fortalecen o protegen</h3>
+            <p className="text-xs text-slate-400 mb-3">Isométricos, movilidad y ejercicios recomendados para la salud de este tendón.</p>
+            <div className="space-y-2">
+              {protectiveExercises.map(ex => (
+                <div
+                  key={ex.id}
+                  onClick={() => navigateTo('exercise-detail', { exerciseId: ex.id })}
+                  className="p-4 flex justify-between items-center rounded-xl bg-[#0d0d0d] border border-orange-500/20 hover:border-orange-500/50 cursor-pointer transition-all"
+                >
+                  <span className="font-mono font-semibold text-slate-200 text-sm">{ex.name}</span>
+                  <ChevronRightIcon className="text-orange-500/50" size={18} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {joint && (
           <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">

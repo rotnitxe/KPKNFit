@@ -895,6 +895,8 @@ export interface JointInfo {
     tendonsRelated: string[];
     movementPatterns: string[];
     commonInjuries: CommonInjury[];
+    protectiveExercises?: string[];
+    image?: string;
 }
 
 // Wiki/Lab: Tendón
@@ -905,6 +907,8 @@ export interface TendonInfo {
     muscleId: string;
     jointId?: string;
     commonInjuries: CommonInjury[];
+    protectiveExercises?: string[];
+    image?: string;
 }
 
 // Wiki/Lab: Patrón de movimiento
@@ -936,6 +940,7 @@ export interface MuscleGroupInfo {
     relatedJoints?: string[];
     relatedTendons?: string[];
     aestheticRole?: string;
+    aestheticImportance?: string;
     commonInjuries?: CommonInjury[];
     movementPatterns?: string[];
 }

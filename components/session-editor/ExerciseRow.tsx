@@ -3,7 +3,7 @@ import { Exercise, ExerciseSet, ExerciseMuscleInfo } from '../../types';
 import { StarIcon, TrashIcon, ChevronDownIcon, ClockIcon, LinkIcon, SearchIcon, PlusIcon, FlameIcon } from '../icons';
 import InlineSetTable from './InlineSetTable';
 import FatigueIndicators from './FatigueIndicators';
-import { calculateHybrid1RM } from '../../utils/calculations';
+import { calculateHybrid1RM, suggestRestSeconds } from '../../utils/calculations';
 
 interface ExerciseRowProps {
     exercise: Exercise;
@@ -224,24 +224,31 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
 
                     {/* Config row */}
                     <div className="flex items-center gap-3 flex-wrap">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                             <ClockIcon size={12} className="text-[#555]" />
                             <input
-                                type="text"
-                                value={formatRest(exercise.restTime || 90)}
+                                type="time"
+                                step="15"
+                                value={(() => { const s = exercise.restTime || 90; const m = Math.floor(s / 60); const sec = s % 60; return `00:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
                                 onChange={e => {
-                                    const val = e.target.value;
-                                    let seconds = 90;
-                                    if (val.includes(':')) {
-                                        const [m, s] = val.split(':').map(Number);
-                                        seconds = (m * 60) + (s || 0);
-                                    } else {
-                                        seconds = parseInt(val) || 0;
+                                    const v = e.target.value;
+                                    if (v) {
+                                        const parts = v.split(':').map(Number);
+                                        const seconds = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+                                        onUpdate(partIndex, exerciseIndex, d => { d.restTime = seconds; });
                                     }
-                                    onUpdate(partIndex, exerciseIndex, d => { d.restTime = seconds; });
                                 }}
-                                className="w-12 bg-transparent border-b border-white/10 focus:border-[#FC4C02] text-xs font-mono text-white text-center py-0.5 outline-none transition-colors"
+                                className="w-20 bg-transparent border-b border-white/10 focus:border-[#FC4C02] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
                             />
+                            {exercise.sets?.length > 0 && (() => {
+                                const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
+                                const suggested = suggestRestSeconds(exercise.sets.length, avgRPE);
+                                const current = exercise.restTime || 90;
+                                if (Math.abs(suggested - current) > 15) {
+                                    return <button type="button" onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.restTime = suggested; })} className="text-[8px] font-bold text-orange-500 hover:text-orange-400">Sug</button>;
+                                }
+                                return null;
+                            })()}
                         </div>
 
                         <select

@@ -36,6 +36,8 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
     const { setCurrentBackgroundOverride, updateMuscleGroupInfo, navigateTo } = useAppDispatch();
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [wikiExtract, setWikiExtract] = useState<string | null>(null);
+    const [wikiLoading, setWikiLoading] = useState(false);
+    const [wikiError, setWikiError] = useState(false);
 
     const muscleInfo = useMemo(() => {
         return muscleGroupData.find(m => m.id === muscleGroupId);
@@ -109,6 +111,18 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
         return filteredExercises;
     }, [exerciseList, muscleInfo, muscleHierarchy, childMuscleNames]);
 
+    const exercisesByHead = useMemo(() => {
+        if (muscleInfo?.name !== 'Deltoides' || childMuscleNames.length === 0) return null;
+        const groups: Record<string, ExerciseMuscleInfo[]> = {};
+        childMuscleNames.forEach(head => { groups[head] = []; });
+        allExercises.forEach(ex => {
+            const head = ex.subMuscleGroup || ex.involvedMuscles?.find(m => childMuscleNames.includes(m.muscle) && m.role === 'primary')?.muscle;
+            if (head && groups[head]) groups[head].push(ex);
+            else if (groups[childMuscleNames[0]]) groups[childMuscleNames[0]].push(ex);
+        });
+        return groups;
+    }, [muscleInfo, childMuscleNames, allExercises]);
+
     if (!muscleInfo) {
         return <div className="pt-[65px] text-center"><h2 className="text-2xl font-bold text-red-400">Error</h2><p className="text-slate-300 mt-2">No se encontró información para el grupo muscular con ID: "{muscleGroupId}". Asegúrese de que existe en la base de datos.</p></div>;
     }
@@ -141,12 +155,22 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                     {!wikiExtract && (
                         <button
                             onClick={async () => {
-                                const r = await enrichWithWikipedia(muscleInfo.name);
-                                if (r?.extract) setWikiExtract(r.extract);
+                                setWikiLoading(true);
+                                setWikiError(false);
+                                try {
+                                    const r = await enrichWithWikipedia(muscleInfo.name);
+                                    if (r?.extract) setWikiExtract(r.extract);
+                                    else setWikiError(true);
+                                } catch {
+                                    setWikiError(true);
+                                } finally {
+                                    setWikiLoading(false);
+                                }
                             }}
-                            className="mt-3 text-xs text-orange-400/90 hover:text-orange-400 font-medium"
+                            disabled={wikiLoading}
+                            className="mt-3 text-xs text-orange-400/90 hover:text-orange-400 font-medium disabled:opacity-50 disabled:cursor-wait"
                         >
-                            + Más información (Wikipedia)
+                            {wikiLoading ? 'Cargando...' : wikiError ? 'No se encontró (reintentar)' : '+ Más información (Wikipedia)'}
                         </button>
                     )}
                     {wikiExtract && (
@@ -156,31 +180,11 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                     )}
                 </div>
 
-                {/* Rol mecánico */}
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a] space-y-3">
-                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">Rol Mecánico</h3>
-                    {(muscleInfo.origin || muscleInfo.insertion) && (
-                        <div className="text-sm space-y-1">
-                            {muscleInfo.origin && <p><span className="font-mono text-slate-500 text-xs">Origen:</span> <span className="text-slate-300">{muscleInfo.origin}</span></p>}
-                            {muscleInfo.insertion && <p><span className="font-mono text-slate-500 text-xs">Inserción:</span> <span className="text-slate-300">{muscleInfo.insertion}</span></p>}
-                        </div>
-                    )}
-                    {muscleInfo.mechanicalFunctions && muscleInfo.mechanicalFunctions.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5">
-                            {muscleInfo.mechanicalFunctions.map((f, i) => (
-                                <span key={i} className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded text-xs text-orange-400/90 font-mono">{f}</span>
-                            ))}
-                        </div>
-                    )}
+                {/* Importancia en la Estética */}
+                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Importancia en la Estética</h3>
+                    <p className="text-slate-300 text-sm">{muscleInfo.aestheticImportance || muscleInfo.aestheticRole || muscleInfo.importance?.health || `El ${muscleInfo.name} contribuye a la forma y proporción del cuerpo. Su desarrollo equilibrado mejora la simetría y la apariencia general.`}</p>
                 </div>
-
-                {/* Rol estético */}
-                {(muscleInfo.aestheticRole || muscleInfo.importance?.health) && (
-                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Rol Estético</h3>
-                        <p className="text-slate-300 text-sm">{muscleInfo.aestheticRole || muscleInfo.importance?.health}</p>
-                    </div>
-                )}
 
                 {/* Porciones / Cabezas: solo en músculos que tienen subdivisiones */}
                 {childMuscleInfos.length > 0 && (
@@ -305,7 +309,24 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                  {allExercises.length > 0 && (
                     <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
                          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><DumbbellIcon size={14}/> Ejercicios Principales</h3>
-                        {allExercises.map(ex => <ExerciseItem key={ex.id} exercise={ex} />)}
+                        <div className="max-h-72 overflow-y-auto space-y-4 pr-1">
+                            {exercisesByHead ? (
+                                childMuscleNames.map(head => {
+                                    const exs = exercisesByHead[head] || [];
+                                    if (exs.length === 0) return null;
+                                    return (
+                                        <div key={head}>
+                                            <h4 className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-[#0a0a0a] py-1">{head}</h4>
+                                            <div className="space-y-2">
+                                                {exs.map(ex => <ExerciseItem key={ex.id} exercise={ex} />)}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                allExercises.map(ex => <ExerciseItem key={ex.id} exercise={ex} />)
+                            )}
+                        </div>
                     </div>
                  )}
             </div>
