@@ -2423,5 +2423,42 @@
         "description": "Verify text \"Manage data\" is visible"
       }
     ]
+  },
+  {
+    "id": "TC066",
+    "title": "Black screen and error detection smoke test",
+    "description": "Verifies no black screens, no React ErrorBoundary, captures console/page errors, and navigates through main tabs (Home, Programs, Nutrition, Wiki/Lab) to ensure app loads correctly.",
+    "category": "Smoke / Regression",
+    "priority": "Critical",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:5500"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify main element is visible (no black screen)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify main has visible content (not empty)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify ErrorBoundary (Error en) is NOT visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify tab bar or navigation is visible"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to each tab (Inicio, Programas, Nutrición, Wiki) and verify content loads"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no critical JavaScript errors (ReferenceError, Cannot access)"
+      }
+    ]
   }
 ]
