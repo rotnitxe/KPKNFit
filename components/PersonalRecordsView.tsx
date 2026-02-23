@@ -109,7 +109,7 @@ const PersonalRecordsView: React.FC<PersonalRecordsViewProps> = ({ programs, his
                 <div className="text-center py-8 text-slate-400">
                     <TrophyIcon size={48} className="mx-auto text-slate-500 mb-4" />
                     <h3 className="text-xl font-semibold text-white">Aún no hay récords para mostrar</h3>
-                    <p className="mt-2 text-sm">Marca tus ejercicios principales como <span className="text-yellow-400 font-semibold">favoritos</span> (con la ⭐) en el editor de sesiones para que aparezcan aquí.</p>
+                    <p className="mt-2 text-sm">Marca tus ejercicios principales como <span className="text-cyber-copper font-semibold">favoritos</span> (con la ⭐) en el editor de sesiones para que aparezcan aquí.</p>
                 </div>
             </Card>
         );
@@ -121,7 +121,7 @@ const PersonalRecordsView: React.FC<PersonalRecordsViewProps> = ({ programs, his
                 <div key={exercise.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                     <Card className="!p-4 flex flex-col h-full">
                         <div className="flex-grow">
-                            <h4 className="font-bold text-primary-color truncate">{exercise.name}</h4>
+                            <h4 className="font-bold text-cyber-copper truncate">{exercise.name}</h4>
                             <p className="text-5xl font-black text-white my-2">{best1RM.toFixed(1)} <span className="text-2xl text-slate-400">{settings.weightUnit}</span></p>
                             <p className="text-sm text-slate-400">Logrado con {bestSet.weight}{settings.weightUnit} x {bestSet.reps} reps</p>
                             <p className="text-xs text-slate-500">el {new Date(bestSet.date).toLocaleDateString('es-ES')}</p>
@@ -138,7 +138,7 @@ const PersonalRecordsView: React.FC<PersonalRecordsViewProps> = ({ programs, his
                                         <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                                         <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                                         <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', fontSize: '12px', padding: '4px 8px' }}/>
-                                        <Line type="monotone" dataKey="e1RM" name="1RM Estimado" stroke="var(--primary-color-400)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                                        <Line type="monotone" dataKey="e1RM" name="1RM Estimado" stroke="#FF7B00" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>

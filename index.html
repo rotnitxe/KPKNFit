@@ -33,11 +33,27 @@
         @import url('https://fonts.googleapis.com/css2?family=Teko:wght@500&family=Space+Mono&display=swap');
 
         /* --- Base System & Fallbacks --- */
+        /* Cyber Araucanian: Kallfü Tech (Cian) + Cobre Toqui + Semáforo Nerd */
         :root {
             --font-family-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             --font-family-data: "Courier Prime", monospace;
-            --primary-hue: 217;
+            --primary-hue: 187;
             --danger-hue: 0;
+            /* Base - La Oscuridad */
+            --bg-canvas: #0A0B0E;
+            --bg-card: #15171E;
+            --border-subtle: #2A2D38;
+            /* Tipografía */
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A7B8;
+            /* Identidad - Training (por defecto) */
+            --accent-primary: #00F0FF;
+            --accent-secondary: #FF7B00;
+            --primary-color-rgb: 0, 240, 255;
+            /* Semáforo Nerd */
+            --color-success: #00FF9D;
+            --color-warning: #FFD600;
+            --color-danger: #FF2E43;
             --shadow-color-value: rgba(0, 0, 0, 0.7);
             --header-font-size: 2.25rem;
             --header-font-weight: 700;
@@ -83,84 +99,74 @@
             animation: fade-in-backdrop 0.3s ease-out forwards;
         }
 
-        /* --- TEMA DEEP BLACK (OLED) --- */
+        /* --- TEMA DEEP BLACK (OLED) - Cyber Araucanian --- */
         :root[data-theme="deep-black"] {
           --bg-gradient: none;
-          --bg-color: #000000;
-          --text-color: #FFFFFF;
-          --text-color-darker: #9E9E9E;
-          --primary-color: hsl(var(--primary-hue), 91%, 60%);
+          --bg-color: var(--bg-canvas);
+          --text-color: var(--text-primary);
+          --text-color-darker: var(--text-secondary);
+          --primary-color: var(--accent-primary);
           --primary-gradient: var(--primary-color);
-          --card-bg-main: #000000;
-          --card-bg-light: #111111;
-          --card-nested-bg: #111111;
-          --card-border: #222222;
-          --card-hover-border: var(--primary-color);
+          --card-bg-main: var(--bg-card);
+          --card-bg-light: #1a1c24;
+          --card-nested-bg: var(--bg-card);
+          --card-border: var(--border-subtle);
+          --card-hover-border: var(--accent-primary);
           --card-glow: none;
           --card-box-shadow: none;
           --card-backdrop-filter: none;
           --theme-card-border-radius: 0.75rem;
-          --header-bg-color: #000000;
+          --header-bg-color: var(--bg-card);
           --header-backdrop-filter: none;
           --header-border-color: var(--card-border);
-          
-          /* TAB BAR: Gris plano con transparencia (solo barra, íconos opacos) */
           --tab-bar-safe-bottom: max(95px, calc(88px + env(safe-area-inset-bottom, 0px) + 16px));
-          --tab-bar-bg-color: rgba(39, 39, 42, 0.75);
+          --tab-bar-bg-color: var(--bg-card);
           --tab-bar-backdrop-filter: blur(12px);
           --tab-bar-border-color: rgba(255, 255, 255, 0.06);
           --tab-bar-box-shadow: none;
-
           --modal-backdrop-bg-color: rgba(0,0,0,0.8);
           --modal-backdrop-filter: none;
-          --bottom-sheet-bg: #000000;
-          --success-color: #22c55e;
-          --success-gradient: var(--success-color);
-          --danger-color: #ef4444;
-          --danger-gradient: var(--danger-color);
+          --bottom-sheet-bg: var(--bg-card);
+          --success-color: var(--color-success);
+          --success-gradient: var(--color-success);
+          --danger-color: var(--color-danger);
+          --danger-gradient: var(--color-danger);
         }
 
-        /* --- Default Theme (MODIFIED TO PURE BLACK) --- */
+        /* --- Default Theme - Cyber Araucanian --- */
         :root:not([data-theme]), :root[data-theme="default"] {
-            /* Black Background */
             --bg-gradient: none;
-            --bg-color: #000000;
-            
-            --text-color: #F1F5F9;
-            --text-color-darker: #9ca3af;
-            --primary-color: hsl(var(--primary-hue), 91%, 60%);
-            --primary-gradient: linear-gradient(135deg, hsl(var(--primary-hue), 91%, 60%), hsl(var(--primary-hue), 71%, 50%));
-            
-            /* Cards keep glass look but adapted for black bg */
-            --card-bg-main: rgba(20, 20, 20, 0.6);
-            --card-bg-light: rgba(30, 30, 30, 0.7);
-            --card-nested-bg: rgba(10, 10, 10, 0.6);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --card-hover-border: hsla(var(--primary-hue), 91%, 60%, 0.6);
-            --card-glow: 0 0 45px hsla(var(--primary-hue), 85%, 60%, 0.1);
+            --bg-color: var(--bg-canvas);
+            --text-color: var(--text-primary);
+            --text-color-darker: var(--text-secondary);
+            --primary-color: var(--accent-primary);
+            --primary-gradient: linear-gradient(135deg, var(--accent-primary), #00c4cc);
+            --card-bg-main: var(--bg-card);
+            --card-bg-light: #1a1c24;
+            --card-nested-bg: var(--bg-card);
+            --card-border: var(--border-subtle);
+            --card-hover-border: var(--accent-primary);
+            --card-glow: 0 0 45px rgba(0, 240, 255, 0.1);
             --card-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
             --card-backdrop-filter: blur(40px);
             --theme-card-border-radius: 1.25rem;
-            
-            --header-bg-color: rgba(0, 0, 0, 0.8);
+            --header-bg-color: var(--bg-card);
             --header-backdrop-filter: blur(12px);
             --header-border-color: var(--card-border);
-            
-            /* TAB BAR: Gris plano con transparencia */
             --tab-bar-safe-bottom: max(95px, calc(88px + env(safe-area-inset-bottom, 0px) + 16px));
-            --tab-bar-bg-color: rgba(39, 39, 42, 0.75);
+            --tab-bar-bg-color: var(--bg-card);
             --tab-bar-backdrop-filter: blur(12px);
             --tab-bar-border-color: rgba(255, 255, 255, 0.06);
             --tab-bar-box-shadow: none;
-            
             --modal-backdrop-bg-color: rgba(0,0,0,0.8);
             --modal-backdrop-filter: blur(8px);
-            --bottom-sheet-bg: #151515;
-            --success-color: #22c55e;
-            --success-gradient: linear-gradient(135deg, #4ade80, #22c55e);
-            --danger-color: #ef4444;
-            --danger-gradient: linear-gradient(135deg, #f87171, #ef4444);
+            --bottom-sheet-bg: var(--bg-card);
+            --success-color: var(--color-success);
+            --success-gradient: var(--color-success);
+            --danger-color: var(--color-danger);
+            --danger-gradient: var(--color-danger);
         }
+        [data-view="nutrition"] { --accent-primary: var(--accent-secondary); }
 
         html, body {
             height: 100%;

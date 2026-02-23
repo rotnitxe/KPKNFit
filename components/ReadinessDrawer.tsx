@@ -25,7 +25,7 @@ interface ReadinessDrawerProps {
 }
 
 const CyberSlider: React.FC<{ label: string; value: number; onChange: (v: number) => void; icon: React.ReactNode; color: string; accentClass: string; inverseScale?: boolean }> = ({ label, value, onChange, icon, color, accentClass, inverseScale }) => (
-  <div className="bg-[#0d0d0d] p-4 rounded-xl border border-orange-500/20 mb-3">
+  <div className="bg-[#0d0d0d] p-4 rounded-xl border border-cyber-cyan/20 mb-3">
     <div className="flex justify-between items-center mb-2">
       <label className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
         <span className={color}>{icon}</span> {label}
@@ -78,7 +78,7 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
     }
     const labels: Record<number, { text: string; color: string }> = {
       1: { text: 'ROJO — Descanso recomendado', color: 'text-red-400' },
-      2: { text: 'NARANJA — Sesión ligera', color: 'text-orange-400' },
+      2: { text: 'NARANJA — Sesión ligera', color: 'text-cyber-warning' },
       3: { text: 'AMARILLO — Proceder con cautela', color: 'text-yellow-400' },
       4: { text: 'VERDE — Buen día para entrenar', color: 'text-emerald-400' },
       5: { text: 'VERDE+ — Óptimo para PRs', color: 'text-emerald-300' },
@@ -118,10 +118,10 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
   return (
     <WorkoutDrawer isOpen={isOpen} onClose={onClose} title="Estado Base" height="90vh">
       <div className="p-5 space-y-5">
-        <div className="p-4 bg-[#0d0d0d] border border-orange-500/20 rounded-xl">
+        <div className="p-4 bg-[#0d0d0d] border border-cyber-cyan/20 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
-            <BrainIcon size={14} className="text-orange-500/80" />
-            <span className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">Predicción AUGE</span>
+            <BrainIcon size={14} className="text-cyber-cyan/80" />
+            <span className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">Predicción AUGE</span>
           </div>
           <p className={`text-sm font-mono font-black ${augePrediction.color}`}>{augePrediction.text}</p>
           <p className={`text-[9px] mt-1 font-mono font-bold uppercase tracking-widest ${confidenceColor}`}>
@@ -135,7 +135,7 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
         <CyberSlider label="Daño Muscular" value={doms} onChange={setDoms} icon={<FlameIcon size={16} />} color="text-amber-400" accentClass="accent-amber-500" inverseScale={true} />
         <CyberSlider label="Motivación" value={motivation} onChange={setMotivation} icon={<ZapIcon size={16} />} color="text-sky-400" accentClass="accent-sky-500" />
 
-        <button onClick={handleStart} disabled={isSubmitting} className="w-full py-4 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest bg-orange-500 text-white hover:bg-orange-600 transition-colors border border-orange-400/30 disabled:opacity-50">
+        <button onClick={handleStart} disabled={isSubmitting} className="w-full py-4 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest bg-cyber-cyan text-white hover:bg-cyber-cyan/90 transition-colors border border-cyber-cyan/30 disabled:opacity-50">
           {isSubmitting ? 'Sincronizando...' : 'Comenzar Batalla'}
         </button>
         <button onClick={onClose} disabled={isSubmitting} className="w-full py-3 text-slate-500 text-[10px] font-mono font-black uppercase tracking-widest hover:text-white transition-colors">

@@ -20,7 +20,7 @@ const WIDGETS: { id: MetricId; label: string; shortLabel: string; Icon: React.Co
     { id: 'volume', label: 'Volumen D/I', shortLabel: 'Volumen', Icon: BarChartIcon, color: 'from-emerald-500 to-teal-600' },
     { id: 'strength', label: 'Fuerza', shortLabel: 'Fuerza', Icon: DumbbellIcon, color: 'from-blue-500 to-indigo-600' },
     { id: 'density', label: 'Densidad', shortLabel: 'Densidad', Icon: ActivityIcon, color: 'from-violet-500 to-purple-600' },
-    { id: 'frequency', label: 'Frecuencia', shortLabel: 'Frecuencia', Icon: TargetIcon, color: 'from-amber-500 to-orange-600' },
+    { id: 'frequency', label: 'Frecuencia', shortLabel: 'Frecuencia', Icon: TargetIcon, color: 'from-amber-500 to-cyber-cyan' },
     { id: 'banister', label: 'AUGE Banister', shortLabel: 'Banister', Icon: TrendingUpIcon, color: 'from-cyan-500 to-blue-600' },
     { id: 'recovery', label: 'Recuperación', shortLabel: 'Recup.', Icon: ZapIcon, color: 'from-green-500 to-emerald-600' },
     { id: 'adherence', label: 'Adherencia', shortLabel: 'Adherencia', Icon: FlameIcon, color: 'from-rose-500 to-pink-600' },

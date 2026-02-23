@@ -74,7 +74,7 @@ const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React
     {
         id: 'sessions',
         title: 'Sesiones Avanzadas',
-        icon: <ActivityIcon size={40} className="text-orange-400" />,
+        icon: <ActivityIcon size={40} className="text-cyber-cyan" />,
         content: (
             <div className="space-y-4 text-left">
                 <p className="text-zinc-300 text-sm font-medium leading-relaxed">

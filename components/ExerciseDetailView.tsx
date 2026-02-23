@@ -22,7 +22,7 @@ const StarRating: React.FC<{ rating: number; onSetRating?: (rating: number) => v
 );
 
 const TagWithTooltip: React.FC<{ label: string }> = ({ label }) => (
-    <div className="flex items-center px-2 py-1 bg-[#0a0a0a] border border-orange-500/20 text-slate-300 rounded-lg">
+    <div className="flex items-center px-2 py-1 bg-[#0a0a0a] border border-cyber-cyan/20 text-slate-300 rounded-lg">
         <span className="text-[10px] font-mono font-semibold">{label}</span>
         <InfoTooltip term={label} />
     </div>
@@ -54,8 +54,8 @@ export const KinesiologyAnalysis: React.FC<{ exercise: ExerciseMuscleInfo }> = (
     if (!hasAnyData) return null;
 
     return (
-        <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><BrainIcon size={14} /> Análisis Kinesiológico</h3>
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><BrainIcon size={14} /> Análisis Kinesiológico</h3>
              <div className="space-y-4">
                 {resistanceProfile && (
                     <div className="bg-[#0d0d0d] p-3 rounded-lg border border-white/5">
@@ -177,8 +177,8 @@ const ImageVideoGallery: React.FC<{
                 onSelectImage={handleSelectImageFromSearch}
                 initialQuery={exerciseName}
             />
-            <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Galería Multimedia</h3>
+            <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Galería Multimedia</h3>
                 <div className="relative">
                     <div className="flex overflow-x-auto snap-x snap-mandatory space-x-3 pb-3 hide-scrollbar">
                         {images.map((img, i) => (
@@ -206,12 +206,12 @@ const ImageVideoGallery: React.FC<{
                     )}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[10px] font-mono mt-4">
-                    <button onClick={() => fileInputRef.current?.click()} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors"><UploadIcon size={12} className="inline mr-1"/> Subir</button>
+                    <button onClick={() => fileInputRef.current?.click()} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors"><UploadIcon size={12} className="inline mr-1"/> Subir</button>
                     <input type="file" ref={fileInputRef} onChange={handleUpload} accept="image/*" className="hidden"/>
-                    <button onClick={handleGenerateImage} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><SparklesIcon size={12} className="inline mr-1"/> Generar IA</button>
-                    <button onClick={() => setIsImageSearchOpen(true)} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><ImageIcon size={12} className="inline mr-1"/> Buscar Imagen</button>
-                    <button onClick={addVideoUrl} disabled={!!isLoading} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><PlusIcon size={12} className="inline mr-1"/> Video URL</button>
-                    <button onClick={handleSearchVideos} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-slate-300 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><VideoIcon size={12} className="inline mr-1"/> Buscar Video</button>
+                    <button onClick={handleGenerateImage} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><SparklesIcon size={12} className="inline mr-1"/> Generar IA</button>
+                    <button onClick={() => setIsImageSearchOpen(true)} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><ImageIcon size={12} className="inline mr-1"/> Buscar Imagen</button>
+                    <button onClick={addVideoUrl} disabled={!!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><PlusIcon size={12} className="inline mr-1"/> Video URL</button>
+                    <button onClick={handleSearchVideos} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><VideoIcon size={12} className="inline mr-1"/> Buscar Video</button>
                 </div>
             </div>
         </>
@@ -222,8 +222,8 @@ const RecommendedMobility: React.FC<{ exerciseNames?: string[] }> = ({ exerciseN
     if (!exerciseNames || exerciseNames.length === 0) return null;
 
     return (
-        <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Movilidad Recomendada (Pre-sesión)</h3>
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Movilidad Recomendada (Pre-sesión)</h3>
             <ul className="list-disc list-inside space-y-1 text-slate-300 text-sm">
                 {exerciseNames.map((name, i) => (
                     <li key={i}>
@@ -346,7 +346,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
 
     return (
         <div className="pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
-            <header className="relative h-48 -mx-4 border-b border-orange-500/20">
+            <header className="relative h-48 -mx-4 border-b border-cyber-cyan/20">
                 <div className="absolute bottom-4 left-4 right-4 z-10">
                      <h1 className="text-3xl font-bold text-white flex items-center gap-2">
                          <button onClick={handleFavoriteToggle} aria-label="Marcar como favorito">
@@ -367,21 +367,21 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                     {exercise.force && <TagWithTooltip label={exercise.force} />}
                 </div>
                 
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                    <label className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2 block">Tu Calificación</label>
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <label className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2 block">Tu Calificación</label>
                     <StarRating rating={exercise.userRating || 0} onSetRating={handleUserRating} />
                 </div>
 
                 {/* AUGE interactivo */}
                 {(exercise.efc != null || exercise.cnc != null || exercise.ssc != null) && (
-                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">1 Serie Efectiva = Fatiga AUGE</h3>
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">1 Serie Efectiva = Fatiga AUGE</h3>
                         <div className="grid grid-cols-3 gap-4">
                             {exercise.efc != null && (
                                 <div>
                                     <p className="text-[10px] font-mono text-slate-500 uppercase">EFC</p>
                                     <div className="h-2 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                                        <div className="h-full bg-orange-500/80 rounded-full" style={{ width: `${(exercise.efc / 5) * 100}%` }} />
+                                        <div className="h-full bg-cyber-cyan/80 rounded-full" style={{ width: `${(exercise.efc / 5) * 100}%` }} />
                                     </div>
                                     <p className="text-sm font-mono text-white mt-0.5">{exercise.efc}/5</p>
                                 </div>
@@ -390,7 +390,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                                 <div>
                                     <p className="text-[10px] font-mono text-slate-500 uppercase">CNC</p>
                                     <div className="h-2 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                                        <div className="h-full bg-orange-500/80 rounded-full" style={{ width: `${(exercise.cnc / 5) * 100}%` }} />
+                                        <div className="h-full bg-cyber-cyan/80 rounded-full" style={{ width: `${(exercise.cnc / 5) * 100}%` }} />
                                     </div>
                                     <p className="text-sm font-mono text-white mt-0.5">{exercise.cnc}/5</p>
                                 </div>
@@ -399,7 +399,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                                 <div>
                                     <p className="text-[10px] font-mono text-slate-500 uppercase">SSC</p>
                                     <div className="h-2 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                                        <div className="h-full bg-orange-500/80 rounded-full" style={{ width: `${Math.min((exercise.ssc / 2) * 100, 100)}%` }} />
+                                        <div className="h-full bg-cyber-cyan/80 rounded-full" style={{ width: `${Math.min((exercise.ssc / 2) * 100, 100)}%` }} />
                                     </div>
                                     <p className="text-sm font-mono text-white mt-0.5">{exercise.ssc}/2</p>
                                 </div>
@@ -409,14 +409,14 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 )}
 
                 {exercise.functionalTransfer && (
-                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Transferencia Funcional</h3>
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Transferencia Funcional</h3>
                         <p className="text-sm text-slate-300">{exercise.functionalTransfer}</p>
                     </div>
                 )}
 
                 {((exercise.injuryRisk?.details || exercise.commonMistakes?.length) ?? 0) > 0 && (
-                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-red-400/90 mb-2">Malestares / Precauciones</h3>
                         {exercise.injuryRisk?.details && <p className="text-sm text-slate-300 mb-2">{exercise.injuryRisk.details}</p>}
                         {exercise.commonMistakes && exercise.commonMistakes.length > 0 && (
@@ -428,8 +428,8 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 )}
 
                 {similarExercises.length > 0 && (
-                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Ejercicios Similares</h3>
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Ejercicios Similares</h3>
                         <div className="flex flex-wrap gap-2">
                             {similarExercises.map(ex => (
                                 <span key={ex.id} className="inline-block">
@@ -441,8 +441,8 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 )}
 
                 {((exercise.progressions?.length || 0) + (exercise.regressions?.length || 0)) > 0 && (
-                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Ejercicios que Mejoran este Movimiento</h3>
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Ejercicios que Mejoran este Movimiento</h3>
                         <div className="space-y-2 text-sm">
                             {exercise.progressions?.map((p, i) => (
                                 <div key={`prog-${i}`} className="flex items-start gap-2">
@@ -462,22 +462,22 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 
                 <ImageVideoGallery images={exercise.images || []} videos={exercise.videos || []} exerciseName={exercise.name} isOnline={isOnline} onUpdate={handleMediaUpdate} />
 
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Descripción</h3>
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Descripción</h3>
                     <p className="whitespace-pre-wrap text-slate-300 text-sm">{exercise.description}</p>
                 </div>
                 
                 {registeredVariants.length > 0 && (
-                    <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-2">Variantes Registradas</h3>
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Variantes Registradas</h3>
                          <ul className="list-disc list-inside text-sm text-slate-300">
                             {registeredVariants.map(variant => <li key={variant}>{variant}</li>)}
                          </ul>
                     </div>
                 )}
 
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 text-center">Análisis de Rendimiento</h3>
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 text-center">Análisis de Rendimiento</h3>
                     <div className="space-y-4">
                         <div className="space-y-4">
                             {exercise.setupTime != null && <IndicatorBar label="Tiempo de Preparación" value={exercise.setupTime} />}
@@ -491,33 +491,33 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                                 <p className="text-[10px] font-mono text-slate-500 uppercase mb-2">Detalle operativo</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     {exercise.averageRestSeconds != null && (
-                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                        <div className="p-3 rounded-xl border border-cyber-cyan/20 bg-[#0d0d0d]">
                                             <p className="text-[10px] font-mono text-slate-500 uppercase">Descanso (s)</p>
-                                            <p className="text-lg font-mono text-orange-400">{exercise.averageRestSeconds}</p>
+                                            <p className="text-lg font-mono text-cyber-cyan">{exercise.averageRestSeconds}</p>
                                         </div>
                                     )}
                                     {exercise.coreInvolvement && (
-                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                        <div className="p-3 rounded-xl border border-cyber-cyan/20 bg-[#0d0d0d]">
                                             <p className="text-[10px] font-mono text-slate-500 uppercase">Core</p>
-                                            <p className="text-sm font-mono text-orange-400 capitalize">{exercise.coreInvolvement}</p>
+                                            <p className="text-sm font-mono text-cyber-cyan capitalize">{exercise.coreInvolvement}</p>
                                         </div>
                                     )}
                                     {exercise.bracingRecommended != null && (
-                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                        <div className="p-3 rounded-xl border border-cyber-cyan/20 bg-[#0d0d0d]">
                                             <p className="text-[10px] font-mono text-slate-500 uppercase">Bracing</p>
-                                            <p className="text-sm font-mono text-orange-400">{exercise.bracingRecommended ? 'Sí' : 'No'}</p>
+                                            <p className="text-sm font-mono text-cyber-cyan">{exercise.bracingRecommended ? 'Sí' : 'No'}</p>
                                         </div>
                                     )}
                                     {exercise.strapsRecommended != null && (
-                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                        <div className="p-3 rounded-xl border border-cyber-cyan/20 bg-[#0d0d0d]">
                                             <p className="text-[10px] font-mono text-slate-500 uppercase">Straps</p>
-                                            <p className="text-sm font-mono text-orange-400">{exercise.strapsRecommended ? 'Recomendado' : 'Opcional'}</p>
+                                            <p className="text-sm font-mono text-cyber-cyan">{exercise.strapsRecommended ? 'Recomendado' : 'Opcional'}</p>
                                         </div>
                                     )}
                                     {exercise.bodybuildingScore != null && (
-                                        <div className="p-3 rounded-xl border border-orange-500/20 bg-[#0d0d0d]">
+                                        <div className="p-3 rounded-xl border border-cyber-cyan/20 bg-[#0d0d0d]">
                                             <p className="text-[10px] font-mono text-slate-500 uppercase">Culturismo</p>
-                                            <p className="text-lg font-mono text-orange-400">{exercise.bodybuildingScore}/10</p>
+                                            <p className="text-lg font-mono text-cyber-cyan">{exercise.bodybuildingScore}/10</p>
                                         </div>
                                     )}
                                 </div>
@@ -532,8 +532,8 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
 
                 {exercise.recommendedMobility && exercise.recommendedMobility.length > 0 && <RecommendedMobility exerciseNames={exercise.recommendedMobility} />}
                 
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><SparklesIcon size={14}/> Análisis del Coach IA</h3>
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><SparklesIcon size={14}/> Análisis del Coach IA</h3>
                     {isLoading.analysis ? <SkeletonLoader lines={5} /> : exercise.aiCoachAnalysis ? (
                         <div className="space-y-4 text-sm">
                             <p className="italic text-slate-300">"{exercise.aiCoachAnalysis.summary}"</p>
@@ -553,8 +553,8 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                     ) : <p className="text-sm text-slate-500">No hay análisis disponible.</p>}
                 </div>
 
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3 flex items-center gap-2"><UsersIcon size={14}/> Opinión de la Comunidad</h3>
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><UsersIcon size={14}/> Opinión de la Comunidad</h3>
                      {isLoading.community ? <SkeletonLoader lines={3} /> : exercise.communityOpinion && exercise.communityOpinion.length > 0 ? (
                          <ul className="list-disc list-inside space-y-2 text-sm text-slate-300">
                             {exercise.communityOpinion.map((op, i) => <li key={i}>{op}</li>)}
@@ -563,11 +563,11 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 </div>
 
                 {exercise.sportsRelevance && exercise.sportsRelevance.length > 0 && (
-                     <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Relevancia Deportiva</h3>
+                     <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Relevancia Deportiva</h3>
                         <div className="flex flex-wrap gap-2">
                             {exercise.sportsRelevance.map(sport => (
-                                <span key={sport} className="px-2 py-1 bg-[#0d0d0d] border border-orange-500/20 text-slate-300 rounded-lg text-[10px] font-mono">{sport}</span>
+                                <span key={sport} className="px-2 py-1 bg-[#0d0d0d] border border-cyber-cyan/20 text-slate-300 rounded-lg text-[10px] font-mono">{sport}</span>
                             ))}
                         </div>
                     </div>

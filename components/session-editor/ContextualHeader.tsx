@@ -60,7 +60,7 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                         )}
                         {hasChanges && (
                             <div className="flex items-center gap-1 shrink-0">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#FC4C02] animate-pulse" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" />
                                 <span className="text-[10px] text-[#999] font-medium hidden sm:inline">Sin guardar</span>
                             </div>
                         )}
@@ -68,16 +68,16 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                             <button
                                 onClick={onSave}
                                 disabled={!hasChanges}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${hasChanges ? 'bg-[#FC4C02] text-white hover:brightness-110' : 'bg-white/5 text-[#555] cursor-not-allowed'}`}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${hasChanges ? 'bg-[#00F0FF] text-white hover:brightness-110' : 'bg-white/5 text-[#555] cursor-not-allowed'}`}
                                 title="Guardar"
                             >
                                 <CheckIcon size={14} strokeWidth={2.5} />
                             </button>
                         )}
-                        <button onClick={onOpenHistoryDrawer} className="p-1.5 rounded-lg text-[#555] hover:text-[#FC4C02] hover:bg-[#FC4C02]/10 transition-colors shrink-0" title="Historial">
+                        <button onClick={onOpenHistoryDrawer} className="p-1.5 rounded-lg text-[#555] hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 transition-colors shrink-0" title="Historial">
                             <ClockIcon size={14} />
                         </button>
-                        <button onClick={onOpenRulesDrawer} className="p-1.5 rounded-lg text-[#555] hover:text-[#FC4C02] hover:bg-[#FC4C02]/10 transition-colors shrink-0" title="Reglas">
+                        <button onClick={onOpenRulesDrawer} className="p-1.5 rounded-lg text-[#555] hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 transition-colors shrink-0" title="Reglas">
                             <SettingsIcon size={14} />
                         </button>
                     </div>
@@ -88,7 +88,7 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                             <div className="flex-1 min-w-0 space-y-1">
                                 <div className="flex items-center gap-2">
                                     {dayLabel && (
-                                        <span className="text-[10px] font-bold text-[#FC4C02] bg-[#FC4C02]/10 px-2 py-0.5 rounded">
+                                        <span className="text-[10px] font-bold text-[#00F0FF] bg-[#00F0FF]/10 px-2 py-0.5 rounded">
                                             {dayLabel}
                                         </span>
                                     )}
@@ -99,7 +99,7 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                                     )}
                                     {hasChanges && (
                                         <div className="flex items-center gap-1">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#FC4C02] animate-pulse" />
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" />
                                             <span className="text-[10px] text-[#999] font-medium">Sin guardar</span>
                                         </div>
                                     )}
@@ -124,7 +124,7 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                                     <button
                                         onClick={onSave}
                                         disabled={!hasChanges}
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${hasChanges ? 'bg-[#FC4C02] text-white hover:brightness-110' : 'bg-white/5 text-[#555] cursor-not-allowed'}`}
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${hasChanges ? 'bg-[#00F0FF] text-white hover:brightness-110' : 'bg-white/5 text-[#555] cursor-not-allowed'}`}
                                         title="Guardar"
                                     >
                                         <CheckIcon size={14} strokeWidth={2.5} />
@@ -156,10 +156,10 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                             </div>
                             <div className="h-6 w-px bg-white/10 shrink-0" />
                             <div className="flex items-center gap-1.5 shrink-0">
-                                <button onClick={onOpenHistoryDrawer} className="px-3 py-1.5 rounded-full bg-[#FC4C02]/10 border border-[#FC4C02]/30 text-[#FC4C02] hover:bg-[#FC4C02]/20 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <button onClick={onOpenHistoryDrawer} className="px-3 py-1.5 rounded-full bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
                                     <ClockIcon size={12} /> Historial
                                 </button>
-                                <button onClick={onOpenRulesDrawer} className="px-3 py-1.5 rounded-full bg-[#FC4C02]/10 border border-[#FC4C02]/30 text-[#FC4C02] hover:bg-[#FC4C02]/20 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <button onClick={onOpenRulesDrawer} className="px-3 py-1.5 rounded-full bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
                                     <SettingsIcon size={12} /> Reglas
                                 </button>
                             </div>

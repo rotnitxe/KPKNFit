@@ -156,7 +156,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                                         key={block.id}
                                         onClick={() => { onSelectBlock(block.id); setDropdownOpen(false); }}
                                         className={`w-full px-4 py-2.5 text-left text-[11px] font-bold transition-colors ${
-                                            block.id === selectedBlockId ? 'bg-[#FC4C02]/20 text-[#FC4C02]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'
+                                            block.id === selectedBlockId ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'
                                         }`}
                                     >
                                         {block.name}
@@ -168,7 +168,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                         {isCyclic && (
                             <button
                                 onClick={() => { setShowCyclicHistory(!showCyclicHistory); setDropdownOpen(false); }}
-                                className={`w-full px-4 py-2.5 text-left text-[11px] font-bold ${showCyclicHistory ? 'bg-[#FC4C02]/20 text-[#FC4C02]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'}`}
+                                className={`w-full px-4 py-2.5 text-left text-[11px] font-bold ${showCyclicHistory ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'}`}
                             >
                                 {showCyclicHistory ? 'Rutina' : 'Historial'}
                             </button>
@@ -199,12 +199,12 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                                     onClick={() => onSelectWeek(week.id)}
                                     className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                                         isSelected
-                                            ? 'bg-[#FC4C02] text-white'
+                                            ? 'bg-[#00F0FF] text-white'
                                             : 'bg-white/5 text-[#8E8E93] hover:text-white hover:bg-white/10'
                                     }`}
                                 >
                                     {getWeekLabel(weekIdx)}
-                                    {hasEv && <CalendarIcon size={12} className={isSelected ? 'text-white' : 'text-[#FC4C02]'} />}
+                                    {hasEv && <CalendarIcon size={12} className={isSelected ? 'text-white' : 'text-[#00F0FF]'} />}
                                 </button>
                             );
                         })}
@@ -220,9 +220,9 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
 
             {/* Event banner */}
             {weekEvent && (
-                <div className="mx-4 mt-2 px-3 py-2 rounded-lg bg-[#FC4C02]/10 border border-[#FC4C02]/20 flex items-center gap-2">
-                    <CalendarIcon size={14} className="text-[#FC4C02] shrink-0" />
-                    <span className="text-xs font-bold text-[#FC4C02]">{weekEvent.title}</span>
+                <div className="mx-4 mt-2 px-3 py-2 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/20 flex items-center gap-2">
+                    <CalendarIcon size={14} className="text-[#00F0FF] shrink-0" />
+                    <span className="text-xs font-bold text-[#00F0FF]">{weekEvent.title}</span>
                 </div>
             )}
 
@@ -236,16 +236,16 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                             <div
                                 key={week.id}
                                 className={`rounded-xl border overflow-hidden transition-all ${
-                                    isSelected ? 'border-[#FC4C02]/40 bg-[#1a1a1a]' : 'border-white/5 bg-[#111]'
+                                    isSelected ? 'border-[#00F0FF]/40 bg-[#1a1a1a]' : 'border-white/5 bg-[#111]'
                                 }`}
                             >
                                 <div className="px-3 py-2 border-b border-white/5 flex items-center justify-between">
                                     <span className="text-[11px] font-bold text-white uppercase tracking-wide">{getWeekLabel(weekIdx)}</span>
                                     {week.id === selectedWeekId && (
-                                        <span className="text-[9px] font-bold text-[#FC4C02]">Actual</span>
+                                        <span className="text-[9px] font-bold text-[#00F0FF]">Actual</span>
                                     )}
                                     {weekHasEvent(weekIdx) && (
-                                        <CalendarIcon size={12} className="text-[#FC4C02] shrink-0" />
+                                        <CalendarIcon size={12} className="text-[#00F0FF] shrink-0" />
                                     )}
                                 </div>
                                 <div className="divide-y divide-white/5">
@@ -276,7 +276,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                                                             </div>
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); onStartWorkout(session, program); }}
-                                                                className="w-8 h-8 rounded-lg bg-[#FC4C02] flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+                                                                className="w-8 h-8 rounded-lg bg-[#00F0FF] flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
                                                             >
                                                                 <PlayIcon size={12} fill="white" />
                                                             </button>

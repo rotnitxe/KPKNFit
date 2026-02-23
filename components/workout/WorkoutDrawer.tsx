@@ -29,11 +29,11 @@ const WorkoutDrawer: React.FC<WorkoutDrawerProps> = ({
         aria-hidden="true"
       />
       <div
-        className="fixed bottom-0 left-0 right-0 z-[111] bg-[#0a0a0a] border-t border-orange-500/20 rounded-t-2xl flex flex-col animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-[111] bg-[#0a0a0a] border-t border-cyber-cyan/20 rounded-t-2xl flex flex-col animate-slide-up"
         style={{ maxHeight: height }}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-orange-500/10 shrink-0">
-          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-cyber-cyan/10 shrink-0">
+          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">
             {title}
           </h3>
           <button

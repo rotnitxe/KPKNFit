@@ -93,7 +93,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                         const clamped = isTime ? val : Math.min(99, Math.max(0, val));
                                         onSetChange(i, isTime ? 'targetDuration' : 'targetReps', clamped);
                                     }}
-                                    className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 px-1 rounded transition-colors outline-none placeholder-orange-900/50"
+                                    className="w-full bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-sm font-mono text-white py-1 px-1 rounded transition-colors outline-none placeholder-cyber-cyan/30"
                                     placeholder="—"
                                 />
                             </div>
@@ -104,7 +104,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                         type="number"
                                         value={set.targetPercentageRM ?? ''}
                                         onChange={e => onSetChange(i, 'targetPercentageRM', e.target.value === '' ? undefined : parseInt(e.target.value))}
-                                        className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-orange-900/50"
+                                        className="w-full bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-cyber-cyan/30"
                                         placeholder="%"
                                     />
                                 </div>
@@ -113,14 +113,14 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                             {showWeightColumn && (
                                 <div className="w-16 flex flex-col items-end">
                                     {useIntensityWeight && estimatedKg != null ? (
-                                        <span className="text-[10px] font-mono text-orange-400/90">{estimatedKg}kg</span>
+                                        <span className="text-[10px] font-mono text-cyber-cyan/90">{estimatedKg}kg</span>
                                     ) : (
                                         <input
                                             type="number"
                                             step="0.5"
                                             value={displayWeight ?? ''}
                                             onChange={e => onSetChange(i, 'weight', e.target.value === '' ? undefined : (parseFloat(e.target.value) || 0))}
-                                            className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-orange-900/50"
+                                            className="w-full bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-cyber-cyan/30"
                                             placeholder="kg"
                                         />
                                     )}
@@ -131,7 +131,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                 {mode === 'failure' ? (
                                     <span className="text-[10px] font-bold text-red-400">FALLO</span>
                                 ) : mode === 'solo_rm' ? (
-                                    <span className="text-[10px] font-bold text-orange-400/90">RM</span>
+                                    <span className="text-[10px] font-bold text-cyber-cyan/90">RM</span>
                                 ) : mode === 'load' ? (
                                     <span className="text-[10px] font-bold text-[#999]">—</span>
                                 ) : (
@@ -147,7 +147,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                             const val = parseFloat(raw);
                                             if (!isNaN(val)) onSetChange(i, mode === 'rir' ? 'targetRIR' : 'targetRPE', val);
                                         }}
-                                        className="w-full bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-sm font-mono text-white py-1 text-center rounded transition-colors outline-none placeholder-orange-900/50"
+                                        className="w-full bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-sm font-mono text-white py-1 text-center rounded transition-colors outline-none placeholder-cyber-cyan/30"
                                         placeholder={mode === 'rir' ? 'RIR' : 'RPE'}
                                     />
                                 )}
@@ -157,7 +157,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                 <select
                                     value={mode}
                                     onChange={e => onSetChange(i, 'intensityMode', e.target.value)}
-                                    className="bg-black/50 text-[10px] font-bold text-[#999] border border-white/10 rounded px-1 py-0.5 focus:ring-1 focus:ring-orange-500/30 cursor-pointer text-center"
+                                    className="bg-black/50 text-[10px] font-bold text-[#999] border border-white/10 rounded px-1 py-0.5 focus:ring-1 focus:ring-cyber-cyan/30 cursor-pointer text-center"
                                 >
                                     {isPercent && <option value="solo_rm" className="bg-black text-white">SOLO RM</option>}
                                     <option value="rpe" className="bg-black text-white">RPE</option>
@@ -191,7 +191,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
 
                 <button
                     onClick={onAddSet}
-                    className="flex items-center gap-1.5 px-1 py-2.5 w-full text-left text-[#555] hover:text-[#FC4C02] transition-colors"
+                    className="flex items-center gap-1.5 px-1 py-2.5 w-full text-left text-[#555] hover:text-[#00F0FF] transition-colors"
                 >
                     <PlusIcon size={12} />
                     <span className="text-xs font-medium">Agregar serie</span>

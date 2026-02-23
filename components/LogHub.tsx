@@ -42,10 +42,10 @@ const LogHub: React.FC<LogHubProps> = ({ onNavigate, setIsBodyLogModalOpen, setI
         </Card>
         <Card
           onClick={() => setIsNutritionLogModalOpen(true)}
-          className="cursor-pointer hover:border-orange-500 transition-all duration-300 transform hover:scale-105 border-2 border-transparent"
+          className="cursor-pointer hover:border-cyber-cyan transition-all duration-300 transform hover:scale-105 border-2 border-transparent"
         >
           <div className="flex flex-col items-center p-4">
-            <UtensilsIcon size={40} className="mb-3 text-orange-400" />
+            <UtensilsIcon size={40} className="mb-3 text-cyber-copper" />
             <h3 className="text-2xl font-bold text-white">Comida / Nutrición</h3>
             <p className="text-slate-400 mt-1">Registra una comida manualmente o con IA.</p>
           </div>

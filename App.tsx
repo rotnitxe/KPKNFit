@@ -551,7 +551,7 @@ export const App: React.FC = () => {
     const tabBarContainerHeight = 'h-[88px]'; // Barra más ancha, diseño plano
 
     return (
-        <div className="app-container fixed inset-0 w-full h-[100dvh] flex flex-col overflow-hidden bg-black">
+        <div className="app-container fixed inset-0 w-full h-[100dvh] flex flex-col overflow-hidden bg-black" data-view={view === 'nutrition' ? 'nutrition' : undefined}>
             
             <AppBackground />
 

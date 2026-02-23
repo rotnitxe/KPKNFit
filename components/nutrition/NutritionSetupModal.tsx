@@ -19,7 +19,7 @@ export const NutritionSetupModal: React.FC<NutritionSetupModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="bg-[#0a0a0a] border border-orange-500/30 rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <div className="bg-[#0a0a0a] border border-cyber-copper/30 rounded-2xl p-6 max-w-sm w-full shadow-xl">
                 <h2 className="text-lg font-black text-white uppercase tracking-tight mb-2">
                     Ajusta tu plan de alimentación
                 </h2>

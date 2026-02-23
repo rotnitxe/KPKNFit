@@ -93,7 +93,7 @@ const WarmupDrawer: React.FC<WarmupDrawerProps> = ({
                 className={`flex items-center justify-between w-full px-4 py-4 rounded-xl border transition-all text-left group ${
                   isDone
                     ? 'bg-sky-600/20 border-sky-500/50 text-white'
-                    : 'bg-[#0d0d0d] border-orange-500/20 text-slate-300 hover:border-sky-500/30'
+                    : 'bg-[#0d0d0d] border-cyber-cyan/20 text-slate-300 hover:border-sky-500/30'
                 }`}
               >
                 <div className="flex items-center gap-4">

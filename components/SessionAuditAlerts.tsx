@@ -97,7 +97,7 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
                         ? 'bg-red-500/10 border-red-500/20 text-red-200' 
                         : alert.type === 'warning'
                         ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-200'
-                        : 'bg-orange-500/10 border-orange-500/20 text-orange-200'
+                        : 'bg-cyber-warning/10 border-cyber-warning/20 text-cyber-warning'
                     }`}
                 >
                     {alert.type === 'error' ? (
@@ -105,7 +105,7 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
                     ) : alert.type === 'warning' ? (
                         <InfoIcon size={16} className="text-yellow-500 shrink-0 mt-0.5" />
                     ) : (
-                        <InfoIcon size={16} className="text-orange-500 shrink-0 mt-0.5" />
+                        <InfoIcon size={16} className="text-cyber-warning shrink-0 mt-0.5" />
                     )}
                     <p className="text-[11px] font-medium leading-relaxed">{alert.msg}</p>
                 </div>

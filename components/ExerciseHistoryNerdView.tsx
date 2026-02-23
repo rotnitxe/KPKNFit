@@ -99,7 +99,7 @@ export const ExerciseHistoryNerdView: React.FC<ExerciseHistoryNerdViewProps> = (
                                         contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', fontSize: '11px' }} 
                                         itemStyle={{ color: '#fff' }}
                                     />
-                                    <Line type="monotone" dataKey="Peso Máx" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                                    <Line type="monotone" dataKey="Peso Máx" stroke="#00F0FF" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>

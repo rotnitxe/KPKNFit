@@ -43,10 +43,10 @@ export const SetupChecklistCard: React.FC<SetupChecklistCardProps> = ({
                 {!hasNutrition && (
                     <button
                         onClick={onNutritionPress}
-                        className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-orange-500/30 transition-all text-left group"
+                        className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyber-copper/30 transition-all text-left group"
                     >
-                        <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
-                            <UtensilsIcon size={20} className="text-orange-400" />
+                        <div className="w-10 h-10 rounded-xl bg-cyber-copper/20 flex items-center justify-center shrink-0">
+                            <UtensilsIcon size={20} className="text-cyber-copper" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <span className="font-bold text-white block font-mono text-sm">Configurar plan de alimentación</span>

@@ -112,18 +112,19 @@ export const getEffectiveVolumeMultiplier = (set: any): number => {
  */
 export const classifyStressLevel = (score: number): { label: string; color: string; barColor: string } => {
     if (score < 40) return { label: 'Bajo', color: 'text-sky-400', barColor: 'bg-sky-500' };
-    if (score < 80) return { label: 'Óptimo', color: 'text-green-400', barColor: 'bg-green-500' };
-    if (score < 120) return { label: 'Alto', color: 'text-orange-400', barColor: 'bg-orange-500' };
-    return { label: 'Excesivo', color: 'text-red-500', barColor: 'bg-red-500' };
+    if (score < 80) return { label: 'Óptimo', color: 'text-[#00FF9D]', barColor: 'bg-[#00FF9D]' };
+    if (score < 120) return { label: 'Alto', color: 'text-[#FFD600]', barColor: 'bg-[#FFD600]' };
+    return { label: 'Excesivo', color: 'text-[#FF2E43]', barColor: 'bg-[#FF2E43]' };
 };
 
 /**
  * Clasificación semántica del ACWR (Acute:Chronic Workload Ratio).
  * Fuente única para analysisService y cualquier componente que interprete ACWR.
+ * Semáforo Nerd: Verde Terminal, Amarillo Solar, Rojo Kelü.
  */
 export const classifyACWR = (acwr: number): { interpretation: string; color: string } => {
     if (acwr < 0.8) return { interpretation: 'Sub-entrenando', color: 'text-sky-400' };
-    if (acwr > 1.5) return { interpretation: 'Alto Riesgo', color: 'text-red-400' };
-    if (acwr > 1.3) return { interpretation: 'Zona de Riesgo', color: 'text-yellow-400' };
-    return { interpretation: 'Zona Segura', color: 'text-green-400' };
+    if (acwr > 1.5) return { interpretation: 'Alto Riesgo', color: 'text-[#FF2E43]' };
+    if (acwr > 1.3) return { interpretation: 'Zona de Riesgo', color: 'text-[#FFD600]' };
+    return { interpretation: 'Zona Segura', color: 'text-[#00FF9D]' };
 };

@@ -14,10 +14,10 @@ interface PartSectionProps {
     children: React.ReactNode;
 }
 
-const PART_COLORS = ['#FC4C02', '#3B82F6', '#00F19F', '#A855F7', '#EAB308', '#F43F5E', '#06B6D4', '#8B5CF6'];
+const PART_COLORS = ['#00F0FF', '#3B82F6', '#00F19F', '#A855F7', '#EAB308', '#F43F5E', '#06B6D4', '#8B5CF6'];
 
 const PartSection: React.FC<PartSectionProps> = ({
-    partName, partIndex, exerciseCount, color = '#FC4C02', isCollapsed,
+    partName, partIndex, exerciseCount, color = '#00F0FF', isCollapsed,
     onToggleCollapse, onRename, onChangeColor, onAddExercise, children,
 }) => {
     const [isEditingName, setIsEditingName] = useState(false);
@@ -60,7 +60,7 @@ const PartSection: React.FC<PartSectionProps> = ({
                         onBlur={() => setIsEditingName(false)}
                         onKeyDown={e => { if (e.key === 'Enter') setIsEditingName(false); }}
                         autoFocus
-                        className="text-xs font-bold uppercase tracking-wide text-[#999] bg-transparent border-b border-white/10 focus:border-[#FC4C02] outline-none py-0.5"
+                        className="text-xs font-bold uppercase tracking-wide text-[#999] bg-transparent border-b border-white/10 focus:border-[#00F0FF] outline-none py-0.5"
                     />
                 ) : (
                     <button
@@ -86,7 +86,7 @@ const PartSection: React.FC<PartSectionProps> = ({
                     {children}
                     <button
                         onClick={onAddExercise}
-                        className="flex items-center gap-1.5 px-4 py-2.5 w-full text-left text-[#555] hover:text-[#FC4C02] transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-2.5 w-full text-left text-[#555] hover:text-[#00F0FF] transition-colors"
                     >
                         <PlusIcon size={14} />
                         <span className="text-xs font-medium">Agregar ejercicio</span>

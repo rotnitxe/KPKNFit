@@ -912,7 +912,7 @@ const TimelineEventCircle: React.FC<{
              onPointerDown={handlePointerDown}
              onClick={(e) => { e.stopPropagation(); onEdit(ev); }}
         >
-            <div className={`h-7 ${isPeriod ? 'w-full rounded-md px-2' : 'w-7 rounded-full'} border-2 ${borderColor} flex items-center justify-center ${glow} transition-all duration-300 overflow-hidden ${ev.type?.includes('body') ? 'bg-pink-500' : ev.type?.includes('power') ? 'bg-yellow-400' : ev.type?.includes('vacation') ? 'bg-orange-400' : 'bg-blue-500'}`}>
+            <div className={`h-7 ${isPeriod ? 'w-full rounded-md px-2' : 'w-7 rounded-full'} border-2 ${borderColor} flex items-center justify-center ${glow} transition-all duration-300 overflow-hidden ${ev.type?.includes('body') ? 'bg-pink-500' : ev.type?.includes('power') ? 'bg-yellow-400' : ev.type?.includes('vacation') ? 'bg-cyber-copper' : 'bg-blue-500'}`}>
                 <div className="flex items-center gap-1.5 shrink-0">
                     {ev.type?.includes('power') ? <TrophyIcon size={14} className="text-black"/> : ev.type?.includes('vacation') ? <span className="text-[10px]">🌴</span> : <TargetIcon size={14} className="text-white"/>}
                     {isPeriod && <span className="text-[8px] font-black uppercase text-white truncate max-w-[60px]">{ev.title}</span>}

@@ -372,9 +372,9 @@ const WorkoutHeader: React.FC<{
                         
                         {/* --- BATERÍA AUGE PROMINENTE --- */}
                         {liveBatteryDrain && (
-                            <div onClick={() => setShowLiveAuge(!showLiveAuge)} className={`flex flex-col gap-1 mt-1.5 transition-opacity duration-300 cursor-pointer bg-[#0a0a0a]/60 backdrop-blur-sm rounded-lg px-2 py-1.5 border border-orange-500/20 ${showLiveAuge ? 'border-violet-500/40' : ''}`}>
+                            <div onClick={() => setShowLiveAuge(!showLiveAuge)} className={`flex flex-col gap-1 mt-1.5 transition-opacity duration-300 cursor-pointer bg-[#0a0a0a]/60 backdrop-blur-sm rounded-lg px-2 py-1.5 border border-cyber-cyan/20 ${showLiveAuge ? 'border-violet-500/40' : ''}`}>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[9px] font-mono font-black uppercase tracking-widest text-orange-500/90">AUGE</span>
+                                    <span className="text-[9px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">AUGE</span>
                                     {(() => {
                                         const total = (liveBatteryDrain.cns + liveBatteryDrain.muscular + liveBatteryDrain.spinal) / 3;
                                         const pct = Math.min(100, total);
@@ -638,7 +638,7 @@ const SetDetails: React.FC<{
             
             <GhostSetInfo exerciseId={(exercise.exerciseDbId || exercise.id) as string} setIndex={setIndex} history={history} settings={settings} />
             
-            {showFailureWarning && <div className="mx-2 mb-2 bg-orange-900/30 border border-orange-500/50 p-3 rounded-xl animate-fade-in relative z-10 text-center"><h4 className="text-orange-400 font-bold text-sm mb-1">¿Fallo Anticipado?</h4><div className="flex gap-2"><button onClick={() => setShowFailureWarning(false)} className="flex-1 py-2 bg-slate-800 rounded text-xs font-bold">Corregir</button><button onClick={() => onLogSet()} className="flex-1 py-2 bg-orange-600 rounded text-xs font-bold text-white">Sí, Guardar</button></div></div>}
+            {showFailureWarning && <div className="mx-2 mb-2 bg-cyber-danger/20 border border-cyber-danger/50 p-3 rounded-xl animate-fade-in relative z-10 text-center"><h4 className="text-cyber-danger font-bold text-sm mb-1">¿Fallo Anticipado?</h4><div className="flex gap-2"><button onClick={() => setShowFailureWarning(false)} className="flex-1 py-2 bg-slate-800 rounded text-xs font-bold">Corregir</button><button onClick={() => onLogSet()} className="flex-1 py-2 bg-cyber-danger rounded text-xs font-bold text-white">Sí, Guardar</button></div></div>}
 
             <div className="space-y-4 px-2">
                 <div className="flex justify-between items-center text-xs px-1 mb-1">
@@ -730,7 +730,7 @@ const SetDetails: React.FC<{
                 </div>
 
                 {set.isAmrap ? (
-                    <div className={`flex justify-center items-center py-3 rounded-lg border w-full ${set.isCalibrator ? 'bg-yellow-900/30 border-yellow-500 text-yellow-400' : 'bg-orange-900/20 border-orange-500 text-orange-400'}`}>
+                    <div className={`flex justify-center items-center py-3 rounded-lg border w-full ${set.isCalibrator ? 'bg-yellow-900/30 border-yellow-500 text-yellow-400' : 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan'}`}>
                         <span className="text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2">
                             <FlameIcon size={14} />
                             {set.isCalibrator ? "AMRAP CALIBRADOR" : "AMRAP AISLADO"}
@@ -768,18 +768,18 @@ const SetDetails: React.FC<{
 
                 {/* Dropset / Rest-Pause: botones visibles + filas expandibles */}
                 <div className="mx-2 mt-2 flex gap-2">
-                    <button onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-orange-500/30 text-[10px] font-black uppercase bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:border-orange-500/50 transition-colors">
-                        <PlusIcon size={12} /> Dropset {(safeInputs.dropSets?.length || 0) > 0 && <span className="bg-orange-500/30 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.dropSets?.length || 0)}</span>}
+                    <button onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-cyber-cyan/30 text-[10px] font-black uppercase bg-cyber-cyan/10 text-cyber-cyan hover:bg-cyber-cyan/20 hover:border-cyber-cyan/50 transition-colors">
+                        <PlusIcon size={12} /> Dropset {(safeInputs.dropSets?.length || 0) > 0 && <span className="bg-cyber-cyan/30 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.dropSets?.length || 0)}</span>}
                     </button>
                     <button onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-sky-500/30 text-[10px] font-black uppercase bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 hover:border-sky-500/50 transition-colors">
                         <PlusIcon size={12} /> Rest-Pause {(safeInputs.restPauses?.length || 0) > 0 && <span className="bg-sky-500/30 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.restPauses?.length || 0)}</span>}
                     </button>
                 </div>
                 {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
-                    <div className="mx-2 mt-2 p-3 bg-slate-900/50 border border-orange-500/20 rounded-xl space-y-3 animate-fade-in">
+                    <div className="mx-2 mt-2 p-3 bg-slate-900/50 border border-cyber-cyan/20 rounded-xl space-y-3 animate-fade-in">
                         {(safeInputs.dropSets || []).map((ds, i) => (
                             <div key={`ds-${i}`} className="flex gap-2 items-center">
-                                <span className="text-[9px] font-mono text-orange-500/80 w-14">Dropset</span>
+                                <span className="text-[9px] font-mono text-cyber-cyan/80 w-14">Dropset</span>
                                 <input type="number" step="0.5" placeholder="Peso" value={ds.weight || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: parseFloat(e.target.value) || 0, reps: arr[i].reps }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
                                 <input type="number" placeholder="Reps" value={ds.reps || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: arr[i].weight, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
                                 <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
@@ -832,7 +832,7 @@ const SetDetails: React.FC<{
                         <p className="text-sm text-slate-300 text-center mb-4">No se pudo completar ninguna repetición. ¿Cuál fue la causa?</p>
                         <div className="space-y-2">
                              <Button onClick={() => handleFailedSet('Dolor / Lesión')} variant="danger" className="w-full">Dolor / Molestia</Button>
-                             <Button onClick={() => handleFailedSet('Peso Excesivo')} variant="secondary" className="w-full text-orange-400">Carga Excesiva</Button>
+                             <Button onClick={() => handleFailedSet('Peso Excesivo')} variant="secondary" className="w-full text-cyber-danger">Carga Excesiva</Button>
                              <Button onClick={() => handleFailedSet('Fallo Técnico')} variant="secondary" className="w-full">Fallo Técnico</Button>
                         </div>
                     </div>
@@ -1507,7 +1507,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                 }
                                                             }}
                                                             disabled={activeSlideIndex === 0}
-                                                            className="p-2 rounded-lg border border-orange-500/20 text-slate-400 hover:text-white hover:border-orange-500/40 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                                            className="p-2 rounded-lg border border-cyber-cyan/20 text-slate-400 hover:text-white hover:border-cyber-cyan/40 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                                                         >
                                                             <ChevronLeftIcon size={20} />
                                                         </button>
@@ -1525,7 +1525,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                 }
                                                             }}
                                                             disabled={activeSlideIndex === totalSlides - 1}
-                                                            className="p-2 rounded-lg border border-orange-500/20 text-slate-400 hover:text-white hover:border-orange-500/40 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                                            className="p-2 rounded-lg border border-cyber-cyan/20 text-slate-400 hover:text-white hover:border-cyber-cyan/40 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                                                         >
                                                             <ChevronRightIcon size={20} />
                                                         </button>
@@ -1576,9 +1576,9 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                         })}
                                                         {activeSlideIndex === totalSlides - 1 && (
                                                             <div id={`feedback-card-${ex.id}`} className="animate-fade-in">
-                                                                <button onClick={() => setActiveSetId(`feedback-${ex.id}`)} className="w-full p-6 bg-slate-950/80 border border-orange-500/20 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-orange-500/40 transition-colors min-h-[260px]">
-                                                                    <ActivityIcon size={40} className="text-orange-500/80" />
-                                                                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">Feedback Post-Ejercicio</span>
+                                                                <button onClick={() => setActiveSetId(`feedback-${ex.id}`)} className="w-full p-6 bg-slate-950/80 border border-cyber-cyan/20 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-cyber-cyan/40 transition-colors min-h-[260px]">
+                                                                    <ActivityIcon size={40} className="text-cyber-cyan/80" />
+                                                                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">Feedback Post-Ejercicio</span>
                                                                     <span className="text-xs text-slate-500">Toca para abrir</span>
                                                                 </button>
                                                             </div>
@@ -1611,8 +1611,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             </div>
 
             {/* Barra de acciones rápidas */}
-            <div className="fixed left-0 right-0 bottom-[max(75px,calc(75px+env(safe-area-inset-bottom)))] z-20 px-4 py-2 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-orange-500/20 flex justify-center gap-3">
-                <button onClick={() => { const ex = allExercises.find(e => e.id === activeExerciseId); if (ex) handleFinishFeedback(ex.id, { jointLoad: 5, technicalQuality: 8, perceivedFatigue: 5 }); addToast('Ejercicio saltado', 'info'); }} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-500/30 text-[10px] font-mono font-black uppercase tracking-widest text-orange-400 hover:bg-orange-500/10 transition-colors">
+            <div className="fixed left-0 right-0 bottom-[max(75px,calc(75px+env(safe-area-inset-bottom)))] z-20 px-4 py-2 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-cyber-cyan/20 flex justify-center gap-3">
+                <button onClick={() => { const ex = allExercises.find(e => e.id === activeExerciseId); if (ex) handleFinishFeedback(ex.id, { jointLoad: 5, technicalQuality: 8, perceivedFatigue: 5 }); addToast('Ejercicio saltado', 'info'); }} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-cyber-cyan/30 text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors">
                     <ChevronRightIcon size={14} /> Saltar
                 </button>
                 <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-sky-500/30 text-[10px] font-mono font-black uppercase tracking-widest text-sky-400 hover:bg-sky-500/10 transition-colors">
@@ -1626,7 +1626,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             {showNotesDrawer && (
                 <WorkoutDrawer isOpen={true} onClose={() => setShowNotesDrawer(false)} title="Notas de Sesión" height="50vh">
                     <div className="p-5">
-                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-xl p-4 text-white text-sm font-mono placeholder-slate-500 focus:border-orange-500/50 outline-none" />
+                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-xl p-4 text-white text-sm font-mono placeholder-slate-500 focus:border-cyber-cyan/50 outline-none" />
                         <p className="text-[9px] text-slate-500 mt-2 font-mono">Se incluirán al finalizar la sesión.</p>
                     </div>
                 </WorkoutDrawer>

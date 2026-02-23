@@ -62,7 +62,7 @@ const WorkoutShareCard: React.FC<{
                 <div className="flex flex-col mt-auto mb-16">
                      <h1 className="text-[5.5rem] font-black text-white leading-[0.85] uppercase tracking-tighter drop-shadow-2xl">
                          DOMINA <br/>
-                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">LA DEBILIDAD</span>
+                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-cyber-cyan">LA DEBILIDAD</span>
                      </h1>
                 </div>
 

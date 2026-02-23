@@ -45,7 +45,7 @@ const defaultSettings: Settings = {
     aiMaxTokens: 2048,
     aiVoice: 'Puck',
     appTheme: 'default',
-    themePrimaryColor: '#8B5CF6',
+    themePrimaryColor: '#00F0FF',
     themeCardBorderRadius: 1.25,
     themeBlurAmount: 40,
     themeGlowIntensity: 10,

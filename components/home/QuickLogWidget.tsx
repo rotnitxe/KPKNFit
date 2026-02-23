@@ -53,7 +53,7 @@ export const QuickLogWidget: React.FC = () => {
     const colorClasses: Record<string, { border: string; icon: string }> = {
         sky: { border: 'border-sky-500/30 hover:border-sky-400/50', icon: 'text-sky-400' },
         indigo: { border: 'border-indigo-500/30 hover:border-indigo-400/50', icon: 'text-indigo-400' },
-        orange: { border: 'border-orange-500/30 hover:border-orange-400/50', icon: 'text-orange-400' },
+        orange: { border: 'border-cyber-copper/30 hover:border-cyber-copper/50', icon: 'text-cyber-copper' },
     };
 
     return (

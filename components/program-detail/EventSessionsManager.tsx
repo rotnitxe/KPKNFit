@@ -77,7 +77,7 @@ const EventSessionsManager: React.FC<EventSessionsManagerProps> = ({ program, is
                             className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/5 transition-colors"
                         >
                             <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-[#FC4C02] shrink-0" />
+                                <div className="w-2 h-2 rounded-full bg-[#00F0FF] shrink-0" />
                                 <span className="text-sm font-bold text-white truncate max-w-[180px]">{ev.title}</span>
                                 <span className="text-[10px] text-[#48484A]">
                                     {isCyclic ? `Cada ${ev.repeatEveryXCycles} ciclos` : `Semana ${(ev.calculatedWeek || 0) + 1}`}
@@ -100,7 +100,7 @@ const EventSessionsManager: React.FC<EventSessionsManagerProps> = ({ program, is
                                 ))}
                                 <button
                                     onClick={() => addSessionToEvent(evId)}
-                                    className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-[#FC4C02]/30 text-[#FC4C02] text-xs font-bold hover:bg-[#FC4C02]/10 transition-colors"
+                                    className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-[#00F0FF]/30 text-[#00F0FF] text-xs font-bold hover:bg-[#00F0FF]/10 transition-colors"
                                 >
                                     <PlusIcon size={12} /> Añadir sesión especial
                                 </button>

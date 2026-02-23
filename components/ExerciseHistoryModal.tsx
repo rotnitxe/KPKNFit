@@ -71,7 +71,7 @@ const ExerciseHistoryModal: React.FC<ExerciseHistoryModalProps> = ({ exercise, p
                                         contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', fontSize: '12px' }} 
                                         itemStyle={{ color: '#fff' }}
                                     />
-                                    <Line type="monotone" dataKey="Peso Máximo" stroke="#3b82f6" strokeWidth={3} dot={{r: 4, fill: '#111', strokeWidth: 2}} activeDot={{r: 6, fill: '#3b82f6'}} />
+                                    <Line type="monotone" dataKey="Peso Máximo" stroke="#00F0FF" strokeWidth={3} dot={{r: 4, fill: '#111', strokeWidth: 2}} activeDot={{r: 6, fill: '#00F0FF'}} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>

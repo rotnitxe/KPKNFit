@@ -75,7 +75,7 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
         }
         const labels: Record<number, { text: string; color: string }> = {
             1: { text: 'ROJO — Descanso recomendado', color: 'text-red-400' },
-            2: { text: 'NARANJA — Sesión ligera', color: 'text-orange-400' },
+            2: { text: 'NARANJA — Sesión ligera', color: 'text-cyber-warning' },
             3: { text: 'AMARILLO — Proceder con cautela', color: 'text-yellow-400' },
             4: { text: 'VERDE — Buen día para entrenar', color: 'text-emerald-400' },
             5: { text: 'VERDE+ — Óptimo para PRs', color: 'text-emerald-300' },

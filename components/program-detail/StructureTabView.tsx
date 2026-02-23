@@ -125,7 +125,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                     <button
                                         key={e.id || i}
                                         onClick={() => onOpenEventModal(e)}
-                                        className="text-[9px] font-bold px-2 py-1 rounded-md bg-[#FC4C02]/10 border border-[#FC4C02]/20 text-[#FC4C02] hover:bg-[#FC4C02]/20"
+                                        className="text-[9px] font-bold px-2 py-1 rounded-md bg-[#00F0FF]/10 border border-[#00F0FF]/20 text-[#00F0FF] hover:bg-[#00F0FF]/20"
                                     >
                                         {e.title} · S{(e.calculatedWeek || 0) + 1}
                                     </button>
@@ -165,7 +165,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                 <div key={block.id} className="rounded-lg border border-white/5 overflow-hidden">
                                                     <button
                                                         onClick={() => { toggleNode(blockKey); onSelectBlock(block.id); }}
-                                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${isSelected ? 'bg-[#FC4C02]/10' : 'hover:bg-white/5'}`}
+                                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${isSelected ? 'bg-[#00F0FF]/10' : 'hover:bg-white/5'}`}
                                                     >
                                                         <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: BLOCK_COLORS[colorIdx] }} />
                                                         <ChevronDownIcon size={12} className={`text-[#48484A] transition-transform ${blockExpanded ? 'rotate-0' : '-rotate-90'}`} />
@@ -182,7 +182,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                         <select
                                                                             value={meso.goal || 'Custom'}
                                                                             onChange={e => update(p => { const t = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx]; if (t) t.goal = e.target.value as any; })}
-                                                                            className="bg-transparent text-[10px] text-[#FC4C02] font-bold border-none p-0 focus:ring-0 cursor-pointer"
+                                                                            className="bg-transparent text-[10px] text-[#00F0FF] font-bold border-none p-0 focus:ring-0 cursor-pointer"
                                                                         >
                                                                             {GOAL_OPTIONS.map(g => <option key={g} value={g} className="bg-black text-white">{g}</option>)}
                                                                         </select>
@@ -196,12 +196,12 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                                 key={week.id}
                                                                                 onClick={() => { onSelectBlock(block.id); onSelectWeek(week.id); }}
                                                                                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all ${
-                                                                                    isWeekSelected ? 'bg-[#FC4C02]/10 text-[#FC4C02]' : 'hover:bg-white/5 text-[#8E8E93]'
+                                                                                    isWeekSelected ? 'bg-[#00F0FF]/10 text-[#00F0FF]' : 'hover:bg-white/5 text-[#8E8E93]'
                                                                                 }`}
                                                                             >
                                                                                 <span className="text-[11px] font-bold flex-1">{week.name}</span>
                                                                                 <span className="text-[10px] text-[#48484A]">{week.sessions.length} ses</span>
-                                                                                {hasEvent && <CalendarIcon size={12} className="text-[#FC4C02] shrink-0" />}
+                                                                                {hasEvent && <CalendarIcon size={12} className="text-[#00F0FF] shrink-0" />}
                                                                             </button>
                                                                         );
                                                                     })}
@@ -210,7 +210,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                             const target = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx];
                                                                             if (target) target.weeks.push({ id: crypto.randomUUID(), name: `Semana ${target.weeks.length + 1}`, sessions: [] });
                                                                         })}
-                                                                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] text-[#48484A] hover:text-[#FC4C02] transition-colors"
+                                                                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] text-[#48484A] hover:text-[#00F0FF] transition-colors"
                                                                     >
                                                                         <PlusIcon size={12} /> Semana
                                                                     </button>
@@ -223,7 +223,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                         weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }],
                                                                     });
                                                                 })}
-                                                                className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] text-[#48484A] hover:text-[#FC4C02] transition-colors"
+                                                                className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] text-[#48484A] hover:text-[#00F0FF] transition-colors"
                                                             >
                                                                 <PlusIcon size={12} /> Mesociclo
                                                             </button>
@@ -235,7 +235,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                         {!isCyclic && (
                                             <button
                                                 onClick={() => handleAddBlockClick(macroIdx)}
-                                                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] text-[#48484A] hover:text-[#FC4C02] hover:bg-white/5 transition-colors border border-dashed border-white/10"
+                                                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] text-[#48484A] hover:text-[#00F0FF] hover:bg-white/5 transition-colors border border-dashed border-white/10"
                                             >
                                                 <PlusIcon size={14} /> Añadir bloque
                                             </button>
@@ -257,7 +257,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
             <div className="shrink-0 border-t border-white/5 px-4 py-4 space-y-3">
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide">Eventos</span>
-                    <button onClick={() => onOpenEventModal()} className="text-xs text-[#FC4C02] font-bold hover:underline">
+                    <button onClick={() => onOpenEventModal()} className="text-xs text-[#00F0FF] font-bold hover:underline">
                         + Nuevo evento
                     </button>
                 </div>
@@ -269,7 +269,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                 onClick={() => onOpenEventModal(ev)}
                                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
                             >
-                                <div className="w-2 h-2 rounded-full bg-[#FC4C02] shrink-0" />
+                                <div className="w-2 h-2 rounded-full bg-[#00F0FF] shrink-0" />
                                 <span className="text-xs font-bold text-white truncate max-w-[120px]">{ev.title}</span>
                                 <span className="text-[10px] text-[#48484A]">
                                     {isCyclic ? `c/${ev.repeatEveryXCycles}` : `S${(ev.calculatedWeek || 0) + 1}`}
@@ -315,7 +315,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                 </button>
                                 <button
                                     onClick={() => pendingAddBlockMacroIdx !== null && doAddBlock(pendingAddBlockMacroIdx)}
-                                    className="flex-1 py-2.5 rounded-lg bg-[#FC4C02] text-xs font-bold text-white hover:bg-[#FC4C02]/90 transition-colors"
+                                    className="flex-1 py-2.5 rounded-lg bg-[#00F0FF] text-xs font-bold text-white hover:bg-[#00F0FF]/90 transition-colors"
                                 >
                                     Continuar
                                 </button>

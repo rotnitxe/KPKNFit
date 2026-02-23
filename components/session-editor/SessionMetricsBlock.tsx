@@ -97,7 +97,7 @@ export const SessionMetricsBlock: React.FC<SessionMetricsBlockProps> = ({
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                 <MiniWidget label="Duración" value={estimatedDuration} unit="min" />
                 <MiniWidget label="Series" value={totalSets} />
-                <MiniWidget label="Dificultad" value={difficulty} unit="/10" className="border-orange-500/30" />
+                <MiniWidget label="Dificultad" value={difficulty} unit="/10" className="border-cyber-cyan/30" />
             </div>
 
             {/* Fatiga central */}
@@ -189,7 +189,7 @@ export const SessionMetricsBlock: React.FC<SessionMetricsBlockProps> = ({
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-[#555] mb-2">Volumen por músculo</h3>
                     <div className="flex flex-wrap gap-2">
                         {muscleVolume.map(({ muscle, sets }) => (
-                            <div key={muscle} className="px-2 py-1 rounded bg-[#FC4C02]/10 border border-[#FC4C02]/20 text-[10px] font-bold">
+                            <div key={muscle} className="px-2 py-1 rounded bg-[#00F0FF]/10 border border-[#00F0FF]/20 text-[10px] font-bold">
                                 {muscle}: {sets} sets
                             </div>
                         ))}

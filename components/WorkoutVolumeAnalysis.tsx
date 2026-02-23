@@ -74,7 +74,7 @@ const getDynamicBenchmarks = (muscleName: string, sets: number, programMode?: st
         if (sets === 0) { label = 'Min'; color = 'bg-zinc-700 text-zinc-400'; desc = 'Mantenimiento'; }
         else if (sets < 6) { label = 'Bajo'; color = 'bg-blue-900/50 text-blue-200'; desc = 'Gestión Fatiga'; }
         else if (sets <= 12) { label = 'Óptimo'; color = 'bg-emerald-600 text-white'; desc = 'Estímulo Efectivo'; }
-        else { label = 'Alto'; color = 'bg-orange-600 text-white'; desc = 'Posible Interf. SNC'; }
+        else { label = 'Alto'; color = 'bg-cyber-warning text-white'; desc = 'Posible Interf. SNC'; }
 
         return { label, color, desc, isPowerlifting: true };
     } else {

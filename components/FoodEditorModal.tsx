@@ -63,13 +63,13 @@ const FoodEditorModal: React.FC = () => {
                     <div className="space-y-1">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nombre del alimento</label>
                         <div className="relative group">
-                            <UtensilsIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-orange-400 transition-colors"/>
+                            <UtensilsIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyber-copper transition-colors"/>
                             <input 
                                 type="text" 
                                 value={food.name || ''} 
                                 onChange={e => handleChange('name', e.target.value)} 
                                 placeholder="ej. Pechuga de Pollo"
-                                className="w-full bg-slate-900/50 border border-white/10 rounded-2xl p-4 pl-12 font-bold text-white text-lg focus:border-orange-500 outline-none transition-all placeholder:text-slate-600"
+                                className="w-full bg-slate-900/50 border border-white/10 rounded-2xl p-4 pl-12 font-bold text-white text-lg focus:border-cyber-copper outline-none transition-all placeholder:text-slate-600"
                             />
                         </div>
                     </div>
@@ -111,7 +111,7 @@ const FoodEditorModal: React.FC = () => {
                     {/* Macros Card */}
                     <div className="bg-slate-900/30 p-4 rounded-3xl border border-white/5 space-y-4 shadow-lg relative overflow-hidden">
                         {/* Decorative Background Blur */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 blur-[40px] rounded-full pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-cyber-copper/5 blur-[40px] rounded-full pointer-events-none"></div>
                         
                         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
                             <ActivityIcon size={12}/> Información Nutricional
@@ -126,8 +126,8 @@ const FoodEditorModal: React.FC = () => {
                                 <label className="block text-[8px] font-black text-blue-500 uppercase mb-1 tracking-wider">Proteínas (g)</label>
                                 <input type="number" step="0.1" value={food.protein} onChange={e => handleChange('protein', Number(e.target.value))} className="w-full bg-transparent border-none font-mono text-2xl font-black text-white p-0 focus:ring-0 placeholder-slate-700" placeholder="0.0" />
                             </div>
-                            <div className="bg-slate-950 p-3 rounded-2xl border border-white/5 shadow-sm group hover:border-orange-500/30 transition-colors">
-                                <label className="block text-[8px] font-black text-orange-500 uppercase mb-1 tracking-wider">Carbohidratos (g)</label>
+                            <div className="bg-slate-950 p-3 rounded-2xl border border-white/5 shadow-sm group hover:border-cyber-copper/30 transition-colors">
+                                <label className="block text-[8px] font-black text-cyber-copper uppercase mb-1 tracking-wider">Carbohidratos (g)</label>
                                 <input type="number" step="0.1" value={food.carbs} onChange={e => handleChange('carbs', Number(e.target.value))} className="w-full bg-transparent border-none font-mono text-2xl font-black text-white p-0 focus:ring-0 placeholder-slate-700" placeholder="0.0" />
                             </div>
                             <div className="bg-slate-950 p-3 rounded-2xl border border-white/5 shadow-sm group hover:border-yellow-500/30 transition-colors">
@@ -144,7 +144,7 @@ const FoodEditorModal: React.FC = () => {
                             onChange={e => handleChange('aiNotes', e.target.value)} 
                             placeholder="Detalles sobre micronutrientes, fibra, tipo de grasa..."
                             rows={3}
-                            className="w-full bg-slate-900/50 border border-white/5 rounded-2xl p-4 text-xs text-slate-300 shadow-inner focus:border-orange-500/30 outline-none resize-none placeholder:text-slate-600" 
+                            className="w-full bg-slate-900/50 border border-white/5 rounded-2xl p-4 text-xs text-slate-300 shadow-inner focus:border-cyber-copper/30 outline-none resize-none placeholder:text-slate-600" 
                         />
                     </div>
                 </div>
@@ -154,7 +154,7 @@ const FoodEditorModal: React.FC = () => {
                     <Button onClick={closeFoodEditor} variant="secondary" className="flex-1 !py-3 uppercase font-bold text-xs !bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
                         Cancelar
                     </Button>
-                    <Button onClick={handleSave} className="flex-[2] !py-3 uppercase font-black text-xs shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 bg-orange-600 border-orange-500 hover:bg-orange-500 transition-all">
+                    <Button onClick={handleSave} className="flex-[2] !py-3 uppercase font-black text-xs shadow-lg shadow-cyber-copper/20 hover:shadow-cyber-copper/40 bg-cyber-copper border-cyber-copper hover:bg-cyber-copper/90 transition-all">
                         <SaveIcon size={16} className="mr-2"/> Guardar
                     </Button>
                 </div>

@@ -40,13 +40,13 @@ const NutritionView: React.FC = () => {
             <div className="flex border-b border-white/5 shrink-0">
                 <button
                     onClick={() => setActiveTab('hoy')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'hoy' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'}`}
+                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'hoy' ? 'text-cyber-copper border-b-2 border-cyber-copper' : 'text-[#48484A]'}`}
                 >
                     Hoy
                 </button>
                 <button
                     onClick={() => setActiveTab('plan')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'plan' ? 'text-[#FC4C02] border-b-2 border-[#FC4C02]' : 'text-[#48484A]'}`}
+                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'plan' ? 'text-cyber-copper border-b-2 border-cyber-copper' : 'text-[#48484A]'}`}
                 >
                     Plan
                 </button>

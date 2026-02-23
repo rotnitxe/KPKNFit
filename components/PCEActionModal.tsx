@@ -76,13 +76,13 @@ export const PCEActionModal: React.FC = () => {
 
                     {/* Tarjeta de Entrenamiento */}
                     <div className="bg-gray-800/80 border border-gray-700 p-4 rounded-xl">
-                        <h3 className="font-bold text-orange-400 mb-1 flex items-center gap-2">🏋️ Auto-Regulación</h3>
+                        <h3 className="font-bold text-cyber-cyan mb-1 flex items-center gap-2">🏋️ Auto-Regulación</h3>
                         <p className="text-sm text-gray-400 mb-3">
                             {pceData.isExtreme 
                                 ? "Tu sistema central superó el límite crítico. Sugerimos convertir tu próxima sesión en un Día de Descanso." 
                                 : "Sugerimos reducir drásticamente el volumen (series) de tu sesión de mañana para asimilar el estímulo de hoy."}
                         </p>
-                        <button onClick={handleTrainingAction} className="w-full bg-orange-600/20 text-orange-400 border border-orange-600/50 py-2 rounded-lg font-semibold hover:bg-orange-600 hover:text-white transition-colors">
+                        <button onClick={handleTrainingAction} className="w-full bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/50 py-2 rounded-lg font-semibold hover:bg-cyber-cyan hover:text-white transition-colors">
                             {pceData.isExtreme ? "Cancelar Sesión de Mañana" : "Modificar Sesión de Mañana"}
                         </button>
                     </div>

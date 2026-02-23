@@ -44,10 +44,10 @@ const WeeklyFatigueCard: React.FC = () => {
     }, [historicalData]);
 
     const getAcwrInterpretation = (acwr: number) => {
-        if (acwr < 0.8) return { text: "Muy Fresco / Sub-entrenando", color: "text-sky-400" };
-        if (acwr <= 1.3) return { text: "Zona Segura de Progresión", color: "text-green-400" };
-        if (acwr < 1.5) return { text: "Zona de Riesgo", color: "text-yellow-400" };
-        return { text: "Alto Riesgo de Lesión", color: "text-red-400" };
+        if (acwr < 0.8) return { text: "Muy Fresco / Sub-entrenando", color: "text-cyber-cyan/80" };
+        if (acwr <= 1.3) return { text: "Zona Segura de Progresión", color: "text-cyber-success" };
+        if (acwr < 1.5) return { text: "Zona de Riesgo", color: "text-cyber-warning" };
+        return { text: "Alto Riesgo de Lesión", color: "text-cyber-danger" };
     };
 
     if (!currentWeekData) {
@@ -99,14 +99,14 @@ const WeeklyFatigueCard: React.FC = () => {
                                     <ComposedChart data={historicalData} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                                         <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                                        <YAxis yAxisId="left" stroke="#38bdf8" fontSize={10} domain={[0, 'dataMax + 0.5']} />
+                                        <YAxis yAxisId="left" stroke="#00F0FF" fontSize={10} domain={[0, 'dataMax + 0.5']} />
                                         <YAxis yAxisId="right" orientation="right" stroke="#fcd34d" fontSize={10} domain={[1, 5]} />
                                         <Tooltip content={<CustomTooltip />} />
                                         <Legend wrapperStyle={{fontSize: "10px"}} />
-                                        <ReferenceArea yAxisId="left" y1={0.8} y2={1.3} fill="#22c55e" fillOpacity={0.1} />
-                                        <ReferenceArea yAxisId="left" y1={1.3} y2={1.5} fill="#facc15" fillOpacity={0.1} />
-                                        <ReferenceArea yAxisId="left" y1={1.5} y2={10} fill="#f87171" fillOpacity={0.1} />
-                                        <Line yAxisId="left" type="monotone" dataKey="acwr" name="ACWR" stroke="#38bdf8" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 6 }} />
+                                        <ReferenceArea yAxisId="left" y1={0.8} y2={1.3} fill="#00FF9D" fillOpacity={0.1} />
+                                        <ReferenceArea yAxisId="left" y1={1.3} y2={1.5} fill="#FFD600" fillOpacity={0.1} />
+                                        <ReferenceArea yAxisId="left" y1={1.5} y2={10} fill="#FF2E43" fillOpacity={0.1} />
+                                        <Line yAxisId="left" type="monotone" dataKey="acwr" name="ACWR" stroke="#00F0FF" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 6 }} />
                                         <Line yAxisId="right" type="monotone" dataKey="avgSleepQuality" name="Sueño (1-5)" stroke="#fcd34d" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 6 }} connectNulls />
                                     </ComposedChart>
                                 </ResponsiveContainer>

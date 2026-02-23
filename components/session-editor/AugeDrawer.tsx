@@ -199,7 +199,7 @@ const AvisoRow: React.FC<{
                             <div className="mt-3 pt-3 border-t border-white/10">
                                 <button
                                     onClick={handleApply}
-                                    className="px-3 py-1.5 rounded-lg bg-[#FC4C02] text-white text-[10px] font-bold hover:brightness-110 transition-all"
+                                    className="px-3 py-1.5 rounded-lg bg-[#00F0FF] text-white text-[10px] font-bold hover:brightness-110 transition-all"
                                 >
                                     {getCorrectionLabel(aviso)}
                                 </button>
@@ -237,7 +237,7 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
             <div className="fixed top-0 right-0 bottom-0 z-[111] w-[320px] max-w-[85vw] bg-[#111] border-l border-white/[0.08] flex flex-col animate-slide-left">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
                     <div className="flex items-center gap-2">
-                        <ActivityIcon size={16} className="text-[#FC4C02]" />
+                        <ActivityIcon size={16} className="text-[#00F0FF]" />
                         <span className="text-sm font-semibold text-white">AUGE</span>
                     </div>
                     <button onClick={onClose} className="p-2 text-[#555] hover:text-white transition-colors -m-2">
@@ -283,13 +283,13 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                             <div className="flex rounded-lg border border-white/10 overflow-hidden">
                                 <button
                                     onClick={() => setVolumeContext('session')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'session' ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'session' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
                                 >
                                     Sesión
                                 </button>
                                 <button
                                     onClick={() => setVolumeContext('week')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'week' ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'week' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
                                 >
                                     Semana
                                 </button>
@@ -325,13 +325,13 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                             <div className="flex rounded-lg border border-white/10 overflow-hidden">
                                 <button
                                     onClick={() => setDrainContext('session')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'session' ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'session' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
                                 >
                                     Sesión
                                 </button>
                                 <button
                                     onClick={() => setDrainContext('week')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'week' ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'week' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
                                 >
                                     Semana
                                 </button>

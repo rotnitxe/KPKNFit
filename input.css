@@ -33,11 +33,11 @@
     to { opacity: 1; max-height: 500px; }
 }
 .animate-expand { animation: expand-down 0.2s ease-out; }
-@keyframes pulse-orange {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(252,76,2,0.4); }
-    50% { box-shadow: 0 0 0 6px rgba(252,76,2,0); }
+@keyframes pulse-cyan {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,240,255,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(0,240,255,0); }
 }
-.animate-pulse-orange { animation: pulse-orange 2s ease-in-out infinite; }
+.animate-pulse-cyan { animation: pulse-cyan 2s ease-in-out infinite; }
 @keyframes zoom-slow {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.08); }

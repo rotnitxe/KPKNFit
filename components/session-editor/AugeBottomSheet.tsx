@@ -139,7 +139,7 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
                                 {[
                                     { label: 'Muscular (MSC)', value: drainData.muscularDrainPct || 0, color: 'blue' },
                                     { label: 'SNC', value: drainData.cnsDrainPct || 0, color: 'purple' },
-                                    { label: 'Espinal', value: drainData.spinalDrainPct || 0, color: 'orange' },
+                                    { label: 'Espinal', value: drainData.spinalDrainPct || 0, color: '#00F0FF' },
                                 ].map(metric => (
                                     <div key={metric.label}>
                                         <div className="flex items-center justify-between mb-1">

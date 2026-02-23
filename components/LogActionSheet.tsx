@@ -108,7 +108,7 @@ const LogActionSheet: React.FC = () => {
             icon: UtensilsIcon, 
             label: "Alimento", 
             action: () => openFoodEditor(),
-            color: "bg-orange-600",
+            color: "bg-cyber-cyan",
             delay: 200
         },
          { 

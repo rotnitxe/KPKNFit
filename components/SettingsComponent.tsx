@@ -309,13 +309,13 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                 </div>
 
                 {/* --- NUEVO: CONFIGURACIÓN DE BATERÍAS AUGE --- */}
-                <div className="bg-slate-900/40 p-4 rounded-3xl border border-orange-500/30 space-y-4 mt-4 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/10 rounded-bl-[100px] pointer-events-none"></div>
+                <div className="bg-slate-900/40 p-4 rounded-3xl border border-cyber-cyan/30 space-y-4 mt-4 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-cyber-cyan/10 rounded-bl-[100px] pointer-events-none"></div>
                     
                     <div className="mb-2 relative z-10">
-                        <span className="text-[10px] font-black text-orange-500 uppercase flex items-center gap-1.5"><ActivityIcon size={12}/> Precisión de Baterías (AUGE)</span>
+                        <span className="text-[10px] font-black text-cyber-cyan uppercase flex items-center gap-1.5"><ActivityIcon size={12}/> Precisión de Baterías (AUGE)</span>
                         <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
-                            Conecta calorías y macros con la batería muscular para que la recuperación refleje tu alimentación. <strong className="text-orange-400">Si desactivas</strong>, la batería se calcula solo con el entrenamiento (útil si no trackeas siempre la comida).
+                            Conecta calorías y macros con la batería muscular para que la recuperación refleje tu alimentación. <strong className="text-cyber-cyan">Si desactivas</strong>, la batería se calcula solo con el entrenamiento (útil si no trackeas siempre la comida).
                         </p>
                     </div>
                     

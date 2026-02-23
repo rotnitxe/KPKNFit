@@ -209,11 +209,11 @@ export const NutritionDashboard: React.FC<{
     return (
         <div className="space-y-4 pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))]">
             {showSetupBanner && onOpenWizard && (
-                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                <div className="bg-cyber-copper/10 border border-cyber-copper/30 rounded-xl p-4">
                     <p className="text-sm text-zinc-300 mb-2">Aún no has configurado tu plan de alimentación.</p>
                     <button
                         onClick={onOpenWizard}
-                        className="text-sm font-bold text-orange-400 hover:text-orange-300 transition-colors"
+                        className="text-sm font-bold text-cyber-copper hover:text-cyber-copper/80 transition-colors"
                     >
                         Configurar ahora
                     </button>
@@ -326,11 +326,11 @@ export const NutritionDashboard: React.FC<{
                     Métricas
                 </p>
                 <div className="grid grid-cols-2 gap-3 text-[10px] font-mono">
-                    {bmr != null && <div><span className="text-zinc-500">TMB</span><span className="text-orange-400 ml-1">{Math.round(bmr)} kcal</span></div>}
-                    {tdee != null && <div><span className="text-zinc-500">TDEE</span><span className="text-orange-400 ml-1">{tdee} kcal</span></div>}
+                    {bmr != null && <div><span className="text-zinc-500">TMB</span><span className="text-cyber-copper ml-1">{Math.round(bmr)} kcal</span></div>}
+                    {tdee != null && <div><span className="text-zinc-500">TDEE</span><span className="text-cyber-copper ml-1">{tdee} kcal</span></div>}
                     {hasCalorieGoal && <div><span className="text-zinc-500">Déficit/Superávit</span><span className={deficitSurplus >= 0 ? 'text-emerald-400' : 'text-red-400'}>{deficitSurplus >= 0 ? '+' : ''}{deficitSurplus} kcal</span></div>}
-                    {proteinPerKg && <div><span className="text-zinc-500">Proteína/kg</span><span className="text-orange-400 ml-1">{proteinPerKg} g</span></div>}
-                    <div><span className="text-zinc-500">Fibra</span><span className="text-orange-400 ml-1">{fiberToday.toFixed(0)} g</span></div>
+                    {proteinPerKg && <div><span className="text-zinc-500">Proteína/kg</span><span className="text-cyber-copper ml-1">{proteinPerKg} g</span></div>}
+                    <div><span className="text-zinc-500">Fibra</span><span className="text-cyber-copper ml-1">{fiberToday.toFixed(0)} g</span></div>
                 </div>
             </div>
 
@@ -346,8 +346,8 @@ export const NutritionDashboard: React.FC<{
                             <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} />
                             <YAxis stroke="#94a3b8" fontSize={10} unit=" kcal" />
                             <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(249,115,22,0.3)' }} />
-                            <Bar dataKey="Calorías" fill="#f97316" radius={[2, 2, 0, 0]} />
-                            {hasCalorieGoal && <ReferenceLine y={calorieGoal} stroke="#f97316" strokeDasharray="3 3" />}
+                            <Bar dataKey="Calorías" fill="#FF7B00" radius={[2, 2, 0, 0]} />
+                            {hasCalorieGoal && <ReferenceLine y={calorieGoal} stroke="#FF7B00" strokeDasharray="3 3" />}
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -493,7 +493,7 @@ export const NutritionDashboard: React.FC<{
             {/* FAB NERD */}
             <button
                 onClick={onOpenDrawer}
-                className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-[#FC4C02] text-white flex items-center justify-center shadow-lg shadow-orange-500/30 hover:scale-105 transition-transform z-50 border border-orange-400/30"
+                className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-[#FF7B00] text-white flex items-center justify-center shadow-lg shadow-cyber-copper/20 hover:scale-105 transition-transform z-50 border border-cyber-copper/30"
             >
                 <UtensilsIcon size={24} />
             </button>

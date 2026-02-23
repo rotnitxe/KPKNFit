@@ -66,7 +66,7 @@ export const TransferDrawer: React.FC<TransferDrawerProps> = ({ isOpen, onClose,
                 <p className="text-xs text-[#999]">Selecciona la sesión de {mode === 'export' ? 'destino' : 'origen'}:</p>
                 <div className="space-y-2">
                     {weekSessions.filter(s => s.id !== activeSessionId).map(s => (
-                        <button key={s.id} onClick={() => setTargetId(s.id)} className={`w-full p-3 text-left rounded-lg border text-xs font-medium transition-all ${targetId === s.id ? 'bg-[#FC4C02]/10 border-[#FC4C02]/30 text-white' : 'bg-white/[0.02] border-white/[0.06] text-[#999] hover:border-white/10'}`}>
+                        <button key={s.id} onClick={() => setTargetId(s.id)} className={`w-full p-3 text-left rounded-lg border text-xs font-medium transition-all ${targetId === s.id ? 'bg-[#00F0FF]/10 border-[#00F0FF]/30 text-white' : 'bg-white/[0.02] border-white/[0.06] text-[#999] hover:border-white/10'}`}>
                             {s.name || `Sesión Día ${s.dayOfWeek}`}
                             <span className="block text-[10px] text-[#555] mt-0.5">
                             {(s.parts && s.parts.length > 0)
@@ -77,7 +77,7 @@ export const TransferDrawer: React.FC<TransferDrawerProps> = ({ isOpen, onClose,
                     ))}
                 </div>
                 {targetId && (
-                    <button onClick={() => { onTransfer(mode, targetId); onClose(); }} className="w-full py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">
+                    <button onClick={() => { onTransfer(mode, targetId); onClose(); }} className="w-full py-2.5 rounded-lg bg-[#00F0FF] text-white text-xs font-bold hover:brightness-110 transition-all">
                         Confirmar Transferencia
                     </button>
                 )}
@@ -119,23 +119,23 @@ export const WarmupDrawer: React.FC<WarmupDrawerProps> = ({ isOpen, onClose, exe
                         <span className="w-6 text-xs font-mono text-[#999] text-center">{i + 1}</span>
                         <div className="flex-1">
                             <span className="text-[10px] text-[#555] block">Carga %</span>
-                            <input type="number" value={set.percentageOfWorkingWeight} onChange={e => { const u = [...sets]; u[i].percentageOfWorkingWeight = parseFloat(e.target.value); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#FC4C02] text-sm font-mono text-white py-0.5 outline-none" />
+                            <input type="number" value={set.percentageOfWorkingWeight} onChange={e => { const u = [...sets]; u[i].percentageOfWorkingWeight = parseFloat(e.target.value); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 outline-none" />
                         </div>
                         <div className="w-16">
                             <span className="text-[10px] text-[#555] block">Reps</span>
-                            <input type="number" value={set.targetReps} onChange={e => { const u = [...sets]; u[i].targetReps = parseFloat(e.target.value); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#FC4C02] text-sm font-mono text-white py-0.5 text-center outline-none" />
+                            <input type="number" value={set.targetReps} onChange={e => { const u = [...sets]; u[i].targetReps = parseFloat(e.target.value); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 text-center outline-none" />
                         </div>
                         <button onClick={() => setSets(sets.filter((_, idx) => idx !== i))} className="text-[#555] hover:text-red-400 transition-colors mt-3">
                             <XIcon size={12} />
                         </button>
                     </div>
                 ))}
-                <button onClick={addSet} className="flex items-center gap-1.5 text-[#555] hover:text-[#FC4C02] text-xs font-medium transition-colors">
+                <button onClick={addSet} className="flex items-center gap-1.5 text-[#555] hover:text-[#00F0FF] text-xs font-medium transition-colors">
                     <PlusIcon size={12} /> Agregar serie
                 </button>
                 <div className="flex gap-2 pt-3 border-t border-white/[0.08]">
                     <button onClick={onClose} className="flex-1 py-2.5 rounded-lg text-xs font-medium text-[#999] hover:bg-white/5 transition-all">Cancelar</button>
-                    <button onClick={() => { onSave(sets); onClose(); }} className="flex-1 py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">Guardar</button>
+                    <button onClick={() => { onSave(sets); onClose(); }} className="flex-1 py-2.5 rounded-lg bg-[#00F0FF] text-white text-xs font-bold hover:brightness-110 transition-all">Guardar</button>
                 </div>
             </div>
         </Drawer>
@@ -162,7 +162,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose, s
                         onClick={() => { onRestore(hist); onClose(); }}
                         className="w-full text-left p-3 border border-white/[0.06] hover:border-white/10 rounded-lg text-xs transition-all group"
                     >
-                        <span className="text-white font-medium group-hover:text-[#FC4C02]">
+                        <span className="text-white font-medium group-hover:text-[#00F0FF]">
                             Estado #{sessionHistory.length - idx}
                         </span>
                         <span className="text-[10px] text-[#555] ml-2">Restaurar</span>
@@ -237,8 +237,8 @@ export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApp
         <Drawer isOpen={isOpen} onClose={onClose} title="Reglas" position="bottom" height="70%">
             <div className="p-4 space-y-4">
                 <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
-                    <button onClick={() => setActiveTab('defaults')} className={`flex-1 py-2 text-[10px] font-bold rounded-md transition-all ${activeTab === 'defaults' ? 'bg-[#FC4C02] text-white' : 'text-[#999]'}`}>Defaults</button>
-                    <button onClick={() => setActiveTab('limits')} className={`flex-1 py-2 text-[10px] font-bold rounded-md transition-all ${activeTab === 'limits' ? 'bg-[#FC4C02] text-white' : 'text-[#999]'}`}>Límites</button>
+                    <button onClick={() => setActiveTab('defaults')} className={`flex-1 py-2 text-[10px] font-bold rounded-md transition-all ${activeTab === 'defaults' ? 'bg-[#00F0FF] text-white' : 'text-[#999]'}`}>Defaults</button>
+                    <button onClick={() => setActiveTab('limits')} className={`flex-1 py-2 text-[10px] font-bold rounded-md transition-all ${activeTab === 'limits' ? 'bg-[#00F0FF] text-white' : 'text-[#999]'}`}>Límites</button>
                 </div>
 
                 {activeTab === 'defaults' && (
@@ -248,7 +248,7 @@ export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApp
                             <span className="text-[10px] font-bold text-[#555] uppercase block mb-2">Ámbito</span>
                             <div className="flex gap-2 flex-wrap">
                                 {(['session', 'section'] as const).map(s => (
-                                    <button key={s} onClick={() => setScope(s)} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${scope === s ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#999]'}`}>
+                                    <button key={s} onClick={() => setScope(s)} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${scope === s ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#999]'}`}>
                                         {s === 'session' ? 'Toda la sesión' : 'Sección'}
                                     </button>
                                 ))}
@@ -264,15 +264,15 @@ export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApp
                         <div className="grid grid-cols-3 gap-3">
                             <div>
                                 <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Series</span>
-                                <input type="number" min={1} max={20} value={sets} onChange={e => setSets(Math.min(20, Math.max(1, parseInt(e.target.value) || 3)))} className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                                <input type="number" min={1} max={20} value={sets} onChange={e => setSets(Math.min(20, Math.max(1, parseInt(e.target.value) || 3)))} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Reps</span>
-                                <input type="number" min={1} max={99} value={reps} onChange={e => setReps(Math.min(99, Math.max(1, parseInt(e.target.value) || 10)))} className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                                <input type="number" min={1} max={99} value={reps} onChange={e => setReps(Math.min(99, Math.max(1, parseInt(e.target.value) || 10)))} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">RPE</span>
-                                <input type="number" step="0.5" min={1} max={10} value={rpe} onChange={e => setRpe(Math.min(10, Math.max(1, parseFloat(e.target.value) || 8)))} className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                                <input type="number" step="0.5" min={1} max={10} value={rpe} onChange={e => setRpe(Math.min(10, Math.max(1, parseFloat(e.target.value) || 8)))} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
                             </div>
                         </div>
                     </>
@@ -283,21 +283,21 @@ export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApp
                         <p className="text-xs text-[#999] leading-relaxed">Límites y restricciones (aviso al superar).</p>
                         <div>
                             <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Máx ejercicios por músculo</span>
-                            <input type="number" min={1} max={20} value={maxExercisesPerMuscle} onChange={e => setMaxExercisesPerMuscle(e.target.value === '' ? '' : Math.min(20, Math.max(1, parseInt(e.target.value) || 0)))} placeholder="Sin límite" className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 px-3 outline-none placeholder-[#555]" />
+                            <input type="number" min={1} max={20} value={maxExercisesPerMuscle} onChange={e => setMaxExercisesPerMuscle(e.target.value === '' ? '' : Math.min(20, Math.max(1, parseInt(e.target.value) || 0)))} placeholder="Sin límite" className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 px-3 outline-none placeholder-[#555]" />
                         </div>
                         <div>
                             <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">RPE máximo (aviso si se supera)</span>
-                            <input type="number" step="0.5" min={1} max={10} value={maxRPE} onChange={e => setMaxRPE(e.target.value === '' ? '' : Math.min(10, Math.max(1, parseFloat(e.target.value) || 0)))} placeholder="Sin límite" className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg focus:border-[#FC4C02] text-sm font-mono text-white py-1.5 px-3 outline-none placeholder-[#555]" />
+                            <input type="number" step="0.5" min={1} max={10} value={maxRPE} onChange={e => setMaxRPE(e.target.value === '' ? '' : Math.min(10, Math.max(1, parseFloat(e.target.value) || 0)))} placeholder="Sin límite" className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 px-3 outline-none placeholder-[#555]" />
                         </div>
                     </>
                 )}
 
                 {activeTab === 'defaults' ? (
-                    <button onClick={handleApplyDefaults} className="w-full py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">
+                    <button onClick={handleApplyDefaults} className="w-full py-2.5 rounded-lg bg-[#00F0FF] text-white text-xs font-bold hover:brightness-110 transition-all">
                         Aplicar defaults
                     </button>
                 ) : (
-                    <button onClick={handleSaveLimits} className="w-full py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">
+                    <button onClick={handleSaveLimits} className="w-full py-2.5 rounded-lg bg-[#00F0FF] text-white text-xs font-bold hover:brightness-110 transition-all">
                         Guardar límites
                     </button>
                 )}
@@ -337,7 +337,7 @@ export const SaveDrawer: React.FC<SaveDrawerProps> = ({ isOpen, onClose, session
                                     </div>
                                     {showBlockOption && (
                                         <label className="flex items-center gap-1.5 cursor-pointer">
-                                            <input type="checkbox" checked={blockSelections[s.id] || false} onChange={e => setBlockSelections(prev => ({ ...prev, [s.id]: e.target.checked }))} className="rounded border-white/10 bg-black w-3 h-3 text-[#FC4C02] focus:ring-0" />
+                                            <input type="checkbox" checked={blockSelections[s.id] || false} onChange={e => setBlockSelections(prev => ({ ...prev, [s.id]: e.target.checked }))} className="rounded border-white/10 bg-black w-3 h-3 text-[#00F0FF] focus:ring-0" />
                                             <span className="text-[10px] text-[#555]">Bloque</span>
                                         </label>
                                     )}
@@ -346,7 +346,7 @@ export const SaveDrawer: React.FC<SaveDrawerProps> = ({ isOpen, onClose, session
                         </div>
                         <div className="flex gap-2 pt-2">
                             <button onClick={() => onSaveSingle(false)} className="flex-1 py-2.5 rounded-lg border border-white/[0.08] text-xs font-medium text-[#999] hover:text-white hover:bg-white/5 transition-all">Solo actual</button>
-                            <button onClick={() => onSaveMultiple(modifiedSessions, blockSelections)} className="flex-1 py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">Guardar todas</button>
+                            <button onClick={() => onSaveMultiple(modifiedSessions, blockSelections)} className="flex-1 py-2.5 rounded-lg bg-[#00F0FF] text-white text-xs font-bold hover:brightness-110 transition-all">Guardar todas</button>
                         </div>
                     </>
                 ) : (
@@ -354,7 +354,7 @@ export const SaveDrawer: React.FC<SaveDrawerProps> = ({ isOpen, onClose, session
                         <p className="text-sm text-[#999]">Guardar cambios en <strong className="text-white">{sessionName}</strong></p>
                         {showBlockOption && (
                             <label className="flex items-center gap-3 p-3 border border-white/[0.08] rounded-lg cursor-pointer hover:bg-white/[0.02] transition-colors">
-                                <input type="checkbox" checked={applyToBlock} onChange={e => setApplyToBlock(e.target.checked)} className="rounded border-white/10 bg-black w-4 h-4 text-[#FC4C02] focus:ring-0" />
+                                <input type="checkbox" checked={applyToBlock} onChange={e => setApplyToBlock(e.target.checked)} className="rounded border-white/10 bg-black w-4 h-4 text-[#00F0FF] focus:ring-0" />
                                 <div>
                                     <span className="text-xs font-bold text-white block">Aplicar a todo el bloque</span>
                                     <span className="text-[10px] text-[#555]">Cambia este día en todas las semanas restantes.</span>
@@ -363,7 +363,7 @@ export const SaveDrawer: React.FC<SaveDrawerProps> = ({ isOpen, onClose, session
                         )}
                         <div className="flex gap-2 pt-2">
                             <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-white/[0.08] text-xs font-medium text-[#999] hover:text-white hover:bg-white/5 transition-all">Cancelar</button>
-                            <button onClick={() => onSaveSingle(applyToBlock)} className="flex-1 py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">Guardar</button>
+                            <button onClick={() => onSaveSingle(applyToBlock)} className="flex-1 py-2.5 rounded-lg bg-[#00F0FF] text-white text-xs font-bold hover:brightness-110 transition-all">Guardar</button>
                         </div>
                     </>
                 )}

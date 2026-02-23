@@ -62,18 +62,18 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
     return (
         <>
             <div className="fixed inset-0 z-[101] bg-black/50" onClick={onClose} />
-            <div className="fixed top-0 right-0 bottom-0 z-[102] w-[320px] max-w-[90vw] bg-[#0a0a0a] border-l border-orange-500/20 flex flex-col animate-slide-left">
+            <div className="fixed top-0 right-0 bottom-0 z-[102] w-[320px] max-w-[90vw] bg-[#0a0a0a] border-l border-cyber-cyan/20 flex flex-col animate-slide-left">
                 {/* Header NERD */}
-                <div className="px-4 py-3 border-b border-orange-500/10 flex items-center justify-between shrink-0">
+                <div className="px-4 py-3 border-b border-cyber-cyan/10 flex items-center justify-between shrink-0">
                     <div>
-                        <h2 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90">
+                        <h2 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">
                             {step === 'gallery' ? 'Cambiar Split' : 'Configurar'}
                         </h2>
                         <p className="text-[9px] font-mono text-slate-500 uppercase tracking-wider mt-0.5">
                             {step === 'gallery' ? 'Selecciona plantilla' : selectedSplit?.name}
                         </p>
                     </div>
-                    <button onClick={onClose} className="w-7 h-7 rounded-lg border border-orange-500/20 flex items-center justify-center text-slate-500 hover:text-white hover:border-orange-500/40 transition-colors">
+                    <button onClick={onClose} className="w-7 h-7 rounded-lg border border-cyber-cyan/20 flex items-center justify-center text-slate-500 hover:text-white hover:border-cyber-cyan/40 transition-colors">
                         <XIcon size={14} />
                     </button>
                 </div>
@@ -81,7 +81,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                 {step === 'gallery' ? (
                     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                         {/* Search */}
-                        <div className="px-4 py-3 border-b border-orange-500/10 shrink-0">
+                        <div className="px-4 py-3 border-b border-cyber-cyan/10 shrink-0">
                             <div className="relative">
                                 <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                                 <input
@@ -89,13 +89,13 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     placeholder="Buscar split..."
-                                    className="w-full bg-[#0d0d0d] border border-orange-500/20 rounded-lg pl-9 pr-3 py-2 text-[10px] font-mono text-white placeholder-slate-600 focus:border-orange-500/50 focus:ring-0 outline-none"
+                                    className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg pl-9 pr-3 py-2 text-[10px] font-mono text-white placeholder-slate-600 focus:border-cyber-cyan/50 focus:ring-0 outline-none"
                                 />
                             </div>
                         </div>
 
                         {/* Filter tags */}
-                        <div className="px-4 py-3 border-b border-orange-500/10 shrink-0">
+                        <div className="px-4 py-3 border-b border-cyber-cyan/10 shrink-0">
                             <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar -mx-1 px-1">
                                 {FILTER_TAGS.map(tag => (
                                     <button
@@ -103,8 +103,8 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                         onClick={() => setFilter(tag)}
                                         className={`px-2.5 py-1 rounded border shrink-0 whitespace-nowrap text-[9px] font-mono font-black uppercase tracking-wider transition-all ${
                                             filter === tag
-                                                ? 'bg-orange-500/20 text-orange-400 border-orange-500/40'
-                                                : 'bg-transparent text-slate-500 border-slate-700/50 hover:border-orange-500/30'
+                                                ? 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/40'
+                                                : 'bg-transparent text-slate-500 border-slate-700/50 hover:border-cyber-cyan/30'
                                         }`}
                                     >
                                         {tag}
@@ -124,8 +124,8 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                         onClick={() => handleSelectSplit(split)}
                                         className={`w-full text-left p-3 rounded-xl border transition-all ${
                                             isCurrent
-                                                ? 'bg-orange-500/10 border-orange-500/30'
-                                                : 'bg-[#0d0d0d]/80 border-orange-500/10 hover:border-orange-500/30'
+                                                ? 'bg-cyber-cyan/10 border-cyber-cyan/30'
+                                                : 'bg-[#0d0d0d]/80 border-cyber-cyan/10 hover:border-cyber-cyan/30'
                                         }`}
                                     >
                                         <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -133,7 +133,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     <span className="text-[11px] font-mono font-black text-white truncate">{split.name}</span>
                                                     {isCurrent && (
-                                                        <span className="text-[8px] font-mono font-black uppercase px-2 py-0.5 rounded border border-orange-500/40 bg-orange-500/20 text-orange-400 shrink-0">
+                                                        <span className="text-[8px] font-mono font-black uppercase px-2 py-0.5 rounded border border-cyber-cyan/40 bg-cyber-cyan/20 text-cyber-cyan shrink-0">
                                                             ACTUAL
                                                         </span>
                                                     )}
@@ -147,7 +147,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                                 <div
                                                     key={i}
                                                     className={`flex-1 h-1 rounded-full ${
-                                                        day.toLowerCase() === 'descanso' ? 'bg-slate-800' : 'bg-orange-500/40'
+                                                        day.toLowerCase() === 'descanso' ? 'bg-slate-800' : 'bg-cyber-cyan/40'
                                                     }`}
                                                 />
                                             ))}
@@ -161,10 +161,10 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 space-y-5">
                         {/* Selected split preview */}
                         {selectedSplit && (
-                            <div className="bg-[#0d0d0d] border border-orange-500/20 rounded-xl p-4">
+                            <div className="bg-[#0d0d0d] border border-cyber-cyan/20 rounded-xl p-4">
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-[11px] font-mono font-black text-white">{selectedSplit.name}</span>
-                                    <button onClick={handleBack} className="text-[9px] font-mono font-bold text-orange-500/90 hover:text-orange-400 border-b border-orange-500/30">
+                                    <button onClick={handleBack} className="text-[9px] font-mono font-bold text-cyber-cyan/90 hover:text-cyber-cyan border-b border-cyber-cyan/30">
                                         Cambiar
                                     </button>
                                 </div>
@@ -175,7 +175,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                         return (
                                             <div key={i} className="flex-1 text-center">
                                                 <div className="text-[8px] font-mono font-bold text-slate-600 mb-1">{dayLabel.slice(0, 3)}</div>
-                                                <div className={`h-1.5 rounded-full ${isRest ? 'bg-slate-800' : 'bg-orange-500/40'}`} />
+                                                <div className={`h-1.5 rounded-full ${isRest ? 'bg-slate-800' : 'bg-cyber-cyan/40'}`} />
                                                 <div className={`text-[7px] mt-1 font-mono font-bold truncate ${isRest ? 'text-slate-700' : 'text-slate-400'}`}>
                                                     {isRest ? '-' : day}
                                                 </div>
@@ -193,7 +193,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                 <select
                                     value={startDay}
                                     onChange={e => setStartDay(parseInt(e.target.value))}
-                                    className="appearance-none bg-[#0d0d0d] border border-orange-500/20 rounded-lg px-3 py-1.5 pr-7 text-[10px] font-mono font-bold text-white focus:border-orange-500/50 outline-none"
+                                    className="appearance-none bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg px-3 py-1.5 pr-7 text-[10px] font-mono font-bold text-white focus:border-cyber-cyan/50 outline-none"
                                 >
                                     {DAYS_OF_WEEK.map(d => (
                                         <option key={d.value} value={d.value}>{d.label}</option>
@@ -211,12 +211,12 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                     <button
                                         onClick={() => setScope('week')}
                                         className={`w-full text-left p-3 rounded-xl border transition-all ${
-                                            scope === 'week' ? 'bg-orange-500/10 border-orange-500/30' : 'border-orange-500/10 hover:border-orange-500/30'
+                                            scope === 'week' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
                                         }`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'week' ? 'border-orange-500 bg-orange-500/30' : 'border-slate-600'}`}>
-                                                {scope === 'week' && <div className="w-2 h-2 rounded-full bg-orange-500" />}
+                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'week' ? 'border-cyber-cyan bg-cyber-cyan/30' : 'border-slate-600'}`}>
+                                                {scope === 'week' && <div className="w-2 h-2 rounded-full bg-cyber-cyan" />}
                                             </div>
                                             <div>
                                                 <span className="text-[10px] font-mono font-black text-white">Solo esta semana</span>
@@ -229,12 +229,12 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                     <button
                                         onClick={() => setScope('block')}
                                         className={`w-full text-left p-3 rounded-xl border transition-all ${
-                                            scope === 'block' ? 'bg-orange-500/10 border-orange-500/30' : 'border-orange-500/10 hover:border-orange-500/30'
+                                            scope === 'block' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
                                         }`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'block' ? 'border-orange-500 bg-orange-500/30' : 'border-slate-600'}`}>
-                                                {scope === 'block' && <div className="w-2 h-2 rounded-full bg-orange-500" />}
+                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'block' ? 'border-cyber-cyan bg-cyber-cyan/30' : 'border-slate-600'}`}>
+                                                {scope === 'block' && <div className="w-2 h-2 rounded-full bg-cyber-cyan" />}
                                             </div>
                                             <div>
                                                 <span className="text-[10px] font-mono font-black text-white">Todo el bloque</span>
@@ -246,12 +246,12 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                 <button
                                     onClick={() => setScope('program')}
                                     className={`w-full text-left p-3 rounded-xl border transition-all ${
-                                        scope === 'program' ? 'bg-orange-500/10 border-orange-500/30' : 'border-orange-500/10 hover:border-orange-500/30'
+                                        scope === 'program' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'program' ? 'border-orange-500 bg-orange-500/30' : 'border-slate-600'}`}>
-                                            {scope === 'program' && <div className="w-2 h-2 rounded-full bg-orange-500" />}
+                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'program' ? 'border-cyber-cyan bg-cyber-cyan/30' : 'border-slate-600'}`}>
+                                            {scope === 'program' && <div className="w-2 h-2 rounded-full bg-cyber-cyan" />}
                                         </div>
                                         <div>
                                             <span className="text-[10px] font-mono font-black text-white">{isSimpleProgram ? 'Todo el ciclo' : 'Todo el programa'}</span>
@@ -263,7 +263,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                         </div>
 
                         {/* Preserve exercises */}
-                        <div className="bg-[#0d0d0d]/80 border border-orange-500/10 rounded-xl p-4">
+                        <div className="bg-[#0d0d0d]/80 border border-cyber-cyan/10 rounded-xl p-4">
                             <div className="flex items-start gap-3">
                                 <AlertTriangleIcon size={14} className="text-amber-500/80 mt-0.5 shrink-0" />
                                 <div className="flex-1">
@@ -272,7 +272,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                         <button
                                             onClick={() => setPreserveExercises(true)}
                                             className={`w-full text-left px-3 py-2 rounded-lg border transition-all ${
-                                                preserveExercises ? 'bg-orange-500/10 border-orange-500/30' : 'border-orange-500/10'
+                                                preserveExercises ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10'
                                             }`}
                                         >
                                             <span className="text-[10px] font-mono font-bold text-white">Preservar</span>
@@ -281,7 +281,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                         <button
                                             onClick={() => setPreserveExercises(false)}
                                             className={`w-full text-left px-3 py-2 rounded-lg border transition-all ${
-                                                !preserveExercises ? 'bg-orange-500/10 border-orange-500/30' : 'border-orange-500/10'
+                                                !preserveExercises ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10'
                                             }`}
                                         >
                                             <span className="text-[10px] font-mono font-bold text-white">Empezar limpio</span>
@@ -296,16 +296,16 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
 
                 {/* Footer */}
                 {step === 'scope' && (
-                    <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-orange-500/10 flex gap-3 shrink-0">
+                    <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-cyber-cyan/10 flex gap-3 shrink-0">
                         <button
                             onClick={handleBack}
-                            className="flex-1 py-2.5 rounded-xl border border-orange-500/20 text-[10px] font-mono font-black uppercase tracking-widest text-slate-400 hover:bg-orange-500/10 hover:text-white transition-colors"
+                            className="flex-1 py-2.5 rounded-xl border border-cyber-cyan/20 text-[10px] font-mono font-black uppercase tracking-widest text-slate-400 hover:bg-cyber-cyan/10 hover:text-white transition-colors"
                         >
                             Atrás
                         </button>
                         <button
                             onClick={handleApply}
-                            className="flex-1 py-2.5 rounded-xl bg-orange-500 text-black text-[10px] font-mono font-black uppercase tracking-widest hover:bg-orange-400 transition-colors"
+                            className="flex-1 py-2.5 rounded-xl bg-cyber-cyan text-black text-[10px] font-mono font-black uppercase tracking-widest hover:bg-cyber-cyan transition-colors"
                         >
                             Aplicar
                         </button>

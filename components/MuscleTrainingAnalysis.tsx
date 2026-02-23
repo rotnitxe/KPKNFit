@@ -56,8 +56,8 @@ export const MuscleTrainingAnalysis: React.FC<MuscleTrainingAnalysisProps> = ({ 
     };
 
     return (
-        <div className="p-4 rounded-xl border border-orange-500/20 bg-[#0a0a0a]">
-            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-orange-500/90 mb-3">Análisis de Entrenamiento (IA)</h3>
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Análisis de Entrenamiento (IA)</h3>
             {isLoading ? (
                 <SkeletonLoader lines={4} />
             ) : analysis ? (
@@ -72,14 +72,14 @@ export const MuscleTrainingAnalysis: React.FC<MuscleTrainingAnalysisProps> = ({ 
                             {analysis.recommendations.map((rec, i) => <li key={i}>{rec}</li>)}
                         </ul>
                     </div>
-                    <button onClick={handleGenerateAnalysis} className="w-full py-2 mt-2 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-[10px] font-mono text-orange-500/90 hover:border-orange-500/40 transition-colors">
+                    <button onClick={handleGenerateAnalysis} className="w-full py-2 mt-2 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-[10px] font-mono text-cyber-cyan/90 hover:border-cyber-cyan/40 transition-colors">
                         <SparklesIcon size={12} className="inline mr-1"/> Regenerar Análisis
                     </button>
                 </div>
             ) : (
                 <div className="text-center">
                     <p className="text-sm text-slate-400 mb-3">Obtén un análisis detallado sobre el volumen, frecuencia y progresión para este grupo muscular.</p>
-                    <button onClick={handleGenerateAnalysis} disabled={!isOnline || history.length < 2} className="w-full py-2.5 rounded-lg border border-orange-500/20 bg-[#0d0d0d] text-[10px] font-mono text-orange-500/90 hover:border-orange-500/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                    <button onClick={handleGenerateAnalysis} disabled={!isOnline || history.length < 2} className="w-full py-2.5 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-[10px] font-mono text-cyber-cyan/90 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                         <SparklesIcon size={12} className="inline mr-1"/> Analizar {muscleName}
                     </button>
                     {history.length < 2 && <p className="text-[10px] text-slate-500 font-mono mt-2">Necesitas al menos 2 entrenamientos registrados.</p>}

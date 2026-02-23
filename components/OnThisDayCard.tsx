@@ -127,7 +127,7 @@ const OnThisDayCard: React.FC = () => {
                     <p className="text-slate-300">x {comparison.oneYearAgoSet.reps} reps</p>
                 </div>
                  <div className="bg-primary-color/20 p-3 rounded-lg border border-primary-color/50">
-                    <p className="text-xs text-primary-color/80">{new Date(comparison.recentPRSet.date).toLocaleDateString()}</p>
+                    <p className="text-xs text-cyber-copper/80">{new Date(comparison.recentPRSet.date).toLocaleDateString()}</p>
                     <p className="text-3xl font-bold text-white">{comparison.recentPRSet.weight}{settings.weightUnit}</p>
                     <p className="text-slate-300">x {comparison.recentPRSet.reps} reps</p>
                 </div>

@@ -113,7 +113,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                                                         updated.mode = m;
                                                         onUpdateProgram(updated);
                                                     }
-                                                }} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${program.mode === m ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#8E8E93] hover:text-white'}`}>
+                                                }} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${program.mode === m ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#8E8E93] hover:text-white'}`}>
                                                     {m === 'hypertrophy' ? 'Hipertrofia' : 'Powerlifting'}
                                                 </button>
                                             ))}
@@ -130,7 +130,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                                                         updated.startDay = i;
                                                         onUpdateProgram(updated);
                                                     }
-                                                }} className={`flex-1 py-1.5 rounded text-[9px] font-bold transition-colors ${(program.startDay ?? 1) === i ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#48484A] hover:text-white'}`}>
+                                                }} className={`flex-1 py-1.5 rounded text-[9px] font-bold transition-colors ${(program.startDay ?? 1) === i ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#48484A] hover:text-white'}`}>
                                                     {d}
                                                 </button>
                                             ))}
@@ -144,7 +144,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                                             {currentSplit && (
                                                 <div className="flex gap-0.5 mt-1">
                                                     {currentSplit.pattern.map((d, i) => (
-                                                        <div key={i} className={`flex-1 h-1 rounded-full ${d.toLowerCase() === 'descanso' ? 'bg-[#48484A]' : 'bg-[#FC4C02]'}`} />
+                                                        <div key={i} className={`flex-1 h-1 rounded-full ${d.toLowerCase() === 'descanso' ? 'bg-[#48484A]' : 'bg-[#00F0FF]'}`} />
                                                     ))}
                                                 </div>
                                             )}
@@ -170,7 +170,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                             <span className="text-[10px] font-bold hidden sm:inline">Pausar</span>
                         </button>
                     ) : (
-                        <button onClick={onStart} className="h-8 px-4 rounded-lg bg-[#FC4C02] flex items-center justify-center gap-1.5 text-white hover:brightness-110 transition-all shadow-[0_0_20px_rgba(252,76,2,0.3)]">
+                        <button onClick={onStart} className="h-8 px-4 rounded-lg bg-[#00F0FF] flex items-center justify-center gap-1.5 text-white hover:brightness-110 transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)]">
                             <PlayIcon size={14} fill="white" />
                             <span className="text-[10px] font-bold hidden sm:inline">{isPaused ? 'Reanudar' : 'Iniciar'}</span>
                         </button>

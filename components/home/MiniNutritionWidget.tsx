@@ -45,7 +45,7 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
         >
             <div className="flex justify-between items-center mb-3">
                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <UtensilsIcon size={10} className="text-orange-400" /> Nutrición
+                    <UtensilsIcon size={10} className="text-cyber-copper" /> Nutrición
                 </span>
                 <ChevronRightIcon size={14} className="text-zinc-500 group-hover:text-white transition-colors" />
             </div>

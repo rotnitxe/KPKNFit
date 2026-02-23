@@ -49,7 +49,7 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
                 {view === 'kpkn' ? (
                      <button 
                         onClick={() => navigateTo('food-database')}
-                        className="p-2.5 rounded-xl bg-black/80 text-slate-400 hover:text-orange-400 hover:bg-orange-900/20 border border-white/10 transition-all"
+                        className="p-2.5 rounded-xl bg-black/80 text-slate-400 hover:text-cyber-cyan hover:bg-cyber-cyan/20 border border-white/10 transition-all"
                         title="Ir a Alimentos"
                     >
                         <UtensilsIcon size={18} />

@@ -34,7 +34,7 @@ const FoodCard: React.FC<{ food: FoodItem; onEdit: (food: FoodItem) => void; onA
                 </div>
             )}
             <div className="min-w-0">
-                <p className="font-bold text-white text-sm truncate group-hover:text-orange-400 transition-colors">{food.name}</p>
+                <p className="font-bold text-white text-sm truncate group-hover:text-cyber-copper transition-colors">{food.name}</p>
                 <div className="flex gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
                     <span className="text-green-400">{Math.round(food.calories)}kcal</span>
                     <span>P:{food.protein}</span>
@@ -104,7 +104,7 @@ const FoodDatabaseView: React.FC = () => {
     // Unified Visual Style Colors
     const categoryStyles: Record<string, string> = {
         'Proteínas': 'bg-gradient-to-br from-blue-900/40 to-blue-800/20 hover:border-blue-500/30',
-        'Carbohidratos': 'bg-gradient-to-br from-orange-900/40 to-orange-800/20 hover:border-orange-500/30',
+        'Carbohidratos': 'bg-gradient-to-br from-cyber-copper/40 to-cyber-copper/20 hover:border-cyber-copper/30',
         'Grasas': 'bg-gradient-to-br from-yellow-900/40 to-yellow-800/20 hover:border-yellow-500/30',
         'Mixtos': 'bg-gradient-to-br from-purple-900/40 to-purple-800/20 hover:border-purple-500/30',
         'Otros': 'bg-slate-800/40 hover:border-slate-500/30',
@@ -200,7 +200,7 @@ const FoodDatabaseView: React.FC = () => {
                     <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
                         <button onClick={() => setSortKey('name')} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${sortKey === 'name' ? 'bg-white text-black border-white' : 'bg-transparent text-slate-400 border-slate-700'}`}>A-Z</button>
                         {selectedCategory === 'Proteínas' && <button onClick={() => setSortKey('protein')} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${sortKey === 'protein' ? 'bg-blue-500 text-white border-blue-500' : 'bg-transparent text-slate-400 border-slate-700'}`}>Mayor Proteína</button>}
-                        {selectedCategory === 'Carbohidratos' && <button onClick={() => setSortKey('carbs')} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${sortKey === 'carbs' ? 'bg-orange-500 text-white border-orange-500' : 'bg-transparent text-slate-400 border-slate-700'}`}>Más Carbs</button>}
+                        {selectedCategory === 'Carbohidratos' && <button onClick={() => setSortKey('carbs')} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${sortKey === 'carbs' ? 'bg-cyber-copper text-white border-cyber-copper' : 'bg-transparent text-slate-400 border-slate-700'}`}>Más Carbs</button>}
                         {selectedCategory === 'Grasas' && <button onClick={() => setSortKey('fats')} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${sortKey === 'fats' ? 'bg-yellow-500 text-white border-yellow-500' : 'bg-transparent text-slate-400 border-slate-700'}`}>Más Grasa</button>}
                     </div>
 

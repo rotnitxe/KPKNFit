@@ -160,7 +160,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Buscar ejercicio..."
                         autoFocus
-                        className="w-full bg-[#0d0d0d] border-b border-white/10 focus:border-[#FC4C02] pl-9 pr-3 py-2.5 text-sm text-white placeholder-[#555] outline-none transition-colors"
+                        className="w-full bg-[#0d0d0d] border-b border-white/10 focus:border-[#00F0FF] pl-9 pr-3 py-2.5 text-sm text-white placeholder-[#555] outline-none transition-colors"
                     />
                 </div>
                 <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-0.5">
@@ -209,7 +209,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         if (onOpenExerciseModal) onOpenExerciseModal(partIndex, exerciseIndex);
                         else setIsSearching(true);
                     }}
-                    className="text-sm font-medium text-white truncate hover:text-[#FC4C02] transition-colors text-left min-w-0 flex-1"
+                    className="text-sm font-medium text-white truncate hover:text-[#00F0FF] transition-colors text-left min-w-0 flex-1"
                 >
                     {exercise.name || 'Seleccionar ejercicio'}
                 </button>
@@ -235,8 +235,8 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                 <div className="px-4 pb-4 space-y-3 animate-fade-in">
                     {/* AUGE suggestion */}
                     {augeSuggestion && (
-                        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-[#FC4C02]/5 border border-[#FC4C02]/10">
-                            <span className="text-[10px] text-[#FC4C02] leading-relaxed">{augeSuggestion}</span>
+                        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-[#00F0FF]/5 border border-[#00F0FF]/10">
+                            <span className="text-[10px] text-[#00F0FF] leading-relaxed">{augeSuggestion}</span>
                         </div>
                     )}
 
@@ -256,14 +256,14 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                         onUpdate(partIndex, exerciseIndex, d => { d.restTime = seconds; });
                                     }
                                 }}
-                                className="w-20 bg-transparent border-b border-white/10 focus:border-[#FC4C02] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
+                                className="w-20 bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
                             />
                             {exercise.sets?.length > 0 && (() => {
                                 const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
                                 const suggested = suggestRestSeconds(exercise.sets.length, avgRPE);
                                 const current = exercise.restTime || 90;
                                 if (Math.abs(suggested - current) > 15) {
-                                    return <button type="button" onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.restTime = suggested; })} className="text-[8px] font-bold text-orange-500 hover:text-orange-400">Sug</button>;
+                                    return <button type="button" onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.restTime = suggested; })} className="text-[8px] font-bold text-cyber-cyan hover:text-cyber-cyan/80">Sug</button>;
                                 }
                                 return null;
                             })()}
@@ -272,7 +272,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         <select
                             value={exercise.trainingMode || 'reps'}
                             onChange={e => onUpdate(partIndex, exerciseIndex, d => { d.trainingMode = e.target.value as any; })}
-                            className="bg-transparent text-[10px] font-bold text-[#999] border-b border-white/10 focus:border-[#FC4C02] py-0.5 px-1 outline-none cursor-pointer"
+                            className="bg-transparent text-[10px] font-bold text-[#999] border-b border-white/10 focus:border-[#00F0FF] py-0.5 px-1 outline-none cursor-pointer"
                         >
                             <option value="reps" className="bg-black">Reps</option>
                             <option value="percent" className="bg-black">% 1RM</option>
@@ -290,7 +290,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                         value={exercise.reference1RM ?? ''}
                                         onChange={e => onUpdate(partIndex, exerciseIndex, d => { d.reference1RM = parseFloat(e.target.value) || 0; })}
                                         placeholder="kg"
-                                        className="w-14 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                        className="w-14 bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
                                     />
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -306,7 +306,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                             });
                                         }}
                                         placeholder="kg"
-                                        className="w-12 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                        className="w-12 bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
                                     />
                                     <span className="text-[10px] text-[#555]">×</span>
                                     <input
@@ -321,7 +321,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                             });
                                         }}
                                         placeholder="r"
-                                        className="w-10 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                        className="w-10 bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
                                     />
                                 </div>
                             </div>
@@ -341,7 +341,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                         });
                                     }}
                                     placeholder="kg"
-                                    className="w-12 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                    className="w-12 bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
                                 />
                                 <span className="text-[10px] text-[#555]">×</span>
                                 <input
@@ -356,7 +356,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                         });
                                     }}
                                     placeholder="r"
-                                    className="w-10 bg-white/[0.03] border-b border-orange-500/20 focus:border-orange-500/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
+                                    className="w-10 bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
                                 />
                             </div>
                         )}

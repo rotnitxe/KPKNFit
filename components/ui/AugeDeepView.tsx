@@ -102,13 +102,13 @@ export const GPFatigueCurve: React.FC<{
     return (
         <div>
             <svg viewBox={`0 0 ${w} ${h}`} className="w-full" preserveAspectRatio="xMidYMid meet">
-                <path d={areaPath(hours, upper_bound, lower_bound, w, h)} fill="rgba(139,92,246,0.12)" />
-                <path d={polylinePath(hours, mean_fatigue, w, h)} fill="none" stroke="#8b5cf6" strokeWidth="1.5" strokeLinecap="round" />
+                <path d={areaPath(hours, upper_bound, lower_bound, w, h)} fill="rgba(0,240,255,0.08)" />
+                <path d={polylinePath(hours, mean_fatigue, w, h)} fill="none" stroke="#00F0FF" strokeWidth="1.5" strokeLinecap="round" />
                 {predictedLine && (
                     <path d={polylinePath(predictedLine.hours, predictedLine.values, w, h)} fill="none" stroke="#555" strokeWidth="1" strokeDasharray="3,3" />
                 )}
                 {actualLine && (
-                    <path d={polylinePath(actualLine.hours, actualLine.values, w, h)} fill="none" stroke="#f43f5e" strokeWidth="1.5" />
+                    <path d={polylinePath(actualLine.hours, actualLine.values, w, h)} fill="none" stroke="#FF2E43" strokeWidth="1.5" />
                 )}
                 {currentHour !== undefined && (() => {
                     const xMin = Math.min(...hours), xMax = Math.max(...hours);
@@ -185,9 +185,9 @@ export const BanisterTrend: React.FC<{
     return (
         <div>
             <svg viewBox={`0 0 ${w} ${h}`} className="w-full" preserveAspectRatio="xMidYMid meet">
-                <path d={polylinePath(timeline_hours, fitness, w, h)} fill="none" stroke="#22c55e" strokeWidth="1.5" opacity="0.8" />
-                <path d={polylinePath(timeline_hours, fatigue, w, h)} fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />
-                <path d={polylinePath(timeline_hours, performance, w, h)} fill="none" stroke="#facc15" strokeWidth="2" />
+                <path d={polylinePath(timeline_hours, fitness, w, h)} fill="none" stroke="#00FF9D" strokeWidth="1.5" opacity="0.8" />
+                <path d={polylinePath(timeline_hours, fatigue, w, h)} fill="none" stroke="#FF2E43" strokeWidth="1.5" opacity="0.8" />
+                <path d={polylinePath(timeline_hours, performance, w, h)} fill="none" stroke="#FFD600" strokeWidth="2" />
             </svg>
             <div className="flex items-center justify-between mt-1 px-1">
                 <div className="flex gap-3 text-[8px] font-bold">

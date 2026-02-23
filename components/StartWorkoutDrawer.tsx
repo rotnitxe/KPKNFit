@@ -74,11 +74,11 @@ const StartWorkoutDrawer: React.FC<StartWorkoutDrawerProps> = ({ isOpen, onClose
 
     return (
       <div className="space-y-3 animate-fade-in p-5">
-        <h3 className="text-base font-mono font-black text-center mb-4 uppercase tracking-widest text-orange-500/90">
+        <h3 className="text-base font-mono font-black text-center mb-4 uppercase tracking-widest text-cyber-cyan/90">
           Variante para "{sessionToStart.session.name}"
         </h3>
         {variants.map(v => (
-          <Button key={v} onClick={() => handleVariantClick(v as any)} className="w-full !py-4 !text-[10px] font-mono font-black uppercase tracking-widest border border-orange-500/30 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20">
+          <Button key={v} onClick={() => handleVariantClick(v as any)} className="w-full !py-4 !text-[10px] font-mono font-black uppercase tracking-widest border border-cyber-cyan/30 bg-cyber-cyan/10 text-cyber-cyan hover:bg-cyber-cyan/20">
             Realizar Sesión {v}
           </Button>
         ))}
@@ -92,16 +92,16 @@ const StartWorkoutDrawer: React.FC<StartWorkoutDrawerProps> = ({ isOpen, onClose
         <div className="text-center py-12">
           <DumbbellIcon size={48} className="mx-auto text-slate-600 mb-4" />
           <p className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest">No hay programas activos</p>
-          <Button onClick={() => { navigateTo('program-editor'); onClose(); }} className="mt-6 border border-orange-500/30">Crear Nuevo Programa</Button>
+          <Button onClick={() => { navigateTo('program-editor'); onClose(); }} className="mt-6 border border-cyber-cyan/30">Crear Nuevo Programa</Button>
         </div>
       )}
       {programs.map(program => (
-        <details key={program.id} className="border border-orange-500/20 rounded-xl overflow-hidden bg-[#0d0d0d]" open={programs.length === 1}>
+        <details key={program.id} className="border border-cyber-cyan/20 rounded-xl overflow-hidden bg-[#0d0d0d]" open={programs.length === 1}>
           <summary className="p-4 cursor-pointer list-none flex justify-between items-center">
             <h3 className="font-mono font-black text-white text-sm uppercase tracking-widest">{program.name}</h3>
             <ChevronRightIcon className="details-arrow transition-transform text-slate-500" />
           </summary>
-          <div className="border-t border-orange-500/10 p-3 space-y-2">
+          <div className="border-t border-cyber-cyan/10 p-3 space-y-2">
             {program.macrocycles.flatMap(macro =>
               (macro.blocks || []).flatMap(block =>
                 block.mesocycles.flatMap(meso =>
@@ -110,12 +110,12 @@ const StartWorkoutDrawer: React.FC<StartWorkoutDrawerProps> = ({ isOpen, onClose
                       <h4 className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest px-2 mb-2">{block.name} • {meso.name} • {week.name}</h4>
                       <div className="space-y-1">
                         {week.sessions.map(session => (
-                          <div key={session.id} onClick={() => handleSessionClick(session, program, week.variant)} className="flex justify-between items-center p-3 hover:bg-orange-500/10 bg-[#0a0a0a] rounded-xl cursor-pointer transition-colors border border-orange-500/10 hover:border-orange-500/30 group">
+                          <div key={session.id} onClick={() => handleSessionClick(session, program, week.variant)} className="flex justify-between items-center p-3 hover:bg-cyber-cyan/10 bg-[#0a0a0a] rounded-xl cursor-pointer transition-colors border border-cyber-cyan/10 hover:border-cyber-cyan/30 group">
                             <div className="min-w-0">
                               <p className="text-slate-200 font-mono font-bold text-sm truncate group-hover:text-white">{session.name}</p>
                               <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">{getSessionExerciseCount(session)} ejercicios</p>
                             </div>
-                            <PlayIcon size={20} className="text-orange-500/70 group-hover:text-orange-500" />
+                            <PlayIcon size={20} className="text-cyber-cyan/70 group-hover:text-cyber-cyan" />
                           </div>
                         ))}
                       </div>

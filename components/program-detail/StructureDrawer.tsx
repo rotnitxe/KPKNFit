@@ -153,7 +153,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                         <select
                                                                             value={meso.goal || 'Custom'}
                                                                             onChange={e => update(p => { const t = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx]; if (t) t.goal = e.target.value as any; })}
-                                                                            className="bg-transparent text-[9px] text-[#FC4C02] font-bold border-none p-0 focus:ring-0 cursor-pointer"
+                                                                            className="bg-transparent text-[9px] text-[#00F0FF] font-bold border-none p-0 focus:ring-0 cursor-pointer"
                                                                         >
                                                                             {GOAL_OPTIONS.map(g => <option key={g} value={g} className="bg-black text-white">{g}</option>)}
                                                                         </select>
@@ -168,12 +168,12 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                                 key={week.id}
                                                                                 onClick={() => { onSelectBlock(block.id); onSelectWeek(week.id); }}
                                                                                 className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-left transition-all ${
-                                                                                    isWeekSelected ? 'bg-[#FC4C02]/10 text-[#FC4C02]' : 'hover:bg-white/5 text-[#8E8E93]'
+                                                                                    isWeekSelected ? 'bg-[#00F0FF]/10 text-[#00F0FF]' : 'hover:bg-white/5 text-[#8E8E93]'
                                                                                 }`}
                                                                             >
                                                                                 <span className="text-[10px] font-bold flex-1">{week.name}</span>
                                                                                 <span className="text-[9px] text-[#48484A]">{week.sessions.length}s</span>
-                                                                                {hasEvent && <CalendarIcon size={10} className="text-[#FC4C02] shrink-0" />}
+                                                                                {hasEvent && <CalendarIcon size={10} className="text-[#00F0FF] shrink-0" />}
                                                                             </button>
                                                                         );
                                                                     })}
@@ -183,7 +183,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                             const target = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx];
                                                                             if (target) target.weeks.push({ id: crypto.randomUUID(), name: `Semana ${target.weeks.length + 1}`, sessions: [] });
                                                                         })}
-                                                                        className="w-full flex items-center gap-1.5 px-3 py-1 text-[9px] text-[#48484A] hover:text-[#FC4C02] transition-colors"
+                                                                        className="w-full flex items-center gap-1.5 px-3 py-1 text-[9px] text-[#48484A] hover:text-[#00F0FF] transition-colors"
                                                                     >
                                                                         <PlusIcon size={10} /> Semana
                                                                     </button>
@@ -197,7 +197,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                         weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }],
                                                                     });
                                                                 })}
-                                                                className="w-full flex items-center gap-1.5 px-2 py-1 text-[9px] text-[#48484A] hover:text-[#FC4C02] transition-colors"
+                                                                className="w-full flex items-center gap-1.5 px-2 py-1 text-[9px] text-[#48484A] hover:text-[#00F0FF] transition-colors"
                                                             >
                                                                 <PlusIcon size={10} /> Mesociclo
                                                             </button>
@@ -222,7 +222,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                         });
                                                     }
                                                 }}
-                                                className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[9px] text-[#48484A] hover:text-[#FC4C02] transition-colors"
+                                                className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[9px] text-[#48484A] hover:text-[#00F0FF] transition-colors"
                                             >
                                                 <PlusIcon size={10} /> Bloque
                                             </button>
@@ -238,7 +238,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                 <div className="border-t border-white/5 px-3 py-3 shrink-0">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wide">Eventos</span>
-                        <button onClick={() => onOpenEventModal()} className="text-[10px] text-[#FC4C02] font-bold hover:underline">
+                        <button onClick={() => onOpenEventModal()} className="text-[10px] text-[#00F0FF] font-bold hover:underline">
                             + Nuevo
                         </button>
                     </div>
@@ -246,7 +246,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                         <div className="space-y-1 max-h-[120px] overflow-y-auto custom-scrollbar">
                             {events.map((ev: any, i: number) => (
                                 <div key={ev.id || i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors" onClick={() => onOpenEventModal(ev)}>
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#FC4C02] shrink-0" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] shrink-0" />
                                     <span className="text-[10px] font-bold text-white flex-1 truncate">{ev.title}</span>
                                     <span className="text-[9px] text-[#48484A]">
                                         {isCyclic ? `c/${ev.repeatEveryXCycles}` : `S${(ev.calculatedWeek || 0) + 1}`}
@@ -306,7 +306,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                             setPendingAddBlockMacroIdx(null);
                                         }
                                     }}
-                                    className="flex-1 py-2.5 rounded-lg bg-[#FC4C02] text-xs font-bold text-white hover:bg-[#FC4C02]/90 transition-colors"
+                                    className="flex-1 py-2.5 rounded-lg bg-[#00F0FF] text-xs font-bold text-white hover:bg-[#00F0FF]/90 transition-colors"
                                 >
                                     Continuar
                                 </button>

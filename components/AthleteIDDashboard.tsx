@@ -323,7 +323,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                                         )}
                                     </div>
                                     <div className="absolute bottom-0 right-0 bg-black border border-white/20 rounded-full p-1.5 shadow-lg">
-                                        <div className="w-3 h-3 bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full" />
+                                        <div className="w-3 h-3 bg-gradient-to-tr from-yellow-400 to-cyber-cyan rounded-full" />
                                     </div>
                                 </div>
                                 <h1 className="text-3xl font-black text-white mt-4 uppercase tracking-tighter">{settings.username || 'Atleta'}</h1>

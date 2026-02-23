@@ -77,7 +77,7 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
           <div>
             <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400 mb-2">
               <span>Fatiga Percibida</span>
-              <span className="text-orange-400">{perceivedFatigue}/10</span>
+              <span className="text-cyber-cyan">{perceivedFatigue}/10</span>
             </div>
             <input
               type="range"
@@ -85,14 +85,14 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
               max="10"
               value={perceivedFatigue}
               onChange={(e) => setPerceivedFatigue(parseInt(e.target.value))}
-              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500"
+              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#00F0FF]"
             />
           </div>
         </div>
 
         <button
           onClick={handleSave}
-          className="w-full py-4 rounded-xl bg-orange-500 text-white font-mono font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-colors border border-orange-400/30 flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-xl bg-cyber-cyan text-white font-mono font-black text-[10px] uppercase tracking-widest hover:bg-cyber-cyan/90 transition-colors border border-cyber-cyan/30 flex items-center justify-center gap-2"
         >
           <CheckCircleIcon size={18} />
           Completar Ejercicio

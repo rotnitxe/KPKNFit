@@ -275,10 +275,10 @@ const SessionAugeDashboard: React.FC<{
             {viewMode === 'volume' && context === 'session' && sessionAlerts.length > 0 && (
                 <div className="mb-4 space-y-2 animate-fade-in">
                     {sessionAlerts.map(alert => (
-                        <div key={alert.muscle} className="bg-orange-950/30 border border-orange-900/50 p-2 rounded-lg flex gap-2 items-start">
-                            <InfoIcon size={14} className="text-orange-500 shrink-0 mt-0.5" />
-                            <p className="text-[9px] text-orange-200 leading-tight">
-                                <strong className="font-bold text-orange-400">Peligro en {alert.muscle}:</strong><br/>
+                        <div key={alert.muscle} className="bg-cyber-danger/20 border border-cyber-warning/50 p-2 rounded-lg flex gap-2 items-start">
+                            <InfoIcon size={14} className="text-cyber-cyan shrink-0 mt-0.5" />
+                            <p className="text-[9px] text-cyber-warning leading-tight">
+                                <strong className="font-bold text-cyber-cyan">Peligro en {alert.muscle}:</strong><br/>
                                 {alert.message}
                             </p>
                         </div>
@@ -1045,7 +1045,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                     const suggested = suggestRestSeconds(exercise.sets.length, avgRPE);
                                     const current = exercise.restTime || 90;
                                     if (Math.abs(suggested - current) > 15) {
-                                        return <button type="button" onClick={() => onExerciseChange('restTime', suggested)} className="text-[8px] font-bold uppercase text-orange-500 hover:text-orange-400 whitespace-nowrap">Sug: {Math.floor(suggested/60)}:{String(suggested%60).padStart(2,'0')}</button>;
+                                        return <button type="button" onClick={() => onExerciseChange('restTime', suggested)} className="text-[8px] font-bold uppercase text-cyber-cyan hover:text-cyber-cyan whitespace-nowrap">Sug: {Math.floor(suggested/60)}:{String(suggested%60).padStart(2,'0')}</button>;
                                     }
                                     return null;
                                 })()}
@@ -1108,7 +1108,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                 </div>
                                 <div>
                                     <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">ESP</span><span className={`text-[8px] font-mono ${localDrain.spinal > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.spinal.toFixed(0)}%</span></div>
-                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.spinal > 80 ? 'bg-red-500' : 'bg-orange-500'}`} style={{width: `${localDrain.spinal}%`}}></div></div>
+                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.spinal > 80 ? 'bg-red-500' : 'bg-cyber-cyan'}`} style={{width: `${localDrain.spinal}%`}}></div></div>
                                 </div>
                             </div>
                         </div>
@@ -1188,7 +1188,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                                                 {estimatedLoad != null && <span className="text-[8px] font-mono text-zinc-400 mt-0.5">{estimatedLoad}kg</span>}
                                                             </>
                                                         ) : (
-                                                            estimatedLoad != null && <span className="text-[10px] font-mono text-orange-400 font-bold">{estimatedLoad}kg</span>
+                                                            estimatedLoad != null && <span className="text-[10px] font-mono text-cyber-cyan font-bold">{estimatedLoad}kg</span>
                                                         )}
                                                     </div>
                                                 )}
@@ -1282,11 +1282,11 @@ const SupersetManagementBlock: React.FC<{
     }
 
     return (
-        <div className="relative pl-3 border-l-2 border-orange-500/50 my-6 py-2 bg-orange-500/[0.02] rounded-r-xl">
+        <div className="relative pl-3 border-l-2 border-cyber-cyan/50 my-6 py-2 bg-cyber-cyan/[0.02] rounded-r-xl">
             <div className="flex justify-between items-center mb-3 px-1">
                 <div className="flex items-center gap-2">
-                    <ZapIcon size={16} className="text-orange-400"/>
-                    <span className="text-orange-400 font-black text-xs uppercase tracking-widest">Biserie / Circuito</span>
+                    <ZapIcon size={16} className="text-cyber-cyan"/>
+                    <span className="text-cyber-cyan font-black text-xs uppercase tracking-widest">Biserie / Circuito</span>
                 </div>
                 <div className="flex items-center gap-3">
                      <div className="flex items-center gap-2 bg-slate-900/80 px-2 py-1 rounded-lg border border-white/5">
@@ -2189,9 +2189,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             {/* ═══ Main Content ═══ */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {pceBanner && (
-                    <div className="mx-4 mt-4 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30 flex items-center justify-between gap-3">
+                    <div className="mx-4 mt-4 p-3 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-between gap-3">
                         <div>
-                            <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Sugerencia AUGE (PCE)</p>
+                            <p className="text-xs font-bold text-cyber-cyan uppercase tracking-wider">Sugerencia AUGE (PCE)</p>
                             <p className="text-[10px] text-zinc-400 mt-0.5">{pceBanner.message} Revisa series e intensidad.</p>
                         </div>
                         <button
@@ -2237,7 +2237,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                             <p className="text-sm font-medium text-[#999]">Día libre</p>
                             <p className="text-xs text-[#555] mt-1">No hay sesión para este día.</p>
                         </div>
-                        <button onClick={() => handleCreateFirstSession(emptyDaySelected!)} className="px-6 py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:brightness-110 transition-all">
+                        <button onClick={() => handleCreateFirstSession(emptyDaySelected!)} className="px-6 py-2.5 rounded-lg bg-[#00F0FF] text-white text-xs font-bold hover:brightness-110 transition-all">
                             Crear Sesión
                         </button>
                     </div>
@@ -2258,7 +2258,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                                     partName={part.name}
                                     partIndex={pi}
                                     exerciseCount={part.exercises.length}
-                                    color={part.color || '#FC4C02'}
+                                    color={part.color || '#00F0FF'}
                                     isCollapsed={collapsedParts[part.id] || false}
                                     onToggleCollapse={() => togglePartCollapse(part.id)}
                                     onRename={name => updateSession(d => { d.parts![pi].name = name; })}
@@ -2310,7 +2310,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
                         {/* Add section button */}
                         <div className="px-4 py-3">
-                            <button onClick={handleAddPart} className="w-full py-2.5 border border-dashed border-white/[0.08] hover:border-white/15 text-[#555] hover:text-[#FC4C02] rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-1.5">
+                            <button onClick={handleAddPart} className="w-full py-2.5 border border-dashed border-white/[0.08] hover:border-white/15 text-[#555] hover:text-[#00F0FF] rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-1.5">
                                 <LayersIcon size={14} /> Nueva Sección
                             </button>
                         </div>
@@ -2340,8 +2340,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                             const isModified = daySessions.some(s => modifiedSessionIds.has(s.id));
                             return (
                                 <button key={day.value} onClick={() => handleDayClick(day.value, daySessions)} className="relative z-10 flex flex-col items-center gap-1.5 group outline-none flex-1">
-                                    <div className={`w-3 h-3 rounded-full transition-all relative ${isActive ? 'bg-[#FC4C02] shadow-[0_0_10px_rgba(252,76,2,0.3)] scale-110' : hasSession ? 'bg-[#999] hover:bg-white' : 'bg-white/10 hover:bg-white/20'}`}>
-                                        {isModified && !isActive && <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-[#FC4C02] rounded-full" />}
+                                    <div className={`w-3 h-3 rounded-full transition-all relative ${isActive ? 'bg-[#00F0FF] shadow-[0_0_10px_rgba(252,76,2,0.3)] scale-110' : hasSession ? 'bg-[#999] hover:bg-white' : 'bg-white/10 hover:bg-white/20'}`}>
+                                        {isModified && !isActive && <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-[#00F0FF] rounded-full" />}
                                     </div>
                                     <span className={`text-[8px] font-bold uppercase tracking-wider transition-colors ${isActive ? 'text-white' : hasSession ? 'text-[#555]' : 'text-white/10'}`}>{day.label.slice(0, 2)}</span>
                                 </button>
@@ -2351,7 +2351,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     {activeSessionId !== 'empty' && weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).length > 1 && (
                         <div className="flex px-4 gap-1.5 overflow-x-auto no-scrollbar pb-2">
                             {weekSessions.filter(s => s.dayOfWeek === session.dayOfWeek).map((s, idx) => (
-                                <button key={s.id} onClick={() => setActiveSessionId(s.id)} className={`px-3 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors border shrink-0 ${activeSessionId === s.id ? 'bg-[#FC4C02] text-white border-[#FC4C02]' : 'bg-transparent text-[#555] border-white/[0.08] hover:border-white/20'}`}>
+                                <button key={s.id} onClick={() => setActiveSessionId(s.id)} className={`px-3 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors border shrink-0 ${activeSessionId === s.id ? 'bg-[#00F0FF] text-white border-[#00F0FF]' : 'bg-transparent text-[#555] border-white/[0.08] hover:border-white/20'}`}>
                                     {s.name || `Sesión ${idx + 1}`}
                                 </button>
                             ))}
@@ -2424,7 +2424,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                             <button onClick={handleExitWithoutSaving} className="w-full py-2.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium">
                                 Salir sin guardar
                             </button>
-                            <button onClick={handleContinueEditing} className="w-full py-2.5 rounded-lg bg-[#FC4C02] text-white hover:brightness-110 transition-colors text-sm font-bold">
+                            <button onClick={handleContinueEditing} className="w-full py-2.5 rounded-lg bg-[#00F0FF] text-white hover:brightness-110 transition-colors text-sm font-bold">
                                 Continuar editando
                             </button>
                         </div>

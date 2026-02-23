@@ -238,7 +238,7 @@ const SetDetails: React.FC<{
                     <button onClick={() => handleIntensityTypeChange('RPE')} className={`px-3 py-1 rounded ${intensityType === 'RPE' ? 'bg-primary-color text-white' : 'text-slate-400'}`}>RPE</button>
                     <button onClick={() => handleIntensityTypeChange('RIR')} className={`px-3 py-1 rounded ${intensityType === 'RIR' ? 'bg-primary-color text-white' : 'text-slate-400'}`}>RIR</button>
                     <button onClick={() => handleIntensityTypeChange('FALLO')} className={`px-3 py-1 rounded ${intensityType === 'FALLO' ? 'bg-red-500 text-white' : 'text-slate-400'}`}>Fallo</button>
-                    <button onClick={() => handleIntensityTypeChange('AMRAP')} className={`px-3 py-1 rounded ${intensityType === 'AMRAP' ? 'bg-orange-600 text-white' : 'text-slate-400'}`}>AMRAP</button>
+                    <button onClick={() => handleIntensityTypeChange('AMRAP')} className={`px-3 py-1 rounded ${intensityType === 'AMRAP' ? 'bg-cyber-cyan text-white' : 'text-slate-400'}`}>AMRAP</button>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -753,7 +753,7 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({ sessionInfo, settings, 
                             </div>
                         </summary>
                         <div className="set-card-content !border-none !p-2 space-y-2">
-                            {pr && <div className="p-2 text-center text-sm bg-yellow-900/30 text-yellow-300 rounded-lg"><p className="font-semibold flex items-center justify-center gap-2"><TrophyIcon size={16}/> Tu PR: {pr.prString} (1RMe: {pr.e1rm}{settings.weightUnit})</p></div>}
+                            {pr && <div className="p-2 text-center text-sm bg-cyber-copper/20 text-cyber-copper rounded-lg"><p className="font-semibold flex items-center justify-center gap-2"><TrophyIcon size={16}/> Tu PR: {pr.prString} (1RMe: {pr.e1rm}{settings.weightUnit})</p></div>}
                             
                             <TagSelector
                                 exercise={ex}

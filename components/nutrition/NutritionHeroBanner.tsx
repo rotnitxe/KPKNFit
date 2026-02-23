@@ -22,8 +22,8 @@ const NutritionHeroBanner: React.FC<NutritionHeroBannerProps> = ({
 
             <div className="relative z-10 h-full flex flex-col gap-3 px-4 py-3">
                 <div className="flex items-center gap-3 shrink-0">
-                    <div className="w-10 h-10 rounded-xl bg-[#FC4C02]/20 flex items-center justify-center shrink-0">
-                        <UtensilsIcon size={20} className="text-[#FC4C02]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#FF7B00]/20 flex items-center justify-center shrink-0">
+                        <UtensilsIcon size={20} className="text-[#FF7B00]" />
                     </div>
                     <div className="flex-1 min-w-0">
                         <h1 className="text-lg font-black text-white uppercase tracking-tight leading-tight">

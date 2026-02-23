@@ -31,7 +31,7 @@ const NavButton: React.FC<{
     >
         <Icon 
             size={22} 
-            className={`transition-colors duration-500 ease-out ${isActive ? 'text-orange-400' : 'text-zinc-500 group-hover:text-orange-500/70'}`} 
+            className={`transition-colors duration-500 ease-out ${isActive ? 'text-cyber-cyan' : 'text-[#A0A7B8] group-hover:text-cyber-cyan/70'}`} 
             strokeWidth={isActive ? 2.5 : 2} 
         />
         {label && <span className="sr-only">{label}</span>}
@@ -80,7 +80,7 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
 
             <div className="flex-1 flex items-center justify-center h-full relative z-20">
                  <button onClick={actions.onLogPress} className="flex items-center justify-center group outline-none">
-                    <div className="w-12 h-12 rounded-full bg-orange-500 text-white flex items-center justify-center group-active:scale-90 transition-transform duration-200 shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                    <div className="w-12 h-12 rounded-full bg-cyber-cyan text-white flex items-center justify-center group-active:scale-90 transition-transform duration-200 shadow-[0_0_20px_rgba(0,240,255,0.4)]">
                          <PlusIcon size={22} strokeWidth={3} />
                     </div>
                 </button>

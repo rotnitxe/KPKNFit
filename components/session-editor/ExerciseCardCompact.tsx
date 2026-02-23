@@ -239,7 +239,7 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                                     const suggested = suggestRestSeconds(exercise.sets.length, avgRPE);
                                     const current = exercise.restTime || 90;
                                     if (Math.abs(suggested - current) > 15) {
-                                        return <button type="button" onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.restTime = suggested; })} className="text-[7px] font-bold text-orange-500 hover:text-orange-400 shrink-0">Sug</button>;
+                                        return <button type="button" onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.restTime = suggested; })} className="text-[7px] font-bold text-cyber-cyan hover:text-cyber-cyan/80 shrink-0">Sug</button>;
                                     }
                                     return null;
                                 })()}

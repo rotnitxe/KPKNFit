@@ -45,7 +45,7 @@ const SessionWeekRoadmap: React.FC<SessionWeekRoadmapProps> = ({
                                         : 'bg-black border-zinc-800 hover:border-zinc-600'
                             }`}>
                                 {isModified && !isActive && (
-                                    <div className="absolute -top-1.5 -right-1.5 w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                    <div className="absolute -top-1.5 -right-1.5 w-1.5 h-1.5 bg-cyber-cyan rounded-full"></div>
                                 )}
                             </div>
                             <span className={`text-[8px] font-black uppercase tracking-wider transition-colors ${

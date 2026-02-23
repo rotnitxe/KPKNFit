@@ -122,7 +122,7 @@ export const WorkoutSessionActionBar: React.FC<{ actions: TabBarActions }> = ({ 
                                  </div>
                                  <div className="grid grid-cols-2 gap-2 text-center">
                                     <div className="bg-slate-900 p-2 rounded-xl border border-slate-800"><p className="text-[8px] text-slate-500 uppercase font-black mb-0.5">Carga (kg)</p><p className="text-xs font-mono font-bold text-sky-400">{stats.totalTonnage.toLocaleString()}</p></div>
-                                    <div className="bg-slate-900 p-2 rounded-xl border border-slate-800"><p className="text-[8px] text-slate-500 uppercase font-black mb-0.5">Fatiga (u)</p><p className="text-xs font-mono font-bold text-orange-400">{stats.totalStress}</p></div>
+                                    <div className="bg-slate-900 p-2 rounded-xl border border-slate-800"><p className="text-[8px] text-slate-500 uppercase font-black mb-0.5">Fatiga (u)</p><p className="text-xs font-mono font-bold text-cyber-cyan">{stats.totalStress}</p></div>
                                  </div>
                             </div>
                             <div className="p-2 space-y-1">
