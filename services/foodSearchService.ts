@@ -6,6 +6,21 @@ import { FOOD_DATABASE } from '../data/foodDatabase';
 
 const STOPWORDS = new Set(['de', 'y', 'la', 'el', 'en', 'a', 'al', 'del', 'los', 'las', 'un', 'una', 'por', 'para']);
 const FUZZY_THRESHOLD = 0.55;
+const API_TIMEOUT_MS = 4000;
+
+/** fetch con timeout: evita esperar indefinidamente a APIs lentas */
+async function fetchWithTimeout(url: string, timeoutMs = API_TIMEOUT_MS): Promise<Response> {
+    const ctrl = new AbortController();
+    const id = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(id);
+        return res;
+    } catch (e) {
+        clearTimeout(id);
+        throw e;
+    }
+}
 
 const CACHE_KEY = 'kpkn-food-search-cache';
 const CACHE_MAX_ENTRIES = 100;
@@ -193,7 +208,7 @@ async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
     if (!searchTerms) return [];
     try {
         const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerms)}&search_simple=1&json=1&page_size=10`;
-        const res = await fetch(url);
+        const res = await fetchWithTimeout(url);
         const data = await res.json();
         const products = data.products || [];
         const items = products
@@ -211,7 +226,7 @@ async function searchUSDA(query: string, apiKey: string): Promise<FoodItem[]> {
     if (apiKey) {
         try {
             const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(apiKey)}&query=${encodeURIComponent(query)}&pageSize=10`;
-            const res = await fetch(url);
+            const res = await fetchWithTimeout(url);
             const data = await res.json();
             const foods = data.foods || [];
             if (foods.length > 0) return foods.slice(0, 10).map((f: any) => foodItemFromUSDA(f));
@@ -423,8 +438,7 @@ function mergeAndDeduplicate(local: FoodItem[], off: FoodItem[], usda: FoodItem[
 
 /**
  * Búsqueda unificada de alimentos
- * Consulta en paralelo: local, Open Food Facts, USDA (prioridad USDA, rellena macros faltantes)
- * Filtra stopwords, aplica fuzzy matching si no hay resultados exactos, descarta irrelevantes
+ * PRIORIDAD OFFLINE: usa bases locales primero (instantáneo). Solo si no hay resultados y hay conexión, consulta APIs online.
  */
 export async function searchFoods(
     query: string,
@@ -452,16 +466,31 @@ export async function searchFoods(
         }
     }
 
-    const [off, usda] = await Promise.all([
-        searchOpenFoodFacts(q),
-        searchUSDA(q, usdaKey),
+    // 1. OFFLINE PRIMERO: bases integradas (instantáneo, sin red)
+    const [offOffline, usdaOffline] = await Promise.all([
+        searchOFFOffline(q),
+        searchUSDAOffline(q),
     ]);
 
-    let merged = mergeAndDeduplicate(local, off, usda);
     merged = filterByRelevance(merged, q);
 
+    // 2. Solo si hay pocos resultados Y hay conexión: consultar APIs online (más lento)
+    const MIN_OFFLINE_RESULTS = 5;
+    if (merged.length < MIN_OFFLINE_RESULTS && typeof navigator !== 'undefined' && navigator.onLine) {
+        try {
+            const [offOnline, usdaOnline] = await Promise.all([
+                searchOpenFoodFacts(q),
+                searchUSDA(q, usdaKey),
+            ]);
+            merged = mergeAndDeduplicate(local, [...offOffline, ...offOnline], [...usdaOffline, ...usdaOnline]);
+            merged = filterByRelevance(merged, q);
+        } catch (_) {
+            /* Mantener resultados offline */
+        }
+    }
+
     if (merged.length === 0) {
-        const allSources = [...local, ...off, ...usda];
+        const allSources = [...local, ...offOffline, ...usdaOffline];
         const fuzzyCandidates = allSources
             .map(f => ({ item: f, score: fuzzyScore(q, f.name) }))
             .filter(x => x.score >= FUZZY_THRESHOLD)
@@ -470,8 +499,8 @@ export async function searchFoods(
             .map(x => x.item);
         merged = mergeAndDeduplicate(fuzzyCandidates, [], []);
     }
-    if (merged.length === 0 && (local.length > 0 || off.length > 0 || usda.length > 0)) {
-        const allSources = [...local, ...off, ...usda];
+    if (merged.length === 0 && (local.length > 0 || offOffline.length > 0 || usdaOffline.length > 0)) {
+        const allSources = [...local, ...offOffline, ...usdaOffline];
         const best = allSources
             .map(f => ({ item: f, score: fuzzyScore(q, f.name) }))
             .sort((a, b) => b.score - a.score)[0];
@@ -482,4 +511,10 @@ export async function searchFoods(
     setCache(cache);
 
     return merged;
+}
+
+/** Preload de bases offline en segundo plano para primera búsqueda instantánea */
+if (typeof window !== 'undefined') {
+    loadOFFOffline().catch(() => {});
+    loadUSDAOffline().catch(() => {});
 }

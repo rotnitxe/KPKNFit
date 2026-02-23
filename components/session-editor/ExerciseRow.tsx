@@ -97,7 +97,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
         });
     }, [partIndex, exerciseIndex, onUpdate]);
 
-    // RM efectivo para mostrar cargas sugeridas: usa reference1RM o lo calcula de prFor1RM al vuelo
+    // RM efectivo para cargas sugeridas: usa reference1RM o lo calcula de prFor1RM al vuelo
     const effectiveReference1RM = useMemo(() => {
         if (exercise.reference1RM && exercise.reference1RM > 0) return exercise.reference1RM;
         if (exercise.prFor1RM?.weight && exercise.prFor1RM?.reps)

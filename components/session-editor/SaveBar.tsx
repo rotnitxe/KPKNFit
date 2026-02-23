@@ -9,7 +9,7 @@ interface SaveBarProps {
 
 const SaveBar: React.FC<SaveBarProps> = ({ hasChanges, modifiedCount, onSave, onCancel }) => {
     return (
-        <div className="fixed bottom-24 left-4 right-4 z-20 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-md pointer-events-auto">
+        <div className="fixed bottom-24 left-4 right-20 z-20 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-md pointer-events-auto">
             <div className="bg-[#0d0d0d]/95 backdrop-blur-xl border border-[#FC4C02]/30 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-[0_0_30px_rgba(252,76,2,0.15)]">
                 <button
                     onClick={onCancel}

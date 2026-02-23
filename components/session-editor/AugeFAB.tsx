@@ -22,7 +22,7 @@ const AugeFAB: React.FC<AugeFABProps> = ({ alertCount, sessionStatus, hasCritica
     return (
         <button
             onClick={onClick}
-            className={`fixed bottom-28 right-4 z-30 w-12 h-12 rounded-full ${fabBg} border flex items-center justify-center text-white hover:opacity-90 transition-all ${glowColor}`}
+            className={`fixed bottom-[10rem] right-4 z-30 w-12 h-12 rounded-full ${fabBg} border flex items-center justify-center text-white hover:opacity-90 transition-all ${glowColor}`}
         >
             <ActivityIcon size={20} className="text-white" />
             {alertCount > 0 && (
