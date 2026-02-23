@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckIcon } from '../icons';
 
 interface SaveBarProps {
     hasChanges: boolean;
@@ -29,13 +30,14 @@ const SaveBar: React.FC<SaveBarProps> = ({ hasChanges, modifiedCount, onSave, on
                 <button
                     onClick={onSave}
                     disabled={!hasChanges}
-                    className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    className={`w-11 h-11 rounded-full flex items-center justify-center transition-all shrink-0 ${
                         hasChanges
                             ? 'bg-[#FC4C02] text-white hover:brightness-110 shadow-[0_0_15px_rgba(252,76,2,0.3)]'
                             : 'bg-white/5 text-[#555] cursor-not-allowed'
                     }`}
+                    title="Guardar"
                 >
-                    Guardar
+                    <CheckIcon size={22} strokeWidth={2.5} />
                 </button>
             </div>
         </div>

@@ -1346,28 +1346,93 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     // NUEVOS ESTADOS ROADMAP, GUARDADO Y REGLAS
     const [emptyDaySelected, setEmptyDaySelected] = useState<number | null>(null);
-    const [globalSessionAlerts, setGlobalSessionAlerts] = useState<{ muscle: string; volume: number; threshold: number; failRatio: number; message?: string }[]>([]);
-    const [notifiedAlerts, setNotifiedAlerts] = useState<Set<string>>(new Set());
-    // Transfer modal removed — migrated to TransferDrawer
-
     // Derivamos la "sesión actual" del búfer en tiempo real aquí arriba para que la lógica de volumen basura la pueda leer
     const session = useMemo(() => weekSessions.find(s => s.id === activeSessionId) || weekSessions[0], [weekSessions, activeSessionId]);
 
+    // Alertas AUGE: sesión en vivo + contexto semanal (volumen basura por cruce con otras sesiones)
+    const globalSessionAlerts = useMemo(() => {
+        const hyperMap: Record<string, { flat: number; effective: number; fail: number }> = {};
+        const weeklyHyperMap: Record<string, { flat: number; effective: number }> = {};
+        const limits = settings?.volumeLimits || {};
+        const deficitFactor = settings?.calorieGoalObjective === 'deficit' ? 0.8 : 1;
+
+        const processExToMap = (ex: any, info: any, targetMap: Record<string, { flat: number; effective: number; fail?: number }>, addFail: boolean) => {
+            (ex.sets?.filter((st: any) => (st as any).type !== 'warmup') || []).forEach((set: any) => {
+                const volMult = getEffectiveVolumeMultiplier(set);
+                info.involvedMuscles.forEach((m: any) => {
+                    const parent = normalizeMuscleGroup(m.muscle);
+                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
+                    const effVol = hyperFactor * volMult;
+                    const flatVol = hyperFactor;
+                    if (!targetMap[parent]) targetMap[parent] = addFail ? { flat: 0, effective: 0, fail: 0 } : { flat: 0, effective: 0 };
+                    (targetMap[parent] as any).flat += flatVol;
+                    (targetMap[parent] as any).effective += effVol;
+                    if (addFail && getEffectiveRPE(set) >= 9.5) (targetMap[parent] as any).fail += flatVol;
+                });
+            });
+        };
+
+        const sessionEx = [...(session?.exercises || [])];
+        (session?.parts || []).forEach(p => sessionEx.push(...p.exercises));
+        sessionEx.forEach(ex => {
+            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+            if (info) processExToMap(ex, info, hyperMap, true);
+        });
+
+        weekSessions.forEach(s => {
+            const allEx = [...(s?.exercises || [])];
+            (s?.parts || []).forEach(p => allEx.push(...p.exercises));
+            allEx.forEach(ex => {
+                const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+                if (info) processExToMap(ex, info, weeklyHyperMap, false);
+            });
+        });
+
+        const sortedSession = Object.entries(hyperMap)
+            .map(([muscle, data]) => ({ muscle, volume: Math.round(data.effective * 10) / 10, flat: data.flat, failRatio: data.flat > 0 ? data.fail / data.flat : 0 }))
+            .filter(i => i.volume > 0).sort((a, b) => b.volume - a.volume);
+        const sessionAlerts = sortedSession.map(m => {
+            const limit = Math.round((limits[m.muscle]?.maxSession || 6) * deficitFactor);
+            let message = '';
+            let isAlert = false;
+            if (m.volume > limit) {
+                isAlert = true;
+                const deficitNote = deficitFactor < 1 ? ' En déficit, el límite es más bajo.' : '';
+                if (m.failRatio >= 0.7) message = `Llevaste muchas series al fallo. Añadir más es Volumen Basura.${deficitNote}`;
+                else if (m.failRatio <= 0.3) message = `Superaste el límite efectivo (${limit} pts). El estímulo decaerá.${deficitNote}`;
+                else message = `Superaste el umbral óptimo por sesión (${limit} pts).${deficitNote}`;
+            }
+            return { ...m, threshold: limit, message, isAlert, source: 'session' as const };
+        }).filter(m => m.isAlert);
+
+        const sortedWeekly = Object.entries(weeklyHyperMap)
+            .map(([muscle, data]) => ({ muscle, volume: Math.round(data.effective * 10) / 10, flat: data.flat }))
+            .filter(i => i.volume > 0).sort((a, b) => b.volume - a.volume);
+        const weeklyAlerts = sortedWeekly.map(m => {
+            const mrv = limits[m.muscle]?.max || 18;
+            let message = '';
+            let isAlert = false;
+            if (m.flat > mrv) {
+                isAlert = true;
+                message = `Programas ${Math.round(m.flat)} series. Tu MRV es ${mrv}. Entrarás en sobreentrenamiento.`;
+            }
+            return { ...m, threshold: mrv, volume: m.flat, failRatio: 0, message, isAlert, source: 'week' as const };
+        }).filter(m => m.isAlert);
+
+        return [...sessionAlerts, ...weeklyAlerts];
+    }, [session, weekSessions, exerciseList, settings?.volumeLimits, settings?.calorieGoalObjective]);
+
+    const [notifiedAlerts, setNotifiedAlerts] = useState<Set<string>>(new Set());
     useEffect(() => {
         globalSessionAlerts.forEach(alert => {
-            if (!notifiedAlerts.has(alert.muscle)) {
-                addToast(`¡Cuidado! Alerta de volumen en ${alert.muscle}. Revisa la tarjeta roja.`, "danger");
-                setNotifiedAlerts(prev => new Set(prev).add(alert.muscle));
+            const key = `${alert.muscle}-${(alert as any).source || 'session'}`;
+            if (!notifiedAlerts.has(key)) {
+                const ctx = (alert as any).source === 'week' ? ' (contexto semanal)' : '';
+                addToast(`¡Cuidado! Alerta de volumen en ${alert.muscle}${ctx}. Revisa AUGE.`, "danger");
+                setNotifiedAlerts(prev => new Set(prev).add(key));
             }
         });
     }, [globalSessionAlerts, notifiedAlerts, addToast]);
-
-    // Listener para alertas AUGE (con cleanup para evitar memory leaks)
-    useEffect(() => {
-        const handler = (e: Event & { detail?: any }) => setGlobalSessionAlerts(e.detail || []);
-        window.addEventListener('augeAlertsUpdated', handler);
-        return () => window.removeEventListener('augeAlertsUpdated', handler);
-    }, []);
 
     // ESTADO PARA ALERTAS DE CINETICA AVANZADA
     const [neuralAlerts, setNeuralAlerts] = useState<{type: string, message: string, severity: 'warning'|'critical'}[]>([]);
@@ -1789,17 +1854,63 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, [session, weekSessions, activeSessionId, exerciseList, settings]);
 
     const augeSuggestions = useMemo(() => {
-        const suggestions: { id: string; message: string; exerciseName?: string; action?: () => void }[] = [];
+        const suggestions: { id: string; message: string; exerciseName?: string; action?: () => void; severity?: 'info' | 'warning' | 'critical' }[] = [];
         if (settings.calorieGoalObjective === 'deficit') {
-            suggestions.push({ id: 'sug-deficit', message: 'En déficit calórico: reduce series o evita RPE 10 para proteger masa muscular y recuperación.', action: undefined });
+            suggestions.push({ id: 'sug-deficit', message: 'En déficit calórico: reduce series o evita RPE 10 para proteger masa muscular y recuperación.', severity: 'warning' });
         }
         neuralAlerts.forEach((a, i) => {
             if (a.type === 'Espinal') {
-                suggestions.push({ id: `sug-spinal-${i}`, message: 'Considera cambiar ejercicios libres por máquinas para reducir carga espinal.', action: undefined });
+                suggestions.push({ id: `sug-spinal-${i}`, message: 'Considera cambiar ejercicios libres por máquinas para reducir carga espinal.', severity: 'warning' });
             }
         });
+
+        const limits = settings?.volumeLimits || {};
+        const deficitFactor = settings?.calorieGoalObjective === 'deficit' ? 0.8 : 1;
+        const hyperMap: Record<string, { flat: number; effective: number }> = {};
+        let rpeSum = 0, rpeCount = 0;
+        const sessionEx = [...(session?.exercises || [])];
+        (session?.parts || []).forEach(p => sessionEx.push(...p.exercises));
+        sessionEx.forEach(ex => {
+            const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+            if (!info) return;
+            (ex.sets?.filter((s: any) => (s as any).type !== 'warmup') || []).forEach((set: any) => {
+                const rpe = getEffectiveRPE(set);
+                rpeSum += rpe;
+                rpeCount++;
+                const volMult = getEffectiveVolumeMultiplier(set);
+                info.involvedMuscles.forEach((m: any) => {
+                    const parent = normalizeMuscleGroup(m.muscle);
+                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
+                    const effVol = hyperFactor * volMult;
+                    if (!hyperMap[parent]) hyperMap[parent] = { flat: 0, effective: 0 };
+                    hyperMap[parent].flat += hyperFactor;
+                    hyperMap[parent].effective += effVol;
+                });
+            });
+        });
+
+        const avgRPE = rpeCount > 0 ? rpeSum / rpeCount : 0;
+        if (rpeCount >= 3) {
+            if (avgRPE < 6.5) {
+                suggestions.push({ id: 'sug-intensity-light', message: 'Sesión muy liviana en intensidad (RPE medio ~' + avgRPE.toFixed(1) + '). Sube la intensidad para mejor estímulo.', severity: 'info' });
+            } else if (avgRPE > 9.2) {
+                suggestions.push({ id: 'sug-intensity-high', message: 'Sesión muy intensa (RPE medio ~' + avgRPE.toFixed(1) + '). Considera bajar RPE o reducir series.', severity: 'warning' });
+            }
+        }
+
+        Object.entries(hyperMap).filter(([, d]) => d.effective > 0).forEach(([muscle, data]) => {
+            const limit = Math.round((limits[muscle]?.maxSession || 6) * deficitFactor);
+            if (data.effective < limit * 0.55 && data.effective > 0) {
+                const room = Math.max(1, Math.floor((limit * 0.75 - data.effective) / 0.5));
+                if (room >= 1) {
+                    const seriesText = room >= 4 ? '2-3' : room >= 2 ? '1-2' : '1';
+                    suggestions.push({ id: `sug-add-${muscle}`, message: `${muscle} tiene margen (${data.effective.toFixed(1)}/${limit} pts). Podrías añadir ${seriesText} serie(s) para optimizar.`, severity: 'info' });
+                }
+            }
+        });
+
         return suggestions;
-    }, [neuralAlerts, settings.calorieGoalObjective]);
+    }, [neuralAlerts, settings.calorieGoalObjective, session, exerciseList, settings?.volumeLimits]);
 
     const sessionDrainEstimate = useMemo(() => {
         let msc = 0, snc = 0, spinal = 0, totalSets = 0;
@@ -1820,6 +1931,28 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         });
         return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal), totalSets, estimatedDuration: Math.round(totalSets * 2.5) };
     }, [session, exerciseList, settings]);
+
+    const weeklyDrainEstimate = useMemo(() => {
+        let msc = 0, snc = 0, spinal = 0, totalSets = 0;
+        const tanks = calculatePersonalizedBatteryTanks(settings);
+        weekSessions.forEach(s => {
+            const allEx = [...(s?.exercises || [])];
+            (s?.parts || []).forEach(p => allEx.push(...p.exercises));
+            allEx.forEach(ex => {
+                const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+                if (!info) return;
+                const validSets = ex.sets?.filter(st => (st as any).type !== 'warmup') || [];
+                totalSets += validSets.length;
+                validSets.forEach(set => {
+                    const drain = calculateSetBatteryDrain(set, info, tanks, 0, ex.restTime || 90);
+                    msc += drain.muscularDrainPct;
+                    snc += drain.cnsDrainPct;
+                    spinal += (info.axialLoadFactor || 0) * 2;
+                });
+            });
+        });
+        return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal), totalSets, estimatedDuration: Math.round(totalSets * 2.5) };
+    }, [weekSessions, exerciseList, settings]);
 
     const getExerciseFatigue = useCallback((ex: Exercise) => {
         const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
@@ -2119,14 +2252,14 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             <AugeDrawerComponent
                 isOpen={isAugeDrawerOpen}
                 onClose={() => setIsAugeDrawerOpen(false)}
+                session={session}
+                weekSessions={weekSessions}
+                exerciseList={exerciseList}
                 volumeAlerts={globalSessionAlerts}
                 neuralAlerts={neuralAlerts}
                 suggestions={augeSuggestions}
-                totalSets={sessionDrainEstimate.totalSets}
-                estimatedDuration={sessionDrainEstimate.estimatedDuration}
-                drainMsc={sessionDrainEstimate.msc}
-                drainSnc={sessionDrainEstimate.snc}
-                drainSpinal={sessionDrainEstimate.spinal}
+                sessionDrain={sessionDrainEstimate}
+                weeklyDrain={weeklyDrainEstimate}
                 onAlertClick={scrollToExerciseByName}
                 onApplyCorrection={handleApplyAvisoCorrection}
                 onDismissAviso={(id) => setDismissedAvisoIds(prev => new Set(prev).add(id))}

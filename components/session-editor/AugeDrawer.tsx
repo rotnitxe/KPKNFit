@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { XIcon, ActivityIcon } from '../icons';
+import React, { useState, useRef, useMemo } from 'react';
+import { XIcon, ActivityIcon, TargetIcon } from '../icons';
+import { Session, ExerciseMuscleInfo } from '../../types';
+import { calculateUnifiedMuscleVolume } from '../../services/volumeCalculator';
 
 interface VolumeAlert {
     muscle: string;
@@ -20,33 +22,42 @@ interface AugeSuggestion {
     message: string;
     exerciseName?: string;
     action?: () => void;
+    severity?: 'info' | 'warning' | 'critical';
 }
 
 export type AvisoKind = 'volume' | 'neural' | 'suggestion';
-export type CorrectionType = 'reduce_series' | 'reduce_rpe' | 'change_to_machine' | 'reduce_volume_rpe';
+export type CorrectionType = 'reduce_series' | 'reduce_rpe' | 'change_to_machine' | 'reduce_volume_rpe' | 'add_series';
 
 export interface UnifiedAviso {
     id: string;
     kind: AvisoKind;
     message: string;
-    severity: 'warning' | 'critical';
+    severity: 'info' | 'warning' | 'critical';
     type?: string;
     muscle?: string;
     exerciseName?: string;
     correctionType?: CorrectionType;
 }
 
+interface DrainEstimate {
+    msc: number;
+    snc: number;
+    spinal: number;
+    totalSets: number;
+    estimatedDuration: number;
+}
+
 interface AugeDrawerProps {
     isOpen: boolean;
     onClose: () => void;
+    session: Session;
+    weekSessions: Session[];
+    exerciseList: ExerciseMuscleInfo[];
     volumeAlerts: VolumeAlert[];
     neuralAlerts: NeuralAlert[];
     suggestions: AugeSuggestion[];
-    totalSets: number;
-    estimatedDuration: number;
-    drainMsc: number;
-    drainSnc: number;
-    drainSpinal: number;
+    sessionDrain: DrainEstimate;
+    weeklyDrain: DrainEstimate;
     onAlertClick?: (exerciseName: string) => void;
     onApplyCorrection?: (aviso: UnifiedAviso) => void;
     onDismissAviso?: (id: string) => void;
@@ -94,9 +105,9 @@ const buildUnifiedAvisos = (
             id: sug.id,
             kind: 'suggestion',
             message: sug.message,
-            severity: 'warning',
+            severity: sug.severity || 'warning',
             exerciseName: sug.exerciseName,
-            correctionType: 'reduce_rpe',
+            correctionType: sug.severity === 'info' ? 'add_series' : 'reduce_rpe',
         });
     });
     return result;
@@ -112,6 +123,8 @@ const getCorrectionLabel = (aviso: UnifiedAviso): string => {
             return 'Cambiar a variante máquina/cable';
         case 'reduce_volume_rpe':
             return 'Reducir volumen/RPE';
+        case 'add_series':
+            return aviso.muscle ? `Añadir 1 serie en ${aviso.muscle}` : 'Añadir serie';
         default:
             return 'Aplicar corrección';
     }
@@ -168,17 +181,21 @@ const AvisoRow: React.FC<{
                 className={`w-full text-left p-3 rounded-lg border transition-colors cursor-pointer ${
                     aviso.severity === 'critical'
                         ? 'bg-[#FF3B30]/5 border-[#FF3B30]/15 hover:bg-[#FF3B30]/10'
-                        : 'bg-[#FFD60A]/5 border-[#FFD60A]/10 hover:bg-[#FFD60A]/10'
+                        : aviso.severity === 'info'
+                            ? 'bg-[#00F19F]/5 border-[#00F19F]/15 hover:bg-[#00F19F]/10'
+                            : 'bg-[#FFD60A]/5 border-[#FFD60A]/10 hover:bg-[#FFD60A]/10'
                 }`}
             >
                 <div className="flex items-start gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${aviso.severity === 'critical' ? 'bg-[#FF3B30]' : 'bg-[#FFD60A]'}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
+                        aviso.severity === 'critical' ? 'bg-[#FF3B30]' : aviso.severity === 'info' ? 'bg-[#00F19F]' : 'bg-[#FFD60A]'
+                    }`} />
                     <div className="flex-1 min-w-0">
                         <p className="text-xs text-white leading-relaxed">{aviso.message}</p>
                         {aviso.kind === 'neural' && aviso.type && (
                             <span className="text-[10px] text-[#555] mt-0.5 block">{aviso.type}</span>
                         )}
-                        {expanded && onApplyCorrection && (
+                        {expanded && onApplyCorrection && aviso.severity !== 'info' && (
                             <div className="mt-3 pt-3 border-t border-white/10">
                                 <button
                                     onClick={handleApply}
@@ -196,10 +213,19 @@ const AvisoRow: React.FC<{
 };
 
 const AugeDrawer: React.FC<AugeDrawerProps> = ({
-    isOpen, onClose, volumeAlerts, neuralAlerts, suggestions,
-    totalSets, estimatedDuration, drainMsc, drainSnc, drainSpinal,
+    isOpen, onClose, session, weekSessions, exerciseList,
+    volumeAlerts, neuralAlerts, suggestions,
+    sessionDrain, weeklyDrain,
     onAlertClick, onApplyCorrection, onDismissAviso, dismissedAvisoIds = new Set(),
 }) => {
+    const [volumeContext, setVolumeContext] = useState<'session' | 'week'>('session');
+    const [drainContext, setDrainContext] = useState<'session' | 'week'>('session');
+    const volumeData = useMemo(() => {
+        const sessions = volumeContext === 'session' ? [session] : weekSessions;
+        return calculateUnifiedMuscleVolume(sessions, exerciseList);
+    }, [session, weekSessions, exerciseList, volumeContext]);
+    const drain = drainContext === 'session' ? sessionDrain : weeklyDrain;
+
     if (!isOpen) return null;
 
     const allAvisos = buildUnifiedAvisos(volumeAlerts, neuralAlerts, suggestions);
@@ -241,27 +267,89 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                     )}
 
                     {visibleAvisos.length === 0 && (
-                        <div className="text-center py-8">
+                        <div className="text-center py-4">
                             <ActivityIcon size={24} className="text-[#00F19F] mx-auto mb-2" />
                             <p className="text-xs text-[#999]">Sin avisos. Todo en orden.</p>
                         </div>
                     )}
 
+                    {/* Volumen por músculo con switch sesión / semana */}
                     <section>
-                        <h3 className="text-xs font-bold uppercase tracking-wide text-[#999] mb-3">Resumen</h3>
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-[#999] flex items-center gap-1.5">
+                                <TargetIcon size={12} />
+                                Volumen por músculo
+                            </h3>
+                            <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                                <button
+                                    onClick={() => setVolumeContext('session')}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'session' ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                >
+                                    Sesión
+                                </button>
+                                <button
+                                    onClick={() => setVolumeContext('week')}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'week' ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                >
+                                    Semana
+                                </button>
+                            </div>
+                        </div>
+                        {volumeData.length === 0 ? (
+                            <p className="text-[10px] text-[#666] py-2">Agrega ejercicios para ver el volumen.</p>
+                        ) : (
+                            <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                {volumeData.map(v => (
+                                    <div key={v.muscleGroup} className="flex items-center gap-3">
+                                        <span className="text-[10px] font-bold text-[#999] w-24 truncate">{v.muscleGroup}</span>
+                                        <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all ${v.displayVolume > 5 ? 'bg-red-500' : v.displayVolume > 3 ? 'bg-[#FFD60A]' : 'bg-[#00F19F]'}`}
+                                                style={{ width: `${Math.min(100, (v.displayVolume / 8) * 100)}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-[10px] font-mono font-bold text-white w-8 text-right">{v.displayVolume.toFixed(1)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+
+                    {/* Fatiga AUGE con switch sesión / semana */}
+                    <section>
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-[#999] flex items-center gap-1.5">
+                                <ActivityIcon size={12} />
+                                Fatiga AUGE
+                            </h3>
+                            <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                                <button
+                                    onClick={() => setDrainContext('session')}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'session' ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                >
+                                    Sesión
+                                </button>
+                                <button
+                                    onClick={() => setDrainContext('week')}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'week' ? 'bg-[#FC4C02] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                >
+                                    Semana
+                                </button>
+                            </div>
+                        </div>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs text-[#999]">Sets efectivos</span>
-                                <span className="text-sm font-mono font-bold text-white">{totalSets}</span>
+                                <span className="text-sm font-mono font-bold text-white">{drain.totalSets}</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-xs text-[#999]">Duración est.</span>
-                                <span className="text-sm font-mono font-bold text-white">{estimatedDuration}min</span>
+                                <span className="text-sm font-mono font-bold text-white">{drain.estimatedDuration}min</span>
                             </div>
                             <div className="space-y-2 pt-2">
-                                <DrainBar label="MSC" value={drainMsc} />
-                                <DrainBar label="SNC" value={drainSnc} />
-                                <DrainBar label="Espinal" value={drainSpinal} />
+                                <DrainBar label="MSC" value={drain.msc} />
+                                <DrainBar label="SNC" value={drain.snc} />
+                                <DrainBar label="Espinal" value={drain.spinal} />
                             </div>
                         </div>
                     </section>
