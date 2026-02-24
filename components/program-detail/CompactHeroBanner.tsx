@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Program } from '../../types';
-import { ChevronDownIcon, DumbbellIcon, EditIcon, PlayIcon, SettingsIcon, XIcon } from '../icons';
+import { ChevronDownIcon, EditIcon, PlayIcon, SettingsIcon, XIcon } from '../icons';
 import { SPLIT_TEMPLATES } from '../../data/splitTemplates';
 
 interface CompactHeroBannerProps {
@@ -90,77 +90,9 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
 
                 {/* Fila 3: Acciones */}
                 <div className="flex items-center gap-2 shrink-0">
-                    <div className="relative">
-                        <button onClick={() => setConfigOpen(!configOpen)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors">
-                            <SettingsIcon size={16} />
-                        </button>
-                        {configOpen && (
-                            <>
-                                <div className="fixed inset-0 z-[150]" onClick={() => setConfigOpen(false)} />
-                                <div className="absolute bottom-full right-0 mb-2 z-[151] w-72 bg-[#1a1a1a] border border-white/10 rounded-xl p-4 shadow-2xl space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-white uppercase tracking-wide">Configuración</span>
-                                        <button onClick={() => setConfigOpen(false)} className="text-[#48484A] hover:text-white"><XIcon size={14} /></button>
-                                    </div>
-                                    {/* Mode */}
-                                    <div>
-                                        <label className="text-[10px] text-[#8E8E93] font-bold block mb-1">Modo</label>
-                                        <div className="flex gap-1">
-                                            {(['hypertrophy', 'powerlifting'] as const).map(m => (
-                                                <button key={m} onClick={() => {
-                                                    if (onUpdateProgram) {
-                                                        const updated = JSON.parse(JSON.stringify(program));
-                                                        updated.mode = m;
-                                                        onUpdateProgram(updated);
-                                                    }
-                                                }} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${program.mode === m ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#8E8E93] hover:text-white'}`}>
-                                                    {m === 'hypertrophy' ? 'Hipertrofia' : 'Powerlifting'}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    {/* Start day */}
-                                    <div>
-                                        <label className="text-[10px] text-[#8E8E93] font-bold block mb-1">Día de inicio</label>
-                                        <div className="flex gap-0.5">
-                                            {DAYS.map((d, i) => (
-                                                <button key={i} onClick={() => {
-                                                    if (onUpdateProgram) {
-                                                        const updated = JSON.parse(JSON.stringify(program));
-                                                        updated.startDay = i;
-                                                        onUpdateProgram(updated);
-                                                    }
-                                                }} className={`flex-1 py-1.5 rounded text-[9px] font-bold transition-colors ${(program.startDay ?? 1) === i ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#48484A] hover:text-white'}`}>
-                                                    {d}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    {/* Split */}
-                                    <div>
-                                        <label className="text-[10px] text-[#8E8E93] font-bold block mb-1">Split actual</label>
-                                        <button onClick={() => { setConfigOpen(false); onOpenSplitChanger(); }} className="w-full text-left px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                                            <span className="text-xs font-bold text-white">{currentSplit?.name || 'No definido'}</span>
-                                            {currentSplit && (
-                                                <div className="flex gap-0.5 mt-1">
-                                                    {currentSplit.pattern.map((d, i) => (
-                                                        <div key={i} className={`flex-1 h-1 rounded-full ${d.toLowerCase() === 'descanso' ? 'bg-[#48484A]' : 'bg-[#00F0FF]'}`} />
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </button>
-                                    </div>
-                                    {/* Description */}
-                                    {program.description && (
-                                        <div>
-                                            <label className="text-[10px] text-[#8E8E93] font-bold block mb-1">Descripción</label>
-                                            <p className="text-[11px] text-[#8E8E93] leading-relaxed">{program.description}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
+                    <button onClick={() => setConfigOpen(true)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors">
+                        <SettingsIcon size={16} />
+                    </button>
                     <button onClick={onEdit} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors">
                         <EditIcon size={16} />
                     </button>
@@ -177,6 +109,89 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* Drawer de configuración (estilo app) */}
+            {configOpen && (
+                <>
+                    <div className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setConfigOpen(false)} />
+                    <div className="fixed inset-x-0 bottom-0 z-[151] max-h-[85vh] overflow-hidden flex flex-col rounded-t-2xl border-t border-[#00F0FF]/20 bg-[#0a0a0a] shadow-[0_-8px 32px rgba(0,0,0,0.5)] animate-slide-up">
+                        <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-white/10">
+                            <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                <SettingsIcon size={18} className="text-[#00F0FF]" />
+                                Ajustes del programa
+                            </h2>
+                            <button onClick={() => setConfigOpen(false)} className="p-2 rounded-xl text-[#8E8E93] hover:text-white hover:bg-white/5 transition-colors">
+                                <XIcon size={18} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
+                            <section>
+                                <h3 className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider mb-3">Modo</h3>
+                                <div className="flex gap-2">
+                                    {(['hypertrophy', 'powerlifting'] as const).map(m => (
+                                        <button
+                                            key={m}
+                                            onClick={() => {
+                                                if (onUpdateProgram) {
+                                                    const updated = JSON.parse(JSON.stringify(program));
+                                                    updated.mode = m;
+                                                    onUpdateProgram(updated);
+                                                }
+                                            }}
+                                            className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all border ${program.mode === m ? 'bg-[#00F0FF]/15 border-[#00F0FF]/50 text-[#00F0FF]' : 'bg-white/[0.04] border-white/10 text-[#8E8E93] hover:border-white/20 hover:text-white'}`}
+                                        >
+                                            {m === 'hypertrophy' ? 'Hipertrofia' : 'Powerlifting'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+                            <section>
+                                <h3 className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider mb-3">Día de inicio de semana</h3>
+                                <div className="flex gap-1 flex-wrap">
+                                    {DAYS.map((d, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => {
+                                                if (onUpdateProgram) {
+                                                    const updated = JSON.parse(JSON.stringify(program));
+                                                    updated.startDay = i;
+                                                    onUpdateProgram(updated);
+                                                }
+                                            }}
+                                            className={`min-w-[2.5rem] py-2.5 rounded-xl text-xs font-bold transition-all ${(program.startDay ?? 1) === i ? 'bg-[#00F0FF] text-black' : 'bg-white/[0.04] text-[#8E8E93] hover:bg-white/10 hover:text-white'}`}
+                                        >
+                                            {d}
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+                            <section>
+                                <h3 className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider mb-3">Split actual</h3>
+                                <button
+                                    onClick={() => { setConfigOpen(false); onOpenSplitChanger(); }}
+                                    className="w-full text-left px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-[#00F0FF]/30 transition-colors"
+                                >
+                                    <span className="text-sm font-bold text-white block">{currentSplit?.name || 'No definido'}</span>
+                                    {currentSplit && (
+                                        <div className="flex gap-1 mt-2">
+                                            {currentSplit.pattern.map((d, i) => (
+                                                <div key={i} className={`flex-1 h-1.5 rounded-full ${d.toLowerCase() === 'descanso' ? 'bg-white/10' : 'bg-[#00F0FF]/60'}`} title={d} />
+                                            ))}
+                                        </div>
+                                    )}
+                                    <span className="text-[10px] text-[#00F0FF] mt-1 inline-block">Toca para cambiar</span>
+                                </button>
+                            </section>
+                            {program.description && (
+                                <section>
+                                    <h3 className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Descripción</h3>
+                                    <p className="text-xs text-[#8E8E93] leading-relaxed px-1">{program.description}</p>
+                                </section>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };

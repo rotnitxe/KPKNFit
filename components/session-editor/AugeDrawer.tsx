@@ -45,6 +45,7 @@ interface DrainEstimate {
     spinal: number;
     totalSets: number;
     estimatedDuration: number;
+    difficulty?: number;
 }
 
 interface AugeDrawerProps {
@@ -113,16 +114,38 @@ const buildUnifiedAvisos = (
     return result;
 };
 
-const getCorrectionLabel = (aviso: UnifiedAviso): string => {
+/** Descripción clara para el usuario de qué hará la corrección al aplicarla. */
+const getCorrectionDescription = (aviso: UnifiedAviso): string => {
     switch (aviso.correctionType) {
         case 'reduce_series':
-            return aviso.muscle ? `Reducir 1 serie en ${aviso.muscle}` : 'Reducir 1 serie';
+            return aviso.muscle
+                ? `Se quitará 1 serie en ejercicios de ${aviso.muscle}.`
+                : 'Se quitará 1 serie en el ejercicio afectado.';
         case 'reduce_rpe':
-            return 'Reducir RPE en series pesadas';
+            return 'Se bajará la intensidad en series pesadas: si usas RPE se bajará el RPE; si usas RIR se subirá el RIR; si usas Fallo se pasará a RIR; si usas %1RM se subirán repeticiones para bajar carga.';
         case 'change_to_machine':
-            return 'Cambiar a variante máquina/cable';
+            return 'Se bajará la intensidad (RPE/RIR/Fallo) en las series pesadas. Considera cambiar a variante máquina o cable.';
         case 'reduce_volume_rpe':
-            return 'Reducir volumen/RPE';
+            return 'Se limitarán a 3 series y se bajará la intensidad (RPE/RIR/Fallo o repeticiones en %1RM) en las series pesadas.';
+        case 'add_series':
+            return aviso.muscle
+                ? `Se añadirá 1 serie en ejercicios de ${aviso.muscle}.`
+                : 'Se añadirá 1 serie en el ejercicio afectado.';
+        default:
+            return 'Se aplicará la corrección sugerida.';
+    }
+};
+
+const getCorrectionButtonLabel = (aviso: UnifiedAviso): string => {
+    switch (aviso.correctionType) {
+        case 'reduce_series':
+            return aviso.muscle ? `Quitar 1 serie en ${aviso.muscle}` : 'Quitar 1 serie';
+        case 'reduce_rpe':
+            return 'Bajar intensidad';
+        case 'change_to_machine':
+            return 'Bajar intensidad';
+        case 'reduce_volume_rpe':
+            return 'Reducir volumen e intensidad';
         case 'add_series':
             return aviso.muscle ? `Añadir 1 serie en ${aviso.muscle}` : 'Añadir serie';
         default:
@@ -195,13 +218,14 @@ const AvisoRow: React.FC<{
                         {aviso.kind === 'neural' && aviso.type && (
                             <span className="text-[10px] text-[#555] mt-0.5 block">{aviso.type}</span>
                         )}
-                        {expanded && onApplyCorrection && aviso.severity !== 'info' && (
-                            <div className="mt-3 pt-3 border-t border-white/10">
+                        {expanded && onApplyCorrection && (
+                            <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                                <p className="text-[10px] text-[#999] leading-relaxed">{getCorrectionDescription(aviso)}</p>
                                 <button
                                     onClick={handleApply}
                                     className="px-3 py-1.5 rounded-lg bg-[#00F0FF] text-white text-[10px] font-bold hover:brightness-110 transition-all"
                                 >
-                                    {getCorrectionLabel(aviso)}
+                                    {getCorrectionButtonLabel(aviso)}
                                 </button>
                             </div>
                         )}
@@ -346,6 +370,12 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                                 <span className="text-xs text-[#999]">Duración est.</span>
                                 <span className="text-sm font-mono font-bold text-white">{drain.estimatedDuration}min</span>
                             </div>
+                            {drain.difficulty != null && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-[#999]">Dificultad</span>
+                                    <span className="text-sm font-mono font-bold text-white">{drain.difficulty}/10</span>
+                                </div>
+                            )}
                             <div className="space-y-2 pt-2">
                                 <DrainBar label="MSC" value={drain.msc} />
                                 <DrainBar label="SNC" value={drain.snc} />

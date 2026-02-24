@@ -1,25 +1,39 @@
 // components/ui/Toast.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { ToastData } from '../../types';
-import { CheckCircleIcon, TrophyIcon, XIcon, AlertTriangleIcon } from '../icons';
+import { CheckCircleIcon, XIcon } from '../icons';
 
 interface ToastProps {
   toast: ToastData;
   onDismiss: (id: number) => void;
 }
 
+const toastIconClass = 'w-10 h-10 object-contain flex-shrink-0';
+
+const CAUPOLICAN_ICONS = {
+  suggestion: (
+    <img src="/caupoNotificacion.svg" alt="" className={toastIconClass} aria-hidden />
+  ),
+  achievement: (
+    <img src="/CaupolicanLogros.svg" alt="" className={toastIconClass} aria-hidden />
+  ),
+  danger: (
+    <img src="/CaupolicanAlerta.svg" alt="" className={toastIconClass} aria-hidden />
+  ),
+};
+
 const ICONS = {
     success: <CheckCircleIcon className="text-emerald-400" size={20} />,
-    achievement: <TrophyIcon className="text-yellow-400" size={20} />,
-    suggestion: <div className="w-3 h-3 rounded-full bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.6)]" />,
-    danger: <AlertTriangleIcon className="text-red-400" size={20} />,
+    achievement: CAUPOLICAN_ICONS.achievement,
+    suggestion: CAUPOLICAN_ICONS.suggestion,
+    danger: CAUPOLICAN_ICONS.danger,
 };
 
 const GRADIENTS = {
     success: 'from-emerald-500/10 to-emerald-900/20 border-emerald-500/20',
-    achievement: 'from-yellow-500/10 to-yellow-900/20 border-yellow-500/20',
-    suggestion: 'from-sky-500/10 to-sky-900/20 border-sky-500/20',
-    danger: 'from-red-500/10 to-red-900/20 border-red-500/20',
+    achievement: 'from-amber-500/15 to-yellow-900/20 border-amber-500/30 bg-gradient-to-r from-amber-500/12 to-[#1a1808]',
+    suggestion: 'from-[#00F0FF]/15 to-[#00F0FF]/5 border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/12 to-[#0a1628]',
+    danger: 'from-red-500/15 to-red-900/20 border-red-500/30 bg-gradient-to-r from-red-500/12 to-[#1a0a0a]',
 };
 
 const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {

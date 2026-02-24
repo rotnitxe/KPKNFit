@@ -57,13 +57,31 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
         if (sets.length === 0) return 'Sin series';
         const reps = sets.map(s => s.targetReps || 0);
         const allSame = reps.every(r => r === reps[0]);
-        const rpeVals = sets.map(s => s.targetRPE).filter(Boolean);
-        const avgRpe = rpeVals.length ? (rpeVals.reduce((a, b) => a! + b!, 0)! / rpeVals.length).toFixed(1) : null;
-        if (allSame && reps[0]) return `${sets.length}x${reps[0]}${avgRpe ? ` @${avgRpe}` : ''}`;
+        const intensityLabels: string[] = [];
+        const hasRIR = sets.some(s => s.targetRIR !== undefined);
+        const hasRPE = sets.some(s => s.targetRPE !== undefined);
+        const hasFailure = sets.some(s => s.intensityMode === 'failure');
+        const hasPercent = exercise.trainingMode === 'percent' && sets.some(s => (s as any).targetPercentageRM != null);
+        if (hasFailure) intensityLabels.push('Fallo');
+        else if (hasRIR) {
+            const rirVals = sets.map(s => s.targetRIR).filter((r): r is number => r !== undefined);
+            const avg = rirVals.length ? (rirVals.reduce((a, b) => a + b, 0) / rirVals.length).toFixed(1) : null;
+            if (avg) intensityLabels.push(`RIR ${avg}`);
+        } else if (hasRPE) {
+            const rpeVals = sets.map(s => s.targetRPE).filter((r): r is number => r != null);
+            const avg = rpeVals.length ? (rpeVals.reduce((a, b) => a + b, 0) / rpeVals.length).toFixed(1) : null;
+            if (avg) intensityLabels.push(`@${avg}`);
+        }
+        if (hasPercent) {
+            const pct = sets.map(s => (s as any).targetPercentageRM).filter(Boolean);
+            if (pct.length) intensityLabels.push(`${Math.round((pct.reduce((a: number, b: number) => a + b, 0) as number) / pct.length)}%`);
+        }
+        const intStr = intensityLabels.length ? ` ${intensityLabels.join(' ')}` : '';
+        if (allSame && reps[0]) return `${sets.length}x${reps[0]}${intStr}`;
         const minR = Math.min(...reps.filter(r => r > 0));
         const maxR = Math.max(...reps);
-        return `${sets.length}x${minR}-${maxR}${avgRpe ? ` @${avgRpe}` : ''}`;
-    }, [exercise.sets]);
+        return `${sets.length}x${minR}-${maxR}${intStr}`;
+    }, [exercise.sets, exercise.trainingMode]);
 
     const filteredExercises = useMemo(() => {
         if (!searchQuery) return exerciseList.slice(0, 20);
@@ -246,21 +264,21 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                             <ClockIcon size={12} className="text-[#555]" />
                             <input
                                 type="time"
-                                step="15"
-                                value={(() => { const s = exercise.restTime || 90; const m = Math.floor(s / 60); const sec = s % 60; return `00:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
+                                step="30"
+                                value={(() => { const s = Math.min(300, exercise.restTime || 90); const m = Math.floor(s / 60); const sec = s % 60; return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
                                 onChange={e => {
                                     const v = e.target.value;
-                                    if (v) {
-                                        const parts = v.split(':').map(Number);
-                                        const seconds = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
-                                        onUpdate(partIndex, exerciseIndex, d => { d.restTime = seconds; });
-                                    }
+                                    if (!v) return;
+                                    const parts = v.split(':').map(Number);
+                                    const seconds = parts.length === 2 ? (parts[0] || 0) * 60 + (parts[1] || 0) : (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+                                    onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, seconds); });
                                 }}
                                 className="w-20 bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
                             />
                             {exercise.sets?.length > 0 && (() => {
                                 const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
-                                const suggested = suggestRestSeconds(exercise.sets.length, avgRPE);
+                                const avgPercent1RM = exercise.trainingMode === 'percent' && exercise.sets?.length ? exercise.sets.reduce((a, s) => a + ((s as any).targetPercentageRM || 0), 0) / exercise.sets.length : undefined;
+                                const suggested = suggestRestSeconds(exercise.sets.length, avgRPE, avgPercent1RM);
                                 const current = exercise.restTime || 90;
                                 if (Math.abs(suggested - current) > 15) {
                                     return <button type="button" onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.restTime = suggested; })} className="text-[8px] font-bold text-cyber-cyan hover:text-cyber-cyan/80">Sug</button>;

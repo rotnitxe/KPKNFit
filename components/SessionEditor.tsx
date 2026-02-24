@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Session, Exercise, ExerciseSet, Settings, ExerciseMuscleInfo, WarmupSetDefinition, CoverStyle, SessionBackground } from '../types';
 import { PlusIcon, TrashIcon, SparklesIcon, StarIcon, ArrowDownIcon, ArrowUpIcon, InfoIcon, ChevronRightIcon, XIcon, ImageIcon, BarChartIcon, LinkIcon, ZapIcon, DragHandleIcon, CheckIcon, ClockIcon, TargetIcon, FlameIcon, ActivityIcon, PaletteIcon, LayersIcon, RefreshCwIcon, SearchIcon, DumbbellIcon, SettingsIcon, AlertTriangleIcon } from './icons';
 import Button from './ui/Button';
-import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, calculateHybrid1RM, roundWeight, getOrderedDaysOfWeek, calculateWeightFrom1RMAndIntensity, suggestRestSeconds } from '../utils/calculations';
+import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, calculateHybrid1RM, roundWeight, getOrderedDaysOfWeek, calculateWeightFrom1RMAndIntensity, suggestRestSeconds, estimateSessionDurationMinutes } from '../utils/calculations';
 import { TacticalModal } from './ui/TacticalOverlays';
 import BackgroundEditorModal from './SessionBackgroundModal';
 import { useAppContext } from '../contexts/AppContext';
@@ -1035,14 +1035,17 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                             <div className="flex items-center gap-1 mt-1">
                                 <input
                                     type="time"
-                                    step="15"
-                                    value={(() => { const s = exercise.restTime || 90; const m = Math.floor(s / 60); const sec = s % 60; return `00:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
-                                    onChange={e => { const v = e.target.value; if (v) { const [h, m, s] = v.split(':').map(Number); onExerciseChange('restTime', (h || 0) * 3600 + (m || 0) * 60 + (s || 0)); } }}
+                                    step="30"
+                                    value={(() => { const s = Math.min(300, exercise.restTime || 90); const m = Math.floor(s / 60); const sec = s % 60; return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
+                                    onChange={e => { const v = e.target.value; if (!v) return; const parts = v.split(':').map(Number); const seconds = parts.length === 2 ? (parts[0] || 0) * 60 + (parts[1] || 0) : (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0); onExerciseChange('restTime', Math.min(300, seconds)); } }}
                                     className="flex-1 min-w-0 bg-transparent border-b border-zinc-700 text-white font-mono focus:border-white focus:ring-0 p-1 text-xs"
                                 />
                                 {exercise.sets?.length > 0 && (() => {
                                     const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
-                                    const suggested = suggestRestSeconds(exercise.sets.length, avgRPE);
+                                    const avgPercent1RM = exercise.trainingMode === 'percent' && exercise.sets?.length ? exercise.sets.reduce((a, s) => a + ((s as any).targetPercentageRM || 0), 0) / exercise.sets.length : undefined;
+                                    const fatigue = getExerciseFatigue(exercise);
+                                    const augeNorm = (fatigue.snc + fatigue.msc) / 200;
+                                    const suggested = suggestRestSeconds(exercise.sets.length, avgRPE, avgPercent1RM, augeNorm);
                                     const current = exercise.restTime || 90;
                                     if (Math.abs(suggested - current) > 15) {
                                         return <button type="button" onClick={() => onExerciseChange('restTime', suggested)} className="text-[8px] font-bold uppercase text-cyber-cyan hover:text-cyber-cyan whitespace-nowrap">Sug: {Math.floor(suggested/60)}:{String(suggested%60).padStart(2,'0')}</button>;
@@ -1706,7 +1709,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     if (rpe == null && st.targetRIR != null) rpe = 10 - st.targetRIR;
                     if (rpe == null && st.intensityMode === 'failure') rpe = 10;
                     if (rpe != null && rpe > maxRPE) {
-                        return `RPE máximo configurado: ${maxRPE}. Hay series con RPE ${rpe}. Configura o elimina la regla en Reglas.`;
+                        return `Intensidad máxima configurada: RPE ${maxRPE}. Hay series que la superan (RPE ${rpe}). Configura o elimina la regla en Reglas.`;
                     }
                 }
             }
@@ -1959,7 +1962,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     const augeSuggestions = useMemo(() => {
         const suggestions: { id: string; message: string; exerciseName?: string; action?: () => void; severity?: 'info' | 'warning' | 'critical' }[] = [];
         if (settings.calorieGoalObjective === 'deficit') {
-            suggestions.push({ id: 'sug-deficit', message: 'En déficit calórico: reduce series o evita RPE 10 para proteger masa muscular y recuperación.', severity: 'warning' });
+            suggestions.push({ id: 'sug-deficit', message: 'En déficit calórico: reduce series o evita trabajo al fallo/RPE 10 para proteger masa muscular y recuperación.', severity: 'warning' });
         }
         neuralAlerts.forEach((a, i) => {
             if (a.type === 'Espinal') {
@@ -1997,7 +2000,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             if (avgRPE < 6.5) {
                 suggestions.push({ id: 'sug-intensity-light', message: 'Sesión muy liviana en intensidad (RPE medio ~' + avgRPE.toFixed(1) + '). Sube la intensidad para mejor estímulo.', severity: 'info' });
             } else if (avgRPE > 9.2) {
-                suggestions.push({ id: 'sug-intensity-high', message: 'Sesión muy intensa (RPE medio ~' + avgRPE.toFixed(1) + '). Considera bajar RPE o reducir series.', severity: 'warning' });
+                suggestions.push({ id: 'sug-intensity-high', message: 'Sesión muy intensa (intensidad efectiva ~' + avgRPE.toFixed(1) + '). Considera bajar intensidad (RPE/RIR/Fallo/%1RM) o reducir series.', severity: 'warning' });
             }
         }
 
@@ -2016,7 +2019,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, [neuralAlerts, settings.calorieGoalObjective, session, exerciseList, settings?.volumeLimits]);
 
     const sessionDrainEstimate = useMemo(() => {
-        let msc = 0, snc = 0, spinal = 0, totalSets = 0;
+        let msc = 0, snc = 0, spinal = 0, totalSets = 0, rpeSum = 0, rpeCount = 0, rmSum = 0, rmCount = 0;
         const allEx = [...(session?.exercises || [])];
         (session?.parts || []).forEach(p => allEx.push(...p.exercises));
         const tanks = calculatePersonalizedBatteryTanks(settings);
@@ -2030,13 +2033,23 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 msc += drain.muscularDrainPct;
                 snc += drain.cnsDrainPct;
                 spinal += (info.axialLoadFactor || 0) * 2;
+                const rpe = getEffectiveRPE(set);
+                rpeSum += rpe;
+                rpeCount++;
+                if (ex.trainingMode === 'percent' && (set as any).targetPercentageRM) {
+                    rmSum += (set as any).targetPercentageRM / 100;
+                    rmCount++;
+                }
             });
         });
-        return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal), totalSets, estimatedDuration: Math.round(totalSets * 2.5) };
+        const avgRpe = rpeCount > 0 ? rpeSum / rpeCount : 0;
+        const avgRm = rmCount > 0 ? rmSum / rmCount : 0;
+        const difficulty = Math.min(10, Math.round((avgRpe / 10) * 3 + (avgRm * 5) + 2));
+        return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal), totalSets, estimatedDuration: estimateSessionDurationMinutes(session, exerciseList), difficulty };
     }, [session, exerciseList, settings]);
 
     const weeklyDrainEstimate = useMemo(() => {
-        let msc = 0, snc = 0, spinal = 0, totalSets = 0;
+        let msc = 0, snc = 0, spinal = 0, totalSets = 0, rpeSum = 0, rpeCount = 0, rmSum = 0, rmCount = 0;
         const tanks = calculatePersonalizedBatteryTanks(settings);
         weekSessions.forEach(s => {
             const allEx = [...(s?.exercises || [])];
@@ -2051,10 +2064,20 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     msc += drain.muscularDrainPct;
                     snc += drain.cnsDrainPct;
                     spinal += (info.axialLoadFactor || 0) * 2;
+                    rpeSum += getEffectiveRPE(set);
+                    rpeCount++;
+                    if (ex.trainingMode === 'percent' && (set as any).targetPercentageRM) {
+                        rmSum += (set as any).targetPercentageRM / 100;
+                        rmCount++;
+                    }
                 });
             });
         });
-        return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal), totalSets, estimatedDuration: Math.round(totalSets * 2.5) };
+        const totalDuration = weekSessions.reduce((acc, s) => acc + (s ? estimateSessionDurationMinutes(s, exerciseList) : 0), 0);
+        const avgRpe = rpeCount > 0 ? rpeSum / rpeCount : 0;
+        const avgRm = rmCount > 0 ? rmSum / rmCount : 0;
+        const difficulty = Math.min(10, Math.round((avgRpe / 10) * 3 + (avgRm * 5) + 2));
+        return { msc: Math.min(100, msc), snc: Math.min(100, snc), spinal: Math.min(100, spinal), totalSets, estimatedDuration: totalDuration, difficulty };
     }, [weekSessions, exerciseList, settings]);
 
     const getExerciseFatigue = useCallback((ex: Exercise) => {
@@ -2073,8 +2096,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     const getExerciseSuggestion = useCallback((ex: Exercise): string | null => {
         const fatigue = getExerciseFatigue(ex);
-        if (fatigue.spinal > 60) return `Fatiga espinal alta (${Math.round(fatigue.spinal)}%). Considera cambiar a máquina o reducir RPE.`;
-        if (fatigue.snc > 70) return `Carga neural elevada (${Math.round(fatigue.snc)}%). Reduce RPE o limita series.`;
+        if (fatigue.spinal > 60) return `Fatiga espinal alta (${Math.round(fatigue.spinal)}%). Considera cambiar a máquina o reducir intensidad.`;
+        if (fatigue.snc > 70) return `Carga neural elevada (${Math.round(fatigue.snc)}%). Reduce intensidad (RPE/RIR/Fallo/%1RM) o limita series.`;
         if (fatigue.msc > 80) return `Volumen muscular alto (${Math.round(fatigue.msc)}%). Quizás sobra una serie.`;
         return null;
     }, [getExerciseFatigue]);
@@ -2135,14 +2158,38 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     const matchesMuscle = muscle && exMuscle && normalizeMuscleGroup(exMuscle) === normalizeMuscleGroup(muscle);
                     if (correctionType === 'reduce_series' && matchesMuscle && ex.sets.length > 1) {
                         ex.sets.pop();
-                    } else if (correctionType === 'reduce_rpe' || correctionType === 'change_to_machine') {
+                    } else if (correctionType === 'add_series' && matchesMuscle) {
+                        const last = ex.sets[ex.sets.length - 1];
+                        ex.sets.push({
+                            id: crypto.randomUUID(),
+                            targetReps: last?.targetReps ?? 10,
+                            targetRPE: last?.targetRPE ?? 8,
+                            targetRIR: last?.targetRIR,
+                            intensityMode: last?.intensityMode ?? 'rpe',
+                            targetPercentageRM: last?.targetPercentageRM,
+                        } as any);
+                    } else if (correctionType === 'reduce_rpe' || correctionType === 'change_to_machine' || correctionType === 'reduce_volume_rpe') {
+                        const capRPE = correctionType === 'reduce_volume_rpe' ? 7 : undefined;
+                        if (correctionType === 'reduce_volume_rpe' && ex.sets.length > 3) ex.sets = ex.sets.slice(0, 3);
                         ex.sets.forEach(s => {
-                            if (s.targetRPE !== undefined && s.targetRPE > 7) (s as any).targetRPE = Math.max(6, s.targetRPE - 0.5);
-                        });
-                    } else if (correctionType === 'reduce_volume_rpe') {
-                        if (ex.sets.length > 3) ex.sets = ex.sets.slice(0, 3);
-                        ex.sets.forEach(s => {
-                            if (s.targetRPE !== undefined && s.targetRPE > 7) (s as any).targetRPE = 7;
+                            const effectiveRPE = getEffectiveRPE(s);
+                            if (effectiveRPE < 7) return;
+                            const newRPE = Math.max(6, capRPE ?? effectiveRPE - 0.5);
+                            const mode = s.intensityMode || (ex.trainingMode === 'percent' ? 'solo_rm' : 'rpe');
+                            if (mode === 'failure' || (s as any).intensityMode === 'failure') {
+                                (s as any).intensityMode = 'rir';
+                                (s as any).targetRIR = Math.min(4, Math.round(10 - newRPE));
+                                (s as any).targetRPE = undefined;
+                            } else if (s.targetRIR !== undefined) {
+                                (s as any).targetRIR = Math.min(4, Math.round(10 - newRPE));
+                                (s as any).targetRPE = undefined;
+                            } else if (s.targetRPE !== undefined || mode === 'rpe') {
+                                (s as any).targetRPE = newRPE;
+                                (s as any).targetRIR = undefined;
+                            } else if (ex.trainingMode === 'percent' && (mode === 'load' || mode === 'solo_rm')) {
+                                const reps = (s.targetReps ?? 10) + 1;
+                                (s as any).targetReps = Math.min(20, reps);
+                            }
                         });
                     }
                 });

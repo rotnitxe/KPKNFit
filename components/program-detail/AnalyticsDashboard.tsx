@@ -8,8 +8,10 @@ import ExerciseHistoryWidget from '../ExerciseHistoryWidget';
 import { AugeAdaptiveCache } from '../../services/augeAdaptiveService';
 import { BanisterTrend, BayesianConfidence, SelfImprovementScore } from '../ui/AugeDeepView';
 import MetricsWidgetGrid from './MetricsWidgetGrid';
+import { calculateBrzycki1RM } from '../../utils/calculations';
+import { StarIcon } from '../icons';
 
-type WidgetId = 'bodymap' | 'volume' | 'strength' | 'banister' | 'adherence' | 'recovery' | 'history';
+type WidgetId = 'bodymap' | 'volume' | 'strength' | 'star1rm' | 'banister' | 'adherence' | 'recovery' | 'history';
 
 interface AnalyticsDashboardProps {
     program: Program;
@@ -33,13 +35,14 @@ const WIDGET_META: Record<WidgetId, { label: string; }> = {
     bodymap: { label: 'Mapa Corporal' },
     volume: { label: 'Volumen' },
     strength: { label: 'Fuerza' },
+    star1rm: { label: 'Progreso 1RM (estrella)' },
     banister: { label: 'AUGE Banister' },
     adherence: { label: 'Adherencia' },
     recovery: { label: 'Recuperación' },
     history: { label: 'Historial' },
 };
 
-const DEFAULT_WIDGETS: WidgetId[] = ['bodymap', 'volume', 'strength', 'banister', 'adherence', 'recovery', 'history'];
+const DEFAULT_WIDGETS: WidgetId[] = ['bodymap', 'volume', 'strength', 'star1rm', 'banister', 'adherence', 'recovery', 'history'];
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     program, history: historyData, settings, isOnline, isActive,
@@ -63,6 +66,55 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         if (obs >= 5) return 'Baja';
         return 'Poblacional';
     }, [adaptiveCache]);
+
+    const starExerciseNames = useMemo(() => {
+        const set = new Set<string>();
+        program.macrocycles?.forEach(m =>
+            m.blocks?.forEach(b =>
+                b.mesocycles?.forEach(me =>
+                    me.weeks?.forEach(w =>
+                        w.sessions?.forEach(s =>
+                            s.exercises?.forEach(ex => {
+                                if (ex.isStarTarget && ex.name) set.add(ex.name);
+                            })
+                        )
+                    )
+                )
+            )
+        );
+        return Array.from(set);
+    }, [program]);
+
+    const star1RMData = useMemo(() => {
+        const programLogs = (historyData || []).filter((log: any) => log.programId === program.id);
+        const byExercise: Record<string, { date: string; e1rm: number }[]> = {};
+        starExerciseNames.forEach(name => { byExercise[name] = []; });
+        programLogs.forEach((log: any) => {
+            const date = log.date || log.endTime;
+            const dateStr = typeof date === 'number' ? new Date(date).toISOString().slice(0, 10) : String(date).slice(0, 10);
+            (log.completedExercises || []).forEach((ex: any) => {
+                const name = ex.exerciseName || ex.name;
+                if (!name || !starExerciseNames.includes(name)) return;
+                let maxE1rm = 0;
+                (ex.sets || []).forEach((s: any) => {
+                    const w = s.weight ?? 0;
+                    const r = s.completedReps ?? s.reps ?? 0;
+                    if (w > 0 && r > 0) {
+                        const e1rm = calculateBrzycki1RM(w, r);
+                        if (e1rm > maxE1rm) maxE1rm = e1rm;
+                    }
+                });
+                if (maxE1rm > 0) byExercise[name].push({ date: dateStr, e1rm: maxE1rm });
+            });
+        });
+        return Object.entries(byExercise).map(([name, points]) => {
+            const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
+            const last = sorted[sorted.length - 1];
+            const prev = sorted.length > 1 ? sorted[sorted.length - 2] : null;
+            const trend = prev && last ? (last.e1rm > prev.e1rm ? 'up' : last.e1rm < prev.e1rm ? 'down' : 'same') : null;
+            return { name, lastE1rm: last?.e1rm, prevE1rm: prev?.e1rm, trend, count: sorted.length };
+        }).filter(x => x.lastE1rm != null);
+    }, [program.id, historyData, starExerciseNames]);
 
     if (!isActive) {
         return (
@@ -148,6 +200,42 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     <section>
                         <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide mb-3">Fuerza Relativa</h3>
                         <RelativeStrengthAndBasicsWidget displayedSessions={displayedSessions} />
+                    </section>
+                )}
+
+                {/* ── Progreso 1RM ejercicios estrella ── */}
+                {activeWidgets.includes('star1rm') && (
+                    <section>
+                        <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                            <StarIcon size={14} filled className="text-amber-400" />
+                            Progreso 1RM — Ejercicios estrella
+                        </h3>
+                        <p className="text-[10px] text-[#48484A] mb-3">
+                            Ejercicios marcados como estrella en Session Editor. 1RM estimado (Brzycki) por sesión.
+                        </p>
+                        {starExerciseNames.length === 0 ? (
+                            <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5 text-center">
+                                <p className="text-xs text-[#8E8E93]">No hay ejercicios estrella en este programa.</p>
+                                <p className="text-[10px] text-[#48484A] mt-1">Marca ejercicios con la estrella en el editor de sesión.</p>
+                            </div>
+                        ) : star1RMData.length === 0 ? (
+                            <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5 text-center">
+                                <p className="text-xs text-[#8E8E93]">Aún no hay datos de 1RM para los ejercicios estrella.</p>
+                                <p className="text-[10px] text-[#48484A] mt-1">Completa sesiones que los incluyan para ver el progreso.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                {star1RMData.map(({ name, lastE1rm, prevE1rm, trend }) => (
+                                    <div key={name} className="flex items-center justify-between gap-3 py-2.5 px-3 rounded-xl bg-[#1a1a1a] border border-white/5">
+                                        <span className="text-xs font-bold text-white truncate flex-1">{name}</span>
+                                        <span className="text-sm font-black text-[#00F0FF] shrink-0">{lastE1rm != null ? `${lastE1rm} kg` : '—'}</span>
+                                        {trend === 'up' && <span className="text-[10px] font-bold text-[#00F19F] shrink-0">↑</span>}
+                                        {trend === 'down' && <span className="text-[10px] font-bold text-[#FF3B30] shrink-0">↓</span>}
+                                        {trend === 'same' && prevE1rm != null && <span className="text-[10px] text-[#48484A] shrink-0">—</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </section>
                 )}
 

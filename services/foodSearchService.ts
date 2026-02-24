@@ -472,6 +472,7 @@ export async function searchFoods(
         searchUSDAOffline(q),
     ]);
 
+    let merged = mergeAndDeduplicate(local, offOffline, usdaOffline);
     merged = filterByRelevance(merged, q);
 
     // 2. Solo si hay pocos resultados Y hay conexión: consultar APIs online (más lento)

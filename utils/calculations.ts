@@ -10,6 +10,34 @@ export const getSessionExerciseCount = (session: Session): number => {
   return session.exercises?.length || 0;
 };
 
+/** Estima duración de sesión (min): ejercicios, descansos entre series, set-ups compuestos, series de aproximación. */
+export const estimateSessionDurationMinutes = (
+  session: Session,
+  exerciseList: { id?: string; name?: string; axialLoadFactor?: number }[]
+): number => {
+  const allEx = [...(session.exercises || [])];
+  (session.parts || []).forEach((p: any) => allEx.push(...(p.exercises || [])));
+  let totalSec = 0;
+  const SEC_PER_WORK_SET = 40;
+  const SEC_PER_WARMUP_SET = 45;
+  const SEC_SETUP_COMPOUND = 20;
+  const SEC_TRANSITION = 45;
+  allEx.forEach((ex: any, i: number) => {
+    const info = exerciseList.find((e: any) => e.id === ex.exerciseDbId || e.name === ex.name);
+    const validSets = ex.sets?.filter((s: any) => (s as any).type !== 'warmup') || [];
+    const warmupCount = (ex.warmupSets?.length ?? 0) + (ex.sets?.filter((s: any) => (s as any).type === 'warmup').length ?? 0);
+    const workSets = validSets.length;
+    const restSec = Math.min(300, ex.restTime ?? 90);
+    const isCompound = (info?.axialLoadFactor ?? 0) > 0;
+    totalSec += workSets * SEC_PER_WORK_SET
+      + Math.max(0, workSets - 1) * restSec
+      + warmupCount * SEC_PER_WARMUP_SET
+      + (isCompound ? workSets * SEC_SETUP_COMPOUND : 0)
+      + (i > 0 ? SEC_TRANSITION : 0);
+  });
+  return Math.max(1, Math.round(totalSec / 60));
+};
+
 export const REP_TO_PERCENT_1RM: { [key: number]: number } = {
     1: 100, 2: 95, 3: 93, 4: 90, 5: 87, 6: 85, 7: 83, 8: 80, 9: 77, 10: 75,
     11: 73, 12: 70, 13: 68, 14: 67, 15: 65,
@@ -117,30 +145,41 @@ export const calculateWeightFrom1RMAndIntensity = (
   return weight > 0 ? weight : null;
 };
 
+/** Redondea segundos a incrementos de 30 (máx 5 min). Intuitivo: 0:30, 1:00, 1:30, 2:00… */
+const roundRestTo30 = (seconds: number): number => {
+  const clamped = Math.min(300, Math.max(60, seconds));
+  return Math.round(clamped / 30) * 30;
+};
+
 /**
- * Sugiere descanso (segundos) según series, intensidad y cercanía al 1RM.
+ * Sugiere descanso entre series (segundos).
+ * - Estándar: 2–3 min. Máximo: 5 min.
+ * - Basado en: número de series, intensidad (RPE / %1RM) y aporte fatiga AUGE.
+ * - Valores redondeados a 30 s o minutos exactos (nunca 2:32).
  */
 export const suggestRestSeconds = (
   setsCount: number,
   avgRPE?: number,
-  avgPercent1RM?: number
+  avgPercent1RM?: number,
+  augeDrainNormalized?: number
 ): number => {
-  const rpe = avgRPE ?? 8;
+  const rpe = Math.min(10, Math.max(0, avgRPE ?? 8));
+  const percent = Math.min(100, Math.max(0, avgPercent1RM ?? 0));
   const nearFailure = rpe >= 9;
-  const highIntensity = rpe >= 8;
-  const percent = avgPercent1RM ?? 0;
+  const highIntensity = rpe >= 8 || percent >= 80;
   const near1RM = percent >= 85;
 
-  let baseSeconds = 90;
-  if (setsCount <= 4 && (nearFailure || near1RM)) baseSeconds = 210; // 3–3.5 min
-  else if (setsCount <= 4 && highIntensity) baseSeconds = 180; // 3 min
-  else if (setsCount <= 4) baseSeconds = 150; // 2.5 min
-  else if (setsCount <= 8 && highIntensity) baseSeconds = 150; // 2.5 min
-  else if (setsCount <= 8) baseSeconds = 120; // 2 min
-  else baseSeconds = 90; // 1.5 min
+  // Base 2–3 min (120–180 s). Más series → ligeramente menos descanso por serie para no alargar sesión.
+  let baseSeconds = 150; // 2:30 por defecto
+  if (nearFailure || near1RM) baseSeconds = 180; // 3 min (alta intensidad)
+  else if (highIntensity) baseSeconds = 165;    // 2:30–3 min
+  else if (setsCount > 6) baseSeconds = 120;    // 2 min si muchas series
+  else if (setsCount <= 3) baseSeconds = 180;  // 3 min si pocas series
 
-  if (near1RM) baseSeconds += 30;
-  return baseSeconds;
+  // Ajuste por fatiga AUGE: más drenaje CNS/muscular → hasta +30 s, sin pasar de 5 min
+  if (augeDrainNormalized != null && augeDrainNormalized > 0.5) baseSeconds += 30;
+
+  return roundRestTo30(baseSeconds);
 };
 
 export const getOrderedDaysOfWeek = (startWeekOn: number) => {
