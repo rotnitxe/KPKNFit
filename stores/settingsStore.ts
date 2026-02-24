@@ -25,6 +25,8 @@ const defaultSettings: Settings = {
     showTimeSaverPrompt: true,
     restTimerAutoStart: true,
     restTimerDefaultSeconds: 90,
+    sessionCompactView: false,
+    sessionAutoAdvanceFields: true,
     gymName: '',
     userVitals: { workHours: 8, studyHours: 0, workIntensity: 'moderate', studyIntensity: 'light' },
     calorieGoalObjective: 'maintenance',

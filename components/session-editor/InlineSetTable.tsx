@@ -56,28 +56,27 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
     const showPercentColumn = isPercent && sets.some(s => (s.intensityMode || 'solo_rm') === 'load' && s.targetPercentageRM != null);
 
     return (
-        <div className="w-full overflow-x-auto">
-            <div className="min-w-[380px]">
-                <div className="flex items-center gap-1 px-1 pb-1.5 border-b border-white/5">
-                    <span className="w-8 text-[10px] font-bold text-[#555] uppercase text-center">Set</span>
-                    <span className="w-12 max-w-[48px] text-[10px] font-bold text-[#555] uppercase">{isTime ? 'Seg' : 'Reps'}</span>
-                    {showPercentColumn && <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-right">%1RM</span>}
-                    {showWeightColumn && <span className="w-16 text-[10px] font-bold text-[#555] uppercase text-right">Peso</span>}
-                    <span className="w-14 text-[10px] font-bold text-[#555] uppercase text-center">Int.</span>
-                    <span className="w-20 text-[10px] font-bold text-[#555] uppercase text-center">Tipo</span>
+        <div className="session-card-base w-full overflow-x-auto">
+            <div className="session-table min-w-[380px]" data-tabular="true">
+                <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#2A2D38] text-[10px] font-bold uppercase tracking-widest text-[#A0A7B8]">
+                    <span className="w-8 text-center">Set</span>
+                    <span className="w-12 max-w-[48px]">{isTime ? 'Seg' : 'Reps'}</span>
+                    {showPercentColumn && <span className="w-14 text-right">%1RM</span>}
+                    {showWeightColumn && <span className="w-16 text-right">Peso</span>}
+                    <span className="w-14 text-center">Int.</span>
+                    <span className="w-20 text-center">Tipo</span>
                     <span className="w-7" />
                 </div>
 
                 {sets.map((set, i) => {
                     const mode = set.intensityMode || (isPercent ? 'solo_rm' : 'rpe');
                     const isAmrap = set.isAmrap || set.isCalibrator;
-                    const isSoloRm = mode === 'solo_rm';
                     const useIntensityWeight = isPercent && (mode === 'solo_rm' || mode === 'rpe' || mode === 'rir' || mode === 'failure' || mode === 'amrap');
                     const estimatedKg = useIntensityWeight ? getEstimatedWeight(set) : (mode === 'load' && set.targetPercentageRM ? getEstimatedWeight(set) : null);
                     const displayWeight = set.weight ?? (isPercent && reference1RM && set.targetPercentageRM ? Math.round((reference1RM * set.targetPercentageRM / 100) * 4) / 4 : estimatedKg);
                     return (
-                        <div key={set.id || i} className="flex items-center gap-1 px-1 py-2 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors group min-h-[40px]">
-                            <span className="w-8 text-center text-xs font-mono text-[#999] font-bold">{i + 1}</span>
+                        <div key={set.id || i} className="flex items-center gap-1 px-2 py-2 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors group min-h-[48px]">
+                            <span className="w-8 text-center text-xs font-mono text-[#999] font-bold tabular-nums">{i + 1}</span>
 
                             <div className="w-12 max-w-[48px]">
                                 <input
@@ -93,7 +92,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                         const clamped = isTime ? val : Math.min(99, Math.max(0, val));
                                         onSetChange(i, isTime ? 'targetDuration' : 'targetReps', clamped);
                                     }}
-                                    className="w-full bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-sm font-mono text-white py-1 px-1 rounded transition-colors outline-none placeholder-cyber-cyan/30"
+                                    className="w-full bg-transparent border-b border-transparent focus:border-[#00F0FF] text-sm font-mono text-white py-1 px-1 rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums"
                                     placeholder="—"
                                 />
                             </div>
@@ -104,7 +103,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                         type="number"
                                         value={set.targetPercentageRM ?? ''}
                                         onChange={e => onSetChange(i, 'targetPercentageRM', e.target.value === '' ? undefined : parseInt(e.target.value))}
-                                        className="w-full bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-cyber-cyan/30"
+                                        className="w-full bg-transparent border-b border-transparent focus:border-[#00F0FF] text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums"
                                         placeholder="%"
                                     />
                                 </div>
@@ -120,7 +119,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                             step="0.5"
                                             value={displayWeight ?? ''}
                                             onChange={e => onSetChange(i, 'weight', e.target.value === '' ? undefined : (parseFloat(e.target.value) || 0))}
-                                            className="w-full bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-cyber-cyan/30"
+                                            className="w-full bg-transparent border-b border-transparent focus:border-[#00F0FF] text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums"
                                             placeholder="kg"
                                         />
                                     )}
@@ -147,7 +146,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                                             const val = parseFloat(raw);
                                             if (!isNaN(val)) onSetChange(i, mode === 'rir' ? 'targetRIR' : 'targetRPE', val);
                                         }}
-                                        className="w-full bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-sm font-mono text-white py-1 text-center rounded transition-colors outline-none placeholder-cyber-cyan/30"
+                                        className="w-full bg-transparent border-b border-transparent focus:border-[#00F0FF] text-sm font-mono text-white py-1 text-center rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums"
                                         placeholder={mode === 'rir' ? 'RIR' : 'RPE'}
                                     />
                                 )}
@@ -191,10 +190,10 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
 
                 <button
                     onClick={onAddSet}
-                    className="flex items-center gap-1.5 px-1 py-2.5 w-full text-left text-[#555] hover:text-[#00F0FF] transition-colors"
+                    className="flex items-center gap-1.5 px-2 py-2.5 w-full text-left text-[#00F0FF]/90 hover:text-[#00F0FF] transition-colors border-none bg-transparent"
                 >
                     <PlusIcon size={12} />
-                    <span className="text-xs font-medium">Agregar serie</span>
+                    <span className="text-xs font-medium">Añadir serie</span>
                 </button>
             </div>
         </div>

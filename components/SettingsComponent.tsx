@@ -408,6 +408,14 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                     <input type="number" step="5" value={pendingSettings.restTimerDefaultSeconds} onChange={e => handleSettingChange('restTimerDefaultSeconds', parseInt(e.target.value) || 90)} className="w-20 bg-slate-800 border-none rounded-lg text-xs font-black text-center p-2" />
                 </SettingsItem>
 
+                <SettingsItem label="Vista compacta (sesión)" description="Filas de 40px en la tabla de sets." icon={<ActivityIcon size={18}/>}>
+                    <ToggleSwitch checked={!!pendingSettings.sessionCompactView} onChange={(c) => handleSettingChange('sessionCompactView', c)} />
+                </SettingsItem>
+
+                <SettingsItem label="Auto-avance entre campos" description="Siguiente en teclado numérico pasa de Kg a Reps." icon={<ClockIcon size={18}/>}>
+                    <ToggleSwitch checked={pendingSettings.sessionAutoAdvanceFields !== false} onChange={(c) => handleSettingChange('sessionAutoAdvanceFields', c)} />
+                </SettingsItem>
+
                 <SettingsItem label="Métrica de Intensidad" icon={<ZapIcon size={18}/>}>
                      <div className="flex gap-1 bg-slate-800 p-1 rounded-xl">
                         <button onClick={() => handleSettingChange('intensityMetric', 'rpe')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${pendingSettings.intensityMetric === 'rpe' ? 'bg-primary-color text-white' : 'text-slate-500'}`}>RPE</button>

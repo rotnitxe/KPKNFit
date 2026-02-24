@@ -78,3 +78,23 @@
     border-color: #FF7B00;
     box-shadow: 0 0 12px rgba(255,123,0,0.4);
 }
+
+/* --- Session card & tabular numbers (Fricción Cero) --- */
+.session-card-base {
+    background: #15171E;
+    border: 1px solid #2A2D38;
+    border-radius: 4px;
+}
+.session-row-pending { background: transparent; }
+.session-row-active { background: #2A2D38; border-bottom: 1px solid #00F0FF; }
+.session-row-completed { background: #0A0B0E; }
+
+.font-tabular {
+    font-variant-numeric: tabular-nums;
+}
+/* Global: numbers in inputs and data cells use tabular-nums */
+[data-tabular="true"],
+input[type="number"],
+.session-table input {
+    font-variant-numeric: tabular-nums;
+}

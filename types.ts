@@ -166,6 +166,10 @@ export interface Settings {
   showTimeSaverPrompt: boolean;
   restTimerAutoStart: boolean;
   restTimerDefaultSeconds: number;
+  /** Vista compacta en tabla de sets (40px en lugar de 48px) */
+  sessionCompactView?: boolean;
+  /** Auto-avance Kg → Reps al pulsar Siguiente en teclado numérico */
+  sessionAutoAdvanceFields?: boolean;
   showPRsInWorkout: boolean;
   readinessCheckEnabled: boolean;
   workoutLoggerMode: 'pro' | 'simple';
@@ -575,6 +579,8 @@ export interface BrandEquivalency {
     pr?: { weight: number, reps: number, e1rm: number };
 }
 
+export type SetTypeLabel = 'W' | 'T' | 'F' | 'D';
+
 export interface OngoingWorkoutState {
     readinessData?: any; // <-- SISTEMA AUGE
     programId: string;
@@ -583,6 +589,8 @@ export interface OngoingWorkoutState {
     activeExerciseId: string | null;
     activeSetId: string | null;
     activeMode: 'A' | 'B' | 'C' | 'D';
+    /** Override tipo de set por setId (W/T/F/D) en tabla Fricción Cero */
+    setTypeOverrides?: Record<string, SetTypeLabel>;
     completedSets: Record<string, OngoingSetData | { left: OngoingSetData | null, right: OngoingSetData | null }>;
     dynamicWeights: Record<string, { consolidated?: number, technical?: number }>;
     exerciseFeedback: Record<string, any>;

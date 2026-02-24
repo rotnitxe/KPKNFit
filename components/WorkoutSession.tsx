@@ -21,6 +21,7 @@ import { TacticalModal } from './ui/TacticalOverlays';
 import WarmupDrawer from './workout/WarmupDrawer';
 import PostExerciseDrawer from './workout/PostExerciseDrawer';
 import WorkoutDrawer from './workout/WorkoutDrawer';
+import NumpadOverlay from './workout/NumpadOverlay';
 import { useKeyboardOverlayMode } from '../hooks/useKeyboardOverlayMode';
 
 const InCardTimer: React.FC<{ initialTime: number; onSave: (duration: number) => void; }> = ({ initialTime, onSave }) => {
@@ -190,6 +191,12 @@ const findPrForExercise = (exerciseInfo: ExerciseMuscleInfo, history: WorkoutLog
     });
     if (best1RM > 0) { return { prString, e1rm: Math.round(best1RM * 10) / 10, reps: bestReps }; }
     return null;
+};
+
+const getSetTypeLabel = (set: ExerciseSet): 'W' | 'T' | 'F' | 'D' => {
+    if (set.isAmrap || set.intensityMode === 'failure') return 'F';
+    if (set.dropSets && set.dropSets.length > 0) return 'D';
+    return 'T';
 };
 
 const formatSetTarget = (set: ExerciseSet, exercise: Exercise, settings: Settings) => {
@@ -450,6 +457,21 @@ const WorkoutHeader: React.FC<{
     );
 });
 
+/** Returns last completed weight/reps for this exercise and set index (ghost = "última vez"). */
+function getGhostForSet(exerciseId: string, setIndex: number, history: WorkoutLog[]): { weight: number; reps: number; rpe?: number } | null {
+    for (let i = history.length - 1; i >= 0; i--) {
+        const log = history[i];
+        const completedEx = log.completedExercises.find(ex => ex.exerciseDbId === exerciseId || ex.exerciseId === exerciseId);
+        if (completedEx && completedEx.sets[setIndex]) {
+            const s = completedEx.sets[setIndex];
+            if ((s.completedReps != null && s.completedReps > 0) || (s.weight != null && s.weight > 0)) {
+                return { weight: Number(s.weight) || 0, reps: Number(s.completedReps) || 0, rpe: s.completedRPE };
+            }
+        }
+    }
+    return null;
+}
+
 const GhostSetInfo: React.FC<{ exerciseId: string; setIndex: number; history: WorkoutLog[]; settings: any; }> = ({ exerciseId, setIndex, history, settings }) => {
     const lastLog = useMemo(() => { for (let i = history.length - 1; i >= 0; i--) { const log = history[i]; const completedEx = log.completedExercises.find(ex => ex.exerciseDbId === exerciseId || ex.exerciseId === exerciseId); if (completedEx && completedEx.sets[setIndex]) { if (completedEx.sets[setIndex].completedReps || completedEx.sets[setIndex].weight) { return { date: log.date, set: completedEx.sets[setIndex] }; } } } return null; }, [history, exerciseId, setIndex]);
     if (!lastLog) return null;
@@ -476,7 +498,9 @@ const SetDetails: React.FC<{
     addToast: (message: string, type?: ToastData['type'], title?: string, duration?: number) => void;
     suggestedWeight?: number;
     selectedTag?: string;
-}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast, suggestedWeight, selectedTag }) => {
+    /** When true, only render RPE/performance/dropset/rest-pause and Guardar (for table row expanded view) */
+    tableRowMode?: boolean;
+}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast, suggestedWeight, selectedTag, tableRowMode }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const el = cardRef.current;
@@ -624,6 +648,70 @@ const SetDetails: React.FC<{
     else if (cardAnimation === 'success') containerClass += " shadow-[0_0_40px_rgba(59,130,246,0.3)] border border-blue-400 bg-blue-900/10";
     else if (cardAnimation === 'failure') containerClass += " shadow-[0_0_40px_rgba(239,68,68,0.3)] border border-red-500 bg-red-900/20";
 
+    if (tableRowMode) {
+        return (
+            <div ref={cardRef} className="space-y-3 px-2 py-2 bg-[#0A0B0E]/80 rounded border border-[#2A2D38] animate-fade-in">
+                {isUnilateral && (
+                    <div className="flex bg-slate-800 p-1 rounded-lg relative z-10 shrink-0">
+                        <button onClick={() => setActiveSide('left')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeSide === 'left' ? 'bg-primary-color text-white' : 'text-slate-400'}`}>IZQ</button>
+                        <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeSide === 'right' ? 'bg-primary-color text-white' : 'text-slate-400'}`}>DER</button>
+                    </div>
+                )}
+                {set.isAmrap ? (
+                    <div className={`flex justify-center items-center py-2 rounded-lg border w-full ${set.isCalibrator ? 'bg-yellow-900/30 border-yellow-500 text-yellow-400' : 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan'}`}>
+                        <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1"><FlameIcon size={12} />{set.isCalibrator ? 'AMRAP Calibrador' : 'AMRAP'}</span>
+                    </div>
+                ) : (
+                    <div className="flex justify-center items-center gap-2">
+                        <button onClick={() => handlePerformanceModeChange('target')} className={`flex-1 py-1.5 rounded-lg border text-[10px] font-black uppercase transition-all ${safeInputs.performanceMode === 'target' ? 'bg-primary-color text-white border-primary-color' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-white'}`}>{(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? 'RIR' : 'RPE'}</button>
+                        <button onClick={() => handlePerformanceModeChange('failure')} className={`flex-1 py-1.5 rounded-lg border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1 ${safeInputs.performanceMode === 'failure' ? 'bg-red-600 text-white border-red-500' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-red-400'}`}><FlameIcon size={10} /> Fallo</button>
+                        <button onClick={() => handlePerformanceModeChange('failed')} className={`flex-1 py-1.5 rounded-lg border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1 ${safeInputs.performanceMode === 'failed' ? 'bg-yellow-600 text-white border-yellow-500' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-yellow-400'}`}><AlertTriangleIcon size={10} /> Fallido</button>
+                    </div>
+                )}
+                {safeInputs.performanceMode === 'target' && (
+                    <div className="flex justify-center">
+                        {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? (
+                            <div className={`flex items-center rounded-lg p-1.5 border w-28 justify-between transition-colors ${intensityContainerClass}`}>
+                                <span className="text-slate-500 font-bold text-xs uppercase px-2">RIR</span>
+                                <input type="number" step="1" value={safeInputs.rir} onChange={e => onInputChange('rir', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-sm tabular-nums" placeholder="-"/>
+                            </div>
+                        ) : (
+                            <div className={`flex items-center rounded-lg p-1.5 border w-28 justify-between transition-colors ${intensityContainerClass}`}>
+                                <span className="text-slate-500 font-bold text-xs uppercase px-2">RPE</span>
+                                <input type="number" step="0.5" value={safeInputs.rpe} onChange={e => onInputChange('rpe', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-sm tabular-nums" placeholder="-"/>
+                            </div>
+                        )}
+                    </div>
+                )}
+                <div className="flex gap-2">
+                    <button onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-cyber-cyan/30 text-[10px] font-black uppercase bg-cyber-cyan/10 text-cyber-cyan">+ Dropset</button>
+                    <button onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-sky-500/30 text-[10px] font-black uppercase bg-sky-500/10 text-sky-400">+ Rest-Pause</button>
+                </div>
+                {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
+                    <div className="p-2 bg-slate-900/50 border border-cyber-cyan/20 rounded-lg space-y-2 text-xs">
+                        {(safeInputs.dropSets || []).map((ds, i) => (
+                            <div key={`ds-${i}`} className="flex gap-2 items-center">
+                                <span className="text-[9px] text-cyber-cyan/80 w-12">Dropset</span>
+                                <input type="number" step="0.5" placeholder="Peso" value={ds.weight || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: parseFloat(e.target.value) || 0, reps: arr[i].reps }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
+                                <input type="number" placeholder="Reps" value={ds.reps || ''} onChange={e => { const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: arr[i].weight, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
+                            </div>
+                        ))}
+                        {(safeInputs.restPauses || []).map((rp, i) => (
+                            <div key={`rp-${i}`} className="flex gap-2 items-center">
+                                <span className="text-[9px] text-sky-500/80 w-12">Rest-Pause</span>
+                                <input type="number" placeholder="s" value={rp.restTime || ''} onChange={e => { const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: parseInt(e.target.value, 10) || 0, reps: arr[i].reps }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
+                                <input type="number" placeholder="Reps" value={rp.reps || ''} onChange={e => { const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: arr[i].restTime, reps: parseInt(e.target.value, 10) || 0 }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
+                            </div>
+                        ))}
+                    </div>
+                ) : null}
+                <Button onClick={() => handleLogAttempt()} className="w-full !py-2.5 !text-xs !font-black uppercase tracking-widest">
+                    {isLogged ? 'ACTUALIZAR SERIE' : set.isAmrap ? 'GUARDAR AMRAP' : 'GUARDAR SERIE'}
+                </Button>
+            </div>
+        );
+    }
+
     return (
         <div ref={cardRef} className={`${containerClass} scroll-mb-48`}>
             {set.isAmrap && !cardAnimation && <div className="absolute inset-0 bg-yellow-500/5 z-0 animate-pulse pointer-events-none"></div>}
@@ -659,7 +747,7 @@ const SetDetails: React.FC<{
                             <div className="flex items-center gap-1 bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded" title="Estrés Espinal de esta Serie">
                                 <FlameIcon size={10} className="text-red-500" />
                                 <span className="text-[10px] text-red-500 font-bold uppercase">Espinal:</span>
-                                <span className="text-[10px] font-mono font-black text-red-400">
+                                <span className="text-[10px] font-mono font-black text-red-400 tabular-nums">
                                     {Math.round(calculateSpinalScore({ 
                                         weight: parseFloat(safeInputs.weight) || suggestedLoad || 0, 
                                         reps: parseInt(safeInputs.reps) || targetReps || 0, 
@@ -893,7 +981,16 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null);
     const [sessionNotes, setSessionNotes] = useState<string>(ongoingWorkout?.sessionNotes || '');
     const [showNotesDrawer, setShowNotesDrawer] = useState(false);
+    const [numpadState, setNumpadState] = useState<{ setId: string; field: 'weight' | 'reps'; exerciseId: string } | null>(null);
+    const [setTypeOverrides, setSetTypeOverrides] = useState<Record<string, 'W' | 'T' | 'F' | 'D'>>((ongoingWorkout?.setTypeOverrides as any) || {});
     const isFinishingRef = useRef(false);
+
+    const cycleSetType = useCallback((setId: string, currentSet: ExerciseSet) => {
+        const order: ('W' | 'T' | 'F' | 'D')[] = ['W', 'T', 'F', 'D'];
+        const current = setTypeOverrides[setId] ?? getSetTypeLabel(currentSet);
+        const next = order[(order.indexOf(current) + 1) % 4];
+        setSetTypeOverrides(prev => ({ ...prev, [setId]: next }));
+    }, [setTypeOverrides]);
 
     const setsContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -1091,11 +1188,12 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     activeExerciseId,
                     activeSetId,
                     exerciseHeartRates,
-                    consolidatedWeights
+                    consolidatedWeights,
+                    setTypeOverrides: setTypeOverrides as any
                 };
             });
         }
-    }, [completedSets, exerciseFeedback, setInputs, selectedTags, activeExerciseId, activeSetId, setOngoingWorkout, exerciseHeartRates, consolidatedWeights]);
+    }, [completedSets, exerciseFeedback, setInputs, selectedTags, activeExerciseId, activeSetId, setOngoingWorkout, exerciseHeartRates, consolidatedWeights, setTypeOverrides]);
 
 
     const scrollToId = useCallback((exerciseId: string, elementId: string) => {
@@ -1145,11 +1243,20 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         const inputData = setInputs[String(set.id)];
         if (!inputData) return;
         const isUnilateral = 'left' in inputData;
+        const setIndex = exercise.sets.findIndex(s => s.id === set.id);
         let setDataToSave: { left: OngoingSetData | null, right: OngoingSetData | null } = { left: null, right: null };
         const processInput = (inp: SetInputState): OngoingSetData | null => {
             const weight = parseFloat(String(inp.weight));
-            if (isNaN(weight) && inp.performanceMode !== 'failed' && !inp.duration && !inp.reps) return null; 
-            return { weight: isNaN(weight) ? 0 : weight, reps: parseInt(inp.reps, 10) || undefined, rpe: inp.rpe ? parseFloat(inp.rpe) : undefined, rir: inp.rir ? parseInt(inp.rir, 10) : undefined, isFailure: inp.isFailure || inp.performanceMode === 'failure' || set.isAmrap, isIneffective: inp.isIneffective || inp.performanceMode === 'failed', duration: parseInt(inp.duration || '0', 10) || undefined, machineBrand: selectedTags[exercise.id], isPartial: inp.isPartial || (parseInt(inp.partialReps, 10) > 0), performanceMode: inp.performanceMode, partialReps: parseInt(inp.partialReps, 10) || 0, dropSets: inp.dropSets, restPauses: inp.restPauses, discomfortNotes: inp.discomfortNotes, isAmrap: set.isAmrap };
+            const repsVal = parseInt(inp.reps, 10);
+            const isEmpty = (inp.weight === '' || isNaN(weight)) && (inp.reps === '' || !repsVal) && inp.performanceMode !== 'failed' && !inp.duration;
+            if (isEmpty) {
+                const ghost = getGhostForSet((exercise.exerciseDbId || exercise.id) as string, setIndex, history);
+                if (ghost && (ghost.weight > 0 || ghost.reps > 0)) {
+                    return { weight: ghost.weight, reps: ghost.reps, rpe: ghost.rpe ?? set.targetRPE, rir: undefined, isFailure: inp.isFailure || inp.performanceMode === 'failure' || set.isAmrap, isIneffective: inp.isIneffective || inp.performanceMode === 'failed', duration: undefined, machineBrand: selectedTags[exercise.id], isPartial: false, performanceMode: inp.performanceMode || 'target', partialReps: 0, dropSets: inp.dropSets, restPauses: inp.restPauses, discomfortNotes: inp.discomfortNotes, isAmrap: set.isAmrap };
+                }
+                return null;
+            }
+            return { weight: isNaN(weight) ? 0 : weight, reps: repsVal || undefined, rpe: inp.rpe ? parseFloat(inp.rpe) : undefined, rir: inp.rir ? parseInt(inp.rir, 10) : undefined, isFailure: inp.isFailure || inp.performanceMode === 'failure' || set.isAmrap, isIneffective: inp.isIneffective || inp.performanceMode === 'failed', duration: parseInt(inp.duration || '0', 10) || undefined, machineBrand: selectedTags[exercise.id], isPartial: inp.isPartial || (parseInt(inp.partialReps, 10) > 0), performanceMode: inp.performanceMode, partialReps: parseInt(inp.partialReps, 10) || 0, dropSets: inp.dropSets, restPauses: inp.restPauses, discomfortNotes: inp.discomfortNotes, isAmrap: set.isAmrap };
         };
         if (isUnilateral) { const ui = inputData as UnilateralSetInputs; setDataToSave.left = processInput(ui.left); setDataToSave.right = processInput(ui.right); }
         else setDataToSave.left = processInput(inputData as SetInputState);
@@ -1232,9 +1339,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             playSound('set-logged-sound');
             moveToNextSet(); 
             
-            if (adaptiveRestTime > 0 && !isUnilateral) handleStartRest(adaptiveRestTime, exercise.name);
+            const hasProgrammedRest = (exercise.restTime ?? 0) > 0;
+            if (adaptiveRestTime > 0 && !isUnilateral && hasProgrammedRest) handleStartRest(adaptiveRestTime, exercise.name);
         }
-    }, [setInputs, selectedTags, handleStartRest, moveToNextSet, addToast, settings.algorithmSettings, settings.weightUnit, completedSets, exerciseFeedback, allExercises, program.mode, (program as any).goals, exerciseList]);
+    }, [setInputs, selectedTags, handleStartRest, moveToNextSet, addToast, settings.algorithmSettings, settings.weightUnit, completedSets, exerciseFeedback, allExercises, program.mode, (program as any).goals, exerciseList, history]);
 
     const handleGoalAnimationComplete = () => {
         setStarGoalProgress(null);
@@ -1440,24 +1548,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                 const pr = findPrForExercise(exInfo || ({} as any), history, settings, selectedTags[ex.id]);
                                 const isActive = activeExerciseId === ex.id;
                                 const isFocused = focusExerciseId === ex.id;
-                                
-                                // Pagination Dots Calculation
                                 const hasWarmup = ex.warmupSets && ex.warmupSets.length > 0;
-                                const totalSlides = (hasWarmup ? 1 : 0) + ex.sets.length + 1; // +1 for Feedback
-                                let activeSlideIndex = 0;
-                                
-                                if (activeSetId) {
-                                    if (activeSetId === `feedback-${ex.id}`) {
-                                        activeSlideIndex = totalSlides - 1;
-                                    } else {
-                                        const setIndex = ex.sets.findIndex(s => s.id === activeSetId);
-                                        if (setIndex !== -1) {
-                                            activeSlideIndex = (hasWarmup ? 1 : 0) + setIndex;
-                                        } else if (hasWarmup && activeSetId.startsWith('warmup-')) { 
-                                            activeSlideIndex = 0;
-                                        }
-                                    }
-                                }
 
                                 return (
                                     <div key={ex.id} className="relative transition-all duration-500" id={`exercise-card-${ex.id}`}>
@@ -1493,111 +1584,70 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                     onTagChange={(tag) => setSelectedTags(prev => ({...prev, [ex.id]: tag}))} 
                                                 />
 
-                                                {/* Wizard: un set a la vez con flechas */}
-                                                <div className="space-y-3" ref={(el) => { setsContainerRefs.current[ex.id] = el; }}>
-                                                    <div className="flex items-center justify-between px-1">
-                                                        <button 
-                                                            onClick={() => {
-                                                                if (activeSlideIndex > 0) {
-                                                                    const prevIdx = activeSlideIndex - 1;
-                                                                    if (hasWarmup && prevIdx === 0) setActiveSetId(`warmup-${ex.id}`);
-                                                                    else if (prevIdx === totalSlides - 1) setActiveSetId(`feedback-${ex.id}`);
-                                                                    else setActiveSetId(ex.sets[prevIdx - (hasWarmup ? 1 : 0)].id);
-                                                                    scrollToId(ex.id, prevIdx === 0 && hasWarmup ? `warmup-card-${ex.id}` : prevIdx === totalSlides - 1 ? `feedback-card-${ex.id}` : `set-card-${ex.sets[prevIdx - (hasWarmup ? 1 : 0)].id}`);
-                                                                }
-                                                            }}
-                                                            disabled={activeSlideIndex === 0}
-                                                            className="p-2 rounded-lg border border-cyber-cyan/20 text-slate-400 hover:text-white hover:border-cyber-cyan/40 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                                                        >
-                                                            <ChevronLeftIcon size={20} />
-                                                        </button>
-                                                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-500">
-                                                            {activeSlideIndex === 0 && hasWarmup ? 'Calentamiento' : activeSlideIndex === totalSlides - 1 ? 'Feedback' : `Set ${activeSlideIndex - (hasWarmup ? 1 : 0) + 1}/${ex.sets.length}`}
-                                                        </span>
-                                                        <button 
-                                                            onClick={() => {
-                                                                if (activeSlideIndex < totalSlides - 1) {
-                                                                    const nextIdx = activeSlideIndex + 1;
-                                                                    if (hasWarmup && nextIdx === 0) setActiveSetId(`warmup-${ex.id}`);
-                                                                    else if (nextIdx === totalSlides - 1) setActiveSetId(`feedback-${ex.id}`);
-                                                                    else setActiveSetId(ex.sets[nextIdx - (hasWarmup ? 1 : 0)].id);
-                                                                    scrollToId(ex.id, nextIdx === totalSlides - 1 ? `feedback-card-${ex.id}` : `set-card-${ex.sets[nextIdx - (hasWarmup ? 1 : 0)].id}`);
-                                                                }
-                                                            }}
-                                                            disabled={activeSlideIndex === totalSlides - 1}
-                                                            className="p-2 rounded-lg border border-cyber-cyan/20 text-slate-400 hover:text-white hover:border-cyber-cyan/40 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                                                        >
-                                                            <ChevronRightIcon size={20} />
-                                                        </button>
-                                                    </div>
-
-                                                    <div className="min-h-[280px] overflow-hidden">
-                                                        {activeSlideIndex === 0 && hasWarmup && (
-                                                            <div id={`warmup-card-${ex.id}`} className="animate-fade-in">
-                                                                <button onClick={() => setActiveSetId(`warmup-${ex.id}`)} className="w-full p-6 bg-slate-950/80 border border-sky-500/30 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-sky-500/50 transition-colors min-h-[260px]">
-                                                                    <FlameIcon size={40} className="text-sky-400" />
-                                                                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-sky-400">Calentamiento</span>
-                                                                    <span className="text-xs text-slate-500">Toca para abrir</span>
-                                                                </button>
+                                                {/* Tabla de sets (Fricción Cero): Calentamiento + tabla + Feedback */}
+                                                <div className="space-y-2" ref={(el) => { setsContainerRefs.current[ex.id] = el; }}>
+                                                    {hasWarmup && (
+                                                        <div id={`warmup-card-${ex.id}`} className="session-card-base overflow-hidden">
+                                                            <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`warmup-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-white/[0.03] transition-colors min-h-[48px]">
+                                                                <FlameIcon size={24} className="text-sky-400" />
+                                                                <span className="text-[10px] font-mono font-black uppercase tracking-widest text-sky-400">Calentamiento</span>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    <div className="session-card-base overflow-hidden">
+                                                        <div className="session-table w-full" data-tabular="true">
+                                                            <div className="flex items-center gap-2 px-2 py-1.5 border-b border-[#2A2D38] text-[10px] font-bold uppercase tracking-widest text-[#A0A7B8]">
+                                                                <span className="w-8 text-center">Set</span>
+                                                                <span className="w-10 text-center">Tipo</span>
+                                                                <span className="flex-1 min-w-[60px] text-center">Kg</span>
+                                                                <span className="flex-1 min-w-[56px] text-center">Reps</span>
+                                                                <span className="w-10" />
                                                             </div>
-                                                        )}
-                                                        {ex.sets.map((set: ExerciseSet, setIndex) => {
-                                                            const slideIdx = (hasWarmup ? 1 : 0) + setIndex;
-                                                            if (activeSlideIndex !== slideIdx) return null;
-                                                            return (
-                                                                <div key={set.id} id={`set-card-${set.id}`} className="animate-fade-in">
-                                                                    <div className={`set-card-details !bg-panel-color overflow-hidden rounded-xl border border-slate-700 ${activeSetId === set.id ? 'ring-1 ring-primary-color' : ''}`}>
-                                                                        <div className="p-3 bg-slate-900/80 border-b border-slate-800 flex justify-between items-center">
-                                                                            <div className="flex items-center gap-2"><p className="font-bold text-slate-400 text-xs uppercase">Serie {setIndex + 1}</p>{completedSets[set.id as string] && <CheckCircleIcon size={18} className="text-green-400" />}</div>
-                                                                            <p className="text-xs text-slate-500 font-mono">{formatSetTarget(set, ex, settings)}</p>
+                                                            {ex.sets.map((set: ExerciseSet, setIndex) => {
+                                                                const setId = set.id;
+                                                                const isCompleted = !!completedSets[String(setId)];
+                                                                const isActiveRow = activeExerciseId === ex.id && activeSetId === setId;
+                                                                const inputsRaw = setInputs[String(setId)];
+                                                                const safeInputsRow: SetInputState = inputsRaw && !('left' in inputsRaw) ? (inputsRaw as SetInputState) : (inputsRaw as UnilateralSetInputs)?.left || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, duration: '', partialReps: '' };
+                                                                const typeLabel = setTypeOverrides[String(setId)] ?? getSetTypeLabel(set);
+                                                                const rowClass = isCompleted ? 'session-row-completed' : isActiveRow ? 'session-row-active' : 'session-row-pending';
+                                                                const rowMinH = settings.sessionCompactView ? 40 : 48;
+                                                                const ghost = getGhostForSet((ex.exerciseDbId || ex.id) as string, setIndex, history);
+                                                                const suggestedKg = getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id]);
+                                                                const placeholderKg = suggestedKg != null ? String(suggestedKg) : (ghost?.weight ? String(ghost.weight) : '');
+                                                                const placeholderReps = ghost?.reps ? String(ghost.reps) : (set.targetReps ? String(set.targetReps) : '');
+                                                                return (
+                                                                    <div key={setId} className="border-b border-white/5">
+                                                                        <div className={`flex items-center gap-2 px-2 py-2 ${rowClass} transition-colors`} style={{ minHeight: rowMinH }} onClick={() => { if (isCompleted || !isActiveRow) { setActiveExerciseId(ex.id); setActiveSetId(setId); } }}>
+                                                                            <span className="w-8 text-center text-xs font-mono font-bold text-[#999] tabular-nums">{setIndex + 1}</span>
+                                                                            <button type="button" onClick={e => { e.stopPropagation(); cycleSetType(String(setId), set); }} className="w-10 h-7 rounded border border-[#2A2D38] bg-[#0A0B0E] text-[10px] font-black text-[#A0A7B8] hover:border-[#00F0FF]/50 hover:text-white transition-colors" title={typeLabel === 'W' ? 'Calentamiento' : typeLabel === 'T' ? 'Trabajo' : typeLabel === 'F' ? 'Fallo' : 'Drop'}>{typeLabel}</button>
+                                                                            <div className="flex-1 min-w-[60px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), field: 'weight', exerciseId: ex.id }); }} role="button" tabIndex={0}>
+                                                                                <span className={`w-full max-w-[72px] text-center text-sm font-mono py-1 tabular-nums block ${safeInputsRow.weight ? 'text-white' : 'text-[#A0A7B8]/80'}`}>{safeInputsRow.weight || placeholderKg || '—'}</span>
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-[56px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), field: 'reps', exerciseId: ex.id }); }} role="button" tabIndex={0}>
+                                                                                <span className={`w-full max-w-[56px] text-center text-sm font-mono py-1 tabular-nums block ${(ex.trainingMode === 'time' ? safeInputsRow.duration : safeInputsRow.reps) ? 'text-white' : 'text-[#A0A7B8]/80'}`}>{ex.trainingMode === 'time' ? (safeInputsRow.duration || placeholderReps || '—') : (safeInputsRow.reps || placeholderReps || '—')}</span>
+                                                                            </div>
+                                                                            <div className="w-10 flex justify-center" onClick={e => e.stopPropagation()}>
+                                                                                <button type="button" onClick={() => handleLogSet(ex, set, false)} className={`w-8 h-8 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? 'border-[#00FF9D] bg-[#00FF9D]/20 text-[#00FF9D]' : 'border-[#2A2D38] bg-transparent text-[#555] hover:border-[#00F0FF]/50 hover:text-[#00F0FF]'}`}>
+                                                                                    <CheckCircleIcon size={18} />
+                                                                                </button>
+                                                                            </div>
                                                                         </div>
-                                                                        <SetDetails 
-                                                                            exercise={ex} 
-                                                                            exerciseInfo={exInfo} 
-                                                                            set={set} 
-                                                                            setIndex={setIndex} 
-                                                                            settings={settings} 
-                                                                            inputs={(setInputs[String(set.id)] as SetInputState) || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, duration: '', partialReps: '' }} 
-                                                                            onInputChange={(field, value, side) => handleSetInputChange(String(set.id), field as keyof SetInputState, value, side)} 
-                                                                            onLogSet={(isCalibrator) => handleLogSet(ex, set, isCalibrator)} 
-                                                                            isLogged={!!completedSets[set.id as string]} 
-                                                                            history={history} 
-                                                                            currentSession1RM={sessionAdjusted1RMs[ex.id]} 
-                                                                            base1RM={exInfo?.calculated1RM || ex.reference1RM} 
-                                                                            isCalibrated={!!sessionAdjusted1RMs[ex.id]} 
-                                                                            cardAnimation={setCardAnimations[String(set.id)]} 
-                                                                            addToast={addToast}
-                                                                            suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])}
-                                                                            selectedTag={selectedTags[ex.id]}
-                                                                        />
+                                                                        {isActiveRow && (
+                                                                            <div id={`set-card-${setId}`} className="px-2 pb-2">
+                                                                                <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode />
+                                                                            </div>
+                                                                        )}
                                                                     </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                        {activeSlideIndex === totalSlides - 1 && (
-                                                            <div id={`feedback-card-${ex.id}`} className="animate-fade-in">
-                                                                <button onClick={() => setActiveSetId(`feedback-${ex.id}`)} className="w-full p-6 bg-slate-950/80 border border-cyber-cyan/20 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-cyber-cyan/40 transition-colors min-h-[260px]">
-                                                                    <ActivityIcon size={40} className="text-cyber-cyan/80" />
-                                                                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">Feedback Post-Ejercicio</span>
-                                                                    <span className="text-xs text-slate-500">Toca para abrir</span>
-                                                                </button>
-                                                            </div>
-                                                        )}
+                                                                );
+                                                            })}
+                                                        </div>
                                                     </div>
-                                                
-                                                    <div className="flex justify-center gap-1.5 mt-2 mb-1">
-                                                        {Array.from({ length: totalSlides }).map((_, i) => (
-                                                            <button 
-                                                                key={i} 
-                                                                onClick={() => {
-                                                                    if (i === 0 && hasWarmup) setActiveSetId(`warmup-${ex.id}`);
-                                                                    else if (i === totalSlides - 1) setActiveSetId(`feedback-${ex.id}`);
-                                                                    else setActiveSetId(ex.sets[i - (hasWarmup ? 1 : 0)].id);
-                                                                    scrollToId(ex.id, i === 0 && hasWarmup ? `warmup-card-${ex.id}` : i === totalSlides - 1 ? `feedback-card-${ex.id}` : `set-card-${ex.sets[i - (hasWarmup ? 1 : 0)].id}`);
-                                                                }}
-                                                                className={`h-1.5 rounded-full transition-all duration-300 ${i === activeSlideIndex ? 'w-4 bg-primary-color' : 'w-1.5 bg-slate-700 hover:bg-slate-600'}`}
-                                                            />
-                                                        ))}
+                                                    <div id={`feedback-card-${ex.id}`} className="session-card-base overflow-hidden">
+                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-white/[0.03] transition-colors min-h-[48px]">
+                                                            <ActivityIcon size={24} className="text-cyber-cyan/80" />
+                                                            <span className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">Feedback Post-Ejercicio</span>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1631,6 +1681,28 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     </div>
                 </WorkoutDrawer>
             )}
+
+            {numpadState && (() => {
+                const raw = setInputs[numpadState.setId];
+                const ex = allExercises.find(e => e.id === numpadState.exerciseId);
+                const isTimeMode = ex?.trainingMode === 'time';
+                const effectiveField = numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field;
+                const currentValue = !raw ? '' : ('left' in raw ? (raw as UnilateralSetInputs).left[effectiveField] : (raw as SetInputState)[effectiveField]) ?? '';
+                const side = ex?.isUnilateral ? 'left' as const : undefined;
+                return (
+                    <NumpadOverlay
+                        value={currentValue}
+                        onChange={(v) => handleSetInputChange(numpadState.setId, effectiveField as keyof SetInputState, v, side)}
+                        onClose={() => setNumpadState(null)}
+                        onNext={settings.sessionAutoAdvanceFields !== false && numpadState.field === 'weight'
+                            ? () => setNumpadState({ ...numpadState, field: 'reps' })
+                            : undefined}
+                        mode={numpadState.field === 'weight' ? 'decimal' : 'integer'}
+                        label={numpadState.field === 'weight' ? `Kg (${settings.weightUnit})` : (isTimeMode ? 'Seg' : 'Reps')}
+                        showNextButton={numpadState.field === 'weight'}
+                    />
+                );
+            })()}
         </div>
     );
 };
