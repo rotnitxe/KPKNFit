@@ -119,11 +119,11 @@ export const WarmupDrawer: React.FC<WarmupDrawerProps> = ({ isOpen, onClose, exe
                         <span className="w-6 text-xs font-mono text-[#999] text-center">{i + 1}</span>
                         <div className="flex-1">
                             <span className="text-[10px] text-[#555] block">Carga %</span>
-                            <input type="number" value={set.percentageOfWorkingWeight} onChange={e => { const u = [...sets]; u[i].percentageOfWorkingWeight = parseFloat(e.target.value); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 outline-none" />
+                            <input type="number" value={set.percentageOfWorkingWeight === 0 ? '' : set.percentageOfWorkingWeight} onChange={e => { const v = e.target.value; const u = [...sets]; u[i].percentageOfWorkingWeight = v === '' ? 0 : (parseFloat(v) || 0); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 outline-none" />
                         </div>
                         <div className="w-16">
                             <span className="text-[10px] text-[#555] block">Reps</span>
-                            <input type="number" value={set.targetReps} onChange={e => { const u = [...sets]; u[i].targetReps = parseFloat(e.target.value); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 text-center outline-none" />
+                            <input type="number" value={set.targetReps === 0 ? '' : set.targetReps} onChange={e => { const v = e.target.value; const u = [...sets]; u[i].targetReps = v === '' ? 0 : (parseFloat(v) || 0); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 text-center outline-none" />
                         </div>
                         <button onClick={() => setSets(sets.filter((_, idx) => idx !== i))} className="text-[#555] hover:text-red-400 transition-colors mt-3">
                             <XIcon size={12} />
@@ -196,9 +196,9 @@ interface RulesDrawerProps {
 }
 
 export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApply, sectionNames = [], initialLimits }) => {
-    const [sets, setSets] = useState(3);
-    const [reps, setReps] = useState(10);
-    const [rpe, setRpe] = useState(8);
+    const [sets, setSets] = useState<number | ''>(3);
+    const [reps, setReps] = useState<number | ''>(10);
+    const [rpe, setRpe] = useState<number | ''>(8);
     const [scope, setScope] = useState<RulesScope>('session');
     const [sectionIndex, setSectionIndex] = useState(0);
     const [maxExercisesPerMuscle, setMaxExercisesPerMuscle] = useState<number | ''>(initialLimits?.maxExercisesPerMuscle ?? '');
@@ -214,9 +214,9 @@ export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApp
 
     const handleApplyDefaults = () => {
         onApply({
-            sets,
-            reps,
-            rpe,
+            sets: sets === '' ? 3 : Number(sets),
+            reps: reps === '' ? 10 : Number(reps),
+            rpe: rpe === '' ? 8 : Number(rpe),
             scope,
             sectionIndex: scope === 'section' ? sectionIndex : undefined,
             action: 'defaults',
@@ -264,15 +264,15 @@ export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApp
                         <div className="grid grid-cols-3 gap-3">
                             <div>
                                 <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Series</span>
-                                <input type="number" min={1} max={20} value={sets} onChange={e => setSets(Math.min(20, Math.max(1, parseInt(e.target.value) || 3)))} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                                <input type="number" min={1} max={20} value={sets === '' ? '' : sets} onChange={e => { const v = e.target.value; setSets(v === '' ? '' : Math.min(20, Math.max(1, parseInt(v, 10) || 3))); }} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">Reps</span>
-                                <input type="number" min={1} max={99} value={reps} onChange={e => setReps(Math.min(99, Math.max(1, parseInt(e.target.value) || 10)))} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                                <input type="number" min={1} max={99} value={reps === '' ? '' : reps} onChange={e => { const v = e.target.value; setReps(v === '' ? '' : Math.min(99, Math.max(1, parseInt(v, 10) || 10))); }} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold text-[#555] uppercase block mb-1">RPE</span>
-                                <input type="number" step="0.5" min={1} max={10} value={rpe} onChange={e => setRpe(Math.min(10, Math.max(1, parseFloat(e.target.value) || 8)))} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
+                                <input type="number" step="0.5" min={1} max={10} value={rpe === '' ? '' : rpe} onChange={e => { const v = e.target.value; setRpe(v === '' ? '' : Math.min(10, Math.max(1, parseFloat(v) || 8))); }} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg focus:border-[#00F0FF] text-sm font-mono text-white py-1.5 text-center outline-none" />
                             </div>
                         </div>
                     </>

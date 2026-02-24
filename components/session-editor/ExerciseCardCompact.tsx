@@ -271,8 +271,8 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                             </div>
                             <input
                                 type="number"
-                                value={exercise.reference1RM || ''}
-                                onChange={e => onUpdate(partIndex, exerciseIndex, d => { d.reference1RM = parseFloat(e.target.value) || 0; })}
+                                value={exercise.reference1RM ?? ''}
+                                onChange={e => { const v = e.target.value; onUpdate(partIndex, exerciseIndex, d => { d.reference1RM = v === '' ? undefined : (parseFloat(v) ?? undefined); }); }}
                                 placeholder="1RM en kg"
                                 className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                             />

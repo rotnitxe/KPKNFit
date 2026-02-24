@@ -62,9 +62,9 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     const [step, setStep] = useState(1);
     const [goal, setGoal] = useState<CalorieGoalConfig['goal']>(settings.calorieGoalObjective === 'deficit' ? 'lose' : settings.calorieGoalObjective === 'surplus' ? 'gain' : 'maintain');
     const [connectAuge, setConnectAuge] = useState(settings.algorithmSettings?.augeEnableNutritionTracking ?? true);
-    const [height, setHeight] = useState(settings.userVitals?.height ?? 170);
-    const [weight, setWeight] = useState(settings.userVitals?.weight ?? 70);
-    const [age, setAge] = useState(settings.userVitals?.age ?? 30);
+    const [height, setHeight] = useState<number | ''>(settings.userVitals?.height ?? 170);
+    const [weight, setWeight] = useState<number | ''>(settings.userVitals?.weight ?? 70);
+    const [age, setAge] = useState<number | ''>(settings.userVitals?.age ?? 30);
     const [gender, setGender] = useState(settings.userVitals?.gender ?? 'male');
     const [bodyFat, setBodyFat] = useState<number | ''>(settings.userVitals?.bodyFatPercentage ?? '');
     const [muscleMass, setMuscleMass] = useState<number | ''>(settings.userVitals?.muscleMassPercentage ?? '');
@@ -76,7 +76,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     const [healthMultiplier, setHealthMultiplier] = useState(settings.calorieGoalConfig?.healthMultiplier ?? 1);
     const [proteinG, setProteinG] = useState(settings.dailyProteinGoal ?? 150);
     const [carbsG, setCarbsG] = useState(settings.dailyCarbGoal ?? 250);
-    const [fatsG, setFatsG] = useState(settings.dailyFatGoal ?? 70);
+    const [fatsG, setFatsG] = useState<number | ''>(settings.dailyFatGoal ?? 70);
     const [otherCondition, setOtherCondition] = useState('');
     const [formulaExpanded, setFormulaExpanded] = useState(false);
     const [advancedActivityExpanded, setAdvancedActivityExpanded] = useState(false);
@@ -97,10 +97,10 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     }, [activityIdx, advancedActivityExpanded, customActivityFactor, activityDaysPerWeek, activityHoursPerDay]);
 
     const bmr = useMemo(() => {
-        if (!weight || !height || !age) return null;
-        const w = Number(weight);
-        const h = Number(height);
-        const a = Number(age);
+        const w = weight === '' ? NaN : Number(weight);
+        const h = height === '' ? NaN : Number(height);
+        const a = age === '' ? NaN : Number(age);
+        if (Number.isNaN(w) || Number.isNaN(h) || Number.isNaN(a) || !w || !h || !a) return null;
         const bf = bodyFat !== '' ? Number(bodyFat) : 15;
         const useKatch = bodyFat !== '' && bf > 0;
         if (useKatch) return katchMcArdle(w, bf);
@@ -122,12 +122,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     const caloriesFromMacros = useMemo(() => {
         const p = proteinG * KCAL_PER_GRAM.protein * proteinMultiplier;
         const c = carbsG * KCAL_PER_GRAM.carbs;
-        const f = fatsG * KCAL_PER_GRAM.fat;
+        const f = (fatsG === '' ? 0 : Number(fatsG)) * KCAL_PER_GRAM.fat;
         return Math.round(p + c + f);
     }, [proteinG, carbsG, fatsG, proteinMultiplier]);
 
     const weeklyTrendKg = useMemo(() => {
-        if (!tdee || !weight) return null;
+        if (!tdee || weight === '') return null;
         const targetCals = caloriesFromMacros;
         const diff = targetCals - tdee;
         return (diff * 7) / 7700;
@@ -159,12 +159,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
             dailyCalorieGoal: caloriesFromMacros,
             dailyProteinGoal: Math.round(proteinG * proteinMultiplier),
             dailyCarbGoal: carbsG,
-            dailyFatGoal: fatsG,
+            dailyFatGoal: fatsG === '' ? (settings.dailyFatGoal ?? 70) : Number(fatsG),
             userVitals: {
                 ...settings.userVitals,
-                height,
-                weight,
-                age,
+                height: height === '' ? (settings.userVitals?.height ?? 170) : Number(height),
+                weight: weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight),
+                age: age === '' ? (settings.userVitals?.age ?? 30) : Number(age),
                 gender: gender as any,
                 bodyFatPercentage: bodyFat !== '' ? Number(bodyFat) : undefined,
                 muscleMassPercentage: muscleMass !== '' ? Number(muscleMass) : undefined,
@@ -241,17 +241,17 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                             <div className="space-y-4 mt-4">
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Estatura (cm)</label>
-                                    <input type="number" value={height} onChange={e => setHeight(Number(e.target.value) || 170)} min={100} max={250}
+                                    <input type="number" value={height === '' ? '' : height} onChange={e => { const v = e.target.value; setHeight(v === '' ? '' : (Number(v) || 0)); }} min={100} max={250}
                                         className="w-full bg-white/5 border border-cyber-copper/20 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-copper/50 outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Peso (kg)</label>
-                                    <input type="number" value={weight} onChange={e => setWeight(Number(e.target.value) || 70)} min={30} max={300}
+                                    <input type="number" value={weight === '' ? '' : weight} onChange={e => { const v = e.target.value; setWeight(v === '' ? '' : (Number(v) || 0)); }} min={30} max={300}
                                         className="w-full bg-white/5 border border-cyber-copper/20 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-copper/50 outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Edad</label>
-                                    <input type="number" value={age} onChange={e => setAge(Number(e.target.value) || 30)} min={10} max={120}
+                                    <input type="number" value={age === '' ? '' : age} onChange={e => { const v = e.target.value; setAge(v === '' ? '' : (Number(v) || 0)); }} min={10} max={120}
                                         className="w-full bg-white/5 border border-cyber-copper/20 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-copper/50 outline-none" />
                                 </div>
                                 <div>
@@ -379,7 +379,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 );
             case 3:
                 const trend = weeklyTrendKg ?? 0;
-                const weightNum = Number(weight) || 70;
+                const weightNum = weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight) || 70;
                 const pctWeekly = weightNum > 0 ? (trend / weightNum) * 100 : 0;
                 const trendKgAbs = Math.abs(trend);
                 const isDangerLow = goal === 'lose' && (pctWeekly < -1.2 || trendKgAbs > 1.2);
@@ -445,7 +445,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 {(() => {
                                     const pKcal = proteinG * 4;
                                     const cKcal = carbsG * 4;
-                                    const fKcal = fatsG * 9;
+                                    const fKcal = (fatsG === '' ? 0 : Number(fatsG)) * 9;
                                     const totalKcal = pKcal + cKcal + fKcal || 1;
                                     const pPct = (pKcal / totalKcal) * 100;
                                     const cPct = (cKcal / totalKcal) * 100;
@@ -467,11 +467,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 })()}
                                 <div className="grid gap-4">
                                     {[
-                                        { label: 'Proteínas', value: proteinG, set: setProteinG, max: 500, color: 'blue', kcalPerG: 4, tooltip: '4 kcal/g. Objetivo típico: 1.6–2.2 g/kg para ganancia muscular.' },
-                                        { label: 'Carbohidratos', value: carbsG, set: setCarbsG, max: 800, color: 'green', kcalPerG: 4, tooltip: '4 kcal/g. Principal fuente de energía para entrenamiento.' },
-                                        { label: 'Grasas', value: fatsG, set: setFatsG, max: 300, color: 'amber', kcalPerG: 9, tooltip: '9 kcal/g. Esenciales para hormonas y saciedad. Mínimo ~0.5 g/kg.' },
-                                    ].map(({ label, value, set, max, color, kcalPerG, tooltip }) => {
-                                        const kcal = value * kcalPerG;
+                                        { label: 'Proteínas', value: proteinG, set: setProteinG, max: 500, color: 'blue', kcalPerG: 4, tooltip: '4 kcal/g. Objetivo típico: 1.6–2.2 g/kg para ganancia muscular.', allowEmpty: false },
+                                        { label: 'Carbohidratos', value: carbsG, set: setCarbsG, max: 800, color: 'green', kcalPerG: 4, tooltip: '4 kcal/g. Principal fuente de energía para entrenamiento.', allowEmpty: false },
+                                        { label: 'Grasas', value: fatsG, set: setFatsG, max: 300, color: 'amber', kcalPerG: 9, tooltip: '9 kcal/g. Esenciales para hormonas y saciedad. Mínimo ~0.5 g/kg.', allowEmpty: true },
+                                    ].map(({ label, value, set, max, color, kcalPerG, tooltip, allowEmpty }) => {
+                                        const numVal = value === '' ? 0 : Number(value);
+                                        const kcal = numVal * kcalPerG;
                                         const barColor = color === 'blue' ? 'bg-blue-500' : color === 'green' ? 'bg-green-500' : 'bg-amber-500';
                                         return (
                                             <div key={label} className="p-4 rounded-xl bg-white/5 border border-cyber-copper/20">
@@ -480,13 +481,13 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                                     <span className="text-xs font-mono text-slate-400">{kcal} kcal</span>
                                                 </div>
                                                 <div className="h-2 rounded-full bg-white/10 overflow-hidden mb-3">
-                                                    <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${Math.min(100, (value / max) * 100)}%` }} />
+                                                    <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${Math.min(100, (numVal / max) * 100)}%` }} />
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <input
                                                         type="number"
-                                                        value={value}
-                                                        onChange={e => set(Number(e.target.value) || 0)}
+                                                        value={allowEmpty && value === '' ? '' : value}
+                                                        onChange={e => { const v = e.target.value; if (allowEmpty && v === '') (set as (x: number | '') => void)(''); else (set as (x: number) => void)(Number(v) || 0); }}
                                                         min={0}
                                                         max={max}
                                                         className="flex-1 bg-white/5 border border-cyber-copper/20 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-cyber-copper/50 outline-none"

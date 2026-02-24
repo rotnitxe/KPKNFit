@@ -131,9 +131,10 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                             </label>
                             <input
                                 type="number"
-                                value={trainingMode === 'time' ? (sets[editingSet].targetDuration || '') : (sets[editingSet].targetReps || '')}
+                                value={trainingMode === 'time' ? (sets[editingSet].targetDuration ?? '') : (sets[editingSet].targetReps ?? '')}
                                 onChange={e => {
-                                    const val = parseInt(e.target.value) || 0;
+                                    const raw = e.target.value;
+                                    const val = raw === '' ? undefined : (parseInt(raw, 10) || 0);
                                     if (trainingMode === 'time') {
                                         onSetChange(editingSet, 'targetDuration', val);
                                     } else {
@@ -163,8 +164,8 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                             ) : (sets[editingSet].intensityMode || 'rpe') === 'load' ? (
                                 <input
                                     type="number"
-                                    value={sets[editingSet].weight || ''}
-                                    onChange={e => onSetChange(editingSet, 'weight', parseFloat(e.target.value) || 0)}
+                                    value={sets[editingSet].weight != null ? sets[editingSet].weight : ''}
+                                    onChange={e => { const v = e.target.value; onSetChange(editingSet, 'weight', v === '' ? undefined : (parseFloat(v) || 0)); }}
                                     placeholder="kg"
                                     className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                                 />
@@ -175,7 +176,8 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                                     max={10}
                                     value={(sets[editingSet].intensityMode || 'rpe') === 'rir' ? (sets[editingSet].targetRIR ?? '') : (sets[editingSet].targetRPE ?? '')}
                                     onChange={e => {
-                                        const val = parseFloat(e.target.value);
+                                        const raw = e.target.value;
+                                        const val = raw === '' ? undefined : parseFloat(raw);
                                         if ((sets[editingSet].intensityMode || 'rpe') === 'rir') {
                                             onSetChange(editingSet, 'targetRIR', val);
                                         } else {
@@ -194,8 +196,8 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                                 <label className="text-[8px] font-bold text-zinc-600 uppercase block mb-1">% 1RM</label>
                                 <input
                                     type="number"
-                                    value={sets[editingSet].targetPercentageRM || ''}
-                                    onChange={e => onSetChange(editingSet, 'targetPercentageRM', parseInt(e.target.value) || 0)}
+                                    value={sets[editingSet].targetPercentageRM ?? ''}
+                                    onChange={e => { const v = e.target.value; onSetChange(editingSet, 'targetPercentageRM', v === '' ? undefined : (parseInt(v, 10) || 0)); }}
                                     className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                                 />
                             </div>

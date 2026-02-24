@@ -288,7 +288,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                         type="number"
                                         step="0.5"
                                         value={exercise.reference1RM ?? ''}
-                                        onChange={e => onUpdate(partIndex, exerciseIndex, d => { d.reference1RM = parseFloat(e.target.value) || 0; })}
+                                        onChange={e => onUpdate(partIndex, exerciseIndex, d => { const v = e.target.value; d.reference1RM = v === '' ? undefined : (parseFloat(v) ?? undefined); })}
                                         placeholder="kg"
                                         className="w-14 bg-white/[0.03] border-b border-cyber-cyan/20 focus:border-cyber-cyan/60 text-xs font-mono text-white text-center py-0.5 rounded outline-none"
                                     />
@@ -298,11 +298,12 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                     <input
                                         type="number"
                                         step="0.5"
-                                        value={exercise.prFor1RM?.weight ?? ''}
+                                        value={exercise.prFor1RM?.weight != null && exercise.prFor1RM.weight !== 0 ? exercise.prFor1RM.weight : ''}
                                         onChange={e => {
-                                            const w = parseFloat(e.target.value) || 0;
+                                            const v = e.target.value;
+                                            const w = v === '' ? undefined : (parseFloat(v) ?? undefined);
                                             onUpdate(partIndex, exerciseIndex, d => {
-                                                d.prFor1RM = { weight: w, reps: d.prFor1RM?.reps || 1 };
+                                                d.prFor1RM = { weight: w ?? 0, reps: d.prFor1RM?.reps ?? 1 };
                                             });
                                         }}
                                         placeholder="kg"
@@ -313,11 +314,12 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                         type="number"
                                         min={1}
                                         max={30}
-                                        value={exercise.prFor1RM?.reps ?? ''}
+                                        value={exercise.prFor1RM?.reps != null && exercise.prFor1RM.reps !== 0 ? exercise.prFor1RM.reps : ''}
                                         onChange={e => {
-                                            const r = Math.min(30, Math.max(1, parseInt(e.target.value) || 1));
+                                            const v = e.target.value;
+                                            const r = v === '' ? undefined : Math.min(30, Math.max(1, parseInt(v, 10) || 1));
                                             onUpdate(partIndex, exerciseIndex, d => {
-                                                d.prFor1RM = { weight: d.prFor1RM?.weight || 0, reps: r };
+                                                d.prFor1RM = { weight: d.prFor1RM?.weight ?? 0, reps: r ?? 1 };
                                             });
                                         }}
                                         placeholder="r"
@@ -333,11 +335,12 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                 <input
                                     type="number"
                                     step="0.5"
-                                    value={exercise.consolidatedWeight?.weightKg ?? ''}
+                                    value={exercise.consolidatedWeight?.weightKg != null && exercise.consolidatedWeight.weightKg !== 0 ? exercise.consolidatedWeight.weightKg : ''}
                                     onChange={e => {
-                                        const w = parseFloat(e.target.value) || 0;
+                                        const v = e.target.value;
+                                        const w = v === '' ? undefined : (parseFloat(v) ?? undefined);
                                         onUpdate(partIndex, exerciseIndex, d => {
-                                            d.consolidatedWeight = { weightKg: w, reps: d.consolidatedWeight?.reps || 10 };
+                                            d.consolidatedWeight = { weightKg: w ?? 0, reps: d.consolidatedWeight?.reps ?? 10 };
                                         });
                                     }}
                                     placeholder="kg"
@@ -348,11 +351,12 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                     type="number"
                                     min={1}
                                     max={99}
-                                    value={exercise.consolidatedWeight?.reps ?? ''}
+                                    value={exercise.consolidatedWeight?.reps != null && exercise.consolidatedWeight.reps !== 0 ? exercise.consolidatedWeight.reps : ''}
                                     onChange={e => {
-                                        const r = Math.min(99, Math.max(1, parseInt(e.target.value) || 10));
+                                        const v = e.target.value;
+                                        const r = v === '' ? undefined : Math.min(99, Math.max(1, parseInt(v, 10) || 10));
                                         onUpdate(partIndex, exerciseIndex, d => {
-                                            d.consolidatedWeight = { weightKg: d.consolidatedWeight?.weightKg || 0, reps: r };
+                                            d.consolidatedWeight = { weightKg: d.consolidatedWeight?.weightKg ?? 0, reps: r ?? 10 };
                                         });
                                     }}
                                     placeholder="r"

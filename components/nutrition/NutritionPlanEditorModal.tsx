@@ -86,9 +86,9 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
         settings.calorieGoalObjective === 'deficit' ? 'lose' : settings.calorieGoalObjective === 'surplus' ? 'gain' : 'maintain'
     );
     const [connectAuge, setConnectAuge] = useState(settings.algorithmSettings?.augeEnableNutritionTracking ?? true);
-    const [height, setHeight] = useState(settings.userVitals?.height ?? 170);
-    const [weight, setWeight] = useState(settings.userVitals?.weight ?? 70);
-    const [age, setAge] = useState(settings.userVitals?.age ?? 30);
+    const [height, setHeight] = useState<number | ''>(settings.userVitals?.height ?? 170);
+    const [weight, setWeight] = useState<number | ''>(settings.userVitals?.weight ?? 70);
+    const [age, setAge] = useState<number | ''>(settings.userVitals?.age ?? 30);
     const [gender, setGender] = useState(settings.userVitals?.gender ?? 'male');
     const [bodyFat, setBodyFat] = useState<number | ''>(settings.userVitals?.bodyFatPercentage ?? '');
     const [muscleMass, setMuscleMass] = useState<number | ''>(settings.userVitals?.muscleMassPercentage ?? '');
@@ -101,7 +101,7 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
     const initProteinMult = (settings.dietaryPreference === 'vegan' ? 1.15 : settings.dietaryPreference === 'vegetarian' ? 1.08 : 1);
     const [proteinG, setProteinG] = useState(Math.round((settings.dailyProteinGoal ?? 150) / initProteinMult));
     const [carbsG, setCarbsG] = useState(settings.dailyCarbGoal ?? 250);
-    const [fatsG, setFatsG] = useState(settings.dailyFatGoal ?? 70);
+    const [fatsG, setFatsG] = useState<number | ''>(settings.dailyFatGoal ?? 70);
     const [otherCondition, setOtherCondition] = useState(() => {
         const known = new Set(METABOLIC_CONDITIONS.map(m => m.id));
         return (settings.metabolicConditions ?? []).filter(c => !known.has(c))[0] || '';
@@ -112,10 +112,10 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
     const proteinMultiplier = dietPreference === 'vegan' ? 1.15 : dietPreference === 'vegetarian' ? 1.08 : 1;
 
     const bmr = useMemo(() => {
-        if (!weight || !height || !age) return null;
-        const w = Number(weight);
-        const h = Number(height);
-        const a = Number(age);
+        const w = weight === '' ? NaN : Number(weight);
+        const h = height === '' ? NaN : Number(height);
+        const a = age === '' ? NaN : Number(age);
+        if (Number.isNaN(w) || Number.isNaN(h) || Number.isNaN(a) || !w || !h || !a) return null;
         const bf = bodyFat !== '' ? Number(bodyFat) : 15;
         const useKatch = (formula === 'katch' || bodyFat !== '') && bf > 0;
         if (useKatch) return katchMcArdle(w, bf);
@@ -135,12 +135,12 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
     const caloriesFromMacros = useMemo(() => {
         const p = proteinG * KCAL_PER_GRAM.protein * proteinMultiplier;
         const c = carbsG * KCAL_PER_GRAM.carbs;
-        const f = fatsG * KCAL_PER_GRAM.fat;
+        const f = (fatsG === '' ? 0 : Number(fatsG)) * KCAL_PER_GRAM.fat;
         return Math.round(p + c + f);
     }, [proteinG, carbsG, fatsG, proteinMultiplier]);
 
     const weeklyTrendKg = useMemo(() => {
-        if (!tdee || !weight) return null;
+        if (!tdee || weight === '' || weight === undefined) return null;
         const diff = caloriesFromMacros - tdee;
         return (diff * 7) / 7700;
     }, [tdee, weight, caloriesFromMacros]);
@@ -171,12 +171,12 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
             dailyCalorieGoal: caloriesFromMacros,
             dailyProteinGoal: Math.round(proteinG * proteinMultiplier),
             dailyCarbGoal: carbsG,
-            dailyFatGoal: fatsG,
+            dailyFatGoal: fatsG === '' ? (settings.dailyFatGoal ?? 70) : Number(fatsG),
             userVitals: {
                 ...settings.userVitals,
-                height,
-                weight,
-                age,
+                height: height === '' ? (settings.userVitals?.height ?? 170) : Number(height),
+                weight: weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight),
+                age: age === '' ? (settings.userVitals?.age ?? 30) : Number(age),
                 gender: gender as any,
                 bodyFatPercentage: bodyFat !== '' ? Number(bodyFat) : undefined,
                 muscleMassPercentage: muscleMass !== '' ? Number(muscleMass) : undefined,
@@ -238,15 +238,15 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={labelClass}>Estatura (cm)</label>
-                            <input type="number" value={height} onChange={e => setHeight(Number(e.target.value) || 170)} min={100} max={250} className={inputClass} />
+                            <input type="number" value={height === '' ? '' : height} onChange={e => { const v = e.target.value; setHeight(v === '' ? '' : (Number(v) || 0)); }} min={100} max={250} className={inputClass} />
                         </div>
                         <div>
                             <label className={labelClass}>Peso (kg)</label>
-                            <input type="number" value={weight} onChange={e => setWeight(Number(e.target.value) || 70)} min={30} max={300} className={inputClass} />
+                            <input type="number" value={weight === '' ? '' : weight} onChange={e => { const v = e.target.value; setWeight(v === '' ? '' : (Number(v) || 0)); }} min={30} max={300} className={inputClass} />
                         </div>
                         <div>
                             <label className={labelClass}>Edad</label>
-                            <input type="number" value={age} onChange={e => setAge(Number(e.target.value) || 30)} min={10} max={120} className={inputClass} />
+                            <input type="number" value={age === '' ? '' : age} onChange={e => { const v = e.target.value; setAge(v === '' ? '' : (Number(v) || 0)); }} min={10} max={120} className={inputClass} />
                         </div>
                         <div>
                             <label className={labelClass}>Género</label>
@@ -365,7 +365,7 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
                         </div>
                         <div>
                             <label className={labelClass}>Grasas</label>
-                            <input type="number" value={fatsG} onChange={e => setFatsG(Number(e.target.value) || 0)} min={0} max={300} className={inputClass} />
+                            <input type="number" value={fatsG === '' ? '' : fatsG} onChange={e => { const v = e.target.value; setFatsG(v === '' ? '' : (Number(v) || 0)); }} min={0} max={300} className={inputClass} />
                         </div>
                     </div>
                     <p className="text-sm font-mono text-white mt-2">{caloriesFromMacros} kcal/día (P×4 + C×4 + G×9)</p>
