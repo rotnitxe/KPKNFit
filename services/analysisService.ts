@@ -5,6 +5,7 @@ import { getWeekId, calculateFFMI, calculateBrzycki1RM } from '../utils/calculat
 import { isSetEffective, calculateCompletedSessionStress, HYPERTROPHY_ROLE_MULTIPLIERS, classifyACWR } from './auge';
 const MUSCLE_ROLE_MULTIPLIERS = HYPERTROPHY_ROLE_MULTIPLIERS;
 import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
+import { getLocalDateString, getDatePartFromString, parseDateStringAsLocal } from '../utils/dateUtils';
 
 const createChildToParentMap = (hierarchy: MuscleHierarchy): Map<string, string> => {
     const map = new Map<string, string>();
@@ -139,19 +140,20 @@ export const calculateAverageVolumeForWeeks = (
         });
     });
 
-    return Object.entries(allMuscleTotals).map(([muscleGroup, data]) => ({
-        muscleGroup,
-        displayVolume: Math.round((data.totalVol / weeks.length) * 10) / 10,
-        totalSets: Math.round(data.totalVol / weeks.length),
-        // Exponemos la nueva Frecuencia Directa. Además se inyecta la Indirecta en el objeto para uso analítico del sistema.
-        frequency: Math.round((data.freqDirect / weeks.length) * 10) / 10,
-        indirectFrequency: Math.round((data.freqIndirect / weeks.length) * 10) / 10,
-        avgRestDays: null,
-        directExercises: Array.from(data.direct.entries()).map(([name, sets]) => ({ name, sets: Math.round((sets / weeks.length) * 10) / 10 })),
-        indirectExercises: Array.from(data.indirect.entries()).map(([name, info]) => ({ name, sets: Math.round((info.sets / weeks.length) * 10) / 10, activationPercentage: info.act })),
-        avgIFI: null,
-        recoveryStatus: 'N/A' as const,
-    })).filter(v => v.displayVolume > 0 || (v as any).indirectFrequency > 0).sort((a, b) => b.displayVolume - a.displayVolume);
+    return Object.entries(allMuscleTotals)
+        .filter(([muscleGroup]) => muscleGroup !== 'General') // Solo músculos reales, no "General"
+        .map(([muscleGroup, data]) => ({
+            muscleGroup,
+            displayVolume: Math.round((data.totalVol / weeks.length) * 10) / 10,
+            totalSets: Math.round(data.totalVol / weeks.length),
+            frequency: Math.round((data.freqDirect / weeks.length) * 10) / 10,
+            indirectFrequency: Math.round((data.freqIndirect / weeks.length) * 10) / 10,
+            avgRestDays: null,
+            directExercises: Array.from(data.direct.entries()).map(([name, sets]) => ({ name, sets: Math.round((sets / weeks.length) * 10) / 10 })),
+            indirectExercises: Array.from(data.indirect.entries()).map(([name, info]) => ({ name, sets: Math.round((info.sets / weeks.length) * 10) / 10, activationPercentage: info.act })),
+            avgIFI: null,
+            recoveryStatus: 'N/A' as const,
+        })).filter(v => v.displayVolume > 0 || (v as any).indirectFrequency > 0).sort((a, b) => b.displayVolume - a.displayVolume);
 };
 
 export const calculateSessionVolume = (
@@ -216,13 +218,13 @@ export const calculateACWR = (
   const stressByDay: { [date: string]: number } = {};
 
   history.forEach(log => {
-    const dateStr = new Date(log.date).toISOString().split('T')[0];
+    const dateStr = getDatePartFromString(log.date);
     const stress = log.sessionStressScore ?? calculateCompletedSessionStress(log.completedExercises, exerciseList);
     stressByDay[dateStr] = (stressByDay[dateStr] || 0) + stress;
   });
 
   const getDailyStress = (date: Date): number => {
-    return stressByDay[date.toISOString().split('T')[0]] || 0;
+    return stressByDay[getLocalDateString(date)] || 0;
   };
 
   let acuteLoad = 0;
@@ -258,18 +260,17 @@ export const calculateWeeklyTonnageComparison = (
 ): { current: number; previous: number } => {
   const today = new Date();
   const currentWeekId = getWeekId(today, settings.startWeekOn);
-  const [yearStr, monthStr, dayStr] = currentWeekId.split('-');
-  const currentWeekStartDate = new Date(Date.UTC(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr)));
+  const currentWeekStartDate = parseDateStringAsLocal(currentWeekId);
   const prevWeekDate = new Date(currentWeekStartDate);
-  prevWeekDate.setUTCDate(prevWeekDate.getUTCDate() - 7);
+  prevWeekDate.setDate(prevWeekDate.getDate() - 7);
   const previousWeekId = getWeekId(prevWeekDate, settings.startWeekOn);
 
   let current = 0;
   let previous = 0;
 
   history.forEach(log => {
-    const logDate = new Date(log.date);
-    const logWeekId = getWeekId(new Date(Date.UTC(logDate.getUTCFullYear(), logDate.getUTCMonth(), logDate.getUTCDate())), settings.startWeekOn);
+    const logDate = parseDateStringAsLocal(getDatePartFromString(log.date));
+    const logWeekId = getWeekId(logDate, settings.startWeekOn);
     const volume = log.completedExercises.reduce((total, ex) =>
       total + ex.sets.reduce((setTotal, s) => {
         const weight = s.weight || 0;
@@ -295,7 +296,7 @@ export const calculateWeeklyEffectiveVolumeByMuscleGroup = (
 ): { muscleGroup: string; completed: number; planned: number }[] => {
     const today = new Date();
     const currentWeekId = getWeekId(today, settings.startWeekOn);
-    const thisWeekLogs = history.filter(log => getWeekId(new Date(log.date), settings.startWeekOn) === currentWeekId);
+    const thisWeekLogs = history.filter(log => getWeekId(parseDateStringAsLocal(getDatePartFromString(log.date)), settings.startWeekOn) === currentWeekId);
     const plannedWeek = findPlannedWeek(programs, history, settings);
 
     const exIndex = buildExerciseIndex(exerciseList);
@@ -372,7 +373,7 @@ export const calculateDailyNutritionSummary = (
   };
   goals: { calories: number; protein: number; carbs: number; fats: number };
 } => {
-  const targetStr = dateStr || new Date().toISOString().split('T')[0];
+  const targetStr = dateStr || getLocalDateString();
   const todaysLogs = nutritionLogs.filter(log => log.date && log.date.startsWith(targetStr));
   const consumed = todaysLogs.reduce(
     (acc, log) => {
@@ -425,7 +426,7 @@ export const calculatePowerliftingMetrics = (history: WorkoutLog[], settings: Se
   if (history.length === 0) return null;
   const today = new Date();
   const currentWeekId = getWeekId(today, settings.startWeekOn);
-  const thisWeekLogs = history.filter(log => getWeekId(new Date(log.date), settings.startWeekOn) === currentWeekId);
+  const thisWeekLogs = history.filter(log => getWeekId(parseDateStringAsLocal(getDatePartFromString(log.date)), settings.startWeekOn) === currentWeekId);
   const weeklyVolume = { squat: { totalReps: 0, effectiveSets: 0 }, bench: { totalReps: 0, effectiveSets: 0 }, deadlift: { totalReps: 0, effectiveSets: 0 } };
   const max1RMs = { squat: 0, bench: 0, deadlift: 0, ohp: 0 };
   const liftKeywords = { squat: ['sentadilla', 'squat'], bench: ['press de banca', 'bench press'], deadlift: ['peso muerto', 'deadlift'], ohp: ['press militar', 'overhead press', 'ohp'] };

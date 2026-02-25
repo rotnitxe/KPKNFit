@@ -20,7 +20,6 @@ import ToggleSwitch from './ui/ToggleSwitch';
 import ContextualHeader from './session-editor/ContextualHeader';
 import ExerciseRow from './session-editor/ExerciseRow';
 import PartSection from './session-editor/PartSection';
-import { SessionMetricsBlock } from './session-editor/SessionMetricsBlock';
 import AugeFAB from './session-editor/AugeFAB';
 import AugeDrawerComponent from './session-editor/AugeDrawer';
 import { TransferDrawer, HistoryDrawer, RulesDrawer, SaveDrawer, RulesApplyPayload } from './session-editor/DrawerSystem';
@@ -784,6 +783,127 @@ export const AdvancedExercisePickerModal: React.FC<{
 
 // --- BLOQUE 2 CORREGIDO: LOGICA COMPLETA DE CARGAS (REPS + RPE -> % -> KG) ---
 
+const SWIPE_CARD_THRESHOLD = 80;
+
+const SwipeableSetCard: React.FC<{
+    set: ExerciseSet;
+    setIndex: number;
+    isAmrap: boolean;
+    mode: string;
+    estimatedLoad: number | null;
+    exercise: Exercise;
+    handleSetChange: (si: number, f: keyof ExerciseSet | Partial<ExerciseSet>, v?: any) => void;
+    onRemoveSet: (si: number) => void;
+    setPendingAmrapSetIndex: (si: number | null) => void;
+}> = ({ set, setIndex, isAmrap, mode, estimatedLoad, exercise, handleSetChange, onRemoveSet, setPendingAmrapSetIndex }) => {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const startX = useRef(0);
+    const startY = useRef(0);
+    const swipeXRef = useRef(0);
+    const isHorizontalSwipe = useRef(false);
+    const activePointerId = useRef<number | null>(null);
+
+    const applySwipe = useCallback((x: number) => {
+        swipeXRef.current = x;
+        if (contentRef.current) contentRef.current.style.transform = `translate3d(${x}px,0,0)`;
+    }, []);
+    const handleEnd = useCallback(() => {
+        const x = swipeXRef.current;
+        if (x >= SWIPE_CARD_THRESHOLD) onRemoveSet(setIndex);
+        applySwipe(0);
+    }, [onRemoveSet, setIndex, applySwipe]);
+
+    const onPointerDown = useCallback((e: React.PointerEvent) => {
+        if (activePointerId.current != null) return;
+        activePointerId.current = e.pointerId;
+        startX.current = e.clientX;
+        startY.current = e.clientY;
+        isHorizontalSwipe.current = false;
+        const onMove = (ev: PointerEvent) => {
+            if (ev.pointerId !== e.pointerId) return;
+            const dx = ev.clientX - startX.current;
+            const dy = ev.clientY - startY.current;
+            if (!isHorizontalSwipe.current && Math.abs(dx) > 6) isHorizontalSwipe.current = Math.abs(dx) > Math.abs(dy);
+            if (isHorizontalSwipe.current && dx > 0) applySwipe(Math.min(dx, 120));
+        };
+        const onUp = (ev: PointerEvent) => {
+            if (ev.pointerId !== e.pointerId) return;
+            activePointerId.current = null;
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            document.removeEventListener('pointercancel', onUp);
+            handleEnd();
+        };
+        document.addEventListener('pointermove', onMove, { passive: true });
+        document.addEventListener('pointerup', onUp);
+        document.addEventListener('pointercancel', onUp);
+    }, [applySwipe, handleEnd]);
+
+    return (
+        <div
+            ref={cardRef}
+            className={`shrink-0 w-36 rounded-2xl snap-center flex flex-col justify-between relative overflow-hidden ${isAmrap ? 'border-yellow-500/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]' : 'border-zinc-800'} border`}
+            onPointerDown={onPointerDown}
+        >
+            <div
+                className="absolute inset-y-0 left-0 w-16 bg-red-500/20 flex items-center justify-center text-red-400 text-[10px] font-black uppercase z-0"
+            >
+                Eliminar
+            </div>
+            <div
+                ref={contentRef}
+                className="bg-[#0a0a0a] p-3 flex flex-col justify-between relative z-10 min-h-full will-change-transform"
+            >
+                <div className="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
+                    <span className="font-black text-zinc-500 text-[10px] bg-black px-2 py-0.5 rounded-full border border-zinc-800">S{setIndex + 1}</span>
+                </div>
+                <div className="flex flex-col items-center mb-3 bg-black/50 p-2 rounded-xl">
+                    <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mb-1">{exercise.trainingMode === 'time' ? 'Segundos' : isAmrap ? 'Mínimo Reps' : 'Reps Target'}</span>
+                    {exercise.trainingMode === 'time' ? (
+                        <input type="number" maxLength={4} value={set.targetDuration ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetDuration', v === '' ? undefined : parseInt(v)); }} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white max-w-[48px]" placeholder="0"/>
+                    ) : (
+                        <input type="number" maxLength={2} max={99} value={set.targetReps ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetReps', v === '' ? undefined : Math.min(99, Math.max(0, parseInt(v) || 0))); }} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 max-w-[48px] ${isAmrap ? 'text-yellow-400' : 'text-white'}`}/>
+                    )}
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                    {isAmrap ? (
+                        <div className="flex-1 bg-yellow-900/20 border border-yellow-600/30 rounded p-1.5 flex justify-center text-center"><span className="text-[8px] font-black text-yellow-500 uppercase leading-none">{set.isCalibrator ? 'Calibrador' : 'Al Fallo'}</span></div>
+                    ) : (
+                        <div className="flex flex-col flex-1 bg-zinc-900 p-1.5 rounded-lg border border-zinc-800">
+                            <select value={mode} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[8px] text-zinc-500 font-bold border-none focus:ring-0 uppercase p-0 mb-0.5">
+                                {exercise.trainingMode === 'percent' && <option value="solo_rm">RM</option>}
+                                <option value="rpe">RPE</option><option value="rir">RIR</option><option value="failure">FAIL</option>
+                                {exercise.trainingMode === 'percent' && <option value="load">%</option>}
+                            </select>
+                            {mode !== 'failure' && mode !== 'solo_rm' && (
+                                <input type="number" step="0.5" value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => { const v = e.target.value; if (v === '') handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); else { const n = parseFloat(v); if (!isNaN(n)) handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', n); } }} className="w-full bg-transparent text-sm font-bold text-white focus:border-white p-0 border-none" placeholder="-"/>
+                            )}
+                        </div>
+                    )}
+                    {exercise.trainingMode === 'percent' && (
+                        <div className="flex flex-col flex-1 bg-blue-900/10 p-1.5 rounded-lg border border-blue-500/20 items-center">
+                            {mode === 'load' ? (
+                                <>
+                                    <input type="number" value={set.targetPercentageRM ?? ''} onChange={e => handleSetChange(setIndex, 'targetPercentageRM', e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-8 text-center bg-transparent text-sm font-black p-0 border-none focus:ring-0 text-blue-400" placeholder="%"/>
+                                    {estimatedLoad != null && <span className="text-[8px] font-mono text-zinc-400 mt-0.5">{estimatedLoad}kg</span>}
+                                </>
+                            ) : (
+                                estimatedLoad != null && <span className="text-[10px] font-mono text-cyber-cyan font-bold">{estimatedLoad}kg</span>
+                            )}
+                        </div>
+                    )}
+                    <button type="button" onClick={() => {
+                        const newVal = !isAmrap;
+                        if (newVal) { setPendingAmrapSetIndex(setIndex); return; }
+                        handleSetChange(setIndex, { isAmrap: false, intensityMode: 'rpe' });
+                    }} className={`p-2 rounded-lg ml-1 border ${isAmrap ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'bg-black border-zinc-800 text-zinc-600 hover:text-white'}`}><FlameIcon size={12} /></button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     exercise: Exercise;
     onExerciseChange: (fieldOrUpdate: keyof Exercise | Partial<Exercise>, value?: any) => void;
@@ -1033,13 +1153,29 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                         <div>
                             <label className={`text-[9px] font-black uppercase tracking-wider ${isInSuperset && !isSupersetLast ? 'text-white' : 'text-zinc-500'}`}>{restLabel}</label>
                             <div className="flex items-center gap-1 mt-1">
-                                <input
-                                    type="time"
-                                    step="30"
-                                    value={(() => { const s = Math.min(300, exercise.restTime || 90); const m = Math.floor(s / 60); const sec = s % 60; return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
-                                    onChange={e => { const v = e.target.value; if (!v) return; const parts = v.split(':').map(Number); const seconds = parts.length === 2 ? (parts[0] || 0) * 60 + (parts[1] || 0) : (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0); onExerciseChange('restTime', Math.min(300, seconds)); } }}
-                                    className="flex-1 min-w-0 bg-transparent border-b border-zinc-700 text-white font-mono focus:border-white focus:ring-0 p-1 text-xs"
-                                />
+                                <div className="flex items-center gap-0.5 flex-1 min-w-0">
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={0}
+                                        max={5}
+                                        value={Math.floor((Math.min(300, exercise.restTime || 90)) / 60)}
+                                        onChange={e => { const m = Math.min(5, Math.max(0, parseInt(e.target.value, 10) || 0)); const sec = (exercise.restTime || 90) % 60; onExerciseChange('restTime', Math.min(300, m * 60 + sec)); }}
+                                        className="w-10 bg-transparent border-b border-zinc-700 text-white font-mono focus:border-white focus:ring-0 p-1 text-xs text-center"
+                                        placeholder="0"
+                                    />
+                                    <span className="text-zinc-500 text-xs">:</span>
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={0}
+                                        max={59}
+                                        value={((exercise.restTime || 90) % 60)}
+                                        onChange={e => { const sec = Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0)); const m = Math.floor((Math.min(300, exercise.restTime || 90)) / 60); onExerciseChange('restTime', Math.min(300, m * 60 + sec)); }}
+                                        className="w-10 bg-transparent border-b border-zinc-700 text-white font-mono focus:border-white focus:ring-0 p-1 text-xs text-center"
+                                        placeholder="00"
+                                    />
+                                </div>
                                 {exercise.sets?.length > 0 && (() => {
                                     const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
                                     const avgPercent1RM = exercise.trainingMode === 'percent' && exercise.sets?.length ? exercise.sets.reduce((a, s) => a + ((s as any).targetPercentageRM || 0), 0) / exercise.sets.length : undefined;
@@ -1149,60 +1285,18 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                     }
 
                                     return (
-                                        <div key={set.id} className={`shrink-0 w-36 bg-[#0a0a0a] border ${isAmrap ? 'border-yellow-500/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]' : 'border-zinc-800'} rounded-2xl p-3 snap-center flex flex-col justify-between relative group`}>
-                                            {/* Cabecera Tarjetita */}
-                                            <div className="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
-                                                <span className="font-black text-zinc-500 text-[10px] bg-black px-2 py-0.5 rounded-full border border-zinc-800">S{setIndex + 1}</span>
-                                                <button type="button" onClick={() => onRemoveSet(setIndex)} className="text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><XIcon size={12}/></button>
-                                            </div>
-                                            
-                                            {/* Reps/Tiempo */}
-                                            <div className="flex flex-col items-center mb-3 bg-black/50 p-2 rounded-xl">
-                                                <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mb-1">{exercise.trainingMode === 'time' ? 'Segundos' : isAmrap ? 'Mínimo Reps' : 'Reps Target'}</span>
-                                                {exercise.trainingMode === 'time' ? (
-                                                    <input type="number" maxLength={4} value={set.targetDuration ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetDuration', v === '' ? undefined : parseInt(v)); }} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white max-w-[48px]" placeholder="0"/>
-                                                ) : (
-                                                    <input type="number" maxLength={2} max={99} value={set.targetReps ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetReps', v === '' ? undefined : Math.min(99, Math.max(0, parseInt(v) || 0))); }} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 max-w-[48px] ${isAmrap ? 'text-yellow-400' : 'text-white'}`}/>
-                                                )}
-                                            </div>
-
-                                            {/* Intensidad & Carga */}
-                                            <div className="flex items-center justify-between gap-1">
-                                                {isAmrap ? (
-                                                    <div className="flex-1 bg-yellow-900/20 border border-yellow-600/30 rounded p-1.5 flex justify-center text-center"><span className="text-[8px] font-black text-yellow-500 uppercase leading-none">{set.isCalibrator ? 'Calibrador' : 'Al Fallo'}</span></div>
-                                                ) : (
-                                                    <div className="flex flex-col flex-1 bg-zinc-900 p-1.5 rounded-lg border border-zinc-800">
-                                                        <select value={mode} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[8px] text-zinc-500 font-bold border-none focus:ring-0 uppercase p-0 mb-0.5">
-                                                            {exercise.trainingMode === 'percent' && <option value="solo_rm">RM</option>}
-                                                            <option value="rpe">RPE</option><option value="rir">RIR</option><option value="failure">FAIL</option>
-                                                            {exercise.trainingMode === 'percent' && <option value="load">%</option>}
-                                                        </select>
-                                                        {mode !== 'failure' && mode !== 'solo_rm' && (
-                                                            <input type="number" step="0.5" value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => { const v = e.target.value; if (v === '') handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); else { const n = parseFloat(v); if (!isNaN(n)) handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', n); } }} className="w-full bg-transparent text-sm font-bold text-white focus:border-white p-0 border-none" placeholder="-"/>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {exercise.trainingMode === 'percent' && (
-                                                    <div className="flex flex-col flex-1 bg-blue-900/10 p-1.5 rounded-lg border border-blue-500/20 items-center">
-                                                        {mode === 'load' ? (
-                                                            <>
-                                                                <input type="number" value={set.targetPercentageRM ?? ''} onChange={e => handleSetChange(setIndex, 'targetPercentageRM', e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-8 text-center bg-transparent text-sm font-black p-0 border-none focus:ring-0 text-blue-400" placeholder="%"/>
-                                                                {estimatedLoad != null && <span className="text-[8px] font-mono text-zinc-400 mt-0.5">{estimatedLoad}kg</span>}
-                                                            </>
-                                                        ) : (
-                                                            estimatedLoad != null && <span className="text-[10px] font-mono text-cyber-cyan font-bold">{estimatedLoad}kg</span>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                
-                                                <button type="button" onClick={() => {
-                                                    const newVal = !isAmrap;
-                                                    if (newVal) { setPendingAmrapSetIndex(setIndex); return; }
-                                                    handleSetChange(setIndex, { isAmrap: false, intensityMode: 'rpe' });
-                                                }} className={`p-2 rounded-lg ml-1 border ${isAmrap ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'bg-black border-zinc-800 text-zinc-600 hover:text-white'}`}><FlameIcon size={12} /></button>
-                                            </div>
-                                        </div>
+                                        <SwipeableSetCard
+                                            key={set.id}
+                                            set={set}
+                                            setIndex={setIndex}
+                                            isAmrap={isAmrap}
+                                            mode={mode}
+                                            estimatedLoad={estimatedLoad}
+                                            exercise={exercise}
+                                            handleSetChange={handleSetChange}
+                                            onRemoveSet={onRemoveSet}
+                                            setPendingAmrapSetIndex={setPendingAmrapSetIndex}
+                                        />
                                     )
                                 })}
                                 {!hideAddSetButton && (
@@ -1471,9 +1565,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             if (m.volume > limit) {
                 isAlert = true;
                 const deficitNote = deficitFactor < 1 ? ' En déficit, el límite es más bajo.' : '';
-                if (m.failRatio >= 0.7) message = `Llevaste muchas series al fallo. Añadir más es Volumen Basura.${deficitNote}`;
-                else if (m.failRatio <= 0.3) message = `Superaste el límite efectivo (${limit} pts). El estímulo decaerá.${deficitNote}`;
-                else message = `Superaste el umbral óptimo por sesión (${limit} pts).${deficitNote}`;
+                if (m.failRatio >= 0.7) message = `Muchas series al fallo. Más series aportan poco.${deficitNote}`;
+                else if (m.failRatio <= 0.3) message = `${m.volume.toFixed(1)} pts (límite ${limit}). Series adicionales tienen retorno decreciente.${deficitNote}`;
+                else message = `${m.volume.toFixed(1)} pts (límite ${limit}). Considera reducir.${deficitNote}`;
             }
             return { ...m, threshold: limit, message, isAlert, source: 'session' as const };
         }).filter(m => m.isAlert);
@@ -1487,7 +1581,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             let isAlert = false;
             if (m.flat > mrv) {
                 isAlert = true;
-                message = `Programas ${Math.round(m.flat)} series. Tu MRV es ${mrv}. Entrarás en sobreentrenamiento.`;
+                message = `${Math.round(m.flat)} series (MRV ${mrv}). Redistribuye el volumen semanal.`;
             }
             return { ...m, threshold: mrv, volume: m.flat, failRatio: 0, message, isAlert, source: 'week' as const };
         }).filter(m => m.isAlert);
@@ -1495,17 +1589,23 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         return [...sessionAlerts, ...weeklyAlerts];
     }, [session, weekSessions, exerciseList, settings?.volumeLimits, settings?.calorieGoalObjective]);
 
-    const [notifiedAlerts, setNotifiedAlerts] = useState<Set<string>>(new Set());
+    const notifiedAlertsRef = React.useRef<Set<string>>(new Set());
     useEffect(() => {
-        globalSessionAlerts.forEach(alert => {
-            const key = `${alert.muscle}-${(alert as any).source || 'session'}`;
-            if (!notifiedAlerts.has(key)) {
-                const ctx = (alert as any).source === 'week' ? ' (contexto semanal)' : '';
-                addToast(`¡Cuidado! Alerta de volumen en ${alert.muscle}${ctx}. Revisa AUGE.`, "danger");
-                setNotifiedAlerts(prev => new Set(prev).add(key));
-            }
+        const toNotify = globalSessionAlerts.filter(alert => {
+            const key = alert.muscle;
+            if (notifiedAlertsRef.current.has(key)) return false;
+            notifiedAlertsRef.current.add(key);
+            return true;
         });
-    }, [globalSessionAlerts, notifiedAlerts, addToast]);
+        toNotify.forEach(alert => {
+            const msg = (alert as any).message || `Volumen excede el límite en ${alert.muscle}`;
+            const specificMsg = `${alert.muscle}: ${msg}`;
+            const why = (alert as any).source === 'week'
+                ? 'El volumen semanal total supera tu MRV. Entrenar por encima del MRV aumenta el riesgo de sobreentrenamiento y reduce las ganancias.'
+                : 'El volumen de esta sesión supera el límite configurado para el músculo. Revisa AUGE para ajustar tus límites o redistribuir el volumen.';
+            addToast(specificMsg, "danger", undefined, undefined, why);
+        });
+    }, [globalSessionAlerts, addToast]);
 
     // ESTADO PARA ALERTAS DE CINETICA AVANZADA
     const [neuralAlerts, setNeuralAlerts] = useState<{type: string, message: string, severity: 'warning'|'critical'}[]>([]);
@@ -1561,11 +1661,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         });
 
         const newAlerts: {type: string, message: string, severity: 'warning'|'critical'}[] = [];
-        if (settings.calorieGoalObjective === 'deficit') {
-            newAlerts.push({ type: 'Déficit', severity: 'warning', message: 'Régimen de déficit calórico activo. Esta sesión podría ser muy dura de recuperar. Considera reducir volumen o RPE para proteger tu masa muscular.' });
-        }
+        // Déficit calórico: ya no es alerta, se muestra como aviso estático en AUGE
         if (totalSpinalLoad > 15) {
-            newAlerts.push({ type: 'Espinal', severity: 'critical', message: 'Carga Axial Crítica: Estás acumulando demasiada compresión en la zona lumbar. Considera cambiar ejercicios libres por máquinas para salvar tu espalda baja.' });
+            newAlerts.push({ type: 'Espinal', severity: 'critical', message: 'Carga axial alta. Considera variantes máquina o cable.' });
         }
         if (elbowStress > 8) {
             newAlerts.push({ type: 'Articular', severity: 'warning', message: 'Estrés de Codo: Alta acumulación de trabajo aislado de tríceps. Sugerimos diversificar ángulos o bajar la intensidad para evitar tendinitis.' });
@@ -1799,7 +1897,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     // ... (rest of the component logic remains largely the same, ensuring setSession updates correctly)
     
     const handleAddExercise = useCallback((partIndex: number) => {
-        const newEx: Exercise = { id: crypto.randomUUID(), name: '', sets: Array.from({ length: 3 }).map(() => ({ id: crypto.randomUUID(), targetReps: 10, intensityMode: 'rpe', targetRPE: 8 })), restTime: 90, isFavorite: false, trainingMode: 'reps' };
+        const newEx: Exercise = { id: crypto.randomUUID(), name: '', sets: [{ id: crypto.randomUUID(), targetReps: 10, intensityMode: 'rpe', targetRPE: 8 }], restTime: 90, isFavorite: false, trainingMode: 'reps' };
         updateSession(draft => { if (!draft.parts) draft.parts = []; if (!draft.parts[partIndex]) return; draft.parts[partIndex].exercises.push(newEx); });
     }, [updateSession]);
 
@@ -1919,7 +2017,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         if (entry?.[1]) entry[1].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, []);
 
-    const totalAlertCount = globalSessionAlerts.length + neuralAlerts.length;
+    const totalAlertCount = globalSessionAlerts.length + neuralAlerts.filter(a => a.type !== 'Déficit').length;
     const hasCriticalAlerts = neuralAlerts.some(a => a.severity === 'critical');
     const hasWarningAlerts = globalSessionAlerts.length > 0 || neuralAlerts.some(a => a.severity === 'warning');
 
@@ -1961,17 +2059,17 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     const augeSuggestions = useMemo(() => {
         const suggestions: { id: string; message: string; exerciseName?: string; action?: () => void; severity?: 'info' | 'warning' | 'critical' }[] = [];
-        if (settings.calorieGoalObjective === 'deficit') {
-            suggestions.push({ id: 'sug-deficit', message: 'En déficit calórico: reduce series o evita trabajo al fallo/RPE 10 para proteger masa muscular y recuperación.', severity: 'warning' });
-        }
+        const hasVolumeAlerts = globalSessionAlerts.length > 0;
+        const isDeficit = settings.calorieGoalObjective === 'deficit';
+        // Déficit: aviso estático, no sugerencia duplicada
         neuralAlerts.forEach((a, i) => {
             if (a.type === 'Espinal') {
-                suggestions.push({ id: `sug-spinal-${i}`, message: 'Considera cambiar ejercicios libres por máquinas para reducir carga espinal.', severity: 'warning' });
+                suggestions.push({ id: `sug-spinal-${i}`, message: 'Considera variantes máquina o cable para reducir carga espinal.', severity: 'warning' });
             }
         });
 
         const limits = settings?.volumeLimits || {};
-        const deficitFactor = settings?.calorieGoalObjective === 'deficit' ? 0.8 : 1;
+        const deficitFactor = isDeficit ? 0.8 : 1;
         const hyperMap: Record<string, { flat: number; effective: number }> = {};
         let rpeSum = 0, rpeCount = 0;
         const sessionEx = [...(session?.exercises || [])];
@@ -1998,9 +2096,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         const avgRPE = rpeCount > 0 ? rpeSum / rpeCount : 0;
         if (rpeCount >= 3) {
             if (avgRPE < 6.5) {
-                suggestions.push({ id: 'sug-intensity-light', message: 'Sesión muy liviana en intensidad (RPE medio ~' + avgRPE.toFixed(1) + '). Sube la intensidad para mejor estímulo.', severity: 'info' });
-            } else if (avgRPE > 9.2) {
-                suggestions.push({ id: 'sug-intensity-high', message: 'Sesión muy intensa (intensidad efectiva ~' + avgRPE.toFixed(1) + '). Considera bajar intensidad (RPE/RIR/Fallo/%1RM) o reducir series.', severity: 'warning' });
+                suggestions.push({ id: 'sug-intensity-light', message: 'RPE medio bajo (' + avgRPE.toFixed(1) + '). Puedes subir intensidad si buscas más estímulo.', severity: 'info' });
+            } else if (avgRPE > 9.2 && !hasVolumeAlerts) {
+                suggestions.push({ id: 'sug-intensity-high', message: 'RPE medio alto (' + avgRPE.toFixed(1) + '). Riesgo de fatiga elevada; considera reducir series o intensidad.', severity: 'warning' });
             }
         }
 
@@ -2010,13 +2108,13 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 const room = Math.max(1, Math.floor((limit * 0.75 - data.effective) / 0.5));
                 if (room >= 1) {
                     const seriesText = room >= 4 ? '2-3' : room >= 2 ? '1-2' : '1';
-                    suggestions.push({ id: `sug-add-${muscle}`, message: `${muscle} tiene margen (${data.effective.toFixed(1)}/${limit} pts). Podrías añadir ${seriesText} serie(s) para optimizar.`, severity: 'info' });
+                    suggestions.push({ id: `sug-add-${muscle}`, message: `${muscle}: ${data.effective.toFixed(1)}/${limit} pts. Margen para añadir ${seriesText} serie(s) si lo deseas.`, severity: 'info' });
                 }
             }
         });
 
         return suggestions;
-    }, [neuralAlerts, settings.calorieGoalObjective, session, exerciseList, settings?.volumeLimits]);
+    }, [neuralAlerts, globalSessionAlerts, settings.calorieGoalObjective, session, exerciseList, settings?.volumeLimits]);
 
     const sessionDrainEstimate = useMemo(() => {
         let msc = 0, snc = 0, spinal = 0, totalSets = 0, rpeSum = 0, rpeCount = 0, rmSum = 0, rmCount = 0;
@@ -2149,7 +2247,16 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
     const handleApplyAvisoCorrection = useCallback((aviso: { id: string; correctionType?: string; muscle?: string }) => {
         const { correctionType, muscle } = aviso;
-        setDismissedAvisoIds(prev => new Set(prev).add(aviso.id));
+        const idsToDismiss = new Set<string>([aviso.id]);
+        if (correctionType === 'reduce_series' || correctionType === 'reduce_rpe' || correctionType === 'change_to_machine' || correctionType === 'reduce_volume_rpe') {
+            idsToDismiss.add('sug-intensity-high');
+        }
+        if (correctionType === 'reduce_series' && muscle) {
+            globalSessionAlerts.forEach((a, i) => {
+                if (normalizeMuscleGroup(a.muscle) === normalizeMuscleGroup(muscle)) idsToDismiss.add(`volume_${a.muscle}_${i}`);
+            });
+        }
+        setDismissedAvisoIds(prev => { const next = new Set(prev); idsToDismiss.forEach(id => next.add(id)); return next; });
         updateSession(draft => {
             (draft.parts || []).forEach(p => {
                 p.exercises.forEach(ex => {
@@ -2196,7 +2303,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             });
         });
         addToast("Corrección aplicada", "success");
-    }, [updateSession, addToast, exerciseList]);
+    }, [updateSession, addToast, exerciseList, globalSessionAlerts]);
 
     const handleSaveSingle = useCallback((applyBlock: boolean) => {
         if (applyBlock) {
@@ -2290,14 +2397,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     </div>
                 ) : (
                     <div className="pb-32">
-                        {/* ═══ Mini-widgets + Fatiga + Volumen ═══ */}
-                        <SessionMetricsBlock
-                            session={session}
-                            exerciseList={exerciseList}
-                            settings={settings}
-                            muscleDrainThreshold={10}
-                        />
-                        {/* ═══ Parts & Exercises ═══ */}
+                        {/* ═══ Parts & Exercises (volumen solo en FAB AUGE) ═══ */}
                         <DragDropContext onDragEnd={handleExerciseDragEnd}>
                             {session.parts?.map((part, pi) => (
                                 <PartSection
@@ -2423,6 +2523,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 onApplyCorrection={handleApplyAvisoCorrection}
                 onDismissAviso={(id) => setDismissedAvisoIds(prev => new Set(prev).add(id))}
                 dismissedAvisoIds={dismissedAvisoIds}
+                settings={settings}
             />
 
             <TransferDrawer

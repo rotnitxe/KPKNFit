@@ -1,7 +1,7 @@
 // data/cookingMethodFactors.ts
-// Factores de ajuste por método de cocción (calorías y grasas)
+// Factores de ajuste por método de cocción (calorías y grasas) + conversión de peso crudo/cocido
 
-import type { CookingMethod } from '../types';
+import type { CookingMethod, CookingBehavior, FoodItem } from '../types';
 
 export interface CookingFactor {
     caloriesFactor: number;
@@ -52,4 +52,31 @@ export function extractCookingMethodFromFragment(text: string): { method?: Cooki
         }
     }
     return { method, cleaned };
+}
+
+/** Métodos que implican cocción (no crudo) */
+const COOKED_METHODS: Set<CookingMethod> = new Set(['cocido', 'plancha', 'horno', 'frito', 'empanizado_frito']);
+
+/**
+ * Convierte el peso que el usuario ingresó al peso equivalente en la base de datos.
+ * - Si el alimento SHRINKS (pollo crudo): usuario pesa cocido → convertir a crudo para macros.
+ *   Factor 0.75 = 100g crudo → 75g cocido. effectiveAmount = amountCooked / 0.75
+ * - Si el alimento EXPANDS (soya seca): usuario pesa cocido → convertir a seco para macros.
+ *   Factor 0.25 = 25g seco → 100g cocido. effectiveAmount = amountCooked * 0.25
+ */
+export function getEffectiveAmountForMacros(
+    amountGrams: number,
+    food: FoodItem,
+    cookingMethod?: CookingMethod
+): number {
+    if (!food.cookingBehavior || !food.cookingWeightFactor || !cookingMethod || !COOKED_METHODS.has(cookingMethod)) {
+        return amountGrams;
+    }
+    if (food.cookingBehavior === 'shrinks') {
+        return amountGrams / food.cookingWeightFactor;
+    }
+    if (food.cookingBehavior === 'expands') {
+        return amountGrams * food.cookingWeightFactor;
+    }
+    return amountGrams;
 }

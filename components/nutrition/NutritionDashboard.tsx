@@ -11,6 +11,7 @@ import { CalorieGoalCard } from './CalorieGoalCard';
 import { NutritionPlanEditorModal } from './NutritionPlanEditorModal';
 import { NutritionTooltip } from './NutritionTooltip';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
+import { getDatePartFromString, formatDateForDisplay } from '../../utils/dateUtils';
 
 const mealOrder: NutritionLog['mealType'][] = ['breakfast', 'lunch', 'dinner', 'snack'];
 const mealNames: Record<NutritionLog['mealType'], string> = {
@@ -179,14 +180,14 @@ export const NutritionDashboard: React.FC<{
     const trendChartData = useMemo(() => {
         const dailyCalories: Record<string, number> = {};
         nutritionLogs.forEach(log => {
-            const date = new Date(log.date).toISOString().split('T')[0];
+            const date = getDatePartFromString(log.date);
             const totalCals = log.foods.reduce((sum, food) => sum + (food.calories || 0), 0);
             dailyCalories[date] = (dailyCalories[date] || 0) + totalCals;
         });
         return Object.entries(dailyCalories)
             .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
             .slice(-14)
-            .map(([date, cal]) => ({ date: new Date(date + 'T12:00:00Z').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }), Calorías: Math.round(cal) }));
+            .map(([date, cal]) => ({ date: formatDateForDisplay(date, { day: '2-digit', month: 'short' }), Calorías: Math.round(cal) }));
     }, [nutritionLogs]);
 
     const macroPieData = useMemo(() => {

@@ -9,6 +9,7 @@ import { AugeAdaptiveCache } from '../../services/augeAdaptiveService';
 import { BanisterTrend, BayesianConfidence, SelfImprovementScore } from '../ui/AugeDeepView';
 import MetricsWidgetGrid from './MetricsWidgetGrid';
 import { calculateBrzycki1RM } from '../../utils/calculations';
+import { getLocalDateString, getDatePartFromString } from '../../utils/dateUtils';
 import { StarIcon } from '../icons';
 
 type WidgetId = 'bodymap' | 'volume' | 'strength' | 'star1rm' | 'banister' | 'adherence' | 'recovery' | 'history';
@@ -67,22 +68,28 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         return 'Poblacional';
     }, [adaptiveCache]);
 
-    const starExerciseNames = useMemo(() => {
+    const { starExerciseNames, starGoal1RMMap } = useMemo(() => {
         const set = new Set<string>();
+        const goalMap = new Map<string, number>();
         program.macrocycles?.forEach(m =>
             m.blocks?.forEach(b =>
                 b.mesocycles?.forEach(me =>
                     me.weeks?.forEach(w =>
                         w.sessions?.forEach(s =>
-                            s.exercises?.forEach(ex => {
-                                if (ex.isStarTarget && ex.name) set.add(ex.name);
+                            ((s.parts && s.parts.length > 0) ? s.parts.flatMap((p: any) => p.exercises ?? []) : (s.exercises ?? [])).forEach((ex: any) => {
+                                if (ex.isStarTarget && ex.name) {
+                                    set.add(ex.name);
+                                    if (ex.goal1RM != null && ex.goal1RM > 0 && !goalMap.has(ex.name)) {
+                                        goalMap.set(ex.name, ex.goal1RM);
+                                    }
+                                }
                             })
                         )
                     )
                 )
             )
         );
-        return Array.from(set);
+        return { starExerciseNames: Array.from(set), starGoal1RMMap: goalMap };
     }, [program]);
 
     const star1RMData = useMemo(() => {
@@ -91,7 +98,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         starExerciseNames.forEach(name => { byExercise[name] = []; });
         programLogs.forEach((log: any) => {
             const date = log.date || log.endTime;
-            const dateStr = typeof date === 'number' ? new Date(date).toISOString().slice(0, 10) : String(date).slice(0, 10);
+            const dateStr = typeof date === 'number' ? getLocalDateString(new Date(date)) : getDatePartFromString(String(date));
             (log.completedExercises || []).forEach((ex: any) => {
                 const name = ex.exerciseName || ex.name;
                 if (!name || !starExerciseNames.includes(name)) return;
@@ -115,6 +122,15 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             return { name, lastE1rm: last?.e1rm, prevE1rm: prev?.e1rm, trend, count: sorted.length };
         }).filter(x => x.lastE1rm != null);
     }, [program.id, historyData, starExerciseNames]);
+
+    const star1RMWithGoals = useMemo(() => {
+        const withGoal = star1RMData.map(d => ({ ...d, goal1RM: starGoal1RMMap.get(d.name) }));
+        const withoutData = starExerciseNames.filter(n => !star1RMData.some(d => d.name === n));
+        return [
+            ...withGoal,
+            ...withoutData.map(name => ({ name, lastE1rm: undefined, prevE1rm: undefined, trend: null as string | null, count: 0, goal1RM: starGoal1RMMap.get(name) })),
+        ];
+    }, [star1RMData, starExerciseNames, starGoal1RMMap]);
 
     if (!isActive) {
         return (
@@ -218,22 +234,41 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                 <p className="text-xs text-[#8E8E93]">No hay ejercicios estrella en este programa.</p>
                                 <p className="text-[10px] text-[#48484A] mt-1">Marca ejercicios con la estrella en el editor de sesión.</p>
                             </div>
-                        ) : star1RMData.length === 0 ? (
+                        ) : star1RMWithGoals.length === 0 ? (
                             <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5 text-center">
                                 <p className="text-xs text-[#8E8E93]">Aún no hay datos de 1RM para los ejercicios estrella.</p>
                                 <p className="text-[10px] text-[#48484A] mt-1">Completa sesiones que los incluyan para ver el progreso.</p>
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                {star1RMData.map(({ name, lastE1rm, prevE1rm, trend }) => (
-                                    <div key={name} className="flex items-center justify-between gap-3 py-2.5 px-3 rounded-xl bg-[#1a1a1a] border border-white/5">
-                                        <span className="text-xs font-bold text-white truncate flex-1">{name}</span>
-                                        <span className="text-sm font-black text-[#00F0FF] shrink-0">{lastE1rm != null ? `${lastE1rm} kg` : '—'}</span>
-                                        {trend === 'up' && <span className="text-[10px] font-bold text-[#00F19F] shrink-0">↑</span>}
-                                        {trend === 'down' && <span className="text-[10px] font-bold text-[#FF3B30] shrink-0">↓</span>}
-                                        {trend === 'same' && prevE1rm != null && <span className="text-[10px] text-[#48484A] shrink-0">—</span>}
-                                    </div>
-                                ))}
+                                {star1RMWithGoals.map(({ name, lastE1rm, prevE1rm, trend, goal1RM }) => {
+                                    const progress = goal1RM != null && goal1RM > 0 && lastE1rm != null
+                                        ? Math.min(100, (lastE1rm / goal1RM) * 100)
+                                        : null;
+                                    return (
+                                        <div key={name} className="py-2.5 px-3 rounded-xl bg-[#1a1a1a] border border-white/5 space-y-1.5">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <span className="text-xs font-bold text-white truncate flex-1">{name}</span>
+                                                <span className="text-sm font-black text-[#00F0FF] shrink-0">{lastE1rm != null ? `${Math.round(lastE1rm)} kg` : '—'}</span>
+                                                {goal1RM != null && <span className="text-[10px] text-amber-400 shrink-0">meta {goal1RM} kg</span>}
+                                                {trend === 'up' && <span className="text-[10px] font-bold text-[#00F19F] shrink-0">↑</span>}
+                                                {trend === 'down' && <span className="text-[10px] font-bold text-[#FF3B30] shrink-0">↓</span>}
+                                                {trend === 'same' && prevE1rm != null && <span className="text-[10px] text-[#48484A] shrink-0">—</span>}
+                                            </div>
+                                            {progress != null && (
+                                                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full rounded-full transition-all"
+                                                        style={{
+                                                            width: `${progress}%`,
+                                                            backgroundColor: progress >= 100 ? '#00F19F' : progress >= 70 ? '#00F0FF' : '#FFD60A',
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </section>

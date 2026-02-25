@@ -5,7 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Program, Session, SleepLog, View, ProgramWeek } from '../types';
 import Button from './ui/Button';
-import { PlusIcon, TargetIcon, DragHandleIcon } from './icons';
+import { PlusIcon, TargetIcon } from './icons';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { CaupolicanIcon } from './CaupolicanIcon';
 import {
@@ -18,10 +18,15 @@ import {
     StreakWidget,
     QuickLogWidget,
     SetupChecklistCard,
+    VolumeByMuscleWidget,
+    RelativeStrengthWidget,
+    Star1RMGoalsWidget,
+    KeyDatesWidget,
 } from './home/index';
 import { ExerciseHistoryNerdView } from './ExerciseHistoryNerdView';
+import { getLocalDateString } from '../utils/dateUtils';
 
-const DEFAULT_CARD_ORDER = ['battery', 'session', 'nutrition', 'program', 'top5', 'readiness', 'streak', 'quicklog'];
+const DEFAULT_CARD_ORDER = ['battery', 'session', 'nutrition', 'program', 'top5', 'volumeMuscle', 'relativeStrength', 'star1rm', 'readiness', 'streak', 'quicklog'];
 
 interface HomeProps {
     onNavigate: (view: View, program?: Program) => void;
@@ -34,7 +39,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
     const { handleStartWorkout, navigateTo, setIsStartWorkoutModalOpen, handleStartProgram, setSettings } = useAppDispatch();
     const [exerciseHistoryModal, setExerciseHistoryModal] = useState<string | null>(null);
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     const currentDayOfWeek = new Date().getDay();
 
     const activeProgram = programs.find(p => p.id === activeProgramState?.programId);
@@ -111,6 +116,10 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
             case 'nutrition': return <MiniNutritionWidget key="nutrition" onNavigate={() => navigateTo('nutrition')} />;
             case 'program': return <MiniProgramWidget key="program" onNavigate={() => activeProgram && navigateTo('program-detail', { programId: activeProgram.id })} />;
             case 'top5': return <TopExercisesWidget key="top5" onNavigateToExercise={name => setExerciseHistoryModal(name)} />;
+            case 'volumeMuscle': return <VolumeByMuscleWidget key="volumeMuscle" onNavigate={() => activeProgram && navigateTo('program-detail', { programId: activeProgram.id })} />;
+            case 'relativeStrength': return <RelativeStrengthWidget key="relativeStrength" onNavigate={() => activeProgram && navigateTo('program-detail', { programId: activeProgram.id })} />;
+            case 'star1rm': return <Star1RMGoalsWidget key="star1rm" onNavigate={() => activeProgram && navigateTo('program-detail', { programId: activeProgram.id })} />;
+            case 'keyDates': return <KeyDatesWidget key="keyDates" onNavigate={() => activeProgram && navigateTo('program-detail', { programId: activeProgram.id })} />;
             case 'readiness': return <ReadinessWidget key="readiness" />;
             case 'streak': return <StreakWidget key="streak" />;
             case 'quicklog': return <QuickLogWidget key="quicklog" />;
@@ -120,17 +129,29 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
 
     return (
         <div className="relative h-full min-h-screen w-full flex flex-col bg-black pb-32 overflow-y-auto overflow-x-hidden custom-scrollbar">
+            {/* Subtle gradient orbs for depth */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+                <div className="absolute -top-40 -right-20 w-80 h-80 rounded-full bg-cyan-500/5 blur-3xl" />
+                <div className="absolute top-1/3 -left-20 w-60 h-60 rounded-full bg-violet-500/5 blur-3xl" />
+            </div>
+
             <div className="relative z-10 flex flex-col px-6 pt-16 w-full max-w-md mx-auto space-y-4">
                 {activeProgram ? (
                     <>
-                        {/* Header NERD */}
-                        <div className="mb-2">
-                            <h1 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.25em] font-mono mb-0.5">
+                        {/* Header con más presencia */}
+                        <div className="mb-5">
+                            <h1 className="text-xl font-black text-white tracking-tight mb-1.5 drop-shadow-sm">
                                 {activeProgram.name}
                             </h1>
-                            <p className="text-[9px] font-mono text-zinc-600 tracking-widest">
-                                {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
-                            </p>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                <span className="text-[10px] font-bold text-cyan-400/90 uppercase tracking-wider">
+                                    {new Date().toLocaleDateString('es-ES', { weekday: 'short' })}
+                                </span>
+                                <span className="text-zinc-500 text-[10px]">·</span>
+                                <span className="text-[10px] font-mono text-zinc-400">
+                                    {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                            </div>
                         </div>
 
                         {showSetupChecklist && (
@@ -158,17 +179,10 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                                                     <div
                                                         ref={provided.innerRef}
                                                         {...provided.draggableProps}
-                                                        className={`flex items-start gap-2 ${snapshot.isDragging ? 'opacity-80' : ''}`}
+                                                        {...provided.dragHandleProps}
+                                                        className={`transition-shadow duration-200 ${snapshot.isDragging ? 'opacity-90 scale-[0.98] shadow-xl shadow-cyan-500/10' : 'hover:shadow-lg hover:shadow-cyan-500/5'}`}
                                                     >
-                                                        <div
-                                                            {...provided.dragHandleProps}
-                                                            className="mt-2 shrink-0 w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[#48484A] hover:text-white cursor-grab active:cursor-grabbing touch-none"
-                                                        >
-                                                            <DragHandleIcon size={14} />
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            {renderCard(id)}
-                                                        </div>
+                                                        {renderCard(id)}
                                                     </div>
                                                 )}
                                             </Draggable>
@@ -198,7 +212,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                             {programs.map(prog => (
                                 <div
                                     key={prog.id}
-                                    className="bg-[#111] border border-[#222] p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden group hover:border-white/20 transition-colors"
+                                    className="bg-gradient-to-b from-white/[0.06] to-transparent border border-white/10 p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden group hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300"
                                 >
                                     <div className="relative z-10 flex justify-between items-center">
                                         <div>
@@ -217,7 +231,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                                             Activar
                                         </Button>
                                     </div>
-                                    <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                                    <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none text-cyan-400/50">
                                         <TargetIcon size={80} />
                                     </div>
                                 </div>
@@ -227,7 +241,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                         <Button
                             onClick={() => navigateTo('program-editor')}
                             variant="secondary"
-                            className="w-full !py-4 !text-xs !font-black !rounded-2xl border-dashed border-[#333] text-zinc-400 hover:text-white mt-4 bg-transparent"
+                            className="w-full !py-4 !text-xs !font-black !rounded-2xl border-dashed border-white/10 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/30 hover:bg-cyan-500/5 mt-4 bg-transparent transition-all duration-300"
                         >
                             <PlusIcon className="mr-2" size={16} /> CREAR OTRO PROGRAMA
                         </Button>
@@ -245,20 +259,23 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                             </div>
                         )}
                         <div className="w-full flex justify-center mb-6 animate-fade-in">
-                            <CaupolicanIcon size={200} color="white" />
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-cyan-500/10 rounded-full blur-2xl scale-150" />
+                                <CaupolicanIcon size={200} color="white" />
+                            </div>
                         </div>
                         <h3 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-lg leading-[0.9]">
                             CREA TU PRIMER<br />
-                            <span className="text-[var(--text-color)]">PROGRAMA DE</span>
+                            <span className="bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">PROGRAMA DE</span>
                             <br />
                             ENTRENAMIENTO
                         </h3>
                         <p className="text-zinc-400 text-xs mb-8 font-medium leading-relaxed max-w-xs mx-auto">
-                            No olvides presionar en <span className="text-white font-bold">&quot;iniciar programa&quot;</span> para que aparezcan tus sesiones acá.
+                            No olvides presionar en <span className="text-cyan-400 font-bold">&quot;iniciar programa&quot;</span> para que aparezcan tus sesiones acá.
                         </p>
                         <Button
                             onClick={() => navigateTo('program-editor')}
-                            className="w-full max-w-xs mx-auto !py-4 !text-base !font-black !rounded-2xl !bg-white !text-black border-none mb-10 hover:scale-[1.02] transition-transform"
+                            className="w-full max-w-xs mx-auto !py-4 !text-base !font-black !rounded-2xl !bg-white !text-black border-none mb-10 hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-300"
                         >
                             <PlusIcon className="mr-2" /> CREAR PROGRAMA
                         </Button>

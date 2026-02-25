@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { DETAILED_EXERCISE_LIST } from '../data/exerciseDatabase';
 import { ExerciseMuscleInfo } from '../types';
 import useLocalStorage from './useLocalStorage';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const EXERCISE_DB_KEY = 'yourprime-exercise-database';
 const STATIC_EXERCISES = DETAILED_EXERCISE_LIST; // Keep the original default list
@@ -52,7 +53,7 @@ const useExerciseDatabase = () => {
         )}`;
         const link = document.createElement("a");
         link.href = jsonString;
-        link.download = `yourprime_exercisedb_${new Date().toISOString().split('T')[0]}.json`;
+        link.download = `yourprime_exercisedb_${getLocalDateString()}.json`;
         link.click();
     } catch (error) {
         alert('Error al exportar la base de datos de ejercicios.');

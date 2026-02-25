@@ -198,7 +198,9 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
             }
         });
 
-        return Object.values(aggregated).sort((a, b) => b.displayVolume - a.displayVolume);
+        return Object.values(aggregated)
+            .filter(item => item.muscleGroup !== 'General') // Solo músculos reales, no "General"
+            .sort((a, b) => b.displayVolume - a.displayVolume);
     };
 
     const handleCalculate = () => {

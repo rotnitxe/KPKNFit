@@ -4,12 +4,13 @@
 import React, { useMemo, useState } from 'react';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import { ActivityIcon } from '../icons';
+import { getLocalDateString } from '../../utils/dateUtils';
 
 export const ReadinessWidget: React.FC = () => {
     const { postSessionFeedback, dailyWellbeingLogs, history } = useAppState();
     const { handleLogDailyWellbeing } = useAppDispatch();
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
 
     const readinessFromFeedback = useMemo(() => {
         const sevenDaysAgo = new Date();

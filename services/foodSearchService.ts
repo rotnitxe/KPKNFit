@@ -23,12 +23,20 @@ async function fetchWithTimeout(url: string, timeoutMs = API_TIMEOUT_MS): Promis
 }
 
 const CACHE_KEY = 'kpkn-food-search-cache';
-const CACHE_MAX_ENTRIES = 100;
+const CACHE_MAX_ENTRIES = 150;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+export type SearchMatchType = 'exact' | 'partial' | 'fuzzy';
+
+export interface SearchFoodsResult {
+    results: FoodItem[];
+    matchType: SearchMatchType;
+}
 
 interface CacheEntry {
     query: string;
     results: FoodItem[];
+    matchType: SearchMatchType;
     ts: number;
 }
 
@@ -102,6 +110,20 @@ function foodItemFromOFF(product: any): FoodItem {
     };
 }
 
+/** Mapeo de nombres USDA a micronutrientes mostrados (por 100g) */
+const USDA_MICRO_MAP: { pattern: RegExp; name: string; unit: string }[] = [
+    { pattern: /\biron\b/i, name: 'Hierro', unit: 'mg' },
+    { pattern: /\bcalcium\b/i, name: 'Calcio', unit: 'mg' },
+    { pattern: /\bsodium\b/i, name: 'Sodio', unit: 'mg' },
+    { pattern: /\bvitamin\s+a\b|vitamin a,/i, name: 'Vitamina A', unit: 'µg' },
+    { pattern: /\bvitamin\s+c\b|ascorbic acid/i, name: 'Vitamina C', unit: 'mg' },
+    { pattern: /\bvitamin\s+d\b/i, name: 'Vitamina D', unit: 'µg' },
+    { pattern: /\bvitamin\s+b-?12\b|b12\b/i, name: 'Vitamina B12', unit: 'µg' },
+    { pattern: /\bmagnesium\b/i, name: 'Magnesio', unit: 'mg' },
+    { pattern: /\bzinc\b/i, name: 'Zinc', unit: 'mg' },
+    { pattern: /\bpotassium\b/i, name: 'Potasio', unit: 'mg' },
+];
+
 function foodItemFromUSDA(food: any): FoodItem {
     // Soporta API (nutrientName, value) y Foundation Foods JSON (nutrient.name, amount/median)
     const nutrients = (food.foodNutrients || []).reduce((acc: Record<string, number>, n: any) => {
@@ -117,6 +139,21 @@ function foodItemFromUSDA(food: any): FoodItem {
         if (name.includes('fatty acids, total trans')) acc.trans = val;
         return acc;
     }, { calories: 0, protein: 0, carbs: 0, fats: 0, saturated: 0, trans: 0 } as Record<string, number>);
+
+    const micronutrients: { name: string; amount: number; unit: string }[] = [];
+    for (const n of food.foodNutrients || []) {
+        const rawName = (n.nutrientName || n.nutrient?.name) || '';
+        const val = n.value ?? n.amount ?? n.median ?? 0;
+        if (typeof val !== 'number' || val <= 0) continue;
+        const unit = (n.nutrient?.unitName || n.unitName || 'g').replace('UG', 'µg').replace('ug', 'µg');
+        for (const { pattern, name, unit: outUnit } of USDA_MICRO_MAP) {
+            if (pattern.test(rawName)) {
+                micronutrients.push({ name, amount: Math.round(val * 10) / 10, unit: outUnit });
+                break;
+            }
+        }
+    }
+
     const serving = 100;
     const item: FoodItem = {
         id: `usda-${food.fdcId || food.id || crypto.randomUUID()}`,
@@ -139,27 +176,41 @@ function foodItemFromUSDA(food: any): FoodItem {
             trans: nutrients.trans ?? 0,
         };
     }
+    if (micronutrients.length > 0) item.micronutrients = micronutrients;
     return item;
 }
 
-function searchLocal(query: string): FoodItem[] {
+function searchLocalWithMatch(query: string): { results: FoodItem[]; matchType: SearchMatchType } {
     const q = normalizeQueryForSearch(query);
-    if (!q) return [];
-    if (!hasSignificantQuery(q)) return [];
-    const searchTerms = getSignificantQueryTokens(q).join(' ') || q;
-    let results = FOOD_DATABASE.filter(f => {
+    if (!q) return { results: [], matchType: 'exact' };
+    if (!hasSignificantQuery(q)) return { results: [], matchType: 'exact' };
+    const terms = getSignificantQueryTokens(q);
+    const searchTerms = terms.length > 0 ? terms : [q];
+    const index = buildFoodTokenIndex();
+    const candidateSet = new Set<FoodItem>();
+    for (const term of searchTerms) {
+        const byToken = index.get(term);
+        if (byToken) for (const f of byToken) candidateSet.add(f);
+    }
+    const directMatches = (terms.length > 0 ? [...candidateSet] : FOOD_DATABASE).filter(f => {
         const name = normalizeFoodNameForMatch(f.name);
         const brand = (f.brand || '').toLowerCase();
-        return searchTerms.split(' ').some(term => name.includes(term) || brand.includes(term));
+        return searchTerms.some(term => name.includes(term) || brand.includes(term));
     }).slice(0, 20);
-    if (results.length === 0) {
-        results = FOOD_DATABASE.map(f => ({ item: f, score: fuzzyScore(q, f.name) }))
-            .filter(x => x.score >= FUZZY_THRESHOLD)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 20)
-            .map(x => x.item);
+    if (directMatches.length > 0) {
+        const hasExact = directMatches.some(f => {
+            const fn = normalizeFoodName(normalizeFoodNameForMatch(f.name));
+            const qn = normalizeFoodName(q);
+            return fn === qn || fn.includes(qn) || qn.includes(fn);
+        });
+        return { results: directMatches, matchType: hasExact ? 'exact' : 'partial' };
     }
-    return results;
+    const fuzzyResults = FOOD_DATABASE.map(f => ({ item: f, score: fuzzyScore(q, f.name) }))
+        .filter(x => x.score >= FUZZY_THRESHOLD)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 20)
+        .map(x => x.item);
+    return { results: fuzzyResults, matchType: 'fuzzy' };
 }
 
 const OFF_OFFLINE_URL = '/data/openFoodFactsOffline.json';
@@ -333,6 +384,24 @@ function getTokens(normalized: string): Set<string> {
     );
 }
 
+/** Índice token -> FoodItem[] para búsqueda O(1) por token en FOOD_DATABASE */
+let FOOD_TOKEN_INDEX: Map<string, FoodItem[]> | null = null;
+function buildFoodTokenIndex(): Map<string, FoodItem[]> {
+    if (FOOD_TOKEN_INDEX) return FOOD_TOKEN_INDEX;
+    const map = new Map<string, FoodItem[]>();
+    for (const f of FOOD_DATABASE) {
+        const norm = normalizeFoodName(normalizeFoodNameForMatch(f.name));
+        const tokens = getTokens(norm);
+        for (const t of tokens) {
+            const arr = map.get(t) ?? [];
+            if (!arr.includes(f)) arr.push(f);
+            map.set(t, arr);
+        }
+    }
+    FOOD_TOKEN_INDEX = map;
+    return map;
+}
+
 /** Query sanitizado: sin stopwords, requiere al menos un token significativo */
 function getSignificantQueryTokens(query: string): string[] {
     const normalized = query
@@ -439,30 +508,32 @@ function mergeAndDeduplicate(local: FoodItem[], off: FoodItem[], usda: FoodItem[
 /**
  * Búsqueda unificada de alimentos
  * PRIORIDAD OFFLINE: usa bases locales primero (instantáneo). Solo si no hay resultados y hay conexión, consulta APIs online.
+ * Retorna matchType: 'exact' | 'partial' | 'fuzzy' para informar al usuario cuando se usó coincidencia aproximada.
  */
 export async function searchFoods(
     query: string,
     settings?: Settings | null
-): Promise<FoodItem[]> {
+): Promise<SearchFoodsResult> {
     const q = normalizeQueryForSearch(query);
-    if (!q) return [];
-    if (!hasSignificantQuery(q)) return [];
+    if (!q) return { results: [], matchType: 'exact' };
+    if (!hasSignificantQuery(q)) return { results: [], matchType: 'exact' };
 
     const cache = getCache();
     const cached = cache.get(q);
     if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-        return cached.results;
+        return { results: cached.results, matchType: cached.matchType };
     }
 
     const usdaKey = settings?.apiKeys?.usda || '';
-    const local = searchLocal(q);
+    const { results: local, matchType: localMatchType } = searchLocalWithMatch(q);
 
     if (q.length < 4) {
         const merged = filterByRelevance(mergeAndDeduplicate(local, [], []), q);
         if (merged.length > 0) {
-            cache.set(q, { query: query.trim(), results: merged.slice(0, 15), ts: Date.now() });
+            const entry: CacheEntry = { query: query.trim(), results: merged.slice(0, 15), matchType: localMatchType, ts: Date.now() };
+            cache.set(q, entry);
             setCache(cache);
-            return merged.slice(0, 15);
+            return { results: merged.slice(0, 15), matchType: localMatchType };
         }
     }
 
@@ -474,6 +545,8 @@ export async function searchFoods(
 
     let merged = mergeAndDeduplicate(local, offOffline, usdaOffline);
     merged = filterByRelevance(merged, q);
+    let matchType: SearchMatchType = localMatchType;
+    if (merged.length === 0) matchType = 'partial';
 
     // 2. Solo si hay pocos resultados Y hay conexión: consultar APIs online (más lento)
     const MIN_OFFLINE_RESULTS = 5;
@@ -499,19 +572,24 @@ export async function searchFoods(
             .slice(0, 20)
             .map(x => x.item);
         merged = mergeAndDeduplicate(fuzzyCandidates, [], []);
+        matchType = 'fuzzy';
     }
     if (merged.length === 0 && (local.length > 0 || offOffline.length > 0 || usdaOffline.length > 0)) {
         const allSources = [...local, ...offOffline, ...usdaOffline];
         const best = allSources
             .map(f => ({ item: f, score: fuzzyScore(q, f.name) }))
             .sort((a, b) => b.score - a.score)[0];
-        if (best && best.score > 0.3) merged = [best.item];
+        if (best && best.score > 0.3) {
+            merged = [best.item];
+            matchType = 'fuzzy';
+        }
     }
 
-    cache.set(q, { query: query.trim(), results: merged, ts: Date.now() });
+    const entry: CacheEntry = { query: query.trim(), results: merged, matchType, ts: Date.now() };
+    cache.set(q, entry);
     setCache(cache);
 
-    return merged;
+    return { results: merged, matchType };
 }
 
 /** Preload de bases offline en segundo plano para primera búsqueda instantánea */

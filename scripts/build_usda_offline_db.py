@@ -18,8 +18,13 @@ from collections import defaultdict
 from pathlib import Path
 
 # Nutrientes esenciales: nutrient_nbr en nutrient.csv
-# 208=Energy kcal, 203=Protein, 205=Carbohydrate, 204=Total lipid
-NUTRIENT_NBRS = {208, 203, 204, 205}
+# Macros: 208=Energy kcal, 203=Protein, 205=Carbohydrate, 204=Total lipid
+# Micronutrientes: 303=Iron, 301=Calcium, 307=Sodium, 320=Vitamin A, 401=Vitamin C,
+# 328=Vitamin D, 418=Vitamin B12, 304=Magnesium, 309=Zinc, 306=Potassium
+NUTRIENT_NBRS = {
+    208, 203, 204, 205,  # macros
+    303, 301, 307, 320, 401, 328, 418, 304, 309, 306,  # micronutrientes
+}
 MAX_SIZE_MB = 80
 PRIORITY_ORDER = ["foundation_food", "sr_legacy_food", "survey_fndds_food"]
 

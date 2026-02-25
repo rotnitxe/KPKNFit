@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 MAX_SIZE_MB = 80
-MAX_PRODUCTS = 60_000
+MAX_PRODUCTS = 80_000  # Aumentado de 60k para más cobertura; regenerar con --max-products 80000 si se desea más
 
 # Campos esenciales para foodItemFromOFF (reduce ~70% tamaño)
 SLIM_KEYS = frozenset({
@@ -38,13 +38,15 @@ def slim_product(p: dict) -> dict:
     for k in SLIM_KEYS:
         if k in p and p[k] is not None:
             out[k] = p[k]
-    # Nutriments: solo los que usa foodItemFromOFF
+    # Nutriments: macros + micronutrientes para foodItemFromOFF
     nut = p.get("nutriments") or {}
     keep = {
         "energy-kcal_100g", "energy-kcal", "energy_100g",
         "proteins_100g", "proteins", "carbohydrates_100g", "carbohydrates",
         "fat_100g", "fat", "saturated-fat_100g", "monounsaturated-fat_100g",
         "polyunsaturated-fat_100g", "trans-fat_100g",
+        "iron_100g", "calcium_100g", "sodium_100g", "vitamin-a_100g", "vitamin-c_100g",
+        "vitamin-d_100g", "vitamin-b12_100g", "magnesium_100g", "zinc_100g", "potassium_100g",
     }
     out["nutriments"] = {k: v for k, v in nut.items() if k in keep}
     return out

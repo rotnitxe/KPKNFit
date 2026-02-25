@@ -8,10 +8,11 @@ import { PlusIcon, TrashIcon, SearchIcon } from './icons';
 import { FoodSearchModal } from './FoodSearchModal';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { queueFatigueDataPoint } from '../services/augeAdaptiveService';
+import { getLocalDateString, dateStringToISOString } from '../utils/dateUtils';
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     if (dateString && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-        return new Date(dateString + 'T12:00:00Z').toISOString();
+        return dateStringToISOString(dateString);
     }
     return new Date().toISOString();
 };
@@ -29,7 +30,7 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
   const { pantryItems } = useAppState();
   const { addToast } = useAppDispatch();
   const [mealType, setMealType] = useState<NutritionLog['mealType']>('lunch');
-  const [logDate, setLogDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
+  const [logDate, setLogDate] = useState(initialDate || getLocalDateString());
   const [foods, setFoods] = useState<LoggedFood[]>([]);
   const [notes, setNotes] = useState('');
   
@@ -39,7 +40,7 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
   useEffect(() => {
     if (isOpen) {
         setMealType('lunch');
-        setLogDate(initialDate || new Date().toISOString().split('T')[0]);
+        setLogDate(initialDate || getLocalDateString());
         setFoods([]);
         setNotes('');
         setIsAddingMode(true);

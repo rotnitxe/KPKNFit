@@ -4,12 +4,13 @@
 import React, { useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import { BodyIcon, BedIcon, UtensilsIcon, CheckCircleIcon } from '../icons';
+import { getLocalDateString } from '../../utils/dateUtils';
 
 export const QuickLogWidget: React.FC = () => {
     const { bodyProgress, sleepLogs, nutritionLogs } = useAppState();
     const { setIsBodyLogModalOpen, setIsNutritionLogModalOpen, navigateTo } = useAppDispatch();
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
 
     const hasWeightToday = useMemo(() =>
         bodyProgress.some(l => l.date && l.date.startsWith(todayStr) && l.weight != null),

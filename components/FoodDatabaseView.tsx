@@ -24,7 +24,10 @@ const getMacronutrientCategory = (food: FoodItem) => {
 };
 
 const FoodCard: React.FC<{ food: FoodItem; onEdit: (food: FoodItem) => void; onAddToPantry: (food: FoodItem) => void; }> = ({ food, onEdit, onAddToPantry }) => (
-    <div className="p-4 flex justify-between items-center bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all duration-200 group active:scale-[0.99]">
+    <div
+        className="p-4 flex justify-between items-center bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all duration-200 group active:scale-[0.99]"
+        title={food.micronutrients?.length ? `Micronutrientes (por 100g): ${food.micronutrients.map(m => `${m.name} ${m.amount}${m.unit}`).join(', ')}` : undefined}
+    >
         <div className="flex items-center gap-4 flex-grow min-w-0">
             {food.image ? (
                 <img src={food.image} alt={food.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-slate-800" />

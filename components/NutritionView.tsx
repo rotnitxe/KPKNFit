@@ -6,11 +6,12 @@ import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { calculateDailyCalorieGoal } from '../utils/calorieFormulas';
 import { NutritionDashboard, RegisterFoodDrawer, NutritionWizard, NutritionSetupModal, useNutritionStats, CalorieGoalCard, NutritionPlanEditorModal } from './nutrition/index';
 import NutritionHeroBanner from './nutrition/NutritionHeroBanner';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const NutritionView: React.FC = () => {
     const { settings } = useAppState();
     const { handleSaveNutritionLog, setSettings } = useAppDispatch();
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedDate, setSelectedDate] = useState(getLocalDateString());
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [showWizard, setShowWizard] = useState(false);
     const [activeTab, setActiveTab] = useState<'hoy' | 'plan'>('hoy');

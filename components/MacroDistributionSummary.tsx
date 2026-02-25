@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { useAppState } from '../contexts/AppContext';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import Card from './ui/Card';
+import { getDatePartFromString } from '../utils/dateUtils';
 
 const MacroDistributionSummary: React.FC = () => {
     const { nutritionLogs, settings } = useAppState();
@@ -23,7 +24,7 @@ const MacroDistributionSummary: React.FC = () => {
             return acc;
         }, { protein: 0, carbs: 0, fats: 0 });
 
-        const daysWithLogs = new Set(recentLogs.map(log => new Date(log.date).toISOString().split('T')[0])).size;
+        const daysWithLogs = new Set(recentLogs.map(log => getDatePartFromString(log.date))).size;
         const avgDays = daysWithLogs > 0 ? daysWithLogs : 1;
 
         return {

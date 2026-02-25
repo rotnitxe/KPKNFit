@@ -178,10 +178,9 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
                         />
                     </svg>
 
-                    {/* El Círculo Caupolicán Interior */}
+                    {/* El Círculo Caupolicán Interior - SVG con filter para visibilidad en fondo oscuro */}
                     <div className="w-56 h-56 bg-black rounded-full border-[3px] border-zinc-200 shadow-[0_0_30px_rgba(255,255,255,0.15)] flex items-center justify-center relative overflow-hidden z-10">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[72%] bg-white z-0" />
-                        <div className="relative w-full h-full flex items-center justify-center z-10 scale-[1.25] text-black">
+                        <div className="relative w-full h-full flex items-center justify-center z-10 scale-[1.25]">
                             {iconType === 'squat' ? <CaupolicanSquat /> : 
                              iconType === 'bench' ? <CaupolicanBench /> : 
                              iconType === 'deadlift_sumo' ? <CaupolicanSDL /> : 

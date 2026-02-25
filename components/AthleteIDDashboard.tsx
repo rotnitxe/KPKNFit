@@ -17,6 +17,7 @@ import BodyFatChart from './BodyFatChart';
 import FFMIChart from './FFMIChart';
 import { calculateFFMI, calculateIPFGLPoints, calculateBrzycki1RM } from '../utils/calculations';
 import { shareElementAsImage } from '../services/shareService';
+import { getLocalDateString } from '../utils/dateUtils';
 import ProfilePictureModal from './ProfilePictureModal';
 
 interface AthleteIDDashboardProps {
@@ -118,7 +119,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
             const newVitals = { ...prev.userVitals, [key]: value };
             if ((key === 'targetWeight' || key === 'targetDate') && value) {
                 if (!prev.userVitals.targetStartDate) {
-                    newVitals.targetStartDate = new Date().toISOString().split('T')[0];
+                    newVitals.targetStartDate = getLocalDateString();
                     newVitals.targetStartWeight = prev.userVitals.weight || 0;
                 }
             }

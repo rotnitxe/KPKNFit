@@ -8,6 +8,7 @@ import { InfoTooltip } from './ui/InfoTooltip';
 import Button from './ui/Button';
 import ReadinessDrawer from './ReadinessDrawer';
 import { DailyWellbeingLog } from '../types';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const EMOJI_MAPS = {
     sleep: ['😫', '😕', '😐', '🙂', '😄'],
@@ -27,7 +28,7 @@ const WeeklyWellbeingCard: React.FC = () => {
     const { handleLogDailyWellbeing } = useAppDispatch();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
 
     const hasLoggedToday = useMemo(() => {
         // Check if there is a workout log with readiness OR a daily wellbeing log for today

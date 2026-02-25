@@ -34,9 +34,13 @@ import { getWeekId, estimatePercent1RM, getRepDebtContextKey, calculateBrzycki1R
 import { cacheService } from '../services/cacheService';
 import { calculateCompletedSessionStress, calculateCompletedSessionDrainBreakdown } from '../services/auge';
 import { queueFatigueDataPoint, queueTrainingImpulse } from '../services/augeAdaptiveService';
+import { scheduleRestEndNotification, cancelRestEndNotification, rescheduleAllNotifications, cancelMissedWorkoutNotificationForToday } from '../services/notificationService';
+import { syncWidgetData } from '../services/widgetSyncService';
+import { getCachedAdaptiveData } from '../services/augeAdaptiveService';
 import { UIProvider, UIState, UIDispatch } from './UIContext';
 import { JOINT_DATABASE } from '../data/jointDatabase';
 import { TENDON_DATABASE } from '../data/tendonDatabase';
+import { getLocalDateString, dateStringToISOString } from '../utils/dateUtils';
 import { MOVEMENT_PATTERN_DATABASE } from '../data/movementPatternDatabase';
 
 const AppStateContext = createContext<AppContextState | undefined>(undefined);
@@ -44,7 +48,7 @@ const AppDispatchContext = createContext<AppContextDispatch | undefined>(undefin
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     if (dateString && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-        return new Date(dateString + 'T12:00:00Z').toISOString();
+        return dateStringToISOString(dateString);
     }
     return new Date().toISOString();
 };
@@ -111,12 +115,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
     }, []);
 
+    // Sincronizar widgets nativos de Android (próxima sesión, batería AUGE)
+    useEffect(() => {
+        if (isAppLoading) return;
+        syncWidgetData({
+            programs,
+            activeProgramState,
+            history,
+            sleepLogs,
+            dailyWellbeingLogs,
+            nutritionLogs,
+            settings,
+            exerciseList,
+        });
+    }, [isAppLoading, programs, activeProgramState, history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList]);
+
     // ═══════════════════════════════════════════════════════════
     // 4. CROSS-STORE CALLBACKS
     // ═══════════════════════════════════════════════════════════
 
-    const addToast = useCallback((message: string, type: ToastData['type'] = 'success', title?: string, duration?: number) => {
-        ui.addToast(message, type, title, duration);
+    const addToast = useCallback((message: string, type: ToastData['type'] = 'success', title?: string, duration?: number, why?: string) => {
+        ui.addToast(message, type, title, duration, why);
     }, []);
 
     const removeToast = useCallback((id: number) => {
@@ -150,7 +169,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     startTime: new Date(sleepStartTime).toISOString(),
                     endTime: new Date(endTime).toISOString(),
                     duration: durationHours,
-                    date: new Date(endTime).toISOString().split('T')[0],
+                    date: getLocalDateString(new Date(endTime)),
                 };
                 setSleepLogs(prev => [...prev, newLog].slice(-100));
                 setSleepStartTime(null);
@@ -231,7 +250,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(exerciseList, null, 2))}`;
             const link = document.createElement("a");
             link.href = jsonString;
-            link.download = `yourprime_exercisedb_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `yourprime_exercisedb_${getLocalDateString()}.json`;
             link.click();
         } catch (error) {
             alert('Error al exportar la base de datos de ejercicios.');
@@ -798,6 +817,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
 
         saveLog(validatedLog);  // Siempre guardar en history (fuente local de verdad)
+        const newHistory = [...history, validatedLog];
+        const notifState = { programs, activeProgramId: activeProgramState?.programId ?? null, activeProgramState, settings, history: newHistory, nutritionLogs, adaptiveCache: getCachedAdaptiveData() };
+        cancelMissedWorkoutNotificationForToday(notifState);
+        rescheduleAllNotifications(notifState);
         if (!ui.isOnline) {
             setSyncQueue(prev => [...prev, validatedLog]);
             addToast('Sin conexión. Guardado en cola para sincronizar.', 'suggestion');
@@ -836,11 +859,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         navigateTo('home', undefined, { replace: true });
         playSound('session-complete-sound');
         if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS as any);
-    }, [ongoingWorkout, programs, settings, history, setHistory, setOngoingWorkout, checkAndUnlock, addToast, setSyncQueue, exerciseList, handleUpdateExerciseRepDebt, navigateTo, sleepLogs, setActiveProgramState]);
+    }, [ongoingWorkout, programs, settings, history, setHistory, setOngoingWorkout, checkAndUnlock, addToast, setSyncQueue, exerciseList, handleUpdateExerciseRepDebt, navigateTo, sleepLogs, setActiveProgramState, activeProgramState, nutritionLogs]);
 
     const handleSaveLoggedWorkout = useCallback((log: WorkoutLog) => {
         const newHistory = [...history, log];
         setHistory(newHistory);
+        const notifState = { programs, activeProgramId: activeProgramState?.programId ?? null, activeProgramState, settings, history: newHistory, nutritionLogs, adaptiveCache: getCachedAdaptiveData() };
+        cancelMissedWorkoutNotificationForToday(notifState);
+        rescheduleAllNotifications(notifState);
         try {
             const unlocked = checkAndUnlock({ log, history: newHistory });
             if (unlocked.length > 0) unlocked.forEach(ach => addToast(ach.name, 'achievement', '¡Logro Desbloqueado!'));
@@ -848,7 +874,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         handleBack();
         addToast("Entrenamiento registrado con éxito.", "success");
         if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS as any);
-    }, [history, setHistory, checkAndUnlock, handleBack, addToast, settings.hapticFeedbackEnabled]);
+    }, [history, setHistory, checkAndUnlock, handleBack, addToast, settings.hapticFeedbackEnabled, programs, activeProgramState, settings, nutritionLogs]);
 
     const handleUpdateExercise1RM = useCallback((exerciseDbId: string | undefined, exerciseName: string, weight: number, reps: number, testDate?: string, machineBrand?: string) => {
         if (!exerciseDbId) return;
@@ -900,12 +926,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const key = Date.now();
         const endTime = Date.now() + duration * 1000;
         ui.setRestTimer({ duration, remaining: duration, key, exerciseName, endTime });
+        scheduleRestEndNotification(duration);
         restTimerInterval.current = window.setInterval(() => {
             ui.setRestTimer(currentTimer => {
                 if (currentTimer && currentTimer.key === key) {
                     const newRemaining = Math.max(0, Math.round((currentTimer.endTime - Date.now()) / 1000));
                     if (newRemaining <= 0) {
                         clearInterval(restTimerInterval.current!);
+                        cancelRestEndNotification();
                         if (currentTimer.remaining > 0) {
                             playSound('rest-timer-sound');
                             if (settings.hapticFeedbackEnabled) { hapticNotification(NotificationType.SUCCESS as any); setTimeout(() => hapticImpact(ImpactStyle.Medium as any), 150); }
@@ -922,7 +950,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, [settings.hapticFeedbackEnabled]);
 
     const handleAdjustRestTimer = useCallback((amountInSeconds: number) => { ui.setRestTimer(ct => ct ? { ...ct, remaining: Math.max(0, ct.remaining + amountInSeconds), endTime: ct.endTime + (amountInSeconds * 1000) } : null); }, []);
-    const handleSkipRestTimer = useCallback(() => { if (restTimerInterval.current) clearInterval(restTimerInterval.current); ui.setRestTimer(null); }, []);
+    const handleSkipRestTimer = useCallback(() => { if (restTimerInterval.current) clearInterval(restTimerInterval.current); cancelRestEndNotification(); ui.setRestTimer(null); }, []);
 
     const handleModifyWorkout = useCallback(() => {
         if (!ongoingWorkout) return;
@@ -958,7 +986,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, [setOngoingWorkout, addToast]);
 
     const handleSaveBodyLog = useCallback((log: BodyProgressLog) => { setBodyProgress(prev => [...prev, log]); addToast("Registro corporal guardado.", "success"); }, [setBodyProgress, addToast]);
-    const handleSaveNutritionLog = useCallback((log: NutritionLog) => { setNutritionLogs(prev => [...prev, log]); addToast("Registro de nutrición guardado.", "success"); }, [setNutritionLogs, addToast]);
+    const handleSaveNutritionLog = useCallback((log: NutritionLog) => {
+        const nextLogs = [...nutritionLogs, log];
+        setNutritionLogs(prev => [...prev, log]);
+        addToast("Registro de nutrición guardado.", "success");
+        rescheduleAllNotifications({ programs, activeProgramId: activeProgramState?.programId ?? null, activeProgramState, settings, history, nutritionLogs: nextLogs, adaptiveCache: getCachedAdaptiveData() });
+    }, [setNutritionLogs, addToast, programs, activeProgramState, settings, history, nutritionLogs]);
 
     const handleCopySessionsToMeso = useCallback((programId: string, macroIndex: number, mesoIndex: number) => {
         setPrograms(prev => { const newPrograms = JSON.parse(JSON.stringify(prev)); return newPrograms; });

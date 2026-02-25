@@ -5,23 +5,24 @@ import React, { useMemo } from 'react';
 import { useAppState } from '../../contexts/AppContext';
 import { FlameIcon } from '../icons';
 import { getWeekId } from '../../utils/calculations';
+import { getLocalDateString, getDatePartFromString } from '../../utils/dateUtils';
 
 export const StreakWidget: React.FC = () => {
     const { history, activeProgramState, programs, settings } = useAppState();
 
     const { streak, weeklyAdherence } = useMemo(() => {
         const completedDates = new Set(
-            history.map(log => log.date.split('T')[0])
+            history.map(log => getDatePartFromString(log.date))
         );
 
         let streakCount = 0;
         const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
+        const todayStr = getLocalDateString(today);
 
         for (let i = 0; i < 365; i++) {
             const d = new Date(today);
             d.setDate(d.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = getLocalDateString(d);
             if (completedDates.has(dateStr)) {
                 streakCount++;
             } else {

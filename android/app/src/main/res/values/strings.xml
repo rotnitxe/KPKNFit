@@ -4,4 +4,8 @@
     <string name="title_activity_main">KPKN</string>
     <string name="package_name">com.yourprime.app</string>
     <string name="custom_url_scheme">com.yourprime.app</string>
+    <string name="widget_next_session_description">Próxima sesión de entrenamiento</string>
+    <string name="widget_battery_description">Batería AUGE (CNS, muscular, spinal)</string>
+    <string name="widget_nutrition_description">Calorías y macronutrientes del día</string>
+    <string name="widget_volume_description">Volumen realizado vs programado (semanal)</string>
 </resources>

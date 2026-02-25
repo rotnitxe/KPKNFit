@@ -1,10 +1,11 @@
 // utils/nutritionDescriptionParser.ts
-// Parser de descripciones de comida: detectores separados (gramos, alimento, cocción, porción)
+// Parser de descripciones de comida: detectores separados (gramos, alimento, cocción, porción, referencias)
 
-import type { PortionPreset, ParsedMealItem, ParsedMealDescription, CookingMethod } from '../types';
+import type { PortionPreset, ParsedMealItem, ParsedMealDescription, CookingMethod, PortionReference } from '../types';
 import { resolveToCanonical } from '../data/foodSynonyms';
 import { FOOD_DATABASE } from '../data/foodDatabase';
 import { extractCookingMethodFromFragment } from '../data/cookingMethodFactors';
+import { getGramsForReference, getFoodTypeForPortion } from '../data/portionReferences';
 
 // Conectores que dividen la lista. "con" funciona igual que "y" (los alimentos con "con" en nombre usan "c/" en DB).
 const COMMA_OR_PLUS = /,\s*|\s+\+\s+/g;
@@ -19,6 +20,21 @@ const LITERAL_QUANTITIES: Record<string, number> = {
     media: 0.5, medio: 0.5, doble: 2, triple: 3,
 };
 
+/** Referencias de porción: "1 cucharada de X", "una taza de arroz", "un toque de sal" */
+const REFERENCE_PATTERNS: { pattern: RegExp; ref: PortionReference; getQty?: (m: RegExpMatchArray) => number }[] = [
+    { pattern: /\b(un|una|1)\s+(toque|pellizco)s?\s+de\s+(.+)/i, ref: 'pinch', getQty: () => 1 },
+    { pattern: /\b(dos|tres)\s+(toques?|pellizcos?)\s+de\s+(.+)/i, ref: 'pinch', getQty: m => ({ dos: 2, tres: 3 }[m[1].toLowerCase()] ?? 2) },
+    { pattern: /\b(\d+)\s+(cucharadas?)\s+de\s+(.+)/i, ref: 'tablespoon', getQty: m => parseFloat(m[1]) || 1 },
+    { pattern: /\b(un|una|1)\s+(cucharada)\s+de\s+(.+)/i, ref: 'tablespoon', getQty: () => 1 },
+    { pattern: /\b(dos|tres|cuatro)\s+(cucharadas?)\s+de\s+(.+)/i, ref: 'tablespoon', getQty: m => ({ dos: 2, tres: 3, cuatro: 4 }[m[1].toLowerCase()] ?? 2) },
+    { pattern: /\b(\d+)\s+(tazas?)\s+de\s+(.+)/i, ref: 'cup', getQty: m => parseFloat(m[1]) || 1 },
+    { pattern: /\b(un|una|1)\s+(taza)\s+de\s+(.+)/i, ref: 'cup', getQty: () => 1 },
+    { pattern: /\b(media)\s+(taza)\s+de\s+(.+)/i, ref: 'cup', getQty: () => 0.5 },
+    { pattern: /\b(un|una|1)\s+(puñado)\s+de\s+(.+)/i, ref: 'handful', getQty: () => 1 },
+    { pattern: /\b(un|una|1)\s+(palma)s?\s+(?:de\s+)?(.+)/i, ref: 'palm', getQty: () => 1 },
+    { pattern: /\b(un|1)\s+(puño)\s+de\s+(.+)/i, ref: 'fist', getQty: () => 1 },
+];
+
 const PORTION_PATTERNS: { pattern: RegExp; preset: PortionPreset }[] = [
     { pattern: /\b(plato\s+)?(muy\s+)?grande\b|\bgeneroso\b/i, preset: 'extra' },
     { pattern: /\b(plato\s+)?grande\b/i, preset: 'large' },
@@ -32,18 +48,45 @@ const PORTION_PATTERNS: { pattern: RegExp; preset: PortionPreset }[] = [
     { pattern: /\bmedio\s+plato\b/i, preset: 'small' },
 ];
 
-function findInDatabase(term: string): string | null {
-    const normalized = term.trim().toLowerCase().replace(/\s+con\s+/gi, ' c/ ');
-    if (!normalized || normalized.length < 2) return null;
-    const exact = FOOD_DATABASE.find(f =>
-        f.name.toLowerCase().replace(/\s+con\s+/gi, ' c/ ') === normalized
-    );
-    if (exact) return exact.name;
-    const partial = FOOD_DATABASE.find(f => {
+/** Índice precomputado: normalized name -> FoodItem (exact) y token -> FoodItem[] (partial) */
+let FOOD_EXACT_INDEX: Map<string, { name: string }> | null = null;
+let FOOD_TOKEN_INDEX: Map<string, { name: string; fn: string }[]> | null = null;
+function buildParserIndexes() {
+    if (FOOD_EXACT_INDEX) return;
+    const exact = new Map<string, { name: string }>();
+    const byToken = new Map<string, { name: string; fn: string }[]>();
+    for (const f of FOOD_DATABASE) {
         const fn = f.name.toLowerCase().replace(/\s+con\s+/gi, ' c/ ');
-        return fn.includes(normalized) || normalized.includes(fn);
-    });
-    return partial?.name ?? null;
+        exact.set(fn, { name: f.name });
+        for (const word of fn.split(/\s+/)) {
+            if (word.length >= 2) {
+                const arr = byToken.get(word) ?? [];
+                if (!arr.some(x => x.name === f.name)) arr.push({ name: f.name, fn });
+                byToken.set(word, arr);
+            }
+        }
+    }
+    FOOD_EXACT_INDEX = exact;
+    FOOD_TOKEN_INDEX = byToken;
+}
+
+function findInDatabase(term: string): { tag: string | null; isFuzzyMatch: boolean } {
+    buildParserIndexes();
+    const normalized = term.trim().toLowerCase().replace(/\s+con\s+/gi, ' c/ ');
+    if (!normalized || normalized.length < 2) return { tag: null, isFuzzyMatch: false };
+    const exactHit = FOOD_EXACT_INDEX!.get(normalized);
+    if (exactHit) return { tag: exactHit.name, isFuzzyMatch: false };
+    const tokens = normalized.split(/\s+/).filter(t => t.length >= 2);
+    const candidates = new Set<{ name: string; fn: string }>();
+    for (const t of tokens) {
+        const arr = FOOD_TOKEN_INDEX!.get(t) ?? [];
+        for (const x of arr) candidates.add(x);
+    }
+    const partial = [...candidates].find(c =>
+        c.fn.includes(normalized) || normalized.includes(c.fn)
+    );
+    if (partial) return { tag: partial.name, isFuzzyMatch: true };
+    return { tag: null, isFuzzyMatch: false };
 }
 
 function extractPortionFromFragment(text: string): { portion: PortionPreset; cleaned: string } {
@@ -76,6 +119,29 @@ function extractGramsFromFragment(text: string): { grams?: number; cleaned: stri
     return { grams, cleaned };
 }
 
+/** Extrae referencias: "1 cucharada de aceite", "una taza de arroz", "un toque de sal" -> grams según tipo de alimento */
+function extractReferenceFromFragment(text: string): { grams?: number; quantity: number; cleaned: string } {
+    const t = text.trim();
+    for (const { pattern, ref, getQty } of REFERENCE_PATTERNS) {
+        const m = t.match(pattern);
+        if (!m) continue;
+        const foodPart = (m[3] || m[2] || '').trim().replace(/^\s*de\s+/i, '');
+        if (!foodPart || foodPart.length < 2) continue;
+        const qty = getQty ? getQty(m) : 1;
+        const canonical = resolveToCanonical(foodPart);
+        const food = FOOD_DATABASE.find(f =>
+            f.name.toLowerCase().replace(/\s+con\s+/gi, ' c/ ') === canonical.toLowerCase() ||
+            f.name.toLowerCase().includes(canonical.toLowerCase()) ||
+            canonical.toLowerCase().includes(f.name.toLowerCase().replace(/\s+con\s+/gi, ' c/ '))
+        );
+        const foodType = food ? getFoodTypeForPortion(food) : 'mixed';
+        const gramsPerUnit = getGramsForReference(ref, foodType);
+        const grams = Math.round(gramsPerUnit * qty * 10) / 10;
+        return { grams, quantity: qty, cleaned: foodPart };
+    }
+    return { quantity: 1, cleaned: t };
+}
+
 /** Parsea multiplicador de cantidad: "2 panes", "3 huevos", "dos huevos" (NO "200g") */
 function parseQuantityMultiplier(text: string): { quantity: number; foodPart: string } {
     const t = text.trim();
@@ -100,8 +166,20 @@ function parseFragment(frag: string): ParsedMealItem | null {
 
     const defaultPortion: PortionPreset = 'medium';
 
-    const { grams, cleaned: afterGrams } = extractGramsFromFragment(text);
-    let working = afterGrams;
+    let grams: number | undefined;
+    let working: string;
+
+    const { grams: gramsFromExplicit, cleaned: afterGrams } = extractGramsFromFragment(text);
+    grams = gramsFromExplicit;
+    working = afterGrams;
+
+    if (grams == null) {
+        const refResult = extractReferenceFromFragment(working);
+        if (refResult.grams != null) {
+            grams = refResult.grams;
+            working = refResult.cleaned;
+        }
+    }
 
     const { method: cookingMethod, cleaned: afterCooking } = extractCookingMethodFromFragment(working);
     working = afterCooking;
@@ -117,7 +195,8 @@ function parseFragment(frag: string): ParsedMealItem | null {
     if (!foodName || foodName.length < 2) return null;
 
     const canonical = resolveToCanonical(foodName);
-    const tag = findInDatabase(canonical) || canonical;
+    const { tag: dbTag, isFuzzyMatch } = findInDatabase(canonical);
+    const tag = dbTag || canonical;
     if (tag.length < 2) return null;
 
     return {
@@ -126,6 +205,7 @@ function parseFragment(frag: string): ParsedMealItem | null {
         amountGrams: grams,
         cookingMethod,
         portion: grams != null ? undefined : portion,
+        isFuzzyMatch: !!dbTag && isFuzzyMatch,
     };
 }
 

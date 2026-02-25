@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { useAppState } from '../contexts/AppContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import Card from './ui/Card';
+import { getDatePartFromString, formatDateForDisplay } from '../utils/dateUtils';
 
 const CalorieHistoryChart: React.FC = () => {
     const { nutritionLogs, settings } = useAppState();
@@ -10,7 +11,7 @@ const CalorieHistoryChart: React.FC = () => {
     const chartData = useMemo(() => {
         const dailyCalories: Record<string, number> = {};
         nutritionLogs.forEach(log => {
-            const date = new Date(log.date).toISOString().split('T')[0];
+            const date = getDatePartFromString(log.date);
             const totalCals = log.foods.reduce((sum, food) => sum + (food.calories || 0), 0);
             dailyCalories[date] = (dailyCalories[date] || 0) + totalCals;
         });
@@ -19,7 +20,7 @@ const CalorieHistoryChart: React.FC = () => {
             .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
             .slice(-30)
             .map(([date, calories]) => ({
-                date: new Date(date + 'T12:00:00Z').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+                date: formatDateForDisplay(date, { day: '2-digit', month: 'short' }),
                 Calorías: Math.round(calories)
             }));
     }, [nutritionLogs]);

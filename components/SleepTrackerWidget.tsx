@@ -9,12 +9,13 @@ import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
 import { calculateSleepRecommendations } from '../services/auge';
 import { scheduleBedtimeReminder } from '../services/notificationService';
+import { getLocalDateString } from '../utils/dateUtils';
 
 // --- NUEVO MODAL: REGISTRO DE ACTIVIDAD (TRABAJO, ESTUDIO, ÁNIMO) ---
 const ActivityLogModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     const { dailyWellbeingLogs } = useAppState();
     const { handleLogDailyWellbeing, addToast } = useAppDispatch();
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     const existing = dailyWellbeingLogs.find(l => l.date.startsWith(todayStr));
 
     const [workHours, setWorkHours] = useState(existing?.workHours || 0);
@@ -26,7 +27,7 @@ const ActivityLogModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
 
     const handleSave = () => {
         handleLogDailyWellbeing({
-            date: new Date().toISOString().split('T')[0],
+            date: getLocalDateString(),
             workHours,
             workIntensity,
             studyHours,
@@ -127,7 +128,7 @@ const ActivityLogModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
 const ManualSleepModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     const { setSleepLogs, addToast } = useAppDispatch();
     const [hours, setHours] = useState(8);
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(getLocalDateString());
 
     const handleSave = () => {
         const newLog: SleepLog = {
@@ -167,7 +168,7 @@ const SleepTrackerWidget: React.FC<{ onEditLog: (log: SleepLog) => void }> = ({ 
     const [isManualOpen, setIsManualOpen] = useState(false);
 
     const isSleeping = sleepStartTime !== null;
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     const todayContext = useMemo(() => dailyWellbeingLogs.find(l => l.date === todayStr), [dailyWellbeingLogs, todayStr]);
     const todayWorkout = useMemo(() => history.find(l => l.date.startsWith(todayStr)), [history, todayStr]);
     
@@ -189,7 +190,7 @@ const SleepTrackerWidget: React.FC<{ onEditLog: (log: SleepLog) => void }> = ({ 
             const d = new Date();
             d.setDate(d.getDate() - (6 - i));
             const dayName = days[d.getDay()];
-            const log = sortedLogs.find(l => l.date === d.toISOString().split('T')[0]);
+            const log = sortedLogs.find(l => l.date === getLocalDateString(d));
             return { name: dayName, horas: log?.duration || 0, isToday: i === 6 };
         });
     }, [sortedLogs]);

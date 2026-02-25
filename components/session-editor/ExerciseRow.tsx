@@ -3,6 +3,7 @@ import { Exercise, ExerciseSet, ExerciseMuscleInfo } from '../../types';
 import { StarIcon, TrashIcon, ChevronDownIcon, ClockIcon, LinkIcon, SearchIcon, PlusIcon, FlameIcon } from '../icons';
 import InlineSetTable from './InlineSetTable';
 import FatigueIndicators from './FatigueIndicators';
+import { SwipeDeleteHintModal } from './SwipeDeleteHintModal';
 import { calculateHybrid1RM, suggestRestSeconds } from '../../utils/calculations';
 
 interface ExerciseRowProps {
@@ -31,6 +32,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
     onLink, onUnlink, onAmrapToggle, onOpenExerciseModal, scrollRef, dragHandleProps,
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [showSwipeHint, setShowSwipeHint] = useState(false);
     const wrapperRef = React.useRef<HTMLDivElement | null>(null);
 
     const setRef = useCallback((el: HTMLDivElement | null) => {
@@ -262,19 +264,37 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                     <div className="flex items-center gap-3 flex-wrap">
                         <div className="flex items-center gap-1">
                             <ClockIcon size={12} className="text-[#555]" />
-                            <input
-                                type="time"
-                                step="30"
-                                value={(() => { const s = Math.min(300, exercise.restTime || 90); const m = Math.floor(s / 60); const sec = s % 60; return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
-                                onChange={e => {
-                                    const v = e.target.value;
-                                    if (!v) return;
-                                    const parts = v.split(':').map(Number);
-                                    const seconds = parts.length === 2 ? (parts[0] || 0) * 60 + (parts[1] || 0) : (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
-                                    onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, seconds); });
-                                }}
-                                className="w-20 bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
-                            />
+                            <div className="flex items-center gap-0.5">
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    min={0}
+                                    max={5}
+                                    value={Math.floor((Math.min(300, exercise.restTime || 90)) / 60)}
+                                    onChange={e => {
+                                        const m = Math.min(5, Math.max(0, parseInt(e.target.value, 10) || 0));
+                                        const sec = (exercise.restTime || 90) % 60;
+                                        onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, m * 60 + sec); });
+                                    }}
+                                    className="w-8 bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
+                                    placeholder="0"
+                                />
+                                <span className="text-[#555] text-[10px]">:</span>
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    min={0}
+                                    max={59}
+                                    value={(exercise.restTime || 90) % 60}
+                                    onChange={e => {
+                                        const sec = Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0));
+                                        const m = Math.floor((Math.min(300, exercise.restTime || 90)) / 60);
+                                        onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, m * 60 + sec); });
+                                    }}
+                                    className="w-8 bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
+                                    placeholder="00"
+                                />
+                            </div>
                             {exercise.sets?.length > 0 && (() => {
                                 const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
                                 const avgPercent1RM = exercise.trainingMode === 'percent' && exercise.sets?.length ? exercise.sets.reduce((a, s) => a + ((s as any).targetPercentageRM || 0), 0) / exercise.sets.length : undefined;
@@ -406,7 +426,9 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         onRemoveSet={handleRemoveSet}
                         onAmrapToggle={onAmrapToggle ? (setIdx) => onAmrapToggle(partIndex, exerciseIndex, setIdx) : undefined}
                         reference1RM={effectiveReference1RM}
+                        onFirstAddSet={() => { try { if (!localStorage.getItem('kpkn_seen_swipe_delete_hint')) setShowSwipeHint(true); } catch (_) {} }}
                     />
+                    {showSwipeHint && <SwipeDeleteHintModal onClose={() => setShowSwipeHint(false)} />}
                 </div>
             )}
         </div>

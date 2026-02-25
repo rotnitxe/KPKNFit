@@ -5,6 +5,7 @@ import { useAppState } from '../contexts/AppContext';
 import { generateOnThisDayMessage } from '../services/aiService';
 import { WorkoutLog, CompletedSet } from '../types';
 import { calculateBrzycki1RM } from '../utils/calculations';
+import { getLocalDateString } from '../utils/dateUtils';
 import Card from './ui/Card';
 import { ClockIcon } from './icons';
 import SkeletonLoader from './ui/SkeletonLoader';
@@ -33,7 +34,7 @@ const OnThisDayCard: React.FC = () => {
             const today = new Date();
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(today.getFullYear() - 1);
-            const oneYearAgoStr = oneYearAgo.toISOString().split('T')[0];
+            const oneYearAgoStr = getLocalDateString(oneYearAgo);
 
             const logFromLastYear = history.find(log => log.date.startsWith(oneYearAgoStr));
 

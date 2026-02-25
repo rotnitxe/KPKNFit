@@ -8,6 +8,7 @@ import * as aiService from '../services/aiService';
 import { KeepAwake } from '@capacitor-community/keep-awake';
 import { MicIcon } from './icons';
 import { configureAudioSession } from '../services/soundService';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const functionDeclarations: FunctionDeclaration[] = [
     {
@@ -290,7 +291,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
                                                     };
                                                     break;
                                                 case 'nutrition':
-                                                    const todayStr = new Date().toISOString().split('T')[0];
+                                                    const todayStr = getLocalDateString();
                                                     const todaysLogs = state.nutritionLogs.filter(log => log.date && log.date.startsWith(todayStr));
                                                     const consumed = todaysLogs.reduce((acc, log) => {
                                                         log.foods.forEach(food => {

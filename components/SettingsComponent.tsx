@@ -11,13 +11,14 @@ import {
     Wand2Icon, ActivityIcon, UtensilsIcon, BrainIcon, FlaskConical,
     ChevronDownIcon, StarIcon, TrashIcon, PlusCircleIcon, BodyIcon, ImageIcon, TargetIcon, UserBadgeIcon,
     SparklesIcon, LayersIcon, ClockIcon, ZapIcon, TypeIcon, RefreshCwIcon, CheckIcon, MoonIcon, CalculatorIcon,
-    TrendingUpIcon, ClipboardListIcon, CheckCircleIcon, GridIcon
+    TrendingUpIcon, ClipboardListIcon, CheckCircleIcon, GridIcon, CalendarIcon
 } from './icons';
 import { storageService } from '../services/storageService';
 import BackgroundEditorModal from './SessionBackgroundModal';
 import { NutritionPlanEditorModal } from './nutrition/NutritionPlanEditorModal';
 import { useAppDispatch } from '../contexts/AppContext';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { getLocalDateString } from '../utils/dateUtils';
 
 interface SettingsProps {
   settings: Settings;
@@ -219,7 +220,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
             const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
             const link = document.createElement("a");
             link.href = jsonString;
-            link.download = `yourprime_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `yourprime_backup_${getLocalDateString()}.json`;
             link.click();
         } catch (error) { alert('Error al exportar.'); }
     };
@@ -432,6 +433,63 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                          </select>
                          <ToggleSwitch checked={pendingSettings.hapticFeedbackEnabled} onChange={(c) => handleSettingChange('hapticFeedbackEnabled', c)} />
                      </div>
+                </SettingsItem>
+            </SettingsSection>
+
+            {/* --- SECCIÓN: NOTIFICACIONES (Android) --- */}
+            <SettingsSection title="Notificaciones" icon={<BellIcon size={22} />}>
+                <SettingsItem label="Recordatorio sesión del día" description="Hora a la que avisar la sesión que toca hoy." icon={<DumbbellIcon size={18}/>}>
+                    <div className="flex items-center gap-2">
+                        <input type="time" value={pendingSettings.reminderTime || '17:00'} onChange={e => handleSettingChange('reminderTime', e.target.value)} className="w-24 bg-slate-800 border-none rounded-lg text-xs font-bold text-center p-2 text-white" />
+                        <ToggleSwitch checked={!!pendingSettings.remindersEnabled} onChange={(c) => handleSettingChange('remindersEnabled', c)} />
+                    </div>
+                </SettingsItem>
+
+                <SettingsItem label="Recordatorios de comidas" description="Desayuno, almuerzo y cena." icon={<UtensilsIcon size={18}/>}>
+                    <ToggleSwitch checked={!!pendingSettings.mealRemindersEnabled} onChange={(c) => handleSettingChange('mealRemindersEnabled', c)} />
+                </SettingsItem>
+                {pendingSettings.mealRemindersEnabled && (
+                    <div className="grid grid-cols-3 gap-2 pl-2">
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500 uppercase">Desayuno</label>
+                            <input type="time" value={pendingSettings.breakfastReminderTime || '08:00'} onChange={e => handleSettingChange('breakfastReminderTime', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-[10px] font-bold text-center p-1.5 text-white" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500 uppercase">Almuerzo</label>
+                            <input type="time" value={pendingSettings.lunchReminderTime || '14:00'} onChange={e => handleSettingChange('lunchReminderTime', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-[10px] font-bold text-center p-1.5 text-white" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500 uppercase">Cena</label>
+                            <input type="time" value={pendingSettings.dinnerReminderTime || '21:00'} onChange={e => handleSettingChange('dinnerReminderTime', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-[10px] font-bold text-center p-1.5 text-white" />
+                        </div>
+                    </div>
+                )}
+
+                <SettingsItem label="Aviso si no registraste entrenamiento" description="Día con sesión asignada y sin registro." icon={<ActivityIcon size={18}/>}>
+                    <div className="flex items-center gap-2">
+                        <input type="time" value={pendingSettings.missedWorkoutReminderTime || '21:00'} onChange={e => handleSettingChange('missedWorkoutReminderTime', e.target.value)} className="w-24 bg-slate-800 border-none rounded-lg text-xs font-bold text-center p-2 text-white" />
+                        <ToggleSwitch checked={!!pendingSettings.missedWorkoutReminderEnabled} onChange={(c) => handleSettingChange('missedWorkoutReminderEnabled', c)} />
+                    </div>
+                </SettingsItem>
+
+                <SettingsItem label="Batería AUGE baja" description="Aviso cuando el modelo Banister indica fitness bajo." icon={<ZapIcon size={18}/>}>
+                    <ToggleSwitch checked={!!pendingSettings.augeBatteryReminderEnabled} onChange={(c) => handleSettingChange('augeBatteryReminderEnabled', c)} />
+                </SettingsItem>
+                {pendingSettings.augeBatteryReminderEnabled && (
+                    <div className="grid grid-cols-2 gap-2 pl-2">
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500 uppercase">Umbral % (notificar si &lt;)</label>
+                            <input type="number" min="5" max="50" value={pendingSettings.augeBatteryReminderThreshold ?? 20} onChange={e => handleSettingChange('augeBatteryReminderThreshold', parseInt(e.target.value) || 20)} className="w-full bg-slate-800 border-none rounded-lg text-xs font-bold text-center p-1.5 text-white" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500 uppercase">Hora aviso</label>
+                            <input type="time" value={pendingSettings.augeBatteryReminderTime || '09:00'} onChange={e => handleSettingChange('augeBatteryReminderTime', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-[10px] font-bold text-center p-1.5 text-white" />
+                        </div>
+                    </div>
+                )}
+
+                <SettingsItem label="Eventos y bloques" description="Día de evento o inicio de bloque." icon={<CalendarIcon size={18}/>}>
+                    <ToggleSwitch checked={!!pendingSettings.eventRemindersEnabled} onChange={(c) => handleSettingChange('eventRemindersEnabled', c)} />
                 </SettingsItem>
             </SettingsSection>
 

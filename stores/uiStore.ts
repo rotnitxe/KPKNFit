@@ -144,7 +144,7 @@ interface UIStoreState {
     setInstallPromptEvent: (v: any) => void;
     setToasts: (v: ToastData[] | ((p: ToastData[]) => ToastData[])) => void;
     setOnExerciseCreated: (v: ((exercise: ExerciseMuscleInfo) => void) | null | ((p: ((exercise: ExerciseMuscleInfo) => void) | null) => ((exercise: ExerciseMuscleInfo) => void) | null)) => void;
-    addToast: (message: string, type?: ToastData['type'], title?: string, duration?: number) => void;
+    addToast: (message: string, type?: ToastData['type'], title?: string, duration?: number, why?: string) => void;
     removeToast: (id: number) => void;
 }
 
@@ -291,8 +291,8 @@ export const useUIStore = create<UIStoreState>()(
         setToasts: (v) => set((s) => { s.toasts = applyUpdater(s.toasts, v); }),
         setOnExerciseCreated: (v) => set((s) => { s.onExerciseCreated = applyUpdater(s.onExerciseCreated, v); }),
 
-        addToast: (message, type = 'success', title, duration) => set((s) => {
-            s.toasts.push({ id: Date.now(), message, type, title, duration });
+        addToast: (message, type = 'success', title, duration, why) => set((s) => {
+            s.toasts.push({ id: Date.now(), message, type, title, duration, why });
         }),
         removeToast: (id) => set((s) => {
             s.toasts = s.toasts.filter(t => t.id !== id);

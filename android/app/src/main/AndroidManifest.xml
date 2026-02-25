@@ -33,6 +33,58 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Widget: Próxima Sesión -->
+        <receiver
+            android:name=".KpknNextSessionWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_next_session_description">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_next_session_info" />
+        </receiver>
+
+        <!-- Widget: Nutrición (calorías y macros) -->
+        <receiver
+            android:name=".KpknNutritionWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_nutrition_description">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_nutrition_info" />
+        </receiver>
+
+        <!-- Widget: Batería AUGE -->
+        <receiver
+            android:name=".KpknBatteryWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_battery_description">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_battery_info" />
+        </receiver>
+
+        <!-- Widget: Volumen Realizado vs Programado -->
+        <receiver
+            android:name=".KpknVolumeWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_volume_description">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_volume_info" />
+        </receiver>
     </application>
 
     <!-- Permissions -->

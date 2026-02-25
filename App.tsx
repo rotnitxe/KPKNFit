@@ -1,4 +1,5 @@
 // App.tsx
+import './services/foodSearchService'; // Preload OFF/USDA offline DBs al montar
 import { GlobalVoiceAssistant } from './components/GlobalVoiceAssistant';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useAppState, useAppDispatch } from './contexts/AppContext';
@@ -6,7 +7,9 @@ import { View, Session, OngoingWorkoutState, Program, TabBarActions, WorkoutLog,
 import useAchievements from './hooks/useAchievements';
 import { pSBC } from './utils/colorUtils';
 import useLocalStorage from './hooks/useLocalStorage';
-import { setupNotificationChannels } from './services/notificationService';
+import { setupNotificationChannels, rescheduleAllNotifications } from './services/notificationService';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 import SpecialSessionLoggerModal from './components/SpecialSessionLoggerModal';
 import { PCEActionModal } from './components/PCEActionModal';
 
@@ -81,6 +84,10 @@ import ProgramMetricRecoveryDetail from './components/program-detail/metrics/Pro
 import ProgramMetricAdherenceDetail from './components/program-detail/metrics/ProgramMetricAdherenceDetail';
 import ProgramMetricRPEDetail from './components/program-detail/metrics/ProgramMetricRPEDetail';
 import { getCachedAdaptiveData } from './services/augeAdaptiveService';
+import { useProgramStore } from './stores/programStore';
+import { useSettingsStore } from './stores/settingsStore';
+import { useWorkoutStore } from './stores/workoutStore';
+import { useNutritionStore } from './stores/nutritionStore';
 
 // Components formerly widgets, now views
 import SleepTrackerWidget from './components/SleepTrackerWidget';
@@ -127,6 +134,7 @@ export const App: React.FC = () => {
         viewingMuscleCategoryName,
         settings,
         programs,
+        activeProgramState,
         history,
         unlockedAchievements,
         skippedLogs,
@@ -340,6 +348,39 @@ export const App: React.FC = () => {
         };
     }, [addToast]);
     // --- FIN CAJA NEGRA ---
+
+    // --- Notificaciones Android: reprogramar al cargar y al volver a primer plano ---
+    useEffect(() => {
+        if (!Capacitor.isNativePlatform()) return;
+        setupNotificationChannels().then(() => {
+            rescheduleAllNotifications({
+                programs,
+                activeProgramId: activeProgramId ?? null,
+                activeProgramState: activeProgramState ?? null,
+                settings,
+                history,
+                nutritionLogs,
+                adaptiveCache: getCachedAdaptiveData(),
+            });
+        });
+    }, [programs, activeProgramId, activeProgramState, settings, history, nutritionLogs]);
+
+    useEffect(() => {
+        if (!Capacitor.isNativePlatform()) return;
+        const listener = CapApp.addListener('appStateChange', ({ isActive }) => {
+            if (!isActive) return;
+            rescheduleAllNotifications({
+                programs: useProgramStore.getState().programs,
+                activeProgramId: useProgramStore.getState().activeProgramState?.programId ?? null,
+                activeProgramState: useProgramStore.getState().activeProgramState ?? null,
+                settings: useSettingsStore.getState().settings,
+                history: useWorkoutStore.getState().history,
+                nutritionLogs: useNutritionStore.getState().nutritionLogs,
+                adaptiveCache: getCachedAdaptiveData(),
+            });
+        });
+        return () => { listener.then(l => l.remove()); };
+    }, []);
 
     const isTopLevelView = useMemo(() => ['home', 'nutrition', 'recovery', 'sleep', 'kpkn', 'progress', 'tasks'].includes(view), [view]);
     
@@ -573,7 +614,7 @@ export const App: React.FC = () => {
                 onSettingsClick={() => navigateTo('settings')}
             />
             
-            <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar z-10 ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))]`}>
+            <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))]`}>
                 <div className={`${view === 'home' || view === 'sleep' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
                         {renderView()}

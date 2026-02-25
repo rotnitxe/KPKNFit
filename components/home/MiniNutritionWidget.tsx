@@ -5,13 +5,14 @@ import React, { useMemo } from 'react';
 import { useAppState } from '../../contexts/AppContext';
 import { calculateDailyCalorieGoal } from '../../utils/calorieFormulas';
 import { UtensilsIcon, ChevronRightIcon } from '../icons';
+import { getLocalDateString } from '../../utils/dateUtils';
 
 const MACRO_COLORS = { protein: '#3b82f6', carbs: '#22c55e', fats: '#f59e0b' };
 
 export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNavigate }) => {
     const { nutritionLogs, settings } = useAppState();
 
-    const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+    const todayStr = useMemo(() => getLocalDateString(), []);
 
     const calorieGoal = useMemo(
         () => calculateDailyCalorieGoal(settings, settings.calorieGoalConfig),

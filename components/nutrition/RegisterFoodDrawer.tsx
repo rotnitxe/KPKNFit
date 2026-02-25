@@ -2,11 +2,13 @@
 // Drawer lateral para registrar comida con parser de descripción y tags
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionPreset, CookingMethod, PortionInput } from '../../types';
+import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionPreset, CookingMethod, PortionInput, PortionReference } from '../../types';
+import type { SearchMatchType } from '../../services/foodSearchService';
 import { useMealTemplateStore } from '../../stores/mealTemplateStore';
 import { PORTION_MULTIPLIERS } from '../../types';
+import { PORTION_REFERENCES, getGramsForReference, getFoodTypeForPortion } from '../../data/portionReferences';
 import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
-import { getCookingFactor } from '../../data/cookingMethodFactors';
+import { getCookingFactor, getEffectiveAmountForMacros } from '../../data/cookingMethodFactors';
 import { searchFoods } from '../../services/foodSearchService';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import { XIcon, TrashIcon, InfoIcon, UtensilsIcon, SearchIcon } from '../icons';
@@ -14,6 +16,7 @@ import { FoodSearchModal } from '../FoodSearchModal';
 import { MealTemplateSelector } from './MealTemplateSelector';
 import { PortionSelector } from '../PortionSelector';
 import Button from '../ui/Button';
+import { getLocalDateString, dateStringToISOString } from '../../utils/dateUtils';
 
 function foodToLoggedFood(food: FoodItem, amountGrams: number, portionInput?: PortionInput): LoggedFood {
     const ratio = amountGrams / food.servingSize;
@@ -39,12 +42,12 @@ function foodToLoggedFood(food: FoodItem, amountGrams: number, portionInput?: Po
 
 const safeCreateISOStringFromDateInput = (dateString?: string): string => {
     if (dateString && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-        return new Date(dateString + 'T12:00:00Z').toISOString();
+        return dateStringToISOString(dateString);
     }
     return new Date().toISOString();
 };
 
-const DEBOUNCE_MS = 300;
+const DEBOUNCE_MS = 200;
 
 interface TagWithFood {
     tag: string;
@@ -54,6 +57,8 @@ interface TagWithFood {
     cookingMethod?: CookingMethod;
     foodItem: FoodItem | null;
     loggedFood: LoggedFood | null;
+    /** true cuando el foodItem provino de búsqueda fuzzy/parcial */
+    isFuzzyMatch?: boolean;
 }
 
 interface RegisterFoodDrawerProps {
@@ -100,7 +105,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const { addMealTemplate } = useMealTemplateStore();
     const [description, setDescription] = useState('');
     const [mealType, setMealType] = useState<NutritionLog['mealType']>(initialMealType);
-    const [logDate, setLogDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
+    const [logDate, setLogDate] = useState(initialDate || getLocalDateString());
     const [tagItems, setTagItems] = useState<TagWithFood[]>([]);
     const [searchModalForTagIdx, setSearchModalForTagIdx] = useState<number | null>(null);
     const [expandedTagIdx, setExpandedTagIdx] = useState<number | null>(null);
@@ -109,9 +114,11 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const [showSaveTemplate, setShowSaveTemplate] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
+    const [searchMatchType, setSearchMatchType] = useState<SearchMatchType>('exact');
     const [searchLoading, setSearchLoading] = useState(false);
     const [selectedFoodForPortion, setSelectedFoodForPortion] = useState<FoodItem | null>(null);
     const [hybridSuggestions, setHybridSuggestions] = useState<FoodItem[]>([]);
+    const [hybridMatchType, setHybridMatchType] = useState<SearchMatchType>('exact');
     const [hybridSuggestionsLoading, setHybridSuggestionsLoading] = useState(false);
     const [templateName, setTemplateName] = useState('');
     const skipParseRef = useRef(false);
@@ -137,18 +144,19 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             tag.amountGrams != null
                 ? tag.amountGrams * tag.quantity
                 : item.servingSize * PORTION_MULTIPLIERS[tag.portion] * tag.quantity;
-        const ratio = amount / item.servingSize;
+        const effectiveAmount = getEffectiveAmountForMacros(amount, item, tag.cookingMethod);
+        const ratio = effectiveAmount / item.servingSize;
         const factor = tag.cookingMethod ? getCookingFactor(tag.cookingMethod) : { caloriesFactor: 1, fatsFactor: 1 };
-        const baseCal = (item.calories / item.servingSize) * amount;
-        const baseFats = (item.fats / item.servingSize) * amount;
+        const baseCal = (item.calories / item.servingSize) * effectiveAmount;
+        const baseFats = (item.fats / item.servingSize) * effectiveAmount;
         const logged: LoggedFood = {
             id: crypto.randomUUID(),
             foodName: item.name,
             amount: Math.round(amount * 10) / 10,
             unit: item.unit,
             calories: Math.round(baseCal * factor.caloriesFactor),
-            protein: Math.round((item.protein / item.servingSize) * amount * 10) / 10,
-            carbs: Math.round((item.carbs / item.servingSize) * amount * 10) / 10,
+            protein: Math.round((item.protein / item.servingSize) * effectiveAmount * 10) / 10,
+            carbs: Math.round((item.carbs / item.servingSize) * effectiveAmount * 10) / 10,
             fats: Math.round(baseFats * factor.fatsFactor * 10) / 10,
             tags: [tag.tag],
             portionPreset: tag.portion,
@@ -203,11 +211,12 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                 cookingMethod: i.cookingMethod,
                 foodItem: null,
                 loggedFood: null,
+                isFuzzyMatch: i.isFuzzyMatch,
             }));
             setTagItems(newItems);
             newItems.forEach((tagData, idx) => {
                 if (tagData.tag.length >= 2) {
-                    searchFoods(tagData.tag, settings).then(results => {
+                    searchFoods(tagData.tag, settings).then(({ results, matchType }) => {
                         const foodItem = results[0] || null;
                         if (foodItem) {
                             setTagItems(prev => {
@@ -217,6 +226,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                         ...next[idx],
                                         foodItem,
                                         loggedFood: buildLoggedFromItem(foodItem, next[idx]),
+                                        isFuzzyMatch: tagData.isFuzzyMatch || matchType === 'fuzzy',
                                     };
                                 }
                                 return next;
@@ -244,8 +254,9 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         }
         setSearchLoading(true);
         try {
-            const items = await searchFoods(q, settings);
-            setSearchResults(items);
+            const { results, matchType } = await searchFoods(q, settings);
+            setSearchResults(results);
+            setSearchMatchType(matchType);
         } finally {
             setSearchLoading(false);
         }
@@ -268,13 +279,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             cookingMethod: undefined,
             foodItem: selectedFoodForPortion,
             loggedFood: logged,
+            isFuzzyMatch: searchMatchType === 'fuzzy',
         };
         setTagItems(prev => [...prev, tag]);
         setSelectedFoodForPortion(null);
         setSearchQuery('');
-    }, [selectedFoodForPortion]);
+    }, [selectedFoodForPortion, searchMatchType]);
 
-    const addTagFromFoodItem = useCallback((food: FoodItem, amountGrams?: number) => {
+    const addTagFromFoodItem = useCallback((food: FoodItem, amountGrams?: number, isFuzzy?: boolean) => {
         const grams = amountGrams ?? food.servingSize * PORTION_MULTIPLIERS['medium'];
         const logged = foodToLoggedFood(food, grams);
         const tag: TagWithFood = {
@@ -285,6 +297,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             cookingMethod: undefined,
             foodItem: food,
             loggedFood: logged,
+            isFuzzyMatch: isFuzzy,
         };
         setTagItems(prev => [...prev, tag]);
     }, []);
@@ -301,8 +314,9 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         const t = setTimeout(async () => {
             setHybridSuggestionsLoading(true);
             try {
-                const items = await searchFoods(description.trim(), settings);
-                setHybridSuggestions(items);
+                const { results, matchType } = await searchFoods(description.trim(), settings);
+                setHybridSuggestions(results);
+                setHybridMatchType(matchType);
             } finally {
                 setHybridSuggestionsLoading(false);
             }
@@ -353,6 +367,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             }
             return next;
         });
+    };
+
+    const setPortionReferenceForTag = (idx: number, ref: PortionReference) => {
+        const tag = tagItems[idx];
+        const food = tag?.foodItem;
+        const foodType = food ? getFoodTypeForPortion(food) : 'mixed';
+        const grams = getGramsForReference(ref, foodType);
+        setAmountGramsForTag(idx, grams);
     };
 
     const setCookingForTag = (idx: number, cookingMethod: CookingMethod | undefined) => {
@@ -467,12 +489,13 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             <h4 className="text-xs font-bold text-white">Cómo escribir la descripción</h4>
                             <ul className="text-[11px] text-zinc-400 space-y-1.5 list-disc list-inside">
                                 <li><strong className="text-zinc-300">Gramos:</strong> 200g arroz, 150g pechuga</li>
+                                <li><strong className="text-zinc-300">Referencias:</strong> 1 cucharada de aceite, una taza de arroz, un toque de sal, una palma de pollo</li>
                                 <li><strong className="text-zinc-300">Cantidad:</strong> 2 huevos, 3 panes</li>
-                                <li><strong className="text-zinc-300">Cocción:</strong> cocido, frito, a la plancha, al horno</li>
+                                <li><strong className="text-zinc-300">Cocción:</strong> cocido, frito, a la plancha, al horno. Si pesas cocido (pollo, carnes) o hidratado (soya), los macros se ajustan automáticamente.</li>
                                 <li><strong className="text-zinc-300">Porción:</strong> grande, mediano, chico</li>
                                 <li>Separa con comas o &quot;y&quot;: 200g arroz, 150g pollo</li>
                             </ul>
-                            <p className="text-[10px] text-zinc-500">Ejemplos: 300g arroz cocido y 200g pechuga a la plancha</p>
+                            <p className="text-[10px] text-zinc-500">Ejemplos: 1 cucharada de aceite, una taza de arroz cocido y una palma de pechuga a la plancha</p>
                             <button
                                 onClick={() => setShowHelp(false)}
                                 className="text-[10px] font-bold text-zinc-500 hover:text-white"
@@ -547,6 +570,11 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                         />
                                     </div>
                                     {searchLoading && <p className="text-xs text-zinc-500">Buscando...</p>}
+                                    {!searchLoading && searchMatchType === 'fuzzy' && searchResults.length > 0 && (
+                                        <p className="text-xs text-amber-400/90 bg-amber-500/10 rounded-lg px-3 py-2">
+                                            No hay coincidencia exacta. Mostrando los resultados más cercanos.
+                                        </p>
+                                    )}
                                     <div className="overflow-y-auto max-h-48 custom-scrollbar space-y-0.5">
                                         {searchResults.map(food => (
                                             <button
@@ -596,10 +624,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                             ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
                                                             : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
                                                     }`}
+                                                    title={t.isFuzzyMatch ? `No encontramos exactamente "${t.tag}"; usamos el alimento más parecido.` : undefined}
                                                 >
                                                     {t.quantity > 1 && <span>{t.quantity}x</span>}
                                                     {t.amountGrams != null && <span>{t.amountGrams}g</span>}
                                                     <span>{t.tag}</span>
+                                                    {t.isFuzzyMatch && (
+                                                        <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300" title="Coincidencia aproximada">Aprox.</span>
+                                                    )}
                                                     {t.loggedFood && (
                                                         <span className="font-mono text-[10px] opacity-80">{t.loggedFood.calories}kcal</span>
                                                     )}
@@ -609,6 +641,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                         <div>
                                                             <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Gramos</label>
                                                             <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Referencia (auto-rellena gramos)</label>
+                                                            <div className="flex gap-1 flex-wrap">
+                                                                {PORTION_REFERENCES.map(ref => (
+                                                                    <button key={ref.key} onClick={() => setPortionReferenceForTag(idx, ref.key)} className="px-2 py-1 rounded text-[9px] font-bold bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10" title={`≈${getGramsForReference(ref.key, t.foodItem ? getFoodTypeForPortion(t.foodItem) : 'mixed')}g`}>{ref.label}</button>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                         <div>
                                                             <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Porción</label>
@@ -626,6 +666,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                                 ))}
                                                             </div>
                                                         </div>
+                                                        {t.foodItem?.micronutrients && t.foodItem.micronutrients.length > 0 && (
+                                                            <div>
+                                                                <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Micronutrientes</label>
+                                                                <p className="text-[10px] text-zinc-400 font-mono">
+                                                                    {t.foodItem.micronutrients.map(m => `${m.name} ${m.amount}${m.unit}`).join(', ')}
+                                                                </p>
+                                                            </div>
+                                                        )}
                                                         <div className="flex justify-between pt-2 border-t border-white/5">
                                                             <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
                                                             {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}
@@ -684,7 +732,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                             if (hasStructuredContent(description)) {
                                                 parseAndSetTags();
                                             } else if (hybridSuggestions.length > 0) {
-                                                addTagFromFoodItem(hybridSuggestions[0]);
+                                                addTagFromFoodItem(hybridSuggestions[0], undefined, hybridMatchType === 'fuzzy');
                                                 setDescription('');
                                             }
                                         }
@@ -701,7 +749,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                 <button
                                                     key={food.id}
                                                     onClick={() => {
-                                                        addTagFromFoodItem(food);
+                                                        addTagFromFoodItem(food, undefined, hybridMatchType === 'fuzzy');
                                                         setDescription('');
                                                     }}
                                                     className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 border-b border-white/5 last:border-0"
@@ -738,10 +786,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                         ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
                                                         : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
                                                 }`}
+                                                title={t.isFuzzyMatch ? `No encontramos exactamente "${t.tag}"; usamos el alimento más parecido.` : undefined}
                                             >
                                                 {t.quantity > 1 && <span>{t.quantity}x</span>}
                                                 {t.amountGrams != null && <span>{t.amountGrams}g</span>}
                                                 <span>{t.tag}</span>
+                                                {t.isFuzzyMatch && (
+                                                    <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300" title="Coincidencia aproximada">Aprox.</span>
+                                                )}
                                                 {t.loggedFood && (
                                                     <span className="font-mono text-[10px] opacity-80">{t.loggedFood.calories}kcal</span>
                                                 )}
@@ -751,6 +803,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                     <div>
                                                         <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Gramos</label>
                                                         <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Referencia (auto-rellena gramos)</label>
+                                                        <div className="flex gap-1 flex-wrap">
+                                                            {PORTION_REFERENCES.map(ref => (
+                                                                <button key={ref.key} onClick={() => setPortionReferenceForTag(idx, ref.key)} className="px-2 py-1 rounded text-[9px] font-bold bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10" title={`≈${getGramsForReference(ref.key, t.foodItem ? getFoodTypeForPortion(t.foodItem) : 'mixed')}g`}>{ref.label}</button>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                     <div>
                                                         <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Porción</label>
@@ -768,6 +828,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                             ))}
                                                         </div>
                                                     </div>
+                                                    {t.foodItem?.micronutrients && t.foodItem.micronutrients.length > 0 && (
+                                                        <div>
+                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Micronutrientes</label>
+                                                            <p className="text-[10px] text-zinc-400 font-mono">
+                                                                {t.foodItem.micronutrients.map(m => `${m.name} ${m.amount}${m.unit}`).join(', ')}
+                                                            </p>
+                                                        </div>
+                                                    )}
                                                     <div className="flex justify-between pt-2 border-t border-white/5">
                                                         <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
                                                         {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}
@@ -846,10 +914,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                     ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
                                                     : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
                                             }`}
+                                            title={t.isFuzzyMatch ? `No encontramos exactamente "${t.tag}"; usamos el alimento más parecido.` : undefined}
                                         >
                                             {t.quantity > 1 && <span>{t.quantity}x</span>}
                                             {t.amountGrams != null && <span>{t.amountGrams}g</span>}
                                             <span>{t.tag}</span>
+                                            {t.isFuzzyMatch && (
+                                                <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300" title="Coincidencia aproximada">Aprox.</span>
+                                            )}
                                             {t.loggedFood && (
                                                 <span className="font-mono text-[10px] opacity-80">
                                                     {t.loggedFood.calories}kcal
@@ -878,6 +950,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                         ))}
                                                     </div>
                                                 </div>
+                                                {t.foodItem?.micronutrients && t.foodItem.micronutrients.length > 0 && (
+                                                    <div>
+                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Micronutrientes</label>
+                                                        <p className="text-[10px] text-zinc-400 font-mono">
+                                                            {t.foodItem.micronutrients.map(m => `${m.name} ${m.amount}${m.unit}`).join(', ')}
+                                                        </p>
+                                                    </div>
+                                                )}
                                                 <div className="flex justify-between pt-2 border-t border-white/5">
                                                     <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
                                                     {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}

@@ -37,6 +37,7 @@ export const FOOD_SYNONYMS: Record<string, string[]> = {
     'palta': ['aguacate', 'paltas', 'avocado'],
 
     // Legumbres y vegetales
+    'soya texturizada (seca)': ['soya texturizada', 'soja texturizada', 'proteína de soya', 'carne de soya', 'tvp', 'soya'],
     'lentejas': ['lenteja'],
     'garbanzos': ['garbanzo'],
     'porotos negros': ['porotos', 'frijoles negros', 'black beans'],

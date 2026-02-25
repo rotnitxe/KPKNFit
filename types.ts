@@ -279,6 +279,16 @@ export interface Settings {
   startWeekOn: number; // 0=Dom, 1=Lun
   remindersEnabled: boolean;
   reminderTime?: string;
+  mealRemindersEnabled: boolean;
+  breakfastReminderTime: string;
+  lunchReminderTime: string;
+  dinnerReminderTime: string;
+  missedWorkoutReminderEnabled: boolean;
+  missedWorkoutReminderTime: string;
+  augeBatteryReminderEnabled: boolean;
+  augeBatteryReminderThreshold: number;
+  augeBatteryReminderTime: string;
+  eventRemindersEnabled: boolean;
   autoSyncEnabled: boolean;
   appBackground?: SessionBackground;
   homeWidgetOrder?: string[];
@@ -753,7 +763,7 @@ export const PORTION_MULTIPLIERS: Record<PortionPreset, number> = {
 };
 
 export type PortionUnit = 'g' | 'oz' | 'preset' | 'reference';
-export type PortionReference = 'palm' | 'fist' | 'tablespoon' | 'cup' | 'handful';
+export type PortionReference = 'palm' | 'fist' | 'tablespoon' | 'cup' | 'handful' | 'pinch';
 
 export interface PortionInput {
     type: PortionUnit;
@@ -769,6 +779,8 @@ export interface ParsedMealItem {
     amountGrams?: number;
     cookingMethod?: CookingMethod;
     portion?: PortionPreset | PortionInput;
+    /** true cuando findInDatabase usó coincidencia parcial (no exacta) */
+    isFuzzyMatch?: boolean;
 }
 
 export interface ParsedMealDescription {
@@ -821,6 +833,9 @@ export interface NutritionLog {
     fats?: number;
 }
 
+/** Comportamiento al cocinar: 'shrinks' = pierde peso (carnes), 'expands' = gana peso (soya, legumbres secas) */
+export type CookingBehavior = 'shrinks' | 'expands';
+
 export interface FoodItem {
     id: string;
     name: string;
@@ -839,6 +854,9 @@ export interface FoodItem {
     proteinQuality?: { completeness: string; details: string };
     micronutrients?: { name: string; amount: number; unit: string }[];
     aiNotes?: string;
+    /** Si el alimento crudo/seco cambia de peso al cocinar. Factor: peso_cocido/peso_crudo (shrinks ~0.75) o peso_seco/peso_cocido (expands ~0.25) */
+    cookingBehavior?: CookingBehavior;
+    cookingWeightFactor?: number;
 }
 
 export interface PantryItem {
@@ -881,6 +899,7 @@ export interface ToastData {
     type: 'success' | 'achievement' | 'suggestion' | 'danger';
     title?: string;
     duration?: number;
+    why?: string;
 }
 
 // Wiki/Lab: Lesión común con enfoque en entrenamiento
@@ -1399,7 +1418,7 @@ export interface AppContextDispatch {
     setOngoingWorkout: React.Dispatch<React.SetStateAction<OngoingWorkoutState | null>>;
     navigateTo: (view: View, data?: any, options?: { replace?: boolean }) => void;
     handleBack: () => void;
-    addToast: (message: string, type?: ToastData['type'], title?: string, duration?: number) => void;
+    addToast: (message: string, type?: ToastData['type'], title?: string, duration?: number, why?: string) => void;
     removeToast: (id: number) => void;
     setPendingCoachBriefing: React.Dispatch<React.SetStateAction<string | null>>;
     setPendingWorkoutAfterBriefing: React.Dispatch<React.SetStateAction<{ session: Session; program: Program; weekVariant?: 'A' | 'B' | 'C' | 'D', location?: { macroIndex: number, mesoIndex: number, weekId: string } } | null>>;

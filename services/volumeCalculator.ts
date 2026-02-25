@@ -1,5 +1,5 @@
 // services/volumeCalculator.ts
-import { AthleteProfileScore, Settings, Mesocycle, Session, ExerciseMuscleInfo, MuscleRole } from '../types';
+import { AthleteProfileScore, Settings, Mesocycle, Session, ExerciseMuscleInfo, MuscleRole, WorkoutLog } from '../types';
 import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 
 // === CONSTANTES DEL INFORME (Módulos 4 y 5) ===
@@ -348,7 +348,7 @@ export const calculateUnifiedMuscleVolume = (
             if (!exercise || !exercise.sets) return;
 
             const validSetsCount = exercise.sets.filter(set => 
-                set && (set.reps > 0 || set.weight > 0 || set.targetReps) && set.type !== 'warmup'
+                set && (set.reps > 0 || set.weight > 0 || set.targetReps || (set as any).completedReps > 0) && set.type !== 'warmup'
             ).length;
 
             if (validSetsCount > 0) {
@@ -385,9 +385,29 @@ export const calculateUnifiedMuscleVolume = (
     });
 
     return Object.entries(volumeMap)
+        .filter(([muscleGroup]) => muscleGroup !== 'General') // Solo músculos reales, no "General"
         .map(([muscleGroup, volume]) => ({
             muscleGroup,
             displayVolume: Math.round(volume * 10) / 10
         }))
         .sort((a, b) => b.displayVolume - a.displayVolume);
+};
+
+/** Convierte WorkoutLog[] a sesiones virtuales para calcular volumen desde historial completado */
+export const calculateUnifiedMuscleVolumeFromLogs = (
+    logs: WorkoutLog[],
+    exerciseList: ExerciseMuscleInfo[]
+): { muscleGroup: string; displayVolume: number }[] => {
+    const virtualSessions: Session[] = (logs || []).map(log => ({
+        id: log.id || '',
+        name: log.sessionName || '',
+        exercises: (log.completedExercises || []).map((ex: any) => ({
+            id: ex.exerciseId || ex.id || '',
+            name: ex.exerciseName || ex.name || '',
+            exerciseDbId: ex.exerciseDbId,
+            sets: ex.sets || [],
+            targetMuscles: ex.targetMuscles,
+        })),
+    }));
+    return calculateUnifiedMuscleVolume(virtualSessions, exerciseList);
 };

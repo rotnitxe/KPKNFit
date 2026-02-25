@@ -117,8 +117,8 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
                                     <p className="text-center text-[10px] text-zinc-600 py-4">Agrega ejercicios para ver el volumen.</p>
                                 ) : (
                                     volumeData.sort((a, b) => b.displayVolume - a.displayVolume).map(v => (
-                                        <div key={v.muscle} className="flex items-center gap-3">
-                                            <span className="text-[10px] font-bold text-zinc-400 w-24 truncate">{v.muscle}</span>
+                                        <div key={v.muscleGroup} className="flex items-center gap-3">
+                                            <span className="text-[10px] font-bold text-zinc-400 w-24 truncate">{v.muscleGroup}</span>
                                             <div className="flex-1 h-2 bg-zinc-900 rounded-full overflow-hidden">
                                                 <div
                                                     className={`h-full rounded-full transition-all ${

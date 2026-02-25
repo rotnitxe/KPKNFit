@@ -11,3 +11,7 @@ export { ReadinessWidget } from './ReadinessWidget';
 export { StreakWidget } from './StreakWidget';
 export { QuickLogWidget } from './QuickLogWidget';
 export { SetupChecklistCard } from './SetupChecklistCard';
+export { VolumeByMuscleWidget } from './VolumeByMuscleWidget';
+export { RelativeStrengthWidget } from './RelativeStrengthWidget';
+export { Star1RMGoalsWidget } from './Star1RMGoalsWidget';
+export { KeyDatesWidget } from './KeyDatesWidget';

@@ -44,6 +44,8 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
 
+    const [matchType, setMatchType] = useState<'exact' | 'partial' | 'fuzzy'>('exact');
+
     const doSearch = useCallback(async (q: string) => {
         if (!q.trim()) {
             setResults([]);
@@ -51,15 +53,16 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
         }
         setIsLoading(true);
         try {
-            const items = await searchFoods(q, settings);
-            setResults(items);
+            const { results, matchType: mt } = await searchFoods(q, settings);
+            setResults(results);
+            setMatchType(mt);
         } finally {
             setIsLoading(false);
         }
     }, [settings]);
 
     useEffect(() => {
-        const t = setTimeout(() => doSearch(query), 300);
+        const t = setTimeout(() => doSearch(query), 200);
         return () => clearTimeout(t);
     }, [query, doSearch]);
 
@@ -103,6 +106,11 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
                         </div>
 
                         {isLoading && <p className="text-xs text-zinc-500">Buscando...</p>}
+                        {!isLoading && matchType === 'fuzzy' && results.length > 0 && (
+                            <p className="text-xs text-amber-400/90 bg-amber-500/10 rounded-lg px-3 py-2">
+                                No hay coincidencia exacta. Mostrando los resultados más cercanos.
+                            </p>
+                        )}
 
                         <div className="flex-grow overflow-y-auto max-h-64 custom-scrollbar space-y-0.5">
                             {results.map(food => (
@@ -132,11 +140,31 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
                         </div>
                     </>
                 ) : (
-                    <PortionSelector
-                        food={selectedFood}
-                        onConfirm={handlePortionConfirm}
-                        onCancel={handlePortionCancel}
-                    />
+                    <div className="space-y-4">
+                        <div>
+                            <p className="text-sm font-medium text-white">{selectedFood.name}</p>
+                            <p className="text-[10px] text-zinc-500 font-mono mt-0.5">
+                                {Math.round(selectedFood.calories)} kcal · P:{selectedFood.protein} C:{selectedFood.carbs} F:{selectedFood.fats}
+                            </p>
+                            {selectedFood.micronutrients && selectedFood.micronutrients.length > 0 && (
+                                <details className="mt-2 group">
+                                    <summary className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:text-zinc-300 list-none">
+                                        <span className="inline-flex items-center gap-1">Ver micronutrientes</span>
+                                    </summary>
+                                    <div className="mt-1.5 text-[10px] text-zinc-400 font-mono space-y-0.5">
+                                        {selectedFood.micronutrients.map((m, i) => (
+                                            <div key={i}>{m.name}: {m.amount} {m.unit}</div>
+                                        ))}
+                                    </div>
+                                </details>
+                            )}
+                        </div>
+                        <PortionSelector
+                            food={selectedFood}
+                            onConfirm={handlePortionConfirm}
+                            onCancel={handlePortionCancel}
+                        />
+                    </div>
                 )}
             </div>
         </TacticalModal>

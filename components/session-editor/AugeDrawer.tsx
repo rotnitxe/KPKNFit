@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { XIcon, ActivityIcon, TargetIcon } from '../icons';
-import { Session, ExerciseMuscleInfo } from '../../types';
+import { Session, ExerciseMuscleInfo, Settings } from '../../types';
 import { calculateUnifiedMuscleVolume } from '../../services/volumeCalculator';
 
 interface VolumeAlert {
@@ -59,6 +59,7 @@ interface AugeDrawerProps {
     suggestions: AugeSuggestion[];
     sessionDrain: DrainEstimate;
     weeklyDrain: DrainEstimate;
+    settings?: Settings;
     onAlertClick?: (exerciseName: string) => void;
     onApplyCorrection?: (aviso: UnifiedAviso) => void;
     onDismissAviso?: (id: string) => void;
@@ -68,7 +69,8 @@ interface AugeDrawerProps {
 const buildUnifiedAvisos = (
     volumeAlerts: VolumeAlert[],
     neuralAlerts: NeuralAlert[],
-    suggestions: AugeSuggestion[]
+    suggestions: AugeSuggestion[],
+    isDeficit: boolean
 ): UnifiedAviso[] => {
     const result: UnifiedAviso[] = [];
     neuralAlerts.filter(a => a.severity === 'critical').forEach((a, i) => {
@@ -78,7 +80,7 @@ const buildUnifiedAvisos = (
             message: a.message,
             severity: 'critical',
             type: a.type,
-            correctionType: a.type === 'Espinal' ? 'change_to_machine' : a.type === 'Déficit' ? 'reduce_volume_rpe' : 'reduce_rpe',
+            correctionType: a.type === 'Espinal' ? 'change_to_machine' : 'reduce_rpe',
         });
     });
     volumeAlerts.forEach((a, i) => {
@@ -98,10 +100,14 @@ const buildUnifiedAvisos = (
             message: a.message,
             severity: 'warning',
             type: a.type,
-            correctionType: a.type === 'Espinal' ? 'change_to_machine' : a.type === 'Déficit' ? 'reduce_volume_rpe' : 'reduce_rpe',
+            correctionType: a.type === 'Espinal' ? 'change_to_machine' : 'reduce_rpe',
         });
     });
+    const hasVolumeAlerts = volumeAlerts.length > 0;
     suggestions.forEach(sug => {
+        if (sug.id === 'sug-intensity-high' && hasVolumeAlerts) return;
+        if (sug.id === 'sug-intensity-light') return;
+        if (sug.id === 'sug-deficit') return;
         result.push({
             id: sug.id,
             kind: 'suggestion',
@@ -136,20 +142,24 @@ const getCorrectionDescription = (aviso: UnifiedAviso): string => {
     }
 };
 
-const getCorrectionButtonLabel = (aviso: UnifiedAviso): string => {
+/** Opciones de corrección para que el usuario elija (más control). */
+const getCorrectionOptions = (aviso: UnifiedAviso): { label: string; correctionType: CorrectionType }[] => {
     switch (aviso.correctionType) {
         case 'reduce_series':
-            return aviso.muscle ? `Quitar 1 serie en ${aviso.muscle}` : 'Quitar 1 serie';
+            return [{ label: aviso.muscle ? `Quitar 1 serie en ${aviso.muscle}` : 'Quitar 1 serie', correctionType: 'reduce_series' }];
         case 'reduce_rpe':
-            return 'Bajar intensidad';
+            return [{ label: 'Bajar intensidad (RPE/RIR)', correctionType: 'reduce_rpe' }];
         case 'change_to_machine':
-            return 'Bajar intensidad';
+            return [{ label: 'Bajar intensidad', correctionType: 'change_to_machine' }];
         case 'reduce_volume_rpe':
-            return 'Reducir volumen e intensidad';
+            return [
+                { label: 'Bajar intensidad', correctionType: 'reduce_rpe' },
+                { label: 'Limitar a 3 series y bajar intensidad', correctionType: 'reduce_volume_rpe' },
+            ];
         case 'add_series':
-            return aviso.muscle ? `Añadir 1 serie en ${aviso.muscle}` : 'Añadir serie';
+            return [{ label: aviso.muscle ? `Añadir 1 serie en ${aviso.muscle}` : 'Añadir serie', correctionType: 'add_series' }];
         default:
-            return 'Aplicar corrección';
+            return [{ label: 'Aplicar corrección', correctionType: aviso.correctionType || 'reduce_rpe' }];
     }
 };
 
@@ -218,15 +228,33 @@ const AvisoRow: React.FC<{
                         {aviso.kind === 'neural' && aviso.type && (
                             <span className="text-[10px] text-[#555] mt-0.5 block">{aviso.type}</span>
                         )}
+                        {!expanded && onApplyCorrection && getCorrectionOptions(aviso).length > 0 && (
+                            <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
+                                className="mt-2 text-[10px] font-bold text-[#00F0FF] hover:text-[#00F0FF]/80 transition-colors"
+                            >
+                                Ver opciones →
+                            </button>
+                        )}
                         {expanded && onApplyCorrection && (
                             <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
                                 <p className="text-[10px] text-[#999] leading-relaxed">{getCorrectionDescription(aviso)}</p>
-                                <button
-                                    onClick={handleApply}
-                                    className="px-3 py-1.5 rounded-lg bg-[#00F0FF] text-white text-[10px] font-bold hover:brightness-110 transition-all"
-                                >
-                                    {getCorrectionButtonLabel(aviso)}
-                                </button>
+                                <div className="flex flex-col gap-1.5">
+                                    {getCorrectionOptions(aviso).map((opt, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onApplyCorrection?.({ ...aviso, correctionType: opt.correctionType });
+                                                setExpanded(false);
+                                            }}
+                                            className="px-3 py-1.5 rounded-lg bg-[#00F0FF] text-white text-[10px] font-bold hover:brightness-110 transition-all text-left"
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -239,7 +267,7 @@ const AvisoRow: React.FC<{
 const AugeDrawer: React.FC<AugeDrawerProps> = ({
     isOpen, onClose, session, weekSessions, exerciseList,
     volumeAlerts, neuralAlerts, suggestions,
-    sessionDrain, weeklyDrain,
+    sessionDrain, weeklyDrain, settings,
     onAlertClick, onApplyCorrection, onDismissAviso, dismissedAvisoIds = new Set(),
 }) => {
     const [volumeContext, setVolumeContext] = useState<'session' | 'week'>('session');
@@ -252,7 +280,7 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
 
     if (!isOpen) return null;
 
-    const allAvisos = buildUnifiedAvisos(volumeAlerts, neuralAlerts, suggestions);
+    const allAvisos = buildUnifiedAvisos(volumeAlerts, neuralAlerts, suggestions, settings?.calorieGoalObjective === 'deficit');
     const visibleAvisos = allAvisos.filter(a => !dismissedAvisoIds.has(a.id));
 
     return (
@@ -270,6 +298,15 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+                    {/* Aviso estático de déficit calórico (no alarmista) */}
+                    {settings?.calorieGoalObjective === 'deficit' && (
+                        <div className="p-3 rounded-lg bg-[#00F0FF]/5 border border-[#00F0FF]/15">
+                            <p className="text-[10px] text-[#00F0FF]/90 leading-relaxed">
+                                Estás en déficit calórico. La recuperación muscular puede ser más lenta. Considera priorizar volumen moderado y evitar ir al fallo en cada serie.
+                            </p>
+                        </div>
+                    )}
+
                     {visibleAvisos.length > 0 && (
                         <section>
                             <h3 className="text-xs font-bold uppercase tracking-wide text-[#999] mb-3">

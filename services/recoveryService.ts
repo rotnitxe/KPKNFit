@@ -3,6 +3,7 @@ import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionF
 import { computeNutritionRecoveryMultiplier } from './nutritionRecoveryService';
 import { calculateSetStress, getDynamicAugeMetrics, WEEKLY_CNS_FATIGUE_REFERENCE } from './fatigueService';
 import { buildExerciseIndex, findExercise, ExerciseIndex } from '../utils/exerciseIndex';
+import { getLocalDateString } from '../utils/dateUtils';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
 
@@ -154,7 +155,7 @@ export const calculateMuscleBattery = (
     let recoveryTimeMultiplier = 1.0;
     
     // Extraer el log de bienestar más reciente
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     const recentWellbeing = dailyWellbeingLogs.find(l => l.date === todayStr) || dailyWellbeingLogs[dailyWellbeingLogs.length - 1];
 
     // --- INTEGRACIÓN NUTRICIÓN DINÁMICA AUGE (lógica no lineal) ---
@@ -430,7 +431,7 @@ export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: Sleep
     }
 
    // 3. Carga Cognitiva y Estrés Vital (Background Load) - BLINDADO
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
     const wellbeing = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
     
@@ -473,7 +474,7 @@ export const calculateDailyReadiness = (
     let recoveryTimeMultiplier = 1.0;
     const diagnostics: string[] = [];
     
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
     const recentWellbeing = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
 
@@ -648,7 +649,7 @@ export const calculateGlobalBatteries = (
     let spinalHalfLife = 72; // Tejido conectivo y fascia tardan muchísimo
 
     const auditLogs = { cns: [] as BatteryAuditLog[], muscular: [] as BatteryAuditLog[], spinal: [] as BatteryAuditLog[] };
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
     const recentWellbeing = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
 

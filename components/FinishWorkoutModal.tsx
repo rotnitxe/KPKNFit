@@ -9,6 +9,7 @@ import { CheckCircleIcon, ArrowUpIcon, ArrowDownIcon, ZapIcon, BrainIcon, Activi
 import { useAppDispatch } from '../contexts/AppContext';
 import { shareElementAsImage } from '../services/shareService';
 import CaupolicanBackground from './social/CaupolicanBackground';
+import { getLocalDateString } from '../utils/dateUtils';
 
 interface FinishWorkoutModalProps {
   isOpen: boolean;
@@ -109,7 +110,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
   const [planAdherenceTags, setPlanAdherenceTags] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [durationInMinutes, setDurationInMinutes] = useState('');
-  const [logDate, setLogDate] = useState(new Date().toISOString().split('T')[0]);
+  const [logDate, setLogDate] = useState(getLocalDateString());
   const [showRecoverySuggestion, setShowRecoverySuggestion] = useState(false);
   const prevIsOpen = useRef(isOpen);
   const [isSharing, setIsSharing] = useState(false);
@@ -120,7 +121,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
         setDurationInMinutes(Math.round(initialDurationInSeconds / 60).toString());
       }
       if (initialNotes) setNotes(initialNotes);
-      setLogDate(new Date().toISOString().split('T')[0]);
+      setLogDate(getLocalDateString());
     }
     
     if (!isOpen && prevIsOpen.current) {

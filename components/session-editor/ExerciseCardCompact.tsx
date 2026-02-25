@@ -169,7 +169,7 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                 className="w-full flex items-center gap-3 p-3 text-left"
             >
                 <button
-                    onClick={(e) => { e.stopPropagation(); onUpdate(partIndex, exerciseIndex, d => { d.isStarTarget = !d.isStarTarget; }); }}
+                    onClick={(e) => { e.stopPropagation(); onUpdate(partIndex, exerciseIndex, d => { d.isStarTarget = !d.isStarTarget; if (!d.isStarTarget) d.goal1RM = undefined; }); }}
                     className={`shrink-0 ${exercise.isStarTarget ? 'text-yellow-400' : 'text-zinc-700'}`}
                 >
                     <StarIcon size={14} filled={exercise.isStarTarget} />
@@ -235,19 +235,37 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                         <div>
                             <label className="text-[8px] font-bold text-zinc-600 uppercase block mb-1">Descanso</label>
                             <div className="flex items-center gap-1">
-                                <input
-                                    type="time"
-                                    step="30"
-                                    value={(() => { const s = Math.min(300, exercise.restTime || 90); const m = Math.floor(s / 60); const sec = s % 60; return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; })()}
-                                    onChange={e => {
-                                        const v = e.target.value;
-                                        if (!v) return;
-                                        const parts = v.split(':').map(Number);
-                                        const seconds = parts.length === 2 ? (parts[0] || 0) * 60 + (parts[1] || 0) : (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
-                                        onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, seconds); });
-                                    }}
-                                    className="flex-1 min-w-0 bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
-                                />
+                                <div className="flex items-center gap-0.5 flex-1 min-w-0">
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={0}
+                                        max={5}
+                                        value={Math.floor((Math.min(300, exercise.restTime || 90)) / 60)}
+                                        onChange={e => {
+                                            const m = Math.min(5, Math.max(0, parseInt(e.target.value, 10) || 0));
+                                            const sec = (exercise.restTime || 90) % 60;
+                                            onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, m * 60 + sec); });
+                                        }}
+                                        className="w-10 bg-black border border-white/10 rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
+                                        placeholder="0"
+                                    />
+                                    <span className="text-zinc-500 text-[10px]">:</span>
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={0}
+                                        max={59}
+                                        value={(exercise.restTime || 90) % 60}
+                                        onChange={e => {
+                                            const sec = Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0));
+                                            const m = Math.floor((Math.min(300, exercise.restTime || 90)) / 60);
+                                            onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, m * 60 + sec); });
+                                        }}
+                                        className="w-10 bg-black border border-white/10 rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
+                                        placeholder="00"
+                                    />
+                                </div>
                                 {exercise.sets?.length > 0 && (() => {
                                     const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
                                     const avgPercent1RM = exercise.trainingMode === 'percent' && exercise.sets?.length ? exercise.sets.reduce((a, s) => a + ((s as any).targetPercentageRM || 0), 0) / exercise.sets.length : undefined;
@@ -274,6 +292,22 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                             </select>
                         </div>
                     </div>
+
+                    {/* 1RM meta (solo cuando es ejercicio estrella) */}
+                    {exercise.isStarTarget && (
+                        <div className="bg-amber-950/20 border border-amber-500/20 rounded-xl p-2.5">
+                            <label className="text-[8px] font-bold text-amber-400/90 uppercase block mb-1.5">1RM Meta (kg)</label>
+                            <input
+                                type="number"
+                                value={exercise.goal1RM ?? ''}
+                                onChange={e => { const v = e.target.value; onUpdate(partIndex, exerciseIndex, d => { d.goal1RM = v === '' ? undefined : (parseFloat(v) ?? undefined); }); }}
+                                placeholder="Ej: 120"
+                                min={1}
+                                className="w-full bg-black border border-amber-500/30 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white placeholder-zinc-600 focus:ring-1 focus:ring-amber-500/50"
+                            />
+                            <p className="text-[8px] text-zinc-500 mt-1">Progreso hacia esta meta en Analytics y widgets</p>
+                        </div>
+                    )}
 
                     {/* 1RM calculator (only in percent mode) */}
                     {exercise.trainingMode === 'percent' && (

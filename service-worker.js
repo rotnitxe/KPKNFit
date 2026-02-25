@@ -109,21 +109,23 @@ async function updateWidget(instanceId) {
     let template = '';
     let data = {};
 
-    // Estilos comunes para todos los widgets
+    // Estilos comunes - Hevy-inspired: blanco, limpio, sin bordes llamativos
     const commonStyles = `
         <style>
             body {
-                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-                margin: 0; padding: 16px;
-                background: rgba(30,30,30,0.8); color: #FFFFFF;
-                border-radius: 16px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                margin: 0; padding: 14px;
+                background: #ffffff;
+                color: #18181b;
+                border-radius: 12px;
                 height: 100%;
                 box-sizing: border-box;
                 display: flex;
                 flex-direction: column;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             }
             h1, h2, h3, p { margin: 0; }
-            .widget-title { font-size: 14px; color: #00FFFF; font-weight: bold; margin-bottom: 8px; flex-shrink: 0; }
+            .widget-title { font-size: 11px; color: #71717a; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; flex-shrink: 0; }
         </style>
     `;
 
@@ -137,8 +139,8 @@ async function updateWidget(instanceId) {
             template = `
                 ${commonStyles}
                 <style>
-                    #widget-session-name { font-size: 18px; font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                    #widget-program-name { font-size: 12px; color: #BBBBBB; margin-top: 2px; }
+                    #widget-session-name { font-size: 17px; font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #18181b; }
+                    #widget-program-name { font-size: 11px; color: #71717a; margin-top: 2px; }
                 </style>
                 <h1 class="widget-title">${data.title}</h1>
                 <h2 id="widget-session-name">${data.session}</h2>
@@ -153,10 +155,10 @@ async function updateWidget(instanceId) {
                 <style>
                     .macro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-grow: 1;}
                     .macro-item { text-align: center; }
-                    .macro-value { font-size: 18px; font-weight: 600; }
-                    .macro-label { font-size: 11px; color: #BBBBBB; text-transform: uppercase; }
+                    .macro-value { font-size: 17px; font-weight: 600; color: #18181b; }
+                    .macro-label { font-size: 10px; color: #71717a; text-transform: uppercase; letter-spacing: 0.03em; }
                     .calories { grid-column: 1 / -1; margin-bottom: 8px; text-align: center; }
-                    .calories .macro-value { color: #22c55e; font-size: 24px; }
+                    .calories .macro-value { color: #18181b; font-size: 22px; }
                 </style>
                 <h1 class="widget-title">Macros de Hoy</h1>
                 <div class="macro-grid">
@@ -192,12 +194,12 @@ async function updateWidget(instanceId) {
                 ${commonStyles}
                 <style>
                     .muscle-list { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; justify-content: center; }
-                    .muscle-item { display: flex; align-items: center; justify-content: space-between; }
-                    .muscle-name { font-size: 14px; font-weight: 500; }
-                    .muscle-score { font-size: 16px; font-weight: bold; }
-                    .score-red { color: #f87171; }
-                    .score-yellow { color: #facc15; }
-                    .score-green { color: #4ade80; }
+                    .muscle-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+                    .muscle-name { font-size: 13px; font-weight: 500; color: #18181b; }
+                    .muscle-score { font-size: 14px; font-weight: 600; }
+                    .score-red { color: #dc2626; }
+                    .score-yellow { color: #ca8a04; }
+                    .score-green { color: #16a34a; }
                 </style>
                 <h1 class="widget-title">Batería Muscular</h1>
                 <div class="muscle-list">
@@ -218,18 +220,52 @@ async function updateWidget(instanceId) {
                 ${commonStyles}
                 <style>
                     .volume-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-                    .volume-summary { font-size: 28px; font-weight: 600; text-align: center; margin: 4px 0; }
-                    .volume-label { font-size: 12px; color: #BBBBBB; text-align: center; }
-                    .progress-bar-bg { background: #444; border-radius: 4px; height: 8px; margin-top: 8px; }
-                    .progress-bar-fg { background: #3b82f6; border-radius: 4px; height: 100%; width: ${percentage}%; }
+                    .volume-summary { font-size: 24px; font-weight: 600; text-align: center; margin: 4px 0; color: #18181b; }
+                    .volume-label { font-size: 11px; color: #71717a; text-align: center; }
+                    .progress-bar-bg { background: #e4e4e7; border-radius: 6px; height: 6px; margin-top: 8px; overflow: hidden; }
+                    .progress-bar-fg { background: #3b82f6; border-radius: 6px; height: 100%; width: ${percentage}%; transition: width 0.3s ease; }
                 </style>
                 <h1 class="widget-title">Volumen Efectivo (Semanal)</h1>
                 <div class="volume-container">
-                    <p class="volume-summary">${data.completed} <span style="font-size: 18px; color: #BBBBBB;">/ ${data.planned}</span></p>
+                    <p class="volume-summary">${data.completed} <span style="font-size: 16px; color: #71717a;">/ ${data.planned}</span></p>
                     <p class="volume-label">Series Efectivas</p>
                     <div class="progress-bar-bg">
                         <div class="progress-bar-fg"></div>
                     </div>
+                </div>
+            `;
+            break;
+
+        case 'volume_by_muscle':
+            data = {
+                muscles: [
+                    { name: "Pectoral", volume: 24 },
+                    { name: "Cuádriceps", volume: 18 },
+                    { name: "Dorsales", volume: 12 }
+                ]
+            };
+            const maxVol = Math.max(...data.muscles.map(m => m.volume), 1);
+            template = `
+                ${commonStyles}
+                <style>
+                    .muscle-volume-list { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; justify-content: center; }
+                    .muscle-volume-item { display: flex; align-items: center; gap: 8px; }
+                    .muscle-volume-name { font-size: 12px; font-weight: 500; color: #18181b; width: 70px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                    .muscle-volume-bar-bg { flex: 1; height: 6px; background: #e4e4e7; border-radius: 6px; overflow: hidden; min-width: 0; }
+                    .muscle-volume-bar-fg { height: 100%; background: linear-gradient(90deg, #0891b2, #06b6d4); border-radius: 6px; min-width: 4px; }
+                    .muscle-volume-value { font-size: 11px; font-weight: 600; color: #0891b2; width: 24px; text-align: right; flex-shrink: 0; }
+                </style>
+                <h1 class="widget-title">Volumen por Músculo</h1>
+                <div class="muscle-volume-list">
+                    ${data.muscles.map(m => {
+                        const pct = Math.max((m.volume / maxVol) * 100, 4);
+                        return `
+                        <div class="muscle-volume-item">
+                            <span class="muscle-volume-name">${m.name}</span>
+                            <div class="muscle-volume-bar-bg"><div class="muscle-volume-bar-fg" style="width:${pct}%"></div></div>
+                            <span class="muscle-volume-value">${m.volume}</span>
+                        </div>
+                    `}).join('')}
                 </div>
             `;
             break;
