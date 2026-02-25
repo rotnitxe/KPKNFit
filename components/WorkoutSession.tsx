@@ -1,9 +1,10 @@
 // components/WorkoutSession.tsx
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, ExerciseSet, SessionBackground, OngoingSetData, SetInputState, UnilateralSetInputs, DropSetData, RestPauseData, ExerciseMuscleInfo, Program, Settings, PlanDeviation, CoverStyle, ToastData } from '../types';
 import Button from './ui/Button';
 import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons'; 
-import { playSound } from '../services/soundService';
+import { playSound, preloadSounds, configureAudioSession } from '../services/soundService';
 import { hapticImpact as _hapticImpact, ImpactStyle, hapticNotification as _hapticNotification, NotificationType } from '../services/hapticsService';
 import { calculateBrzycki1RM, getWeightSuggestionForSet, roundWeight, calculateWeightFrom1RM } from '../utils/calculations';
 import { useAppDispatch, useAppState, useAppContext } from '../contexts/AppContext';
@@ -961,6 +962,29 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const dispatch = useAppDispatch();
     useKeyboardOverlayMode(true);
     const { setOngoingWorkout, handleStartRest, handleSkipRestTimer, addToast, setIsLiveCoachActive, addOrUpdateCustomExercise } = dispatch;
+
+    useEffect(() => {
+        configureAudioSession();
+        preloadSounds();
+    }, []);
+
+    useEffect(() => {
+        if (!Capacitor.isNativePlatform()) return;
+        const lockLandscape = async () => {
+            try {
+                const { ScreenOrientation } = await import('@capacitor/screen-orientation');
+                await ScreenOrientation.lock({ orientation: 'landscape' });
+            } catch (e) {
+                console.warn('[WorkoutSession] ScreenOrientation lock failed:', e);
+            }
+        };
+        lockLandscape();
+        return () => {
+            import('@capacitor/screen-orientation').then(({ ScreenOrientation }) =>
+                ScreenOrientation.unlock().catch(() => {})
+            );
+        };
+    }, []);
     
     const [isFocusMode, setIsFocusMode] = useState(true); 
     const [isSkippingRest, setIsSkippingRest] = useState(false); // CANDADO DE SEGURIDAD

@@ -1,10 +1,8 @@
-
 // services/soundService.ts
 import { Capacitor } from '@capacitor/core';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { NativeAudio } from '@capacitor-community/native-audio';
-import { Settings } from '../types';
-import { storageService } from './storageService';
+import { useSettingsStore } from '../stores/settingsStore';
 
 // Audio element cache for Web Fallback
 const audioElements: { [key: string]: HTMLAudioElement } = {};
@@ -19,16 +17,15 @@ const SOUND_FILES: { [key: string]: string } = {
   'session-complete-sound': 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg',
 };
 
-// Map remote URLs to local asset paths for NativeAudio if available
-// Assuming these files are placed in android/app/src/main/assets/public/assets/sounds/
+// Local WAV files in www/assets/sounds/ (copied to public/assets/sounds/ by cap sync)
 const NATIVE_ASSET_PATHS: { [key: string]: string } = {
-    'rest-timer-sound': 'beeper_confirm.mp3',
-    'set-logged-sound': 'switch_toggle_on.mp3',
-    'ui-click-sound': 'ui_tap_forward.mp3',
-    'tab-switch-sound': 'ui_tap_reverse.mp3',
-    'new-pr-sound': 'bugle_tune.mp3',
-    'rep-surplus-sound': 'beeper_confirm.mp3',
-    'session-complete-sound': 'alarm_clock.mp3',
+    'rest-timer-sound': 'public/assets/sounds/beeper_confirm.wav',
+    'set-logged-sound': 'public/assets/sounds/switch_toggle_on.wav',
+    'ui-click-sound': 'public/assets/sounds/ui_tap_forward.wav',
+    'tab-switch-sound': 'public/assets/sounds/ui_tap_reverse.wav',
+    'new-pr-sound': 'public/assets/sounds/bugle_tune.wav',
+    'rep-surplus-sound': 'public/assets/sounds/beeper_confirm.wav',
+    'session-complete-sound': 'public/assets/sounds/alarm_clock.wav',
 };
 
 let areSoundsPreloaded = false;
@@ -76,7 +73,7 @@ export const preloadSounds = async () => {
  */
 export const playSound = async (soundId: string) => {
   try {
-    const settings = await storageService.get<Settings>('yourprime-settings');
+    const settings = useSettingsStore.getState().settings;
     if (!settings?.soundsEnabled) return;
 
     if (Capacitor.isNativePlatform()) {
@@ -125,10 +122,7 @@ const playWebSound = (soundId: string) => {
  */
 export const speak = async (text: string, lang = 'es-ES') => {
     try {
-        const settings = await storageService.get<Settings>('yourprime-settings');
-        // Check setting if sounds explicitly disabled? Usually voice is separate, 
-        // but let's assume it shares 'soundsEnabled' or a future 'voiceEnabled'.
-        // For now, always speak if called explicitly.
+        // Voice/TTS is separate from sound effects; always speak when called explicitly
 
         // Request Audio Focus / Ducking logic implies we are about to make noise.
         // The TextToSpeech plugin on Android usually handles ducking if category is correct.

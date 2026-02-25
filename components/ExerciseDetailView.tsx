@@ -188,9 +188,9 @@ const ImageVideoGallery: React.FC<{
                         ))}
                         {videos.map((vid, i) => (
                              <div key={`vid-${i}`} className="snap-center flex-shrink-0 w-4/5 sm:w-3/5">
-                                <a href={vid} target="_blank" rel="noopener noreferrer" className="aspect-video bg-black rounded-lg flex items-center justify-center text-white w-full h-full shadow-md">
+                                <button type="button" onClick={() => import('../utils/inAppBrowser').then(m => m.openInAppBrowser(vid))} className="aspect-video bg-black rounded-lg flex items-center justify-center text-white w-full h-full shadow-md hover:opacity-90">
                                     <VideoIcon size={32} />
-                                </a>
+                                </button>
                             </div>
                         ))}
                         {!hasMedia && (

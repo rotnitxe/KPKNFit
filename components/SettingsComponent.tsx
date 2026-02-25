@@ -14,6 +14,8 @@ import {
     TrendingUpIcon, ClipboardListIcon, CheckCircleIcon, GridIcon, CalendarIcon
 } from './icons';
 import { storageService } from '../services/storageService';
+import { checkForAppUpdate, performImmediateUpdate } from '../services/appUpdateService';
+import { Capacitor } from '@capacitor/core';
 import BackgroundEditorModal from './SessionBackgroundModal';
 import { NutritionPlanEditorModal } from './nutrition/NutritionPlanEditorModal';
 import { useAppDispatch } from '../contexts/AppContext';
@@ -33,6 +35,41 @@ interface SettingsProps {
   setInstallPromptEvent: (event: any) => void;
   isOnline: boolean;
 }
+
+const AppUpdateCheckItem: React.FC = () => {
+    const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'updating' | 'error' | 'current'>('idle');
+    const [info, setInfo] = useState<{ currentVersion: string; availableVersion?: string } | null>(null);
+    const handleCheck = async () => {
+        setStatus('checking');
+        const result = await checkForAppUpdate();
+        if (!result) { setStatus('error'); return; }
+        setInfo({ currentVersion: result.currentVersion, availableVersion: result.availableVersion });
+        if (result.updateAvailable) setStatus('available');
+        else setStatus('current');
+    };
+    const handleUpdate = async () => {
+        setStatus('updating');
+        const ok = await performImmediateUpdate();
+        if (!ok) setStatus('error');
+    };
+    return (
+        <div className="space-y-3">
+            <SettingsItem label="Buscar actualizaciones" description="Google Play (solo si la app está publicada)." icon={<RefreshCwIcon size={18}/>}>
+                <Button onClick={handleCheck} variant="secondary" disabled={status === 'checking'} className="!py-2 !px-4 !text-[10px] font-black uppercase">
+                    {status === 'checking' ? 'Buscando...' : 'Comprobar'}
+                </Button>
+            </SettingsItem>
+            {status === 'available' && info && (
+                <div className="p-4 rounded-2xl border border-green-500/30 bg-green-500/10 space-y-2">
+                    <p className="text-sm text-green-400 font-bold">Actualización disponible: v{info.availableVersion}</p>
+                    <Button onClick={handleUpdate} className="!py-2 !px-4 !text-[10px] font-black uppercase">Actualizar ahora</Button>
+                </div>
+            )}
+            {status === 'current' && <p className="text-[10px] text-slate-500 font-bold">Estás en la última versión.</p>}
+            {status === 'error' && <p className="text-[10px] text-red-400 font-bold">No se pudo comprobar. (¿App en Play Store?)</p>}
+        </div>
+    );
+};
 
 const SettingsSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon, children, defaultOpen = false }) => (
     <details className="settings-card group" open={defaultOpen}>
@@ -558,6 +595,13 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                     <Button onClick={() => fileInputRef.current?.click()} variant="secondary" className="w-full !py-3 !text-xs font-black uppercase"><UploadIcon size={14} className="mr-2"/> Importar DB Ejercicios</Button>
                 </div>
             </SettingsSection>
+
+            {/* --- SECCIÓN: ACTUALIZACIONES (Android) --- */}
+            {Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' && (
+                <SettingsSection title="Actualizaciones" icon={<RefreshCwIcon />}>
+                    <AppUpdateCheckItem />
+                </SettingsSection>
+            )}
 
             <div className="text-center pt-10 pb-20">
                 <p className="text-[10px] text-slate-700 font-black uppercase tracking-[0.5em]">KPKN Ecosistema • v3.2</p>

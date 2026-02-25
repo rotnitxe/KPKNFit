@@ -1,7 +1,6 @@
 // services/hapticsService.ts
 import { Capacitor } from '@capacitor/core';
-import { storageService } from './storageService';
-import { Settings } from '../types';
+import { useSettingsStore } from '../stores/settingsStore';
 import type { ImpactStyle as CapImpactStyle, NotificationType as CapNotificationType } from '@capacitor/haptics';
 
 // Re-export the types for use in other parts of the app
@@ -22,21 +21,29 @@ export const NotificationType = {
     ERROR: 'ERROR'
 } as const;
 
+const COOLDOWN_MS = 200;
+let lastHapticTime = 0;
 
-const canUseHaptics = async (): Promise<boolean> => {
+const canUseHaptics = (): boolean => {
     if (!Capacitor.isNativePlatform()) return false;
     try {
-        const settings = await storageService.get<Settings>('yourprime-settings');
-        // Default to true if settings are not found or property is missing
+        const settings = useSettingsStore.getState().settings;
         return settings?.hapticFeedbackEnabled ?? true;
     } catch {
         return true; // Failsafe
     }
+};
+
+const checkCooldown = (): boolean => {
+    const now = Date.now();
+    if (now - lastHapticTime < COOLDOWN_MS) return false;
+    lastHapticTime = now;
+    return true;
 }
 
 // Function to trigger a haptic impact feedback
 export const hapticImpact = async (style: CapImpactStyle = ImpactStyle.Light) => {
-  if (!await canUseHaptics()) return;
+  if (!canUseHaptics() || !checkCooldown()) return;
   try {
     const { Haptics } = await import('@capacitor/haptics');
     await Haptics.impact({ style });
@@ -47,7 +54,7 @@ export const hapticImpact = async (style: CapImpactStyle = ImpactStyle.Light) =>
 
 // Function to trigger a haptic notification feedback
 export const hapticNotification = async (type: CapNotificationType) => {
-  if (!await canUseHaptics()) return;
+  if (!canUseHaptics() || !checkCooldown()) return;
   try {
     const { Haptics } = await import('@capacitor/haptics');
     await Haptics.notification({ type });
@@ -58,7 +65,7 @@ export const hapticNotification = async (type: CapNotificationType) => {
 
 // Function to trigger a haptic feedback for selection changes
 export const hapticSelection = async () => {
-  if (!await canUseHaptics()) return;
+  if (!canUseHaptics() || !checkCooldown()) return;
   try {
     const { Haptics } = await import('@capacitor/haptics');
     await Haptics.selectionStart();

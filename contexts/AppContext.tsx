@@ -36,6 +36,7 @@ import { calculateCompletedSessionStress, calculateCompletedSessionDrainBreakdow
 import { queueFatigueDataPoint, queueTrainingImpulse } from '../services/augeAdaptiveService';
 import { scheduleRestEndNotification, cancelRestEndNotification, rescheduleAllNotifications, cancelMissedWorkoutNotificationForToday } from '../services/notificationService';
 import { syncWidgetData } from '../services/widgetSyncService';
+import { addNetworkStatusListener } from '../services/networkService';
 import { getCachedAdaptiveData } from '../services/augeAdaptiveService';
 import { UIProvider, UIState, UIDispatch } from './UIContext';
 import { JOINT_DATABASE } from '../data/jointDatabase';
@@ -105,14 +106,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, []);
 
     useEffect(() => {
-        const handleOnline = () => ui.setIsOnline(true);
-        const handleOffline = () => ui.setIsOnline(false);
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
-        return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-        };
+        let remove: (() => void) | (() => Promise<void>) = () => {};
+        addNetworkStatusListener((status) => ui.setIsOnline(status.connected)).then((fn) => { remove = fn; });
+        return () => { remove(); };
     }, []);
 
     // Sincronizar widgets nativos de Android (próxima sesión, batería AUGE)
@@ -921,7 +917,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const closeAddPantryItemModal = useCallback(() => { ui.setIsAddPantryItemModalOpen(false); ui.setFoodItemToAdd_to_pantry(null); }, []);
 
     const restTimerInterval = useRef<number | null>(null);
+    const hasFiredRestEndFeedback = useRef(false);
     const handleStartRest = useCallback((duration: number, exerciseName: string) => {
+        hasFiredRestEndFeedback.current = false;
         if (restTimerInterval.current) clearInterval(restTimerInterval.current);
         const key = Date.now();
         const endTime = Date.now() + duration * 1000;
@@ -934,9 +932,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     if (newRemaining <= 0) {
                         clearInterval(restTimerInterval.current!);
                         cancelRestEndNotification();
-                        if (currentTimer.remaining > 0) {
+                        if (!hasFiredRestEndFeedback.current) {
+                            hasFiredRestEndFeedback.current = true;
                             playSound('rest-timer-sound');
-                            if (settings.hapticFeedbackEnabled) { hapticNotification(NotificationType.SUCCESS as any); setTimeout(() => hapticImpact(ImpactStyle.Medium as any), 150); }
+                            hapticNotification(NotificationType.SUCCESS as any);
                         }
                         setTimeout(() => ui.setRestTimer(t => t?.key === key ? null : t), 3000);
                         return { ...currentTimer, remaining: 0 };
@@ -947,7 +946,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 return currentTimer;
             });
         }, 250);
-    }, [settings.hapticFeedbackEnabled]);
+    }, []);
 
     const handleAdjustRestTimer = useCallback((amountInSeconds: number) => { ui.setRestTimer(ct => ct ? { ...ct, remaining: Math.max(0, ct.remaining + amountInSeconds), endTime: ct.endTime + (amountInSeconds * 1000) } : null); }, []);
     const handleSkipRestTimer = useCallback(() => { if (restTimerInterval.current) clearInterval(restTimerInterval.current); cancelRestEndNotification(); ui.setRestTimer(null); }, []);

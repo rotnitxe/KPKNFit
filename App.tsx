@@ -8,6 +8,7 @@ import useAchievements from './hooks/useAchievements';
 import { pSBC } from './utils/colorUtils';
 import useLocalStorage from './hooks/useLocalStorage';
 import { setupNotificationChannels, rescheduleAllNotifications } from './services/notificationService';
+import { syncStatusBarWithTheme } from './services/statusBarService';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import SpecialSessionLoggerModal from './components/SpecialSessionLoggerModal';
@@ -364,6 +365,10 @@ export const App: React.FC = () => {
             });
         });
     }, [programs, activeProgramId, activeProgramState, settings, history, nutritionLogs]);
+
+    useEffect(() => {
+        syncStatusBarWithTheme(settings);
+    }, [settings.appTheme]);
 
     useEffect(() => {
         if (!Capacitor.isNativePlatform()) return;
