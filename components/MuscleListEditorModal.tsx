@@ -59,7 +59,7 @@ const MuscleListEditorModal: React.FC<MuscleListEditorModalProps> = ({ isOpen, o
     }, [allMuscles, currentMuscles, searchQuery]);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Editar Músculos de: ${categoryInfo.name}`}>
+        <TacticalModal isOpen={isOpen} onClose={onClose} title={`Editar Músculos de: ${categoryInfo.name}`}>
             <div className="space-y-4 max-h-[70vh] flex flex-col">
                 <div className="flex-grow space-y-2 overflow-y-auto pr-2">
                     <h3 className="text-lg font-semibold text-white">Músculos Actuales</h3>
