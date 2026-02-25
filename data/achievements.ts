@@ -1,5 +1,5 @@
 // data/achievements.ts
-import { Achievement, WorkoutLog } from '../types';
+import { Achievement, WorkoutLog, CompletedExercise, CompletedSet } from '../types';
 import { calculateBrzycki1RM } from '../utils/calculations';
 
 export const ACHIEVEMENTS_LIST: Achievement[] = [
@@ -34,8 +34,8 @@ export const ACHIEVEMENTS_LIST: Achievement[] = [
         id: 'volume_10k', name: 'Titán del Volumen', description: 'Levanta más de 10,000 kg/lbs en una sola sesión.', icon: 'FlameIcon', category: 'Hitos',
         check: ({ log }) => {
             if (!log) return false;
-            const sessionVolume = log.completedExercises.reduce((total, ex) =>
-                total + ex.sets.reduce((exTotal, set) => exTotal + (set.weight || 0) * (set.completedReps || 0), 0), 0);
+            const sessionVolume = log.completedExercises.reduce((total: number, ex: CompletedExercise) =>
+                total + ex.sets.reduce((exTotal: number, set: CompletedSet) => exTotal + (set.weight || 0) * (set.completedReps || 0), 0), 0);
             return sessionVolume > 10000;
         },
     },
@@ -43,8 +43,8 @@ export const ACHIEVEMENTS_LIST: Achievement[] = [
         id: 'volume_20k', name: 'Coloso de Hierro', description: 'Levanta más de 20,000 kg/lbs en una sola sesión.', icon: 'FlameIcon', category: 'Hitos',
         check: ({ log }) => {
             if (!log) return false;
-            const sessionVolume = log.completedExercises.reduce((total, ex) =>
-                total + ex.sets.reduce((exTotal, set) => exTotal + (set.weight || 0) * (set.completedReps || 0), 0), 0);
+            const sessionVolume = log.completedExercises.reduce((total: number, ex: CompletedExercise) =>
+                total + ex.sets.reduce((exTotal: number, set: CompletedSet) => exTotal + (set.weight || 0) * (set.completedReps || 0), 0), 0);
             return sessionVolume > 20000;
         },
     },
@@ -53,14 +53,14 @@ export const ACHIEVEMENTS_LIST: Achievement[] = [
         check: ({ log, history }) => {
             if (!log || !history || history.length < 2) return false;
             const previousHistory = history.slice(0, -1);
-            return log.completedExercises.some(completedEx => {
-                const maxSet1RM = Math.max(...completedEx.sets.map(s => calculateBrzycki1RM(s.weight || 0, s.completedReps || 0)));
+            return log.completedExercises.some((completedEx: CompletedExercise) => {
+                const maxSet1RM = Math.max(0, ...completedEx.sets.map((s: CompletedSet) => calculateBrzycki1RM(s.weight || 0, s.completedReps || 0)));
                 if (maxSet1RM <= 0) return false;
 
-                const historicalMax1RM = previousHistory.reduce((max, prevLog) => {
-                    const prevEx = prevLog.completedExercises.find(pe => pe.exerciseName === completedEx.exerciseName);
+                const historicalMax1RM = previousHistory.reduce((max: number, prevLog: WorkoutLog) => {
+                    const prevEx = prevLog.completedExercises.find((pe: CompletedExercise) => pe.exerciseName === completedEx.exerciseName);
                     if (!prevEx) return max;
-                    const prevMaxSet1RM = Math.max(...prevEx.sets.map(s => calculateBrzycki1RM(s.weight || 0, s.completedReps || 0)));
+                    const prevMaxSet1RM = Math.max(...prevEx.sets.map((s: CompletedSet) => calculateBrzycki1RM(s.weight || 0, s.completedReps || 0)));
                     return Math.max(max, prevMaxSet1RM);
                 }, 0);
                 return maxSet1RM > historicalMax1RM;
@@ -71,9 +71,9 @@ export const ACHIEVEMENTS_LIST: Achievement[] = [
         id: 'pr_bench_100kg', name: 'Club de los 100kg', description: 'Alcanza un 1RM estimado de 100kg o más en Press de Banca.', icon: 'TrophyIcon', category: 'Hitos',
         check: ({ log }) => {
             if (!log) return false;
-            const benchPress = log.completedExercises.find(e => e.exerciseName.toLowerCase().includes('press de banca'));
+            const benchPress = log.completedExercises.find((e: CompletedExercise) => e.exerciseName.toLowerCase().includes('press de banca'));
             if (!benchPress) return false;
-            const max1RM = Math.max(...benchPress.sets.map(s => calculateBrzycki1RM(s.weight || 0, s.completedReps || 0)));
+            const max1RM = Math.max(...benchPress.sets.map((s: CompletedSet) => calculateBrzycki1RM(s.weight || 0, s.completedReps || 0)));
             return max1RM >= 100;
         }
     },

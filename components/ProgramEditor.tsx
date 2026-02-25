@@ -15,10 +15,12 @@ import Button from './ui/Button';
 import { generateImage } from '../services/aiService';
 import { SparklesIcon, UploadIcon, ImageIcon, PlusIcon, TrashIcon, ChevronRightIcon, Wand2Icon, PencilIcon, TargetIcon, CheckCircleIcon, RefreshCwIcon, GridIcon, LayersIcon, ClockIcon, TrophyIcon, ArrowUpIcon, ArrowDownIcon, XIcon, ChevronDownIcon, EditIcon, DumbbellIcon, BellIcon, SearchIcon,  } from './icons';
 import { storageService } from '../services/storageService';
+import { PROGRAM_DRAFT_KEY, isProgramComplex } from '../utils/programEditorUtils';
 import BackgroundEditorModal from './SessionBackgroundModal';
 import { useAppContext } from '../contexts/AppContext';
 import PeriodizationTemplateModal from './PeriodizationTemplateModal';
 import Card from './ui/Card';
+import ToggleSwitch from './ui/ToggleSwitch';
 import { CaupolicanIcon } from './CaupolicanIcon';
 import ReactDOM from 'react-dom';
 import InteractiveWeekOverlay from './InteractiveWeekOverlay';
@@ -38,36 +40,6 @@ import {
 
 
 // --- SHARED UTILS ---
-
-const PROGRAM_DRAFT_KEY = 'program-editor-draft';
-
-const isProgramComplex = (p: Program | null): boolean => {
-    if (!p) return false;
-    if (p.structure === 'complex') return true;
-    if (p.structure === 'simple') return false;
-    if (p.macrocycles.length > 1) return true;
-    const macro = p.macrocycles[0];
-    if (!macro) return false;
-    if ((macro.blocks || []).length > 1) return true;
-    const block = (macro.blocks || [])[0];
-    if (!block) return false;
-    if (block.mesocycles.length > 1) return true;
-    return false;
-};
-
-const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; isBlackAndWhite?: boolean; size?: 'sm' | 'md' }> = ({ checked, onChange, isBlackAndWhite, size = 'md' }) => {
-    const h = size === 'sm' ? 'h-5' : 'h-6';
-    const w = size === 'sm' ? 'w-10' : 'w-11';
-    const translate = size === 'sm' ? 'translate-x-5' : 'translate-x-5'; 
-    const knobSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
-
-    return (
-        <button type="button" onClick={() => onChange(!checked)} className={`relative inline-flex flex-shrink-0 ${h} ${w} border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none ${checked ? (isBlackAndWhite ? 'bg-white' : 'bg-primary-color') : 'bg-white/20'}`}>
-            <span className={`inline-block ${knobSize} rounded-full shadow transform ring-0 transition ease-in-out duration-200 ${isBlackAndWhite ? 'bg-black' : 'bg-white'} ${checked ? translate : 'translate-x-0'}`} />
-        </button>
-    );
-};
-
 // --- WIZARD SPECIFIC DATA ---
 import { SPLIT_TEMPLATES, SplitTemplate, SplitTag } from '../data/splitTemplates';
 interface TemplateOption { id: string; name: string; description: string; extendedInfo: string; type: 'simple' | 'complex'; weeks: number; icon: React.ReactNode; }

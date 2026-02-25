@@ -514,6 +514,7 @@ export async function searchFoods(
     query: string,
     settings?: Settings | null
 ): Promise<SearchFoodsResult> {
+    ensurePreload();
     const q = normalizeQueryForSearch(query);
     if (!q) return { results: [], matchType: 'exact' };
     if (!hasSignificantQuery(q)) return { results: [], matchType: 'exact' };
@@ -592,8 +593,15 @@ export async function searchFoods(
     return { results: merged, matchType };
 }
 
-/** Preload de bases offline en segundo plano para primera búsqueda instantánea */
-if (typeof window !== 'undefined') {
+let preloadStarted = false;
+function ensurePreload(): void {
+    if (preloadStarted || typeof window === 'undefined') return;
+    preloadStarted = true;
     loadOFFOffline().catch(() => {});
     loadUSDAOffline().catch(() => {});
+}
+
+/** Preload de bases offline solo en la primera búsqueda (evita cargar al arranque) */
+export function preloadFoodDatabases(): void {
+    ensurePreload();
 }

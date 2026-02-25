@@ -35,11 +35,16 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
 
     const drainData = useMemo(() => {
         try {
-            return calculatePredictedSessionDrain(session, exerciseList);
+            const d = calculatePredictedSessionDrain(session, exerciseList, settings);
+            return {
+                muscularDrainPct: d.muscleBatteryDrain,
+                cnsDrainPct: d.cnsDrain,
+                spinalDrainPct: d.spinalDrain,
+            };
         } catch {
             return { muscularDrainPct: 0, cnsDrainPct: 0, spinalDrainPct: 0 };
         }
-    }, [session, exerciseList]);
+    }, [session, exerciseList, settings]);
 
     const totalAlerts = alertCount + neuralAlerts.length;
 

@@ -18,6 +18,7 @@ import type {
     DailyWellbeingLog,
     ActiveProgramState,
     ExerciseMuscleInfo,
+    MuscleHierarchy,
 } from '../types';
 
 export interface WidgetSyncState {
@@ -29,6 +30,7 @@ export interface WidgetSyncState {
     nutritionLogs: NutritionLog[];
     settings: Settings;
     exerciseList: ExerciseMuscleInfo[];
+    muscleHierarchy: MuscleHierarchy;
 }
 
 const DEBOUNCE_MS = 10_000; // 10 segundos entre syncs (para ver volumen en tiempo real)
@@ -120,7 +122,7 @@ export async function syncWidgetData(state: WidgetSyncState): Promise<void> {
             state.history,
             state.settings,
             state.exerciseList,
-            state.settings.muscleHierarchy || { bodyPartHierarchy: {}, specialCategories: {}, muscleToBodyPart: {} }
+            state.muscleHierarchy || { bodyPartHierarchy: {}, specialCategories: {}, muscleToBodyPart: {} }
         );
         const completed = muscleData.reduce((s, m) => s + m.completed, 0);
         const planned = muscleData.reduce((s, m) => s + m.planned, 0);

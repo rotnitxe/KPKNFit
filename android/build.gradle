@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    
+    ext.kotlin_version = '1.9.24'
     repositories {
         google()
         mavenCentral()
@@ -9,9 +9,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.12.3'
         classpath 'com.google.gms:google-services:4.4.0'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -30,6 +28,16 @@ allprojects {
                     targetCompatibility = JavaVersion.VERSION_17
                 }
             }
+        }
+        // Unificar JVM target a 17 (capacitor-filesystem, capacitor-geolocation usan 21)
+        project.plugins.withId('org.jetbrains.kotlin.android') {
+            project.kotlin.jvmToolchain(17)
+            try {
+                def KotlinCompile = Class.forName('org.jetbrains.kotlin.gradle.tasks.KotlinCompile')
+                project.tasks.withType(KotlinCompile).configureEach {
+                    it.kotlinOptions.jvmTarget = "17"
+                }
+            } catch (Exception ignored) {}
         }
     }
 }

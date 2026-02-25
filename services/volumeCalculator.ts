@@ -348,7 +348,7 @@ export const calculateUnifiedMuscleVolume = (
             if (!exercise || !exercise.sets) return;
 
             const validSetsCount = exercise.sets.filter(set => 
-                set && (set.reps > 0 || set.weight > 0 || set.targetReps || (set as any).completedReps > 0) && set.type !== 'warmup'
+                set && !set.isIneffective && ((set.completedReps ?? set.targetReps ?? 0) > 0 || (set.weight ?? 0) > 0)
             ).length;
 
             if (validSetsCount > 0) {

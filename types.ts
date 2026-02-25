@@ -149,6 +149,7 @@ export interface Settings {
   // Perfil
   username?: string;
   profilePicture?: string;
+  age?: number;
   athleteType: 'enthusiast' | 'powerlifter' | 'bodybuilder' | 'powerbuilder' | 'zercher_lifter' | 'hybrid' | 'weightlifter' | 'parapowerlifter' | 'calisthenics';
   powerliftingDeadliftStyle?: 'conventional' | 'sumo';
   gymName?: string;
@@ -330,7 +331,9 @@ export interface Program {
         rules?: { avoidDaysOfWeek?: number[]; avoidEndOfMonth?: boolean; }; // NUEVO: Motor de reglas condicionales
     }[];
     exerciseGoals?: Record<string, number>;
-    
+    /** Objetivos 1RM en kg para sentadilla, banca y peso muerto */
+    goals?: { squat1RM?: number; bench1RM?: number; deadlift1RM?: number };
+
     // --- CONFIGURACIÓN TÉCNICA Y MOTOR LÓGICO ---
     athleteProfile?: AthleteProfile; 
     trainingPhase?: TrainingPhase;

@@ -1,25 +1,10 @@
 // services/hapticsService.ts
 import { Capacitor } from '@capacitor/core';
 import { useSettingsStore } from '../stores/settingsStore';
-import type { ImpactStyle as CapImpactStyle, NotificationType as CapNotificationType } from '@capacitor/haptics';
+import { ImpactStyle, NotificationType } from '@capacitor/haptics';
 
-// Re-export the types for use in other parts of the app
-export type ImpactStyle = CapImpactStyle;
-export type NotificationType = CapNotificationType;
-
-// Manually define and export the enums since we can't export from a dynamic import.
-// These are just string constants.
-export const ImpactStyle = {
-    Heavy: 'HEAVY',
-    Light: 'LIGHT',
-    Medium: 'MEDIUM'
-} as const;
-
-export const NotificationType = {
-    SUCCESS: 'SUCCESS',
-    WARNING: 'WARNING',
-    ERROR: 'ERROR'
-} as const;
+// Re-export enums for components (enums are zero runtime cost)
+export { ImpactStyle, NotificationType };
 
 const COOLDOWN_MS = 200;
 let lastHapticTime = 0;
@@ -42,7 +27,7 @@ const checkCooldown = (): boolean => {
 }
 
 // Function to trigger a haptic impact feedback
-export const hapticImpact = async (style: CapImpactStyle = ImpactStyle.Light) => {
+export const hapticImpact = async (style: ImpactStyle = ImpactStyle.Light) => {
   if (!canUseHaptics() || !checkCooldown()) return;
   try {
     const { Haptics } = await import('@capacitor/haptics');
@@ -53,7 +38,7 @@ export const hapticImpact = async (style: CapImpactStyle = ImpactStyle.Light) =>
 };
 
 // Function to trigger a haptic notification feedback
-export const hapticNotification = async (type: CapNotificationType) => {
+export const hapticNotification = async (type: NotificationType) => {
   if (!canUseHaptics() || !checkCooldown()) return;
   try {
     const { Haptics } = await import('@capacitor/haptics');

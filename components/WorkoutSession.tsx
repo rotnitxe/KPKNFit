@@ -5,13 +5,9 @@ import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, Exercis
 import Button from './ui/Button';
 import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons'; 
 import { playSound, preloadSounds, configureAudioSession } from '../services/soundService';
-import { hapticImpact as _hapticImpact, ImpactStyle, hapticNotification as _hapticNotification, NotificationType } from '../services/hapticsService';
+import { hapticImpact, ImpactStyle, hapticNotification, NotificationType } from '../services/hapticsService';
 import { calculateBrzycki1RM, getWeightSuggestionForSet, roundWeight, calculateWeightFrom1RM } from '../utils/calculations';
 import { useAppDispatch, useAppState, useAppContext } from '../contexts/AppContext';
-
-// Bypass de TypeScript: Adaptador para que los strings literales sean aceptados como Enums de Capacitor
-const hapticImpact = (style?: any) => _hapticImpact(style);
-const hapticNotification = (type?: any) => _hapticNotification(type);
 import { calculateSpinalScore, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from '../services/auge';
 import { normalizeMuscleGroup } from '../services/volumeCalculator';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
@@ -23,59 +19,9 @@ import WarmupDrawer from './workout/WarmupDrawer';
 import PostExerciseDrawer from './workout/PostExerciseDrawer';
 import WorkoutDrawer from './workout/WorkoutDrawer';
 import NumpadOverlay from './workout/NumpadOverlay';
+import { InCardTimer } from './workout/InCardTimer';
+import { SetTimerButton } from './workout/SetTimerButton';
 import { useKeyboardOverlayMode } from '../hooks/useKeyboardOverlayMode';
-
-const InCardTimer: React.FC<{ initialTime: number; onSave: (duration: number) => void; }> = ({ initialTime, onSave }) => {
-    const [time, setTime] = useState(initialTime * 1000);
-    const [isRunning, setIsRunning] = useState(false);
-    const intervalRef = useRef<number | null>(null);
-    const startTimeRef = useRef<number | null>(null);
-
-    useEffect(() => {
-        if (isRunning) {
-            startTimeRef.current = Date.now() - time;
-            intervalRef.current = window.setInterval(() => {
-                setTime(Date.now() - (startTimeRef.current || 0));
-            }, 50);
-        } else {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-        }
-        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-    }, [isRunning, time]);
-
-    const handleToggle = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setIsRunning(!isRunning); };
-    const handleStop = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setIsRunning(false); onSave(Math.ceil(time / 1000)); };
-    const formatMs = (ms: number) => { const totalSeconds = Math.floor(ms / 1000); const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0'); const secs = (totalSeconds % 60).toString().padStart(2, '0'); return `${mins}:${secs}`; };
-
-    return (
-        <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-1 pr-2 border border-slate-700">
-             <button onClick={handleToggle} className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${isRunning ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>{isRunning ? <PauseIcon size={14} /> : <PlayIcon size={14} />}</button>
-            <span className={`font-mono font-bold text-lg w-14 text-center ${isRunning ? 'text-white' : 'text-slate-400'}`}>{formatMs(time)}</span>
-             <button onClick={handleStop} className="p-1.5 text-slate-400 hover:text-white bg-slate-700/50 rounded hover:bg-slate-600 transition-colors" title="Detener y Guardar"><CheckCircleIcon size={16} /></button>
-        </div>
-    );
-};
-
-const SetTimerButton: React.FC<{ onSave: (duration: number) => void; initialDuration?: number; }> = ({ onSave, initialDuration }) => {
-    const [duration, setDuration] = useState(initialDuration || 0);
-    const [isRunning, setIsRunning] = useState(false);
-    const startTimeRef = useRef<number | null>(null);
-    const intervalRef = useRef<number | null>(null);
-
-    const toggleTimer = (e: React.MouseEvent) => {
-        e.preventDefault(); e.stopPropagation();
-        if (isRunning) { if (intervalRef.current) clearInterval(intervalRef.current); setIsRunning(false); onSave(duration); } 
-        else { startTimeRef.current = Date.now() - (duration * 1000); intervalRef.current = window.setInterval(() => { setDuration(Math.floor((Date.now() - (startTimeRef.current || 0)) / 1000)); }, 1000); setIsRunning(true); }
-    };
-    useEffect(() => { return () => { if (intervalRef.current) clearInterval(intervalRef.current); }; }, []);
-    const formatSeconds = (s: number) => { if (s < 60) return `${s}s`; const m = Math.floor(s/60); const sec = s%60; return `${m}:${sec.toString().padStart(2,'0')}`; }
-
-    return (
-         <button onClick={toggleTimer} className={`flex items-center justify-center gap-1 w-8 h-8 rounded-full transition-all shadow-md ${isRunning ? 'bg-red-500 text-white animate-pulse' : duration > 0 ? 'bg-sky-500 text-white' : 'bg-slate-700 text-slate-300'}`} title="Cronómetro de Serie (TUT)">
-            {isRunning || duration > 0 ? <span className="text-[9px] font-black">{duration}</span> : <ClockIcon size={14} />}
-        </button>
-    );
-};
 
 // --- ENHANCED GOAL PROGRESS OVERLAY (STABLE & ELEGANT) ---
 const GoalProgressOverlay: React.FC<{
@@ -90,7 +36,7 @@ const GoalProgressOverlay: React.FC<{
 
     useEffect(() => {
         playSound(isGoalMet ? 'session-complete-sound' : 'new-pr-sound');
-        hapticNotification(NotificationType.SUCCESS);
+        hapticNotification(NotificationType.Success);
 
         // Iniciar animación después de un breve delay para asegurar renderizado
         const animTimer = setTimeout(() => {
@@ -621,7 +567,7 @@ const SetDetails: React.FC<{
     const handleSetDurationSave = (tut: number) => { onInputChange('duration', tut.toString(), isUnilateral ? activeSide : undefined); };
     
     const handleFailedSet = (reason: string) => {
-        hapticNotification(NotificationType.ERROR); // Vibración pesada de error
+        hapticNotification(NotificationType.Error); // Vibración pesada de error
         onInputChange('isIneffective', true, isUnilateral ? activeSide : undefined);
         onInputChange('performanceMode', 'failed', isUnilateral ? activeSide : undefined);
         onInputChange('discomfortNotes', `🚨 FALLO CRÍTICO: ${reason}`, isUnilateral ? activeSide : undefined);
@@ -1304,7 +1250,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 addedRest = 60; // Fallo total requiere tiempo substancial para purgar lactato
                 addToast("Fallo técnico o muscular total. Descanso de emergencia +60s.", "suggestion");
                 setSetCardAnimations(prev => ({...prev, [set.id]: 'failure'}));
-                hapticNotification(NotificationType.ERROR);
+                hapticNotification(NotificationType.Error);
             } else if (uiEffectiveRpe >= 10 || uiEffectiveRpe > targetRPE) {
                 // Exceso de intensidad sobre zona óptima (Target 8, Exceso empieza en 9)
                 const rpeExcess = Math.max(0, uiEffectiveRpe - Math.min(targetRPE, 9)); 

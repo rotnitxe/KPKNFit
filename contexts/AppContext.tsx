@@ -123,8 +123,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             nutritionLogs,
             settings,
             exerciseList,
+            muscleHierarchy,
         });
-    }, [isAppLoading, programs, activeProgramState, history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList]);
+    }, [isAppLoading, programs, activeProgramState, history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList, muscleHierarchy]);
 
     // ═══════════════════════════════════════════════════════════
     // 4. CROSS-STORE CALLBACKS
@@ -367,7 +368,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 handleBack();
             } else {
                 routerNavigate('home');
-                if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.WARNING as any);
+                if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.Warning);
                 addToast("Presiona el botón Inicio para salir.", "suggestion");
             }
         };
@@ -591,7 +592,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ui.setActiveSession(null);
             ui.setView('home');
             ui.setHistoryStack([{ view: 'home' }]);
-            if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.WARNING as any);
+            if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.Warning);
         }
     }, [setOngoingWorkout, settings.hapticFeedbackEnabled]);
 
@@ -711,7 +712,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!pending) return;
         const { session, program, weekVariant, location } = pending;
         const readinessData = ongoingWorkout?.readiness;
-        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.WARNING as any);
+        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.Warning);
         const activeMode = weekVariant || 'A';
         const exercisesForMode = (activeMode === 'A' || !(session as any)[`session${activeMode}`])
             ? (session.parts && session.parts.length > 0 ? session.parts.flatMap(p => p.exercises) : session.exercises)
@@ -854,7 +855,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         navigateTo('home', undefined, { replace: true });
         playSound('session-complete-sound');
-        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS as any);
+        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.Success);
     }, [ongoingWorkout, programs, settings, history, setHistory, setOngoingWorkout, checkAndUnlock, addToast, setSyncQueue, exerciseList, handleUpdateExerciseRepDebt, navigateTo, sleepLogs, setActiveProgramState, activeProgramState, nutritionLogs]);
 
     const handleSaveLoggedWorkout = useCallback((log: WorkoutLog) => {
@@ -869,7 +870,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } catch (e) { console.error(e); }
         handleBack();
         addToast("Entrenamiento registrado con éxito.", "success");
-        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.SUCCESS as any);
+        if (settings.hapticFeedbackEnabled) hapticNotification(NotificationType.Success);
     }, [history, setHistory, checkAndUnlock, handleBack, addToast, settings.hapticFeedbackEnabled, programs, activeProgramState, settings, nutritionLogs]);
 
     const handleUpdateExercise1RM = useCallback((exerciseDbId: string | undefined, exerciseName: string, weight: number, reps: number, testDate?: string, machineBrand?: string) => {
@@ -884,7 +885,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 const newList = [...prevList];
                 newList[exerciseIndex] = { ...exercise, calculated1RM: new1RM, last1RMTestDate: testDate };
                 playSound('new-pr-sound');
-                hapticNotification(NotificationType.SUCCESS as any);
+                hapticNotification(NotificationType.Success);
                 addToast(`¡Nuevo PR en ${exerciseName}! ${weight}${settings.weightUnit} x ${reps} reps`, 'achievement');
                 return newList;
             }
@@ -935,7 +936,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         if (!hasFiredRestEndFeedback.current) {
                             hasFiredRestEndFeedback.current = true;
                             playSound('rest-timer-sound');
-                            hapticNotification(NotificationType.SUCCESS as any);
+                            hapticNotification(NotificationType.Success);
                         }
                         setTimeout(() => ui.setRestTimer(t => t?.key === key ? null : t), 3000);
                         return { ...currentTimer, remaining: 0 };

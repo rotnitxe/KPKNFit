@@ -116,6 +116,9 @@ interface UIStoreState {
     setViewingExerciseId: (v: string | null) => void;
     setViewingFoodId: (v: string | null) => void;
     setViewingMuscleGroupId: (v: string | null) => void;
+    setViewingJointId: (v: string | null) => void;
+    setViewingTendonId: (v: string | null) => void;
+    setViewingMovementPatternId: (v: string | null) => void;
     setViewingBodyPartId: (v: string | null) => void;
     setViewingChainId: (v: string | null) => void;
     setViewingMuscleCategoryName: (v: string | null) => void;

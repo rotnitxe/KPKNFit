@@ -15,7 +15,7 @@ interface WarmupDrawerProps {
   exercise: Exercise;
   baseWeight: number;
   onBaseWeightChange: (weight: number) => void;
-  settings: { weightUnit: string };
+  settings: { weightUnit: 'kg' | 'lbs' };
   isConsolidated: boolean;
   onComplete: () => void;
 }

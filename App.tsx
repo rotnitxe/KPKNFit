@@ -1,5 +1,4 @@
 // App.tsx
-import './services/foodSearchService'; // Preload OFF/USDA offline DBs al montar
 import { GlobalVoiceAssistant } from './components/GlobalVoiceAssistant';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useAppState, useAppDispatch } from './contexts/AppContext';
@@ -42,48 +41,49 @@ import { WelcomeWizard } from './components/onboarding/WelcomeWizard';
 // Icons for header & new menu
 import { ArrowLeftIcon, IdCardIcon } from './components/icons';
 
-// --- Static Imports for Performance ---
+// --- Static Imports (vistas de arranque frecuente) ---
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import Home from './components/Home';
-// FIX: Cambiado a import por defecto para coincidir con el archivo ProgramDetail
-import ProgramDetail from './components/ProgramDetail';
 import ProgramsView from './components/ProgramsView';
-import ProgramEditor from './components/ProgramEditor';
-import { SessionEditor } from './components/SessionEditor';
-import { WorkoutSession } from './components/WorkoutSession';
-import { SettingsComponent } from './components/SettingsComponent';
-import CoachView from './components/CoachView';
-import PhysicalProgress from './components/PhysicalProgress';
-import LogHub from './components/LogHub';
-import AchievementsView from './components/AchievementsView';
-import LogWorkoutView from './components/LogWorkoutView';
-import KPKNView from './components/KPKNView';
-import { ExerciseDetailView } from './components/ExerciseDetailView';
-import MuscleGroupDetailView from './components/MuscleGroupDetailView';
-import BodyPartDetailView from './components/BodyPartDetailView';
-import MuscleCategoryView from './components/MuscleCategoryView';
-import ChainDetailView from './components/ChainDetailView';
-import JointDetailView from './components/JointDetailView';
-import TendonDetailView from './components/TendonDetailView';
-import MovementPatternDetailView from './components/MovementPatternDetailView';
 import MuscleListEditorModal from './components/MuscleListEditorModal';
-import BodyLabView from './components/BodyLabView';
-import TrainingPurposeView from './components/TrainingPurposeView';
-import ExerciseDatabaseView from './components/ExerciseDatabaseView';
-import TasksView from './components/TasksView';
-import SessionDetailView from './components/SessionDetailView';
-import SmartMealPlannerView from './components/SmartMealPlannerView';
-import NutritionView from './components/NutritionView';
-import FoodDatabaseView from './components/FoodDatabaseView';
 import EditSleepLogModal from './components/EditSleepLogModal';
-import ProgramMetricVolumeDetail from './components/program-detail/metrics/ProgramMetricVolumeDetail';
-import ProgramMetricStrengthDetail from './components/program-detail/metrics/ProgramMetricStrengthDetail';
-import ProgramMetricDensityDetail from './components/program-detail/metrics/ProgramMetricDensityDetail';
-import ProgramMetricFrequencyDetail from './components/program-detail/metrics/ProgramMetricFrequencyDetail';
-import ProgramMetricBanisterDetail from './components/program-detail/metrics/ProgramMetricBanisterDetail';
-import ProgramMetricRecoveryDetail from './components/program-detail/metrics/ProgramMetricRecoveryDetail';
-import ProgramMetricAdherenceDetail from './components/program-detail/metrics/ProgramMetricAdherenceDetail';
-import ProgramMetricRPEDetail from './components/program-detail/metrics/ProgramMetricRPEDetail';
+
+// --- Lazy imports (code splitting) ---
+const ProgramDetail = React.lazy(() => import('./components/ProgramDetail'));
+const ProgramEditor = React.lazy(() => import('./components/ProgramEditor'));
+const SessionEditor = React.lazy(() => import('./components/SessionEditor').then(m => ({ default: m.SessionEditor })));
+const WorkoutSession = React.lazy(() => import('./components/WorkoutSession').then(m => ({ default: m.WorkoutSession })));
+const SettingsComponent = React.lazy(() => import('./components/SettingsComponent'));
+const CoachView = React.lazy(() => import('./components/CoachView'));
+const PhysicalProgress = React.lazy(() => import('./components/PhysicalProgress'));
+const LogHub = React.lazy(() => import('./components/LogHub'));
+const AchievementsView = React.lazy(() => import('./components/AchievementsView'));
+const LogWorkoutView = React.lazy(() => import('./components/LogWorkoutView'));
+const KPKNView = React.lazy(() => import('./components/KPKNView'));
+const ExerciseDetailView = React.lazy(() => import('./components/ExerciseDetailView').then(m => ({ default: m.ExerciseDetailView })));
+const MuscleGroupDetailView = React.lazy(() => import('./components/MuscleGroupDetailView'));
+const BodyPartDetailView = React.lazy(() => import('./components/BodyPartDetailView'));
+const MuscleCategoryView = React.lazy(() => import('./components/MuscleCategoryView'));
+const ChainDetailView = React.lazy(() => import('./components/ChainDetailView'));
+const JointDetailView = React.lazy(() => import('./components/JointDetailView'));
+const TendonDetailView = React.lazy(() => import('./components/TendonDetailView'));
+const MovementPatternDetailView = React.lazy(() => import('./components/MovementPatternDetailView'));
+const BodyLabView = React.lazy(() => import('./components/BodyLabView'));
+const TrainingPurposeView = React.lazy(() => import('./components/TrainingPurposeView'));
+const ExerciseDatabaseView = React.lazy(() => import('./components/ExerciseDatabaseView'));
+const TasksView = React.lazy(() => import('./components/TasksView'));
+const SessionDetailView = React.lazy(() => import('./components/SessionDetailView'));
+const SmartMealPlannerView = React.lazy(() => import('./components/SmartMealPlannerView'));
+const NutritionView = React.lazy(() => import('./components/NutritionView'));
+const FoodDatabaseView = React.lazy(() => import('./components/FoodDatabaseView'));
+const ProgramMetricVolumeDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricVolumeDetail'));
+const ProgramMetricStrengthDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricStrengthDetail'));
+const ProgramMetricDensityDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricDensityDetail'));
+const ProgramMetricFrequencyDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricFrequencyDetail'));
+const ProgramMetricBanisterDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricBanisterDetail'));
+const ProgramMetricRecoveryDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricRecoveryDetail'));
+const ProgramMetricAdherenceDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricAdherenceDetail'));
+const ProgramMetricRPEDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricRPEDetail'));
 import { getCachedAdaptiveData } from './services/augeAdaptiveService';
 import { useProgramStore } from './stores/programStore';
 import { useSettingsStore } from './stores/settingsStore';
@@ -96,6 +96,13 @@ import MuscleRecoveryWidget from './components/MuscleRecoveryWidget';
 
 const MobilityLabView = React.lazy(() => import('./components/MobilityLabView'));
 const AIArtStudioView = React.lazy(() => import('./components/AIArtStudioView'));
+
+const ViewFallback: React.FC = () => (
+    <div className="flex flex-col items-center justify-center min-h-[40vh] p-8 text-center">
+        <div className="w-10 h-10 border-2 border-slate-500 border-t-white rounded-full animate-spin mb-4" />
+        <p className="text-zinc-400 text-sm">Cargando...</p>
+    </div>
+);
 
 const WorkoutViewFallback: React.FC<{ onFallback: () => void }> = ({ onFallback }) => {
     const hasRun = React.useRef(false);
@@ -547,9 +554,9 @@ export const App: React.FC = () => {
                 return null;
             }
             case 'kpkn': return <KPKNView />;
-            case 'ai-art-studio': return <Suspense fallback={<div>Cargando...</div>}><AIArtStudioView /></Suspense>;
-            case 'body-lab': return <BodyLabView />;
-            case 'mobility-lab': return <Suspense fallback={<div>Cargando...</div>}><MobilityLabView /></Suspense>;
+            case 'ai-art-studio': return <Suspense fallback={<ViewFallback />}><AIArtStudioView /></Suspense>;
+            case 'body-lab': return <Suspense fallback={<ViewFallback />}><BodyLabView /></Suspense>;
+            case 'mobility-lab': return <Suspense fallback={<ViewFallback />}><MobilityLabView /></Suspense>;
             case 'training-purpose': return <TrainingPurposeView />;
             case 'exercise-database': return <ExerciseDatabaseView />;
             case 'food-database': return <FoodDatabaseView />;
@@ -622,7 +629,9 @@ export const App: React.FC = () => {
             <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))]`}>
                 <div className={`${view === 'home' || view === 'sleep' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
-                        {renderView()}
+                        <Suspense fallback={<ViewFallback />}>
+                            {renderView()}
+                        </Suspense>
                     </ErrorBoundary>
                 </div>
             </main>
