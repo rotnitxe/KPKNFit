@@ -1,5 +1,5 @@
 // hooks/useExerciseDatabase.ts
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { DETAILED_EXERCISE_LIST } from '../data/exerciseDatabase';
 import { ExerciseMuscleInfo } from '../types';
 import useLocalStorage from './useLocalStorage';
@@ -13,6 +13,18 @@ const useExerciseDatabase = () => {
     EXERCISE_DB_KEY,
     STATIC_EXERCISES
   );
+  const hasMerged = useRef(false);
+
+  // Fusionar ejercicios nuevos de la base estática cuando la lista guardada está desactualizada
+  useEffect(() => {
+    if (isDbLoading || hasMerged.current) return;
+    const storedIds = new Set(exerciseList.map(ex => ex.id));
+    const newFromStatic = STATIC_EXERCISES.filter(ex => !storedIds.has(ex.id));
+    if (newFromStatic.length > 0) {
+      hasMerged.current = true;
+      setExerciseList(prev => [...prev, ...newFromStatic]);
+    }
+  }, [isDbLoading, exerciseList, setExerciseList]);
 
   const addOrUpdateCustomExercise = useCallback((exerciseInfo: ExerciseMuscleInfo) => {
     setExerciseList(prev => {

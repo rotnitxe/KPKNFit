@@ -406,7 +406,7 @@ const KPKNView: React.FC = () => {
     );
 
     return (
-        <div className="pt-4 pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] px-4 max-w-4xl mx-auto bg-[#0a0a0a] min-h-screen">
+        <div className="pt-4 tab-bar-safe-area px-4 max-w-4xl mx-auto bg-[#0a0a0a] min-h-screen">
              {!settings.hasSeenKPKNTour && (
                 <CoachMark 
                     title="KPKN: Base de Conocimiento" 

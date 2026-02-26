@@ -152,7 +152,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             </header>
 
             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-                <div className="px-4 py-4 pb-[max(80px,env(safe-area-inset-bottom,0px))] space-y-6">
+                <div className="px-4 py-4 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-6">
                     {/* ── Body Map (fondo negro para que Caupolican no corte contra gris) ── */}
                     {activeWidgets.includes('bodymap') && (
                         <section className="bg-black overflow-hidden">

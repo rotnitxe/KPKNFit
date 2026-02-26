@@ -200,7 +200,7 @@ const SleepTrackerWidget: React.FC<{ onEditLog: (log: SleepLog) => void }> = ({ 
             <ActivityLogModal isOpen={isActivityOpen} onClose={() => setIsActivityOpen(false)} />
             <ManualSleepModal isOpen={isManualOpen} onClose={() => setIsManualOpen(false)} />
             
-            <div className="relative z-10 px-6 pt-44 pb-48 flex flex-col min-h-full max-w-lg mx-auto">
+            <div className="relative z-10 px-6 pt-44 flex flex-col min-h-full max-w-lg mx-auto tab-bar-safe-area">
                 <div className="text-center mb-12">
                     <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-4 flex items-center justify-center gap-2">
                          {isSleeping ? <SunIcon size={12} className="text-yellow-400 animate-pulse" /> : <MoonIcon size={12}/>}

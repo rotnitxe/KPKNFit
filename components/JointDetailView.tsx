@@ -70,7 +70,7 @@ const JointDetailView: React.FC<JointDetailViewProps> = ({ jointId }) => {
   const typeLabel = JOINT_TYPE_LABELS[joint.type] || joint.type;
 
   return (
-    <div className="pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
+    <div className="tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
       <header className="relative h-32 -mx-4 bg-gradient-to-b from-cyber-cyan/30 to-[#0a0a0a] border-b border-cyber-cyan/20">
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">

@@ -77,7 +77,7 @@ const BodyPartDetailView: React.FC<BodyPartDetailViewProps> = ({ bodyPartId }) =
     const info = TRAIN_INFO[bodyPartId];
 
     return (
-        <div className="pb-20 animate-fade-in">
+        <div className="tab-bar-safe-area animate-fade-in min-h-screen">
             <header className="mb-6">
                 <h1 className="text-4xl font-bold text-white">{bodyPartId}</h1>
             </header>

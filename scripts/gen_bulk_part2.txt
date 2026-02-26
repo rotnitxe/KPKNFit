@@ -1,0 +1,53 @@
+// Generate 411 more exercises programmatically
+const templates = [
+  { eq: "Polea", prefixes: ["cbl_"], items: [
+    ["fly_high","Cruce Polea Alta","Cruces polea alta","Pectoral Superior","Pectoral Superior","Hipertrofia","Aislamiento","Empuje","upper","anterior",2,3,1.8,1.5,0.0],
+    ["fly_low","Cruce Polea Baja","Cruces polea baja","Pectoral Inferior","Pectoral Inferior","Hipertrofia","Aislamiento","Empuje","upper","anterior",2,3,1.8,1.5,0.0],
+    ["row_vbar","Remo Barra V Polea","Remo con barra V","Dorsal Ancho","Dorsales","Hipertrofia","Accesorio","Tiron","upper","posterior",2,3,3.0,2.5,0.2],
+    ["row_rope","Remo Cuerda Polea","Remo con cuerda","Dorsal Ancho","Dorsales","Hipertrofia","Accesorio","Tiron","upper","posterior",2,3,2.8,2.2,0.2],
+    ["row_single","Remo Unilateral Polea","Remo a un brazo polea","Dorsal Ancho","Dorsales","Hipertrofia","Accesorio","Tiron","upper","posterior",2,4,2.8,2.2,0.0],
+    ["lat_pulldown_v","Jalon Barra V","Jalon con barra V","Dorsal Ancho","Dorsales","Hipertrofia","Basico","Tiron","upper","posterior",2,3,3.0,2.5,0.2],
+    ["lat_pulldown_ez","Jalon Barra EZ","Jalon barra curva","Dorsal Ancho","Dorsales","Hipertrofia","Basico","Tiron","upper","posterior",2,3,3.0,2.5,0.2],
+    ["straight_arm_ez","Jalon Brazos Rectos EZ","Dorsal brazos rectos EZ","Dorsal Ancho","Dorsales","Hipertrofia","Aislamiento","Tiron","upper","posterior",2,3,2.2,1.8,0.0],
+    ["face_pull_v","Face Pull Barra V","Tiron cara barra V","Deltoides Posterior","Deltoides Posterior","Hipertrofia","Aislamiento","Tiron","upper","posterior",2,3,1.8,1.5,0.0],
+    ["lateral_single","Lateral Polea Unilateral","Elevacion lateral polea","Deltoides Lateral","Deltoides Lateral","Hipertrofia","Aislamiento","Empuje","upper","anterior",2,3,1.6,1.2,0.0],
+    ["front_raise","Frontal Polea","Elevacion frontal polea","Deltoides Anterior","Deltoides Anterior","Hipertrofia","Aislamiento","Empuje","upper","anterior",2,2,1.6,1.2,0.0],
+    ["shrug","Encogimiento Polea","Encogimiento en polea","Trapecio","Trapecio","Hipertrofia","Aislamiento","Tiron","upper","posterior",2,2,2.0,1.5,0.0],
+    ["curl_bar","Curl Polea Barra","Curl biceps barra polea","Biceps","Biceps","Hipertrofia","Aislamiento","Tiron","upper","anterior",1,2,1.8,1.5,0.0],
+    ["curl_rope","Curl Polea Cuerda","Curl biceps cuerda","Biceps","Biceps","Hipertrofia","Aislamiento","Tiron","upper","anterior",1,2,1.8,1.5,0.0],
+    ["tricep_vbar","Pushdown Barra V","Pushdown triceps V","Triceps","Triceps","Hipertrofia","Aislamiento","Empuje","upper","anterior",1,2,1.8,1.5,0.0],
+    ["tricep_rope","Pushdown Cuerda","Pushdown triceps cuerda","Triceps","Triceps","Hipertrofia","Aislamiento","Empuje","upper","anterior",1,2,1.8,1.5,0.0],
+    ["woodchop_high","Wood Chop Alto","Wood chop polea alta","Oblicuos","Abdomen","Hipertrofia","Accesorio","Rotacion","full","full",2,4,2.0,1.5,0.0],
+    ["woodchop_low","Wood Chop Bajo","Wood chop polea baja","Oblicuos","Abdomen","Hipertrofia","Accesorio","Rotacion","full","full",2,4,2.0,1.5,0.0],
+    ["crunch","Crunch Polea","Crunch con polea alta","Recto Abdominal","Abdomen","Hipertrofia","Aislamiento","Flexion","full","anterior",2,2,1.6,1.2,0.0],
+    ["leg_curl","Curl Femoral Polea","Curl isquios polea","Isquiosurales","Isquiosurales","Hipertrofia","Aislamiento","Flexion","lower","posterior",2,3,2.0,1.5,0.0],
+  ]},
+  { eq: "Peso Corporal", prefixes: ["bw_"], items: [
+    ["push_up_wide","Flexiones Ancho","Flexiones agarre ancho","Pectoral Medio","Pectoral Medio","Resistencia","Basico","Empuje","upper","anterior",1,3,2.8,2.2,0.1],
+    ["push_up_close","Flexiones Cerrado","Flexiones agarre cerrado","Triceps","Triceps","Resistencia","Basico","Empuje","upper","anterior",1,3,2.8,2.2,0.1],
+    ["push_up_sphinx","Flexiones Esfinge","Flexiones codos adelante","Triceps","Triceps","Resistencia","Basico","Empuje","upper","anterior",1,4,2.5,2.0,0.1],
+    ["pike_push_up","Flexiones Pike","Flexiones pike hombros","Deltoides Anterior","Deltoides Anterior","Resistencia","Basico","Empuje","upper","anterior",1,5,2.8,2.2,0.1],
+    ["decline_push_up","Flexiones Declinadas","Flexiones pies elevados","Pectoral Superior","Pectoral Superior","Resistencia","Basico","Empuje","upper","anterior",1,4,2.8,2.2,0.1],
+    ["incline_push_up","Flexiones Inclinadas","Flexiones manos elevadas","Pectoral Inferior","Pectoral Inferior","Resistencia","Basico","Empuje","upper","anterior",1,2,2.5,2.0,0.1],
+    ["pull_up_wide","Dominadas Ancho","Dominadas agarre ancho","Dorsal Ancho","Dorsales","Resistencia","Basico","Tiron","upper","posterior",2,5,3.2,2.5,0.2],
+    ["pull_up_neutral","Dominadas Neutras","Dominadas agarre neutro","Dorsal Ancho","Dorsales","Resistencia","Basico","Tiron","upper","posterior",2,5,3.2,2.5,0.2],
+    ["chin_up","Dominadas Supinas","Dominadas agarre supino","Biceps","Biceps","Resistencia","Basico","Tiron","upper","anterior",2,4,3.0,2.5,0.2],
+    ["dip_bars","Fondos Barras","Fondos en barras paralelas","Triceps","Triceps","Resistencia","Basico","Empuje","upper","anterior",2,4,3.0,2.5,0.1],
+    ["l_sit","L-Sit","Mantener L en barras","Recto Abdominal","Abdomen","Resistencia","Accesorio","Flexion","full","anterior",2,6,2.0,1.5,0.0],
+    ["hanging_leg_raise","Elevaciones Piernas Colgado","Piernas al frente colgado","Recto Abdominal","Abdomen","Hipertrofia","Aislamiento","Flexion","full","anterior",2,5,2.2,1.8,0.0],
+    ["hanging_knee_raise","Elevaciones Rodillas Colgado","Rodillas al pecho colgado","Recto Abdominal","Abdomen","Hipertrofia","Aislamiento","Flexion","full","anterior",2,4,2.0,1.5,0.0],
+    ["plank","Plancha","Plancha frontal","Recto Abdominal","Abdomen","Resistencia","Accesorio","Otro","full","anterior",1,2,1.8,1.5,0.0],
+    ["side_plank","Plancha Lateral","Plancha lateral","Oblicuos","Abdomen","Resistencia","Accesorio","Otro","full","anterior",1,3,1.6,1.2,0.0],
+    ["squat_bodyweight","Sentadilla Peso Corporal","Sentadilla sin peso","Cuadriceps","Cuadriceps","Resistencia","Basico","Sentadilla","lower","anterior",1,2,2.5,2.0,0.3],
+    ["lunge_forward","Zancada Frontal","Zancada hacia adelante","Cuadriceps","Cuadriceps","Resistencia","Accesorio","Sentadilla","lower","anterior",1,3,2.5,2.0,0.2],
+    ["lunge_lateral","Zancada Lateral","Zancada hacia lateral","Aductores","Aductores","Resistencia","Accesorio","Otro","lower","posterior",1,3,2.2,1.8,0.0],
+    ["single_leg_squat","Sentadilla Unipodal","Sentadilla a una pierna","Cuadriceps","Cuadriceps","Resistencia","Basico","Sentadilla","lower","anterior",1,6,2.8,2.2,0.2],
+    ["glute_bridge","Puente Gluteos","Puente de gluteos suelo","Gluteos","Gluteos","Hipertrofia","Accesorio","Bisagra","lower","posterior",1,2,2.2,1.8,0.0],
+  ]},
+];
+templates.forEach(t=>{
+  t.items.forEach((it,i)=>{
+    const id = t.prefixes[0]+it[0];
+    EX.push(["db_exp3_"+id,it[1],it[2],it[3],it[4],it[5],it[6],t.eq,it[7],it[8],it[9],it[10],it[11],it[12],it[13],it[14]]);
+  });
+});

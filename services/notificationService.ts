@@ -94,8 +94,9 @@ export const setupNotificationChannels = async () => {
       description: 'Descanso entre series: sonido y vibración',
       importance: 5,
       visibility: 1,
-      sound: 'default',
+      sound: 'beeper_confirm.wav',
       vibration: true,
+      lights: true,
     });
     await LocalNotifications.createChannel({
       id: 'yp_reminders',
@@ -160,8 +161,7 @@ export async function scheduleRestEndNotification(durationSeconds: number): Prom
         id: ID_REST_END,
         title: 'Descanso terminado',
         body: '¡A por la siguiente serie!',
-        schedule: { at },
-        sound: 'default',
+        schedule: { at, allowWhileIdle: true },
         channelId: 'yp_timers',
       }],
     });

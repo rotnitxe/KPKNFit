@@ -641,6 +641,7 @@ const SetDetails: React.FC<{
                                 <span className="text-[9px] text-cyber-cyan/80 w-12">Dropset</span>
                                 <input type="number" step="0.5" placeholder="Peso" value={ds.weight === 0 ? '' : ds.weight} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: v === '' ? 0 : (parseFloat(v) || 0), reps: arr[i].reps }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
                                 <input type="number" placeholder="Reps" value={ds.reps === 0 ? '' : ds.reps} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: arr[i].weight, reps: v === '' ? 0 : (parseInt(v, 10) || 0) }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
+                                <button type="button" onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0" title="Eliminar dropset"><MinusIcon size={12}/></button>
                             </div>
                         ))}
                         {(safeInputs.restPauses || []).map((rp, i) => (
@@ -648,6 +649,7 @@ const SetDetails: React.FC<{
                                 <span className="text-[9px] text-sky-500/80 w-12">Rest-Pause</span>
                                 <input type="number" placeholder="s" value={rp.restTime === 0 ? '' : rp.restTime} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: v === '' ? 0 : (parseInt(v, 10) || 0), reps: arr[i].reps }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
                                 <input type="number" placeholder="Reps" value={rp.reps === 0 ? '' : rp.reps} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: arr[i].restTime, reps: v === '' ? 0 : (parseInt(v, 10) || 0) }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
+                                <button type="button" onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0" title="Eliminar rest-pause"><MinusIcon size={12}/></button>
                             </div>
                         ))}
                     </div>
@@ -919,7 +921,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         const lockLandscape = async () => {
             try {
                 const { ScreenOrientation } = await import('@capacitor/screen-orientation');
-                await ScreenOrientation.lock({ orientation: 'landscape' });
+                await ScreenOrientation.lock({ orientation: 'portrait' });
             } catch (e) {
                 console.warn('[WorkoutSession] ScreenOrientation lock failed:', e);
             }
@@ -1447,8 +1449,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     };
 
     return (
-        <div className={`pb-32 ${isFocusMode ? 'focus-mode-active' : ''} transition-colors duration-700`}>
-             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} asDrawer />
+        <div className={`tab-bar-safe-area ${isFocusMode ? 'focus-mode-active' : ''} transition-colors duration-700`}>
+             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} asDrawer allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
             {activeSetId?.startsWith('warmup-') && (() => {
                 const exId = activeSetId.replace('warmup-', '');
                 const ex = allExercises.find((e: Exercise) => e.id === exId);

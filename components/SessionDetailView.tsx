@@ -57,7 +57,7 @@ const SessionDetailView: React.FC<SessionDetailViewProps> = ({ sessionInfo }) =>
     }
     
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 tab-bar-safe-area">
             <header>
                 <h1 className="text-3xl font-bold text-white">{session.name}</h1>
                 <p className="text-slate-400">Análisis detallado de la sesión</p>

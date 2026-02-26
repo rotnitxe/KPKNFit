@@ -1051,7 +1051,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
                 </div>
 
-                <div className="p-4 border-t border-white/5 shrink-0">
+                <div className="p-4 pt-3 pb-[max(1rem,calc(var(--tab-bar-safe-bottom,120px)+12px))] border-t border-white/5 shrink-0">
                     <Button
                         onClick={handleSave}
                         disabled={foods.length === 0}

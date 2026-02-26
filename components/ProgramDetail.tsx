@@ -202,7 +202,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     // ─── Render ───
     return (
-        <div className="fixed inset-0 z-[100] bg-black text-white flex flex-col">
+        <div className="fixed inset-0 z-[100] bg-black text-white flex flex-col safe-area-root">
             {/* Hero Banner */}
             <CompactHeroBanner
                 program={program}

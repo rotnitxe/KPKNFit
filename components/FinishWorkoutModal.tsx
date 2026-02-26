@@ -1,15 +1,17 @@
 
 // components/FinishWorkoutModal.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { TacticalModal } from './ui/TacticalOverlays';
 import WorkoutDrawer from './workout/WorkoutDrawer';
 import Button from './ui/Button';
-import { DISCOMFORT_LIST } from '../data/discomfortList';
-import { CheckCircleIcon, ArrowUpIcon, ArrowDownIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, DumbbellIcon, ClockIcon, FlameIcon } from './icons';
-import { useAppDispatch } from '../contexts/AppContext';
+import { DISCOMFORT_DATABASE } from '../data/discomfortList';
+import { CheckCircleIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, ClockIcon, FlameIcon, ChevronDownIcon, ChevronRightIcon, SearchIcon } from './icons';
+import { useAppDispatch, useAppState } from '../contexts/AppContext';
 import { shareElementAsImage } from '../services/shareService';
 import CaupolicanBackground from './social/CaupolicanBackground';
 import { getLocalDateString } from '../utils/dateUtils';
+import { isSetEffective } from '../services/auge';
+import type { Exercise, ExerciseMuscleInfo } from '../types';
 
 interface FinishWorkoutModalProps {
   isOpen: boolean;
@@ -20,67 +22,119 @@ interface FinishWorkoutModalProps {
   initialDurationInSeconds?: number;
   initialNotes?: string;
   asDrawer?: boolean;
+  allExercises?: Exercise[];
+  completedSets?: Record<string, { left: any; right: any }>;
+  exerciseList?: ExerciseMuscleInfo[];
 }
 
 const ENVIRONMENT_TAGS = ["Gimnasio Lleno", "Gimnasio Vacío", "Entrenando con Amigos", "Buena Música", "Distraído", "Con Prisa"];
 const PLAN_ADHERENCE_TAGS = ["Seguí el Plan", "Más Pesado", "Más Ligero", "Más Reps", "Menos Reps", "Cambié Ejercicios", "Añadí Ejercicios"];
 
-// --- HIDDEN WORKOUT SHARE CARD (AURA ÉPICA) ---
-const WorkoutShareCard: React.FC<{
-    date: string;
-    duration: string;
-    difficulty: number;
-    pump: number;
-}> = ({ date, duration, difficulty, pump }) => {
+// --- HIDDEN WORKOUT SHARE CARD ---
+export interface ShareCardData {
+  date: string;
+  duration: string;
+  difficulty: number;
+  pump: number;
+  exerciseSummaries: { name: string; line: string }[];
+}
+
+const formatSetIntensity = (set: { weight?: number; completedReps?: number; completedRPE?: number; completedRIR?: number; isFailure?: boolean; isAmrap?: boolean; useBodyweight?: boolean }, weightUnit: string): string => {
+  const reps = set.completedReps;
+  const w = set.weight;
+  const rpe = set.completedRPE;
+  const rir = set.completedRIR;
+  const fail = set.isFailure;
+  const amrap = set.isAmrap;
+  const bw = set.useBodyweight;
+  const parts: string[] = [];
+  if (w != null && w > 0 && !bw) parts.push(`${w}${weightUnit}`);
+  else if (bw) parts.push('BW');
+  if (reps != null && typeof reps === 'number') parts.push(`${reps} reps`);
+  if (rpe != null && rpe > 0) parts.push(`RPE ${rpe}`);
+  if (rir != null && rir >= 0) parts.push(`RIR ${rir}`);
+  if (fail) parts.push('Fallo');
+  if (amrap) parts.push('AMRAP');
+  return parts.filter(Boolean).join(' ');
+};
+
+export const buildShareCardDataFromLog = (log: { date: string; duration?: number; completedExercises: { exerciseName: string; sets: any[]; useBodyweight?: boolean }[]; sessionDifficulty?: number; pump?: number }, weightUnit: string): ShareCardData => {
+  const duration = log.duration != null ? String(Math.round(log.duration / 60)) : '--';
+  const exerciseSummaries = (log.completedExercises || []).map(ex => {
+    const setsWithData = ex.sets.filter((s: any) => (s.completedReps != null && s.completedReps > 0) || (s.weight != null && s.weight > 0) || ex.useBodyweight);
+    const count = setsWithData.length;
+    if (count === 0) return { name: ex.exerciseName, line: '' };
+    const first = setsWithData[0] as any;
+    const intensity = formatSetIntensity({ ...first, useBodyweight: ex.useBodyweight }, weightUnit);
+    const line = count > 1 ? `${count}× ${intensity}` : intensity;
+    return { name: ex.exerciseName, line: line || `${count} series` };
+  }).filter(s => s.line || s.name);
+  return {
+    date: log.date,
+    duration,
+    difficulty: log.sessionDifficulty ?? 5,
+    pump: log.pump ?? 5,
+    exerciseSummaries,
+  };
+};
+
+const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, difficulty, pump, exerciseSummaries, preview }) => {
+    const wrapperClass = preview
+        ? 'relative w-[540px] h-[960px] bg-black text-white overflow-hidden flex flex-col font-sans rounded-xl'
+        : 'fixed top-0 left-[-2000px] w-[540px] h-[960px] bg-black text-white overflow-hidden pointer-events-none z-[-10] flex flex-col font-sans';
     return (
-        <div id="workout-summary-share-card" className="fixed top-0 left-[-2000px] w-[540px] h-[960px] bg-black text-white overflow-hidden pointer-events-none z-[-10] flex flex-col font-sans">
-             {/* Fondo Épico */}
-            <div className="absolute inset-0 z-0 opacity-40 mix-blend-luminosity scale-110 -translate-y-10">
+        <div id={preview ? undefined : 'workout-summary-share-card'} className={wrapperClass}>
+             <div className="absolute inset-0 z-0 opacity-40 mix-blend-luminosity scale-110 -translate-y-10">
                 <CaupolicanBackground />
             </div>
-            
-            {/* Degradados para legibilidad */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-[#0a0a0a] z-0" />
-            
-            {/* Ruido Texturizado (Estilo Gritty) */}
             <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
 
             <div className="relative z-10 flex flex-col h-full p-12 justify-between">
-                {/* Header (Logo + Fecha) */}
                 <div className="flex justify-between items-start">
                     <div className="flex flex-col">
-                        <span className="text-[14px] font-black text-white/40 uppercase tracking-[0.4em] mb-1">Batalla Terminada</span>
+                        <span className="text-[14px] font-black text-white/40 uppercase tracking-[0.4em] mb-1">Sesión de entrenamiento</span>
                         <span className="text-xl font-bold text-white uppercase tracking-widest">
                             {new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                     </div>
-                    <div className="w-16 h-16 bg-white text-black flex items-center justify-center rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-                        <span className="font-black text-2xl tracking-tighter">KP</span>
+                    <div className="w-16 h-16 rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.3)] overflow-hidden bg-white flex items-center justify-center">
+                        <img src="/caupolican-icon.svg" alt="" className="w-full h-full object-contain p-1" aria-hidden />
                     </div>
                 </div>
 
-                {/* Main Impact Title */}
-                <div className="flex flex-col mt-auto mb-16">
-                     <h1 className="text-[5.5rem] font-black text-white leading-[0.85] uppercase tracking-tighter drop-shadow-2xl">
-                         DOMINA <br/>
-                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-cyber-cyan">LA DEBILIDAD</span>
-                     </h1>
+                {/* Ejercicios + barra de gradiente */}
+                <div className="flex flex-col flex-1 min-h-0 mt-6 mb-6">
+                    <div className="flex-1 overflow-hidden">
+                        {exerciseSummaries.length > 0 ? (
+                            <div className="space-y-2 max-h-[280px] overflow-y-auto custom-scrollbar pr-1">
+                                {exerciseSummaries.map((ex, i) => (
+                                    <div key={i} className="flex flex-col gap-0.5">
+                                        <span className="text-sm font-bold text-white">{ex.name}</span>
+                                        <span className="text-xs text-cyan-400/90 font-mono">{ex.line}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="h-24 flex items-center justify-center">
+                                <span className="text-white/40 text-sm">Ejercicios de la sesión</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="h-1 w-full mt-4 rounded-full bg-gradient-to-r from-red-500 to-cyan-500" />
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-3 gap-4 mb-8">
+                <div className="grid grid-cols-3 gap-4 mb-6">
                      <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
                          <ClockIcon size={32} className="text-white/50 mb-3" />
                          <p className="text-[3rem] font-black text-white leading-none">{duration}</p>
                          <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Minutos</p>
                      </div>
-                     
                      <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
                          <ZapIcon size={32} className="text-yellow-500/80 mb-3" />
                          <p className="text-[3rem] font-black text-yellow-400 leading-none">{difficulty}</p>
-                         <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Dificultad</p>
+                         <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Intensidad</p>
                      </div>
-
                      <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
                          <ActivityIcon size={32} className="text-red-500/80 mb-3" />
                          <p className="text-[3rem] font-black text-red-400 leading-none">{pump}</p>
@@ -88,24 +142,34 @@ const WorkoutShareCard: React.FC<{
                      </div>
                 </div>
 
-                {/* Footer Quote */}
-                <div className="text-center pt-8 border-t border-white/10">
-                     <p className="text-2xl font-bold text-white italic tracking-wide">"El dolor de hoy es la fuerza de mañana."</p>
-                     <p className="text-sm font-black text-white/30 mt-4 uppercase tracking-[0.5em]">@YOURPRIME.APP</p>
+                <div className="text-center pt-6 border-t border-white/10">
+                     <p className="text-sm font-black text-white/50 uppercase tracking-[0.3em]">Registra tus entrenamientos con KPKN</p>
                 </div>
             </div>
         </div>
     );
 };
 
-const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, asDrawer }) => {
+const MUSCLE_LABEL_MAP: Record<string, string> = {
+  'Tríceps': 'Tríceps', 'Bíceps': 'Bíceps', 'Pectorales': 'Pectorales', 'Dorsales': 'Dorsales',
+  'Deltoides': 'Hombros', 'Cuádriceps': 'Cuádriceps', 'Glúteos': 'Glúteos', 'Isquiosurales': 'Isquiotibiales',
+  'Pantorrillas': 'Pantorrillas', 'Abdomen': 'Abdomen', 'Espalda Baja': 'Espalda Baja', 'Trapecio': 'Trapecio',
+};
+
+const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, asDrawer, allExercises = [], completedSets = {}, exerciseList = [] }) => {
   const { addRecommendationTrigger, addToast } = useAppDispatch();
-  const [fatigueLevel, setFatigueLevel] = useState(5);
-  const [mentalClarity, setMentalClarity] = useState(5);
+  const { settings } = useAppState();
+  const weightUnit = settings?.weightUnit ?? 'kg';
+  const [generalBattery, setGeneralBattery] = useState(50);
+  const [muscleBatteries, setMuscleBatteries] = useState<Record<string, number>>({});
+  const [spinalBattery, setSpinalBattery] = useState(50);
+  const [muscleAccordionOpen, setMuscleAccordionOpen] = useState(false);
   const [focus, setFocus] = useState(5);
   const [pump, setPump] = useState(5);
   const [sessionDifficulty, setSessionDifficulty] = useState(5);
   const [selectedDiscomforts, setSelectedDiscomforts] = useState<string[]>([]);
+  const [showDiscomfortSearch, setShowDiscomfortSearch] = useState(false);
+  const [discomfortSearchQuery, setDiscomfortSearchQuery] = useState('');
   const [environmentTags, setEnvironmentTags] = useState<string[]>([]);
   const [planAdherenceTags, setPlanAdherenceTags] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
@@ -115,54 +179,128 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
   const prevIsOpen = useRef(isOpen);
   const [isSharing, setIsSharing] = useState(false);
 
+  const shareCardExerciseSummaries = useMemo(() => {
+    const out: { name: string; line: string }[] = [];
+    allExercises.forEach(ex => {
+      const setsWithData: { reps?: number; weight?: number; rpe?: number; rir?: number; isFailure?: boolean; isAmrap?: boolean }[] = [];
+      ex.sets?.forEach(set => {
+        const raw = completedSets[String(set.id)] as { left?: any; right?: any } | undefined;
+        const data = ex.isUnilateral ? (raw?.left || raw?.right) : raw?.left;
+        if (data && ((data.reps != null && data.reps > 0) || (data.weight != null && data.weight > 0))) {
+          setsWithData.push({
+            reps: data.reps,
+            weight: data.weight,
+            rpe: data.rpe,
+            rir: data.rir,
+            isFailure: data.isFailure,
+            isAmrap: data.isAmrap,
+          });
+        }
+      });
+      if (setsWithData.length === 0) return;
+      const first = setsWithData[0];
+      const parts: string[] = [];
+      if (first.weight != null && first.weight > 0) parts.push(`${first.weight}${weightUnit}`);
+      if (first.reps != null) parts.push(`${first.reps} reps`);
+      if (first.rpe != null && first.rpe > 0) parts.push(`RPE ${first.rpe}`);
+      if (first.rir != null && first.rir >= 0) parts.push(`RIR ${first.rir}`);
+      if (first.isFailure) parts.push('Fallo');
+      if (first.isAmrap) parts.push('AMRAP');
+      const intensity = parts.join(' ');
+      const line = setsWithData.length > 1 ? `${setsWithData.length}× ${intensity}` : intensity;
+      out.push({ name: ex.name, line: line || `${setsWithData.length} series` });
+    });
+    return out;
+  }, [allExercises, completedSets, weightUnit]);
+
+  const musclesWithEffectiveSets = useMemo(() => {
+    const muscles = new Set<string>();
+    allExercises.forEach(ex => {
+      const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+      const primaryMuscles = info?.involvedMuscles?.filter(m => m.role === 'primary').map(m => m.muscle) ?? [];
+      ex.sets?.forEach(set => {
+        const dataRaw = completedSets[String(set.id)];
+        if (!dataRaw) return;
+        const data = dataRaw as { left: any; right: any };
+        const primary = ex.isUnilateral ? (data.left || data.right) : data.left;
+        if (!primary) return;
+        const setLike = { ...primary, completedRPE: primary.rpe, completedRIR: primary.rir, targetRPE: set.targetRPE, targetRIR: set.targetRIR, intensityMode: set.intensityMode };
+        if (isSetEffective(setLike)) primaryMuscles.forEach(m => muscles.add(m));
+      });
+    });
+    return Array.from(muscles);
+  }, [allExercises, completedSets, exerciseList]);
+
+  useEffect(() => {
+    if (isOpen && musclesWithEffectiveSets.length > 0) {
+      setMuscleBatteries(prev => {
+        const next = { ...prev };
+        musclesWithEffectiveSets.forEach(m => { if (next[m] === undefined) next[m] = 50; });
+        return next;
+      });
+    }
+  }, [isOpen, musclesWithEffectiveSets]);
+
   useEffect(() => {
     if (isOpen && !prevIsOpen.current) {
-      if (initialDurationInSeconds) {
-        setDurationInMinutes(Math.round(initialDurationInSeconds / 60).toString());
-      }
+      if (initialDurationInSeconds) setDurationInMinutes(Math.round(initialDurationInSeconds / 60).toString());
       if (initialNotes) setNotes(initialNotes);
       setLogDate(getLocalDateString());
     }
-    
     if (!isOpen && prevIsOpen.current) {
-      setFatigueLevel(5);
-      setMentalClarity(5);
+      setGeneralBattery(50);
+      setMuscleBatteries({});
+      setSpinalBattery(50);
       setFocus(5);
       setPump(5);
       setSessionDifficulty(5);
       setSelectedDiscomforts([]);
+      setShowDiscomfortSearch(false);
+      setDiscomfortSearchQuery('');
       setEnvironmentTags([]);
       setPlanAdherenceTags([]);
       setNotes('');
       setDurationInMinutes('');
       setShowRecoverySuggestion(false);
     }
-    
     prevIsOpen.current = isOpen;
   }, [isOpen, initialDurationInSeconds, initialNotes]);
 
+  const fatigueLevel = Math.min(10, Math.max(1, Math.round(generalBattery / 10)));
+  const mentalClarity = Math.min(10, Math.max(1, Math.round((100 - spinalBattery) / 10)));
+  const avgMuscle = musclesWithEffectiveSets.length > 0
+    ? musclesWithEffectiveSets.reduce((a, m) => a + (muscleBatteries[m] ?? 50), 0) / musclesWithEffectiveSets.length
+    : 50;
+  const pumpMapped = Math.min(10, Math.max(1, Math.round(avgMuscle / 10)));
+
   const handleFinishAttempt = () => {
-      // Consecuencia: Sugerir descarga si fatiga > 7 y claridad < 4
-      if (fatigueLevel > 7 && mentalClarity < 4) {
-          setShowRecoverySuggestion(true);
-          addRecommendationTrigger({
-              type: 'high_fatigue',
-              value: fatigueLevel,
-              context: `Fatiga extrema (${fatigueLevel}/10) y claridad baja (${mentalClarity}/10) tras sesión.`
-          });
-      } else {
-          executeFinish();
-      }
+    if (fatigueLevel >= 8 && mentalClarity <= 3) {
+      setShowRecoverySuggestion(true);
+      addRecommendationTrigger({ type: 'high_fatigue', value: fatigueLevel, context: `Fatiga extrema (${fatigueLevel}/10) tras sesión.` });
+    } else {
+      executeFinish();
+    }
   };
 
   const executeFinish = () => {
     const durationNum = durationInMinutes ? parseInt(durationInMinutes, 10) : undefined;
     if (mode === 'log' && (!durationNum || durationNum <= 0)) {
-        alert("Por favor, introduce una duración válida en minutos.");
-        return;
+      alert("Por favor, introduce una duración válida en minutos.");
+      return;
     }
+    onFinish(notes, selectedDiscomforts, fatigueLevel, mentalClarity, durationNum, logDate, undefined, [], focus, pumpMapped, environmentTags, sessionDifficulty, planAdherenceTags);
+  };
 
-    onFinish(notes, selectedDiscomforts, fatigueLevel, mentalClarity, durationNum, logDate, undefined, [], focus, pump, environmentTags, sessionDifficulty, planAdherenceTags);
+  const filteredDiscomforts = useMemo(() => {
+    const q = discomfortSearchQuery.toLowerCase().trim();
+    if (!q) return DISCOMFORT_DATABASE;
+    return DISCOMFORT_DATABASE.filter(d =>
+      d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q)
+    );
+  }, [discomfortSearchQuery]);
+
+  const toggleDiscomfort = (name: string) => {
+    setSelectedDiscomforts(prev => prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name]);
   };
   
   const handleAcceptDeload = () => {
@@ -172,23 +310,13 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
   
   const handleShare = async () => {
       setIsSharing(true);
-      await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'He completado una sesión en YourPrime. #YourPrime #Fitness');
+      await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'Registra tus entrenamientos con KPKN. #KPKN #Fitness');
       setIsSharing(false);
   }
 
   const toggleTag = (tag: string, state: string[], setState: React.Dispatch<React.SetStateAction<string[]>>) => {
     setState(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
-
-  const SliderInput: React.FC<{label: string; value: number; onChange: (v:number) => void; color?: string}> = ({label, value, onChange, color = "accent-primary-color"}) => (
-     <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">{label} (1-10)</label>
-        <div className="flex items-center gap-3">
-            <input type="range" min="1" max="10" value={value} onChange={(e) => onChange(parseInt(e.target.value))} className={`w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-slate-800 ${color}`} />
-            <span className="font-bold text-lg w-8 text-center">{value}</span>
-        </div>
-    </div>
-  )
 
   const TagGroup: React.FC<{title:string; tags: string[]; selected: string[]; onToggle: (tag:string) => void;}> = ({title, tags, selected, onToggle}) => (
       <div>
@@ -201,7 +329,17 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
             ))}
         </div>
     </div>
-  )
+  );
+
+  const BatterySlider: React.FC<{ label: string; value: number; onChange: (v: number) => void; color?: string }> = ({ label, value, onChange, color = 'accent-sky-500' }) => (
+    <div>
+      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</label>
+      <div className="flex items-center gap-3">
+        <input type="range" min="0" max="100" value={value} onChange={(e) => onChange(parseInt(e.target.value))} className={`w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 ${color}`} />
+        <span className="text-xl font-black text-white w-12 text-right tabular-nums">{value}%</span>
+      </div>
+    </div>
+  );
 
   const title = showRecoverySuggestion ? "Recuperación Prioritaria" : "Finalizar Sesión";
   const content = (
@@ -210,7 +348,8 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
           date={logDate} 
           duration={durationInMinutes || '--'} 
           difficulty={sessionDifficulty} 
-          pump={pump} 
+          pump={pump}
+          exerciseSummaries={shareCardExerciseSummaries}
       />
 
       {!showRecoverySuggestion ? (
@@ -237,52 +376,63 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
                 </div>
             </div>
             
+            <p className="text-xs text-slate-400 italic mb-4">Si tu cuerpo tuviese tres baterías — una para tu estado general, otra para tus músculos y una última para tu columna — del 0 al 100%:</p>
+            
             <div className="space-y-6 bg-zinc-950/50 p-5 rounded-3xl border border-white/5 shadow-inner">
-                <div>
-                    <label className="block text-[10px] font-black text-sky-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <ZapIcon size={14}/> RPE Global de la Sesión
-                    </label>
-                    <div className="flex items-center gap-4">
-                        <input type="range" min="1" max="10" value={sessionDifficulty} onChange={(e) => setSessionDifficulty(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 accent-sky-500" />
-                        <span className="text-xl font-black text-white w-8 text-right tabular-nums">{sessionDifficulty}</span>
-                    </div>
-                </div>
+                <BatterySlider label="1. ¿Cuánto % de batería de tu estado general te consumió esta sesión?" value={generalBattery} onChange={setGeneralBattery} color="accent-sky-500" />
                 
                 <div>
-                    <label className="block text-[10px] font-black text-rose-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <ActivityIcon size={14}/> Drenaje del SNC (Estrés Central)
-                    </label>
-                    <div className="flex items-center gap-4">
-                        <input type="range" min="1" max="10" value={fatigueLevel} onChange={(e) => setFatigueLevel(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 accent-rose-500" />
-                        <span className="text-xl font-black text-white w-8 text-right tabular-nums">{fatigueLevel}</span>
-                    </div>
+                    <button type="button" onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)} className="w-full flex items-center justify-between text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">
+                        <span>2. ¿Cuánto % de batería de los músculos que trabajaste te consumió esta sesión?</span>
+                        {muscleAccordionOpen ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+                    </button>
+                    {muscleAccordionOpen && musclesWithEffectiveSets.length > 0 && (
+                        <div className="space-y-3 mt-3 animate-fade-in">
+                            {musclesWithEffectiveSets.map(m => (
+                                <BatterySlider key={m} label={MUSCLE_LABEL_MAP[m] || m} value={muscleBatteries[m] ?? 50} onChange={(v) => setMuscleBatteries(prev => ({ ...prev, [m]: v }))} color="accent-rose-500" />
+                            ))}
+                        </div>
+                    )}
+                    {muscleAccordionOpen && musclesWithEffectiveSets.length === 0 && (
+                        <p className="text-[10px] text-slate-500 italic">No hay músculos con series efectivas registradas.</p>
+                    )}
                 </div>
 
-                <div>
-                    <label className="block text-[10px] font-black text-amber-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <FlameIcon size={14}/> Daño Muscular (Pump)
-                    </label>
-                    <div className="flex items-center gap-4">
-                        <input type="range" min="1" max="10" value={pump} onChange={(e) => setPump(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 accent-amber-500" />
-                        <span className="text-xl font-black text-white w-8 text-right tabular-nums">{pump}</span>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <BrainIcon size={14}/> Claridad Mental
-                    </label>
-                    <div className="flex items-center gap-4">
-                        <input type="range" min="1" max="10" value={mentalClarity} onChange={(e) => setMentalClarity(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 accent-indigo-500" />
-                        <span className="text-xl font-black text-white w-8 text-right tabular-nums">{mentalClarity}</span>
-                    </div>
-                </div>
+                <BatterySlider label="3. ¿Cuánto % de batería de tu columna te consumió esta sesión?" value={spinalBattery} onChange={setSpinalBattery} color="accent-amber-500" />
             </div>
-            
-            <div className="space-y-4 pt-2">
+
+            <div className="space-y-3 pt-2">
+                <div>
+                    <button type="button" onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)} className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">
+                        ¿Tuviste alguna molestia?
+                        {showDiscomfortSearch ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+                    </button>
+                    {showDiscomfortSearch && (
+                        <div className="animate-fade-in space-y-3">
+                            <div className="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg border border-white/5">
+                                <SearchIcon size={14} className="text-slate-500" />
+                                <input type="text" value={discomfortSearchQuery} onChange={(e) => setDiscomfortSearchQuery(e.target.value)} placeholder="Describe tu molestia o busca..." className="bg-transparent border-none text-sm w-full focus:ring-0" />
+                            </div>
+                            <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-2">
+                                {filteredDiscomforts.map(d => (
+                                    <button key={d.id} type="button" onClick={() => toggleDiscomfort(d.name)} className={`w-full text-left p-3 rounded-lg border transition-all ${selectedDiscomforts.includes(d.name) ? 'bg-primary-color/20 border-primary-color/50' : 'bg-slate-800/50 border-white/5 hover:border-white/10'}`}>
+                                        <span className="font-bold text-sm text-white">{d.name}</span>
+                                        <p className="text-[10px] text-slate-400 mt-1">{d.description}</p>
+                                    </button>
+                                ))}
+                            </div>
+                            {selectedDiscomforts.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                    {selectedDiscomforts.map(name => (
+                                        <span key={name} className="px-2 py-0.5 rounded-full bg-primary-color/30 text-primary-color text-[10px] font-bold">{name} <button type="button" onClick={() => toggleDiscomfort(name)} className="ml-1 opacity-70">×</button></span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
                 <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
                 <TagGroup title="Adherencia" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
-                <TagGroup title="Alertas de Caupolicán Body (Articulaciones)" tags={DISCOMFORT_LIST} selected={selectedDiscomforts} onToggle={(tag) => toggleTag(tag, selectedDiscomforts, setSelectedDiscomforts)} />
             </div>
             
             <div>

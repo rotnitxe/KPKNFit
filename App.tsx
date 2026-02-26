@@ -472,7 +472,7 @@ export const App: React.FC = () => {
             case 'home': return <Home onNavigate={handleHomeNavigation} onResumeWorkout={handleResumeWorkout} onEditSleepLog={setEditingSleepLog}/>;
             case 'nutrition': return <NutritionView />;
             case 'recovery': return (
-                <div className="pt-[20px] px-4 h-full overflow-y-auto hide-scrollbar pb-32">
+                <div className="pt-[20px] px-4 h-full overflow-y-auto hide-scrollbar tab-bar-safe-area">
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-white mb-6">Recuperación</h1>
                     <MuscleRecoveryWidget />
                 </div>
@@ -626,7 +626,7 @@ export const App: React.FC = () => {
                 onSettingsClick={() => navigateTo('settings')}
             />
             
-            <main className={`app-main-content flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))]`}>
+            <main className={`app-main-content scroll-flexible flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(150px,calc(var(--tab-bar-safe-bottom,140px)+24px))]`}>
                 <div className={`${view === 'home' || view === 'sleep' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
                         <Suspense fallback={<ViewFallback />}>
@@ -638,16 +638,17 @@ export const App: React.FC = () => {
             
             {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor, Session Editor, and Nutrition Wizard/Landing */}
             {view !== 'program-editor' && view !== 'session-editor' && (view !== 'nutrition' || settings.hasSeenNutritionWizard) && (
-                <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] rounded-t-none ${tabBarContainerHeight}`}>
-                     <div className="relative w-full h-full">
-                        {/* SubTabBar is absolutely positioned inside here, pushed up */}
+                <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] rounded-t-none min-h-[88px] flex flex-col`}>
+                     <div className="flex flex-col w-full flex-1 min-h-0">
                         <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />
-                        <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext} />
+                        <div className="h-[88px] shrink-0">
+                            <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext} />
+                        </div>
                     </div>
                 </div>
             )}
             
-            <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[300] flex flex-col gap-2 items-center pointer-events-none">
+            <div className="fixed left-1/2 -translate-x-1/2 z-[300] flex flex-col gap-2 items-center pointer-events-none safe-area-toast-top">
                 {toasts.map(toast => (
                     <Toast key={toast.id} toast={toast} onDismiss={removeToast} />
                 ))}
@@ -662,7 +663,7 @@ export const App: React.FC = () => {
             {isFoodEditorOpen && <FoodEditorModal />}
             {state.isAddPantryItemModalOpen && <AddPantryItemModal />}
             {isVideoAnalysisModalOpen && <VideoAnalysisModal isOpen={isVideoAnalysisModalOpen} onClose={() => setIsVideoAnalysisModalOpen(false)} exerciseName={viewingExercise?.name || ''} isOnline={isOnline} settings={settings} />}
-            {isReadinessModalOpen && <ReadinessDrawer isOpen={isReadinessModalOpen} onClose={() => { setIsReadinessModalOpen(false); setPendingWorkoutForReadinessCheck(null); }} onContinue={handleContinueFromReadiness} />}
+            {isReadinessModalOpen && <ReadinessDrawer isOpen={isReadinessModalOpen} onClose={() => { setIsReadinessModalOpen(false); setPendingWorkoutForReadinessCheck(null); }} onContinue={handleContinueFromReadiness} pendingWorkout={pendingWorkoutForReadinessCheck} />}
             {state.isAddToPlaylistSheetOpen && <AddToPlaylistSheet />}
             {isStartWorkoutModalOpen && <StartWorkoutDrawer isOpen={isStartWorkoutModalOpen} onClose={() => setIsStartWorkoutModalOpen(false)} />}
             {pendingCoachBriefing && <CoachBriefingDrawer isOpen={!!pendingCoachBriefing} onClose={handleContinueWorkoutAfterBriefing} briefing={pendingCoachBriefing} />}

@@ -114,7 +114,7 @@ const ChainDetailView: React.FC<ChainDetailViewProps> = ({ chainId }) => {
 
     if (chainId === 'Core') {
         return (
-            <div className="pb-20 animate-fade-in">
+            <div className="tab-bar-safe-area animate-fade-in min-h-screen">
                 <header className="mb-6 flex justify-between items-center">
                     <h1 className="text-4xl font-bold text-white">{chainId}</h1>
                      <Button onClick={() => openMuscleListEditor(chainId, 'special')} variant="secondary" className="!text-xs !py-1"><PencilIcon size={14}/> Editar</Button>
@@ -150,7 +150,7 @@ const ChainDetailView: React.FC<ChainDetailViewProps> = ({ chainId }) => {
 
 
     return (
-        <div className="pb-20 animate-fade-in">
+        <div className="tab-bar-safe-area animate-fade-in min-h-screen">
             <header className="mb-6 flex justify-between items-center">
                 <h1 className="text-4xl font-bold text-white">{chainId}</h1>
                  <Button onClick={() => openMuscleListEditor(chainId, 'special')} variant="secondary" className="!text-xs !py-1"><PencilIcon size={14}/> Editar</Button>

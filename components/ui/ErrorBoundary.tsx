@@ -1,5 +1,6 @@
 // components/ui/ErrorBoundary.tsx
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { captureException } from '../../services/sentryService';
 
 interface Props {
   children?: ReactNode;
@@ -29,6 +30,10 @@ class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo });
     console.error("KPKN Error Caught:", error, errorInfo);
+    captureException(error, {
+      componentStack: errorInfo.componentStack,
+      fallbackLabel: this.props.fallbackLabel,
+    });
   }
 
   private getErrorReport = () => {

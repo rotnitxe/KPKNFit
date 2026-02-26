@@ -228,7 +228,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
 
             {/* Vertical week cards */}
             {!showCyclicHistory ? (
-                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-[max(80px,env(safe-area-inset-bottom,0px))] space-y-4 custom-scrollbar">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-4 custom-scrollbar">
                     {currentWeeks.map((week, weekIdx) => {
                         const weekSessionsByDay = getSessionsByDayForWeek(week);
                         const isSelected = week.id === selectedWeekId;
@@ -318,7 +318,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                 </div>
             ) : (
                 /* Cyclic history view */
-                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-[max(80px,env(safe-area-inset-bottom,0px))] space-y-2 custom-scrollbar">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-2 custom-scrollbar">
                     {programLogs.length > 0 ? programLogs.slice(0, 20).map((log: any, idx: number) => (
                         <div key={idx} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#111] border border-white/5">
                             <div className="w-8 h-8 rounded-lg bg-[#00F19F]/10 flex items-center justify-center shrink-0">

@@ -35,6 +35,7 @@ import { cacheService } from '../services/cacheService';
 import { calculateCompletedSessionStress, calculateCompletedSessionDrainBreakdown } from '../services/auge';
 import { queueFatigueDataPoint, queueTrainingImpulse } from '../services/augeAdaptiveService';
 import { scheduleRestEndNotification, cancelRestEndNotification, rescheduleAllNotifications, cancelMissedWorkoutNotificationForToday } from '../services/notificationService';
+import { Capacitor } from '@capacitor/core';
 import { syncWidgetData } from '../services/widgetSyncService';
 import { addNetworkStatusListener } from '../services/networkService';
 import { getCachedAdaptiveData } from '../services/augeAdaptiveService';
@@ -738,6 +739,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[]
     ) => {
         if (!ongoingWorkout) return;
+        cancelRestEndNotification();
         const logId = crypto.randomUUID();
         const sessionStressScore = calculateCompletedSessionStress(completedExercises, exerciseList);
         const drainBreakdown = calculateCompletedSessionDrainBreakdown(completedExercises, exerciseList, settings);
@@ -932,11 +934,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     const newRemaining = Math.max(0, Math.round((currentTimer.endTime - Date.now()) / 1000));
                     if (newRemaining <= 0) {
                         clearInterval(restTimerInterval.current!);
-                        cancelRestEndNotification();
                         if (!hasFiredRestEndFeedback.current) {
                             hasFiredRestEndFeedback.current = true;
-                            playSound('rest-timer-sound');
-                            hapticNotification(NotificationType.Success);
+                            (async () => {
+                                const isForeground = !Capacitor.isNativePlatform() || (await import('@capacitor/app').then(m => m.App.getState())).isActive;
+                                if (isForeground) {
+                                    cancelRestEndNotification();
+                                    playSound('rest-timer-sound');
+                                    hapticNotification(NotificationType.Success);
+                                }
+                            })();
                         }
                         setTimeout(() => ui.setRestTimer(t => t?.key === key ? null : t), 3000);
                         return { ...currentTimer, remaining: 0 };

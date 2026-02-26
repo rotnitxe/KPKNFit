@@ -2,9 +2,8 @@
 import React, { useState, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { ExerciseMuscleInfo } from '../types';
-import { ArrowLeftIcon, SearchIcon, ChevronRightIcon, SparklesIcon } from './icons';
+import { ArrowLeftIcon, SearchIcon, ChevronRightIcon } from './icons';
 import { MUSCLE_GROUPS, EXERCISE_TYPES, CHAIN_TYPES } from '../data/exerciseList';
-import DiscoverExercisesModal from './DiscoverExercisesModal';
 
 const PATTERN_FORCE_OPTIONS: (ExerciseMuscleInfo['force'] | 'All')[] = [
     'All',
@@ -55,7 +54,6 @@ const ExerciseDatabaseView: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState('All');
     const [chainFilter, setChainFilter] = useState('All');
     const [patternFilter, setPatternFilter] = useState<ExerciseMuscleInfo['force'] | 'All'>('All');
-    const [isDiscoverModalOpen, setIsDiscoverModalOpen] = useState(false);
     
     const filterOptions = useMemo(() => ({
         muscles: MUSCLE_GROUPS,
@@ -89,8 +87,7 @@ const ExerciseDatabaseView: React.FC = () => {
     }, [exerciseList]);
 
     return (
-        <div className="pt-[65px] pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
-            <DiscoverExercisesModal isOpen={isDiscoverModalOpen} onClose={() => setIsDiscoverModalOpen(false)} />
+        <div className="pt-[65px] tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
             <header className="flex items-center gap-4 mb-6 -mx-4 px-4">
                 <button onClick={handleBack} className="p-2 text-slate-300 hover:text-cyber-cyan/80 transition-colors">
                     <ArrowLeftIcon />
@@ -101,10 +98,7 @@ const ExerciseDatabaseView: React.FC = () => {
                 </div>
             </header>
 
-            <div className="sticky top-[65px] z-10 bg-[#0a0a0a] py-4 -mx-4 px-4 border-b border-cyber-cyan/20 space-y-3">
-                <button onClick={() => setIsDiscoverModalOpen(true)} className="w-full py-3 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a] text-[10px] font-mono font-bold text-cyber-cyan/90 hover:border-cyber-cyan/40 transition-colors flex items-center justify-center gap-2">
-                    <SparklesIcon size={14} /> Descubrir Nuevos Ejercicios (IA)
-                </button>
+            <div className="bg-[#0a0a0a] py-4 -mx-4 px-4 border-b border-cyber-cyan/20 space-y-3">
                 <div className="relative">
                     <input
                         type="text"

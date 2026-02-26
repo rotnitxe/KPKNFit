@@ -45,7 +45,7 @@ const PhysicalProgress: React.FC = () => {
     }, [settings.userVitals, bodyProgress]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-24 pt-4">
+        <div className="space-y-8 animate-fade-in tab-bar-safe-area pt-4">
             {activeTab === 'coach' && (
                 <div className="space-y-6">
                     <ErrorBoundary>

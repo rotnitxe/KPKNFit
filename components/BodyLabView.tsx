@@ -272,7 +272,7 @@ const BodyLabView: React.FC = () => {
     };
 
     return (
-        <div className="pb-28">
+        <div className="tab-bar-safe-area min-h-screen">
             <header className="text-center mb-8">
                 <h1 className="text-4xl font-bold text-white">BodyLab</h1>
                 <p className="text-slate-400">Tu Perfil de Atleta Personalizado por IA</p>

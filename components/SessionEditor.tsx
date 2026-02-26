@@ -2323,7 +2323,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, []);
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-black text-white animate-slide-up flex flex-col">
+        <div className="fixed inset-0 z-[9999] bg-black text-white animate-slide-up flex flex-col safe-area-root">
 
             {/* ═══ Contextual Header ═══ */}
             <ContextualHeader
@@ -2396,7 +2396,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                         </button>
                     </div>
                 ) : (
-                    <div className="pb-32">
+                    <div className="tab-bar-safe-area">
                         {/* ═══ Parts & Exercises (volumen solo en FAB AUGE) ═══ */}
                         <DragDropContext onDragEnd={handleExerciseDragEnd}>
                             {session.parts?.map((part, pi) => (

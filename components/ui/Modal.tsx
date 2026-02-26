@@ -79,7 +79,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
                 {children}
             </div>
         ) : (
-            <div className={`overflow-y-auto px-6 pb-8 custom-scrollbar relative z-10 ${!title ? 'pt-8' : ''}`}>
+            <div className={`overflow-y-auto px-6 pb-8 custom-scrollbar scroll-flexible relative z-10 ${!title ? 'pt-8' : ''}`}>
                 {children}
             </div>
         )}

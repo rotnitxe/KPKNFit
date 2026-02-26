@@ -225,7 +225,7 @@ const SessionEditorModal: React.FC<{
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors"><XIcon size={24}/></button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar bg-gray-50/50 p-5 pb-32">
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-gray-50/50 p-5 tab-bar-safe-area">
                     {currentSession.exercises?.map((ex, i) => (
                         <InlineExerciseRow
                             key={ex.id || `temp-${i}`}
@@ -1726,7 +1726,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
       const imageFilters = `contrast(${coverFilters.contrast}%) saturate(${coverFilters.saturation}%) grayscale(${coverFilters.grayscale}%)`;
 
       return (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col font-sans text-white overflow-hidden">
+        <div className="fixed inset-0 bg-black z-50 flex flex-col font-sans text-white overflow-hidden safe-area-root">
            
            {/* MODAL DE PERFILADO EN MODO EDICIÓN */}
            {showProfilingWizard && (
@@ -2037,7 +2037,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
   // RENDER: WIZARD (CREATION MODE) - PAGINATED STEPS
   // =================================================================
   return (
-        <div className="fixed inset-0 bg-black z-[200] flex flex-col animate-fade-in text-white font-sans">
+        <div className="fixed inset-0 bg-black z-[200] flex flex-col animate-fade-in text-white font-sans safe-area-root">
 
         {/* --- KPKN PASO CERO: PROFILING WIZARD --- */}
             {showProfilingWizard && (
@@ -2076,7 +2076,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-32 scroll-smooth bg-[#050505]">
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 scroll-smooth bg-[#050505] tab-bar-safe-area">
                 <div className="max-w-md mx-auto py-8 relative">
                     
                     {/* === PASO 0: SELECCIÓN DE ESTRUCTURA Y SPLIT === */}
@@ -2498,7 +2498,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
 
                     {/* === PASO 1: ROADMAP Y PREPARACIÓN DE SESIONES (FUSIONADOS) === */}
                     {wizardStep === 1 && (
-                        <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in-up">
+                        <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in-up safe-area-root">
                             
                             {/* --- FOOTER FLOTANTE (BOTONES FINALES) --- */}
                             <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-40 flex flex-col items-center gap-4 pointer-events-none">
@@ -2546,7 +2546,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                     )}
 
                     {wizardStep === 2 && (
-                        <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in">
+                        <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in safe-area-root">
                             
                             {/* --- BOTONES DE NAVEGACIÓN FLOTANTES --- */}
                             <button 
@@ -2689,7 +2689,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             </div>
             
             {showAllSplitsModal && (
-                <div className="fixed inset-0 z-[250] bg-black flex flex-col animate-fade-in">
+                <div className="fixed inset-0 z-[250] bg-black flex flex-col animate-fade-in safe-area-root">
                      <div className="p-4 border-b border-white/10 bg-black/50 backdrop-blur-xl flex flex-col gap-4">
                         <div className="flex justify-between items-center">
                              <h2 className="text-lg font-black text-white uppercase tracking-tight">Catálogo de Splits</h2>
@@ -2713,7 +2713,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
 
                     {!showCompareView ? (
                         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-black">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 tab-bar-safe-area">
                                 {filteredSplits.map(split => {
                                     const isSelected = compareList.includes(split.id);
                                     return (

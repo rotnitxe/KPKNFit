@@ -1,7 +1,7 @@
-// components/ReadinessDrawer.tsx - Drawer de readiness check (migración de ReadinessCheckModal)
+// components/ReadinessDrawer.tsx - Drawer de readiness check (rediseño con baterías AUGE)
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { MoonIcon, ActivityIcon, FlameIcon, ZapIcon, BatteryIcon, BrainIcon } from './icons';
+import { MoonIcon, ZapIcon, BatteryIcon, BrainIcon, ActivityIcon, TargetIcon } from './icons';
 import {
   getCachedAdaptiveData,
   queuePrediction,
@@ -9,7 +9,10 @@ import {
   getConfidenceLabel,
   getConfidenceColor,
 } from '../services/augeAdaptiveService';
+import { useAppState, useAppDispatch } from '../contexts/AppContext';
+import { calculateGlobalBatteriesAsync, getPerMuscleBatteries } from '../services/auge';
 import WorkoutDrawer from './workout/WorkoutDrawer';
+import type { Session, Exercise } from '../types';
 
 interface ReadinessData {
   sleepQuality: number;
@@ -22,69 +25,87 @@ interface ReadinessDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onContinue: (data: ReadinessData) => void;
+  pendingWorkout?: { session: Session; program: any; weekVariant?: 'A' | 'B' | 'C' | 'D'; location?: any } | null;
 }
 
-const CyberSlider: React.FC<{ label: string; value: number; onChange: (v: number) => void; icon: React.ReactNode; color: string; accentClass: string; inverseScale?: boolean }> = ({ label, value, onChange, icon, color, accentClass, inverseScale }) => (
-  <div className="bg-[#0d0d0d] p-4 rounded-xl border border-cyber-cyan/20 mb-3">
-    <div className="flex justify-between items-center mb-2">
-      <label className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-        <span className={color}>{icon}</span> {label}
-      </label>
-      <span className={`text-sm font-mono font-black ${color}`}>{value}/5</span>
-    </div>
-    <input
-      type="range" min="1" max="5"
-      value={value}
-      onChange={(e) => onChange(parseInt(e.target.value))}
-      className={`w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-800 border border-slate-700 ${accentClass}`}
-    />
-    <div className="flex justify-between text-[9px] font-mono text-slate-500 uppercase tracking-widest mt-1.5">
-      <span>{inverseScale ? 'Óptimo' : 'Pésimo'}</span>
-      <span>{inverseScale ? 'Pésimo' : 'Óptimo'}</span>
-    </div>
-  </div>
-);
+const SIMPLE_LABELS: Record<string, string> = {
+  'Tríceps': 'Tríceps', 'Bíceps': 'Bíceps', 'Pectorales': 'Pectorales', 'Dorsales': 'Dorsales',
+  'Deltoides': 'Hombros', 'Cuádriceps': 'Cuádriceps', 'Glúteos': 'Glúteos', 'Isquiosurales': 'Isquiotibiales',
+  'Pantorrillas': 'Pantorrillas', 'Abdomen': 'Abdomen', 'Espalda Baja': 'Espalda Baja', 'Trapecio': 'Trapecio',
+};
 
-const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onContinue }) => {
+const getPrecisionScale = (obs: number): 'Bajo' | 'Medio' | 'Alto' => {
+  if (obs >= 15) return 'Alto';
+  if (obs >= 5) return 'Medio';
+  return 'Bajo';
+};
+
+const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onContinue, pendingWorkout }) => {
+  const { history, exerciseList, settings, sleepLogs, dailyWellbeingLogs, nutritionLogs, muscleHierarchy, postSessionFeedback, waterLogs } = useAppState();
+  const { setSettings } = useAppDispatch();
   const [sleepQuality, setSleepQuality] = useState(3);
-  const [stressLevel, setStressLevel] = useState(3);
-  const [doms, setDoms] = useState(3);
-  const [motivation, setMotivation] = useState(3);
+  const [moodMotivation, setMoodMotivation] = useState(3);
+  const [calibCns, setCalibCns] = useState(0);
+  const [calibMusc, setCalibMusc] = useState(0);
+  const [calibSpinal, setCalibSpinal] = useState(0);
+  const [isCalibrating, setIsCalibrating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const adaptiveCache = useMemo(() => getCachedAdaptiveData(), []);
-  const confidenceLabel = getConfidenceLabel(adaptiveCache.totalObservations);
-  const confidenceColor = getConfidenceColor(adaptiveCache.totalObservations);
+  const [batteries, setBatteries] = useState<Awaited<ReturnType<typeof calculateGlobalBatteriesAsync>> | null>(null);
+  const [perMuscle, setPerMuscle] = useState<Record<string, number>>({});
 
-  const augePrediction = useMemo(() => {
-    const gpCurve = adaptiveCache.gpCurve;
-    const banister = adaptiveCache.banister;
-    let score = 3;
-    if (banister?.systems?.muscular) {
-      const perf = banister.systems.muscular.performance;
-      if (perf.length > 0) {
-        const latest = perf[perf.length - 1];
-        if (latest > 0.7) score = 5;
-        else if (latest > 0.4) score = 4;
-        else if (latest > 0.1) score = 3;
-        else if (latest > -0.2) score = 2;
-        else score = 1;
-      }
+  const adaptiveCache = useMemo(() => getCachedAdaptiveData(), []);
+  const precisionScale = getPrecisionScale(adaptiveCache.totalObservations);
+
+  const musclesForToday = useMemo(() => {
+    if (!pendingWorkout?.session) return [];
+    const mode = pendingWorkout.weekVariant || 'A';
+    const session = pendingWorkout.session as any;
+    const exercises = (session.parts && session.parts.length > 0 ? session.parts.flatMap((p: any) => p.exercises) : session.exercises)
+      ?? (session[`session${mode}`]?.parts ? session[`session${mode}`].parts.flatMap((p: any) => p.exercises) : session[`session${mode}`]?.exercises ?? []);
+    const muscleCount: Record<string, number> = {};
+    exercises.forEach((ex: Exercise) => {
+      const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
+      info?.involvedMuscles?.forEach(m => {
+        const name = m.muscle;
+        if (m.role === 'primary') muscleCount[name] = (muscleCount[name] || 0) + (ex.sets?.length ?? 0);
+        else if (m.role === 'secondary') muscleCount[name] = (muscleCount[name] || 0) + (ex.sets?.length ?? 0) * 0.5;
+        else if (m.role === 'stabilizer') muscleCount[name] = (muscleCount[name] || 0) + (ex.sets?.length ?? 0) * 0.25;
+      });
+    });
+    const primary = Object.entries(muscleCount).filter(([, v]) => v >= 1).map(([k]) => k);
+    const secondary = Object.entries(muscleCount).filter(([, v]) => v > 3).map(([k]) => k);
+    const stabilizers = Object.entries(muscleCount).filter(([, v]) => v > 4).map(([k]) => k);
+    const combined = [...new Set([...primary, ...secondary.filter(s => !primary.includes(s)), ...stabilizers.filter(s => !primary.includes(s) && !secondary.includes(s))])];
+    const simple = combined.filter(m => !['Romboides', 'Transverso abdominal'].some(k => m.includes(k)) && !['cabeza-larga', 'cabeza-lateral', 'cabeza-medial'].some(k => m.toLowerCase().includes(k)));
+    return simple.slice(0, 6);
+  }, [pendingWorkout, exerciseList]);
+
+  useEffect(() => {
+    if (!isOpen || !history) return;
+    calculateGlobalBatteriesAsync(history, sleepLogs || [], dailyWellbeingLogs || [], nutritionLogs || [], settings, exerciseList)
+      .then(setBatteries)
+      .catch(() => {});
+  }, [isOpen, history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList]);
+
+  useEffect(() => {
+    if (!isOpen || !history) return;
+    try {
+      const hierarchy = muscleHierarchy || { bodyPartHierarchy: {}, specialCategories: {}, muscleToBodyPart: {} };
+      const pm = getPerMuscleBatteries(history, exerciseList, sleepLogs || [], settings, hierarchy, postSessionFeedback || [], waterLogs || [], dailyWellbeingLogs || [], nutritionLogs || []);
+      setPerMuscle(pm);
+    } catch {
+      setPerMuscle({});
     }
-    if (gpCurve) {
-      const latestFatigue = gpCurve.mean_fatigue[gpCurve.mean_fatigue.length - 1] ?? 0.5;
-      if (latestFatigue > 0.7) score = Math.max(1, score - 1);
-      else if (latestFatigue < 0.3) score = Math.min(5, score + 1);
+  }, [isOpen, history, exerciseList, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs, dailyWellbeingLogs, nutritionLogs]);
+
+  useEffect(() => {
+    if (isOpen && batteries) {
+      setCalibCns(batteries.cns);
+      setCalibMusc(batteries.muscular);
+      setCalibSpinal(batteries.spinal);
     }
-    const labels: Record<number, { text: string; color: string }> = {
-      1: { text: 'ROJO — Descanso recomendado', color: 'text-red-400' },
-      2: { text: 'NARANJA — Sesión ligera', color: 'text-cyber-warning' },
-      3: { text: 'AMARILLO — Proceder con cautela', color: 'text-yellow-400' },
-      4: { text: 'VERDE — Buen día para entrenar', color: 'text-emerald-400' },
-      5: { text: 'VERDE+ — Óptimo para PRs', color: 'text-emerald-300' },
-    };
-    return { score, ...(labels[score] || labels[3]) };
-  }, [adaptiveCache]);
+  }, [isOpen, batteries]);
 
   useEffect(() => {
     if (isOpen) setIsSubmitting(false);
@@ -95,14 +116,14 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
     setIsSubmitting(true);
 
     const now = new Date().toISOString();
-    const readinessAvg = (sleepQuality + (6 - stressLevel) + (6 - doms) + motivation) / 4;
+    const readinessAvg = (sleepQuality + moodMotivation) / 2;
     const predId = `readiness-${Date.now()}`;
     queuePrediction({
       prediction_id: predId,
       timestamp: now,
       system: 'readiness',
-      predicted_value: augePrediction.score,
-      context: { confidence: confidenceLabel, observations: adaptiveCache.totalObservations },
+      predicted_value: 3,
+      context: { precision: precisionScale, observations: adaptiveCache.totalObservations },
     });
     queueOutcome({
       prediction_id: predId,
@@ -110,30 +131,105 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
       feedback_source: 'readiness_modal',
     });
 
+    if (isCalibrating && batteries) {
+      const calib = settings.batteryCalibration || { cnsDelta: 0, muscularDelta: 0, spinalDelta: 0 };
+      setSettings({
+        batteryCalibration: {
+          cnsDelta: calibCns - (batteries.cns - (calib.cnsDelta ?? 0)),
+          muscularDelta: calibMusc - (batteries.muscular - (calib.muscularDelta ?? 0)),
+          spinalDelta: calibSpinal - (batteries.spinal - (calib.spinalDelta ?? 0)),
+          lastCalibrated: now,
+        },
+      });
+    }
+
     setTimeout(() => {
-      onContinue({ sleepQuality, stressLevel, doms, motivation });
+      onContinue({
+        sleepQuality,
+        stressLevel: 3,
+        doms: 3,
+        motivation: moodMotivation,
+      });
     }, 150);
   };
+
+  const displayCns = isCalibrating ? calibCns : (batteries?.cns ?? 0);
+  const displayMusc = isCalibrating ? calibMusc : (batteries?.muscular ?? 0);
+  const displaySpinal = isCalibrating ? calibSpinal : (batteries?.spinal ?? 0);
 
   return (
     <WorkoutDrawer isOpen={isOpen} onClose={onClose} title="Estado Base" height="90vh">
       <div className="p-5 space-y-5">
-        <div className="p-4 bg-[#0d0d0d] border border-cyber-cyan/20 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <BrainIcon size={14} className="text-cyber-cyan/80" />
-            <span className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">Predicción AUGE</span>
+        <p className="text-[10px] text-slate-500 italic">Precisión: <span className="font-black text-amber-400">{precisionScale}</span></p>
+        <p className="text-[9px] text-slate-600">Estos números mejoran conforme entrenes y reportes pre y post entreno.</p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">¿Cómo dormiste anoche?</label>
+            <div className="flex items-center gap-3">
+              <input type="range" min="1" max="5" value={sleepQuality} onChange={(e) => setSleepQuality(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-800 accent-indigo-500" />
+              <span className="text-lg font-black text-white w-8 text-center">{sleepQuality}/5</span>
+            </div>
+            <div className="flex justify-between text-[8px] text-slate-500 mt-1"><span>Pésimo</span><span>Óptimo</span></div>
           </div>
-          <p className={`text-sm font-mono font-black ${augePrediction.color}`}>{augePrediction.text}</p>
-          <p className={`text-[9px] mt-1 font-mono font-bold uppercase tracking-widest ${confidenceColor}`}>
-            {adaptiveCache.totalObservations} observaciones — {confidenceLabel}
-          </p>
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">¿Cómo está tu ánimo y motivación para esta sesión?</label>
+            <div className="flex items-center gap-3">
+              <input type="range" min="1" max="5" value={moodMotivation} onChange={(e) => setMoodMotivation(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-800 accent-sky-500" />
+              <span className="text-lg font-black text-white w-8 text-center">{moodMotivation}/5</span>
+            </div>
+            <div className="flex justify-between text-[8px] text-slate-500 mt-1"><span>Bajo</span><span>Alto</span></div>
+          </div>
         </div>
 
-        <p className="text-[10px] font-mono text-slate-500 text-center uppercase tracking-widest">Reporta tu realidad.</p>
-        <CyberSlider label="Calidad del Sueño" value={sleepQuality} onChange={setSleepQuality} icon={<MoonIcon size={16} />} color="text-indigo-400" accentClass="accent-indigo-500" />
-        <CyberSlider label="Estrés del SNC" value={stressLevel} onChange={setStressLevel} icon={<ActivityIcon size={16} />} color="text-rose-400" accentClass="accent-rose-500" inverseScale={true} />
-        <CyberSlider label="Daño Muscular" value={doms} onChange={setDoms} icon={<FlameIcon size={16} />} color="text-amber-400" accentClass="accent-amber-500" inverseScale={true} />
-        <CyberSlider label="Motivación" value={motivation} onChange={setMotivation} icon={<ZapIcon size={16} />} color="text-sky-400" accentClass="accent-sky-500" />
+        {batteries && (
+          <div className="space-y-4 pt-4 border-t border-white/5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Baterías AUGE</p>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-[#111] border border-rose-500/20 p-3 rounded-xl text-center">
+                <ActivityIcon size={16} className="text-rose-400 mx-auto mb-1" />
+                <p className="text-lg font-black text-rose-400">{displayMusc}%</p>
+                <p className="text-[8px] text-slate-500">Muscular</p>
+                <p className="text-[7px] text-slate-600 mt-1">Así de listos están los músculos que trabajarás hoy.</p>
+              </div>
+              <div className="bg-[#111] border border-sky-500/20 p-3 rounded-xl text-center">
+                <BrainIcon size={16} className="text-sky-400 mx-auto mb-1" />
+                <p className="text-lg font-black text-sky-400">{displayCns}%</p>
+                <p className="text-[8px] text-slate-500">SNC</p>
+                <p className="text-[7px] text-slate-600 mt-1">Así estimamos tu energía para hoy.</p>
+              </div>
+              <div className="bg-[#111] border border-amber-500/20 p-3 rounded-xl text-center">
+                <TargetIcon size={16} className="text-amber-400 mx-auto mb-1" />
+                <p className="text-lg font-black text-amber-400">{displaySpinal}%</p>
+                <p className="text-[8px] text-slate-500">Columna</p>
+                <p className="text-[7px] text-slate-600 mt-1">Así de lista está tu columna vertebral.</p>
+              </div>
+            </div>
+            <p className="text-[9px] text-slate-500 italic">¿Estás de acuerdo con esos valores? Actualízalos si quieres corregirlos.</p>
+            <button type="button" onClick={() => setIsCalibrating(!isCalibrating)} className={`w-full py-2 rounded-lg text-[10px] font-black uppercase ${isCalibrating ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}>
+              {isCalibrating ? 'Ajustando... (usa los sliders arriba)' : 'Actualizar valores'}
+            </button>
+            {isCalibrating && (
+              <div className="space-y-2 animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-rose-400 w-16">Muscular</span>
+                  <input type="range" min="0" max="100" value={calibMusc} onChange={(e) => setCalibMusc(parseInt(e.target.value))} className="flex-1 accent-rose-500" />
+                  <span className="text-[9px] font-mono w-8">{calibMusc}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-sky-400 w-16">SNC</span>
+                  <input type="range" min="0" max="100" value={calibCns} onChange={(e) => setCalibCns(parseInt(e.target.value))} className="flex-1 accent-sky-500" />
+                  <span className="text-[9px] font-mono w-8">{calibCns}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-amber-400 w-16">Columna</span>
+                  <input type="range" min="0" max="100" value={calibSpinal} onChange={(e) => setCalibSpinal(parseInt(e.target.value))} className="flex-1 accent-amber-500" />
+                  <span className="text-[9px] font-mono w-8">{calibSpinal}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <button onClick={handleStart} disabled={isSubmitting} className="w-full py-4 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest bg-cyber-cyan text-white hover:bg-cyber-cyan/90 transition-colors border border-cyber-cyan/30 disabled:opacity-50">
           {isSubmitting ? 'Sincronizando...' : 'Comenzar Batalla'}

@@ -79,8 +79,13 @@ export const useExerciseStore = create<ExerciseStoreState>()(
                 muscleGroupData: state.muscleGroupData,
                 muscleHierarchy: state.muscleHierarchy,
             }),
-            onRehydrateStorage: () => () => {
+            onRehydrateStorage: () => (state, _err) => {
                 useExerciseStore.setState({ _hasHydrated: true });
+                // Migración: si se restauró una lista antigua (<400), usar la base ampliada
+                const restored = state?.exerciseList;
+                if (Array.isArray(restored) && restored.length < 400) {
+                    useExerciseStore.setState({ exerciseList: FULL_EXERCISE_LIST });
+                }
             },
         }
     )

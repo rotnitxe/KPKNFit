@@ -61,7 +61,7 @@ const MuscleCategoryView: React.FC<MuscleCategoryViewProps> = ({ categoryName })
     };
 
     return (
-        <div className="pb-20 animate-fade-in">
+        <div className="tab-bar-safe-area animate-fade-in min-h-screen">
              {isEditorOpen && categoryInfo && (
                 <MuscleGroupEditorModal
                     isOpen={isEditorOpen}

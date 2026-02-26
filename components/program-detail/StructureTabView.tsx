@@ -142,7 +142,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
             </div>
 
             {/* Tree - scrollable */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pb-[max(80px,env(safe-area-inset-bottom,0px))] custom-scrollbar">
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] custom-scrollbar">
                 <div className="space-y-2">
                     {program.macrocycles.map((macro, macroIdx) => {
                         const macroKey = `macro-${macroIdx}`;

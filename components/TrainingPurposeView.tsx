@@ -54,7 +54,7 @@ const TrainingPurposeView: React.FC = () => {
     };
 
     return (
-        <div className="pb-20 animate-fade-in">
+        <div className="tab-bar-safe-area animate-fade-in min-h-screen">
             <header className="flex items-center gap-4 mb-6 -mx-4 px-4">
                 <button onClick={handleBack} className="p-2 text-slate-300">
                     <ArrowLeftIcon />

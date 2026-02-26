@@ -1,7 +1,10 @@
 // data/exerciseDatabase.ts
 import { ExerciseMuscleInfo } from '../types';
+import { EXERCISE_EXPANSION_LIST } from './exerciseDatabaseExpansion';
+import { EXERCISE_EXPANSION_LIST_2 } from './exerciseDatabaseExpansion2';
+import { EXERCISE_EXPANSION_LIST_3 } from './exerciseDatabaseExpansion3';
 
-export const DETAILED_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   // =================================================================
   // TREN SUPERIOR
   // =================================================================
@@ -165,16 +168,6 @@ export const DETAILED_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     subMuscleGroup: 'Deltoides Lateral', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Tirón', bodyPart: 'upper', chain: 'full',
     setupTime: 1, technicalDifficulty: 6, efc: 1.5, cnc: 1.5, ssc: 0.2
   },
-  {
-    id: 'db_face_pulls', name: 'Face Pulls', description: 'Salud de hombro y deltoides posterior.',
-    involvedMuscles: [ 
-      { muscle: 'Deltoides Posterior', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio Medio', role: 'secondary', activation: 0.6 }, 
-      { muscle: 'Manguito Rotador', role: 'stabilizer', activation: 0.5 } 
-    ],
-    subMuscleGroup: 'Deltoides Posterior', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Polea', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
-    setupTime: 2, technicalDifficulty: 5, efc: 1.8, cnc: 1.5, ssc: 0.1
-  },
-
   // --- BRAZOS (Bíceps/Tríceps) ---
   {
     id: 'db_barbell_curl', name: 'Curl con Barra Recta', description: 'Constructor de masa para bíceps.',
@@ -183,13 +176,6 @@ export const DETAILED_EXERCISE_LIST: ExerciseMuscleInfo[] = [
       { muscle: 'Core', role: 'stabilizer', activation: 0.3 }
     ],
     subMuscleGroup: 'Bíceps', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Barra', force: 'Tirón', bodyPart: 'upper', chain: 'anterior', efc: 2.0, cnc: 2.0, ssc: 0.3
-  },
-  {
-    id: 'db_hammer_curl', name: 'Curl Martillo', description: 'Enfatiza braquial y braquiorradial.',
-    involvedMuscles: [ 
-      { muscle: 'Braquial', role: 'primary', activation: 1.0 }, { muscle: 'Bíceps', role: 'secondary', activation: 0.6 } 
-    ],
-    subMuscleGroup: 'Bíceps', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Tirón', bodyPart: 'upper', chain: 'anterior', efc: 1.8, cnc: 1.5, ssc: 0.1
   },
   {
     id: 'db_triceps_pushdown', name: 'Extensiones de Tríceps en Polea', description: 'Aislamiento cabeza lateral/medial.',
@@ -1194,18 +1180,6 @@ export const DETAILED_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     ]
   },
   {
-    id: 'ex-ab-wheel-rollout',
-    name: 'Rueda Abdominal (Rollout)',
-    description: 'Ejercicio de anti-extensión dinámico. Demanda brutal de contracción excéntrica en el core.',
-    type: 'Accesorio', category: 'Fuerza', equipment: 'Otro', force: 'Anti-Extensión',
-    efc: 2.8, cnc: 3.0, ssc: 0.5,
-    involvedMuscles: [
-      { muscle: 'Abdominales', role: 'primary', activation: 1.0 },
-      { muscle: 'Dorsal', role: 'stabilizer', activation: 0.5 },
-      { muscle: 'Tríceps', role: 'stabilizer', activation: 0.3 }
-    ]
-  },
-  {
     id: 'ex-ghr',
     name: 'Glute-Ham Raise (GHR)',
     description: 'Flexión de rodilla con el peso corporal. Trabaja el isquiosural en ambas articulaciones (cadera y rodilla) simultáneamente.',
@@ -1238,5 +1212,11 @@ export const DETAILED_EXERCISE_LIST: ExerciseMuscleInfo[] = [
       { muscle: 'Aductores', role: 'primary', activation: 1.0 },
       { muscle: 'Abdominales', role: 'secondary', activation: 0.8 } 
     ]
-  }
+  },
+  // ========== EJERCICIOS DE EXPANSIÓN (~788 nuevos) ==========
+  ...EXERCISE_EXPANSION_LIST,
+  ...EXERCISE_EXPANSION_LIST_2,
+  ...EXERCISE_EXPANSION_LIST_3
 ];
+
+export const DETAILED_EXERCISE_LIST: ExerciseMuscleInfo[] = BASE_EXERCISE_LIST;

@@ -45,7 +45,7 @@ const AchievementsView: React.FC<AchievementsViewProps> = ({ unlocked }) => {
   const unlockedCount = unlockedIds.size;
 
   return (
-    <div className="animate-fade-in space-y-8">
+    <div className="animate-fade-in space-y-8 tab-bar-safe-area">
       <div>
         <h1 className="text-4xl font-bold uppercase tracking-wider">Logros</h1>
         <p className="text-slate-400 mt-2">Tu muro de trofeos. ¡Has desbloqueado {unlockedCount} de {totalAchievements} logros!</p>

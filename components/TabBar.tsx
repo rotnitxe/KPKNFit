@@ -2,13 +2,8 @@
 import React from 'react';
 import { View, TabBarActions } from '../types';
 import { DumbbellIcon, UtensilsIcon, PlusIcon, ActivityIcon, ClipboardListIcon, HomeIcon } from './icons';
-import { playSound } from '../services/soundService';
-import { hapticImpact as _hapticImpact, ImpactStyle } from '../services/hapticsService';
 import { WorkoutSessionActionBar, EditorActionBar } from './ContextualActionBars';
 import { useAppContext } from '../contexts/AppContext';
-
-// Bypass de TypeScript: Adaptador para que los strings literales sean aceptados como Enums
-const hapticImpact = (style?: any) => _hapticImpact(style);
 
 interface TabBarProps {
   activeView: View;
@@ -52,9 +47,6 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
     };
 
     const handleNavClick = (view: View) => {
-        playSound(activeView === view ? 'ui-click-sound' : 'tab-switch-sound');
-        hapticImpact(ImpactStyle.Light);
-
         // LÓGICA INTELIGENTE DE PROGRAMAS (TÚNEL HACIA PROGRAMA ACTIVO)
         // Push 'programs' first so that Back from program-detail lands on the list
         if (view === 'programs' && activeProgramState && activeProgramState.status === 'active') {

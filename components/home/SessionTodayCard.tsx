@@ -2,8 +2,8 @@
 // Cockpit-style session card for Home Hub
 
 import React from 'react';
-import { Program, Session } from '../../types';
-import { PlayIcon, CheckCircleIcon, PencilIcon, SettingsIcon, RefreshCwIcon } from '../icons';
+import { Program, Session, WorkoutLog } from '../../types';
+import { PlayIcon, CheckCircleIcon, PencilIcon, SettingsIcon, RefreshCwIcon, LinkIcon } from '../icons';
 import { CaupolicanIcon } from '../CaupolicanIcon';
 
 export interface TodaySessionItem {
@@ -11,6 +11,7 @@ export interface TodaySessionItem {
     program: Program;
     location: { macroIndex: number; mesoIndex: number; weekId: string };
     isCompleted: boolean;
+    log?: WorkoutLog;
 }
 
 interface SessionTodayCardProps {
@@ -21,6 +22,7 @@ interface SessionTodayCardProps {
     onEditSession: (programId: string, macroIndex: number, mesoIndex: number, weekId: string, sessionId: string) => void;
     onViewProgram: (programId: string) => void;
     onOpenStartWorkoutModal: () => void;
+    onShareLog?: (log: WorkoutLog) => void;
 }
 
 export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
@@ -31,6 +33,7 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
     onEditSession,
     onViewProgram,
     onOpenStartWorkoutModal,
+    onShareLog,
 }) => {
     const hasSessions = todaySessions.length > 0;
     const firstSession = todaySessions[0];
@@ -61,8 +64,18 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
                                 }`}
                             >
                                 {ts.isCompleted && (
-                                    <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded-full mb-3 border border-emerald-500/30">
-                                        <CheckCircleIcon size={10} /> Completada
+                                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                                        <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded-full border border-emerald-500/30">
+                                            <CheckCircleIcon size={10} /> Completada
+                                        </div>
+                                        {ts.log && onShareLog && (
+                                            <button
+                                                onClick={() => onShareLog(ts.log!)}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 text-white/90 text-[8px] font-black uppercase tracking-widest rounded-full border border-white/20 hover:bg-white/20 transition-colors"
+                                            >
+                                                <LinkIcon size={10} /> Compartir
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                                 <h3 className={`font-black uppercase tracking-tight text-xl mb-4 ${ts.isCompleted ? 'text-zinc-500' : 'text-white'}`}>

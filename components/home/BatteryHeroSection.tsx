@@ -94,7 +94,7 @@ const COLUMNA_TABS: { id: number | null; label: string }[] = [
 ];
 
 export const BatteryHeroSection: React.FC = () => {
-    const { history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList, muscleHierarchy, isAppLoading } = useAppState();
+    const { history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList, muscleHierarchy, postSessionFeedback, waterLogs, isAppLoading } = useAppState();
     const { setSettings, addToast } = useAppDispatch();
 
     const [batteries, setBatteries] = useState<Awaited<ReturnType<typeof calculateGlobalBatteriesAsync>> | null>(null);
@@ -135,8 +135,8 @@ export const BatteryHeroSection: React.FC = () => {
                 sleepLogs || [],
                 settings,
                 hierarchy,
-                [],
-                [],
+                postSessionFeedback || [],
+                waterLogs || [],
                 dailyWellbeingLogs || [],
                 nutritionLogs || []
             );
@@ -144,7 +144,7 @@ export const BatteryHeroSection: React.FC = () => {
         } catch {
             setPerMuscle({});
         }
-    }, [history, exerciseList, sleepLogs, settings, muscleHierarchy, dailyWellbeingLogs, nutritionLogs, isAppLoading]);
+    }, [history, exerciseList, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs, dailyWellbeingLogs, nutritionLogs, isAppLoading]);
 
     useEffect(() => {
         if (!history || !exerciseList) return;

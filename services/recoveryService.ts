@@ -230,7 +230,10 @@ export const calculateMuscleBattery = (
             const muscleInvolvement = info.involvedMuscles.find(m => isMuscleInGroup(m.muscle, muscleName));
 
             if (muscleInvolvement) {
-                const rawStress = ex.sets.reduce((acc, s) => acc + calculateSetStress(s, info, 90), 0);
+                const rawStress = ex.sets.reduce((acc, s) => {
+                    if (s.type === 'warmup' || s.isIneffective) return acc;
+                    return acc + calculateSetStress(s, info, 90);
+                }, 0);
                 
                 let roleMultiplier = 0.0;
                 switch (muscleInvolvement.role) {

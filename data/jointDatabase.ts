@@ -16,7 +16,7 @@ export const JOINT_DATABASE: JointInfo[] = [
       { name: 'Impingement subacromial', description: 'Compresión del manguito rotador bajo el acromion.', riskExercises: ['db_bench_press_tng', 'db_overhead_press'], contraindications: ['Evitar elevaciones por encima de 90° con carga en fase aguda'], returnProgressions: ['Pendulums de Codman', 'Rotaciones externas con banda', 'Press con agarre neutro'] },
       { name: 'Tendinopatía del manguito', description: 'Degeneración o inflamación de los tendones del manguito rotador.', riskExercises: ['db_dips', 'db_overhead_press'], contraindications: ['Evitar movimientos overhead repetitivos'], returnProgressions: ['Face pulls', 'Rotaciones externas', 'Progresión a press por encima de la cabeza'] },
     ],
-    protectiveExercises: ['db_face_pulls', 'db_plank', 'db_lateral_raise', 'db_seated_cable_row'],
+    protectiveExercises: ['db_exp_face_pull', 'db_plank', 'db_lateral_raise', 'db_seated_cable_row'],
   },
   {
     id: 'acromioclavicular',
@@ -55,7 +55,7 @@ export const JOINT_DATABASE: JointInfo[] = [
       { name: 'Codo de tenista (epicondilitis lateral)', description: 'Inflamación de los tendones extensores del antebrazo en el epicóndilo lateral.', riskExercises: ['Curl con barra', 'Extensión de tríceps'], contraindications: ['Evitar agarre prono repetitivo con carga'], returnProgressions: ['Ejercicios excéntricos de extensores', 'Curl martillo', 'Progresión a curl con barra'] },
       { name: 'Codo de golfista (epicondilitis medial)', description: 'Inflamación de los tendones flexores en el epicóndilo medial.', riskExercises: ['Curl con barra', 'Remo'], contraindications: ['Evitar agarre fuerte repetitivo'], returnProgressions: ['Ejercicios excéntricos de flexores', 'Estiramientos de muñeca', 'Progresión gradual'] },
     ],
-    protectiveExercises: ['db_hammer_curl', 'db_plank', 'db_triceps_pushdown'],
+    protectiveExercises: ['db_exp_hammer_curl', 'db_plank', 'db_triceps_pushdown'],
   },
   {
     id: 'radiocubital-proximal',

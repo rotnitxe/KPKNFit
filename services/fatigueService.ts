@@ -298,6 +298,14 @@ export const calculateExerciseFatigueScale = (exercise: any, info: ExerciseMuscl
 
 export const isSetEffective = (set: any): boolean => {
     const rpe = getEffectiveRPE(set);
+    if (rpe > 6) return true;
+    const rir = set.completedRIR ?? set.targetRIR;
+    if (rir !== undefined && rir < 4) return true;
+    if (set.isFailure || set.performanceMode === 'failure' || set.intensityMode === 'failure') return true;
+    if (set.intensityMode === 'solo_rm') return true;
+    if (set.restPauses?.length > 0 && set.restPauses.some((rp: any) => (rp.reps ?? 0) > 0)) return true;
+    if (set.dropSets?.length > 0 && set.dropSets.some((ds: any) => (ds.reps ?? 0) > 0)) return true;
+    if (set.isAmrap) return true;
     return rpe >= 6;
 };
 /**

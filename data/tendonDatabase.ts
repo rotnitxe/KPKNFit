@@ -12,7 +12,7 @@ export const TENDON_DATABASE: TendonInfo[] = [
     commonInjuries: [
       { name: 'Tendinopatía del supraespinoso', description: 'Degeneración del tendón por sobreuso o impingement.', riskExercises: ['db_bench_press_tng', 'db_overhead_press', 'db_dips'], contraindications: ['Evitar elevaciones repetitivas por encima de 90°'], returnProgressions: ['Rotaciones externas', 'Face pulls', 'Progresión a press'] },
     ],
-    protectiveExercises: ['db_face_pulls', 'db_lateral_raise', 'db_seated_cable_row'],
+    protectiveExercises: ['db_exp_face_pull', 'db_lateral_raise', 'db_seated_cable_row'],
   },
   {
     id: 'tendon-infraespinoso',

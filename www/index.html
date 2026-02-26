@@ -22,8 +22,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;700&family=Roboto+Condensed:wght@400;700&family=Great+Vibes&family=Tahoma:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- CRITICAL: Polyfill for process/env before app loads to prevent White Screen on Android -->
+    <!-- Sentry: crea un proyecto en sentry.io → Settings → Client Keys (DSN) → pega aquí -->
     <script>
       window.process = { env: { API_KEY: '' } };
+      window.__KPKN_SENTRY_DSN__ = 'https://66085ee6661f7b934968c583b4b009f0@o4510952852422656.ingest.us.sentry.io/4510952892727296';
     </script>
 
     <!-- Changed to relative path ./index.js -->
@@ -119,7 +121,8 @@
           --header-bg-color: var(--bg-card);
           --header-backdrop-filter: none;
           --header-border-color: var(--card-border);
-          --tab-bar-safe-bottom: max(95px, calc(88px + env(safe-area-inset-bottom, 0px) + 16px));
+          --tab-bar-safe-bottom: max(140px, calc(96px + env(safe-area-inset-bottom, 0px) + 36px));
+          --content-safe-top: env(safe-area-inset-top, 0px);
           --tab-bar-bg-color: var(--bg-card);
           --tab-bar-backdrop-filter: blur(12px);
           --tab-bar-border-color: rgba(255, 255, 255, 0.06);
@@ -153,7 +156,8 @@
             --header-bg-color: var(--bg-card);
             --header-backdrop-filter: blur(12px);
             --header-border-color: var(--card-border);
-            --tab-bar-safe-bottom: max(95px, calc(88px + env(safe-area-inset-bottom, 0px) + 16px));
+            --tab-bar-safe-bottom: max(140px, calc(96px + env(safe-area-inset-bottom, 0px) + 36px));
+            --content-safe-top: env(safe-area-inset-top, 0px);
             --tab-bar-bg-color: var(--bg-card);
             --tab-bar-backdrop-filter: blur(12px);
             --tab-bar-border-color: rgba(255, 255, 255, 0.06);
@@ -232,7 +236,25 @@
 
         /* Safe area for content above TabBar - use for sticky/fixed bottom elements */
         .tab-bar-safe-area {
-            padding-bottom: var(--tab-bar-safe-bottom, max(90px, calc(75px + env(safe-area-inset-bottom, 0px) + 16px)));
+            padding-bottom: var(--tab-bar-safe-bottom, max(140px, calc(96px + env(safe-area-inset-bottom, 0px) + 36px)));
+        }
+
+        /* Safe area superior para Status Bar de Capacitor - mínimo 28px en móvil si env es 0 */
+        .app-container {
+            padding-top: var(--content-safe-top, env(safe-area-inset-top, 0px));
+        }
+        html.native-safe-area .app-container {
+            padding-top: max(var(--content-safe-top, env(safe-area-inset-top, 0px)), 28px);
+        }
+        .safe-area-toast-top {
+            top: max(4rem, calc(1rem + env(safe-area-inset-top, 0px)));
+        }
+        /* Vistas fullscreen (fixed): respetan status bar */
+        .safe-area-root {
+            padding-top: env(safe-area-inset-top, 0px);
+        }
+        html.native-safe-area .safe-area-root {
+            padding-top: max(28px, env(safe-area-inset-top, 0px));
         }
 
         /* ========================================================= */
@@ -295,13 +317,25 @@
             user-select: text !important;
         }
 
-        /* 5. Suavizar el desplazamiento interno */
+        /* 5. Scroll fluido y flexible - menos rígido, evita cortes de contenido */
         html {
             scroll-behavior: smooth;
-            overscroll-behavior-y: none; /* Evita el "efecto rebote" blanco del navegador al subir del tope */
+            overscroll-behavior-y: auto; /* Permite overscroll natural en vez de bloqueo */
+        }
+
+        /* Scroll suave con momentum en móvil - menos rígido */
+        .app-main-content,
+        .scroll-flexible {
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: auto;
         }
     </style>
 <script>
+    (function() {
+      if (/Android|iPhone|iPad|iPod|webOS|Capacitor/i.test(navigator.userAgent || '') || window.Capacitor?.isNativePlatform?.()) {
+        document.documentElement.classList.add('native-safe-area');
+      }
+    })();
     (function() {
       try {
         const storageKey = 'yourprime-settings';

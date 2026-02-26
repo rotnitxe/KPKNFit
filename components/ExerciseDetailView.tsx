@@ -345,7 +345,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     }
 
     return (
-        <div className="pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
+        <div className="tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
             <header className="relative h-48 -mx-4 border-b border-cyber-cyan/20">
                 <div className="absolute bottom-4 left-4 right-4 z-10">
                      <h1 className="text-3xl font-bold text-white flex items-center gap-2">

@@ -55,7 +55,7 @@ const NutritionView: React.FC = () => {
 
             <div className="flex-1 min-h-0 overflow-y-auto">
                 {activeTab === 'hoy' && (
-                    <div className="max-w-4xl mx-auto px-4 py-4">
+                    <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area">
                         <NutritionDashboard
                             selectedDate={selectedDate}
                             onDateChange={setSelectedDate}
@@ -67,7 +67,7 @@ const NutritionView: React.FC = () => {
                     </div>
                 )}
                 {activeTab === 'plan' && (
-                    <div className="max-w-4xl mx-auto px-4 py-4">
+                    <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area">
                         <NutritionPlanTab />
                     </div>
                 )}

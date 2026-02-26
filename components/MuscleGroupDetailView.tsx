@@ -128,7 +128,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
     }
 
     return (
-        <div className="pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))] animate-fade-in bg-[#0a0a0a] min-h-screen">
+        <div className="tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
             {isEditorOpen && (
                 <MuscleGroupEditorModal
                     isOpen={isEditorOpen}

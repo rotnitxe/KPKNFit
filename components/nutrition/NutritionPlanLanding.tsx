@@ -23,7 +23,7 @@ const BENEFITS = [
 
 export const NutritionPlanLanding: React.FC<NutritionPlanLandingProps> = ({ onStartWizard }) => {
     return (
-        <div className="min-h-screen bg-[#050505] flex flex-col px-4 py-8 pb-24">
+        <div className="min-h-screen bg-[#050505] flex flex-col px-4 py-8 tab-bar-safe-area">
             <div className="max-w-md mx-auto space-y-10">
                 {/* Hero */}
                 <div className="text-center space-y-3">

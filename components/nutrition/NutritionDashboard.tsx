@@ -208,7 +208,7 @@ export const NutritionDashboard: React.FC<{
     };
 
     return (
-        <div className="space-y-4 pb-[max(120px,calc(90px+env(safe-area-inset-bottom,0px)+24px))]">
+        <div className="space-y-4 tab-bar-safe-area">
             {showSetupBanner && onOpenWizard && (
                 <div className="bg-cyber-copper/10 border border-cyber-copper/30 rounded-xl p-4">
                     <p className="text-sm text-zinc-300 mb-2">Aún no has configurado tu plan de alimentación.</p>
@@ -491,10 +491,11 @@ export const NutritionDashboard: React.FC<{
                 )}
             </div>
 
-            {/* FAB NERD */}
+            {/* FAB - posicionado siempre por encima de la TabBar */}
             <button
                 onClick={onOpenDrawer}
-                className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-[#FF7B00] text-white flex items-center justify-center shadow-lg shadow-cyber-copper/20 hover:scale-105 transition-transform z-50 border border-cyber-copper/30"
+                className="fixed right-4 w-14 h-14 rounded-full bg-[#FF7B00] text-white flex items-center justify-center shadow-lg shadow-cyber-copper/20 hover:scale-105 transition-transform z-50 border border-cyber-copper/30"
+                style={{ bottom: 'max(1rem, calc(var(--tab-bar-safe-bottom, 120px) + 12px))' }}
             >
                 <UtensilsIcon size={24} />
             </button>

@@ -40,7 +40,7 @@ const SmartMealPlannerView: React.FC = () => {
     };
 
     return (
-        <div className="pt-[65px] pb-20 animate-fade-in">
+        <div className="pt-[65px] tab-bar-safe-area animate-fade-in min-h-screen">
              <header className="flex items-center gap-4 mb-6 -mx-4 px-4">
                 <button onClick={handleBack} className="p-2 text-slate-300"><ArrowLeftIcon /></button>
                 <div>

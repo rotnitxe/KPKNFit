@@ -3,7 +3,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Program, Session, SleepLog, View, ProgramWeek } from '../types';
+import { Program, Session, SleepLog, View, ProgramWeek, WorkoutLog } from '../types';
 import Button from './ui/Button';
 import { PlusIcon, TargetIcon } from './icons';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
@@ -25,6 +25,10 @@ import {
 } from './home/index';
 import { ExerciseHistoryNerdView } from './ExerciseHistoryNerdView';
 import { getLocalDateString } from '../utils/dateUtils';
+import { WorkoutShareCard, buildShareCardDataFromLog } from './FinishWorkoutModal';
+import { shareElementAsImage } from '../services/shareService';
+import { LinkIcon } from './icons';
+import Button from './ui/Button';
 
 const DEFAULT_CARD_ORDER = ['battery', 'session', 'nutrition', 'program', 'top5', 'volumeMuscle', 'relativeStrength', 'star1rm', 'readiness', 'streak', 'quicklog'];
 
@@ -38,6 +42,8 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
     const { programs, history, activeProgramState, settings } = useAppState();
     const { handleStartWorkout, navigateTo, setIsStartWorkoutModalOpen, handleStartProgram, setSettings } = useAppDispatch();
     const [exerciseHistoryModal, setExerciseHistoryModal] = useState<string | null>(null);
+    const [shareLog, setShareLog] = useState<WorkoutLog | null>(null);
+    const [isSharing, setIsSharing] = useState(false);
 
     const todayStr = getLocalDateString();
     const currentDayOfWeek = new Date().getDay();
@@ -69,12 +75,16 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
 
         return activeWeek.sessions
             .filter(s => s.dayOfWeek === currentDayOfWeek)
-            .map(session => ({
-                session,
-                program: activeProgram,
-                location: { macroIndex: mIdx, mesoIndex: mesoIdxTotal, weekId: activeWeek!.id },
-                isCompleted: history.some(log => log.sessionId === session.id && log.date.startsWith(todayStr)),
-            }));
+            .map(session => {
+                const log = history.find(l => l.sessionId === session.id && l.date.startsWith(todayStr));
+                return {
+                    session,
+                    program: activeProgram,
+                    location: { macroIndex: mIdx, mesoIndex: mesoIdxTotal, weekId: activeWeek!.id },
+                    isCompleted: !!log,
+                    log: log ?? undefined,
+                };
+            });
     }, [activeProgram, activeProgramState, currentDayOfWeek, history, todayStr]);
 
     const cardOrder = useMemo(() => {
@@ -111,6 +121,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                     }
                     onViewProgram={(programId) => navigateTo('program-detail', { programId })}
                     onOpenStartWorkoutModal={() => setIsStartWorkoutModalOpen(true)}
+                    onShareLog={(log) => setShareLog(log)}
                 />
             );
             case 'nutrition': return <MiniNutritionWidget key="nutrition" onNavigate={() => navigateTo('nutrition')} />;
@@ -128,14 +139,14 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
     };
 
     return (
-        <div className="relative h-full min-h-screen w-full flex flex-col bg-black pb-32 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <div className="relative min-h-full w-full flex flex-col bg-black tab-bar-safe-area">
             {/* Subtle gradient orbs for depth */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
                 <div className="absolute -top-40 -right-20 w-80 h-80 rounded-full bg-cyan-500/5 blur-3xl" />
                 <div className="absolute top-1/3 -left-20 w-60 h-60 rounded-full bg-violet-500/5 blur-3xl" />
             </div>
 
-            <div className="relative z-10 flex flex-col px-6 pt-16 w-full max-w-md mx-auto space-y-4">
+            <div className="relative z-10 flex flex-col px-6 pt-16 w-full max-w-md mx-auto space-y-4 pb-6">
                 {activeProgram ? (
                     <>
                         {/* Header con más presencia */}
@@ -291,6 +302,43 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                     onClose={() => setExerciseHistoryModal(null)}
                 />
             )}
+
+            {shareLog && (() => {
+                const cardData = buildShareCardDataFromLog(shareLog, settings?.weightUnit ?? 'kg');
+                return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
+                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-lg font-black text-white mb-4 uppercase tracking-wider">Compartir sesión</h3>
+                        <div className="mb-4 rounded-xl overflow-hidden border border-white/10 flex justify-center">
+                            <div className="scale-[0.45] origin-top">
+                                <WorkoutShareCard {...cardData} preview />
+                            </div>
+                        </div>
+                        <div className="fixed -left-[9999px] w-[540px] h-[960px] overflow-hidden">
+                            <WorkoutShareCard {...cardData} />
+                        </div>
+                        <p className="text-xs text-zinc-500 mb-4">Vista previa de la imagen para stories</p>
+                        <div className="flex gap-2">
+                            <Button variant="secondary" className="flex-1" onClick={() => setShareLog(null)}>
+                                Cancelar
+                            </Button>
+                            <Button
+                                className="flex-1 flex items-center justify-center gap-2"
+                                onClick={async () => {
+                                    setIsSharing(true);
+                                    await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'Registra tus entrenamientos con KPKN. #KPKN #Fitness');
+                                    setIsSharing(false);
+                                    setShareLog(null);
+                                }}
+                                disabled={isSharing}
+                            >
+                                {isSharing ? <span className="animate-pulse">Compartiendo...</span> : <><LinkIcon size={18} /> Compartir</>}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+                );
+            })()}
         </div>
     );
 };

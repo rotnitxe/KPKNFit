@@ -21,7 +21,7 @@ export const MOVEMENT_PATTERN_DATABASE: MovementPatternInfo[] = [
     chainTypes: ['posterior'],
     primaryMuscles: ['dorsal-ancho', 'trapecio-medio', 'romboides', 'deltoides-posterior', 'bíceps'],
     primaryJoints: ['glenohumeral', 'codo', 'escapulotoracica'],
-    exampleExercises: ['db_barbell_row', 'db_dumbbell_row', 'db_seated_cable_row', 'db_face_pulls'],
+    exampleExercises: ['db_barbell_row', 'db_dumbbell_row', 'db_seated_cable_row', 'db_exp_face_pull'],
   },
   {
     id: 'vertical-push',
