@@ -78,7 +78,7 @@ export const buildShareCardDataFromLog = (log: { date: string; duration?: number
   };
 };
 
-const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, difficulty, pump, exerciseSummaries, preview }) => {
+export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, difficulty, pump, exerciseSummaries, preview }) => {
     const wrapperClass = preview
         ? 'relative w-[540px] h-[960px] bg-black text-white overflow-hidden flex flex-col font-sans rounded-xl'
         : 'fixed top-0 left-[-2000px] w-[540px] h-[960px] bg-black text-white overflow-hidden pointer-events-none z-[-10] flex flex-col font-sans';

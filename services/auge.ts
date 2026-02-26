@@ -50,6 +50,8 @@ export {
     type PrecalibrationReadinessInput,
 } from './recoveryService';
 
+export { calculateGlobalBatteriesAsync } from './computeWorkerService';
+
 // ─── CONSTANTES CENTRALIZADAS ───────────────────────────────────────────────
 
 /**
