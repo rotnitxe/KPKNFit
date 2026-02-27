@@ -77,7 +77,8 @@ export type View =
   | 'program-metric-banister'
   | 'program-metric-recovery'
   | 'program-metric-adherence'
-  | 'program-metric-rpe';
+  | 'program-metric-rpe'
+  | 'body-progress';
 
 // --- LÓGICA DE VOLUMEN V3 (INFORME TÉCNICO) ---
 
@@ -158,6 +159,8 @@ export interface Settings {
   trainingProfile?: 'Aesthetics' | 'Powerlifting' | 'Powerbuilding'; // Define qué motor lógico usar
   preferredIntensity?: 'RIR_High' | 'Failure'; // Define el factor de ajuste de volumen (Módulo 4.1)
   athleteScore?: AthleteProfileScore; // Guardamos aquí el resultado del test
+  /** Sistema de recomendación de volumen: israetel (Israetel/Schoenfeld por defecto), kpnk (KPKN calibrado) */
+  volumeSystem?: 'israetel' | 'kpnk';
 
   // General & Entrenamiento
   soundsEnabled: boolean;
@@ -339,6 +342,12 @@ export interface Program {
     trainingPhase?: TrainingPhase;
     intensityTier?: IntensityTier;
     volumeRecommendations?: VolumeRecommendation[]; 
+    /** Sistema de volumen: israetel (guías Mike Israetel), manual (usuario), kpnk (KPKN personalizado) */
+    volumeSystem?: 'israetel' | 'manual' | 'kpnk';
+    /** Activar alertas al añadir ejercicios en sesión cuando se excede volumen recomendado */
+    volumeAlertsEnabled?: boolean;
+    /** Perfil atleta usado para KPKN (permite evolución automática) */
+    athleteProfileScore?: AthleteProfileScore;
     
     // --- PREFERENCIAS AVANZADAS DEL PROGRAMA ---
     autoVolumeEnabled?: boolean;
@@ -361,6 +370,10 @@ export interface Program {
         splitMode?: 'global' | 'per_block';
         startDay?: number;
         cycleDuration?: number;
+        volumeSystem?: 'israetel' | 'manual' | 'kpnk';
+        volumeRecommendations?: VolumeRecommendation[];
+        volumeAlertsEnabled?: boolean;
+        athleteProfileScore?: AthleteProfileScore;
     };
 }
 
@@ -751,9 +764,23 @@ export interface BodyProgressLog {
     date: string;
     weight?: number;
     bodyFatPercentage?: number;
-    photos?: string[];
+    muscleMassPercentage?: number;
     measurements?: Record<string, number>;
-    aiInsight?: string;
+}
+
+/** Plan de nutrición (equivalente a Program en entrenamiento) */
+export interface NutritionPlan {
+    id: string;
+    name: string;
+    goalType: 'weight' | 'bodyFat' | 'muscleMass';
+    goalValue: number;
+    trendMode: 'kg_per_week' | 'pct_fat_per_week';
+    trendValue: number;
+    startDate: string;
+    estimatedEndDate?: string;
+    calorieGoalConfig: CalorieGoalConfig;
+    isActive: boolean;
+    createdAt: string;
 }
 
 export type PortionPreset = 'small' | 'medium' | 'large' | 'extra';
@@ -1287,6 +1314,8 @@ export interface AppContextState {
     biomechanicalAnalysis: BiomechanicalAnalysis | null;
     syncQueue: WorkoutLog[];
     aiNutritionPlan: AINutritionPlan | null;
+    nutritionPlans: NutritionPlan[];
+    activeNutritionPlanId: string | null;
     activeProgramId: string | null;
     editingProgramId: string | null;
     editingSessionInfo: { programId: string; macroIndex: number; mesoIndex: number; weekId: string; sessionId?: string; dayOfWeek?: number; } | null;
@@ -1384,6 +1413,8 @@ export interface AppContextDispatch {
     setBiomechanicalData: (data: BiomechanicalData) => void;
     setBiomechanicalAnalysis: React.Dispatch<React.SetStateAction<BiomechanicalAnalysis | null>>;
     setAiNutritionPlan: React.Dispatch<React.SetStateAction<AINutritionPlan | null>>;
+    setNutritionPlans: React.Dispatch<React.SetStateAction<NutritionPlan[]>>;
+    setActiveNutritionPlanId: React.Dispatch<React.SetStateAction<string | null>>;
     setActiveProgramState: React.Dispatch<React.SetStateAction<ActiveProgramState | null>>;
     setOnExerciseCreated: React.Dispatch<React.SetStateAction<((exercise: ExerciseMuscleInfo) => void) | null>>;
     setInstallPromptEvent: React.Dispatch<any>;
@@ -1462,7 +1493,8 @@ export interface AppContextDispatch {
         pump?: number,
         environmentTags?: string[],
         sessionDifficulty?: number,
-        planAdherenceTags?: string[]
+        planAdherenceTags?: string[],
+        muscleBatteries?: Record<string, number>
     ) => void;
     handleLogWorkout: (programId: string, sessionId: string) => void;
     handleSaveLoggedWorkout: (log: WorkoutLog) => void;

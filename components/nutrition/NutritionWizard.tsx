@@ -1,10 +1,10 @@
 // components/nutrition/NutritionWizard.tsx
-// Wizard de objetivos nutricionales (3 pasos). Estética NERD con fondo animado.
+// Wizard de objetivos nutricionales (4 pasos). Estética NERD con fondo animado.
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '../icons';
-import type { Settings, CalorieGoalConfig } from '../../types';
-import { mifflinStJeor, katchMcArdle } from '../../utils/calorieFormulas';
+import type { Settings, CalorieGoalConfig, NutritionPlan } from '../../types';
+import { mifflinStJeor, katchMcArdle, calculateCaloriesForBodyFatTrend } from '../../utils/calorieFormulas';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import { ChevronRightIcon, ChevronLeftIcon, CheckIcon } from '../icons';
 import { NutritionTooltip } from './NutritionTooltip';
@@ -56,11 +56,29 @@ interface NutritionWizardProps {
     onComplete: () => void;
 }
 
+const OBJETIVO_OPTIONS: { id: NutritionPlan['goalType']; label: string; unit: string; placeholder: string }[] = [
+    { id: 'weight', label: 'Peso objetivo', unit: 'kg', placeholder: 'Ej: 70' },
+    { id: 'bodyFat', label: '% Grasa objetivo', unit: '%', placeholder: 'Ej: 15' },
+    { id: 'muscleMass', label: '% Músculo objetivo', unit: '%', placeholder: 'Ej: 42' },
+];
+
 export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) => {
     const { settings } = useAppState();
-    const { setSettings, addToast } = useAppDispatch();
-    const [step, setStep] = useState(1);
+    const { setSettings, addToast, setNutritionPlans, setActiveNutritionPlanId } = useAppDispatch();
+    const [step, setStep] = useState(0);
+    const [goalType, setGoalType] = useState<NutritionPlan['goalType']>('weight');
+    const [goalValue, setGoalValue] = useState<number | ''>(() => {
+        const w = settings.userVitals?.weight;
+        return typeof w === 'number' ? w : 70;
+    });
+    const [trendMode, setTrendMode] = useState<NutritionPlan['trendMode']>('kg_per_week');
+    const [trendValue, setTrendValue] = useState(0.3);
     const [goal, setGoal] = useState<CalorieGoalConfig['goal']>(settings.calorieGoalObjective === 'deficit' ? 'lose' : settings.calorieGoalObjective === 'surplus' ? 'gain' : 'maintain');
+    useEffect(() => {
+        if (trendMode === 'pct_fat_per_week') {
+            setTrendValue((v) => (goal === 'lose' && v > 0 ? -0.3 : goal === 'gain' && v < 0 ? 0.3 : v));
+        }
+    }, [trendMode, goal]);
     const [connectAuge, setConnectAuge] = useState(settings.algorithmSettings?.augeEnableNutritionTracking ?? true);
     const [height, setHeight] = useState<number | ''>(settings.userVitals?.height ?? 170);
     const [weight, setWeight] = useState<number | ''>(settings.userVitals?.weight ?? 70);
@@ -108,14 +126,22 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         return mifflinStJeor(w, h, a, g);
     }, [weight, height, age, gender, bodyFat]);
 
-    const tdee = useMemo(() => {
+    const tdeeBase = useMemo(() => {
         if (bmr == null) return null;
-        const factor = derivedActivityFactor;
-        let t = bmr * factor;
-        if (goal === 'lose') t -= (weeklyChangeKg * 7700) / 7;
-        else if (goal === 'gain') t += (weeklyChangeKg * 7700) / 7;
-        return Math.round(t * healthMultiplier);
-    }, [bmr, derivedActivityFactor, goal, weeklyChangeKg, healthMultiplier]);
+        return Math.round(bmr * derivedActivityFactor * healthMultiplier);
+    }, [bmr, derivedActivityFactor, healthMultiplier]);
+
+    const tdee = useMemo(() => {
+        if (tdeeBase == null) return null;
+        if (goal === 'maintain') return tdeeBase;
+        if (trendMode === 'kg_per_week') {
+            if (goal === 'lose') return tdeeBase - (weeklyChangeKg * 7700) / 7;
+            if (goal === 'gain') return tdeeBase + (weeklyChangeKg * 7700) / 7;
+            return tdeeBase;
+        }
+        const weightNum = weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight) || 70;
+        return calculateCaloriesForBodyFatTrend(tdeeBase, weightNum, trendValue);
+    }, [tdeeBase, goal, weeklyChangeKg, trendMode, trendValue, weight, settings.userVitals?.weight]);
 
     const proteinMultiplier = dietPreference === 'vegan' ? 1.15 : dietPreference === 'vegetarian' ? 1.08 : 1;
 
@@ -142,6 +168,58 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         return (lbm / (h * h)).toFixed(1);
     }, [weight, height, bodyFat]);
 
+    const goalAlert = useMemo(() => {
+        const gv = goalValue === '' ? null : Number(goalValue);
+        if (gv == null) return null;
+        if (goalType === 'weight') {
+            const h = height === '' ? 170 : Number(height) || 170;
+            const imc = gv / ((h / 100) ** 2);
+            if (imc < 18.5 || imc > 24.9) return `IMC objetivo ${imc.toFixed(1)} fuera del rango saludable OMS (18.5–24.9).`;
+        }
+        if (goalType === 'bodyFat') {
+            if (gv < 5 || gv > 50) return '% grasa fuera de rango razonable (5–50%).';
+        }
+        if (goalType === 'muscleMass') {
+            const isFemale = gender === 'female' || gender === 'transfemale';
+            if (isFemale && (gv < 25 || gv > 45)) return 'Rango típico mujer: 25–45%.';
+            if (!isFemale && (gv < 30 || gv > 55)) return 'Rango típico hombre: 30–55%.';
+        }
+        return null;
+    }, [goalType, goalValue, height, gender]);
+
+    const estimatedEndDate = useMemo(() => {
+        const now = new Date();
+        const currentWeight = weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight) || 70;
+        const currentBodyFat = bodyFat !== '' ? Number(bodyFat) : 20;
+        const currentMuscle = muscleMass !== '' ? Number(muscleMass) : 38;
+        const gv = goalValue === '' ? null : Number(goalValue);
+        if (gv == null) return null;
+        let weeks = 0;
+        if (goalType === 'weight') {
+            const trend = trendMode === 'kg_per_week' ? (goal === 'lose' ? -weeklyChangeKg : goal === 'gain' ? weeklyChangeKg : 0) : 0;
+            if (trend === 0) return null;
+            weeks = Math.abs((gv - currentWeight) / trend);
+        } else if (goalType === 'bodyFat') {
+            const trend = trendMode === 'pct_fat_per_week' ? trendValue : 0;
+            if (trend === 0) return null;
+            weeks = Math.abs((gv - currentBodyFat) / trend);
+        } else {
+            const trendPct = trendMode === 'pct_fat_per_week' ? trendValue : 0.15;
+            weeks = Math.abs((gv - currentMuscle) / trendPct);
+        }
+        const end = new Date(now);
+        end.setDate(end.getDate() + Math.ceil(weeks * 7));
+        return end.toISOString().slice(0, 10);
+    }, [goalType, goalValue, trendMode, trendValue, weeklyChangeKg, goal, weight, bodyFat, muscleMass, settings.userVitals?.weight]);
+
+    const caloriesAlert = useMemo(() => {
+        if (!tdee || tdee >= 1200) return null;
+        const isFemale = gender === 'female' || gender === 'transfemale';
+        const min = isFemale ? 1200 : 1500;
+        if (tdee < min) return `Calorías por debajo de ${min} kcal/día pueden afectar la salud.`;
+        return null;
+    }, [tdee, gender]);
+
     const handleFinish = () => {
         const config: CalorieGoalConfig = {
             formula: bodyFat !== '' ? 'katch' : 'mifflin',
@@ -152,6 +230,24 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
             ...(customActivityFactor !== '' && { customActivityFactor: Number(customActivityFactor) }),
             ...(advancedActivityExpanded && { activityDaysPerWeek, activityHoursPerDay }),
         };
+        const plan: NutritionPlan = {
+            id: `np-${Date.now()}`,
+            name: goalType === 'weight' ? `Peso ${goalValue} kg` : goalType === 'bodyFat' ? `${goalValue}% grasa` : `${goalValue}% músculo`,
+            goalType,
+            goalValue: goalValue === '' ? (goalType === 'weight' ? 70 : goalType === 'bodyFat' ? 15 : 42) : Number(goalValue),
+            trendMode,
+            trendValue,
+            startDate: new Date().toISOString().slice(0, 10),
+            estimatedEndDate: estimatedEndDate ?? undefined,
+            calorieGoalConfig: config,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+        };
+        setNutritionPlans((prev) => {
+            const rest = prev.map((p) => ({ ...p, isActive: false }));
+            return [...rest, plan];
+        });
+        setActiveNutritionPlanId(plan.id);
         setSettings({
             hasSeenNutritionWizard: true,
             calorieGoalConfig: config,
@@ -183,6 +279,56 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
     const renderStep = () => {
         switch (step) {
+            case 0:
+                return (
+                    <div className="space-y-8">
+                        <div>
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
+                                ¿Cuál es tu objetivo?
+                                <NutritionTooltip content="Define una meta concreta: peso objetivo, %grasa o %músculo. Solo uno a la vez." title="Objetivo" />
+                            </h2>
+                            <p className="text-slate-400 text-sm mt-1">Elige qué quieres lograr y el valor objetivo.</p>
+                            <div className="space-y-4 mt-4">
+                                <div className="flex flex-wrap gap-2">
+                                    {OBJETIVO_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => setGoalType(opt.id)}
+                                            className={`px-4 py-2 rounded-xl font-bold transition-all ${
+                                                goalType === opt.id ? 'bg-[#FF7B00] text-white border border-cyber-copper' : 'bg-white/5 text-slate-400 border border-white/10 hover:border-cyber-copper/30'
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                                        {OBJETIVO_OPTIONS.find((o) => o.id === goalType)?.label} ({OBJETIVO_OPTIONS.find((o) => o.id === goalType)?.unit})
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={goalValue === '' ? '' : goalValue}
+                                        onChange={(e) => {
+                                            const v = e.target.value;
+                                            setGoalValue(v === '' ? '' : Number(v) || 0);
+                                        }}
+                                        placeholder={OBJETIVO_OPTIONS.find((o) => o.id === goalType)?.placeholder}
+                                        min={goalType === 'weight' ? 30 : goalType === 'bodyFat' ? 5 : 20}
+                                        max={goalType === 'weight' ? 300 : goalType === 'bodyFat' ? 60 : 60}
+                                        step={goalType === 'weight' ? 1 : 0.5}
+                                        className="w-full bg-white/5 border border-cyber-copper/20 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-copper/50 outline-none placeholder-slate-600"
+                                    />
+                                </div>
+                                {goalAlert && (
+                                    <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/50">
+                                        <p className="text-sm font-bold text-amber-200">{goalAlert}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
             case 1:
                 return (
                     <div className="space-y-8">
@@ -424,12 +570,51 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <NutritionTooltip content="Proteínas: 4 kcal/g, esenciales para músculo. Carbohidratos: 4 kcal/g, energía. Grasas: 9 kcal/g, hormonas y saciedad." title="Macros" />
                             </h2>
                             {(goal === 'lose' || goal === 'gain') && (
-                                <div className="mt-4">
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Cambio semanal (kg)</label>
-                                    <select value={weeklyChangeKg} onChange={e => setWeeklyChangeKg(Number(e.target.value))}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
-                                        {[0.25, 0.5, 0.75, 1, 1.5, 2].map(v => <option key={v} value={v}>{v} kg/sem</option>)}
-                                    </select>
+                                <div className="mt-4 space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Modo de tendencia</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setTrendMode('kg_per_week')}
+                                                className={`flex-1 p-3 rounded-xl border font-bold text-sm transition-all ${
+                                                    trendMode === 'kg_per_week' ? 'bg-[#FF7B00]/20 border-cyber-copper text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-cyber-copper/30'
+                                                }`}
+                                            >
+                                                kg/semana
+                                            </button>
+                                            <button
+                                                onClick={() => setTrendMode('pct_fat_per_week')}
+                                                className={`flex-1 p-3 rounded-xl border font-bold text-sm transition-all ${
+                                                    trendMode === 'pct_fat_per_week' ? 'bg-[#FF7B00]/20 border-cyber-copper text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-cyber-copper/30'
+                                                }`}
+                                            >
+                                                % grasa/sem
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {trendMode === 'kg_per_week' ? (
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Cambio semanal (kg)</label>
+                                            <select value={weeklyChangeKg} onChange={e => setWeeklyChangeKg(Number(e.target.value))}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                                                {[0.25, 0.5, 0.75, 1, 1.5, 2].map(v => <option key={v} value={v}>{goal === 'lose' ? `-${v}` : `+${v}`} kg/sem</option>)}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Cambio % grasa/semana</label>
+                                            <input
+                                                type="range"
+                                                min={goal === 'lose' ? -0.5 : 0}
+                                                max={goal === 'lose' ? 0 : 0.5}
+                                                step={0.05}
+                                                value={trendValue}
+                                                onChange={e => setTrendValue(Number(e.target.value))}
+                                                className="w-full accent-cyber-copper"
+                                            />
+                                            <p className="text-xs text-slate-400 mt-1 font-mono">{trendValue >= 0 ? '+' : ''}{trendValue} %/sem</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             <div className="mt-4">
@@ -509,10 +694,20 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <p className="text-xs text-slate-500">({pctWeekly >= 0 ? '+' : ''}{pctWeekly.toFixed(2)}% del peso corporal)</p>
                                 {(goal === 'lose' || goal === 'gain') && tdee != null && (
                                     <p className="text-xs text-cyber-copper/90 mt-2">
-                                        Target: {weeklyChangeKg} kg/sem → {tdee} kcal/día. Ajusta macros para acercarte.
+                                        {trendMode === 'kg_per_week' ? `Target: ${goal === 'lose' ? '-' : '+'}${weeklyChangeKg} kg/sem` : `Target: ${trendValue >= 0 ? '+' : ''}${trendValue} % grasa/sem`} → {tdee} kcal/día. Ajusta macros para acercarte.
+                                    </p>
+                                )}
+                                {estimatedEndDate && (
+                                    <p className="text-xs text-cyber-copper/90 mt-2 font-mono">
+                                        Fecha estimada para alcanzar meta: {estimatedEndDate}
                                     </p>
                                 )}
                             </div>
+                            {caloriesAlert && (
+                                <div className="p-4 rounded-xl border mt-4 bg-red-950/30 border-red-500/50">
+                                    <p className="text-sm font-bold text-white">{caloriesAlert}</p>
+                                </div>
+                            )}
                             {(isDangerLow || isDangerHigh) && (
                                 <div className={`p-4 rounded-xl border mt-4 ${isDangerLow ? 'bg-red-950/30 border-red-500/50' : 'bg-amber-950/30 border-amber-500/50'}`}>
                                     <p className="text-sm font-bold text-white">
@@ -543,12 +738,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                     <div className="max-w-md mx-auto">
                         <div className="flex items-center gap-3 mb-8">
                             <span className="text-[9px] font-black text-cyber-copper uppercase tracking-[0.2em] font-mono shrink-0">
-                                Paso {step} de 3
+                                Paso {step + 1} de 4
                             </span>
                             <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-[#FF7B00] rounded-full transition-all duration-300"
-                                    style={{ width: `${(step / 3) * 100}%` }}
+                                    style={{ width: `${((step + 1) / 4) * 100}%` }}
                                 />
                             </div>
                         </div>
@@ -556,7 +751,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                     </div>
                 </div>
                 {/* FAB Atrás */}
-                {step > 1 && (
+                {step > 0 && (
                     <button
                         onClick={() => setStep(s => s - 1)}
                         aria-label="Atrás"
@@ -568,7 +763,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
                 {/* FAB Siguiente / Guardar */}
                 <button
-                    onClick={step < 3 ? () => setStep(s => s + 1) : handleFinish}
+                    onClick={step < 3 ? () => setStep((s) => s + 1) : handleFinish}
                     aria-label={step < 3 ? 'Siguiente' : 'Guardar plan'}
                     className="absolute bottom-6 right-6 z-20 w-12 h-12 rounded-full border border-cyber-copper/50 bg-cyber-copper/20 text-cyber-copper hover:bg-cyber-copper/30 flex items-center justify-center shadow-lg transition-all"
                 >

@@ -18,9 +18,11 @@ const TOTAL_SLIDES = 6;
 
 interface WelcomeWizardProps {
     onComplete: () => void;
+    /** Llamado cuando el usuario hace "Configurar ahora" en un slide. Lleva al wizard correspondiente. */
+    onConfigurar?: (slideId: string) => void;
 }
 
-const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React.ReactNode }[] = [
+const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React.ReactNode; configAction?: string }[] = [
     {
         id: 'welcome',
         title: 'Bienvenido a KPKN',
@@ -37,8 +39,56 @@ const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React
         ),
     },
     {
+        id: 'programs',
+        title: 'Programas',
+        icon: <DumbbellIcon size={40} className="text-sky-400" />,
+        content: (
+            <div className="space-y-4 text-left">
+                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
+                    <span className="text-white font-bold">Programas simples:</span> lineal u ondulante (A/B). <span className="text-white font-bold">Avanzados:</span> bloques, mesociclos, periodización profesional.
+                </p>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                    Crea la estructura de tu entrenamiento. Tipos adaptados a tu nivel.
+                </p>
+            </div>
+        ),
+        configAction: 'program',
+    },
+    {
+        id: 'sessions',
+        title: 'Creador de sesiones',
+        icon: <ActivityIcon size={40} className="text-cyber-cyan" />,
+        content: (
+            <div className="space-y-4 text-left">
+                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
+                    Diseña sesiones con ejercicios, series, repeticiones. <span className="text-white font-bold">1RM</span>, <span className="text-white font-bold">RPE/RIR</span>, <span className="text-white font-bold">AMRAP</span>, biseries y circuitos.
+                </p>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                    Todo el control que necesitas para cada serie.
+                </p>
+            </div>
+        ),
+        configAction: 'session',
+    },
+    {
+        id: 'workout',
+        title: 'Sesiones de entrenamiento',
+        icon: <DumbbellIcon size={40} className="text-emerald-400" />,
+        content: (
+            <div className="space-y-4 text-left">
+                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
+                    Entrena con la app: registra series, ve la batería en vivo, sigue tu programa.
+                </p>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                    Batería muscular en tiempo real para entrenar sin sobreentrenarte.
+                </p>
+            </div>
+        ),
+        configAction: 'workout',
+    },
+    {
         id: 'battery',
-        title: 'Sistema de Batería (AUGE)',
+        title: 'Batería muscular (AUGE)',
         icon: <BrainIcon size={40} className="text-cyan-400" />,
         content: (
             <div className="space-y-4 text-left">
@@ -55,73 +105,27 @@ const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React
                 </p>
             </div>
         ),
+        configAction: 'battery',
     },
     {
-        id: 'programs',
-        title: 'Programas y Sesiones',
-        icon: <DumbbellIcon size={40} className="text-sky-400" />,
+        id: 'nutrition',
+        title: 'Nutrición',
+        icon: <UtensilsIcon size={40} className="text-cyber-copper" />,
         content: (
             <div className="space-y-4 text-left">
                 <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    <span className="text-white font-bold">Programas simples:</span> lineal u ondulante (A/B). <span className="text-white font-bold">Avanzados:</span> bloques, mesociclos, periodización profesional.
-                </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                    Crea eventos y fechas clave según corresponda. La creación de programas y sesiones más completa disponible en una app.
-                </p>
-            </div>
-        ),
-    },
-    {
-        id: 'sessions',
-        title: 'Sesiones Avanzadas',
-        icon: <ActivityIcon size={40} className="text-cyber-cyan" />,
-        content: (
-            <div className="space-y-4 text-left">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    Trabaja con <span className="text-white font-bold">1RM</span> y cálculos automáticos, <span className="text-white font-bold">RPE/RIR</span>, <span className="text-white font-bold">AMRAP</span>, <span className="text-white font-bold">biseries</span> y circuitos.
-                </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                    Múltiples opciones avanzadas para cada serie. Todo el control que necesitas.
-                </p>
-            </div>
-        ),
-    },
-    {
-        id: 'food',
-        title: 'Trackeo de Alimentos',
-        icon: <UtensilsIcon size={40} className="text-emerald-400" />,
-        content: (
-            <div className="space-y-4 text-left">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    Sistema de descripción por <span className="text-white font-bold">etiquetas</span>. Escribe como hablas:
-                </p>
-                <p className="text-xs font-mono text-zinc-400 bg-white/5 rounded-lg p-3 border border-white/10">
-                    &quot;200g arroz con pollo&quot;, &quot;2 huevos y tostadas&quot;
-                </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                    Usa <span className="text-emerald-400 font-mono">y</span> para sumar alimentos, <span className="text-emerald-400 font-mono">con</span> para acompañamientos. Escribe cantidades (200g, 1 taza) y porciones (grande, mediano) cuando lo sepas.
-                </p>
-            </div>
-        ),
-    },
-    {
-        id: 'calories',
-        title: 'Calorías Objetivo',
-        icon: <TargetIcon size={40} className="text-amber-400" />,
-        content: (
-            <div className="space-y-4 text-left">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    Establece tus <span className="text-white font-bold">calorías objetivo</span> y macros. Déficit, mantención o superávit con fórmulas TMB/TDEE.
+                    Planes de nutrición, calorías objetivo y progreso corporal. Déficit, mantención o superávit con fórmulas TMB/TDEE.
                 </p>
                 <p className="text-zinc-300 text-sm leading-relaxed">
                     Conecta nutrición con la batería muscular para un cálculo de recuperación más preciso.
                 </p>
             </div>
         ),
+        configAction: 'nutrition',
     },
 ];
 
-export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
+export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete, onConfigurar }) => {
     const [slide, setSlide] = useState(0);
     const isLast = slide === TOTAL_SLIDES - 1;
 
@@ -163,6 +167,14 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
                         <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
                             {current.content}
                         </div>
+                        {current.configAction && onConfigurar && (
+                            <button
+                                onClick={() => onConfigurar(current.configAction!)}
+                                className="mt-4 w-full py-3 rounded-xl border border-amber-500/50 bg-amber-500/20 text-amber-400 font-bold text-sm uppercase tracking-wide"
+                            >
+                                Configurar ahora
+                            </button>
+                        )}
                     </div>
                 </div>
 

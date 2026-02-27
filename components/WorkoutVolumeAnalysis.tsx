@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Program, WorkoutLog, Settings, DetailedMuscleVolumeAnalysis, Session, ProgramWeek, MuscleGroupInfo } from '../types';
 import { calculateAverageVolumeForWeeks } from '../services/analysisService';
+import { getVolumeThresholdsForMuscle, MuscleVolumeThresholds } from '../services/volumeCalculator';
 import { BarChartIcon, ChevronRightIcon, LayersIcon, ActivityIcon, DumbbellIcon, InfoIcon } from './icons';
 import SkeletonLoader from './ui/SkeletonLoader';
 import { useAppState } from '../contexts/AppContext';
@@ -57,44 +58,35 @@ const MUSCLE_AGGREGATION_MAP: Record<string, string[]> = {
 // Excepciones que NO se agrupan (se muestran tal cual si existen)
 const STANDALONE_MUSCLES = ['deltoides-anterior', 'deltoides-lateral', 'deltoides-posterior'];
 
-// Helper para obtener rangos según perfil (KPKN Protocol v3)
-const getDynamicBenchmarks = (muscleName: string, sets: number, programMode?: string) => {
+// Términos amigables (sin MEV/MAV/MRV)
+const STATUS_LABELS = {
+    inactive: { label: 'Inactivo', desc: 'Sin actividad' },
+    maintenance: { label: 'Mantenimiento', desc: 'Mínimo para mantener' },
+    optimal: { label: 'Zona óptima', desc: 'Rango de crecimiento' },
+    overreach: { label: 'Riesgo sobreentreno', desc: 'Riesgo de sobreentreno' },
+} as const;
+
+// Helper para obtener estado según umbrales dinámicos (términos amigables)
+const getStatusFromThresholds = (sets: number, thresholds: MuscleVolumeThresholds, programMode?: string) => {
     const isPowerlifting = programMode === 'powerlifting' || programMode === 'strength';
-    
+    const { min, optimal, max } = thresholds;
+
     if (isPowerlifting) {
-        // Lógica Powerlifting (Basada en PDF: Sheiko/SNC)
-        // Menos volumen de accesorios, foco en básicos.
-        // Asumimos que los básicos (SBD) ya suman volumen a Pectoral/Piernas/Espalda.
-        
-        let label = 'OK';
-        let color = 'bg-blue-600 text-white';
-        let desc = 'Rango de Fuerza';
-
-        // Rangos más conservadores para accesorios en PL para proteger SNC
-        if (sets === 0) { label = 'Min'; color = 'bg-zinc-700 text-zinc-400'; desc = 'Mantenimiento'; }
-        else if (sets < 6) { label = 'Bajo'; color = 'bg-blue-900/50 text-blue-200'; desc = 'Gestión Fatiga'; }
-        else if (sets <= 12) { label = 'Óptimo'; color = 'bg-emerald-600 text-white'; desc = 'Estímulo Efectivo'; }
-        else { label = 'Alto'; color = 'bg-cyber-warning text-white'; desc = 'Posible Interf. SNC'; }
-
-        return { label, color, desc, isPowerlifting: true };
-    } else {
-        // Lógica Hipertrofia (Standard Dr. Mike / Schoenfeld)
-        let label = 'MAV'; 
-        let color = 'bg-green-600 text-white';
-        let desc = 'Crecimiento';
-
-        if (sets === 0) { label = '---'; color = 'bg-zinc-800 text-zinc-500'; desc = 'Inactivo'; }
-        else if (sets < 6) { label = 'Man'; color = 'bg-blue-900/50 text-blue-200'; desc = 'Mantenimiento'; }
-        else if (sets < 10) { label = 'MEV'; color = 'bg-emerald-900/50 text-emerald-200'; desc = 'Mínimo Efectivo'; }
-        else if (sets <= 20) { label = 'MAV'; color = 'bg-green-500 text-black'; desc = 'Volumen Adaptativo'; }
-        else { label = 'MRV'; color = 'bg-red-600 text-white'; desc = 'Riesgo Sobreentreno'; }
-
-        return { label, color, desc, isPowerlifting: false };
+        if (sets === 0) return { ...STATUS_LABELS.inactive, color: 'bg-zinc-700 text-zinc-400', label: 'Min' };
+        if (sets < 6) return { ...STATUS_LABELS.maintenance, color: 'bg-blue-900/50 text-blue-200', label: 'Bajo' };
+        if (sets <= 12) return { ...STATUS_LABELS.optimal, color: 'bg-emerald-600 text-white', label: 'Óptimo' };
+        return { ...STATUS_LABELS.overreach, color: 'bg-cyber-warning text-white', label: 'Alto' };
     }
+
+    if (sets === 0) return { ...STATUS_LABELS.inactive, color: 'bg-zinc-800 text-zinc-500', label: '---' };
+    if (sets < min) return { ...STATUS_LABELS.maintenance, color: 'bg-blue-900/50 text-blue-200', label: 'Bajo' };
+    if (sets <= max) return { ...STATUS_LABELS.optimal, color: 'bg-emerald-600 text-white', label: 'Óptimo' };
+    return { ...STATUS_LABELS.overreach, color: 'bg-red-600 text-white', label: 'Alto' };
 };
 
 export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ program, session, sessions, history, isOnline, settings, analysisData, title, onMuscleSelect, selectedMuscleInfo, onCloseMuscle }) => {
     const { exerciseList, muscleHierarchy } = useAppState();
+    const athleteScore = settings?.athleteScore ?? (program as any)?.athleteProfile ?? null;
     const [displayAnalysis, setDisplayAnalysis] = useState<DetailedMuscleVolumeAnalysis[] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [expandedMuscle, setExpandedMuscle] = useState<string | null>(null);
@@ -256,10 +248,11 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                         const total = directSets + indirectSets;
                         const directWidthPct = maxSets > 0 ? (directSets / maxSets) * 100 : 0;
                         const indirectWidthPct = maxSets > 0 ? (indirectSets / maxSets) * 100 : 0;
+                        const thresholds = getVolumeThresholdsForMuscle(item.muscleGroup, { program, settings, athleteScore });
                         return (
                             <div key={item.muscleGroup} className="flex items-center gap-2 group">
                                 <span className="w-24 text-[10px] font-bold text-[#8E8E93] truncate text-right shrink-0">{item.muscleGroup}</span>
-                                <div className="flex-1 h-3 bg-[#1a1a1a] rounded-full overflow-hidden flex min-w-0" title={`Directo: ${directSets} | Indirecto: ${indirectSets}`}>
+                                <div className="flex-1 h-3 bg-[#1a1a1a] rounded-full overflow-hidden flex min-w-0" title={`Directo: ${directSets} | Indirecto: ${indirectSets} | Recomendado: ${thresholds.rangeLabel}`}>
                                     <div
                                         className="h-full bg-emerald-500 transition-all"
                                         style={{ width: `${directWidthPct}%`, minWidth: directSets > 0 ? '2px' : 0 }}
@@ -269,8 +262,9 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                                         style={{ width: `${indirectWidthPct}%`, minWidth: indirectSets > 0 ? '2px' : 0 }}
                                     />
                                 </div>
-                                <span className="w-14 text-[10px] font-bold text-white text-right shrink-0 tabular-nums">
-                                    {directSets}|{indirectSets}
+                                <span className="w-24 text-[10px] text-right shrink-0">
+                                    <span className="font-bold text-white tabular-nums">{directSets}|{indirectSets}</span>
+                                    <span className="text-[8px] text-zinc-500 font-mono ml-1">({thresholds.rangeLabel})</span>
                                 </span>
                             </div>
                         );
@@ -311,8 +305,14 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                                     displayVolume: 0,
                                     directExercises: []
                                 };
-                                const status = getDynamicBenchmarks(item.muscleGroup, item.displayVolume, program?.mode);
+                                const thresholds = getVolumeThresholdsForMuscle(item.muscleGroup, { program, settings, athleteScore });
+                                const status = getStatusFromThresholds(item.displayVolume, thresholds, program?.mode);
                                 const dbInfo = MUSCLE_GROUP_DATA.find(m => m.id.toLowerCase() === selectedMuscleInfo.muscle.toLowerCase() || m.name.toLowerCase() === selectedMuscleInfo.muscle.toLowerCase());
+
+                                const barMax = Math.max(thresholds.max * 1.2, item.displayVolume, 1);
+                                const minPct = (thresholds.min / barMax) * 100;
+                                const optimalPct = ((thresholds.max - thresholds.min) / barMax) * 100;
+                                const currentPct = Math.min(100, (item.displayVolume / barMax) * 100);
 
                                 return (
                                     <>
@@ -335,10 +335,11 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                                                 <div className="flex items-baseline gap-1">
                                                     <p className="text-lg font-black text-white leading-none">{item.displayVolume}</p>
                                                     <p className="text-[8px] text-zinc-500 uppercase font-bold tracking-widest">sets</p>
+                                                    <span className="text-[8px] text-zinc-600 font-mono ml-1">({thresholds.rangeLabel})</span>
                                                 </div>
                                                 <button 
                                                     onClick={() => setIsExpandedModal(true)}
-                                                    className="w-6 h-6 flex items-center justify-center rounded-full bg-white text-black hover:bg-zinc-200 transition-colors shadow-sm"
+                                                    className="w-6 h-6 flex items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 transition-colors shadow-sm"
                                                     title="Ver anatomía y ejercicios"
                                                 >
                                                     <MaximizeIcon size={10} />
@@ -347,13 +348,33 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                                         ) : (
                                             /* MODO EXPANDIDO (Modal Completo) */
                                             <>
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-3 flex-wrap">
                                                     <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase ${status.color}`}>
                                                         {status.label}
                                                     </span>
                                                     <div className="flex items-baseline gap-1">
                                                         <p className="text-2xl font-black text-white leading-none">{item.displayVolume}</p>
                                                         <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">sets</p>
+                                                        <span className="text-[9px] text-zinc-500 font-mono ml-1">objetivo {thresholds.rangeLabel}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Barra de zonas (min → óptimo → max) */}
+                                                <div className="space-y-1">
+                                                    <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden flex relative">
+                                                        <div className="h-full bg-zinc-600" style={{ width: `${minPct}%` }} title="Mínimo para mantener" />
+                                                        <div className="h-full bg-emerald-600/60" style={{ width: `${optimalPct}%` }} title="Zona óptima" />
+                                                        <div className="h-full bg-red-600/40 flex-1" title="Riesgo de sobreentreno" />
+                                                        <div
+                                                            className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg"
+                                                            style={{ left: `${currentPct}%`, transform: 'translateX(-50%)' }}
+                                                            title={`Actual: ${item.displayVolume} sets`}
+                                                        />
+                                                    </div>
+                                                    <div className="flex justify-between text-[8px] text-zinc-500 font-mono">
+                                                        <span>Mín. mantener</span>
+                                                        <span>Zona óptima</span>
+                                                        <span>Riesgo sobreentreno</span>
                                                     </div>
                                                 </div>
 

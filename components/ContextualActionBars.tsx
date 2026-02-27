@@ -17,6 +17,40 @@ const formatTime = (seconds: number) => {
     return `${mins}:${secs}`;
 };
 
+/** Barra mínima cuando el carrusel está activo: timer/stats están en WorkoutHeader */
+export const WorkoutCarouselPlaceholderBar: React.FC<{ actions: TabBarActions }> = ({ actions }) => {
+    const { ongoingWorkout } = useAppState();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    if (!ongoingWorkout) return null;
+    return (
+        <div className="relative h-full px-6 flex items-center justify-between w-full max-w-md mx-auto">
+            <div className="flex-1" />
+            <div className="flex justify-center items-center h-full">
+                <button onClick={(e) => { e.stopPropagation(); actions.onFinishWorkoutPress(); }} className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-700 text-white flex items-center justify-center shadow-[0_10px_20px_rgba(34,197,94,0.3)] active:scale-95 transition-all border-4 border-slate-950" title="Finalizar">
+                    <CheckCircleIcon size={28} strokeWidth={2.5} />
+                </button>
+            </div>
+            <div className="flex-1 flex justify-end">
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${isMenuOpen ? 'bg-slate-700 border-slate-500 text-white shadow-inner' : 'bg-slate-900/90 border-slate-800 text-slate-500 shadow-xl'}`}>
+                    <SettingsIcon size={20} />
+                </button>
+                {isMenuOpen && (
+                    <>
+                        <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setIsMenuOpen(false)} />
+                        <div className="absolute bottom-full right-0 mb-4 w-64 bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl z-50 overflow-hidden animate-modal-enter origin-bottom-right">
+                            <div className="p-2 space-y-1">
+                                <button onClick={() => { setIsMenuOpen(false); actions.onTimersPress(); }} className="w-full flex items-center gap-3 px-4 py-3 text-left text-xs text-slate-200 hover:bg-slate-800 rounded-2xl transition-colors font-bold"><ClockIcon size={16} className="text-sky-400"/> Cronómetros</button>
+                                <button onClick={() => { setIsMenuOpen(false); actions.onPauseWorkoutPress(); }} className="w-full flex items-center gap-3 px-4 py-3 text-left text-xs text-yellow-400 hover:bg-yellow-900/10 rounded-2xl transition-colors font-bold"><PauseIcon size={16}/> Pausar Sesión</button>
+                                <button onClick={() => { setIsMenuOpen(false); actions.onCancelWorkoutPress(); }} className="w-full flex items-center gap-3 px-4 py-3 text-left text-xs text-red-400 hover:bg-red-900/10 rounded-2xl transition-colors font-bold"><XCircleIcon size={16}/> Cancelar y Salir</button>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
+
 export const WorkoutSessionActionBar: React.FC<{ actions: TabBarActions }> = ({ actions }) => {
     const { ongoingWorkout, restTimer, exerciseList } = useAppState();
     const { handleAdjustRestTimer } = useAppDispatch();

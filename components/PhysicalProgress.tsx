@@ -21,7 +21,6 @@ import BodyFatChart from './BodyFatChart';
 import FFMIChart from './FFMIChart';
 import CalorieHistoryChart from './CalorieHistoryChart';
 import MacroDistributionSummary from './MacroDistributionSummary';
-import ProgressPhotoStudio from './ProgressPhotoStudio';
 import { CorrelationDashboard } from './CorrelationDashboard';
 import PerformanceHighlightsWidget from './PerformanceHighlightsWidget';
 import SleepAnalysisSection from './SleepAnalysisSection';
@@ -74,9 +73,14 @@ const PhysicalProgress: React.FC = () => {
                                 <p className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">FFMI</p>
                             </div>
                         </div>
-                        <Button onClick={() => navigateTo('athlete-profile')} className="w-full !py-3 !text-xs uppercase font-black !bg-white/10 hover:!bg-white/20 border-white/5 relative z-10">
-                            <BodyIcon size={16} /> Ver Perfil Completo
-                        </Button>
+                        <div className="flex gap-2 relative z-10">
+                            <Button onClick={() => navigateTo('athlete-profile')} className="flex-1 !py-3 !text-xs uppercase font-black !bg-white/10 hover:!bg-white/20 border-white/5">
+                                <BodyIcon size={16} /> Perfil
+                            </Button>
+                            <Button onClick={() => navigateTo('body-progress')} className="flex-1 !py-3 !text-xs uppercase font-black !bg-white/10 hover:!bg-white/20 border-white/5">
+                                Progreso
+                            </Button>
+                        </div>
                     </div>
                     
                     <Button onClick={() => setIsBodyLogModalOpen(true)} className="w-full !py-4 shadow-lg shadow-sky-900/20" variant="secondary">
@@ -93,7 +97,6 @@ const PhysicalProgress: React.FC = () => {
                     <ErrorBoundary><FFMIChart /></ErrorBoundary>
                     <ErrorBoundary><CalorieHistoryChart /></ErrorBoundary>
                     <ErrorBoundary><MacroDistributionSummary /></ErrorBoundary>
-                    <ErrorBoundary><ProgressPhotoStudio /></ErrorBoundary>
                 </div>
             )}
             

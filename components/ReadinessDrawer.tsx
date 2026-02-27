@@ -45,6 +45,8 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
   const { setSettings } = useAppDispatch();
   const [sleepQuality, setSleepQuality] = useState(3);
   const [moodMotivation, setMoodMotivation] = useState(3);
+  const [stressLevel, setStressLevel] = useState(3);
+  const [doms, setDoms] = useState(3);
   const [calibCns, setCalibCns] = useState(0);
   const [calibMusc, setCalibMusc] = useState(0);
   const [calibSpinal, setCalibSpinal] = useState(0);
@@ -73,10 +75,10 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
         else if (m.role === 'stabilizer') muscleCount[name] = (muscleCount[name] || 0) + (ex.sets?.length ?? 0) * 0.25;
       });
     });
-    const primary = Object.entries(muscleCount).filter(([, v]) => v >= 1).map(([k]) => k);
-    const secondary = Object.entries(muscleCount).filter(([, v]) => v > 3).map(([k]) => k);
-    const stabilizers = Object.entries(muscleCount).filter(([, v]) => v > 4).map(([k]) => k);
-    const combined = [...new Set([...primary, ...secondary.filter(s => !primary.includes(s)), ...stabilizers.filter(s => !primary.includes(s) && !secondary.includes(s))])];
+    const primary: string[] = Object.entries(muscleCount).filter(([, v]) => v >= 1).map(([k]) => k);
+    const secondary: string[] = Object.entries(muscleCount).filter(([, v]) => v > 3).map(([k]) => k);
+    const stabilizers: string[] = Object.entries(muscleCount).filter(([, v]) => v > 4).map(([k]) => k);
+    const combined = [...new Set([...(primary ?? []), ...(secondary ?? []).filter(s => !(primary ?? []).includes(s)), ...(stabilizers ?? []).filter(s => !(primary ?? []).includes(s) && !(secondary ?? []).includes(s))])];
     const simple = combined.filter(m => !['Romboides', 'Transverso abdominal'].some(k => m.includes(k)) && !['cabeza-larga', 'cabeza-lateral', 'cabeza-medial'].some(k => m.toLowerCase().includes(k)));
     return simple.slice(0, 6);
   }, [pendingWorkout, exerciseList]);
@@ -116,7 +118,7 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
     setIsSubmitting(true);
 
     const now = new Date().toISOString();
-    const readinessAvg = (sleepQuality + moodMotivation) / 2;
+    const readinessAvg = (sleepQuality + (6 - stressLevel) + (6 - doms) + moodMotivation) / 4;
     const predId = `readiness-${Date.now()}`;
     queuePrediction({
       prediction_id: predId,
@@ -146,8 +148,8 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
     setTimeout(() => {
       onContinue({
         sleepQuality,
-        stressLevel: 3,
-        doms: 3,
+        stressLevel,
+        doms,
         motivation: moodMotivation,
       });
     }, 150);
@@ -179,6 +181,22 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
               <span className="text-lg font-black text-white w-8 text-center">{moodMotivation}/5</span>
             </div>
             <div className="flex justify-between text-[8px] text-slate-500 mt-1"><span>Bajo</span><span>Alto</span></div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">¿Nivel de estrés general?</label>
+            <div className="flex items-center gap-3">
+              <input type="range" min="1" max="5" value={stressLevel} onChange={(e) => setStressLevel(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-800 accent-orange-500" />
+              <span className="text-lg font-black text-white w-8 text-center">{stressLevel}/5</span>
+            </div>
+            <div className="flex justify-between text-[8px] text-slate-500 mt-1"><span>Bajo</span><span>Alto</span></div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">¿Agujetas o dolor muscular residual?</label>
+            <div className="flex items-center gap-3">
+              <input type="range" min="1" max="5" value={doms} onChange={(e) => setDoms(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-800 accent-rose-500" />
+              <span className="text-lg font-black text-white w-8 text-center">{doms}/5</span>
+            </div>
+            <div className="flex justify-between text-[8px] text-slate-500 mt-1"><span>Nada</span><span>Mucho</span></div>
           </div>
         </div>
 

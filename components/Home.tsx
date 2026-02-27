@@ -13,6 +13,7 @@ import {
     BatteryHeroSection,
     MiniNutritionWidget,
     MiniProgramWidget,
+    BodyProgressGoalWidget,
     TopExercisesWidget,
     ReadinessWidget,
     StreakWidget,
@@ -28,9 +29,8 @@ import { getLocalDateString } from '../utils/dateUtils';
 import { WorkoutShareCard, buildShareCardDataFromLog } from './FinishWorkoutModal';
 import { shareElementAsImage } from '../services/shareService';
 import { LinkIcon } from './icons';
-import Button from './ui/Button';
 
-const DEFAULT_CARD_ORDER = ['battery', 'session', 'nutrition', 'program', 'top5', 'volumeMuscle', 'relativeStrength', 'star1rm', 'readiness', 'streak', 'quicklog'];
+const DEFAULT_CARD_ORDER = ['battery', 'session', 'nutrition', 'bodyProgress', 'program', 'top5', 'volumeMuscle', 'relativeStrength', 'star1rm', 'readiness', 'streak', 'quicklog'];
 
 interface HomeProps {
     onNavigate: (view: View, program?: Program) => void;
@@ -125,6 +125,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                 />
             );
             case 'nutrition': return <MiniNutritionWidget key="nutrition" onNavigate={() => navigateTo('nutrition')} />;
+            case 'bodyProgress': return <BodyProgressGoalWidget key="bodyProgress" onNavigate={() => navigateTo('body-progress')} onNavigateToSetup={() => navigateTo('nutrition')} />;
             case 'program': return <MiniProgramWidget key="program" onNavigate={() => activeProgram && navigateTo('program-detail', { programId: activeProgram.id })} />;
             case 'top5': return <TopExercisesWidget key="top5" onNavigateToExercise={name => setExerciseHistoryModal(name)} />;
             case 'volumeMuscle': return <VolumeByMuscleWidget key="volumeMuscle" onNavigate={() => activeProgram && navigateTo('program-detail', { programId: activeProgram.id })} />;

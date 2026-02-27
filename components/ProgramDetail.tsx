@@ -31,7 +31,7 @@ interface ProgramDetailProps {
 
 const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession }) => {
     const {
-        history, settings, handleEditSession, handleBack, handleAddSession, isOnline,
+        history, settings, setSettings, handleEditSession, handleBack, handleAddSession, isOnline,
         exerciseList, handleStartProgram, handlePauseProgram, handleEditProgram,
         handleUpdateProgram, handleChangeSplit, addToast, handleStartWorkout,
     } = useAppContext();
@@ -281,6 +281,9 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                         programDiscomforts={programDiscomforts}
                         adaptiveCache={adaptiveCache}
                         exerciseList={exerciseList}
+                        setSettings={setSettings}
+                        onUpdateProgram={handleUpdateProgram}
+                        addToast={addToast}
                     />
                 </div>
             </div>

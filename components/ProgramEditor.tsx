@@ -8,6 +8,7 @@ import FeedbackInsights from './FeedbackInsights';
 import SessionAuditAlerts from './SessionAuditAlerts';
 import VolumeBudgetBar from './VolumeBudgetBar';
 import AthleteProfilingWizard from './AthleteProfilingWizard';
+import { VolumeCalibrationStep } from './VolumeCalibrationStep';
 import { AthleteProfileScore } from '../types'; // Asegúrate de que esto ya esté exportado en types.ts
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Program, Macrocycle, Mesocycle, ProgramWeek, Session, SessionBackground, Block, Exercise, ExerciseMuscleInfo } from '../types';
@@ -940,15 +941,14 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
   // Estados para el Profiling (KPKN Algorithm)
   const [showProfilingWizard, setShowProfilingWizard] = useState(false);
   const [athleteScore, setAthleteScore] = useState<AthleteProfileScore | null>(null);
-  const [showCalibrationAlert, setShowCalibrationAlert] = useState(false); // Nuevo estado
 
-  const handleAttemptNextStep = () => {
-    if (!athleteScore) {
-        setShowCalibrationAlert(true);
-    } else {
-        handleCreate(false);
-    }
-};
+  // Configuración de volumen del wizard (paso obligatorio)
+  const [wizardVolumeConfig, setWizardVolumeConfig] = useState<{
+    volumeSystem: 'israetel' | 'manual' | 'kpnk';
+    volumeRecommendations: import('../types').VolumeRecommendation[];
+    volumeAlertsEnabled: boolean;
+    athleteProfileScore?: AthleteProfileScore;
+  } | null>(null);
 
   // Estados de Configuración de Tiempo y Días
   const [startDay, setStartDay] = useState(1);
@@ -1103,12 +1103,17 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
       return volumeMap;
   }, [JSON.stringify(detailedSessions), exerciseList]);
 
-  // Calcular límites personalizados basados en el perfil del atleta
+  // Calcular límites personalizados basados en el perfil del atleta o wizard
   const volumeLimits = useMemo(() => {
-      // Si estamos en modo complejo, podríamos detectar la fase del bloque activo
-      // Por ahora, usamos 'Acumulación' como base para el diseño inicial
+      if (wizardVolumeConfig?.volumeRecommendations?.length) {
+          const recs = wizardVolumeConfig.volumeRecommendations;
+          const avgMin = Math.round(recs.reduce((a, r) => a + r.minEffectiveVolume, 0) / recs.length);
+          const avgMax = Math.round(recs.reduce((a, r) => a + r.maxRecoverableVolume, 0) / recs.length);
+          const avgOpt = Math.round(recs.reduce((a, r) => a + (r.minEffectiveVolume + r.maxAdaptiveVolume) / 2, 0) / recs.length);
+          return { minSets: avgMin, maxSets: avgMax, optimalSets: avgOpt, type: 'sets' as const, reasoning: 'Wizard' };
+      }
       return calculateWeeklyVolume(athleteScore, settings, 'Acumulación'); 
-  }, [athleteScore, settings]);
+  }, [athleteScore, settings, wizardVolumeConfig]);
 
 
   // =================================================================
@@ -1367,6 +1372,16 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                 }
                 setProgram(initialData);
                 setIsComplex(complexMode);
+
+                // Restaurar volumen si el programa ya lo tiene
+                if (initialData.volumeRecommendations?.length && initialData.volumeSystem) {
+                    setWizardVolumeConfig({
+                        volumeSystem: initialData.volumeSystem,
+                        volumeRecommendations: initialData.volumeRecommendations,
+                        volumeAlertsEnabled: initialData.volumeAlertsEnabled ?? true,
+                        athleteProfileScore: initialData.athleteProfileScore,
+                    });
+                }
                 
                 // Si es un borrador, restaurar el paso del wizard y los datos
                 if (initialData.isDraft && initialData.lastSavedStep !== undefined && initialData.draftData) {
@@ -1390,6 +1405,14 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                     if (draft.splitMode) setSplitMode(draft.splitMode);
                     if (draft.startDay !== undefined) setStartDay(draft.startDay);
                     if (draft.cycleDuration !== undefined) setCycleDuration(draft.cycleDuration);
+                    if (draft.volumeSystem && draft.volumeRecommendations) {
+                        setWizardVolumeConfig({
+                            volumeSystem: draft.volumeSystem,
+                            volumeRecommendations: draft.volumeRecommendations,
+                            volumeAlertsEnabled: draft.volumeAlertsEnabled ?? true,
+                            athleteProfileScore: draft.athleteProfileScore,
+                        });
+                    }
                 }
 
                 if (initialData.background?.style) {
@@ -1432,6 +1455,16 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
           }
       }
   }, [activeSplitBlockStep0, wizardStep, splitMode]);
+
+  // Al entrar a step 3 (session design) con per_block, sincronizar splitPattern
+  useEffect(() => {
+      if (wizardStep === 3 && selectedTemplateId === 'power-complex' && splitMode === 'per_block' && blockSplits[activeBlockEdit]) {
+          const blockSplit = blockSplits[activeBlockEdit];
+          if (blockSplit?.pattern) {
+              setSplitPattern(blockSplit.pattern.map((p: string) => p || 'Descanso'));
+          }
+      }
+  }, [wizardStep, selectedTemplateId, splitMode, activeBlockEdit, blockSplits]);
 
   // Draft saving
   useEffect(() => {
@@ -1576,7 +1609,13 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             mode: template.id === 'power-complex' ? 'powerlifting' : 'hypertrophy', 
             startDay: startDay,
             selectedSplitId: selectedSplit?.id,
-            macrocycles: [] 
+            macrocycles: [],
+            ...(wizardVolumeConfig && {
+                volumeSystem: wizardVolumeConfig.volumeSystem,
+                volumeRecommendations: wizardVolumeConfig.volumeRecommendations,
+                volumeAlertsEnabled: wizardVolumeConfig.volumeAlertsEnabled,
+                athleteProfileScore: wizardVolumeConfig.athleteProfileScore,
+            }),
         };
         
         const generateSessionsForWeek = (weekId: string, globalWeekIndex: number, patternOverride?: string[], sessionsOverride?: Record<number, Session>): Session[] => {
@@ -1665,6 +1704,12 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                     splitMode: splitMode,
                     startDay: startDay,
                     cycleDuration: cycleDuration,
+                    ...(wizardVolumeConfig && {
+                        volumeSystem: wizardVolumeConfig.volumeSystem,
+                        volumeRecommendations: wizardVolumeConfig.volumeRecommendations,
+                        volumeAlertsEnabled: wizardVolumeConfig.volumeAlertsEnabled,
+                        athleteProfileScore: wizardVolumeConfig.athleteProfileScore,
+                    }),
                 };
             }
     
@@ -2056,7 +2101,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             <div className="pt-8 pb-4 px-6 bg-black flex-shrink-0 z-20 border-b border-white/5">
                  <div className="relative max-w-md mx-auto text-center">
                  <div className="flex justify-between items-center mb-2">
-                        <button onClick={onCancel} className="text-gray-500 hover:text-red-500 transition-colors" title="Salir del Wizard">
+                        <button onClick={onCancel} className="text-zinc-500 hover:text-red-400 transition-colors" title="Salir del Wizard">
                             <XIcon size={20}/>
                         </button>
                         <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex-1 text-center">
@@ -2090,62 +2135,6 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                     <button onClick={() => setActiveInfo('structure')} className="text-gray-500 hover:text-white transition-colors"><InfoIcon size={14} /></button>
                                 </div>
 
-                            {/* ALERTA DE CALIBRACIÓN MODAL */}
-                            {showCalibrationAlert && (
-                                <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in font-sans">
-                                    <div className="bg-[#111] border border-white/10 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center relative overflow-hidden">
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500"></div>
-                                        <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-yellow-500/20">
-                                            <TargetIcon size={32} className="text-yellow-500" />
-                                        </div>
-                                        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Paso Recomendado</h3>
-                                        <p className="text-xs text-gray-400 font-medium leading-relaxed mb-6">
-                                            Identificar tu nivel de atleta permite calcular límites exactos de volumen y fatiga para ti. ¿Quieres calibrar tu perfil antes de continuar?
-                                        </p>
-                                        <div className="flex flex-col gap-3">
-                                            <button onClick={() => { setShowCalibrationAlert(false); setShowProfilingWizard(true); }} className="w-full py-4 bg-white text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform shadow-lg shadow-white/10">
-                                                Calibrar Perfil
-                                            </button>
-                                            <button onClick={() => { setShowCalibrationAlert(false); handleCreate(false); }} className="text-[10px] font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-colors py-2">
-                                                Omitir por ahora
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Banner de Calibración Prominente */}
-                            <div className="mb-10 px-4">
-                                <button 
-                                    onClick={() => setShowProfilingWizard(true)}
-                                    className={`w-full relative overflow-hidden rounded-3xl p-6 text-left transition-all duration-300 group border-2
-                                        ${athleteScore 
-                                            ? 'bg-gradient-to-br from-emerald-950/40 to-black border-emerald-500/30 hover:border-emerald-400' 
-                                            : 'bg-gradient-to-br from-zinc-900 to-black border-white/10 hover:border-white/40'
-                                        }
-                                    `}
-                                >
-                                    <div className="flex justify-between items-center relative z-10">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px_currentColor] animate-pulse-slow ${athleteScore ? 'text-emerald-500 bg-emerald-500' : 'text-yellow-500 bg-yellow-500'}`}></div>
-                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Paso Inicial Recomendado</span>
-                                            </div>
-                                            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Calibrador KPKN</h3>
-                                            <p className="text-xs text-gray-500 font-medium mt-1 pr-8">
-                                                {athleteScore 
-                                                    ? `Perfil detectado: ${athleteScore.profileLevel === 'Advanced' ? 'Avanzado' : 'Principiante'}` 
-                                                    : 'Identifica tu nivel para ajustar el volumen a tu medida.'
-                                                }
-                                            </p>
-                                        </div>
-                                        <div className={`p-3 rounded-full transition-colors ${athleteScore ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-white group-hover:bg-white group-hover:text-black'}`}>
-                                            {athleteScore ? <CheckCircleIcon size={24} /> : <TargetIcon size={24} />}
-                                        </div>
-                                    </div>
-                                </button>
-                            </div>
-
                                 <p className="text-[10px] text-slate-400 text-center -mt-2">Duración y enfoque macro.</p>
 
                                 {/* Carrusel de Plantillas */}
@@ -2157,18 +2146,18 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                             <button
                                                 key={template.id}
                                                 onClick={() => setSelectedTemplateId(template.id)}
-                                                className={`snap-center shrink-0 w-64 p-5 rounded-[2rem] flex flex-col items-center text-center transition-all duration-300 ease-out border relative overflow-hidden group
+                                                className={`snap-center shrink-0 w-64 p-5 rounded-2xl flex flex-col items-center text-center transition-all duration-300 ease-out border relative overflow-hidden group
                                                     ${isSelected
-                                                        ? (isPowerlifting ? 'bg-yellow-400 text-black border-yellow-400 scale-[1.02] shadow-lg shadow-yellow-900/20' : 'bg-white text-black border-white scale-[1.02] shadow-lg shadow-white/10')
-                                                        : 'bg-black text-white border-white/10 opacity-60 hover:opacity-100 hover:scale-[1.01] hover:border-white/30'
+                                                        ? (isPowerlifting ? 'bg-amber-500/20 text-amber-400 border-amber-500/50 scale-[1.02] shadow-lg' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 scale-[1.02] shadow-lg')
+                                                        : 'bg-zinc-950 text-zinc-400 border-white/10 opacity-80 hover:opacity-100 hover:scale-[1.01] hover:border-white/30 hover:text-white'
                                                     }
                                                 `}
                                             >
-                                                <div className={`p-3 rounded-full mb-3 transition-colors duration-300 ${isSelected ? 'bg-black/10' : 'bg-white/10'}`}>
-                                                    {React.cloneElement(template.icon as React.ReactElement<any>, { className: isSelected ? 'text-black' : 'text-white', size: 20 })}
+                                                <div className={`p-3 rounded-full mb-3 transition-colors duration-300 ${isSelected ? 'bg-white/10' : 'bg-white/5'}`}>
+                                                    {React.cloneElement(template.icon as React.ReactElement<any>, { className: isSelected ? (isPowerlifting ? 'text-amber-400' : 'text-cyan-400') : 'text-zinc-500', size: 20 })}
                                                 </div>
                                                 <h3 className="text-lg font-black uppercase tracking-tight leading-none mb-2">{template.name}</h3>
-                                                <p className={`text-[10px] font-bold leading-relaxed mb-0 transition-colors duration-300 ${isSelected ? 'text-black/70' : 'text-slate-400'}`}>{template.description}</p>
+                                                <p className={`text-[10px] font-bold leading-relaxed mb-0 transition-colors duration-300 ${isSelected ? 'text-white/80' : 'text-zinc-500'}`}>{template.description}</p>
                                             </button>
                                         );
                                     })}
@@ -2206,7 +2195,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                                     }
                                                 }}
                                                 className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2
-                                                    ${splitMode === 'global' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}
+                                                    ${splitMode === 'global' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 shadow-lg' : 'text-zinc-500 hover:text-white'}
                                                 `}
                                             >
                                                 <span>Global</span>
@@ -2219,7 +2208,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                                     }
                                                 }}
                                                 className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2
-                                                    ${splitMode === 'per_block' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}
+                                                    ${splitMode === 'per_block' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 shadow-lg' : 'text-zinc-500 hover:text-white'}
                                                 `}
                                             >
                                                 <span>Por Bloques</span>
@@ -2259,18 +2248,18 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                                             className={`
                                                                 relative flex flex-col items-start justify-center p-5 min-w-[140px] rounded-2xl border-2 transition-all duration-300 group
                                                                 ${isActive 
-                                                                    ? 'bg-white border-white text-black scale-[1.02] shadow-[0_10px_30px_-10px_rgba(255,255,255,0.3)]' 
-                                                                    : 'bg-black border-white/10 text-gray-500 hover:border-white hover:text-white'
+                                                                    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 scale-[1.02] shadow-lg' 
+                                                                    : 'bg-zinc-950 border-white/10 text-zinc-500 hover:border-white/30 hover:text-white'
                                                                 }
                                                             `}
                                                         >
-                                                            <span className={`absolute top-3 right-4 text-[40px] font-black leading-none opacity-5 pointer-events-none ${isActive ? 'text-black' : 'text-white'}`}>
+                                                            <span className={`absolute top-3 right-4 text-[40px] font-black leading-none opacity-5 pointer-events-none ${isActive ? 'text-cyan-400' : 'text-white'}`}>
                                                                 {idx + 1}
                                                             </span>
                                                             <span className="text-[9px] font-black uppercase tracking-widest mb-1 z-10">{name}</span>
                                                             <div className="flex items-center gap-1.5 z-10">
-                                                                <div className={`w-1.5 h-1.5 rounded-full ${assignedSplit ? (isActive ? 'bg-black' : 'bg-white') : 'bg-gray-700'}`}></div>
-                                                                <span className={`text-[8px] font-bold uppercase truncate max-w-[90px] ${isActive ? 'text-black/70' : 'text-gray-500'}`}>
+                                                                <div className={`w-1.5 h-1.5 rounded-full ${assignedSplit ? (isActive ? 'bg-cyan-400' : 'bg-white') : 'bg-zinc-600'}`}></div>
+                                                                <span className={`text-[8px] font-bold uppercase truncate max-w-[90px] ${isActive ? 'text-cyan-300' : 'text-zinc-500'}`}>
                                                                     {isJustAssigned ? 'Guardado' : (assignedSplit ? assignedSplit.name : 'Pendiente')}
                                                                 </span>
                                                             </div>
@@ -2291,8 +2280,8 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                         <div className="overflow-x-auto snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:-mx-8 md:px-8 pb-8">
                                             <div className="flex gap-4 items-stretch">
                                                 {/* Card: Crear Nuevo */}
-                                                <button onClick={() => handleSelectSplit(SPLIT_TEMPLATES[0])} className="snap-center shrink-0 w-56 p-6 rounded-[2rem] border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-4 transition-all hover:bg-white/5 hover:border-white group">
-                                                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
+                                                <button onClick={() => handleSelectSplit(SPLIT_TEMPLATES[0])} className="snap-center shrink-0 w-56 p-6 rounded-2xl border-2 border-dashed border-cyan-500/30 flex flex-col items-center justify-center gap-4 transition-all hover:bg-cyan-500/10 hover:border-cyan-500/50 group">
+                                                    <div className="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 text-cyan-400 transition-colors">
                                                         <PlusIcon size={24} />
                                                     </div>
                                                     <span className="font-black text-xs uppercase tracking-widest text-white">Crear desde Cero</span>
@@ -2300,30 +2289,30 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
 
                                                 {/* Cards: Templates */}
                                                 {SPLIT_TEMPLATES.slice(1, 5).map(split => (
-                                                    <button key={split.id} onClick={() => handleSelectSplit(split)} className="snap-center shrink-0 w-64 p-6 rounded-[2rem] border border-white/10 bg-[#0a0a0a] flex flex-col justify-between text-left transition-all duration-300 hover:border-white hover:bg-black hover:scale-[1.02] group">
+                                                    <button key={split.id} onClick={() => handleSelectSplit(split)} className="snap-center shrink-0 w-64 p-6 rounded-2xl border border-white/10 bg-zinc-950 flex flex-col justify-between text-left transition-all duration-300 hover:border-cyan-500/30 hover:scale-[1.02] group">
                                                         <div>
                                                             <div className="flex justify-between items-start mb-4">
-                                                                <div className="bg-white/10 px-2 py-1 rounded text-[8px] font-black uppercase text-white/70 group-hover:bg-white group-hover:text-black transition-colors">
+                                                                <div className="bg-cyan-500/10 px-2 py-1 rounded text-[8px] font-black uppercase text-cyan-400 border border-cyan-500/20">
                                                                     {split.tags[0] === 'Recomendado por KPKN' ? 'KPKN Select' : split.tags[0]}
                                                                 </div>
-                                                                {split.difficulty === 'Principiante' && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                                                                {split.difficulty === 'Principiante' && <div className="w-2 h-2 rounded-full bg-cyan-400"></div>}
                                                             </div>
                                                             <h4 className="font-black text-2xl leading-none mb-2 uppercase text-white">{split.name}</h4>
-                                                            <div className="w-8 h-1 bg-white/20 mb-4 group-hover:w-16 transition-all duration-500"></div>
+                                                            <div className="w-8 h-1 bg-cyan-500/30 mb-4 group-hover:w-16 transition-all duration-500"></div>
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <p className="text-[10px] font-medium leading-relaxed text-gray-500 group-hover:text-gray-300">{split.description}</p>
+                                                            <p className="text-[10px] font-medium leading-relaxed text-zinc-500 group-hover:text-zinc-300">{split.description}</p>
                                                             {/* Mini Preview de los días */}
                                                             <div className="flex gap-0.5 opacity-30 group-hover:opacity-100 transition-opacity">
                                                                 {split.pattern.map((d, i) => (
-                                                                    <div key={i} className={`h-1 flex-1 rounded-full ${d === 'Descanso' ? 'bg-gray-800' : 'bg-white'}`}></div>
+                                                                    <div key={i} className={`h-1 flex-1 rounded-full ${d === 'Descanso' ? 'bg-zinc-800' : 'bg-cyan-500/50'}`}></div>
                                                                 ))}
                                                             </div>
                                                         </div>
                                                     </button>
                                                 ))}
                                                 
-                                                 <button onClick={() => setShowAllSplitsModal(true)} className="snap-center shrink-0 w-48 p-6 rounded-[2rem] border border-white/10 bg-[#0a0a0a] flex flex-col items-center justify-center gap-3 hover:border-white hover:bg-black transition-all">
+                                                 <button onClick={() => setShowAllSplitsModal(true)} className="snap-center shrink-0 w-48 p-6 rounded-2xl border border-white/10 bg-zinc-950 flex flex-col items-center justify-center gap-3 hover:border-cyan-500/30 transition-all text-cyan-400/80 hover:text-cyan-400">
                                                     <GridIcon size={32} strokeWidth={1.5} />
                                                     <span className="font-black text-xs uppercase tracking-widest text-center">Ver<br/>Catálogo<br/>Completo</span>
                                                 </button>
@@ -2334,10 +2323,10 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
 
                                 {/* D. TARJETA SELECCIONADA / ÉXITO (Overlay) */}
                                 {selectedSplit && (
-                                    <div className="w-full bg-black rounded-[2rem] border-2 border-white shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden animate-fade-in-up mx-auto max-w-sm transition-all duration-500 min-h-[350px] flex flex-col z-20">
+                                    <div className="w-full bg-zinc-950 rounded-2xl border-2 border-cyan-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden animate-fade-in-up mx-auto max-w-sm transition-all duration-500 min-h-[350px] flex flex-col z-20">
                                         
                                         {assignmentSuccess ? (
-                                            <div className="absolute inset-0 z-30 bg-white flex flex-col items-center justify-center text-black p-6 animate-fade-in text-center overflow-hidden">
+                                            <div className="absolute inset-0 z-30 bg-cyan-950/95 flex flex-col items-center justify-center text-cyan-400 p-6 animate-fade-in text-center overflow-hidden border-2 border-cyan-500/30">
                                                 
                                                 {/* --- MARCA DE AGUA: CAUPOLICÁN --- */}
                                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.05]">
@@ -2348,30 +2337,30 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
 
                                                 {/* Contenido (z-10 para estar encima del fondo) */}
                                                 <div className="relative z-10 flex flex-col items-center w-full">
-                                                    <div className="w-20 h-20 rounded-full bg-black text-white flex items-center justify-center mb-6 animate-bounce-short shadow-xl">
+                                                    <div className="w-20 h-20 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 flex items-center justify-center mb-6 animate-bounce-short shadow-xl">
                                                         <CheckCircleIcon size={32} strokeWidth={3} />
                                                     </div>
-                                                    <h3 className="text-3xl font-black uppercase tracking-tighter mb-2">Asignado</h3>
-                                                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-8 px-8 border-t border-b border-gray-200 py-2">
+                                                    <h3 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">Asignado</h3>
+                                                    <p className="text-xs font-bold uppercase tracking-widest text-cyan-300/80 mb-8 px-8 border-t border-b border-cyan-500/20 py-2">
                                                         Bloque: {assignmentSuccess}
                                                     </p>
                                                     
                                                     {activeSplitBlockStep0 < POWER_BLOCK_NAMES.length - 1 ? (
                                                         <div className="flex flex-col items-center gap-2 animate-pulse">
-                                                            <span className="text-[9px] font-black uppercase text-gray-400">Siguiente Bloque</span>
-                                                            <ArrowDownIcon size={20} className="text-black"/>
+                                                            <span className="text-[9px] font-black uppercase text-cyan-400/70">Siguiente Bloque</span>
+                                                            <ArrowDownIcon size={20} className="text-cyan-400"/>
                                                         </div>
                                                     ) : (
-                                                        <div className="text-[10px] font-black uppercase bg-black text-white px-3 py-1 rounded">Listo</div>
+                                                        <div className="text-[10px] font-black uppercase bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded border border-cyan-500/30">Listo</div>
                                                     )}
                                                 </div>
                                             </div>
                                         ) : (
                                             // VISTA DE DETALLES (NORMAL)
                                             <>
-                                                <div className="bg-white p-6 text-black relative z-10 transition-colors">
+                                                <div className="bg-zinc-900/50 p-6 border-b border-white/10 relative z-10 transition-colors">
                                                     <div className="flex justify-between items-start mb-4">
-                                                        <h3 className="font-black text-3xl uppercase tracking-tighter w-3/4 leading-none">{selectedSplit.name}</h3>
+                                                        <h3 className="font-black text-2xl uppercase tracking-tighter w-3/4 leading-none text-white">{selectedSplit.name}</h3>
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedSplit(null); 
@@ -2382,21 +2371,21 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                                                     setBlockSplits(newSplits);
                                                                 }
                                                             }} 
-                                                            className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-black hover:bg-black hover:text-white transition-colors"
+                                                            className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
                                                         >
                                                             <XIcon size={16} strokeWidth={3} />
                                                         </button>
                                                     </div>
-                                                    <p className="text-xs font-bold opacity-70 leading-relaxed mb-6 border-l-2 border-black pl-3">{selectedSplit.description}</p>
+                                                    <p className="text-xs font-bold text-zinc-400 leading-relaxed mb-6 border-l-2 border-cyan-500/30 pl-3">{selectedSplit.description}</p>
                                                     
                                                     {/* Selector de Día de Inicio Compacto */}
-                                                    <div className="flex items-center justify-between border-t border-black/10 pt-3">
-                                                        <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Inicio de Semana</span>
+                                                    <div className="flex items-center justify-between border-t border-white/10 pt-3">
+                                                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Inicio de Semana</span>
                                                         <div className="relative group">
-                                                            <select value={startDay} onChange={(e) => setStartDay(parseInt(e.target.value))} className="appearance-none bg-transparent text-[10px] font-black text-black uppercase outline-none border border-black/20 rounded px-2 py-1 pr-6 cursor-pointer hover:border-black">
+                                                            <select value={startDay} onChange={(e) => setStartDay(parseInt(e.target.value))} className="appearance-none bg-zinc-950 text-[10px] font-black text-white uppercase outline-none border border-white/20 rounded px-2 py-1 pr-6 cursor-pointer hover:border-cyan-500/50">
                                                                 {daysOfWeek.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
                                                             </select>
-                                                            <ChevronDownIcon size={10} className="absolute right-2 top-1.5 pointer-events-none"/>
+                                                            <ChevronDownIcon size={10} className="absolute right-2 top-1.5 pointer-events-none text-zinc-500"/>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2428,7 +2417,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                                                 setBlockSplits(newSplits);
                                                             }
                                                         }} 
-                                                        className="w-full mt-3 py-4 border-2 border-white text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all"
+                                                        className="w-full mt-3 py-4 border-2 border-cyan-500/50 text-cyan-400 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-cyan-500/20 transition-all"
                                                     >
                                                         Cambiar Selección
                                                     </button>
@@ -2442,17 +2431,17 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                             {/* Botón Flotante Siguiente */}
                              <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-50 pointer-events-none">
                                 <button 
-                                    onClick={handleAttemptNextStep} // Validar calibración antes de ir al paso intermedio
+                                    onClick={() => setWizardStep(1)}
                                     disabled={!selectedSplit} 
-                                    className={`pointer-events-auto bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all duration-500 flex items-center gap-3 ${!selectedSplit ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}
+                                    className={`pointer-events-auto bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:bg-cyan-500/30 hover:scale-105 active:scale-95 transition-all duration-500 flex items-center gap-3 ${!selectedSplit ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}
                                 >
-                                    Siguiente: Vista General <ArrowDownIcon size={16} className="-rotate-90"/>
+                                    Siguiente: Volumen de entrenamiento <ArrowDownIcon size={16} className="-rotate-90"/>
                                 </button> 
 
                             {/* === BOTÓN DE CONTINUAR PERMANENTE === */}
                             <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/90 to-transparent pt-32 z-40 flex flex-col items-center justify-end pointer-events-none">
                                 <button
-                                    onClick={handleAttemptNextStep}
+                                    onClick={() => setWizardStep(1)}
                                     // Deshabilitado si: 
                                     // 1. Modo Simple/Global y NO hay split seleccionado.
                                     // 2. Modo Por Bloques y NO están asignados los 5 bloques.
@@ -2466,8 +2455,8 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                             const isPerBlockReady = selectedTemplateId === 'power-complex' && splitMode === 'per_block' && Object.keys(blockSplits).length === POWER_BLOCK_NAMES.length;
                                             
                                             return (isGlobalReady || isPerBlockReady)
-                                                ? 'bg-white text-black hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.2)] opacity-100 translate-y-0 cursor-pointer' 
-                                                : 'bg-[#222] text-gray-500 border border-white/5 cursor-not-allowed'
+                                                ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 hover:bg-cyan-500/30 hover:scale-105 active:scale-95 opacity-100 translate-y-0 cursor-pointer' 
+                                                : 'bg-zinc-900 text-zinc-500 border border-white/5 cursor-not-allowed'
                                         })()}
                                     `}
                                 >
@@ -2480,7 +2469,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                             if ((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit) {
                                                 return "Selecciona un Split";
                                             }
-                                            return "Crear Programa";
+                                            return "Siguiente: Volumen";
                                         })()}
                                     </span>
                                     {/* Flecha condicional */}
@@ -2496,9 +2485,43 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                         </div>
                     )}
 
-                    {/* === PASO 1: ROADMAP Y PREPARACIÓN DE SESIONES (FUSIONADOS) === */}
+                    {/* === PASO 1: VOLUMEN DE ENTRENAMIENTO (OBLIGATORIO) === */}
                     {wizardStep === 1 && (
+                        <VolumeCalibrationStep
+                            onComplete={(config) => {
+                                setWizardVolumeConfig(config);
+                                setAthleteScore(config.athleteProfileScore || null);
+                                setWizardStep(2);
+                            }}
+                            onBack={() => setWizardStep(0)}
+                            settings={settings}
+                        />
+                    )}
+
+                    {/* === PASO 2: ROADMAP Y PREPARACIÓN DE SESIONES === */}
+                    {wizardStep === 2 && (
                         <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in-up safe-area-root">
+                            <div className="flex-1 overflow-y-auto p-6">
+                                <button onClick={() => setWizardStep(1)} className="p-2 -ml-2 text-zinc-500 hover:text-white mb-4">
+                                    <ArrowLeftIcon size={20} />
+                                </button>
+                                <h2 className="text-xl font-black uppercase text-white mb-2">Vista general</h2>
+                                <p className="text-xs text-zinc-500 mb-6">
+                                    Volumen configurado. Puedes crear el programa o preparar las sesiones con ejercicios.
+                                </p>
+                                <div className="bg-zinc-900/50 rounded-xl p-4 border border-white/5 mb-6">
+                                    <p className="text-xs text-zinc-400">
+                                        <span className="font-bold text-white">{selectedSplit?.name}</span> • {splitPattern.filter(l => l?.toLowerCase() !== 'descanso').length} días de entrenamiento
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setWizardStep(3)}
+                                    className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/30 transition-all mb-4"
+                                >
+                                    Preparar sesiones con ejercicios
+                                </button>
+                                <p className="text-[10px] text-zinc-600 text-center">O crea el programa directamente con el botón inferior</p>
+                            </div>
                             
                             {/* --- FOOTER FLOTANTE (BOTONES FINALES) --- */}
                             <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-40 flex flex-col items-center gap-4 pointer-events-none">
@@ -2515,15 +2538,15 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                         Borrador
                                     </button>
                                     <button 
-                                        onClick={handleAttemptNextStep}
+                                        onClick={() => handleCreate(false)}
                                         disabled={(() => {
                                             if (selectedTemplateId !== 'power-complex' || splitMode === 'global') return !selectedSplit;
                                             return Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length;
                                         })()}
                                         className={`flex-1 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] transition-all flex items-center justify-center gap-2 border border-transparent 
                                             ${((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit) || (selectedTemplateId === 'power-complex' && splitMode === 'per_block' && Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length)
-                                                ? 'bg-[#222] text-gray-500 cursor-not-allowed border-white/5'
-                                                : 'bg-white text-black hover:scale-105 active:scale-95 hover:border-black cursor-pointer'
+                                                ? 'bg-zinc-900 text-zinc-500 cursor-not-allowed border-white/5'
+                                                : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 hover:bg-cyan-500/30 hover:scale-105 active:scale-95 cursor-pointer'
                                             }`}
                                     >
                                         <SaveIcon size={16}/>
@@ -2550,7 +2573,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                             
                             {/* --- BOTONES DE NAVEGACIÓN FLOTANTES --- */}
                             <button 
-                                onClick={() => setWizardStep(1)} 
+                                onClick={() => setWizardStep(2)} 
                                 className="fixed top-4 left-4 z-[220] p-2.5 rounded-full bg-black/40 text-white border border-white/10 backdrop-blur-md hover:bg-white/20 transition-all shadow-lg"
                                 title="Volver al Roadmap"
                             >
@@ -2592,8 +2615,8 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                                             onClick={() => handleSwitchBlockEdit(idx)}
                                                             className={`px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap border
                                                                 ${isActive 
-                                                                    ? 'bg-white text-black border-white shadow-lg scale-[1.02]' 
-                                                                    : 'bg-[#111] text-gray-500 border-white/10 hover:border-white/30 hover:text-gray-300'
+                                                                    ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow-lg scale-[1.02]' 
+                                                                    : 'bg-zinc-950 text-zinc-500 border-white/10 hover:border-cyan-500/30 hover:text-white'
                                                                 }
                                                             `}
                                                         >
@@ -2675,7 +2698,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                     <button 
                                         onClick={() => handleCreate(false)} 
                                         aria-label="Guardar"
-                                        className="bg-white text-black px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-transparent hover:border-black"
+                                        className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-cyan-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
                                     >
                                         <SaveIcon size={16}/>
                                         <span>Crear Programa</span>
@@ -2695,7 +2718,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                              <h2 className="text-lg font-black text-white uppercase tracking-tight">Catálogo de Splits</h2>
                              <div className="flex gap-2">
                                  {compareList.length > 0 && (
-                                     <button onClick={() => setShowCompareView(true)} className="bg-yellow-400 text-black px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform">Comparar ({compareList.length})</button>
+                                     <button onClick={() => setShowCompareView(true)} className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500/30 transition-colors">Comparar ({compareList.length})</button>
                                  )}
                                  <button onClick={() => setShowAllSplitsModal(false)} className="p-2 bg-slate-900 rounded-full text-white"><XIcon size={20}/></button>
                              </div>
@@ -2706,7 +2729,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                         </div>
                         <div className="flex overflow-x-auto gap-2 hide-scrollbar pb-2">
                             {tagFilters.map(tag => (
-                                <button key={tag} onClick={() => setModalFilter(tag)} className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap border transition-all ${modalFilter === tag ? 'bg-white text-black border-white' : 'bg-transparent border-white/30 text-white/60'}`}>{tag}</button>
+                                <button key={tag} onClick={() => setModalFilter(tag)} className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap border transition-all ${modalFilter === tag ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-transparent border-white/30 text-zinc-500 hover:text-white'}`}>{tag}</button>
                             ))}
                         </div>
                     </div>
@@ -2717,20 +2740,20 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                 {filteredSplits.map(split => {
                                     const isSelected = compareList.includes(split.id);
                                     return (
-                                    <div key={split.id} className={`relative group bg-white rounded-3xl p-5 flex flex-col h-full justify-between transition-all duration-300 ${isSelected ? 'ring-4 ring-yellow-400 scale-[0.98]' : 'hover:scale-[1.01]'}`}>
-                                        <button onClick={(e) => { e.stopPropagation(); toggleCompareSplit(split.id); }} className={`absolute top-4 right-4 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-yellow-400 border-yellow-400 text-black' : 'border-gray-300 text-transparent hover:border-yellow-400'}`}>
+                                    <div key={split.id} className={`relative group bg-zinc-950 rounded-2xl border border-white/10 p-5 flex flex-col h-full justify-between transition-all duration-300 ${isSelected ? 'ring-2 ring-cyan-500/50 scale-[0.98] border-cyan-500/30' : 'hover:scale-[1.01] hover:border-cyan-500/20'}`}>
+                                        <button onClick={(e) => { e.stopPropagation(); toggleCompareSplit(split.id); }} className={`absolute top-4 right-4 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'border-zinc-600 text-transparent hover:border-cyan-500/50'}`}>
                                             <CheckCircleIcon size={14} />
                                         </button>
                                         <button onClick={() => handleSelectSplit(split)} className="text-left flex-1 relative z-10">
-                                            <h4 className="font-black text-black text-xl tracking-tight leading-none mb-2 pr-8">{split.name}</h4>
+                                            <h4 className="font-black text-white text-xl tracking-tight leading-none mb-2 pr-8">{split.name}</h4>
                                             <div className="flex flex-wrap gap-1 mb-3">
-                                                 {split.tags.slice(0, 3).map(t => (<span key={t} className="text-[8px] font-black uppercase px-2 py-0.5 rounded border border-black/20 text-black/60">{t}</span>))}
+                                                 {split.tags.slice(0, 3).map(t => (<span key={t} className="text-[8px] font-black uppercase px-2 py-0.5 rounded border border-cyan-500/20 text-cyan-400/80">{t}</span>))}
                                             </div>
-                                            <p className="text-xs font-bold text-gray-500 leading-relaxed mb-4">{split.description}</p>
+                                            <p className="text-xs font-bold text-zinc-500 leading-relaxed mb-4">{split.description}</p>
                                         </button>
-                                        <div className="w-full pt-3 border-t border-gray-100 relative z-10 pointer-events-none flex flex-wrap gap-1">
-                                            {split.pattern.slice(0, 5).map((s, i) => (<span key={i} className="text-[9px] font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{typeof s === 'string' ? s.substring(0, 3) : s}</span>))}
-                                            {split.pattern.length > 5 && <span className="text-[9px] text-gray-400 self-center">...</span>}
+                                        <div className="w-full pt-3 border-t border-white/5 relative z-10 pointer-events-none flex flex-wrap gap-1">
+                                            {split.pattern.slice(0, 5).map((s, i) => (<span key={i} className="text-[9px] font-bold text-zinc-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-white/5">{typeof s === 'string' ? s.substring(0, 3) : s}</span>))}
+                                            {split.pattern.length > 5 && <span className="text-[9px] text-zinc-500 self-center">...</span>}
                                         </div>
                                     </div>
                                 )})}
@@ -2761,7 +2784,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button onClick={() => handleSelectSplit(split)} className="w-full mt-6 py-3 bg-white text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform">Usar este Split</button>
+                                            <button onClick={() => handleSelectSplit(split)} className="w-full mt-6 py-3 bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-cyan-500/30 transition-colors">Usar este Split</button>
                                         </div>
                                     ))}
                                 </div>
@@ -2788,7 +2811,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                 {activeInfo === 'structure' ? INFO_TEXTS.structure : INFO_TEXTS.split}
                             </p>
                         </div>
-                        <button onClick={() => setActiveInfo(null)} className="w-full py-3 bg-white text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-white/10">
+                        <button onClick={() => setActiveInfo(null)} className="w-full py-3 bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-cyan-500/30 transition-all">
                             Entendido
                         </button>
                     </div>

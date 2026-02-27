@@ -76,6 +76,7 @@ const SessionDetailView = React.lazy(() => import('./components/SessionDetailVie
 const SmartMealPlannerView = React.lazy(() => import('./components/SmartMealPlannerView'));
 const NutritionView = React.lazy(() => import('./components/NutritionView'));
 const FoodDatabaseView = React.lazy(() => import('./components/FoodDatabaseView'));
+const BodyProgressView = React.lazy(() => import('./components/BodyProgressView'));
 const ProgramMetricVolumeDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricVolumeDetail'));
 const ProgramMetricStrengthDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricStrengthDetail'));
 const ProgramMetricDensityDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricDensityDetail'));
@@ -246,6 +247,8 @@ export const App: React.FC = () => {
     const [isCoachChatOpen, setIsCoachChatOpen] = useState(false);
     const [coachChatContext, setCoachChatContext] = useState<Session | OngoingWorkoutState | undefined>(undefined);
     const [isLogFinishModalOpen, setIsLogFinishModalOpen] = useState(false);
+    const [workoutViewMode, setWorkoutViewMode] = useState<'carousel' | 'list' | undefined>(undefined);
+    useEffect(() => { if (view !== 'workout') setWorkoutViewMode(undefined); }, [view]);
     const [isVideoAnalysisModalOpen, setIsVideoAnalysisModalOpen] = useState(false);
     const [editingSleepLog, setEditingSleepLog] = useState<any | null>(null);
 
@@ -528,7 +531,7 @@ export const App: React.FC = () => {
                 const programToRender = ongoingWorkout ? programs.find(p => p.id === ongoingWorkout.programId) : null;
                 const sessionToRender = activeSession || ongoingWorkout?.session;
                 if (sessionToRender && programToRender && ongoingWorkout) {
-                    return <WorkoutSession session={sessionToRender} program={programToRender} programId={programToRender.id} settings={settings} history={history} onFinish={handleFinishWorkout} onCancel={onCancelWorkout} onUpdateExercise1RM={handleUpdateExercise1RM} isFinishModalOpen={isFinishModalOpen} setIsFinishModalOpen={setIsFinishModalOpen} onUpdateExerciseInProgram={handleUpdateExerciseInProgram} onUpdateSessionInProgram={handleUpdateSessionInProgram} exerciseList={exerciseList} isTimeSaverModalOpen={isTimeSaverModalOpen} setIsTimeSaverModalOpen={setIsTimeSaverModalOpen} isTimersModalOpen={isTimersModalOpen} setIsTimersModalOpen={setIsTimersModalOpen} />;
+                    return <WorkoutSession session={sessionToRender} program={programToRender} programId={programToRender.id} settings={settings} history={history} onFinish={handleFinishWorkout} onCancel={onCancelWorkout} onUpdateExercise1RM={handleUpdateExercise1RM} isFinishModalOpen={isFinishModalOpen} setIsFinishModalOpen={setIsFinishModalOpen} onUpdateExerciseInProgram={handleUpdateExerciseInProgram} onUpdateSessionInProgram={handleUpdateSessionInProgram} exerciseList={exerciseList} isTimeSaverModalOpen={isTimeSaverModalOpen} setIsTimeSaverModalOpen={setIsTimeSaverModalOpen} isTimersModalOpen={isTimersModalOpen} setIsTimersModalOpen={setIsTimersModalOpen} onWorkoutViewModeChange={setWorkoutViewMode} />;
                 }
                 return (
                     <WorkoutViewFallback
@@ -541,6 +544,7 @@ export const App: React.FC = () => {
             }
             case 'session-detail': return viewingSessionInfo && <SessionDetailView sessionInfo={viewingSessionInfo} />;
             case 'progress': return <PhysicalProgress />;
+            case 'body-progress': return <Suspense fallback={<ViewFallback />}><BodyProgressView /></Suspense>;
             case 'settings': return <SettingsComponent settings={settings} onSettingsChange={setSettings} setPrograms={setPrograms} setHistory={setHistory} setSkippedLogs={setSkippedLogs} setBodyProgress={setBodyProgress} setNutritionLogs={setNutritionLogs} drive={drive} installPromptEvent={installPromptEvent} setInstallPromptEvent={setInstallPromptEvent} isOnline={isOnline} />;
             case 'coach': return <CoachView programs={programs} history={history} skippedLogs={skippedLogs} settings={settings} bodyProgress={bodyProgress} nutritionLogs={nutritionLogs} isOnline={isOnline} />;
             case 'log-hub': return <LogHub onNavigate={navigateTo} setIsBodyLogModalOpen={setIsBodyLogModalOpen} setIsNutritionLogModalOpen={setIsNutritionLogModalOpen} />;
@@ -609,7 +613,13 @@ export const App: React.FC = () => {
             <AppBackground />
 
             {!settings.hasSeenWelcome && (
-                <WelcomeWizard onComplete={() => setSettings({ hasSeenWelcome: true })} />
+                <WelcomeWizard
+                    onComplete={() => setSettings({ hasSeenWelcome: true })}
+                    onConfigurar={(slideId) => {
+                        setSettings({ hasSeenWelcome: true });
+                        try { sessionStorage.setItem('kpkn_welcome_configurar', slideId); } catch (_) {}
+                    }}
+                />
             )}
             {settings.hasSeenWelcome && !settings.hasSeenGeneralWizard && (
                 <GeneralOnboardingWizard
@@ -642,7 +652,7 @@ export const App: React.FC = () => {
                      <div className="flex flex-col w-full flex-1 min-h-0">
                         <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />
                         <div className="h-[88px] shrink-0">
-                            <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext} />
+                            <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext} workoutViewMode={workoutViewMode} />
                         </div>
                     </div>
                 </div>

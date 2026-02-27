@@ -14,11 +14,14 @@ import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdapti
 import { GPFatigueCurve } from './ui/AugeDeepView';
 import FinishWorkoutModal from './FinishWorkoutModal';
 import ExerciseHistoryModal from './ExerciseHistoryModal';
+import SubstituteExerciseSheet from './SubstituteExerciseSheet';
 import { TacticalModal } from './ui/TacticalOverlays';
 import WarmupDrawer from './workout/WarmupDrawer';
 import PostExerciseDrawer from './workout/PostExerciseDrawer';
 import WorkoutDrawer from './workout/WorkoutDrawer';
 import NumpadOverlay from './workout/NumpadOverlay';
+import CardCarouselBar, { type CarouselItem, type CarouselItemType } from './workout/CardCarouselBar';
+import ExerciseCardContextMenu from './workout/ExerciseCardContextMenu';
 import { InCardTimer } from './workout/InCardTimer';
 import { SetTimerButton } from './workout/SetTimerButton';
 import { useKeyboardOverlayMode } from '../hooks/useKeyboardOverlayMode';
@@ -276,6 +279,12 @@ const HeaderAccordion: React.FC<{
     );
 }
 
+const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+};
+
 const WorkoutHeader: React.FC<{
     sessionName: string;
     activePartName?: string;
@@ -286,12 +295,18 @@ const WorkoutHeader: React.FC<{
     onToggleFocusMode: () => void;
     isLiveCoachActive: boolean;
     onToggleLiveCoach: () => void;
-    isCompact?: boolean;
     isResting?: boolean;
     zenMode?: boolean;
     liveBatteryDrain?: { cns: number; muscular: number; spinal: number };
     adaptiveCache?: AugeAdaptiveCache | null;
-}> = React.memo(({ sessionName, activePartName, activePartColor, background, coverStyle, isFocusMode, onToggleFocusMode, isLiveCoachActive, onToggleLiveCoach, isCompact, isResting, zenMode, liveBatteryDrain, adaptiveCache }) => {
+    viewMode?: 'carousel' | 'list';
+    onToggleViewMode?: () => void;
+    onFinishPress?: () => void;
+    restTimerRemaining?: number;
+    elapsedSeconds?: number;
+    completedSetsCount?: number;
+    totalSetsCount?: number;
+}> = React.memo(({ sessionName, activePartName, activePartColor, background, coverStyle, isFocusMode, onToggleFocusMode, isLiveCoachActive, onToggleLiveCoach, isResting, zenMode, liveBatteryDrain, adaptiveCache, viewMode, onToggleViewMode, onFinishPress, restTimerRemaining, elapsedSeconds, completedSetsCount, totalSetsCount }) => {
     const [showLiveAuge, setShowLiveAuge] = useState(false);
     const bgImage = background?.type === 'image' ? `url(${background.value})` : undefined;
     const bgColor = background?.type === 'color' ? background.value : undefined;
@@ -305,24 +320,48 @@ const WorkoutHeader: React.FC<{
     };
 
     return (
-        <div className={`sticky top-0 z-30 bg-black transition-all duration-700 ease-in-out ${isCompact ? 'h-16 shadow-2xl' : 'h-32'} ${tintClass} ${pulseClass}`}>
-            <div className={`relative w-full h-full overflow-hidden transition-all duration-500`}>
-                 <div className="absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-500 z-0" style={{ 
+        <div className={`sticky top-0 z-30 bg-black h-auto min-h-[100px] shadow-lg ${tintClass} ${pulseClass}`}>
+            <div className="relative w-full h-full overflow-hidden">
+                 <div className="absolute inset-0 w-full h-full bg-cover bg-center z-0" style={{ 
                      backgroundImage: bgImage, 
                      backgroundColor: bgColor, 
-                     opacity: isCompact ? 0.4 : 0.8, 
-                     filter: `${getFilterString()} ${isCompact ? 'blur(10px)' : (background?.style?.blur ? `blur(${background.style.blur}px)` : 'none')}` 
+                     opacity: 0.6, 
+                     filter: `${getFilterString()} ${background?.style?.blur ? `blur(${background.style.blur}px)` : 'none'}` 
                  }} />
-                <div className={`absolute inset-0 z-0 transition-colors duration-1000 ${isResting ? 'bg-sky-950/40' : 'bg-black/50'}`} />
-                <div className={`relative z-10 flex h-full items-center justify-between px-4 transition-all duration-500 ${isCompact ? 'pt-0' : 'pt-4'}`}>
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        {activePartName && !isCompact && (
-                             <span className="text-[10px] font-black uppercase tracking-widest mb-0.5 transition-colors duration-300" style={{ color: isResting ? '#38bdf8' : (activePartColor || 'var(--primary-color)') }}>{isResting ? 'PERIODO DE DESCANSO' : activePartName}</span>
-                        )}
-                        <h2 className={`font-black text-white truncate transition-all duration-500 drop-shadow-lg leading-tight ${isCompact ? 'text-xl' : 'text-3xl'}`}>{sessionName}</h2>
-                        {isCompact && activePartName && (
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5 block truncate" style={{ color: isResting ? '#38bdf8' : activePartColor }}>{isResting ? 'Descansando...' : activePartName}</span>
-                        )}
+                <div className={`absolute inset-0 z-0 ${isResting ? 'bg-sky-950/40' : 'bg-black/50'}`} />
+                <div className="relative z-10 flex flex-col px-4 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                            {activePartName && (
+                                 <span className="text-[9px] font-black uppercase tracking-widest block" style={{ color: isResting ? '#38bdf8' : (activePartColor || 'var(--primary-color)') }}>{isResting ? 'DESCANSO' : activePartName}</span>
+                            )}
+                            <h2 className="font-black text-white truncate text-lg drop-shadow-lg leading-tight">{sessionName}</h2>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {restTimerRemaining != null && restTimerRemaining > 0 && (
+                                <span className="text-xs font-mono font-black text-green-400 bg-black/40 px-2 py-1 rounded-lg">{formatTime(restTimerRemaining)}</span>
+                            )}
+                            {elapsedSeconds != null && (
+                                <span className="text-[10px] font-mono text-slate-400">{formatTime(elapsedSeconds)}</span>
+                            )}
+                            {completedSetsCount != null && totalSetsCount != null && (
+                                <span className="text-[10px] font-mono text-slate-400">{completedSetsCount}/{totalSetsCount}</span>
+                            )}
+                            {viewMode != null && onToggleViewMode && (
+                                <button onClick={onToggleViewMode} className="p-1.5 rounded-lg bg-white/10 text-slate-400 hover:text-white text-[10px] font-bold uppercase" title={viewMode === 'carousel' ? 'Ver lista' : 'Ver carrusel'}>
+                                    {viewMode === 'carousel' ? 'Lista' : 'Carrusel'}
+                                </button>
+                            )}
+                            {onFinishPress && (
+                                <button onClick={onFinishPress} className="p-2 rounded-full bg-emerald-500 text-white" title="Finalizar">
+                                    <CheckCircleIcon size={18} />
+                                </button>
+                            )}
+                            <button onClick={onToggleFocusMode} className={`p-2 rounded-full backdrop-blur-md border transition-all active:scale-90 ${isFocusMode ? 'bg-primary-color border-primary-color text-white' : 'bg-white/10 border-white/20 text-white'}`} title="Modo foco"><MinusIcon size={16}/></button>
+                            <button onClick={onToggleLiveCoach} className={`p-2 rounded-full backdrop-blur-md border transition-all active:scale-90 ${isLiveCoachActive ? 'bg-red-500 border-red-400 text-white' : 'bg-white/10 border-white/20 text-white'}`} title="Coach en vivo"><MicOffIcon size={16}/></button>
+                        </div>
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center mt-1">
                         
                         {/* --- BATERÍA AUGE PROMINENTE --- */}
                         {liveBatteryDrain && (
@@ -343,8 +382,8 @@ const WorkoutHeader: React.FC<{
                                         {((liveBatteryDrain.cns + liveBatteryDrain.muscular + liveBatteryDrain.spinal) / 3).toFixed(0)}%
                                     </span>
                                 </div>
-                                {!isCompact && (
-                                    <div className="flex gap-3 items-center">
+                                {showLiveAuge && (
+                                    <div className="flex gap-3 items-center mt-1">
                                         <div className="flex items-center gap-1" title="SNC Drenado">
                                             <BrainIcon size={10} className={liveBatteryDrain.cns > 70 ? 'text-red-500' : 'text-sky-400'}/>
                                             <span className="text-[9px] font-mono text-slate-500">{liveBatteryDrain.cns.toFixed(0)}%</span>
@@ -392,10 +431,6 @@ const WorkoutHeader: React.FC<{
                                 })()}
                             </div>
                         )}
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                        <button onClick={onToggleFocusMode} className={`p-2 rounded-full backdrop-blur-md border transition-all active:scale-90 ${isFocusMode ? 'bg-primary-color border-primary-color text-white shadow-[0_0_15px_rgba(var(--primary-color-rgb),0.5)]' : 'bg-white/10 border-white/20 text-white'}`}>{isFocusMode ? <MinusIcon size={20}/> : <PlusIcon size={20}/>}</button>
-                        <button onClick={onToggleLiveCoach} className={`p-2 rounded-full backdrop-blur-md border transition-all active:scale-90 ${isLiveCoachActive ? 'bg-red-500 border-red-400 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-pulse' : 'bg-white/10 border-white/20 text-white'}`}>{isLiveCoachActive ? <MicOffIcon size={20}/> : <MicIcon size={20}/>}</button>
                     </div>
                 </div>
             </div>
@@ -903,9 +938,10 @@ interface WorkoutSessionProps {
     isTimersModalOpen: boolean;
     setIsTimersModalOpen: (isOpen: boolean) => void;
     exerciseList: ExerciseMuscleInfo[];
+    onWorkoutViewModeChange?: (mode: 'carousel' | 'list') => void;
 }
 
-export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program, programId, settings, history, onFinish, onCancel, onUpdateExercise1RM, isFinishModalOpen, setIsFinishModalOpen, exerciseList, onUpdateSessionInProgram, isTimeSaverModalOpen, setIsTimeSaverModalOpen, onUpdateExerciseInProgram: updateExInProg, isTimersModalOpen, setIsTimersModalOpen }) => {
+export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program, programId, settings, history, onFinish, onCancel, onUpdateExercise1RM, isFinishModalOpen, setIsFinishModalOpen, exerciseList, onUpdateSessionInProgram, isTimeSaverModalOpen, setIsTimeSaverModalOpen, onUpdateExerciseInProgram: updateExInProg, isTimersModalOpen, setIsTimersModalOpen, onWorkoutViewModeChange }) => {
     const { ongoingWorkout, isLiveCoachActive, isOnline, muscleHierarchy, restTimer } = useAppState();
     const dispatch = useAppDispatch();
     useKeyboardOverlayMode(true);
@@ -940,7 +976,6 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const [startTime] = useState(ongoingWorkout?.startTime || Date.now());
     const [duration, setDuration] = useState(0);
     const [activeMode] = useState<'A' | 'B' | 'C' | 'D'>(ongoingWorkout?.activeMode || 'A');
-    const [isCompact, setIsCompact] = useState(false);
     const [sessionAdjusted1RMs, setSessionAdjusted1RMs] = useState<Record<string, number>>({});
     const [collapsedParts, setCollapsedParts] = useState<Record<string, boolean>>({});
     const [exerciseHeartRates, setExerciseHeartRates] = useState<Record<string, { initial?: number, peak?: number }>>(ongoingWorkout?.exerciseHeartRates || {});
@@ -966,14 +1001,6 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     const setsContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-    useEffect(() => {
-        const main = document.querySelector('.app-main-content');
-        if (!main) return;
-        const handleScroll = () => { setIsCompact(main.scrollTop > 40); };
-        main.addEventListener('scroll', handleScroll);
-        return () => main.removeEventListener('scroll', handleScroll);
-    }, []);
-
     const sessionForMode = useMemo(() => {
         if (ongoingWorkout?.topSetAmrapState?.status !== 'completed' && currentSession.exercises[0]?.isCalibratorAmrap) return { ...currentSession, exercises: [currentSession.exercises[0]] };
         const modeKey = `session${activeMode}` as 'sessionB' | 'sessionC' | 'sessionD';
@@ -987,12 +1014,55 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     const allExercises = useMemo<Exercise[]>(() => {
         if (sessionForMode.parts && sessionForMode.parts.length > 0) {
-            return sessionForMode.parts.flatMap((p: any) => p.exercises.map((e: any) => e as Exercise[]));
+            return sessionForMode.parts.flatMap((p: any) => (p.exercises || []).map((e: any) => e as Exercise));
         }
         return (sessionForMode.exercises as Exercise[]) || [];
     }, [sessionForMode]);
 
+    const carouselItems = useMemo<CarouselItemType[]>(() => {
+        const items: CarouselItemType[] = [];
+        (renderExercises as { id: string; name?: string; exercises?: Exercise[]; color?: string }[]).forEach((part: any) => {
+            const color = part.color || '#64748b';
+            const exercises = part.exercises || [];
+            let i = 0;
+            while (i < exercises.length) {
+                const ex = exercises[i] as Exercise;
+                if (ex.supersetId) {
+                    const group: Exercise[] = [ex];
+                    while (i + 1 < exercises.length && (exercises[i + 1] as Exercise).supersetId === ex.supersetId) {
+                        i++;
+                        group.push(exercises[i] as Exercise);
+                    }
+                    items.push({ type: 'exercise', exercises: group, color, firstExerciseId: group[0].id });
+                } else {
+                    items.push({ type: 'exercise', exercises: [ex], color, firstExerciseId: ex.id });
+                }
+                i++;
+            }
+        });
+        items.push({ type: 'finish' });
+        return items;
+    }, [renderExercises]);
+
+    const [viewMode, setViewMode] = useState<'carousel' | 'list'>('carousel');
+    useEffect(() => { onWorkoutViewModeChange?.(viewMode); }, [viewMode, onWorkoutViewModeChange]);
+    const [skippedExerciseIds, setSkippedExerciseIds] = useState<Set<string>>(new Set());
+    const [contextMenuItem, setContextMenuItem] = useState<{ item: CarouselItem } | null>(null);
+    const [replaceModalExercise, setReplaceModalExercise] = useState<Exercise | null>(null);
+    const [finishCardExpanded, setFinishCardExpanded] = useState(false);
     const [activeExerciseId, setActiveExerciseId] = useState<string | null>((ongoingWorkout?.activeExerciseId as any) || allExercises[0]?.id || null);
+
+    const displayParts = useMemo(() => {
+        const skipped = skippedExerciseIds;
+        if (viewMode === 'carousel' && activeExerciseId) {
+            const item = carouselItems.find((it): it is CarouselItem => it.type === 'exercise' && it.exercises.some(e => e.id === activeExerciseId));
+            if (!item || item.type !== 'exercise') return renderExercises;
+            const filtered = item.exercises.filter(e => !skipped.has(e.id));
+            if (filtered.length === 0) return [{ id: 'omitted', name: 'Omitido', exercises: [] }];
+            return [{ id: 'focused', name: '', exercises: filtered }];
+        }
+        return renderExercises;
+    }, [viewMode, activeExerciseId, carouselItems, renderExercises, skippedExerciseIds]);
     const [activeSetId, setActiveSetId] = useState<string | null>(null);
     const [setInputs, setSetInputs] = useState<Record<string, SetInputState | UnilateralSetInputs>>((ongoingWorkout?.unilateralSetInputs as any) || {}); 
 
@@ -1380,13 +1450,14 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             }
         }
 
-        const currentExIndex = allExercises.findIndex(e => e.id === activeExerciseId);
-        const isLast = currentExIndex === allExercises.length - 1;
+        const nonSkipped = allExercises.filter(e => !skippedExerciseIds.has(e.id));
+        const currentExIndex = nonSkipped.findIndex(e => e.id === exerciseId);
+        const isLast = currentExIndex === -1 || currentExIndex === nonSkipped.length - 1;
 
         if (isLast) {
             setIsFinishModalOpen(true);
         } else {
-            const nextEx = allExercises[currentExIndex + 1];
+            const nextEx = nonSkipped[currentExIndex + 1];
             setActiveExerciseId(nextEx.id);
             if (nextEx.warmupSets && nextEx.warmupSets.length > 0) {
                 setActiveSetId(`warmup-${nextEx.id}`);
@@ -1406,10 +1477,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         }
     };
 
-    const handleFinishSession = (notes?: string, discomforts?: string[], fatigueLevel?: number, mentalClarity?: number, durationInMinutes?: number, logDate?: string, photoUri?: string, planDeviations?: PlanDeviation[], focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[]) => {
+    const handleFinishSession = (notes?: string, discomforts?: string[], fatigueLevel?: number, mentalClarity?: number, durationInMinutes?: number, logDate?: string, photoUri?: string, planDeviations?: PlanDeviation[], focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[], muscleBatteries?: Record<string, number>) => {
         isFinishingRef.current = true; // Block ongoing updates to prevent ghost session
         
-        const completedPayload: CompletedExercise[] = (allExercises as Exercise[]).map((ex: Exercise): CompletedExercise | null => {
+        const exercisesToInclude = (allExercises as Exercise[]).filter(ex => !skippedExerciseIds.has(ex.id));
+        const completedPayload: CompletedExercise[] = exercisesToInclude.map((ex: Exercise): CompletedExercise | null => {
             const sets: CompletedSet[] = [];
             ex.sets.forEach(set => {
                 const setId = String(set.id);
@@ -1440,7 +1512,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 ...((exerciseFeedback[ex.id] || {}) as any) 
             };
         }).filter((e): e is CompletedExercise => e !== null);
-        onFinish(completedPayload, durationInMinutes ? durationInMinutes * 60 : duration, notes, discomforts, fatigueLevel, mentalClarity, logDate, undefined, planDeviations, focus, pump, environmentTags, sessionDifficulty, planAdherenceTags);
+        onFinish(completedPayload, durationInMinutes ? durationInMinutes * 60 : duration, notes, discomforts, fatigueLevel, mentalClarity, logDate, undefined, planDeviations, focus, pump, environmentTags, sessionDifficulty, planAdherenceTags, muscleBatteries);
     };
 
     const handleHeaderClick = (exId: string) => {
@@ -1450,7 +1522,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     return (
         <div className={`tab-bar-safe-area ${isFocusMode ? 'focus-mode-active' : ''} transition-colors duration-700`}>
-             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} asDrawer allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
+             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} asDrawer allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
             {activeSetId?.startsWith('warmup-') && (() => {
                 const exId = activeSetId.replace('warmup-', '');
                 const ex = allExercises.find((e: Exercise) => e.id === exId);
@@ -1473,13 +1545,60 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 return ex ? (
                     <PostExerciseDrawer
                         isOpen={true}
-                        onClose={() => handleFinishFeedback(ex.id, { jointLoad: 5, technicalQuality: 8, perceivedFatigue: 5 })}
+                        onClose={() => handleFinishFeedback(ex.id, { technicalQuality: 8, discomforts: [], perceivedFatigue: 5 })}
                         exerciseName={ex.name}
                         onSave={(feedback) => handleFinishFeedback(ex.id, feedback)}
                     />
                 ) : null;
             })()}
             {historyModalExercise && <ExerciseHistoryModal exercise={historyModalExercise} programId={programId} history={history} settings={settings} onClose={() => setHistoryModalExercise(null)} />}
+
+            <SubstituteExerciseSheet
+                isOpen={!!replaceModalExercise}
+                onClose={() => setReplaceModalExercise(null)}
+                exercise={replaceModalExercise}
+                onSelectAlternative={(newExerciseName) => {
+                    if (!replaceModalExercise) return;
+                    const newExerciseData = exerciseList.find(ex => ex.name.toLowerCase() === newExerciseName.toLowerCase());
+                    const newExercise: Exercise = {
+                        ...replaceModalExercise,
+                        id: crypto.randomUUID(),
+                        name: newExerciseName,
+                        exerciseDbId: newExerciseData?.id,
+                    };
+                    const updatedSession: Session = { ...currentSession };
+                    if (updatedSession.parts) {
+                        updatedSession.parts = updatedSession.parts.map(p => ({
+                            ...p,
+                            exercises: p.exercises.map(ex => ex.id === replaceModalExercise.id ? newExercise : ex),
+                        }));
+                    } else if (updatedSession.exercises) {
+                        updatedSession.exercises = updatedSession.exercises.map(ex => ex.id === replaceModalExercise.id ? newExercise : ex);
+                    }
+                    setCurrentSession(updatedSession);
+                    setOngoingWorkout(prev => prev ? { ...prev, session: updatedSession } : prev);
+                    addToast(`'${replaceModalExercise.name}' sustituido por '${newExerciseName}' (solo hoy).`, 'suggestion');
+                    setReplaceModalExercise(null);
+                }}
+            />
+
+            <ExerciseCardContextMenu
+                isOpen={!!contextMenuItem}
+                onClose={() => setContextMenuItem(null)}
+                onReplace={() => { if (contextMenuItem) { setReplaceModalExercise(contextMenuItem.item.exercises[0]); setContextMenuItem(null); } }}
+                onSkip={() => {
+                    if (contextMenuItem) {
+                        const idsToSkip = contextMenuItem.item.exercises.map(e => e.id);
+                        const newSkipped = new Set([...skippedExerciseIds, ...idsToSkip]);
+                        setSkippedExerciseIds(newSkipped);
+                        setContextMenuItem(null);
+                        const idx = carouselItems.findIndex((it): it is CarouselItem => it.type === 'exercise' && it.firstExerciseId === contextMenuItem.item.firstExerciseId);
+                        const nextItem = idx >= 0 ? carouselItems.slice(idx + 1).find((it): it is CarouselItem => it.type === 'exercise' && !it.exercises.some(e => newSkipped.has(e.id))) : null;
+                        if (nextItem && nextItem.type === 'exercise') setActiveExerciseId(nextItem.firstExerciseId);
+                        else if (idx >= 0 && carouselItems[idx + 1]?.type === 'finish') setIsFinishModalOpen(true);
+                    }
+                }}
+            />
             
             {starGoalProgress && (
                 <GoalProgressOverlay 
@@ -1490,24 +1609,31 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 />
             )}
 
-<WorkoutHeader 
-                sessionName={currentSession.name} 
-                background={currentSession.background} 
+<WorkoutHeader
+                sessionName={currentSession.name}
+                background={currentSession.background}
                 coverStyle={currentSession.coverStyle}
-                isFocusMode={isFocusMode} 
-                onToggleFocusMode={() => setIsFocusMode(!isFocusMode)} 
-                isLiveCoachActive={isLiveCoachActive} 
-                onToggleLiveCoach={() => setIsLiveCoachActive(!isLiveCoachActive)} 
-                isCompact={isCompact} 
-                activePartName={activePartInfo?.name} 
-                isResting={!!(restTimer && restTimer.remaining > 0)} 
-                zenMode={settings.enableZenMode} 
+                isFocusMode={isFocusMode}
+                onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
+                isLiveCoachActive={isLiveCoachActive}
+                onToggleLiveCoach={() => setIsLiveCoachActive(!isLiveCoachActive)}
+                activePartName={activePartInfo?.name}
+                activePartColor={activePartInfo ? getPartTheme(activePartInfo.name || '').color : undefined}
+                isResting={!!(restTimer && restTimer.remaining > 0)}
+                zenMode={settings.enableZenMode}
                 liveBatteryDrain={liveBatteryDrain}
                 adaptiveCache={adaptiveCache}
+                viewMode={viewMode}
+                onToggleViewMode={() => setViewMode(m => m === 'carousel' ? 'list' : 'carousel')}
+                onFinishPress={() => setIsFinishModalOpen(true)}
+                restTimerRemaining={restTimer?.remaining}
+                elapsedSeconds={duration}
+                completedSetsCount={Object.keys(completedSets).length}
+                totalSetsCount={allExercises.reduce((acc, ex) => acc + (ex.sets?.filter((s: any) => (s as any).type !== 'warmup').length ?? 0), 0)}
             />
             
-            <div className="mt-4 px-2 sm:px-4 space-y-10 relative">
-            {renderExercises.map((part: any, partIndex: number) => {
+            <div className={`mt-4 px-2 sm:px-4 space-y-10 relative ${viewMode === 'carousel' ? 'pb-24' : ''}`}>
+            {displayParts.map((part: any, partIndex: number) => {
                     const theme = getPartTheme(part.name || '');
                     return (
                     <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group">
@@ -1632,9 +1758,35 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 )})}
             </div>
 
+            {/* Carrusel de tarjetas (vista Carousel) */}
+            {viewMode === 'carousel' && (
+                <div className="fixed left-0 right-0 bottom-0 z-20 bg-[#0a0a0a]/98 backdrop-blur-md border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
+                    <CardCarouselBar
+                        items={carouselItems}
+                        activeExerciseId={activeExerciseId}
+                        skippedIds={skippedExerciseIds}
+                        onSelectExercise={(id) => setActiveExerciseId(id)}
+                        onLongPressExercise={(item) => setContextMenuItem({ item })}
+                        onFinishCardExpand={() => setFinishCardExpanded(true)}
+                        onFinish={() => { setFinishCardExpanded(false); setIsFinishModalOpen(true); }}
+                        durationMinutes={Math.floor(duration / 60)}
+                        completedSetsCount={Object.keys(completedSets).length}
+                        totalSetsCount={allExercises.reduce((acc, ex) => acc + (ex.sets?.filter((s: any) => s.type !== 'warmup').length ?? 0), 0)}
+                        totalTonnage={Object.entries(completedSets).reduce((acc, [, data]) => {
+                            const d = data as { left: OngoingSetData | null; right: OngoingSetData | null };
+                            let t = 0;
+                            if (d?.left) t += (d.left.weight || 0) * (d.left.reps || 0);
+                            if (d?.right) t += (d.right?.weight || 0) * (d.right?.reps || 0);
+                            return acc + t;
+                        }, 0)}
+                        finishCardExpanded={finishCardExpanded}
+                    />
+                </div>
+            )}
+
             {/* Barra de acciones rápidas */}
-            <div className="fixed left-0 right-0 bottom-[max(75px,calc(75px+env(safe-area-inset-bottom)))] z-20 px-4 py-2 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-cyber-cyan/20 flex justify-center gap-3">
-                <button onClick={() => { const ex = allExercises.find(e => e.id === activeExerciseId); if (ex) handleFinishFeedback(ex.id, { jointLoad: 5, technicalQuality: 8, perceivedFatigue: 5 }); addToast('Ejercicio saltado', 'info'); }} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-cyber-cyan/30 text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors">
+            <div className={`fixed left-0 right-0 z-20 px-4 py-2 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-cyber-cyan/20 flex justify-center gap-3 ${viewMode === 'carousel' ? 'bottom-[calc(80px+env(safe-area-inset-bottom))]' : 'bottom-[max(75px,calc(75px+env(safe-area-inset-bottom)))]'}`}>
+                <button onClick={() => { const ex = allExercises.find(e => e.id === activeExerciseId); if (ex) handleFinishFeedback(ex.id, { technicalQuality: 8, discomforts: [], perceivedFatigue: 5 }); addToast('Ejercicio saltado', 'info'); }} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-cyber-cyan/30 text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors">
                     <ChevronRightIcon size={14} /> Saltar
                 </button>
                 <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-sky-500/30 text-[10px] font-mono font-black uppercase tracking-widest text-sky-400 hover:bg-sky-500/10 transition-colors">

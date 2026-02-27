@@ -15,3 +15,4 @@ export { VolumeByMuscleWidget } from './VolumeByMuscleWidget';
 export { RelativeStrengthWidget } from './RelativeStrengthWidget';
 export { Star1RMGoalsWidget } from './Star1RMGoalsWidget';
 export { KeyDatesWidget } from './KeyDatesWidget';
+export { BodyProgressGoalWidget } from './BodyProgressGoalWidget';

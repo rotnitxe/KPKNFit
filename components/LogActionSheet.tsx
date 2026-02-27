@@ -19,6 +19,7 @@ const LogActionSheet: React.FC = () => {
         setIsLogActionSheetOpen,
         setIsStartWorkoutModalOpen,
         setIsBodyLogModalOpen,
+        setIsNutritionLogModalOpen,
         navigateTo,
         setIsMenuOpen,
         programs,
@@ -111,9 +112,19 @@ const LogActionSheet: React.FC = () => {
             color: "bg-cyber-cyan",
             delay: 200
         },
+        { 
+            icon: UtensilsIcon, 
+            label: "Registrar comida", 
+            action: () => {
+                navigateTo('nutrition');
+                setIsNutritionLogModalOpen(true);
+            },
+            color: "bg-amber-600",
+            delay: 210
+        },
          { 
             icon: BodyIcon, 
-            label: "Métricas", 
+            label: "Actualizar datos", 
             action: () => setIsBodyLogModalOpen(true),
             color: "bg-pink-500",
             delay: 250

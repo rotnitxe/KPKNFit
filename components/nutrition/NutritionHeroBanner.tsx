@@ -7,10 +7,11 @@ interface NutritionHeroBannerProps {
     dailyCalories: number;
     calorieGoal: number;
     hasCalorieGoal: boolean;
+    onProgresoPress?: () => void;
 }
 
 const NutritionHeroBanner: React.FC<NutritionHeroBannerProps> = ({
-    selectedDate, onDateChange, dailyCalories, calorieGoal, hasCalorieGoal,
+    selectedDate, onDateChange, dailyCalories, calorieGoal, hasCalorieGoal, onProgresoPress,
 }) => {
     const pct = hasCalorieGoal && calorieGoal > 0 ? Math.min(100, (dailyCalories / calorieGoal) * 100) : 0;
     const statusColor = pct > 110 ? '#ef4444' : pct < 90 ? '#22c55e' : '#eab308';
@@ -36,6 +37,14 @@ const NutritionHeroBanner: React.FC<NutritionHeroBannerProps> = ({
                             className="bg-transparent border-none text-[#8E8E93] text-xs font-bold mt-0.5 focus:ring-0 p-0 cursor-pointer"
                         />
                     </div>
+                    {onProgresoPress && (
+                        <button
+                            onClick={onProgresoPress}
+                            className="text-[10px] font-bold text-cyber-copper uppercase tracking-wider hover:text-cyber-copper/80 shrink-0"
+                        >
+                            Progreso
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-6 flex-wrap shrink-0">

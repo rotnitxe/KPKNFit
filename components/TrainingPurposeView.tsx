@@ -110,7 +110,7 @@ const TrainingPurposeView: React.FC = () => {
                                     <div className="flex items-center gap-2 mt-2">
                                         <BrainIcon size={14} className="text-sky-400"/>
                                         <p className="text-xs text-slate-300">
-                                            <span className="font-semibold">Músculos Clave:</span> {item.primaryMuscles.join(', ')}
+                                            <span className="font-semibold">Músculos Clave:</span> {(item.primaryMuscles ?? []).join(', ')}
                                         </p>
                                     </div>
                                 </div>

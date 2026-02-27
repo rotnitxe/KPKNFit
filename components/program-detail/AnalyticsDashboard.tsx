@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Program, Session, ProgramWeek, ExerciseMuscleInfo } from '../../types';
-import { ActivityIcon, DumbbellIcon, XIcon } from '../icons';
+import { Program, Session, ProgramWeek, ExerciseMuscleInfo, Settings } from '../../types';
+import { ActivityIcon, DumbbellIcon, XIcon, TargetIcon } from '../icons';
 import { WorkoutVolumeAnalysis } from '../WorkoutVolumeAnalysis';
 import { CaupolicanBody } from '../CaupolicanBody';
+import AthleteProfilingWizard from '../AthleteProfilingWizard';
+import { getIsraetelVolumeRecommendations, getKpnkVolumeRecommendations } from '../../services/volumeCalculator';
 import { RelativeStrengthAndBasicsWidget } from '../RelativeStrengthAndBasicsWidget';
 import ExerciseHistoryWidget from '../ExerciseHistoryWidget';
 import { AugeAdaptiveCache } from '../../services/augeAdaptiveService';
@@ -17,7 +19,7 @@ type WidgetId = 'bodymap' | 'volume' | 'strength' | 'star1rm' | 'banister' | 'ad
 interface AnalyticsDashboardProps {
     program: Program;
     history: any[];
-    settings: any;
+    settings: Settings | any;
     isOnline: boolean;
     isActive: boolean;
     currentWeeks: (ProgramWeek & { mesoIndex: number })[];
@@ -30,6 +32,9 @@ interface AnalyticsDashboardProps {
     programDiscomforts: { name: string; count: number }[];
     adaptiveCache: AugeAdaptiveCache;
     exerciseList: ExerciseMuscleInfo[];
+    setSettings?: (s: Settings | ((prev: Settings) => Settings)) => void;
+    onUpdateProgram?: (p: Program) => void;
+    addToast?: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 const WIDGET_META: Record<WidgetId, { label: string; }> = {
@@ -50,10 +55,12 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     currentWeeks, selectedWeekId, onSelectWeek,
     visualizerData, displayedSessions, totalAdherence, weeklyAdherence,
     programDiscomforts, adaptiveCache, exerciseList,
+    setSettings, onUpdateProgram, addToast,
 }) => {
     const [activeWidgets] = useState<WidgetId[]>(DEFAULT_WIDGETS);
     const [selectedMusclePos, setSelectedMusclePos] = useState<{ muscle: string; x: number; y: number } | null>(null);
     const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
+    const [showCalibrationWizard, setShowCalibrationWizard] = useState(false);
 
     const recoveryData = useMemo(() => {
         const entries = Object.entries(adaptiveCache.personalizedRecoveryHours || {});
@@ -181,7 +188,41 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 {/* ── Volume Analysis ── */}
                 {activeWidgets.includes('volume') && (
                     <section>
-                        <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide mb-3">Volumen Semanal</h3>
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                            <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide">Volumen Semanal</h3>
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={program.volumeSystem ?? settings?.volumeSystem ?? 'israetel'}
+                                    onChange={(e) => {
+                                        const sys = e.target.value as 'israetel' | 'kpnk';
+                                        if (onUpdateProgram && sys === 'israetel') {
+                                            onUpdateProgram({
+                                                ...program,
+                                                volumeSystem: 'israetel',
+                                                volumeRecommendations: getIsraetelVolumeRecommendations(),
+                                                volumeAlertsEnabled: program.volumeAlertsEnabled ?? true,
+                                            });
+                                            addToast?.('Guía Israetel aplicada al programa.', 'success');
+                                        } else if (sys === 'kpnk') {
+                                            setShowCalibrationWizard(true);
+                                        } else if (!onUpdateProgram) {
+                                            setSettings?.({ volumeSystem: sys });
+                                        }
+                                    }}
+                                    className="text-[9px] font-bold bg-[#1a1a1a] border border-white/10 rounded-lg px-2 py-1 text-white uppercase tracking-wider focus:ring-1 focus:ring-cyan-500/50"
+                                >
+                                    <option value="israetel">Israetel</option>
+                                    <option value="kpnk">KPKN (calibrado)</option>
+                                </select>
+                                <button
+                                    onClick={() => setShowCalibrationWizard(true)}
+                                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 text-[9px] font-bold uppercase tracking-wider transition-colors"
+                                >
+                                    <TargetIcon size={10} />
+                                    Calibrar
+                                </button>
+                            </div>
+                        </div>
                         <WorkoutVolumeAnalysis
                             program={program}
                             sessions={displayedSessions}
@@ -192,6 +233,29 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                             onCloseMuscle={() => setSelectedMusclePos(null)}
                         />
                     </section>
+                )}
+
+                {/* ── Calibration Wizard Modal ── */}
+                {showCalibrationWizard && (setSettings || onUpdateProgram) && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                        <AthleteProfilingWizard
+                            onComplete={(score) => {
+                                if (onUpdateProgram) {
+                                    onUpdateProgram({
+                                        ...program,
+                                        volumeSystem: 'kpnk',
+                                        volumeRecommendations: getKpnkVolumeRecommendations(score, settings, 'Acumulación'),
+                                        volumeAlertsEnabled: program.volumeAlertsEnabled ?? true,
+                                        athleteProfileScore: score,
+                                    });
+                                }
+                                setSettings?.({ athleteScore: score, volumeSystem: 'kpnk' });
+                                setShowCalibrationWizard(false);
+                                addToast?.('Calibración guardada. Los umbrales de volumen usan ahora tu perfil KPKN.', 'success');
+                            }}
+                            onCancel={() => setShowCalibrationWizard(false)}
+                        />
+                    </div>
                 )}
 
                 {/* ── Metrics Widget Grid (reemplaza adherencia) ── */}

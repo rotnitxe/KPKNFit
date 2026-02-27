@@ -153,6 +153,33 @@ export function calculateDailyCalorieGoal(
     return Math.round(tdee * healthMult);
 }
 
+/**
+ * Estima déficit/superávit semanal (kcal) para lograr un cambio de %grasa/semana.
+ * 1% grasa en 70kg ≈ 0.7 kg grasa ≈ 0.7 × 7700 ≈ 5390 kcal.
+ * Déficit semanal = trendPctPerWeek * weight * 0.01 * 7700
+ */
+export function getWeeklyKcalForBodyFatTrend(
+    weightKg: number,
+    trendPctPerWeek: number
+): number {
+    const kgFatPerWeek = (trendPctPerWeek / 100) * weightKg;
+    return kgFatPerWeek * 7700;
+}
+
+/**
+ * Calcula calorías diarias para lograr tendencia de %grasa/semana.
+ * trendPctPerWeek negativo = perder grasa → déficit; positivo = ganar → superávit.
+ * Calorías = TDEE + (weeklyKcal/7): weeklyKcal negativo reduce calorías.
+ */
+export function calculateCaloriesForBodyFatTrend(
+    tdee: number,
+    weightKg: number,
+    trendPctPerWeek: number
+): number {
+    const weeklyKcal = getWeeklyKcalForBodyFatTrend(weightKg, trendPctPerWeek);
+    return Math.round(tdee + weeklyKcal / 7);
+}
+
 /** Calcula TMB y TDEE para mostrar en dashboard */
 export function getBMRAndTDEE(
     settings: Settings,

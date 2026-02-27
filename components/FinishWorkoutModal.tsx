@@ -13,14 +13,22 @@ import { getLocalDateString } from '../utils/dateUtils';
 import { isSetEffective } from '../services/auge';
 import type { Exercise, ExerciseMuscleInfo } from '../types';
 
+export interface InitialBatteriesFromFeedback {
+  general?: number;
+  spinal?: number;
+  muscle?: Record<string, number>;
+}
+
 interface FinishWorkoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onFinish: (notes?: string, discomforts?: string[], fatigueLevel?: number, mentalClarity?: number, durationInMinutes?: number, logDate?: string, photo?: string, planDeviations?: any[], focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[]) => void;
+  onFinish: (notes?: string, discomforts?: string[], fatigueLevel?: number, mentalClarity?: number, durationInMinutes?: number, logDate?: string, photo?: string, planDeviations?: any[], focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[], muscleBatteries?: Record<string, number>) => void;
   mode?: 'live' | 'log';
   improvementIndex?: { percent: number; direction: 'up' | 'down' | 'neutral' } | null;
   initialDurationInSeconds?: number;
   initialNotes?: string;
+  initialDiscomforts?: string[];
+  initialBatteries?: InitialBatteriesFromFeedback;
   asDrawer?: boolean;
   allExercises?: Exercise[];
   completedSets?: Record<string, { left: any; right: any }>;
@@ -157,7 +165,7 @@ const MUSCLE_LABEL_MAP: Record<string, string> = {
   'Pantorrillas': 'Pantorrillas', 'Abdomen': 'Abdomen', 'Espalda Baja': 'Espalda Baja', 'Trapecio': 'Trapecio',
 };
 
-const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, asDrawer, allExercises = [], completedSets = {}, exerciseList = [] }) => {
+const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, initialDiscomforts = [], initialBatteries, asDrawer, allExercises = [], completedSets = {}, exerciseList = [] }) => {
   const { addRecommendationTrigger, addToast } = useAppDispatch();
   const { settings } = useAppState();
   const weightUnit = settings?.weightUnit ?? 'kg';
@@ -185,9 +193,11 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     allExercises.forEach(ex => {
       const setsWithData: { reps?: number; weight?: number; rpe?: number; rir?: number; isFailure?: boolean; isAmrap?: boolean }[] = [];
       ex.sets?.forEach(set => {
-        const raw = completedSets[String(set.id)] as { left?: any; right?: any } | undefined;
-        const data = ex.isUnilateral ? (raw?.left || raw?.right) : raw?.left;
-        if (data && ((data.reps != null && data.reps > 0) || (data.weight != null && data.weight > 0))) {
+        const raw = completedSets[String(set.id)] as { left?: any; right?: any } & Record<string, unknown> | undefined;
+        const data = ex.isUnilateral
+          ? (raw?.left || raw?.right)
+          : (raw?.left ?? (raw && raw.left === undefined && raw.right === undefined ? raw : undefined));
+        if (data && typeof data === 'object' && ((data.reps != null && data.reps > 0) || (data.weight != null && data.weight > 0))) {
           setsWithData.push({
             reps: data.reps,
             weight: data.weight,
@@ -222,10 +232,13 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
       ex.sets?.forEach(set => {
         const dataRaw = completedSets[String(set.id)];
         if (!dataRaw) return;
-        const data = dataRaw as { left: any; right: any };
-        const primary = ex.isUnilateral ? (data.left || data.right) : data.left;
-        if (!primary) return;
-        const setLike = { ...primary, completedRPE: primary.rpe, completedRIR: primary.rir, targetRPE: set.targetRPE, targetRIR: set.targetRIR, intensityMode: set.intensityMode };
+        const data = dataRaw as { left?: any; right?: any } & Record<string, unknown>;
+        // Soporta formato { left, right } o plano { reps, weight, rpe, rir }
+        const primary = ex.isUnilateral
+          ? (data?.left || data?.right)
+          : (data?.left ?? (data?.left === undefined && data?.right === undefined ? data : undefined));
+        if (!primary || typeof primary !== 'object') return;
+        const setLike = { ...primary, completedRPE: primary?.rpe, completedRIR: primary?.rir, targetRPE: set.targetRPE, targetRIR: set.targetRIR, intensityMode: set.intensityMode };
         if (isSetEffective(setLike)) primaryMuscles.forEach(m => muscles.add(m));
       });
     });
@@ -246,6 +259,12 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     if (isOpen && !prevIsOpen.current) {
       if (initialDurationInSeconds) setDurationInMinutes(Math.round(initialDurationInSeconds / 60).toString());
       if (initialNotes) setNotes(initialNotes);
+      if (initialDiscomforts.length > 0) setSelectedDiscomforts(prev => [...new Set([...prev, ...initialDiscomforts])]);
+      if (initialBatteries) {
+        if (initialBatteries.general != null) setGeneralBattery(initialBatteries.general);
+        if (initialBatteries.spinal != null) setSpinalBattery(initialBatteries.spinal);
+        if (initialBatteries.muscle && Object.keys(initialBatteries.muscle).length > 0) setMuscleBatteries(prev => ({ ...prev, ...initialBatteries.muscle }));
+      }
       setLogDate(getLocalDateString());
     }
     if (!isOpen && prevIsOpen.current) {
@@ -265,7 +284,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
       setShowRecoverySuggestion(false);
     }
     prevIsOpen.current = isOpen;
-  }, [isOpen, initialDurationInSeconds, initialNotes]);
+  }, [isOpen, initialDurationInSeconds, initialNotes, initialDiscomforts, initialBatteries]);
 
   const fatigueLevel = Math.min(10, Math.max(1, Math.round(generalBattery / 10)));
   const mentalClarity = Math.min(10, Math.max(1, Math.round((100 - spinalBattery) / 10)));
@@ -289,7 +308,10 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
       alert("Por favor, introduce una duración válida en minutos.");
       return;
     }
-    onFinish(notes, selectedDiscomforts, fatigueLevel, mentalClarity, durationNum, logDate, undefined, [], focus, pumpMapped, environmentTags, sessionDifficulty, planAdherenceTags);
+    const muscleBatteriesToPass = musclesWithEffectiveSets.length > 0
+      ? Object.fromEntries(musclesWithEffectiveSets.map(m => [m, muscleBatteries[m] ?? 50]))
+      : undefined;
+    onFinish(notes, selectedDiscomforts, fatigueLevel, mentalClarity, durationNum, logDate, undefined, [], focus, pumpMapped, environmentTags, sessionDifficulty, planAdherenceTags, muscleBatteriesToPass);
   };
 
   const filteredDiscomforts = useMemo(() => {

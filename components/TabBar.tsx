@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, TabBarActions } from '../types';
 import { DumbbellIcon, UtensilsIcon, PlusIcon, ActivityIcon, ClipboardListIcon, HomeIcon } from './icons';
-import { WorkoutSessionActionBar, EditorActionBar } from './ContextualActionBars';
+import { WorkoutSessionActionBar, WorkoutCarouselPlaceholderBar, EditorActionBar } from './ContextualActionBars';
 import { useAppContext } from '../contexts/AppContext';
 
 interface TabBarProps {
@@ -11,6 +11,7 @@ interface TabBarProps {
   context: 'default' | 'workout' | 'session-editor' | 'log-workout' | 'program-editor' | 'exercise-detail';
   actions: TabBarActions;
   isSubTabBarActive?: boolean;
+  workoutViewMode?: 'carousel' | 'list';
 }
 
 const NavButton: React.FC<{
@@ -88,10 +89,12 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
 }
 
 const TabBar: React.FC<TabBarProps> = (props) => {
-    const { context, actions } = props;
+    const { context, actions, workoutViewMode } = props;
     let content: React.ReactNode;
     switch (context) {
-        case 'workout': content = <WorkoutSessionActionBar actions={actions} />; break;
+        case 'workout': content = (workoutViewMode === 'carousel' || workoutViewMode === undefined)
+            ? <WorkoutCarouselPlaceholderBar actions={actions} />
+            : <WorkoutSessionActionBar actions={actions} />; break;
         case 'session-editor':
         case 'log-workout':
         case 'program-editor': content = <EditorActionBar context={context} actions={actions} />; break;

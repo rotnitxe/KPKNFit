@@ -1,7 +1,7 @@
 // components/onboarding/GeneralOnboardingWizard.tsx
 // Wizard general primera vez: nutrición + programa + pre-calibración (flujo flexible). Estética NERD.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { NutritionWizard } from '../nutrition/NutritionWizard';
 import { BatteryPrecalibrationStep } from './BatteryPrecalibrationStep';
@@ -16,7 +16,29 @@ interface GeneralOnboardingWizardProps {
 
 export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = ({ onComplete }) => {
     const { navigateTo, setSettings } = useAppContext();
-    const [phase, setPhase] = useState<Phase>('choice');
+    const [phase, setPhase] = useState<Phase>(() => {
+        try {
+            const c = sessionStorage.getItem('kpkn_welcome_configurar');
+            sessionStorage.removeItem('kpkn_welcome_configurar');
+            if (c === 'nutrition') return 'nutrition';
+            if (c === 'battery') return 'precalibration';
+        } catch (_) {}
+        return 'choice';
+    });
+
+    useEffect(() => {
+        try {
+            const configurar = sessionStorage.getItem('kpkn_welcome_configurar');
+            if (configurar) {
+                sessionStorage.removeItem('kpkn_welcome_configurar');
+                if (configurar === 'program' || configurar === 'session' || configurar === 'workout') {
+                    setSettings({ hasSeenGeneralWizard: true });
+                    onComplete();
+                    navigateTo('program-editor');
+                }
+            }
+        } catch (_) {}
+    }, [navigateTo, onComplete, setSettings]);
 
     const handleNutritionComplete = () => {
         setSettings({ hasSeenNutritionWizard: true });

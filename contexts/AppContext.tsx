@@ -33,7 +33,7 @@ import * as aiService from '../services/aiService';
 import { getWeekId, estimatePercent1RM, getRepDebtContextKey, calculateBrzycki1RM } from '../utils/calculations';
 import { cacheService } from '../services/cacheService';
 import { calculateCompletedSessionStress, calculateCompletedSessionDrainBreakdown } from '../services/auge';
-import { queueFatigueDataPoint, queueTrainingImpulse } from '../services/augeAdaptiveService';
+import { queueFatigueDataPoint, queueTrainingImpulse, queueRecoveryObservation, syncWithBackend } from '../services/augeAdaptiveService';
 import { scheduleRestEndNotification, cancelRestEndNotification, rescheduleAllNotifications, cancelMissedWorkoutNotificationForToday } from '../services/notificationService';
 import { Capacitor } from '@capacitor/core';
 import { syncWidgetData } from '../services/widgetSyncService';
@@ -63,7 +63,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { programs, activeProgramState, setPrograms, setActiveProgramState } = useProgramStore();
     const { history, skippedLogs, ongoingWorkout, syncQueue, setHistory, setSkippedLogs, setOngoingWorkout, setSyncQueue } = useWorkoutStore();
     const { bodyProgress, bodyLabAnalysis, biomechanicalData, biomechanicalAnalysis, setBodyProgress, setBodyLabAnalysis: _setBodyLabAnalysis, setBiomechanicalData: _setBiomechanicalDataDirect, setBiomechanicalAnalysis: _setBiomechanicalAnalysis } = useBodyStore();
-    const { nutritionLogs, pantryItems, foodDatabase, aiNutritionPlan, setNutritionLogs, setPantryItems, setFoodDatabase, setAiNutritionPlan } = useNutritionStore();
+    const { nutritionLogs, pantryItems, foodDatabase, aiNutritionPlan, nutritionPlans, activeNutritionPlanId, setNutritionLogs, setPantryItems, setFoodDatabase, setAiNutritionPlan, setNutritionPlans, setActiveNutritionPlanId } = useNutritionStore();
     const { sleepLogs, sleepStartTime, waterLogs, dailyWellbeingLogs, postSessionFeedback, pendingQuestionnaires, recommendationTriggers, tasks, setSleepLogs, setSleepStartTime, setWaterLogs, setDailyWellbeingLogs, setPostSessionFeedback, setPendingQuestionnaires, setRecommendationTriggers, setTasks } = useWellbeingStore();
     const { exerciseList, exercisePlaylists, muscleGroupData, muscleHierarchy, setExerciseList, setExercisePlaylists, setMuscleGroupData, setMuscleHierarchy, addOrUpdateCustomExercise } = useExerciseStore();
 
@@ -736,7 +736,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const handleFinishWorkout = useCallback((
         completedExercises: CompletedExercise[], duration: number, notes?: string, discomforts?: string[],
         fatigue?: number, clarity?: number, logDate?: string, photoUri?: string, planDeviations?: PlanDeviation[],
-        focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[]
+        focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[],
+        muscleBatteries?: Record<string, number>
     ) => {
         if (!ongoingWorkout) return;
         cancelRestEndNotification();
@@ -744,15 +745,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const sessionStressScore = calculateCompletedSessionStress(completedExercises, exerciseList);
         const drainBreakdown = calculateCompletedSessionDrainBreakdown(completedExercises, exerciseList, settings);
 
+        // --- LÓGICA DEL TÚNEL: Conectar datos de modales a AUGE ---
+        const readiness = ongoingWorkout.readiness as { sleepQuality?: number; stressLevel?: number; doms?: number; motivation?: number } | undefined;
+        const sleepHoursFromLogs = sleepLogs && sleepLogs.length > 0
+            ? (() => { const last = [...sleepLogs].sort((a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime())[0]; return last?.duration ?? 7; })()
+            : 7;
+        const sleepQualityToHours = (q: number) => Math.max(4, Math.min(10, 4 + (q - 1) * 1.5));
+        const sleepHours = readiness?.sleepQuality != null ? sleepQualityToHours(readiness.sleepQuality) : sleepHoursFromLogs;
+        const stressLevel = readiness?.stressLevel ?? 3;
+
+        const perceivedFatigueArr = completedExercises.map(ex => (ex as any).perceivedFatigue).filter((v): v is number => typeof v === 'number');
+        const avgPerceivedFatigue = perceivedFatigueArr.length > 0 ? perceivedFatigueArr.reduce((a, b) => a + b, 0) / perceivedFatigueArr.length : null;
+        const userFatigue = fatigue ?? 5;
+        const blendedFatigue = avgPerceivedFatigue != null
+            ? 0.5 * (userFatigue / 10) + 0.3 * (avgPerceivedFatigue / 10) + 0.2 * Math.min(1, sessionStressScore / 100)
+            : 0.6 * (userFatigue / 10) + 0.4 * Math.min(1, sessionStressScore / 100);
+        const observedFatigueFraction = Math.min(1, Math.max(0, blendedFatigue));
+
         queueFatigueDataPoint({
             hours_since_session: 0,
             session_stress: sessionStressScore,
-            sleep_hours: 7,
+            sleep_hours: sleepHours,
             nutrition_status: 1,
-            stress_level: 3,
+            stress_level: stressLevel,
             age: settings.userVitals?.age || 25,
             is_compound_dominant: true,
-            observed_fatigue_fraction: Math.min(1, sessionStressScore / 100),
+            observed_fatigue_fraction: observedFatigueFraction,
         });
         queueTrainingImpulse({
             timestamp_hours: 0,
@@ -824,6 +842,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setSyncQueue(prev => [...prev, validatedLog]);
             addToast('Sin conexión. Guardado en cola para sincronizar.', 'suggestion');
         }
+
+        if (muscleBatteries && Object.keys(muscleBatteries).length > 0) {
+            Object.entries(muscleBatteries).forEach(([muscle, actualBattery]) => {
+                queueRecoveryObservation({
+                    muscle,
+                    session_stress: sessionStressScore,
+                    hours_since_session: 0,
+                    predicted_battery: 50,
+                    actual_battery: actualBattery,
+                });
+            });
+        }
+
+        syncWithBackend('local').catch(() => {});
 
         completedExercises.forEach(ex => {
             if (!ex.exerciseDbId) return;
@@ -998,7 +1030,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addToast("Sesión en curso modificada.", "success");
     }, [setOngoingWorkout, addToast]);
 
-    const handleSaveBodyLog = useCallback((log: BodyProgressLog) => { setBodyProgress(prev => [...prev, log]); addToast("Registro corporal guardado.", "success"); }, [setBodyProgress, addToast]);
+    const handleSaveBodyLog = useCallback((log: BodyProgressLog) => {
+        setBodyProgress(prev => {
+            const idx = prev.findIndex(l => l.id === log.id);
+            if (idx >= 0) {
+                const next = [...prev];
+                next[idx] = log;
+                return next;
+            }
+            return [...prev, log];
+        });
+        addToast("Registro corporal guardado.", "success");
+    }, [setBodyProgress, addToast]);
     const handleSaveNutritionLog = useCallback((log: NutritionLog) => {
         const nextLogs = [...nutritionLogs, log];
         setNutritionLogs(prev => [...prev, log]);
@@ -1031,7 +1074,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         jointDatabase: JOINT_DATABASE, tendonDatabase: TENDON_DATABASE, movementPatternDatabase: MOVEMENT_PATTERN_DATABASE,
         exerciseList, foodDatabase, unlockedAchievements, isOnline: ui.isOnline, isAppLoading,
         installPromptEvent: ui.installPromptEvent, drive, toasts: ui.toasts, bodyLabAnalysis,
-        biomechanicalData, biomechanicalAnalysis, syncQueue, aiNutritionPlan, activeProgramState,
+        biomechanicalData, biomechanicalAnalysis, syncQueue, aiNutritionPlan, nutritionPlans, activeNutritionPlanId, activeProgramState,
         onExerciseCreated: ui.onExerciseCreated, pendingQuestionnaires, postSessionFeedback,
         dailyWellbeingLogs,
         isBodyLogModalOpen: ui.isBodyLogModalOpen, isNutritionLogModalOpen: ui.isNutritionLogModalOpen,
@@ -1083,7 +1126,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }),
         setBodyLabAnalysis, setBiomechanicalData: handleBiomechanicalDataUpdate,
         setBiomechanicalAnalysis: _setBiomechanicalAnalysis,
-        setAiNutritionPlan, setActiveProgramState, setOnExerciseCreated: ui.setOnExerciseCreated,
+        setAiNutritionPlan, setNutritionPlans, setActiveNutritionPlanId, setActiveProgramState, setOnExerciseCreated: ui.setOnExerciseCreated,
         setInstallPromptEvent: ui.setInstallPromptEvent,
         setIsBodyLogModalOpen: ui.setIsBodyLogModalOpen, setIsNutritionLogModalOpen: ui.setIsNutritionLogModalOpen,
         setIsMeasurementsModalOpen: ui.setIsMeasurementsModalOpen, setIsStartWorkoutModalOpen: ui.setIsStartWorkoutModalOpen,

@@ -59,8 +59,11 @@ export const BatteryPrecalibrationStep: React.FC<BatteryPrecalibrationStepProps>
     const { exerciseList, settings } = useAppState();
     const { setSettings, addToast } = useAppDispatch();
 
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(0);
     const [trainedBefore, setTrainedBefore] = useState<boolean | null>(null);
+    const [yearsExperience, setYearsExperience] = useState<string>('');
+    const [injuryHistory, setInjuryHistory] = useState<'none' | 'recovered' | 'current'>('none');
+    const [trainingDaysPerWeek, setTrainingDaysPerWeek] = useState(3);
     const [exercises, setExercises] = useState<PrecalibrationExerciseInput[]>([
         { exerciseName: '', intensity: 'ALTO' },
         { exerciseName: '', intensity: 'ALTO' },
@@ -100,6 +103,7 @@ export const BatteryPrecalibrationStep: React.FC<BatteryPrecalibrationStepProps>
                 batteryCalibration: {
                     ...deltas,
                     lastCalibrated: new Date().toISOString(),
+                    precalibrationContext: { yearsExperience, injuryHistory, trainingDaysPerWeek },
                 },
                 hasPrecalibratedBattery: true,
                 precalibrationDismissed: false,
@@ -114,6 +118,7 @@ export const BatteryPrecalibrationStep: React.FC<BatteryPrecalibrationStepProps>
                         muscularDelta: deltas.muscularDelta,
                         spinalDelta: deltas.spinalDelta,
                         lastCalibrated: new Date().toISOString(),
+                        precalibrationContext: { yearsExperience, injuryHistory, trainingDaysPerWeek },
                     },
                     hasPrecalibratedBattery: true,
                     precalibrationDismissed: false,
@@ -126,6 +131,7 @@ export const BatteryPrecalibrationStep: React.FC<BatteryPrecalibrationStepProps>
                         muscularDelta: deltas.muscularDelta,
                         spinalDelta: deltas.spinalDelta,
                         lastCalibrated: new Date().toISOString(),
+                        precalibrationContext: { yearsExperience, injuryHistory, trainingDaysPerWeek },
                     },
                     hasPrecalibratedBattery: true,
                     precalibrationDismissed: false,
@@ -144,6 +150,68 @@ export const BatteryPrecalibrationStep: React.FC<BatteryPrecalibrationStepProps>
     };
 
     const showReadinessStep = trainedBefore === false || (trainedBefore === true && step === 2);
+
+    if (step === 0) {
+        return (
+            <div className="p-6 space-y-6">
+                <h2 className="text-lg font-black text-white uppercase tracking-tight">Contexto atlético</h2>
+                <p className="text-[11px] text-zinc-400">Estas preguntas ayudan a calibrar la batería y reducir lecturas falsas.</p>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Años de experiencia continua</label>
+                        <select
+                            value={yearsExperience}
+                            onChange={e => setYearsExperience(e.target.value)}
+                            className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+                        >
+                            <option value="">Selecciona</option>
+                            <option value="0-1">0-1 año</option>
+                            <option value="1-3">1-3 años</option>
+                            <option value="3+">3+ años</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Historial de lesiones</label>
+                        <div className="flex flex-wrap gap-2">
+                            {[
+                                { id: 'none' as const, label: 'Ninguna' },
+                                { id: 'recovered' as const, label: 'Alguna recuperada' },
+                                { id: 'current' as const, label: 'Lesión actual' },
+                            ].map(opt => (
+                                <button
+                                    key={opt.id}
+                                    onClick={() => setInjuryHistory(opt.id)}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        injuryHistory === opt.id ? 'bg-cyan-500/20 border border-cyan-500/50 text-white' : 'bg-white/5 border border-white/10 text-zinc-400'
+                                    }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Días de entrenamiento por semana</label>
+                        <input
+                            type="number"
+                            min={1}
+                            max={7}
+                            value={trainingDaysPerWeek}
+                            onChange={e => setTrainingDaysPerWeek(Math.min(7, Math.max(1, parseInt(e.target.value) || 3)))}
+                            className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+                        />
+                    </div>
+                </div>
+                <button
+                    onClick={() => setStep(1)}
+                    className="w-full py-3 rounded-xl bg-white text-black font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                    Siguiente
+                    <ChevronRightIcon size={14} />
+                </button>
+            </div>
+        );
+    }
 
     if (trainedBefore === null) {
         return (

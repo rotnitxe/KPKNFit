@@ -1,5 +1,6 @@
 // services/volumeCalculator.ts
-import { AthleteProfileScore, Settings, Mesocycle, Session, ExerciseMuscleInfo, MuscleRole, WorkoutLog } from '../types';
+import { AthleteProfileScore, Settings, Mesocycle, Session, ExerciseMuscleInfo, MuscleRole, WorkoutLog, Program } from '../types';
+import type { VolumeRecommendation as ProgramVolumeRec } from '../types';
 import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 
 // === CONSTANTES DEL INFORME (Módulos 4 y 5) ===
@@ -391,6 +392,205 @@ export const calculateUnifiedMuscleVolume = (
             displayVolume: Math.round(volume * 10) / 10
         }))
         .sort((a, b) => b.displayVolume - a.displayVolume);
+};
+
+// --- MÓDULO: UMBRALES DE VOLUMEN POR MÚSCULO (Analytics) ---
+import { INITIAL_MUSCLE_GROUP_DATA } from '../data/initialMuscleGroupDatabase';
+
+const MUSCLE_AGGREGATION_MAP: Record<string, string[]> = {
+    'Cuádriceps': ['cuádriceps', 'vasto-lateral', 'vasto-medial', 'recto-femoral'],
+    'Isquiosurales': ['isquiosurales', 'bíceps-femoral', 'semitendinoso', 'semimembranoso'],
+    'Glúteos': ['glúteos', 'glúteo-mayor', 'glúteo-medio', 'glúteo-menor'],
+    'Pectoral': ['pectoral', 'pectoral-superior', 'pectoral-medio', 'pectoral-inferior'],
+    'Bíceps': ['bíceps', 'cabeza-larga-bíceps', 'cabeza-corta-bíceps', 'braquial', 'braquiorradial'],
+    'Tríceps': ['tríceps', 'cabeza-larga-tríceps', 'cabeza-lateral-tríceps', 'cabeza-medial-tríceps'],
+    'Dorsales': ['espalda', 'dorsal-ancho', 'redondo-mayor'],
+    'Trapecio': ['trapecio', 'trapecio-superior', 'trapecio-medio', 'trapecio-inferior', 'romboides'],
+    'Espalda Baja': ['erectores-espinales', 'multífidos', 'cuadrado-lumbar'],
+    'Abdomen': ['abdomen', 'recto-abdominal', 'oblicuos', 'transverso-abdominal', 'core'],
+    'Pantorrillas': ['pantorrillas', 'gastrocnemio', 'sóleo'],
+};
+
+const STANDALONE_DISPLAY_NAMES: Record<string, string> = {
+    'Deltoides Anterior': 'deltoides-anterior',
+    'Deltoides Lateral': 'deltoides-lateral',
+    'Deltoides Posterior': 'deltoides-posterior',
+};
+
+function parseVolumeString(s: string): { min: number; max: number } {
+    if (!s || s === 'N/A') return { min: 0, max: 20 };
+    const trimmed = s.trim();
+    if (trimmed.includes('-')) {
+        const [a, b] = trimmed.split('-').map(x => parseInt(x.trim(), 10) || 0);
+        return { min: a, max: Math.max(a, b || a) };
+    }
+    const n = parseInt(trimmed, 10) || 0;
+    return { min: n, max: n };
+}
+
+export interface MuscleVolumeThresholds {
+    min: number;
+    optimal: number;
+    max: number;
+    source: 'program' | 'israetel' | 'kpnk';
+    rangeLabel: string;
+}
+
+/**
+ * Obtiene umbrales de volumen para un músculo (display name).
+ * Prioridad: 1) program.volumeRecommendations, 2) athleteScore + calculateWeeklyVolume, 3) Israetel (initialMuscleGroupDatabase).
+ */
+export const getVolumeThresholdsForMuscle = (
+    muscleDisplayName: string,
+    options?: {
+        program?: Program | null;
+        settings?: Settings | null;
+        athleteScore?: AthleteProfileScore | null;
+        phase?: Mesocycle['goal'];
+    }
+): MuscleVolumeThresholds => {
+    const { program, settings, athleteScore, phase = 'Acumulación' } = options || {};
+
+    const normalizeForMatch = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // 1. Program.volumeRecommendations (calibración del programa)
+    if (program?.volumeRecommendations?.length) {
+        const displayNorm = normalizeForMatch(muscleDisplayName);
+        const rec = program.volumeRecommendations.find((r: ProgramVolumeRec) =>
+            normalizeForMatch(r.muscleGroup) === displayNorm ||
+            normalizeForMatch(r.muscleGroup).includes(displayNorm) ||
+            displayNorm.includes(normalizeForMatch(r.muscleGroup))
+        );
+        if (rec) {
+            const optimal = Math.round((rec.minEffectiveVolume + rec.maxAdaptiveVolume) / 2);
+            return {
+                min: rec.minEffectiveVolume,
+                optimal,
+                max: rec.maxRecoverableVolume,
+                source: 'program',
+                rangeLabel: `${rec.minEffectiveVolume}–${rec.maxRecoverableVolume}`,
+            };
+        }
+    }
+
+    // 2. Israetel/Schoenfeld desde initialMuscleGroupDatabase (fallback)
+    const subIds = STANDALONE_DISPLAY_NAMES[muscleDisplayName]
+        ? [STANDALONE_DISPLAY_NAMES[muscleDisplayName]]
+        : MUSCLE_AGGREGATION_MAP[muscleDisplayName]
+            ? MUSCLE_AGGREGATION_MAP[muscleDisplayName]
+            : [muscleDisplayName.toLowerCase().replace(/\s+/g, '-').replace(/í/g, 'i').replace(/á/g, 'a')];
+
+    let bestMin = 0;
+    let bestOptimal = 12;
+    let bestMax = 20;
+
+    for (const id of subIds) {
+        const info = INITIAL_MUSCLE_GROUP_DATA.find(m =>
+            m.id === id || normalizeForMatch(m.name) === normalizeForMatch(id));
+        if (info?.volumeRecommendations) {
+            const { mev, mav, mrv } = info.volumeRecommendations;
+            const mevParsed = parseVolumeString(mev);
+            const mavParsed = parseVolumeString(mav);
+            const mrvParsed = parseVolumeString(mrv);
+            const min = mevParsed.max || mevParsed.min;
+            const optimal = Math.round((mavParsed.min + mavParsed.max) / 2) || mavParsed.min;
+            const max = mrvParsed.max || mrvParsed.min;
+            if (max > bestMax) {
+                bestMin = min;
+                bestOptimal = optimal;
+                bestMax = max;
+            }
+        }
+    }
+
+    // Si no encontramos en la DB, usar valores por defecto
+    if (bestMax === 20 && bestMin === 0) {
+        const displayNorm = normalizeForMatch(muscleDisplayName);
+        const info = INITIAL_MUSCLE_GROUP_DATA.find(m =>
+            normalizeForMatch(m.name) === displayNorm ||
+            normalizeForMatch(m.name).includes(displayNorm));
+        if (info?.volumeRecommendations) {
+            const { mev, mav, mrv } = info.volumeRecommendations;
+            const mevParsed = parseVolumeString(mev);
+            const mavParsed = parseVolumeString(mav);
+            const mrvParsed = parseVolumeString(mrv);
+            bestMin = mevParsed.max || mevParsed.min;
+            bestOptimal = Math.round((mavParsed.min + mavParsed.max) / 2) || mavParsed.min;
+            bestMax = mrvParsed.max || mrvParsed.min;
+        }
+    }
+
+    // Escalar por athleteScore (KPKN) si está calibrado y el usuario eligió KPKN
+    let finalMin = bestMin;
+    let finalOptimal = bestOptimal;
+    let finalMax = Math.max(bestMax, bestMin + 2);
+    let source: 'program' | 'israetel' | 'kpnk' = 'israetel';
+    const useKpnk = settings?.volumeSystem !== 'israetel' && !!athleteScore;
+
+    if (athleteScore && settings && useKpnk) {
+        const base = calculateWeeklyVolume(athleteScore, settings, phase || 'Acumulación');
+        const scale = base.optimalSets / 15;
+        finalMin = Math.max(1, Math.round(bestMin * scale));
+        finalOptimal = Math.round(bestOptimal * scale);
+        finalMax = Math.max(finalMin + 2, Math.round(bestMax * scale));
+        source = 'kpnk';
+    }
+
+    return {
+        min: finalMin,
+        optimal: finalOptimal,
+        max: finalMax,
+        source,
+        rangeLabel: `${finalMin}–${finalMax}`,
+    };
+};
+
+/** Lista de grupos musculares para volumen (display) */
+export const VOLUME_DISPLAY_MUSCLES = [
+    'Cuádriceps', 'Isquiosurales', 'Glúteos', 'Pectoral', 'Bíceps', 'Tríceps',
+    'Dorsales', 'Trapecio', 'Espalda Baja', 'Abdomen', 'Pantorrillas',
+    'Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior',
+] as const;
+
+/**
+ * Obtiene recomendaciones de volumen Israetel para todos los grupos musculares.
+ * Usa INITIAL_MUSCLE_GROUP_DATA (MEV, MAV, MRV).
+ */
+export const getIsraetelVolumeRecommendations = (): ProgramVolumeRec[] => {
+    return VOLUME_DISPLAY_MUSCLES.map(muscle => {
+        const th = getVolumeThresholdsForMuscle(muscle, { phase: 'Acumulación' });
+        return {
+            muscleGroup: muscle,
+            minEffectiveVolume: th.min,
+            maxAdaptiveVolume: th.optimal,
+            maxRecoverableVolume: th.max,
+            frequencyCap: 4,
+        };
+    });
+};
+
+/**
+ * Calcula recomendaciones KPKN personalizadas por músculo.
+ * Escala los valores Israetel según el perfil del atleta.
+ */
+export const getKpnkVolumeRecommendations = (
+    athleteScore: AthleteProfileScore,
+    settings: Settings,
+    phase: Mesocycle['goal'] = 'Acumulación'
+): ProgramVolumeRec[] => {
+    const base = calculateWeeklyVolume(athleteScore, settings, phase);
+    const scale = base.optimalSets / 15;
+    return getIsraetelVolumeRecommendations().map(rec => {
+        const newMin = Math.max(1, Math.round(rec.minEffectiveVolume * scale));
+        const newOpt = Math.round(rec.maxAdaptiveVolume * scale);
+        const newMax = Math.round(rec.maxRecoverableVolume * scale);
+        return {
+            ...rec,
+            minEffectiveVolume: newMin,
+            maxAdaptiveVolume: Math.max(newOpt, newMin),
+            maxRecoverableVolume: Math.max(newMax, newMin + 2),
+        };
+    });
 };
 
 /** Convierte WorkoutLog[] a sesiones virtuales para calcular volumen desde historial completado */

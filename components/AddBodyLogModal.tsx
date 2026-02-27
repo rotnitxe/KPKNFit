@@ -1,14 +1,10 @@
 // components/AddBodyLogModal.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BodyProgressLog, Settings } from '../types';
-import { takePicture } from '../services/cameraService';
-import { optimizeImage } from '../services/imageService';
 import { TacticalModal } from './ui/TacticalOverlays';
 import Button from './ui/Button';
-import { SaveIcon, CameraIcon, TrashIcon, SparklesIcon } from './icons';
+import { SaveIcon } from './icons';
 import { useAppDispatch } from '../contexts/AppContext';
-import { analyzeProgressPhoto } from '../services/aiService';
-import SkeletonLoader from './ui/SkeletonLoader';
 
 interface AddBodyLogModalProps {
   isOpen: boolean;
@@ -16,47 +12,36 @@ interface AddBodyLogModalProps {
   onSave: (log: BodyProgressLog) => void;
   settings: Settings;
   isOnline: boolean;
+  /** Si se proporciona, el modal actúa en modo edición */
+  initialLog?: BodyProgressLog | null;
 }
 
-const PREDEFINED_MEASUREMENTS = ["Pecho", "Cintura", "Cadera", "Bíceps (Izq)", "Bíceps (Der)", "Muslo (Izq)", "Muslo (Der)"];
+const PREDEFINED_MEASUREMENTS = [
+  "Pecho", "Cintura", "Cadera", "Cuello",
+  "Bíceps (Izq)", "Bíceps (Der)", "Antebrazo (Izq)", "Antebrazo (Der)",
+  "Muslo (Izq)", "Muslo (Der)", "Pantorrilla (Izq)", "Pantorrilla (Der)",
+];
 
-const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({ isOpen, onClose, onSave, settings, isOnline }) => {
+const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({ isOpen, onClose, onSave, settings, initialLog }) => {
   const { addToast } = useAppDispatch();
   const [weight, setWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [muscleMass, setMuscleMass] = useState('');
   const [measurements, setMeasurements] = useState<{ [key: string]: number }>({});
-  const [aiInsight, setAiInsight] = useState<string | undefined>(undefined);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleTakePhoto = async () => {
-    if (photos.length >= 4) {
-      addToast("Puedes añadir un máximo de 4 fotos por registro.", "suggestion");
-      return;
+  useEffect(() => {
+    if (isOpen && initialLog) {
+      setWeight(initialLog.weight != null ? String(initialLog.weight) : '');
+      setBodyFat(initialLog.bodyFatPercentage != null ? String(initialLog.bodyFatPercentage) : '');
+      setMuscleMass(initialLog.muscleMassPercentage != null ? String(initialLog.muscleMassPercentage) : '');
+      setMeasurements(initialLog.measurements ?? {});
+    } else if (isOpen && !initialLog) {
+      setWeight('');
+      setBodyFat('');
+      setMuscleMass('');
+      setMeasurements({});
     }
-    const photoDataUrl = await takePicture();
-    if (photoDataUrl) {
-      addToast("Optimizando y analizando foto...", "suggestion");
-      setIsAnalyzing(true);
-      const optimizedPhoto = await optimizeImage(photoDataUrl);
-      setPhotos(prev => [...prev, optimizedPhoto]);
-
-      if (isOnline) {
-        try {
-          const insight = await analyzeProgressPhoto(optimizedPhoto, settings);
-          setAiInsight(prev => (prev ? prev + '\n\n' : '') + `Análisis Foto #${photos.length + 1}:\n${insight}`);
-          addToast("Análisis de IA completado.", "success");
-        } catch (e) {
-            addToast("No se pudo analizar la foto con IA.", "danger");
-        }
-      }
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleRemovePhoto = (indexToRemove: number) => {
-    setPhotos(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
+  }, [isOpen, initialLog]);
 
   const handleMeasurementChange = (key: string, value: string) => {
     const numValue = parseFloat(value);
@@ -79,20 +64,20 @@ const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({ isOpen, onClose, onSa
     }, {} as Record<string, number>);
 
     const newLog: BodyProgressLog = {
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
+      id: initialLog?.id ?? crypto.randomUUID(),
+      date: initialLog?.date ?? new Date().toISOString(),
       weight: parseFloat(weight),
       bodyFatPercentage: bodyFat ? parseFloat(bodyFat) : undefined,
-      photos: photos.length > 0 ? photos : undefined,
+      muscleMassPercentage: muscleMass ? parseFloat(muscleMass) : undefined,
       measurements: Object.keys(finalMeasurements).length > 0 ? finalMeasurements : undefined,
-      aiInsight: aiInsight
     };
 
     onSave(newLog);
+    onClose();
   };
 
   return (
-    <TacticalModal isOpen={isOpen} onClose={onClose} title="Añadir Registro Corporal">
+    <TacticalModal isOpen={isOpen} onClose={onClose} title={initialLog ? "Editar Registro Corporal" : "Añadir Registro Corporal"}>
       <div className="space-y-4 max-h-[70vh] overflow-y-auto p-1">
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -102,7 +87,7 @@ const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({ isOpen, onClose, onSa
               step="0.1"
               value={weight}
               onChange={e => setWeight(e.target.value)}
-              className="w-full"
+              className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white"
               required
             />
           </div>
@@ -113,35 +98,19 @@ const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({ isOpen, onClose, onSa
               step="0.1"
               value={bodyFat}
               onChange={e => setBodyFat(e.target.value)}
-              className="w-full"
+              className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white"
             />
           </div>
-        </div>
-        
-        <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Fotos de Progreso</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {photos.map((photo, index) => (
-                    <div key={index} className="relative aspect-square group">
-                        <img src={photo} alt={`Progreso ${index + 1}`} className="w-full h-full object-cover rounded-md" />
-                        <button onClick={() => handleRemovePhoto(index)} className="absolute top-1 right-1 bg-black/50 p-1 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                            <TrashIcon size={14} />
-                        </button>
-                    </div>
-                ))}
-                {photos.length < 4 && (
-                    <button onClick={handleTakePhoto} disabled={isAnalyzing} className="aspect-square flex flex-col items-center justify-center bg-slate-800/50 border-2 border-dashed border-slate-600 rounded-md hover:border-slate-500 hover:bg-slate-800 transition-colors disabled:opacity-50">
-                        {isAnalyzing ? <SkeletonLoader type="circle" className="w-8 h-8"/> : <CameraIcon className="text-slate-400 mb-1" />}
-                        <span className="text-xs text-slate-400">{isAnalyzing ? 'Analizando...' : 'Añadir Foto'}</span>
-                    </button>
-                )}
-            </div>
-            {aiInsight && (
-                <div className="mt-4 p-3 bg-slate-900/50 rounded-lg">
-                    <h4 className="text-sm font-semibold text-sky-300 flex items-center gap-1 mb-1"><SparklesIcon size={14}/> Análisis de IA</h4>
-                    <p className="text-xs text-slate-300 whitespace-pre-wrap">{aiInsight}</p>
-                </div>
-            )}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">% Músculo</label>
+            <input
+              type="number"
+              step="0.1"
+              value={muscleMass}
+              onChange={e => setMuscleMass(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white"
+            />
+          </div>
         </div>
 
         <div>
@@ -155,7 +124,7 @@ const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({ isOpen, onClose, onSa
                             step="0.1"
                             value={measurements[name] || ''}
                             onChange={e => handleMeasurementChange(name, e.target.value)}
-                            className="w-full"
+                            className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white"
                          />
                     </div>
                 ))}
