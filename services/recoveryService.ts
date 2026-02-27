@@ -2,7 +2,7 @@
 import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog, NutritionLog } from '../types';
 import { computeNutritionRecoveryMultiplier } from './nutritionRecoveryService';
 import { calculateSetStress, getDynamicAugeMetrics, WEEKLY_CNS_FATIGUE_REFERENCE } from './fatigueService';
-import { buildExerciseIndex, findExercise, ExerciseIndex } from '../utils/exerciseIndex';
+import { buildExerciseIndex, findExercise, findExerciseWithFallback, ExerciseIndex } from '../utils/exerciseIndex';
 import { getLocalDateString } from '../utils/dateUtils';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
@@ -97,7 +97,7 @@ const calculateUserWorkCapacity = (history: WorkoutLog[], muscleName: string, ex
     
     recentLogs.forEach(log => {
         log.completedExercises.forEach(ex => {
-            const info = findExercise(index, ex.exerciseDbId, ex.exerciseName);
+            const info = findExerciseWithFallback(index, ex.exerciseDbId, ex.exerciseName);
             if (!info) return;
 
             // Verificar si el músculo participó en el ejercicio
@@ -223,7 +223,7 @@ export const calculateMuscleBattery = (
         let sessionMuscleStress = 0;
 
         log.completedExercises.forEach(ex => {
-            const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
+            const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
             if (!info) return;
 
             // --- LÓGICA DE CASCADA (SINERGISTAS) ---
@@ -386,7 +386,7 @@ export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: Sleep
 
         let sessionCNS = 0;
         log.completedExercises.forEach(ex => {
-            const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
+            const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
             const { cnc } = getDynamicAugeMetrics(info, ex.exerciseName);
             
             ex.sets.forEach(s => {
@@ -712,7 +712,7 @@ export const calculateGlobalBatteries = (
         const hoursAgo = (now - new Date(log.date).getTime()) / 3600000;
         
         log.completedExercises.forEach(ex => {
-            const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
+            const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
             ex.sets.forEach((s, idx) => {
                 const drain = calculateSetBatteryDrain(s, info, tanks, idx, 90);
                 logCns += drain.cnsDrainPct;
@@ -873,7 +873,7 @@ export const applyPrecalibrationToBattery = (
     let totalSpinal = 0;
 
     exercises.forEach((ex, exIdx) => {
-        const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
+        const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
         const rpe = PRECALIBRATION_INTENSITY_TO_RPE[ex.intensity] ?? 8;
         const reps = (info?.type === 'Básico' ? 5 : 8);
         const virtualSet = { completedRPE: rpe, completedReps: reps, targetReps: reps, weight: 0 };
@@ -935,7 +935,7 @@ export const getSpinalDrainByExercise = (
         const decay = Math.exp(-(Math.LN2 / spinalHalfLife) * hoursAgo);
 
         log.completedExercises.forEach(ex => {
-            const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
+            const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
             const name = ex.exerciseName || info?.name || 'Ejercicio';
             let total = 0;
             ex.sets.forEach((s, idx) => {

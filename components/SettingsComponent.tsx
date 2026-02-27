@@ -21,6 +21,7 @@ import { NutritionPlanEditorModal } from './nutrition/NutritionPlanEditorModal';
 import { useAppDispatch } from '../contexts/AppContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { getLocalDateString } from '../utils/dateUtils';
+import { captureException } from '../services/sentryService';
 
 interface SettingsProps {
   settings: Settings;
@@ -602,6 +603,22 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                     <AppUpdateCheckItem />
                 </SettingsSection>
             )}
+
+            {/* --- SECCIÓN: VERIFICACIÓN SENTRY --- */}
+            <SettingsSection title="Verificación Sentry" icon={<FlaskConical />}>
+                <SettingsItem label="Probar captura de errores" description="Envía un error de prueba a Sentry para verificar que todo funciona." icon={<ActivityIcon size={18}/>}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            captureException(new Error('This is your first error!'));
+                            alert('Error de prueba enviado a Sentry. Revisa tu dashboard en sentry.io');
+                        }}
+                        className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/50 text-red-400 text-xs font-bold uppercase hover:bg-red-500/30 transition-colors"
+                    >
+                        Enviar error de prueba
+                    </button>
+                </SettingsItem>
+            </SettingsSection>
 
             <div className="text-center pt-10 pb-20">
                 <p className="text-[10px] text-slate-700 font-black uppercase tracking-[0.5em]">KPKN Ecosistema • v3.2</p>

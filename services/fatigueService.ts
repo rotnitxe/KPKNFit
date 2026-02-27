@@ -1,6 +1,7 @@
 // services/fatigueService.ts
 import { ExerciseSet, Session, ExerciseMuscleInfo, CompletedExercise, CompletedSet, Exercise, OngoingSetData } from '../types';
-import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
+import { buildExerciseIndex, findExercise, findExerciseWithFallback } from '../utils/exerciseIndex';
+import { inferInvolvedMuscles } from '../data/inferMusclesFromName';
 
 /**
  * Capacidad de referencia semanal para normalización de fatiga SNC (puntos).
@@ -238,8 +239,11 @@ export const calculatePredictedSessionDrain = (session: Session, exerciseList: E
     const exercises = session.parts ? session.parts.flatMap(p => p.exercises) : session.exercises;
 
     exercises?.forEach(ex => {
-        const info = findExercise(exIndex, ex.exerciseDbId, ex.name);
-        const primaryMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
+        const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.name ?? ex.exerciseName);
+        const name = ex.name ?? (ex as any).exerciseName ?? '';
+        const primaryMuscle = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle
+            || inferInvolvedMuscles(name, (ex as any).equipment ?? '', 'Otro', 'upper')[0]?.muscle
+            || 'Core';
         
         // Contamos cuántas series lleva este músculo ANTES de empezar este ejercicio
         let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
@@ -327,8 +331,10 @@ export const calculateCompletedSessionStress = (
     const exIndex = buildExerciseIndex(exerciseList);
 
     completedExercises.forEach(ex => {
-        const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
-        const primaryMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
+        const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
+        const primaryMuscle = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle
+            || inferInvolvedMuscles(ex.exerciseName ?? '', '', 'Otro', 'upper')[0]?.muscle
+            || 'Core';
         
         let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
 
@@ -369,8 +375,10 @@ export const calculateCompletedSessionDrainBreakdown = (
     const exIndex = buildExerciseIndex(exerciseList);
 
     completedExercises.forEach(ex => {
-        const info = findExercise(exIndex, ex.exerciseDbId, ex.exerciseName);
-        const primaryMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
+        const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
+        const primaryMuscle = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle
+            || inferInvolvedMuscles(ex.exerciseName ?? '', '', 'Otro', 'upper')[0]?.muscle
+            || 'Core';
         let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
 
         ex.sets.forEach((s: any) => {

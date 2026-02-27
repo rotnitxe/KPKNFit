@@ -5,7 +5,9 @@
 import * as Sentry from '@sentry/capacitor';
 import * as SentryReact from '@sentry/react';
 
-const SENTRY_DSN = (globalThis as any).__KPKN_SENTRY_DSN__ as string | undefined;
+const SENTRY_DSN =
+  (globalThis as any).__KPKN_SENTRY_DSN__ as string | undefined ||
+  'https://66085ee6661f7b934968c583b4b009f0@o4510952852422656.ingest.us.sentry.io/4510952892727296';
 
 let isInitialized = false;
 
@@ -17,7 +19,7 @@ export function initSentry(): void {
       {
         dsn: SENTRY_DSN,
         enableAutoSessionTracking: true,
-        sendDefaultPii: false,
+        sendDefaultPii: true,
         environment: (typeof __DEV__ !== 'undefined' && __DEV__) ? 'development' : 'production',
         tracesSampleRate: 0.1,
       },

@@ -3,10 +3,12 @@
 
 import { ExerciseMuscleInfo } from '../types';
 import { DETAILED_EXERCISE_LIST } from './exerciseDatabase';
+import { inferInvolvedMuscles } from './inferMusclesFromName';
 import extendedRaw from './exerciseDatabaseExtended.json';
 
 function normalizeExtended(ex: Record<string, unknown>): ExerciseMuscleInfo {
   const name = String(ex.name || '');
+  const equipment = String(ex.equipment || '');
   const id = String(ex.id || `ext_${name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')}`);
 
   // Mapear type "C" -> "Básico", "A" -> "Accesorio", etc.
@@ -33,12 +35,17 @@ function normalizeExtended(ex: Record<string, unknown>): ExerciseMuscleInfo {
 
   const primary = (ex.involvedMuscles as { muscle: string; role: string; activation: number }[]) || [];
   const involvedMuscles = primary.length > 0
-    ? primary
-    : [{ muscle: 'General', role: 'primary' as const, activation: 1.0 }];
+    ? primary.map(m => ({ muscle: m.muscle, role: (m.role || 'primary') as 'primary' | 'secondary' | 'stabilizer', activation: m.activation ?? 1.0 }))
+    : inferInvolvedMuscles(name, equipment, force, bodyPart);
+
+  // Mostrar variante (equipment) junto al nombre para que sea visible
+  const displayName = equipment && equipment.trim() && equipment !== 'Otro'
+    ? `${name} (${equipment})`
+    : name;
 
   return {
     id,
-    name,
+    name: displayName,
     description: String(ex.description || ''),
     involvedMuscles,
     subMuscleGroup: String(ex.subMuscleGroup || ''),
@@ -91,4 +98,21 @@ for (const ex of extendedExercises) {
   }
 }
 
-export const FULL_EXERCISE_LIST: ExerciseMuscleInfo[] = merged.map(enrichWithOperationalData);
+/** Elimina únicamente duplicados exactos (100% idénticos: id, name, involvedMuscles, etc.) */
+function removeExactDuplicates(list: ExerciseMuscleInfo[]): ExerciseMuscleInfo[] {
+  const seen = new Map<string, ExerciseMuscleInfo>();
+  for (const ex of list) {
+    const key = JSON.stringify({
+      id: ex.id,
+      name: ex.name,
+      involvedMuscles: ex.involvedMuscles?.map(m => ({ muscle: m.muscle, role: m.role, activation: m.activation })).sort((a, b) => a.muscle.localeCompare(b.muscle)),
+      equipment: ex.equipment,
+      type: ex.type,
+    });
+    if (!seen.has(key)) seen.set(key, ex);
+  }
+  return Array.from(seen.values());
+}
+
+const deduplicated = removeExactDuplicates(merged);
+export const FULL_EXERCISE_LIST: ExerciseMuscleInfo[] = deduplicated.map(enrichWithOperationalData);
