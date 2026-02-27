@@ -4,6 +4,7 @@ import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { ExerciseMuscleInfo } from '../types';
 import { ArrowLeftIcon, SearchIcon, ChevronRightIcon } from './icons';
 import { MUSCLE_GROUPS, EXERCISE_TYPES, CHAIN_TYPES } from '../data/exerciseList';
+import { normalizeMuscleGroup } from '../services/volumeCalculator';
 
 const PATTERN_FORCE_OPTIONS: (ExerciseMuscleInfo['force'] | 'All')[] = [
     'All',
@@ -70,7 +71,7 @@ const ExerciseDatabaseView: React.FC = () => {
                                 ex.name.toLowerCase().includes(q) ||
                                 (ex.alias && ex.alias.toLowerCase().includes(q)) ||
                                 (ex.equipment && ex.equipment.toLowerCase().includes(q));
-            const muscleMatch = muscleFilter === 'All' || ex.involvedMuscles.some(m => m.role === 'primary' && m.muscle === muscleFilter);
+            const muscleMatch = muscleFilter === 'All' || muscleFilter === 'Todos' || ex.involvedMuscles.some(m => m.role === 'primary' && normalizeMuscleGroup(m.muscle) === muscleFilter);
             const categoryMatch = categoryFilter === 'All' || ex.category === categoryFilter;
             const equipmentMatch = equipmentFilter === 'All' || ex.equipment === equipmentFilter;
             const typeMatch = typeFilter === 'All' || ex.type === typeFilter;

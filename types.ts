@@ -719,6 +719,8 @@ export interface WorkoutLog {
     sessionDifficulty?: number;
     planAdherenceTags?: string[];
     sessionStressScore?: number;
+    /** Baterías por músculo reportadas en FinishWorkoutModal. Usado para desglose retroactivo. */
+    muscleBatteries?: Record<string, number>;
     postTitle?: string;
     postSummary?: string;
     postPhotos?: string[];
@@ -1595,6 +1597,7 @@ export const WorkoutLogSchema = z.object({
   sessionDifficulty: z.number().optional(),
   planAdherenceTags: z.array(z.string()).optional(),
   sessionStressScore: z.number().optional(),
+  muscleBatteries: z.record(z.string(), z.number()).optional(),
   postTitle: z.string().optional(),
   postSummary: z.string().optional(),
   postPhotos: z.array(z.string()).optional(),

@@ -48,7 +48,7 @@ const MUSCLE_AGGREGATION_MAP: Record<string, string[]> = {
     'Pectoral': ['pectoral', 'pectoral-superior', 'pectoral-medio', 'pectoral-inferior'],
     'Bíceps': ['bíceps', 'cabeza-larga-bíceps', 'cabeza-corta-bíceps', 'braquial', 'braquiorradial'],
     'Tríceps': ['tríceps', 'cabeza-larga-tríceps', 'cabeza-lateral-tríceps', 'cabeza-medial-tríceps'],
-    'Dorsales': ['espalda', 'dorsal-ancho', 'redondo-mayor'], // "Espalda" general se asume como dorsal mayormente
+    'Dorsales': ['espalda', 'dorsales', 'dorsal-ancho', 'redondo-mayor'],
     'Trapecio': ['trapecio', 'trapecio-superior', 'trapecio-medio', 'trapecio-inferior', 'romboides'],
     'Espalda Baja': ['erectores-espinales', 'multífidos', 'cuadrado-lumbar'],
     'Abdomen': ['abdomen', 'recto-abdominal', 'oblicuos', 'transverso-abdominal', 'core'],

@@ -94,7 +94,7 @@ export function inferInvolvedMuscles(
       { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 },
       { muscle: 'Isquiosurales', role: 'primary', activation: 0.9 },
       { muscle: 'Glúteos', role: 'secondary', activation: 0.7 },
-      { muscle: 'Dorsal Ancho', role: 'secondary', activation: 0.5 },
+      { muscle: 'Dorsales', role: 'secondary', activation: 0.5 },
       { muscle: 'Trapecio', role: 'stabilizer', activation: 0.5 },
     ];
   }
@@ -116,7 +116,7 @@ export function inferInvolvedMuscles(
     return [
       { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 },
       { muscle: 'Trapecio', role: 'primary', activation: 0.9 },
-      { muscle: 'Dorsal Ancho', role: 'secondary', activation: 0.6 },
+      { muscle: 'Dorsales', role: 'secondary', activation: 0.6 },
       { muscle: 'Bíceps', role: 'secondary', activation: 0.5 },
     ];
   }
@@ -189,24 +189,24 @@ export function inferInvolvedMuscles(
     ];
   }
 
-  // --- PECHO / EMPUJE ---
+  // --- PECHO / EMPUJE (solo grupo "Pectoral", sin porciones) ---
   if (n.includes('press') && (n.includes('banca') || n.includes('pecho') || n.includes('bench'))) {
     return [
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
-      { muscle: 'Espalda Alta', role: 'stabilizer', activation: 0.3 },
+      { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 },
     ];
   }
   if (n.includes('apertura') || n.includes('fly') || n.includes('cruces')) {
     return [
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 },
     ];
   }
   if (n.includes('flexión') || n.includes('flexion') || n.includes('push-up') || n.includes('push up')) {
     return [
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 },
       { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 },
@@ -214,39 +214,37 @@ export function inferInvolvedMuscles(
   }
   if (n.includes('fondo') && !n.includes('entre bancos')) {
     return [
-      { muscle: 'Pectoral Inferior', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.8 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
     ];
   }
 
-  // --- ESPALDA / TIRÓN ---
+  // --- ESPALDA / TIRÓN (Dorsales, Trapecio; sin porciones) ---
   if (n.includes('dominada') || n.includes('pull-up') || n.includes('chin-up')) {
     return [
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 },
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 },
       { muscle: 'Bíceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Core', role: 'stabilizer', activation: 0.4 },
     ];
   }
   if (n.includes('remo') || n.includes('row')) {
     return [
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 },
-      { muscle: 'Romboides', role: 'secondary', activation: 0.7 },
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 },
+      { muscle: 'Trapecio', role: 'secondary', activation: 0.7 },
       { muscle: 'Bíceps', role: 'secondary', activation: 0.5 },
-      { muscle: 'Trapecio Medio', role: 'stabilizer', activation: 0.5 },
     ];
   }
   if (n.includes('jalón') || n.includes('pulldown') || n.includes('lat pulldown')) {
     return [
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 },
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 },
       { muscle: 'Bíceps', role: 'secondary', activation: 0.6 },
     ];
   }
   if (n.includes('face pull') || n.includes('tirón a la cara')) {
     return [
       { muscle: 'Deltoides Posterior', role: 'primary', activation: 1.0 },
-      { muscle: 'Romboides', role: 'secondary', activation: 0.7 },
-      { muscle: 'Trapecio Medio', role: 'secondary', activation: 0.5 },
+      { muscle: 'Trapecio', role: 'secondary', activation: 0.7 },
     ];
   }
 
@@ -268,7 +266,7 @@ export function inferInvolvedMuscles(
   if (n.includes('elevación') && (n.includes('frontal') || n.includes('front'))) {
     return [
       { muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 },
-      { muscle: 'Pectoral Superior', role: 'secondary', activation: 0.4 },
+      { muscle: 'Pectoral', role: 'secondary', activation: 0.4 },
     ];
   }
 
@@ -306,7 +304,7 @@ export function inferInvolvedMuscles(
   if (n.includes('fondos entre bancos') || n.includes('bench dip')) {
     return [
       { muscle: 'Tríceps', role: 'primary', activation: 1.0 },
-      { muscle: 'Pectoral Inferior', role: 'secondary', activation: 0.5 },
+      { muscle: 'Pectoral', role: 'secondary', activation: 0.5 },
     ];
   }
   if (n.includes('extensión tate') || n.includes('tate press')) {
@@ -322,46 +320,36 @@ export function inferInvolvedMuscles(
     ];
   }
 
-  // --- CORE / ABDOMINALES ---
+  // --- CORE / ABDOMINALES (solo grupo Abdomen) ---
   if (n.includes('plancha') || n.includes('plank')) {
     return [
-      { muscle: 'Transverso Abdominal', role: 'primary', activation: 1.0 },
-      { muscle: 'Recto Abdominal', role: 'secondary', activation: 0.8 },
-      { muscle: 'Oblicuos', role: 'stabilizer', activation: 0.5 },
+      { muscle: 'Abdomen', role: 'primary', activation: 1.0 },
     ];
   }
   if (n.includes('rueda abdominal') || n.includes('ab wheel')) {
     return [
-      { muscle: 'Recto Abdominal', role: 'primary', activation: 1.0 },
-      { muscle: 'Transverso Abdominal', role: 'primary', activation: 1.0 },
-      { muscle: 'Dorsal Ancho', role: 'stabilizer', activation: 0.5 },
+      { muscle: 'Abdomen', role: 'primary', activation: 1.0 },
+      { muscle: 'Dorsales', role: 'stabilizer', activation: 0.5 },
     ];
   }
   if (n.includes('press pallof') || n.includes('pallof')) {
     return [
-      { muscle: 'Oblicuos', role: 'primary', activation: 1.0 },
-      { muscle: 'Transverso Abdominal', role: 'primary', activation: 0.9 },
-      { muscle: 'Recto Abdominal', role: 'stabilizer', activation: 0.5 },
+      { muscle: 'Abdomen', role: 'primary', activation: 1.0 },
     ];
   }
   if (n.includes('leñador') || n.includes('woodchop')) {
     return [
-      { muscle: 'Oblicuos', role: 'primary', activation: 1.0 },
-      { muscle: 'Transverso Abdominal', role: 'secondary', activation: 0.8 },
-      { muscle: 'Recto Abdominal', role: 'stabilizer', activation: 0.5 },
+      { muscle: 'Abdomen', role: 'primary', activation: 1.0 },
     ];
   }
   if (n.includes('elevación') && n.includes('pierna')) {
     return [
-      { muscle: 'Recto Abdominal', role: 'primary', activation: 1.0 },
-      { muscle: 'Flexores de Cadera', role: 'secondary', activation: 0.7 },
-      { muscle: 'Oblicuos', role: 'stabilizer', activation: 0.5 },
+      { muscle: 'Abdomen', role: 'primary', activation: 1.0 },
     ];
   }
   if (n.includes('crunch') || n.includes('abdominal')) {
     return [
-      { muscle: 'Recto Abdominal', role: 'primary', activation: 1.0 },
-      { muscle: 'Oblicuos', role: 'secondary', activation: 0.5 },
+      { muscle: 'Abdomen', role: 'primary', activation: 1.0 },
     ];
   }
 
@@ -428,14 +416,14 @@ export function inferInvolvedMuscles(
   }
   if (bodyPart === 'upper' && (n.includes('press') || n.includes('empuje'))) {
     return [
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 },
     ];
   }
   if (bodyPart === 'upper' && (n.includes('remo') || n.includes('tirón') || n.includes('curl'))) {
     return [
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 },
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 },
       { muscle: 'Bíceps', role: 'secondary', activation: 0.6 },
     ];
   }

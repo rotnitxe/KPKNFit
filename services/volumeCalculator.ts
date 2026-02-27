@@ -272,9 +272,9 @@ export const normalizeMuscleGroup = (specificMuscle: string): string => {
     if (lower.includes('trapecio') || lower.includes('romboides') || lower.includes('espinal') || lower.includes('alta')) {
         return 'Trapecio';
     }
-    // Dorsal (Amplitud)
-    if (lower.includes('dorsal') || lower.includes('lat') || lower.includes('redondo') || lower.includes('ancho')) {
-        return 'Dorsal';
+    // Dorsal/Dorsales (Amplitud - sin porciones)
+    if (lower.includes('dorsal') || lower.includes('dorsales') || lower.includes('lat') || lower.includes('redondo') || lower.includes('romboides')) {
+        return 'Dorsales';
     }
     // Espalda Baja (Salud/Core)
     if (lower.includes('erector') || lower.includes('lumbar') || lower.includes('baja')) {
@@ -282,7 +282,7 @@ export const normalizeMuscleGroup = (specificMuscle: string): string => {
     }
     // Fallback genérico de espalda
     if (lower.includes('espalda')) {
-        return 'Dorsal'; // Por defecto a amplitud
+        return 'Dorsales'; // Por defecto a amplitud
     }
 
     // --- 3. BRAZOS (Separación Estricta) ---

@@ -3,6 +3,7 @@ import { Exercise, ExerciseSet, ExerciseMuscleInfo } from '../../types';
 import { StarIcon, TrashIcon, ChevronRightIcon, ClockIcon, LinkIcon, ArrowUpIcon, ArrowDownIcon, SearchIcon, PlusIcon } from '../icons';
 import { suggestRestSeconds } from '../../utils/calculations';
 import SetCardGrid from './SetCardGrid';
+import { normalizeMuscleGroup } from '../../services/volumeCalculator';
 
 interface ExerciseCardCompactProps {
     exercise: Exercise;
@@ -141,7 +142,7 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                         >
                             <span className="text-xs font-bold text-white">{ex.name}</span>
                             <span className="text-[9px] text-zinc-500 ml-2">
-                                {ex.involvedMuscles?.filter(m => m.role === 'primary').map(m => m.muscle).join(', ')}
+                                {ex.involvedMuscles?.filter(m => m.role === 'primary').map(m => normalizeMuscleGroup(m.muscle)).filter((v, i, a) => a.indexOf(v) === i).join(', ')}
                             </span>
                         </button>
                     ))}

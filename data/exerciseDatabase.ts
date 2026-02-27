@@ -13,74 +13,74 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_bench_press_tng', name: 'Press de Banca (Táctil / Touch and Go)', alias: 'Bench Press', description: 'Ejercicio fundamental para el desarrollo del pectoral, hombros y tríceps, realizado de forma continua sin pausa en el pecho.',
     involvedMuscles: [ 
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral Superior', role: 'secondary', activation: 0.6 }, 
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.6 }, 
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
-      { muscle: 'Espalda Alta', role: 'stabilizer', activation: 0.3 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.2 }
+      { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.2 }
     ],
-    subMuscleGroup: 'Pectoral Medio', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 4, technicalDifficulty: 6, transferability: 8, injuryRisk: { level: 7, details: 'Hombros (impingement), codos.' }, isHallOfFame: true,
     efc: 3.8, cnc: 3.8, ssc: 0.3, resistanceProfile: { curve: 'campana', peakTensionPoint: 'medio', description: 'Mayor tensión en el punto medio.' }
   },
   {
     id: 'db_bench_press_paused', name: 'Press de Banca (Pausado)', description: 'Variante con pausa en el pecho. Elimina el reflejo de estiramiento.',
     involvedMuscles: [ 
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, 
-      { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Espalda Alta', role: 'stabilizer', activation: 0.4 } 
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, 
+      { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.4 } 
     ],
-    subMuscleGroup: 'Pectoral Medio', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior', variantOf: 'db_bench_press_tng',
+    subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior', variantOf: 'db_bench_press_tng',
     setupTime: 4, technicalDifficulty: 7, transferability: 8, efc: 4.0, cnc: 4.2, ssc: 0.3
   },
   {
     id: 'db_incline_bench_press', name: 'Press de Banca Inclinado', description: 'Enfatiza la porción clavicular (superior) del pectoral.',
     involvedMuscles: [ 
-      { muscle: 'Pectoral Superior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, 
-      { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Espalda Alta', role: 'stabilizer', activation: 0.3 } 
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, 
+      { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 } 
     ],
-    subMuscleGroup: 'Pectoral Superior', category: 'Hipertrofia', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 5, technicalDifficulty: 7, efc: 3.8, cnc: 3.8, ssc: 0.2
   },
   {
     id: 'db_dumbbell_bench_press', name: 'Press de Banca con Mancuernas', description: 'Mayor rango de movimiento y estabilización que la barra.',
     involvedMuscles: [ 
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, 
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, 
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.3 } 
     ],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 7, efc: 3.5, cnc: 3.5, ssc: 0.1
   },
   {
     id: 'db_incline_dumbbell_press', name: 'Press Inclinado con Mancuernas', description: 'Enfatiza el pectoral superior con mayor libertad de movimiento.',
     involvedMuscles: [ 
-      { muscle: 'Pectoral Superior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, 
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, 
       { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.3 } 
     ],
-    subMuscleGroup: 'Pectoral Superior', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 4, technicalDifficulty: 8, efc: 3.5, cnc: 3.5, ssc: 0.1
   },
   {
     id: 'db_dips', name: 'Fondos en Paralelas', description: 'Ejercicio compuesto para pectoral inferior y tríceps.',
     involvedMuscles: [ 
-      { muscle: 'Pectoral Inferior', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.8 }, 
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.8 }, 
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 } 
     ],
-    subMuscleGroup: 'Pectoral Inferior', category: 'Fuerza', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 8, isHallOfFame: true, efc: 3.5, cnc: 3.5, ssc: 0.2
   },
   {
     id: 'db_push_up', name: 'Flexiones de Brazos', description: 'Ejercicio de peso corporal fundamental.',
     involvedMuscles: [ 
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, 
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, 
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 } 
     ],
-    subMuscleGroup: 'Pectoral Medio', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    subMuscleGroup: 'Pectoral', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 4, efc: 2.5, cnc: 2.0, ssc: 0.1
   },
   {
     id: 'db_cable_crossover', name: 'Cruces de Poleas', description: 'Tensión constante en el pectoral, ideal para bombeo.',
     involvedMuscles: [ 
-      { muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 } 
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 } 
     ],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Polea', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Polea', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 4, efc: 1.8, cnc: 1.5, ssc: 0.0
   },
 
@@ -88,7 +88,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_pull_up', name: 'Dominadas Pronas', description: 'Ejercicio rey para la amplitud de espalda.',
     involvedMuscles: [ 
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 }, { muscle: 'Bíceps', role: 'secondary', activation: 0.6 }, 
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Bíceps', role: 'secondary', activation: 0.6 }, 
       { muscle: 'Braquiorradial', role: 'secondary', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 } 
     ],
     subMuscleGroup: 'Dorsales', category: 'Fuerza', type: 'Básico', equipment: 'Peso Corporal', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
@@ -97,7 +97,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_chin_up', name: 'Dominadas Supinas', description: 'Variante con agarre supino, mayor énfasis en bíceps.',
     involvedMuscles: [ 
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 }, { muscle: 'Bíceps', role: 'primary', activation: 1.0 },
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Bíceps', role: 'primary', activation: 1.0 },
       { muscle: 'Core', role: 'stabilizer', activation: 0.4 }
     ],
     subMuscleGroup: 'Dorsales', category: 'Fuerza', type: 'Básico', equipment: 'Peso Corporal', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
@@ -106,8 +106,8 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_barbell_row', name: 'Remo con Barra', description: 'Constructor de densidad de espalda.',
     involvedMuscles: [ 
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 }, { muscle: 'Romboides', role: 'secondary', activation: 0.8 }, 
-      { muscle: 'Trapecio Medio', role: 'secondary', activation: 0.7 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.8 },
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Dorsales', role: 'secondary', activation: 0.8 }, 
+      { muscle: 'Trapecio', role: 'secondary', activation: 0.7 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.8 },
       { muscle: 'Isquiosurales', role: 'stabilizer', activation: 0.5 }
     ],
     subMuscleGroup: 'Dorsales', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
@@ -116,7 +116,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_dumbbell_row', name: 'Remo con Mancuerna', description: 'Remo unilateral para corregir desbalances y mayor rango.',
     involvedMuscles: [ 
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 }, { muscle: 'Romboides', role: 'secondary', activation: 0.6 }, 
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Dorsales', role: 'secondary', activation: 0.6 }, 
       { muscle: 'Bíceps', role: 'secondary', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 } 
     ],
     subMuscleGroup: 'Dorsales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
@@ -125,7 +125,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_lat_pulldown', name: 'Jalón al Pecho', description: 'Alternativa a las dominadas en polea.',
     involvedMuscles: [ 
-      { muscle: 'Dorsal Ancho', role: 'primary', activation: 1.0 }, { muscle: 'Bíceps', role: 'secondary', activation: 0.6 } 
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Bíceps', role: 'secondary', activation: 0.6 } 
     ],
     subMuscleGroup: 'Dorsales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Polea', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
     setupTime: 2, technicalDifficulty: 3, efc: 2.8, cnc: 2.0, ssc: 0.1
@@ -133,10 +133,10 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_seated_cable_row', name: 'Remo Sentado en Polea', description: 'Tirón horizontal para densidad de espalda media.',
     involvedMuscles: [ 
-      { muscle: 'Romboides', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio Medio', role: 'primary', activation: 1.0 }, 
-      { muscle: 'Dorsal Ancho', role: 'secondary', activation: 0.8 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.4 } 
+      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'primary', activation: 1.0 }, 
+      { muscle: 'Dorsales', role: 'secondary', activation: 0.8 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.4 } 
     ],
-    subMuscleGroup: 'Romboides', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Polea', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
+    subMuscleGroup: 'Dorsales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Polea', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
     setupTime: 2, technicalDifficulty: 4, efc: 3.0, cnc: 2.5, ssc: 0.5
   },
 
@@ -211,7 +211,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     id: 'db_ab_wheel', name: 'Rueda Abdominal', description: 'Anti-extensión avanzada.',
     involvedMuscles: [ 
       { muscle: 'Recto Abdominal', role: 'primary', activation: 1.0 }, { muscle: 'Transverso Abdominal', role: 'primary', activation: 1.0 },
-      { muscle: 'Dorsal Ancho', role: 'stabilizer', activation: 0.6 }, { muscle: 'Tríceps', role: 'stabilizer', activation: 0.4 }
+      { muscle: 'Dorsales', role: 'stabilizer', activation: 0.6 }, { muscle: 'Tríceps', role: 'stabilizer', activation: 0.4 }
     ],
     subMuscleGroup: 'Abdomen', category: 'Fuerza', type: 'Accesorio', equipment: 'Otro', force: 'Anti-Rotación', bodyPart: 'full', chain: 'anterior', efc: 2.5, cnc: 2.5, ssc: 0.5
   },
@@ -392,7 +392,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     involvedMuscles: [ 
       { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Glúteos', role: 'primary', activation: 1.0 }, 
       { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.8 },
-      { muscle: 'Dorsal Ancho', role: 'stabilizer', activation: 0.6 }, { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.6 }
+      { muscle: 'Dorsales', role: 'stabilizer', activation: 0.6 }, { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.6 }
     ],
     subMuscleGroup: 'Erectores Espinales', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
     setupTime: 4, technicalDifficulty: 8, isHallOfFame: true, efc: 5.0, cnc: 5.0, ssc: 2.0
@@ -483,7 +483,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     id: 'db_snatch_grip_deadlift', name: 'Peso Muerto Agarre Arrancada', description: 'Agarre muy ancho. Aumenta el rango de movimiento y demanda de espalda alta.',
     involvedMuscles: [ 
       { muscle: 'Trapecio', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, 
-      { muscle: 'Dorsal Ancho', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.8 } 
+      { muscle: 'Dorsales', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.8 } 
     ],
     subMuscleGroup: 'Espalda', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
     setupTime: 4, technicalDifficulty: 8, efc: 4.8, cnc: 4.5, ssc: 1.8
@@ -851,7 +851,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'ex-cable-fly-high-low',
     name: 'Cruce de Poleas (Alto a Bajo)',
-    description: 'Enfocado en las fibras esternales/costales del pectoral (Pectoral Inferior).',
+    description: 'Enfocado en las fibras esternales/costales del pectoral (Pectoral).',
     type: 'Aislamiento', category: 'Hipertrofia', equipment: 'Polea', force: 'Empuje',
     efc: 2.0, cnc: 1.5, ssc: 0.0,
     involvedMuscles: [
@@ -863,7 +863,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'ex-cable-fly-low-high',
     name: 'Cruce de Poleas (Bajo a Alto)',
-    description: 'Enfocado en las fibras claviculares del pectoral (Pectoral Superior).',
+    description: 'Enfocado en las fibras claviculares del pectoral (Pectoral).',
     type: 'Aislamiento', category: 'Hipertrofia', equipment: 'Polea', force: 'Empuje',
     efc: 2.0, cnc: 1.5, ssc: 0.0,
     involvedMuscles: [

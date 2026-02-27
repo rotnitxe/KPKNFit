@@ -5,110 +5,110 @@ export const EXERCISE_EXPANSION_LIST: ExerciseMuscleInfo[] = [
   // ========== PECHO - Variantes y extensiones ==========
   {
     id: 'db_exp_decline_bench_press', name: 'Press de Banca Declinado', description: 'Inclinación negativa enfatiza pectoral inferior.',
-    involvedMuscles: [{ muscle: 'Pectoral Inferior', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
-    subMuscleGroup: 'Pectoral Inferior', category: 'Hipertrofia', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 4, technicalDifficulty: 6, efc: 3.6, cnc: 3.5, ssc: 0.3, variantOf: 'db_bench_press_tng'
   },
   {
     id: 'db_exp_decline_dumbbell_press', name: 'Press Declinado con Mancuernas', description: 'Mayor rango de movimiento que la barra en declive.',
-    involvedMuscles: [{ muscle: 'Pectoral Inferior', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
-    subMuscleGroup: 'Pectoral Inferior', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 4, technicalDifficulty: 6, efc: 3.4, cnc: 3.2, ssc: 0.2
   },
   {
     id: 'db_exp_close_grip_bench', name: 'Press de Banca Agarres Cerrado', description: 'Mayor énfasis en tríceps y porción interna del pectoral.',
-    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral Medio', role: 'secondary', activation: 0.7 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
+    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.7 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
     subMuscleGroup: 'Tríceps', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 4, technicalDifficulty: 7, efc: 3.8, cnc: 3.8, ssc: 0.3, variantOf: 'db_bench_press_tng'
   },
   {
     id: 'db_exp_wide_grip_bench', name: 'Press de Banca Agarres Ancho', description: 'Mayor estiramiento del pectoral, menor recorrido.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral Superior', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 4, technicalDifficulty: 6, efc: 3.5, cnc: 3.5, ssc: 0.3, variantOf: 'db_bench_press_tng'
   },
   {
     id: 'db_exp_dumbbell_fly_flat', name: 'Aperturas con Mancuernas (Banco Plano)', description: 'Aislamiento del pectoral en banco plano.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 4, efc: 1.8, cnc: 1.5, ssc: 0.0
   },
   {
     id: 'db_exp_dumbbell_fly_incline', name: 'Aperturas Inclinadas con Mancuernas', description: 'Aislamiento del pectoral superior.',
-    involvedMuscles: [{ muscle: 'Pectoral Superior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
-    subMuscleGroup: 'Pectoral Superior', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 5, efc: 1.8, cnc: 1.5, ssc: 0.0
   },
   {
     id: 'db_exp_dumbbell_fly_decline', name: 'Aperturas Declinadas con Mancuernas', description: 'Aislamiento del pectoral inferior.',
-    involvedMuscles: [{ muscle: 'Pectoral Inferior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 }],
-    subMuscleGroup: 'Pectoral Inferior', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 5, efc: 1.8, cnc: 1.5, ssc: 0.0
   },
   {
     id: 'db_exp_pec_deck', name: 'Pec Deck (Máquina de Aperturas)', description: 'Aislamiento del pectoral con tensión constante.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Máquina', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Máquina', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 2, technicalDifficulty: 2, efc: 1.6, cnc: 1.2, ssc: 0.0
   },
   {
     id: 'db_exp_push_up_diamond', name: 'Flexiones Diamante', description: 'Manos juntas bajo el pecho, mayor énfasis en tríceps.',
-    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral Medio', role: 'secondary', activation: 0.7 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 }],
+    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.7 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 }],
     subMuscleGroup: 'Tríceps', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 5, efc: 2.8, cnc: 2.5, ssc: 0.1, variantOf: 'db_push_up'
   },
   {
     id: 'db_exp_push_up_wide', name: 'Flexiones con Manos Separadas', description: 'Mayor énfasis en pectoral con agarre amplio.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 }],
+    subMuscleGroup: 'Pectoral', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 3, efc: 2.5, cnc: 2.0, ssc: 0.1, variantOf: 'db_push_up'
   },
   {
     id: 'db_exp_push_up_decline', name: 'Flexiones Declinadas', description: 'Pies elevados, mayor carga sobre pectoral superior.',
-    involvedMuscles: [{ muscle: 'Pectoral Superior', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.6 }],
-    subMuscleGroup: 'Pectoral Superior', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.6 }],
+    subMuscleGroup: 'Pectoral', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 5, efc: 3.0, cnc: 2.5, ssc: 0.1, variantOf: 'db_push_up'
   },
   {
     id: 'db_exp_push_up_incline', name: 'Flexiones Inclinadas', description: 'Manos elevadas, variante más fácil para principiantes.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 0.9 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.4 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 0.9 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.4 }],
+    subMuscleGroup: 'Pectoral', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 2, efc: 2.0, cnc: 1.5, ssc: 0.0, variantOf: 'db_push_up'
   },
   {
     id: 'db_exp_push_up_clap', name: 'Flexiones con Palmada (Plyo)', description: 'Explosividad y potencia de tren superior.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.6 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Potencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.6 }],
+    subMuscleGroup: 'Pectoral', category: 'Potencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 7, efc: 3.5, cnc: 4.0, ssc: 0.2, variantOf: 'db_push_up'
   },
   {
     id: 'db_exp_push_up_pike', name: 'Flexiones Pike (V invertida)', description: 'Mayor énfasis en hombros y core.',
-    involvedMuscles: [{ muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Abdomen', role: 'primary', activation: 0.9 }, { muscle: 'Pectoral Medio', role: 'secondary', activation: 0.5 }],
+    involvedMuscles: [{ muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Abdomen', role: 'primary', activation: 0.9 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.5 }],
     subMuscleGroup: 'Deltoides Anterior', category: 'Resistencia', type: 'Accesorio', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 6, efc: 3.0, cnc: 2.8, ssc: 0.2, variantOf: 'db_push_up'
   },
   {
     id: 'db_exp_landmine_press', name: 'Press con Landmine (Unilateral)', description: 'Empuje en arco con barra anclada, rango natural.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 5, efc: 3.2, cnc: 3.0, ssc: 0.2
   },
   {
     id: 'db_exp_landmine_chest_press', name: 'Press de Pecho Landmine (Bilateral)', description: 'Empuje vertical con barra anclada entre las manos.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 5, efc: 3.3, cnc: 3.0, ssc: 0.2
   },
   {
     id: 'db_exp_chest_press_smith', name: 'Press de Banca en Smith', description: 'Barra guiada, ideal para principiantes o trabajo unilateral.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Básico', equipment: 'Máquina', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Básico', equipment: 'Máquina', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 2, technicalDifficulty: 3, efc: 3.2, cnc: 2.5, ssc: 0.2
   },
   {
     id: 'db_exp_single_arm_chest_press', name: 'Press de Pecho Unilateral (Máquina)', description: 'Corrige desbalances y exige estabilización del core.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Core', role: 'primary', activation: 0.6 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Máquina', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Core', role: 'primary', activation: 0.6 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Máquina', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 2, technicalDifficulty: 4, efc: 3.0, cnc: 2.5, ssc: 0.1
   },
 
@@ -379,7 +379,7 @@ export const EXERCISE_EXPANSION_LIST: ExerciseMuscleInfo[] = [
   },
   {
     id: 'db_exp_dips_bench', name: 'Fondos en Banco (Tríceps)', description: 'Fondos entre dos bancos, énfasis en tríceps.',
-    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral Inferior', role: 'secondary', activation: 0.5 }],
+    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.5 }],
     subMuscleGroup: 'Tríceps', category: 'Resistencia', type: 'Accesorio', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 4, efc: 2.5, cnc: 2.0, ssc: 0.0, variantOf: 'db_dips'
   },
@@ -391,7 +391,7 @@ export const EXERCISE_EXPANSION_LIST: ExerciseMuscleInfo[] = [
   },
   {
     id: 'db_exp_close_grip_floor_press', name: 'Floor Press con Agarre Cerrado', description: 'Press en suelo, codos tocan al bajar. Aísla tríceps.',
-    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral Medio', role: 'secondary', activation: 0.6 }],
+    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.6 }],
     subMuscleGroup: 'Tríceps', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 5, efc: 3.5, cnc: 3.2, ssc: 0.1
   },
@@ -415,7 +415,7 @@ export const EXERCISE_EXPANSION_LIST: ExerciseMuscleInfo[] = [
   },
   {
     id: 'db_exp_jm_press', name: 'Press JM', description: 'Híbrido entre press cerrado y extensión. Máxima carga en tríceps.',
-    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral Medio', role: 'secondary', activation: 0.4 }],
+    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.4 }],
     subMuscleGroup: 'Tríceps', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 7, efc: 3.2, cnc: 3.0, ssc: 0.2
   },
@@ -765,8 +765,8 @@ export const EXERCISE_EXPANSION_LIST: ExerciseMuscleInfo[] = [
   },
   {
     id: 'db_exp_kb_floor_press', name: 'Floor Press con Kettlebell', description: 'Press en suelo con kettlebells.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'primary', activation: 0.9 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Kettlebell', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'primary', activation: 0.9 }],
+    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Kettlebell', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 2, technicalDifficulty: 4, efc: 3.0, cnc: 2.5, ssc: 0.1
   },
   {
@@ -815,8 +815,8 @@ export const EXERCISE_EXPANSION_LIST: ExerciseMuscleInfo[] = [
   // ========== BANDAS ELÁSTICAS ==========
   {
     id: 'db_exp_band_chest_press', name: 'Press de Pecho con Banda', description: 'Empuje contra resistencia elástica.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Resistencia', type: 'Accesorio', equipment: 'Banda', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }],
+    subMuscleGroup: 'Pectoral', category: 'Resistencia', type: 'Accesorio', equipment: 'Banda', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 2, technicalDifficulty: 3, efc: 2.2, cnc: 1.8, ssc: 0.0
   },
   {
@@ -945,14 +945,14 @@ export const EXERCISE_EXPANSION_LIST: ExerciseMuscleInfo[] = [
   },
   {
     id: 'db_exp_ring_dip', name: 'Fondos en Anillas', description: 'Mayor inestabilidad que fondos en paralelas.',
-    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral Inferior', role: 'primary', activation: 0.9 }],
+    involvedMuscles: [{ muscle: 'Tríceps', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'primary', activation: 0.9 }],
     subMuscleGroup: 'Tríceps', category: 'Fuerza', type: 'Básico', equipment: 'Otro', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 2, technicalDifficulty: 8, efc: 3.8, cnc: 3.5, ssc: 0.2
   },
   {
     id: 'db_exp_ring_push_up', name: 'Flexiones en Anillas', description: 'Mayor inestabilidad que flexiones en suelo.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Fuerza', type: 'Básico', equipment: 'Otro', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }],
+    subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'Básico', equipment: 'Otro', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 2, technicalDifficulty: 6, efc: 3.2, cnc: 3.0, ssc: 0.1
   },
   {
@@ -1023,8 +1023,8 @@ export const EXERCISE_EXPANSION_LIST: ExerciseMuscleInfo[] = [
   },
   {
     id: 'db_exp_plyo_push_up', name: 'Flexión Pliométrica', description: 'Flexión con despegue de manos del suelo.',
-    involvedMuscles: [{ muscle: 'Pectoral Medio', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'primary', activation: 0.9 }],
-    subMuscleGroup: 'Pectoral Medio', category: 'Potencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+    involvedMuscles: [{ muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'primary', activation: 0.9 }],
+    subMuscleGroup: 'Pectoral', category: 'Potencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 1, technicalDifficulty: 6, efc: 3.2, cnc: 3.0, ssc: 0.1
   },
   {

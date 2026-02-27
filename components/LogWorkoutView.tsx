@@ -636,7 +636,8 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({ sessionInfo, settings, 
     pump?: number, 
     environmentTags?: string[],
     sessionDifficulty?: number,
-    planAdherenceTags?: string[]
+    planAdherenceTags?: string[],
+    muscleBatteries?: Record<string, number>
 ) => {
     const completedExercises: CompletedExercise[] = exercisesToLog.map(ex => ({
       exerciseId: ex.id, exerciseDbId: ex.exerciseDbId, exerciseName: ex.name,
@@ -672,6 +673,7 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({ sessionInfo, settings, 
       fatigueLevel: fatigueLevel || 5, mentalClarity: mentalClarity || 5,
       gymName: settings.gymName,
       focus, pump, environmentTags, sessionDifficulty, planAdherenceTags,
+      muscleBatteries: muscleBatteries && Object.keys(muscleBatteries).length > 0 ? muscleBatteries : undefined,
     };
     onSave(newLog);
   }, [completedSets, onSave, program, currentSession, settings.gymName, setIsFinishModalOpen, exercisesToLog]);

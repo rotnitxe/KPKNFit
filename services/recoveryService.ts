@@ -1,8 +1,9 @@
 
 import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog, NutritionLog } from '../types';
 import { computeNutritionRecoveryMultiplier } from './nutritionRecoveryService';
-import { calculateSetStress, getDynamicAugeMetrics, WEEKLY_CNS_FATIGUE_REFERENCE } from './fatigueService';
+import { calculateSetStress, getDynamicAugeMetrics, WEEKLY_CNS_FATIGUE_REFERENCE, isSetEffective } from './fatigueService';
 import { buildExerciseIndex, findExercise, findExerciseWithFallback, ExerciseIndex } from '../utils/exerciseIndex';
+import { inferInvolvedMuscles } from '../data/inferMusclesFromName';
 import { getLocalDateString } from '../utils/dateUtils';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
@@ -53,7 +54,7 @@ const safeExp = (val: number): number => {
 // Mapa de normalización para agrupar variantes anatómicas
 const MUSCLE_CATEGORY_MAP: Record<string, string[]> = {
     'pectorales': ['pectoral', 'pecho'],
-    'dorsales': ['dorsal', 'redondo mayor', 'espalda alta', 'lats'],
+    'dorsales': ['dorsal', 'dorsales', 'redondo mayor', 'espalda alta', 'lats', 'romboides'],
     'deltoides': ['deltoides', 'hombro', 'delts'],
     'deltoides-anterior': ['deltoides anterior', 'deltoide anterior', 'anterior'],
     'deltoides-lateral': ['deltoides lateral', 'deltoide lateral', 'lateral', 'medio'],
@@ -64,7 +65,8 @@ const MUSCLE_CATEGORY_MAP: Record<string, string[]> = {
     'isquiosurales': ['isquiosurales', 'isquiotibiales', 'bíceps femoral', 'semitendinoso', 'semimembranoso', 'femoral', 'hamstrings'],
     'glúteos': ['glúteo', 'gluteo', 'glutes'],
     'pantorrillas': ['pantorrilla', 'gemelo', 'gastrocnemio', 'sóleo', 'soleo', 'calves'],
-    'abdomen': ['abdomen', 'abdominal', 'oblicuo', 'recto abdominal', 'core', 'transverso', 'abs'],
+    'abdomen': ['abdomen', 'abdominal', 'oblicuo', 'recto abdominal', 'core', 'transverso', 'abs', 'flexores de cadera', 'iliopsoas'],
+    'trapecio': ['trapecio'],
     'espalda baja': ['erector', 'espinal', 'lumbar', 'espalda baja', 'cuadrado lumbar', 'lower back']
 };
 
@@ -224,17 +226,17 @@ export const calculateMuscleBattery = (
 
         log.completedExercises.forEach(ex => {
             const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
-            if (!info) return;
+            const involvedMuscles = info?.involvedMuscles ?? inferInvolvedMuscles(ex.exerciseName ?? '', (ex as any).equipment ?? '', 'Otro', 'upper');
 
-            // --- LÓGICA DE CASCADA (SINERGISTAS) ---
-            const muscleInvolvement = info.involvedMuscles.find(m => isMuscleInGroup(m.muscle, muscleName));
+            for (const muscleInvolvement of involvedMuscles) {
+                if (!isMuscleInGroup(muscleInvolvement.muscle, muscleName)) continue;
 
-            if (muscleInvolvement) {
                 const rawStress = ex.sets.reduce((acc, s) => {
-                    if (s.type === 'warmup' || s.isIneffective) return acc;
-                    return acc + calculateSetStress(s, info, 90);
+                    if ((s as any).type === 'warmup' || (s as any).isIneffective) return acc;
+                    if (!isSetEffective(s)) return acc;
+                    return acc + calculateSetStress(s, info ?? undefined, 90);
                 }, 0);
-                
+
                 let roleMultiplier = 0.0;
                 switch (muscleInvolvement.role) {
                     case 'primary': roleMultiplier = 1.0; break;
@@ -243,11 +245,11 @@ export const calculateMuscleBattery = (
                     default: roleMultiplier = 0.1;
                 }
 
-                const activationFactor = muscleInvolvement.activation || 1.0; 
+                const activationFactor = muscleInvolvement.activation || 1.0;
                 sessionMuscleStress += (rawStress * roleMultiplier * activationFactor);
 
                 if (hoursSince <= 168 && (muscleInvolvement.role === 'primary' || (muscleInvolvement.role === 'secondary' && activationFactor > 0.6))) {
-                    effectiveSetsCount += ex.sets.length;
+                    effectiveSetsCount += ex.sets.filter((s: any) => !(s.type === 'warmup' || s.isIneffective) && isSetEffective(s)).length;
                 }
             }
         });
@@ -335,6 +337,25 @@ export const calculateMuscleBattery = (
             // La batería no puede superar el límite impuesto por el dolor real
             batteryPercentage = Math.min(batteryPercentage, domsCap);
         }
+    }
+
+    // D. OVERRIDE RETROACTIVO: Baterías reportadas en FinishWorkoutModal (WorkoutLog.muscleBatteries)
+    const logsWithMuscleBattery = history
+        .filter(l => l.muscleBatteries && Object.keys(l.muscleBatteries).length > 0)
+        .filter(l => (now - new Date(l.date).getTime()) < 10 * 24 * 3600 * 1000)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    for (const log of logsWithMuscleBattery) {
+        const reported = Object.entries(log.muscleBatteries!).find(([key]) => isMuscleInGroup(key, muscleName));
+        if (!reported) continue;
+        const [_, observedBattery] = reported;
+        const hoursSince = (now - new Date(log.date).getTime()) / 3600000;
+        const tau = realRecoveryTime;
+        const recoveryFactor = 1 - safeExp(-hoursSince / Math.max(12, tau * 1.5));
+        const recoveredBattery = Math.min(100, observedBattery + (100 - observedBattery) * recoveryFactor);
+        const blendWeight = hoursSince < 48 ? 0.8 : hoursSince < 96 ? 0.5 : 0.25;
+        batteryPercentage = clamp(recoveredBattery * blendWeight + batteryPercentage * (1 - blendWeight), 0, 100);
+        break;
     }
 
     // Clamp final por seguridad

@@ -810,6 +810,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             gymName: settings.gymName, photoUri, sessionVariant: ongoingWorkout.activeMode,
             planDeviations, readiness: ongoingWorkout.readiness, focus, pump,
             environmentTags, sessionDifficulty, planAdherenceTags, sessionStressScore,
+            muscleBatteries: muscleBatteries && Object.keys(muscleBatteries).length > 0 ? muscleBatteries : undefined,
         };
 
         const validationResult = WorkoutLogSchema.safeParse(newLog);

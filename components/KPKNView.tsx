@@ -4,6 +4,7 @@ import { ExerciseMuscleInfo, ExercisePlaylist } from '../types';
 import { ChevronRightIcon, PlusIcon, TrashIcon, ActivityIcon, BrainIcon, DumbbellIcon, ClipboardListIcon } from './icons';
 import { useAppContext, useAppDispatch, useUIState } from '../contexts/AppContext';
 import CoachMark from './ui/CoachMark';
+import { normalizeMuscleGroup } from '../services/volumeCalculator';
 
 type WikiTab = 'exercises' | 'anatomy' | 'patterns';
 
@@ -138,7 +139,7 @@ const KPKNView: React.FC = () => {
                                 <div key={ex.id} onClick={() => navigateTo('exercise-detail', { exerciseId: ex.id })}
                                     className="p-4 rounded-xl bg-[#0a0a0a] border border-cyber-cyan/20 hover:border-cyber-cyan/50 cursor-pointer transition-all">
                                     <h3 className="font-bold text-white text-sm">{ex.name}</h3>
-                                    <p className="text-[10px] text-cyber-cyan/80 font-mono mt-0.5">{ex.involvedMuscles?.find(m => m.role === 'primary')?.muscle || ex.subMuscleGroup}</p>
+                                    <p className="text-[10px] text-cyber-cyan/80 font-mono mt-0.5">{normalizeMuscleGroup(ex.involvedMuscles?.find(m => m.role === 'primary')?.muscle || ex.subMuscleGroup || 'General')}</p>
                                     {(ex.efc != null || ex.cnc != null || ex.ssc != null) && (
                                         <div className="flex gap-1.5 mt-2 text-[9px] font-mono text-slate-500">
                                             {ex.efc != null && <span>EFC:{ex.efc}</span>}

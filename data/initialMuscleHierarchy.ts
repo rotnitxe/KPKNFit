@@ -16,20 +16,16 @@ export const INITIAL_MUSCLE_HIERARCHY: MuscleHierarchy = {
         { 'Antebrazo': ['Flexores de Antebrazo', 'Extensores de Antebrazo'] }
     ],
     'Espalda': [
-        'Dorsal Ancho', 
-        'Redondo Mayor', 
-        { 'Trapecio': ['Trapecio Superior', 'Trapecio Medio', 'Trapecio Inferior'] }, 
-        'Erectores Espinales', 
-        'Romboides'
+        'Dorsales', 
+        'Trapecio', 
+        'Erectores Espinales',
     ],
     'Hombros': [
         { 'Deltoides': ['Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior'] },
         { 'Manguito rotador': ['Supraespinoso', 'Infraespinoso'] },
         'Serrato Anterior'
     ],
-    'Pecho': [
-        { 'Pectoral': ['Pectoral Superior', 'Pectoral Medio', 'Pectoral Inferior'] }
-    ],
+    'Pecho': ['Pectoral'],
     'Piernas': [
         { 'Cuádriceps': ['Recto Femoral', 'Vasto Lateral', 'Vasto Medial'] },
         { 'Isquiosurales': ['Bíceps Femoral', 'Semitendinoso', 'Semimembranoso'] },
@@ -44,7 +40,7 @@ export const INITIAL_MUSCLE_HIERARCHY: MuscleHierarchy = {
     'Tren Inferior': ['Piernas'],
     'Core': ['Recto Abdominal', 'Oblicuos', 'Transverso Abdominal', 'Erectores Espinales'],
     'Cadena Anterior': ['Pectoral', 'Deltoides', 'Recto Abdominal', 'Cuádriceps'],
-    'Cadena Posterior': ['Dorsal Ancho', 'Trapecio', 'Erectores Espinales', 'Glúteos', 'Isquiosurales', 'Pantorrillas']
+    'Cadena Posterior': ['Dorsales', 'Trapecio', 'Erectores Espinales', 'Glúteos', 'Isquiosurales', 'Pantorrillas']
   },
   muscleToBodyPart: {
     // Abdomen
@@ -67,14 +63,9 @@ export const INITIAL_MUSCLE_HIERARCHY: MuscleHierarchy = {
     'Flexores de Antebrazo': 'Brazos',
     'Extensores de Antebrazo': 'Brazos',
     // Espalda
-    'Dorsal Ancho': 'Espalda',
-    'Redondo Mayor': 'Espalda',
+    'Dorsales': 'Espalda',
     'Trapecio': 'Espalda',
-    'Trapecio Superior': 'Espalda',
-    'Trapecio Medio': 'Espalda',
-    'Trapecio Inferior': 'Espalda',
     'Erectores Espinales': 'Espalda',
-    'Romboides': 'Espalda',
     'Multífidos': 'Espalda',
     // Hombros
     'Deltoides': 'Hombros',
@@ -86,9 +77,6 @@ export const INITIAL_MUSCLE_HIERARCHY: MuscleHierarchy = {
     'Serrato Anterior': 'Hombros',
     // Pecho
     'Pectoral': 'Pecho',
-    'Pectoral Superior': 'Pecho',
-    'Pectoral Medio': 'Pecho',
-    'Pectoral Inferior': 'Pecho',
     // Piernas
     'Cuádriceps': 'Piernas',
     'Recto Femoral': 'Piernas',

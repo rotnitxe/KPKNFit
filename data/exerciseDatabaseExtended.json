@@ -6,7 +6,28 @@
     "efc": 4.5,
     "ssc": 1.4,
     "id": "ext_sentadilla-trasera",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -20,7 +41,28 @@
     "efc": 4.8,
     "ssc": 1.6,
     "id": "ext_sentadilla-trasera_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -34,7 +76,28 @@
     "efc": 4.6,
     "ssc": 1.4,
     "id": "ext_sentadilla-trasera_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -45,10 +108,31 @@
     "name": "Sentadilla Trasera",
     "equipment": "Con Cadenas/Bandas",
     "type": "C",
-    "efc": 5.0,
+    "efc": 5,
     "ssc": 1.5,
     "id": "ext_sentadilla-trasera_4",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -62,7 +146,28 @@
     "efc": 4.2,
     "ssc": 1.1,
     "id": "ext_sentadilla-frontal",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -76,7 +181,28 @@
     "efc": 3.5,
     "ssc": 0.9,
     "id": "ext_sentadilla-frontal_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -90,7 +216,28 @@
     "efc": 4.5,
     "ssc": 1.8,
     "id": "ext_sentadilla-zercher",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -101,10 +248,26 @@
     "name": "Sentadilla Hack",
     "equipment": "Barra (desde el suelo)",
     "type": "C",
-    "efc": 4.0,
-    "ssc": 1.0,
+    "efc": 4,
+    "ssc": 1,
     "id": "ext_sentadilla-hack",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.4
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -115,10 +278,26 @@
     "name": "Sentadilla Hack",
     "equipment": "Máquina (guiada)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.4,
     "id": "ext_sentadilla-hack_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.4
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -132,7 +311,23 @@
     "efc": 3.2,
     "ssc": 0.2,
     "id": "ext_prensa-de-piernas",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -146,7 +341,23 @@
     "efc": 2.5,
     "ssc": 0.1,
     "id": "ext_prensa-de-piernas_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -160,7 +371,23 @@
     "efc": 2.8,
     "ssc": 0.1,
     "id": "ext_prensa-de-piernas_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -174,7 +401,23 @@
     "efc": 2.5,
     "ssc": 0.3,
     "id": "ext_sentadilla-goblet",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -188,7 +431,23 @@
     "efc": 2.8,
     "ssc": 0.3,
     "id": "ext_sentadilla-goblet_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -202,7 +461,23 @@
     "efc": 3.5,
     "ssc": 0.6,
     "id": "ext_sentadilla-búlgara",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -216,7 +491,23 @@
     "efc": 3.8,
     "ssc": 0.9,
     "id": "ext_sentadilla-búlgara_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -227,10 +518,31 @@
     "name": "Sentadilla Split",
     "equipment": "Estática (Tijera)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.5,
     "id": "ext_sentadilla-split",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -244,7 +556,23 @@
     "efc": 3.2,
     "ssc": 0.5,
     "id": "ext_zancada-lunge",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -258,7 +586,23 @@
     "efc": 3.5,
     "ssc": 0.6,
     "id": "ext_zancada",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -269,10 +613,26 @@
     "name": "Zancada",
     "equipment": "Lateral (Side Lunge)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.4,
     "id": "ext_zancada_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -283,10 +643,26 @@
     "name": "Zancada",
     "equipment": "Cruzada (Curtsy)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.4,
     "id": "ext_zancada_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -297,10 +673,21 @@
     "name": "Subida al Cajón",
     "equipment": "Step-Up (Mancuerna)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.4,
     "id": "ext_subida-al-cajón",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -314,7 +701,18 @@
     "efc": 3.5,
     "ssc": 0.4,
     "id": "ext_subida-al-cajón_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -325,10 +723,31 @@
     "name": "Sentadilla Sissy",
     "equipment": "Peso corporal / Banco",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "id": "ext_sentadilla-sissy",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -342,7 +761,28 @@
     "efc": 3.8,
     "ssc": 0.3,
     "id": "ext_sentadilla-pistol",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -354,9 +794,20 @@
     "equipment": "Máquina (Bilateral)",
     "type": "A",
     "efc": 1.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_extensiones-cuádriceps",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -368,9 +819,20 @@
     "equipment": "Unilateral",
     "type": "A",
     "efc": 1.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_extensiones-cuádriceps_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -382,9 +844,30 @@
     "equipment": "Máquina de cinturón",
     "type": "C",
     "efc": 3.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_sentadilla-belt-squat",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -398,7 +881,28 @@
     "efc": 4.3,
     "ssc": 1.3,
     "id": "ext_sentadilla-safety-bar",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -412,7 +916,28 @@
     "efc": 4.2,
     "ssc": 1.5,
     "id": "ext_sentadilla-box-squat",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -423,10 +948,36 @@
     "name": "Peso Muerto",
     "equipment": "Convencional (Barra)",
     "type": "C",
-    "efc": 5.0,
-    "ssc": 2.0,
+    "efc": 5,
+    "ssc": 2,
     "id": "ext_peso-muerto",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -440,7 +991,33 @@
     "efc": 4.8,
     "ssc": 1.7,
     "id": "ext_peso-muerto_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -451,10 +1028,36 @@
     "name": "Peso Muerto",
     "equipment": "Rumano (RDL) Barra",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 1.6,
     "id": "ext_peso-muerto_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -468,7 +1071,33 @@
     "efc": 3.5,
     "ssc": 1.2,
     "id": "ext_peso-muerto_4",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -482,7 +1111,33 @@
     "efc": 4.2,
     "ssc": 1.8,
     "id": "ext_peso-muerto_5",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -493,10 +1148,36 @@
     "name": "Peso Muerto",
     "equipment": "Déficit (Sobre disco)",
     "type": "C",
-    "efc": 5.0,
-    "ssc": 2.0,
+    "efc": 5,
+    "ssc": 2,
     "id": "ext_peso-muerto_6",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -510,7 +1191,28 @@
     "efc": 4.5,
     "ssc": 1.9,
     "id": "ext_rack-pull",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -524,7 +1226,33 @@
     "efc": 4.2,
     "ssc": 1.3,
     "id": "ext_peso-muerto_7",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -538,7 +1266,33 @@
     "efc": 4.5,
     "ssc": 1.7,
     "id": "ext_peso-muerto_8",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -549,10 +1303,26 @@
     "name": "Buenos Días",
     "equipment": "Barra (De pie)",
     "type": "C",
-    "efc": 4.0,
-    "ssc": 2.0,
+    "efc": 4,
+    "ssc": 2,
     "id": "ext_buenos-días",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -566,7 +1336,23 @@
     "efc": 3.5,
     "ssc": 1.8,
     "id": "ext_buenos-días_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -577,10 +1363,26 @@
     "name": "Buenos Días",
     "equipment": "Barra Cambered/SSB",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 1.8,
     "id": "ext_buenos-días_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -594,7 +1396,23 @@
     "efc": 3.5,
     "ssc": 0.5,
     "id": "ext_hip-thrust",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -605,10 +1423,26 @@
     "name": "Hip Thrust",
     "equipment": "Máquina",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.3,
     "id": "ext_hip-thrust_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -619,10 +1453,21 @@
     "name": "Puente de Glúteos",
     "equipment": "Suelo (Glute Bridge)",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "id": "ext_puente-de-glúteos",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -636,7 +1481,23 @@
     "efc": 2.5,
     "ssc": 0.2,
     "id": "ext_pull-through",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -650,7 +1511,28 @@
     "efc": 3.5,
     "ssc": 0.8,
     "id": "ext_kettlebell-swing",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -662,9 +1544,30 @@
     "equipment": "Americano (Arriba)",
     "type": "C",
     "efc": 3.8,
-    "ssc": 1.0,
+    "ssc": 1,
     "id": "ext_kettlebell-swing_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -675,10 +1578,21 @@
     "name": "Curl Femoral",
     "equipment": "Tumbado (Máquina)",
     "type": "A",
-    "efc": 2.0,
-    "ssc": 0.0,
+    "efc": 2,
+    "ssc": 0,
     "id": "ext_curl-femoral",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -690,9 +1604,20 @@
     "equipment": "Sentado (Máquina)",
     "type": "A",
     "efc": 2.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_curl-femoral_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -704,9 +1629,20 @@
     "equipment": "De pie (Unilateral)",
     "type": "A",
     "efc": 1.8,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_curl-femoral_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -720,7 +1656,18 @@
     "efc": 4.5,
     "ssc": 0.5,
     "id": "ext_curl-nórdico",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -731,10 +1678,26 @@
     "name": "GHR",
     "equipment": "Glute Ham Raise",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 0.6,
     "id": "ext_ghr",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -748,7 +1711,23 @@
     "efc": 2.5,
     "ssc": 0.8,
     "id": "ext_hiperextensiones",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -762,7 +1741,18 @@
     "efc": 2.5,
     "ssc": 0.1,
     "id": "ext_reverse-hyper",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -773,10 +1763,36 @@
     "name": "Peso Muerto Unilateral",
     "equipment": "Con Mancuerna (SLDL)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.8,
     "id": "ext_peso-muerto-unilateral",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -790,7 +1806,28 @@
     "efc": 3.8,
     "ssc": 0.4,
     "id": "ext_press-de-banca",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -804,7 +1841,28 @@
     "efc": 3.2,
     "ssc": 0.2,
     "id": "ext_press-de-banca_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -818,7 +1876,28 @@
     "efc": 3.5,
     "ssc": 0.4,
     "id": "ext_press-de-banca_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -829,10 +1908,31 @@
     "name": "Press de Banca",
     "equipment": "Inclinado (Mancuerna)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.2,
     "id": "ext_press-de-banca_4",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -846,7 +1946,28 @@
     "efc": 3.2,
     "ssc": 0.3,
     "id": "ext_press-de-banca_5",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -860,7 +1981,28 @@
     "efc": 3.2,
     "ssc": 0.4,
     "id": "ext_press-de-banca_6",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -874,7 +2016,28 @@
     "efc": 2.5,
     "ssc": 0.1,
     "id": "ext_press-de-banca_7",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -888,7 +2051,23 @@
     "efc": 3.5,
     "ssc": 0.3,
     "id": "ext_press-de-suelo",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -902,7 +2081,23 @@
     "efc": 3.6,
     "ssc": 0.4,
     "id": "ext_press-spoto",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -913,10 +2108,31 @@
     "name": "Press Militar",
     "equipment": "De pie con Barra (OHP)",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 1.3,
     "id": "ext_press-militar",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -930,7 +2146,28 @@
     "efc": 3.5,
     "ssc": 1.5,
     "id": "ext_press-militar_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -941,10 +2178,31 @@
     "name": "Press de Hombros",
     "equipment": "Mancuernas (Sentado)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 1.2,
     "id": "ext_press-de-hombros",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -956,9 +2214,25 @@
     "equipment": "Mancuernas",
     "type": "C",
     "efc": 3.2,
-    "ssc": 1.0,
+    "ssc": 1,
     "id": "ext_press-arnold",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -969,10 +2243,26 @@
     "name": "Press Landmine",
     "equipment": "Unilateral (Mina)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.5,
     "id": "ext_press-landmine",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -986,7 +2276,23 @@
     "efc": 3.8,
     "ssc": 1.5,
     "id": "ext_press-trasnuca",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1000,7 +2306,23 @@
     "efc": 3.8,
     "ssc": 0.2,
     "id": "ext_fondos-dips",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1011,10 +2333,26 @@
     "name": "Fondos (Dips)",
     "equipment": "Peso Corporal",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "id": "ext_fondos-dips_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1025,10 +2363,31 @@
     "name": "Flexiones (Push-ups)",
     "equipment": "Clásicas",
     "type": "C",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "id": "ext_flexiones-push-ups",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1042,7 +2401,28 @@
     "efc": 2.5,
     "ssc": 0.1,
     "id": "ext_flexiones",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1053,10 +2433,31 @@
     "name": "Flexiones",
     "equipment": "Lastradas/Banda",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.2,
     "id": "ext_flexiones_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1067,10 +2468,21 @@
     "name": "Aperturas (Flyes)",
     "equipment": "Mancuernas (Plano/Inc)",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "id": "ext_aperturas-flyes",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1082,9 +2494,20 @@
     "equipment": "Máquina (Pec Deck)",
     "type": "A",
     "efc": 1.8,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_aperturas",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1096,9 +2519,20 @@
     "equipment": "Cable Crossover",
     "type": "A",
     "efc": 1.8,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_cruces-en-polea",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1112,7 +2546,18 @@
     "efc": 1.5,
     "ssc": 0.2,
     "id": "ext_elevaciones-laterales",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1126,7 +2571,18 @@
     "efc": 1.6,
     "ssc": 0.1,
     "id": "ext_elevaciones-laterales_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1140,7 +2596,18 @@
     "efc": 1.5,
     "ssc": 0.2,
     "id": "ext_elevaciones-frontales",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1154,7 +2621,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_face-pull",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Posterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1168,7 +2651,18 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_pájaros-rear-delt",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1179,10 +2673,26 @@
     "name": "Dominadas",
     "equipment": "Pronas (Pull-ups)",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 0.2,
     "id": "ext_dominadas",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1196,7 +2706,23 @@
     "efc": 3.8,
     "ssc": 0.2,
     "id": "ext_dominadas_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1210,7 +2736,23 @@
     "efc": 3.8,
     "ssc": 0.2,
     "id": "ext_dominadas_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1224,7 +2766,23 @@
     "efc": 4.5,
     "ssc": 0.3,
     "id": "ext_dominadas_4",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1238,7 +2796,18 @@
     "efc": 2.8,
     "ssc": 0.1,
     "id": "ext_jalón-al-pecho",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1252,7 +2821,18 @@
     "efc": 2.8,
     "ssc": 0.1,
     "id": "ext_jalón-al-pecho_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1266,7 +2846,18 @@
     "efc": 2.5,
     "ssc": 0.1,
     "id": "ext_jalón-al-pecho_3",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1277,10 +2868,31 @@
     "name": "Remo con Barra",
     "equipment": "Inclinado (Bent Over)",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 1.6,
     "id": "ext_remo-con-barra",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1294,7 +2906,28 @@
     "efc": 4.2,
     "ssc": 1.8,
     "id": "ext_remo-pendlay",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1308,7 +2941,28 @@
     "efc": 3.8,
     "ssc": 1.5,
     "id": "ext_remo-yates",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1319,10 +2973,31 @@
     "name": "Remo con Mancuerna",
     "equipment": "A una mano (Apoyo)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.6,
     "id": "ext_remo-con-mancuerna",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1336,7 +3011,28 @@
     "efc": 3.5,
     "ssc": 0.8,
     "id": "ext_remo-kroc",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1350,7 +3046,28 @@
     "efc": 2.8,
     "ssc": 0.4,
     "id": "ext_remo-en-polea",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1361,10 +3078,31 @@
     "name": "Remo en Barra T",
     "equipment": "T-Bar Row (Pecho apoyado)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.3,
     "id": "ext_remo-en-barra-t",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1378,7 +3116,28 @@
     "efc": 3.8,
     "ssc": 1.5,
     "id": "ext_remo-en-barra-t_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1392,7 +3151,28 @@
     "efc": 2.5,
     "ssc": 0.1,
     "id": "ext_remo-invertido",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1403,10 +3183,21 @@
     "name": "Pull-Over",
     "equipment": "Mancuerna / Polea",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.3,
     "id": "ext_pull-over",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1420,7 +3211,18 @@
     "efc": 1.8,
     "ssc": 0.1,
     "id": "ext_jalón-brazos-rectos",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1434,7 +3236,18 @@
     "efc": 2.5,
     "ssc": 1.2,
     "id": "ext_encogimientos",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1445,10 +3258,31 @@
     "name": "Remo al Mentón",
     "equipment": "Barra / Polea",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.5,
     "id": "ext_remo-al-mentón",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1459,10 +3293,21 @@
     "name": "Curl con Barra",
     "equipment": "De pie (Barbell Curl)",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.3,
     "id": "ext_curl-con-barra",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1476,7 +3321,18 @@
     "efc": 1.8,
     "ssc": 0.3,
     "id": "ext_curl-con-barra-z",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1490,7 +3346,18 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_curl-con-mancuernas",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1504,7 +3371,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_curl-martillo",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1518,7 +3401,23 @@
     "efc": 1.8,
     "ssc": 0.1,
     "id": "ext_curl-predicador",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1532,7 +3431,23 @@
     "efc": 1.8,
     "ssc": 0.1,
     "id": "ext_curl-araña",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1546,7 +3461,23 @@
     "efc": 1.8,
     "ssc": 0.1,
     "id": "ext_curl-inclinado",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1558,9 +3489,25 @@
     "equipment": "Sentado",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_curl-concentrado",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1574,7 +3521,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_curl-en-polea",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1588,7 +3551,23 @@
     "efc": 1.6,
     "ssc": 0.2,
     "id": "ext_curl-de-arrastre",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1602,7 +3581,18 @@
     "efc": 2.2,
     "ssc": 0.1,
     "id": "ext_press-francés",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1616,7 +3606,13 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_extensión-tríceps",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1630,7 +3626,13 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_extensión-tríceps_2",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1644,7 +3646,13 @@
     "efc": 1.8,
     "ssc": 0.4,
     "id": "ext_extensión-trasnuca",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1658,7 +3666,13 @@
     "efc": 1.2,
     "ssc": 0.1,
     "id": "ext_patada-de-tríceps",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1669,10 +3683,21 @@
     "name": "Fondos entre Bancos",
     "equipment": "Bench Dips",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "id": "ext_fondos-entre-bancos",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Pectoral",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1686,7 +3711,13 @@
     "efc": 1.8,
     "ssc": 0.1,
     "id": "ext_extensión-tate",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1697,10 +3728,16 @@
     "name": "Curl de Muñeca",
     "equipment": "Barra (Flexión/Extensión)",
     "type": "A",
-    "efc": 1.0,
-    "ssc": 0.0,
+    "efc": 1,
+    "ssc": 0,
     "id": "ext_curl-de-muñeca",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1714,7 +3751,23 @@
     "efc": 3.5,
     "ssc": 1.5,
     "id": "ext_paseo-del-granjero",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1728,7 +3781,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_plancha-frontal",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1742,7 +3811,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_plancha-lateral",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1756,7 +3841,23 @@
     "efc": 2.5,
     "ssc": 0.5,
     "id": "ext_rueda-abdominal",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1770,7 +3871,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "id": "ext_press-pallof",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1781,10 +3898,26 @@
     "name": "Leñador",
     "equipment": "Cable Woodchop",
     "type": "C",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.4,
     "id": "ext_leñador",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1798,7 +3931,23 @@
     "efc": 2.5,
     "ssc": 0.2,
     "id": "ext_elevación-de-piernas",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Flexores de Cadera",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1812,7 +3961,18 @@
     "efc": 1.8,
     "ssc": 0.3,
     "id": "ext_crunch-en-polea",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1826,7 +3986,18 @@
     "efc": 1.8,
     "ssc": 0.3,
     "id": "ext_giros-rusos",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1838,9 +4009,20 @@
     "equipment": "Bicho Muerto",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_dead-bug",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1854,7 +4036,23 @@
     "efc": 2.8,
     "ssc": 1.2,
     "id": "ext_paseo-del-camarero",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1868,7 +4066,18 @@
     "efc": 1.8,
     "ssc": 0.6,
     "id": "ext_sit-up",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1882,7 +4091,18 @@
     "efc": 4.8,
     "ssc": 1.8,
     "id": "ext_cargada-de-potencia",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1896,7 +4116,18 @@
     "efc": 4.8,
     "ssc": 1.6,
     "id": "ext_arrancada",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1910,7 +4141,23 @@
     "efc": 4.2,
     "ssc": 1.5,
     "id": "ext_push-press",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1924,7 +4171,18 @@
     "efc": 3.8,
     "ssc": 1.2,
     "id": "ext_high-pull",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1935,10 +4193,21 @@
     "name": "Salto al Cajón",
     "equipment": "Box Jump",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "id": "ext_salto-al-cajón",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1952,7 +4221,18 @@
     "efc": 3.2,
     "ssc": 0.2,
     "id": "ext_salto-de-longitud",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1966,7 +4246,18 @@
     "efc": 4.5,
     "ssc": 0.8,
     "id": "ext_depth-jump",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1980,7 +4271,18 @@
     "efc": 2.5,
     "ssc": 0.2,
     "id": "ext_lanzamiento-balón",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -1994,7 +4296,18 @@
     "efc": 2.5,
     "ssc": 0.1,
     "id": "ext_lanzamiento-pecho",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2006,9 +4319,20 @@
     "equipment": "Unilateral",
     "type": "C",
     "efc": 3.8,
-    "ssc": 1.0,
+    "ssc": 1,
     "id": "ext_kettlebell-snatch",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2019,10 +4343,26 @@
     "name": "Empuje de Trineo",
     "equipment": "Prowler Push",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 0.5,
     "id": "ext_empuje-de-trineo",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2036,7 +4376,18 @@
     "efc": 3.5,
     "ssc": 0.2,
     "id": "ext_arrastre-de-trineo",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2047,10 +4398,21 @@
     "name": "Battle Ropes",
     "equipment": "Ondas",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "id": "ext_battle-ropes",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2062,9 +4424,20 @@
     "equipment": "Hip Abduction",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_máquina-de-abducción",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2076,9 +4449,20 @@
     "equipment": "Hip Adduction",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_máquina-de-aducción",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2090,9 +4474,20 @@
     "equipment": "Seated Calf Raise",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "id": "ext_pantorrilla-sentado",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2106,7 +4501,18 @@
     "efc": 1.5,
     "ssc": 0.5,
     "id": "ext_pantorrilla-de-pie",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2120,7 +4526,28 @@
     "efc": 3.5,
     "ssc": 0.8,
     "id": "ext_remo-cardio",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2134,7 +4561,18 @@
     "efc": 3.2,
     "ssc": 0.5,
     "id": "ext_skierg",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2145,10 +4583,21 @@
     "name": "Air Bike",
     "equipment": "Assault Bike",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 0.2,
     "id": "ext_air-bike",
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "upper",
@@ -2163,7 +4612,28 @@
     "efc": 3.2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2174,10 +4644,31 @@
     "name": "Press de Banca",
     "equipment": "Smith (Inclinado)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2188,10 +4679,31 @@
     "name": "Press de Banca",
     "equipment": "Smith (Declinado)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2203,9 +4715,30 @@
     "equipment": "Polea Baja (Unilateral)",
     "type": "C",
     "efc": 2.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2217,9 +4750,30 @@
     "equipment": "Polea Baja (Bilateral)",
     "type": "C",
     "efc": 2.8,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2230,10 +4784,31 @@
     "name": "Press de Banca",
     "equipment": "Kettlebell (Floor Press)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2244,10 +4819,31 @@
     "name": "Press de Pecho",
     "equipment": "Máquina Smith",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2261,7 +4857,28 @@
     "efc": 3.2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2273,9 +4890,20 @@
     "equipment": "Polea Baja",
     "type": "A",
     "efc": 1.8,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2287,9 +4915,20 @@
     "equipment": "Polea Alta",
     "type": "A",
     "efc": 1.8,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2303,7 +4942,18 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2317,7 +4967,28 @@
     "efc": 2.8,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2331,7 +5002,28 @@
     "efc": 2.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2345,7 +5037,28 @@
     "efc": 2.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2357,9 +5070,25 @@
     "equipment": "Máquina (Asistida)",
     "type": "C",
     "efc": 2.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2373,7 +5102,23 @@
     "efc": 3.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2387,7 +5132,28 @@
     "efc": 3.5,
     "ssc": 0.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2401,7 +5167,28 @@
     "efc": 2.8,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2415,7 +5202,28 @@
     "efc": 3.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2426,10 +5234,31 @@
     "name": "Press Militar",
     "equipment": "Kettlebell",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2443,7 +5272,28 @@
     "efc": 3.2,
     "ssc": 0.6,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2454,10 +5304,31 @@
     "name": "Press de Hombros",
     "equipment": "Máquina Smith",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides Lateral",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -2469,9 +5340,20 @@
     "equipment": "Smith (Unilateral)",
     "type": "A",
     "efc": 1.4,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2485,7 +5367,18 @@
     "efc": 1.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2499,7 +5392,18 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2513,7 +5417,18 @@
     "efc": 1.6,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2527,7 +5442,18 @@
     "efc": 1.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2541,7 +5467,18 @@
     "efc": 1.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2553,9 +5490,25 @@
     "equipment": "Banda",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Posterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2567,9 +5520,25 @@
     "equipment": "Mancuernas",
     "type": "A",
     "efc": 1.4,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides Posterior",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2581,9 +5550,20 @@
     "equipment": "Polea Cruzada",
     "type": "A",
     "efc": 1.6,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2595,9 +5575,20 @@
     "equipment": "Polea Baja",
     "type": "A",
     "efc": 1.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2611,7 +5602,18 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2625,7 +5627,28 @@
     "efc": 2.8,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2639,7 +5662,28 @@
     "efc": 2.8,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2653,7 +5697,28 @@
     "efc": 2.5,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2667,7 +5732,28 @@
     "efc": 3.5,
     "ssc": 0.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2681,7 +5767,28 @@
     "efc": 2.8,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2695,7 +5802,28 @@
     "efc": 2.8,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2709,7 +5837,28 @@
     "efc": 2.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2720,10 +5869,31 @@
     "name": "Remo",
     "equipment": "Máquina Convergente",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2737,7 +5907,28 @@
     "efc": 2.8,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2749,9 +5940,20 @@
     "equipment": "Máquina Convergente",
     "type": "C",
     "efc": 2.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2765,7 +5967,18 @@
     "efc": 2.8,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2779,7 +5992,23 @@
     "efc": 4.2,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2793,7 +6022,23 @@
     "efc": 4.2,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2805,9 +6050,25 @@
     "equipment": "Asistidas (Máquina)",
     "type": "C",
     "efc": 2.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2819,9 +6080,20 @@
     "equipment": "Máquina",
     "type": "A",
     "efc": 2.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2835,7 +6107,18 @@
     "efc": 2.2,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2847,9 +6130,20 @@
     "equipment": "Smith",
     "type": "A",
     "efc": 2.5,
-    "ssc": 1.0,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2863,7 +6157,18 @@
     "efc": 2.2,
     "ssc": 0.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2877,7 +6182,18 @@
     "efc": 2.2,
     "ssc": 0.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2891,7 +6207,18 @@
     "efc": 1.5,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -2905,7 +6232,28 @@
     "efc": 3.5,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -2917,9 +6265,30 @@
     "equipment": "Polea (Belt Squat)",
     "type": "C",
     "efc": 3.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -2933,7 +6302,28 @@
     "efc": 3.8,
     "ssc": 0.6,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -2944,10 +6334,31 @@
     "name": "Sentadilla Frontal",
     "equipment": "Polea",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -2961,7 +6372,23 @@
     "efc": 2.5,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -2972,10 +6399,31 @@
     "name": "Sentadilla",
     "equipment": "Peso Corporal",
     "type": "C",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -2989,7 +6437,23 @@
     "efc": 3.8,
     "ssc": 0.9,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3003,7 +6467,23 @@
     "efc": 3.2,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3017,7 +6497,23 @@
     "efc": 2.5,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3031,7 +6527,23 @@
     "efc": 3.8,
     "ssc": 0.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3045,7 +6557,23 @@
     "efc": 3.5,
     "ssc": 0.6,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3059,7 +6587,23 @@
     "efc": 3.2,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3070,10 +6614,26 @@
     "name": "Zancada",
     "equipment": "Kettlebell",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3087,7 +6647,23 @@
     "efc": 2.8,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3101,7 +6677,23 @@
     "efc": 2.5,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3115,7 +6707,18 @@
     "efc": 3.5,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3126,10 +6729,21 @@
     "name": "Subida al Cajón",
     "equipment": "Kettlebell",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3143,7 +6757,18 @@
     "efc": 2.5,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3154,10 +6779,26 @@
     "name": "Prensa de Piernas",
     "equipment": "Smith (Pies Altos)",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3168,10 +6809,26 @@
     "name": "Prensa de Piernas",
     "equipment": "Máquina Convergente",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Sentadilla",
     "bodyPart": "lower",
@@ -3183,9 +6840,20 @@
     "equipment": "Polea",
     "type": "A",
     "efc": 1.4,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3196,10 +6864,21 @@
     "name": "Extensiones Cuádriceps",
     "equipment": "Peso Corporal (Sissy)",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3213,7 +6892,33 @@
     "efc": 4.2,
     "ssc": 1.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3227,7 +6932,33 @@
     "efc": 3.2,
     "ssc": 0.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3239,9 +6970,35 @@
     "equipment": "Kettlebell",
     "type": "C",
     "efc": 3.2,
-    "ssc": 1.0,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3255,7 +7012,33 @@
     "efc": 3.5,
     "ssc": 1.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3266,10 +7049,36 @@
     "name": "Peso Muerto Rumano",
     "equipment": "Peso Corporal",
     "type": "C",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3283,7 +7092,23 @@
     "efc": 3.5,
     "ssc": 1.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3294,10 +7119,26 @@
     "name": "Buenos Días",
     "equipment": "Peso Corporal",
     "type": "C",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3308,10 +7149,26 @@
     "name": "Hip Thrust",
     "equipment": "Mancuernas",
     "type": "C",
-    "efc": 3.0,
+    "efc": 3,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3325,7 +7182,23 @@
     "efc": 2.8,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3339,7 +7212,23 @@
     "efc": 2.8,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3350,10 +7239,26 @@
     "name": "Hip Thrust",
     "equipment": "Peso Corporal",
     "type": "C",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3365,9 +7270,20 @@
     "equipment": "Polea",
     "type": "A",
     "efc": 1.8,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "lower",
@@ -3381,7 +7297,18 @@
     "efc": 4.5,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "lower",
@@ -3395,7 +7322,23 @@
     "efc": 2.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3409,7 +7352,18 @@
     "efc": 2.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3423,7 +7377,18 @@
     "efc": 2.2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3437,7 +7402,18 @@
     "efc": 2.2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3448,10 +7424,21 @@
     "name": "Puente de Glúteos",
     "equipment": "Peso Corporal",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Bisagra",
     "bodyPart": "lower",
@@ -3465,7 +7452,18 @@
     "efc": 1.5,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3479,7 +7477,18 @@
     "efc": 1.5,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3493,7 +7502,18 @@
     "efc": 1.4,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3507,7 +7527,18 @@
     "efc": 1.2,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3519,9 +7550,20 @@
     "equipment": "Mancuerna",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3533,9 +7575,20 @@
     "equipment": "Barra",
     "type": "A",
     "efc": 1.3,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3549,7 +7602,18 @@
     "efc": 1.4,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Gastrocnemio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Sóleo",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -3563,7 +7627,18 @@
     "efc": 1.8,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3577,7 +7652,18 @@
     "efc": 1.6,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3591,7 +7677,18 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3603,9 +7700,25 @@
     "equipment": "Polea",
     "type": "A",
     "efc": 1.5,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3619,7 +7732,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3633,7 +7762,23 @@
     "efc": 1.6,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3645,9 +7790,25 @@
     "equipment": "Polea",
     "type": "A",
     "efc": 1.7,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3659,9 +7820,25 @@
     "equipment": "Máquina",
     "type": "A",
     "efc": 1.6,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3673,9 +7850,25 @@
     "equipment": "Polea",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3687,9 +7880,25 @@
     "equipment": "Kettlebell",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3703,7 +7912,18 @@
     "efc": 1.8,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3717,7 +7937,18 @@
     "efc": 1.6,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3731,7 +7962,18 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -3742,10 +7984,21 @@
     "name": "Press Francés",
     "equipment": "Polea",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3756,10 +8009,21 @@
     "name": "Press Francés",
     "equipment": "Mancuerna",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3773,7 +8037,18 @@
     "efc": 1.8,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3784,10 +8059,16 @@
     "name": "Extensión Tríceps",
     "equipment": "Smith (Trasnuca)",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3801,7 +8082,13 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3815,7 +8102,13 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3827,9 +8120,15 @@
     "equipment": "Polea",
     "type": "A",
     "efc": 1.3,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3841,9 +8140,15 @@
     "equipment": "Kettlebell",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3854,10 +8159,21 @@
     "name": "Fondos entre Bancos",
     "equipment": "Peso Corporal",
     "type": "A",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Pectoral",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3871,7 +8187,18 @@
     "efc": 2.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Pectoral",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3885,7 +8212,13 @@
     "efc": 1.6,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3899,7 +8232,23 @@
     "efc": 2.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3913,7 +8262,23 @@
     "efc": 2.3,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -3927,7 +8292,18 @@
     "efc": 1.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "full",
@@ -3941,7 +8317,18 @@
     "efc": 1.8,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "full",
@@ -3955,7 +8342,18 @@
     "efc": 1.8,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "full",
@@ -3969,7 +8367,18 @@
     "efc": 1.7,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "full",
@@ -3983,7 +8392,18 @@
     "efc": 1.8,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Rotación",
     "bodyPart": "full",
@@ -3997,7 +8417,18 @@
     "efc": 1.8,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Rotación",
     "bodyPart": "full",
@@ -4011,7 +8442,18 @@
     "efc": 1.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Rotación",
     "bodyPart": "full",
@@ -4025,7 +8467,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Extensión",
     "bodyPart": "full",
@@ -4039,7 +8497,23 @@
     "efc": 1.6,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Extensión",
     "bodyPart": "full",
@@ -4053,7 +8527,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Rotación",
     "bodyPart": "full",
@@ -4067,7 +8557,23 @@
     "efc": 1.6,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Rotación",
     "bodyPart": "full",
@@ -4079,9 +8585,20 @@
     "equipment": "Peso Corporal",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Extensión",
     "bodyPart": "full",
@@ -4093,9 +8610,20 @@
     "equipment": "Con Disco",
     "type": "A",
     "efc": 1.3,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Extensión",
     "bodyPart": "full",
@@ -4109,7 +8637,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Rotación",
     "bodyPart": "full",
@@ -4123,7 +8667,23 @@
     "efc": 1.5,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Rotación",
     "bodyPart": "full",
@@ -4137,7 +8697,23 @@
     "efc": 2.5,
     "ssc": 0.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Flexores de Cadera",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "full",
@@ -4151,7 +8727,23 @@
     "efc": 2.8,
     "ssc": 0.3,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Flexores de Cadera",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "full",
@@ -4165,7 +8757,18 @@
     "efc": 1.5,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "full",
@@ -4179,7 +8782,18 @@
     "efc": 1.8,
     "ssc": 0.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Flexión",
     "bodyPart": "full",
@@ -4190,10 +8804,26 @@
     "name": "Leñador",
     "equipment": "Polea Alta",
     "type": "C",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Rotación",
     "bodyPart": "full",
@@ -4204,10 +8834,26 @@
     "name": "Leñador",
     "equipment": "Polea Baja",
     "type": "C",
-    "efc": 2.0,
+    "efc": 2,
     "ssc": 0.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Abdomen",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Abdomen",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Rotación",
     "bodyPart": "full",
@@ -4221,7 +8867,23 @@
     "efc": 3.5,
     "ssc": 1.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4235,7 +8897,23 @@
     "efc": 3.5,
     "ssc": 1.5,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4246,10 +8924,26 @@
     "name": "Paseo del Granjero",
     "equipment": "Trap Bar",
     "type": "C",
-    "efc": 4.0,
+    "efc": 4,
     "ssc": 1.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4263,7 +8957,23 @@
     "efc": 2.8,
     "ssc": 1.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4275,9 +8985,25 @@
     "equipment": "Disco",
     "type": "C",
     "efc": 2.5,
-    "ssc": 1.0,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4288,10 +9014,26 @@
     "name": "Suitcase Carry",
     "equipment": "Kettlebell",
     "type": "C",
-    "efc": 3.0,
-    "ssc": 1.0,
+    "efc": 3,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Rotación",
     "bodyPart": "full",
@@ -4302,10 +9044,26 @@
     "name": "Suitcase Carry",
     "equipment": "Mancuerna",
     "type": "C",
-    "efc": 3.0,
-    "ssc": 1.0,
+    "efc": 3,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Anti-Rotación",
     "bodyPart": "full",
@@ -4317,9 +9075,20 @@
     "equipment": "Polea",
     "type": "A",
     "efc": 1.4,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "lower",
@@ -4331,9 +9100,20 @@
     "equipment": "Banda",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "lower",
@@ -4345,9 +9125,20 @@
     "equipment": "Peso Corporal",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "lower",
@@ -4361,7 +9152,18 @@
     "efc": 1.8,
     "ssc": 0.1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -4373,9 +9175,20 @@
     "equipment": "Máquina",
     "type": "A",
     "efc": 1.6,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -4387,9 +9200,20 @@
     "equipment": "Peso Corporal",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Extensión",
     "bodyPart": "lower",
@@ -4401,9 +9225,20 @@
     "equipment": "Máquina",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "lower",
@@ -4415,9 +9250,20 @@
     "equipment": "Máquina",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "lower",
@@ -4429,9 +9275,20 @@
     "equipment": "Polea",
     "type": "A",
     "efc": 1.2,
-    "ssc": 0.0,
+    "ssc": 0,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "lower",
@@ -4445,7 +9302,18 @@
     "efc": 4.8,
     "ssc": 1.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4459,7 +9327,18 @@
     "efc": 3.5,
     "ssc": 1.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4473,7 +9352,18 @@
     "efc": 4.8,
     "ssc": 1.6,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4485,9 +9375,20 @@
     "equipment": "Kettlebell",
     "type": "C",
     "efc": 3.5,
-    "ssc": 1.0,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Otro",
     "bodyPart": "full",
@@ -4501,7 +9402,23 @@
     "efc": 3.8,
     "ssc": 1.2,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -4513,9 +9430,25 @@
     "equipment": "Kettlebell",
     "type": "C",
     "efc": 3.5,
-    "ssc": 1.0,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Pectoral",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Deltoides Anterior",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -4529,7 +9462,18 @@
     "efc": 4.5,
     "ssc": 1.4,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -4541,9 +9485,20 @@
     "equipment": "Kettlebell",
     "type": "C",
     "efc": 3.8,
-    "ssc": 1.0,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Empuje",
     "bodyPart": "upper",
@@ -4555,9 +9510,20 @@
     "equipment": "Kettlebell",
     "type": "C",
     "efc": 3.5,
-    "ssc": 1.0,
+    "ssc": 1,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
@@ -4571,7 +9537,18 @@
     "efc": 3.2,
     "ssc": 0.8,
     "cnc": 2.5,
-    "involvedMuscles": [],
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
     "category": "Hipertrofia",
     "force": "Tirón",
     "bodyPart": "upper",
