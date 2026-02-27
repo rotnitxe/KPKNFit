@@ -636,8 +636,8 @@ export const App: React.FC = () => {
                 onSettingsClick={() => navigateTo('settings')}
             />
             
-            <main className={`app-main-content scroll-flexible flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : 'pt-4'} pb-[max(150px,calc(var(--tab-bar-safe-bottom,140px)+24px))]`}>
-                <div className={`${view === 'home' || view === 'sleep' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
+            <main className={`app-main-content scroll-flexible flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : 'pt-4'} ${view === 'workout' ? 'pb-0' : 'pb-[max(150px,calc(var(--tab-bar-safe-bottom,140px)+24px))]'}`}>
+                <div className={`${view === 'home' || view === 'sleep' || view === 'workout' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
                         <Suspense fallback={<ViewFallback />}>
                             {renderView()}
@@ -646,8 +646,8 @@ export const App: React.FC = () => {
                 </div>
             </main>
             
-            {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor, Session Editor, and Nutrition Wizard/Landing */}
-            {view !== 'program-editor' && view !== 'session-editor' && (view !== 'nutrition' || settings.hasSeenNutritionWizard) && (
+            {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor, Session Editor, Workout, and Nutrition Wizard/Landing */}
+            {view !== 'program-editor' && view !== 'session-editor' && view !== 'workout' && (view !== 'nutrition' || settings.hasSeenNutritionWizard) && (
                 <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] rounded-t-none min-h-[88px] flex flex-col`}>
                      <div className="flex flex-col w-full flex-1 min-h-0">
                         <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />

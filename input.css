@@ -88,13 +88,13 @@
 
 /* --- Session card & tabular numbers (Fricción Cero) --- */
 .session-card-base {
-    background: #15171E;
-    border: 1px solid #2A2D38;
-    border-radius: 4px;
+    background: #0d1117;
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    border-radius: 8px;
 }
 .session-row-pending { background: transparent; }
-.session-row-active { background: #2A2D38; border-bottom: 1px solid #00F0FF; }
-.session-row-completed { background: #0A0B0E; }
+.session-row-active { background: rgba(0, 240, 255, 0.08); border-bottom: 1px solid rgba(0, 240, 255, 0.4); }
+.session-row-completed { background: rgba(0, 255, 157, 0.06); }
 
 .font-tabular {
     font-variant-numeric: tabular-nums;

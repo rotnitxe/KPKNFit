@@ -3,7 +3,8 @@
 import { Program, DetailedMuscleVolumeAnalysis, ExerciseMuscleInfo, Settings, Session, MuscleHierarchy, Exercise, WorkoutLog, ExerciseSet, CompletedSet, ProgramWeek, NutritionLog, BodyProgressLog } from '../types';
 import { getWeekId, calculateFFMI, calculateBrzycki1RM } from '../utils/calculations';
 import { isSetEffective, calculateCompletedSessionStress, HYPERTROPHY_ROLE_MULTIPLIERS, classifyACWR } from './auge';
-const MUSCLE_ROLE_MULTIPLIERS = HYPERTROPHY_ROLE_MULTIPLIERS;
+// Fallback para Worker/edge cases donde el import puede no estar inicializado
+const MUSCLE_ROLE_MULTIPLIERS = HYPERTROPHY_ROLE_MULTIPLIERS ?? { primary: 1.0, secondary: 0.5, stabilizer: 0, neutralizer: 0 };
 import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 import { getLocalDateString, getDatePartFromString, parseDateStringAsLocal } from '../utils/dateUtils';
 
@@ -18,7 +19,9 @@ const createChildToParentMap = (hierarchy: MuscleHierarchy): Map<string, string>
             if (typeof item === 'object' && item !== null) {
                 const subgroupName = Object.keys(item)[0];
                 const children = Object.values(item)[0];
-                children.forEach(child => map.set(child, subgroupName));
+                if (Array.isArray(children) && subgroupName) {
+                    children.forEach(child => map.set(child, subgroupName));
+                }
             }
         }
     }
@@ -75,28 +78,30 @@ export const calculateAverageVolumeForWeeks = (
                 const highestRolePerGroup = new Map<string, { maxMultiplier: number, bestRole: string }>();
 
                 exerciseData.involvedMuscles.forEach(m => {
+                    if (!m || !m.muscle) return; // Blindaje contra datos malformados
                     const group = getDisplayGroup(m.muscle);
+                    const role = m.role ?? 'primary';
                     
                     // 1. Lógica de Frecuencia Intra-Sesión
                     const currentFreq = sessionFreqImpact.get(group) || { direct: 0, indirect: 0 };
-                    if ((m.role === 'primary' || m.role === 'secondary') && hasDirectEffectiveSets) {
-                        const impactVal = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0.5;
+                    if ((role === 'primary' || role === 'secondary') && hasDirectEffectiveSets) {
+                        const impactVal = MUSCLE_ROLE_MULTIPLIERS[role] ?? 0.5;
                         currentFreq.direct = Math.max(currentFreq.direct, impactVal);
-                    } else if (m.role === 'stabilizer' || m.role === 'neutralizer') {
+                    } else if (role === 'stabilizer' || role === 'neutralizer') {
                         currentFreq.indirect = 1.0;
                     }
                     sessionFreqImpact.set(group, currentFreq);
 
                     // 2. Lógica de Volumen Original
-                    if (mode === 'simple' && m.role !== 'primary') return;
+                    if (mode === 'simple' && role !== 'primary') return;
                     
-                    const multiplier = mode === 'simple' ? 1.0 : (MUSCLE_ROLE_MULTIPLIERS[m.role] || 0.5);
+                    const multiplier = mode === 'simple' ? 1.0 : (MUSCLE_ROLE_MULTIPLIERS[role] ?? 0.5);
                     
                     const existing = highestRolePerGroup.get(group);
                     if (!existing || existing.maxMultiplier < multiplier) {
                         highestRolePerGroup.set(group, {
                             maxMultiplier: multiplier,
-                            bestRole: m.role
+                            bestRole: role
                         });
                     }
                 });

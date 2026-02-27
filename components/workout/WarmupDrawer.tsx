@@ -59,7 +59,7 @@ const WarmupDrawer: React.FC<WarmupDrawerProps> = ({
   };
 
   return (
-    <WorkoutDrawer isOpen={isOpen} onClose={onClose} title="Calentamiento" height="85vh">
+    <WorkoutDrawer isOpen={isOpen} onClose={onClose} title="Series de aproximación" height="85vh">
       <div className="p-5 space-y-6">
         <div className="text-center">
           <div className="inline-flex items-center gap-2 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
