@@ -974,6 +974,36 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         return items;
     }, [renderExercises]);
 
+    const handleCarouselReorder = useCallback((newItems: CarouselItemType[]) => {
+        const exerciseItems = newItems.filter((it): it is CarouselItem => it.type === 'exercise');
+        const reorderedExercises = exerciseItems.flatMap(it => it.exercises);
+        if (reorderedExercises.length === 0) return;
+        const modeKey = activeMode === 'A' ? null : (`session${activeMode}` as 'sessionB' | 'sessionC' | 'sessionD');
+        const applyReorder = (session: Session): Session => {
+            const updated = { ...session };
+            if (session.parts && session.parts.length > 0) {
+                updated.parts = [{ ...session.parts[0], exercises: reorderedExercises }];
+            } else {
+                updated.exercises = reorderedExercises;
+            }
+            return updated;
+        };
+        setCurrentSession(prev => {
+            if (modeKey && (prev as any)[modeKey]) {
+                return { ...prev, [modeKey]: applyReorder((prev as any)[modeKey]) };
+            }
+            return applyReorder(prev);
+        });
+        setOngoingWorkout(prev => {
+            if (!prev) return null;
+            const sessionToUpdate = modeKey && (prev.session as any)[modeKey] ? (prev.session as any)[modeKey] : prev.session;
+            const updatedSession = modeKey && (prev.session as any)[modeKey]
+                ? { ...prev.session, [modeKey]: applyReorder((prev.session as any)[modeKey]) }
+                : applyReorder(prev.session);
+            return { ...prev, session: updatedSession };
+        });
+    }, [activeMode]);
+
     const [viewMode, setViewMode] = useState<'carousel' | 'list'>('carousel');
     useEffect(() => { onWorkoutViewModeChange?.(viewMode); }, [viewMode, onWorkoutViewModeChange]);
     const [skippedExerciseIds, setSkippedExerciseIds] = useState<Set<string>>(new Set());
@@ -1562,7 +1592,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 totalSetsCount={allExercises.reduce((acc, ex) => acc + (ex.sets?.filter((s: any) => (s as any).type !== 'warmup').length ?? 0), 0)}
             />
             
-            <div className={`mt-4 px-2 sm:px-4 space-y-10 relative ${viewMode === 'carousel' ? 'flex-1 min-h-0 overflow-y-auto pb-36 px-4 sm:px-6' : 'pb-20'}`}>
+            <div className={`${viewMode === 'carousel' ? 'mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none' : 'mt-4 px-2 sm:px-4 space-y-10 pb-20'} relative`}>
             {displayParts.map((part: any, partIndex: number) => {
                     const theme = getPartTheme(part.name || '');
                     const isCarousel = viewMode === 'carousel';
@@ -1571,7 +1601,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                         <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({...prev, [part.id]: !prev[part.id]})); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none rounded-xl border border-white/5 shadow-lg" style={{ borderLeft: `4px solid ${theme.color}`, background: `linear-gradient(90deg, ${theme.bgColor} 0%, transparent 100%)` }}>
                             <div className="flex items-center gap-3"><span className="text-xl" role="img">{theme.icon}</span><h3 className="text-sm font-black uppercase tracking-widest" style={{ color: theme.color }}>{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-slate-500 transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
                         </summary>
-                        <div className={`space-y-4 relative ${isCarousel ? 'pl-0' : 'pl-1'}`}>
+                        <div className={`space-y-4 relative ${isCarousel ? 'pl-0 pr-0 w-full' : 'pl-1'}`}>
                             {part.exercises.map((ex: Exercise) => {
                                 const exInfo = exerciseList.find(e => e.id === ex.exerciseDbId);
                                 const pr = findPrForExercise(exInfo || ({} as any), history, settings, selectedTags[ex.id]);
@@ -1603,7 +1633,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                     </div>
                                                 </div>
                                             </summary>
-                                            <div className={`set-card-content !border-none !p-2 space-y-2 relative ${isCarousel ? '!p-4 sm:!p-6' : ''}`}>
+                                            <div className={`set-card-content !border-none !p-2 space-y-2 relative ${isCarousel ? '!p-3 sm:!p-4 !max-w-none w-full' : ''}`}>
                                                 {isCarousel && (
                                                     <div className="mb-4 flex items-center justify-between">
                                                         <h3 className="text-lg font-mono font-black text-cyber-cyan truncate">{ex.name}</h3>
@@ -1622,7 +1652,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                 {/* Series de aproximación (vista separada) + Series efectivas */}
                                                 <div className="space-y-4" ref={(el) => { setsContainerRefs.current[ex.id] = el; }}>
                                                     {hasWarmup && (
-                                                        <div id={`warmup-card-${ex.id}`} className={`overflow-hidden ${isCarousel ? 'rounded-xl border border-sky-500/30 bg-slate-950/90' : 'rounded-xl border border-sky-500/20 bg-slate-900/60'} border-l-4 border-l-sky-500/60`}>
+                                                        <div id={`warmup-card-${ex.id}`} className={`overflow-hidden ${isCarousel ? 'rounded-none border-0 border-t border-sky-500/20 bg-slate-900/40' : 'rounded-xl border border-sky-500/20 bg-slate-900/60'} ${!isCarousel ? 'border-l-4 border-l-sky-500/60' : 'border-l-0'}`}>
                                                             <div className="px-3 py-2 border-b border-sky-500/20 flex items-center justify-between">
                                                                 <div className="flex items-center gap-2">
                                                                     <FlameIcon size={18} className="text-sky-400" />
@@ -1650,8 +1680,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                             </div>
                                                         </div>
                                                     )}
-                                                    <div className={`overflow-hidden ${isCarousel ? 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80' : 'session-card-base'}`}>
-                                                        <div className="px-2 py-1.5 border-b border-cyber-cyan/20 flex items-center gap-2">
+                                                    <div className={`overflow-hidden ${isCarousel ? 'rounded-none border-0 border-t border-cyber-cyan/10 bg-transparent' : 'session-card-base'}`}>
+                                                        <div className={`${isCarousel ? 'px-2 py-1 border-b border-cyber-cyan/15' : 'px-2 py-1.5 border-b border-cyber-cyan/20'} flex items-center gap-2`}>
                                                             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-cyber-cyan/90">Series efectivas</span>
                                                         </div>
                                                         <div className="session-table w-full" data-tabular="true">
@@ -1699,7 +1729,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                             })}
                                                         </div>
                                                     </div>
-                                                    <div id={`feedback-card-${ex.id}`} className={`overflow-hidden ${isCarousel ? 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80' : 'session-card-base'}`}>
+                                                    <div id={`feedback-card-${ex.id}`} className={`overflow-hidden ${isCarousel ? 'rounded-none border-0 border-t border-cyber-cyan/10 bg-slate-900/30' : 'session-card-base'}`}>
                                                         <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-cyber-cyan/5 transition-colors min-h-[48px]">
                                                             <ActivityIcon size={24} className="text-cyber-cyan" />
                                                             <span className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan">Feedback Post-Ejercicio</span>
@@ -1740,6 +1770,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                         onLongPressExercise={(item) => setContextMenuItem({ item })}
                         onFinishCardExpand={() => setFinishCardExpanded(true)}
                         onFinish={() => { setFinishCardExpanded(false); setIsFinishModalOpen(true); }}
+                        onReorder={handleCarouselReorder}
                         durationMinutes={Math.floor(duration / 60)}
                         completedSetsCount={Object.keys(completedSets).length}
                         totalSetsCount={allExercises.reduce((acc, ex) => acc + (ex.sets?.filter((s: any) => s.type !== 'warmup').length ?? 0), 0)}

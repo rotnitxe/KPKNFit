@@ -636,7 +636,7 @@ export const App: React.FC = () => {
                 onSettingsClick={() => navigateTo('settings')}
             />
             
-            <main className={`app-main-content scroll-flexible flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : 'pt-4'} ${view === 'workout' ? 'pb-0' : 'pb-[max(150px,calc(var(--tab-bar-safe-bottom,140px)+24px))]'}`}>
+            <main className={`app-main-content scroll-flexible flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : view === 'workout' ? 'pt-0 pb-0' : 'pt-4 pb-[max(150px,calc(var(--tab-bar-safe-bottom,140px)+24px))]'}`}>
                 <div className={`${view === 'home' || view === 'sleep' || view === 'workout' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
                         <Suspense fallback={<ViewFallback />}>
