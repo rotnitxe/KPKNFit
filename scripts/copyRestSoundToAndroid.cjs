@@ -1,18 +1,13 @@
 /**
- * Copia el sonido beeper_confirm.wav al proyecto Android para notificaciones.
- * El archivo debe estar en res/raw para que el canal de notificación lo use.
+ * Copia los sonidos al proyecto Android para notificaciones (descanso terminado).
+ * Los archivos deben estar en res/raw para que el canal de notificación los use.
  */
 const fs = require('fs');
 const path = require('path');
 
-const SRC = path.join(__dirname, '..', 'www', 'assets', 'sounds', 'beeper_confirm.wav');
+const SOUNDS = ['beeper_confirm.wav', 'rest_beep_final.wav'];
+const SRC_DIR = path.join(__dirname, '..', 'www', 'assets', 'sounds');
 const DEST_DIR = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'res', 'raw');
-const DEST = path.join(DEST_DIR, 'beeper_confirm.wav');
-
-if (!fs.existsSync(SRC)) {
-  console.warn('[copyRestSound] beeper_confirm.wav no encontrado en www/assets/sounds - generando sonidos primero');
-  process.exit(0);
-}
 
 if (!fs.existsSync(path.join(__dirname, '..', 'android'))) {
   console.log('[copyRestSound] Carpeta android no existe, saltando copia');
@@ -23,5 +18,10 @@ if (!fs.existsSync(DEST_DIR)) {
   fs.mkdirSync(DEST_DIR, { recursive: true });
 }
 
-fs.copyFileSync(SRC, DEST);
-console.log('[copyRestSound] beeper_confirm.wav copiado a android res/raw');
+for (const name of SOUNDS) {
+  const src = path.join(SRC_DIR, name);
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, path.join(DEST_DIR, name));
+    console.log('[copyRestSound]', name, 'copiado a android res/raw');
+  }
+}

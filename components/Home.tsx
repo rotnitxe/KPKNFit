@@ -306,24 +306,21 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
             {shareLog && (() => {
                 const cardData = buildShareCardDataFromLog(shareLog, settings?.weightUnit ?? 'kg');
                 return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
-                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-lg font-black text-white mb-4 uppercase tracking-wider">Compartir sesión</h3>
-                        <div className="mb-4 rounded-xl overflow-hidden border border-white/10 flex justify-center">
-                            <div className="scale-[0.45] origin-top">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80">
+                    <div className="bg-zinc-900 border border-white/10 rounded-xl p-4 w-full max-w-[260px] flex flex-col items-center">
+                        <h3 className="text-xs font-black text-white mb-2 uppercase">Compartir</h3>
+                        <div className="rounded border border-white/10 mb-2 overflow-hidden" style={{ width: 108, height: 192 }}>
+                            <div className="w-[540px] h-[960px] origin-top-left" style={{ transform: 'scale(0.2)' }}>
                                 <WorkoutShareCard {...cardData} preview />
                             </div>
                         </div>
-                        <div className="fixed -left-[9999px] w-[540px] h-[960px] overflow-hidden">
-                            <WorkoutShareCard {...cardData} />
-                        </div>
-                        <p className="text-xs text-zinc-500 mb-4">Vista previa de la imagen para stories</p>
-                        <div className="flex gap-2">
-                            <Button variant="secondary" className="flex-1" onClick={() => setShareLog(null)}>
+                        <WorkoutShareCard {...cardData} />
+                        <div className="flex gap-2 w-full mt-2">
+                            <Button variant="secondary" className="flex-1 !py-2.5 !text-xs" onClick={() => setShareLog(null)}>
                                 Cancelar
                             </Button>
                             <Button
-                                className="flex-1 flex items-center justify-center gap-2"
+                                className="flex-1 !py-2.5 !text-xs flex items-center justify-center gap-2"
                                 onClick={async () => {
                                     setIsSharing(true);
                                     await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'Registra tus entrenamientos con KPKN. #KPKN #Fitness');
@@ -332,7 +329,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout }) => {
                                 }}
                                 disabled={isSharing}
                             >
-                                {isSharing ? <span className="animate-pulse">Compartiendo...</span> : <><LinkIcon size={18} /> Compartir</>}
+                                {isSharing ? <span className="animate-pulse">Compartiendo...</span> : <><LinkIcon size={14} /> Compartir</>}
                             </Button>
                         </div>
                     </div>

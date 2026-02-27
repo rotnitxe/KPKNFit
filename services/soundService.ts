@@ -9,6 +9,8 @@ const audioElements: { [key: string]: HTMLAudioElement } = {};
 
 const SOUND_FILES: { [key: string]: string } = {
   'rest-timer-sound': 'https://actions.google.com/sounds/v1/emergency/beeper_confirm.ogg',
+  'rest-beep-short': 'https://actions.google.com/sounds/v1/emergency/beeper_confirm.ogg',
+  'rest-beep-final': 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg',
   'set-logged-sound': 'https://actions.google.com/sounds/v1/switches/switch_toggle_on.ogg',
   'ui-click-sound': 'https://actions.google.com/sounds/v1/ui/ui_tap_forward.ogg',
   'tab-switch-sound': 'https://actions.google.com/sounds/v1/ui/ui_tap_reverse.ogg',
@@ -20,6 +22,8 @@ const SOUND_FILES: { [key: string]: string } = {
 // Local WAV files in www/assets/sounds/ (copied to public/assets/sounds/ by cap sync)
 const NATIVE_ASSET_PATHS: { [key: string]: string } = {
     'rest-timer-sound': 'public/assets/sounds/beeper_confirm.wav',
+    'rest-beep-short': 'public/assets/sounds/rest_beep_short.wav',
+    'rest-beep-final': 'public/assets/sounds/rest_beep_final.wav',
     'set-logged-sound': 'public/assets/sounds/switch_toggle_on.wav',
     'ui-click-sound': 'public/assets/sounds/ui_tap_forward.wav',
     'tab-switch-sound': 'public/assets/sounds/ui_tap_reverse.wav',

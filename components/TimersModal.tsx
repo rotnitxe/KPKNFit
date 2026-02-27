@@ -67,8 +67,8 @@ const Timer: React.FC = () => {
                 if (remaining <= 0) {
                     setTimeLeft(0);
                     setIsRunning(false);
-                    playSound('rest-timer-sound');
-                    hapticNotification(NotificationType.Success);
+                    playSound('rest-beep-final');
+                    hapticNotification(NotificationType.Warning);
                 } else {
                     setTimeLeft(remaining);
                 }

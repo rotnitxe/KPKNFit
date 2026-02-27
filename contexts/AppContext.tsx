@@ -921,8 +921,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const restTimerInterval = useRef<number | null>(null);
     const hasFiredRestEndFeedback = useRef(false);
+    const lastCountdownSecond = useRef<number>(-1);
     const handleStartRest = useCallback((duration: number, exerciseName: string) => {
         hasFiredRestEndFeedback.current = false;
+        lastCountdownSecond.current = -1;
         if (restTimerInterval.current) clearInterval(restTimerInterval.current);
         const key = Date.now();
         const endTime = Date.now() + duration * 1000;
@@ -940,13 +942,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                                 const isForeground = !Capacitor.isNativePlatform() || (await import('@capacitor/app').then(m => m.App.getState())).isActive;
                                 if (isForeground) {
                                     cancelRestEndNotification();
-                                    playSound('rest-timer-sound');
-                                    hapticNotification(NotificationType.Success);
+                                    playSound('rest-beep-final');
+                                    hapticNotification(NotificationType.Warning);
                                 }
                             })();
                         }
                         setTimeout(() => ui.setRestTimer(t => t?.key === key ? null : t), 3000);
                         return { ...currentTimer, remaining: 0 };
+                    }
+                    if (newRemaining <= 3 && newRemaining >= 1 && lastCountdownSecond.current !== newRemaining) {
+                        lastCountdownSecond.current = newRemaining;
+                        playSound('rest-beep-short');
                     }
                     return { ...currentTimer, remaining: newRemaining };
                 }

@@ -78,72 +78,73 @@ export const buildShareCardDataFromLog = (log: { date: string; duration?: number
   };
 };
 
-export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, difficulty, pump, exerciseSummaries, preview }) => {
+const MAX_EXERCISES_IN_SHARE = 14;
+
+export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, exerciseSummaries, preview }) => {
+    const displayed = exerciseSummaries.slice(0, MAX_EXERCISES_IN_SHARE);
+    const restCount = exerciseSummaries.length - MAX_EXERCISES_IN_SHARE;
+
     const wrapperClass = preview
-        ? 'relative w-[540px] h-[960px] bg-black text-white overflow-hidden flex flex-col font-sans rounded-xl'
-        : 'fixed top-0 left-[-2000px] w-[540px] h-[960px] bg-black text-white overflow-hidden pointer-events-none z-[-10] flex flex-col font-sans';
+        ? 'relative w-[540px] h-[960px] flex items-center justify-center font-sans overflow-hidden'
+        : 'fixed w-[540px] h-[960px] flex items-center justify-center font-sans overflow-hidden pointer-events-none';
+    const captureStyle: React.CSSProperties = preview ? {} : { left: 0, top: 0, zIndex: -1 };
     return (
-        <div id={preview ? undefined : 'workout-summary-share-card'} className={wrapperClass}>
-             <div className="absolute inset-0 z-0 opacity-40 mix-blend-luminosity scale-110 -translate-y-10">
-                <CaupolicanBackground />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-[#0a0a0a] z-0" />
-            <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+        <div id={preview ? undefined : 'workout-summary-share-card'} className={wrapperClass} style={preview ? undefined : captureStyle}>
+            {/* Fondo del frame (gradiente sutil) */}
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.08)_0%,transparent_70%)]" />
 
-            <div className="relative z-10 flex flex-col h-full p-12 justify-between">
-                <div className="flex justify-between items-start">
-                    <div className="flex flex-col">
-                        <span className="text-[14px] font-black text-white/40 uppercase tracking-[0.4em] mb-1">Sesión de entrenamiento</span>
-                        <span className="text-xl font-bold text-white uppercase tracking-widest">
-                            {new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </span>
-                    </div>
-                    <div className="w-16 h-16 rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.3)] overflow-hidden bg-white flex items-center justify-center">
-                        <img src="/caupolican-icon.svg" alt="" className="w-full h-full object-contain p-1" aria-hidden />
-                    </div>
+            {/* Tarjeta centrada con bordes redondeados */}
+            <div className="relative w-[480px] h-[860px] rounded-[28px] overflow-hidden border border-white/[0.12] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_25px_50px_-12px_rgba(0,0,0,0.5)] flex flex-col bg-zinc-950">
+                <div className="absolute inset-0 z-0 opacity-30 mix-blend-luminosity scale-110 -translate-y-8" style={{ overflow: 'hidden' }}>
+                    <CaupolicanBackground />
                 </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/50 to-zinc-950 z-0" />
+                <div className="absolute inset-0 opacity-[0.12] mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
 
-                {/* Ejercicios + barra de gradiente */}
-                <div className="flex flex-col flex-1 min-h-0 mt-6 mb-6">
-                    <div className="flex-1 overflow-hidden">
-                        {exerciseSummaries.length > 0 ? (
-                            <div className="space-y-2 max-h-[280px] overflow-y-auto custom-scrollbar pr-1">
-                                {exerciseSummaries.map((ex, i) => (
-                                    <div key={i} className="flex flex-col gap-0.5">
-                                        <span className="text-sm font-bold text-white">{ex.name}</span>
-                                        <span className="text-xs text-cyan-400/90 font-mono">{ex.line}</span>
+                <div className="relative z-10 flex flex-col h-full p-5 box-border text-white" style={{ minHeight: 0 }}>
+                    {/* Header */}
+                    <div className="flex justify-between items-center shrink-0 mb-2">
+                        <div>
+                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block">Sesión de entrenamiento</span>
+                            <span className="text-sm font-bold text-white">{new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                        <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center p-1.5 shrink-0 shadow-lg">
+                            <img src="/caupolican-icon.svg" alt="" className="w-full h-full object-contain" loading="eager" decoding="sync" aria-hidden />
+                        </div>
+                    </div>
+
+                    {/* Ejercicios */}
+                    <div className="flex-1 min-h-0 flex flex-col py-2">
+                        {displayed.length > 0 ? (
+                            <div className="space-y-0.5 flex-1 min-h-0" style={{ overflow: 'hidden' }}>
+                                {displayed.map((ex, i) => (
+                                    <div key={i} className="flex justify-between gap-2 text-[10px] leading-tight py-0.5">
+                                        <span className="font-bold text-white flex-1 min-w-0 truncate">{ex.name}</span>
+                                        <span className="text-cyan-400/90 font-mono shrink-0 text-right">{ex.line}</span>
                                     </div>
                                 ))}
+                                {restCount > 0 && (
+                                    <div className="text-[9px] text-white/50 pt-1">+{restCount} más</div>
+                                )}
                             </div>
                         ) : (
-                            <div className="h-24 flex items-center justify-center">
-                                <span className="text-white/40 text-sm">Ejercicios de la sesión</span>
+                            <div className="flex items-center justify-center flex-1 min-h-[80px]">
+                                <span className="text-white/40 text-xs">Ejercicios de la sesión</span>
                             </div>
                         )}
+                        <div className="h-0.5 w-full mt-2 rounded-full bg-gradient-to-r from-red-500 to-cyan-500 shrink-0" />
                     </div>
-                    <div className="h-1 w-full mt-4 rounded-full bg-gradient-to-r from-red-500 to-cyan-500" />
-                </div>
 
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                     <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
-                         <ClockIcon size={32} className="text-white/50 mb-3" />
-                         <p className="text-[3rem] font-black text-white leading-none">{duration}</p>
-                         <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Minutos</p>
-                     </div>
-                     <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
-                         <ZapIcon size={32} className="text-yellow-500/80 mb-3" />
-                         <p className="text-[3rem] font-black text-yellow-400 leading-none">{difficulty}</p>
-                         <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Intensidad</p>
-                     </div>
-                     <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl">
-                         <ActivityIcon size={32} className="text-red-500/80 mb-3" />
-                         <p className="text-[3rem] font-black text-red-400 leading-none">{pump}</p>
-                         <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-widest mt-2">Pump</p>
-                     </div>
-                </div>
-
-                <div className="text-center pt-6 border-t border-white/10">
-                     <p className="text-sm font-black text-white/50 uppercase tracking-[0.3em]">Registra tus entrenamientos con KPKN</p>
+                    {/* Minutos + footer */}
+                    <div className="shrink-0 space-y-2 pt-2">
+                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 flex items-center justify-center gap-2">
+                            <ClockIcon size={18} className="text-white/50 shrink-0" />
+                            <span className="text-xl font-black text-white">{duration}</span>
+                            <span className="text-[9px] text-zinc-400 font-bold uppercase shrink-0">min</span>
+                        </div>
+                        <p className="text-[9px] font-black text-white/40 uppercase tracking-widest text-center">Registra tus entrenamientos con KPKN</p>
+                    </div>
                 </div>
             </div>
         </div>

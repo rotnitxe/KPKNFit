@@ -43,6 +43,8 @@ function createWav(freq, durationMs, sampleRate = 44100) {
 
 const sounds = {
   'beeper_confirm': () => createWav(880, 150),
+  'rest_beep_short': () => createWav(880, 120),
+  'rest_beep_final': () => createWav(880, 450),
   'switch_toggle_on': () => createWav(600, 80),
   'ui_tap_forward': () => createWav(400, 50),
   'ui_tap_reverse': () => createWav(350, 50),

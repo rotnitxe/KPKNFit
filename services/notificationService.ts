@@ -94,7 +94,7 @@ export const setupNotificationChannels = async () => {
       description: 'Descanso entre series: sonido y vibración',
       importance: 5,
       visibility: 1,
-      sound: 'beeper_confirm.wav',
+      sound: 'rest_beep_final.wav',
       vibration: true,
       lights: true,
     });
@@ -279,13 +279,15 @@ function getTodaysSession(state: NotificationState): { session: Session; program
 }
 
 async function scheduleSessionToday(state: NotificationState): Promise<void> {
-  const { settings } = state;
+  const { settings, history } = state;
   if (!settings.remindersEnabled || !settings.reminderTime || !Capacitor.isNativePlatform()) return;
   if (!(await ensurePermissions())) return;
   try {
     await cancelNotificationIds([ID_SESSION_TODAY]);
     const todays = getTodaysSession(state);
     if (!todays) return;
+    const today = getTodayDateString();
+    if (history.some(log => log.date === today)) return;
     const at = getNextAtTime(settings.reminderTime, true);
     if (at.getTime() <= Date.now()) return;
     const { LocalNotifications } = await getLocalNotifications();
@@ -394,17 +396,18 @@ function getTodaysSessionDayOfWeek(state: NotificationState): number | null {
 
 async function scheduleMissedWorkout(state: NotificationState): Promise<void> {
   const { settings, history } = state;
-  if (!settings.missedWorkoutReminderEnabled || !Capacitor.isNativePlatform()) return;
+  if (!Capacitor.isNativePlatform()) return;
   if (!(await ensurePermissions())) return;
   try {
     const dayOfWeek = getTodaysSessionDayOfWeek(state);
     if (dayOfWeek === null) return;
+    const id = ID_MISSED_START + (dayOfWeek % 7);
+    await cancelNotificationIds([id]);
+
+    if (!settings.missedWorkoutReminderEnabled) return;
     const today = getTodayDateString();
     const hasLogToday = history.some(log => log.date === today);
     if (hasLogToday) return;
-
-    const id = ID_MISSED_START + (dayOfWeek % 7);
-    await cancelNotificationIds([id]);
     const at = getNextAtTime(settings.missedWorkoutReminderTime || '21:00', true);
     if (at.getTime() <= Date.now()) return;
     const { LocalNotifications } = await getLocalNotifications();

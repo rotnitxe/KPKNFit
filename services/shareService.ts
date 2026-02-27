@@ -16,12 +16,14 @@ export const shareElementAsImage = async (elementId: string, title: string, text
             return;
         }
 
-        // Generate canvas from DOM element
+        // Generate canvas from DOM element (540x960 → 1080x1920 para Instagram Stories)
         const canvas = await html2canvas(element, {
             backgroundColor: '#000000',
             useCORS: true,
-            scale: 2, // Resolution for IG Stories
+            scale: 2,
             logging: false,
+            scrollX: 0,
+            scrollY: 0,
         });
 
         // 1. INTENTO PWA (Web Share API) - Solución para Instagram
