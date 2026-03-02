@@ -24,26 +24,19 @@ export const SplitStep: React.FC<SplitStepProps> = ({
 }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+
   const recommended = SPLIT_TEMPLATES.filter((s) => RECOMMENDED_IDS.includes(s.id));
-  const others = SPLIT_TEMPLATES.filter((s) => !RECOMMENDED_IDS.includes(s.id) && s.id !== 'custom');
-  const filteredOthers = search.trim()
-    ? others.filter(
+  const advancedTemplates = SPLIT_TEMPLATES.filter((s) => !RECOMMENDED_IDS.includes(s.id) && s.id !== 'custom');
+
+  const filteredAdvanced = search.trim()
+    ? advancedTemplates.filter(
         (s) =>
           s.name.toLowerCase().includes(search.toLowerCase()) ||
           s.description.toLowerCase().includes(search.toLowerCase())
       )
-    : others.slice(0, 12);
+    : advancedTemplates;
 
-  const allFiltered = search.trim()
-    ? SPLIT_TEMPLATES.filter(
-        (s) =>
-          s.id !== 'custom' &&
-          (s.name.toLowerCase().includes(search.toLowerCase()) ||
-            s.description.toLowerCase().includes(search.toLowerCase()))
-      )
-    : null;
-
-  const list = allFiltered ?? [...recommended, ...filteredOthers];
+  const listToRender = showAdvanced ? filteredAdvanced : recommended;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -57,9 +50,10 @@ export const SplitStep: React.FC<SplitStepProps> = ({
             onClick={onToggleAdvanced}
             className="text-xs text-[#737373] underline shrink-0"
           >
-            {showAdvanced ? 'Ocultar' : 'Mostrar'} opciones avanzadas
+            {showAdvanced ? 'Ver recomendados' : 'Mostrar opciones avanzadas'}
           </button>
         </div>
+        
         {showAdvanced && (
           <input
             type="text"
@@ -69,8 +63,9 @@ export const SplitStep: React.FC<SplitStepProps> = ({
             className="w-full bg-[#252525] border border-[#3f3f3f] px-4 py-2 text-white text-sm placeholder-[#737373] mb-4 focus:border-[#525252] outline-none"
           />
         )}
+        
         <div className="space-y-2">
-          {list.map((split) => {
+          {listToRender.map((split) => {
             const isExpanded = expandedId === split.id;
             const isSelected = selectedSplitId === split.id;
             return (
@@ -113,6 +108,7 @@ export const SplitStep: React.FC<SplitStepProps> = ({
           })}
         </div>
       </div>
+      
       <div className="shrink-0 p-4 flex gap-3 border-t border-[#2a2a2a]">
         <button onClick={onBack} className="flex-1 py-4 bg-[#252525] text-white font-medium text-sm border border-[#3f3f3f]">
           Atrás

@@ -202,7 +202,7 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
   }, [setSettings, onComplete]);
 
   const handleBatteryApplyCalibration = useCallback((calibration: any) => {
-    setSettings({ batteryCalibration: calibration });
+    setSettings(calibration);
   }, [setSettings]);
 
   useEffect(() => {
@@ -285,22 +285,85 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
     }
   };
 
+  const wizardPhases: WizardPhase[] = ['physical', 'athlete', 'program-name', 'split', 'volume', 'recent-workouts', 'battery'];
+  const currentPhaseIndex = wizardPhases.indexOf(phase);
+
+  const goNextPhase = () => {
+    if (currentPhaseIndex < wizardPhases.length - 1) {
+      setPhase(wizardPhases[currentPhaseIndex + 1]);
+    }
+  };
+
+  const goPrevPhase = () => {
+    if (currentPhaseIndex > 0) {
+      setPhase(wizardPhases[currentPhaseIndex - 1]);
+    } else {
+      setPhase('welcome');
+    }
+  };
+
+  // Variables locales para gestionar el swipe sin romper las reglas de los Hooks de React
+  let touchStartX = 0;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartX) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const distance = touchStartX - touchEndX;
+    
+    // Umbral de 50px para considerar que es un swipe válido
+    if (distance > 50) goNextPhase(); // Swipe a la izquierda -> Adelante
+    if (distance < -50) goPrevPhase(); // Swipe a la derecha -> Atrás
+    touchStartX = 0;
+  };
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[9999] flex flex-col bg-[#0a0a0a] overflow-hidden safe-area-root">
-      <div className="absolute top-0 left-0 right-0 h-1 flex gap-1 px-4 mt-[env(safe-area-inset-top)]">
-        {['physical', 'athlete', 'program-name', 'split', 'volume', 'recent-workouts', 'battery'].map((p, i) => {
-          const phases: WizardPhase[] = ['physical', 'athlete', 'program-name', 'split', 'volume', 'recent-workouts', 'battery'];
-          return <div key={p} className={`h-full flex-1 rounded-full transition-all duration-500 ${i <= phases.indexOf(phase) ? 'bg-[#facc15]' : 'bg-white/10'}`} />;
-        })}
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className="fixed inset-0 z-[9999] flex flex-col bg-[#0a0a0a] overflow-hidden safe-area-root"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="absolute top-0 left-0 right-0 h-1 flex gap-1 px-4 mt-[max(0.5rem,env(safe-area-inset-top))] z-50">
+        {wizardPhases.map((p, i) => (
+          <div key={p} className={`h-full flex-1 rounded-full transition-all duration-500 ${i <= currentPhaseIndex ? 'bg-[#facc15]' : 'bg-white/10'}`} />
+        ))}
       </div>
+
+      {/* Botones de navegación globales */}
+      <div className="absolute top-4 left-4 right-4 flex justify-between z-50 mt-[max(1rem,env(safe-area-inset-top))]">
+        <button 
+          onClick={goPrevPhase} 
+          className="px-4 py-2 bg-black/60 rounded-full text-white/80 hover:text-white backdrop-blur-md text-sm font-medium border border-white/10 shadow-lg"
+        >
+          ← Atrás
+        </button>
+        <button 
+          onClick={goNextPhase} 
+          className="px-4 py-2 bg-black/60 rounded-full text-white/80 hover:text-white backdrop-blur-md text-sm font-medium border border-white/10 shadow-lg"
+          style={{ visibility: currentPhaseIndex === wizardPhases.length - 1 ? 'hidden' : 'visible' }}
+        >
+          Adelante →
+        </button>
+      </div>
+
       <AnimatePresence mode="wait">
-        <motion.div key={phase} initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} transition={{ duration: 0.3 }} className="flex-1 flex flex-col">
-          <div className="flex-1 flex flex-col overflow-y-auto hide-scrollbar pb-10">
+        <motion.div 
+          key={phase} 
+          initial={{ x: 20, opacity: 0 }} 
+          animate={{ x: 0, opacity: 1 }} 
+          exit={{ x: -20, opacity: 0 }} 
+          transition={{ duration: 0.3 }} 
+          className="flex-1 flex flex-col pt-20 min-h-0" /* pt-20 para dar espacio a los nuevos botones superiores */
+        >
+          <div className="flex-1 flex flex-col overflow-y-auto hide-scrollbar pb-24">
             {renderStep()}
           </div>
         </motion.div>
       </AnimatePresence>
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none z-50" />
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none z-40" />
     </motion.div>
   );
 };
