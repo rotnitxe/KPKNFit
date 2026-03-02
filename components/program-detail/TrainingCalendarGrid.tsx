@@ -266,7 +266,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
             <div className="relative w-full px-6 py-2.5 border-b border-white/10 shrink-0" ref={dropdownRef}>
                 <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-black/50 border border-white/5 text-left"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-black/40 border border-white/5 text-left"
                 >
                     <span className="text-[11px] font-bold text-white truncate">
                         {selectedBlock?.name || 'Bloque'}
@@ -275,7 +275,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                     <ChevronDownIcon size={16} className={`text-zinc-500 shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {dropdownOpen && (
-                    <div className="mt-2 absolute left-6 right-6 z-30 bg-black/70 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden py-1">
+                    <div className="mt-2 absolute left-6 right-6 z-30 bg-black/60 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden py-1">
                         {!isCyclic && roadmapBlocks.length > 1 && (
                             <>
                                 {roadmapBlocks.map(block => (

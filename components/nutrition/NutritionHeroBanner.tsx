@@ -43,7 +43,7 @@ const NutritionHeroBanner: React.FC<NutritionHeroBannerProps> = ({
     onEditCalories,
 }) => {
     return (
-        <div className="w-full shrink-0 bg-[#1a1a1a] px-4 py-4">
+        <div className="w-full shrink-0 bg-[#1a1a1a] px-4 py-4" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}>
             <div className="flex justify-between items-start mb-3">
                 <div className="min-w-0">
                     <h1 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">

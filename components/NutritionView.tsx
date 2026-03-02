@@ -97,7 +97,7 @@ const NutritionView: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col min-h-full bg-black">
+        <div className="flex flex-col min-h-full bg-[#121212]">
             <div className="flex-1 min-h-0 overflow-y-auto">
                 <NutritionHeroBanner
                     selectedDate={selectedDate}
@@ -153,7 +153,7 @@ const NutritionView: React.FC = () => {
             <div className="fixed left-0 right-0 bottom-0 z-30 bg-[#0a0a0a] border-t border-white/10 px-4 py-3 flex gap-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
                 <button
                     onClick={() => setIsDrawerOpen(true)}
-                    className="flex-1 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                    className="flex-1 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-emerald-500/30 transition-colors"
                 >
                     <UtensilsIcon size={18} />
                     Añadir comida

@@ -1,5 +1,5 @@
 // components/nutrition/NutritionWizard.tsx
-// Wizard de objetivos nutricionales (3 pasos). Estética Cyber/NERD.
+// Wizard de objetivos nutricionales (3 pasos). Estética Tú (emerald/white/zinc).
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '../icons';
@@ -329,7 +329,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                                 key={opt.id}
                                                 onClick={() => setGoal(opt.id)}
                                                 className={`p-4 rounded-xl border text-left sm:text-center transition-all min-w-0 ${
-                                                    goal === opt.id ? 'bg-cyber-cyan/20 border-cyber-cyan text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-cyber-cyan/30'
+                                                    goal === opt.id ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-emerald-500/30'
                                                 }`}
                                             >
                                                 <span className="font-bold block">{opt.label}</span>
@@ -346,7 +346,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                                 key={opt.id}
                                                 onClick={() => setGoalType(opt.id)}
                                                 className={`px-4 py-2 rounded-xl font-bold transition-all ${
-                                                    goalType === opt.id ? 'bg-cyber-cyan text-black border border-cyber-cyan' : 'bg-white/5 text-slate-400 border border-white/10 hover:border-cyber-cyan/30'
+                                                    goalType === opt.id ? 'bg-emerald-500 text-black border border-emerald-500' : 'bg-white/5 text-slate-400 border border-white/10 hover:border-emerald-500/30'
                                                 }`}
                                             >
                                                 {opt.label}
@@ -364,7 +364,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                         min={goalType === 'weight' ? 30 : goalType === 'bodyFat' ? 5 : 20}
                                         max={goalType === 'weight' ? 300 : goalType === 'bodyFat' ? 60 : 60}
                                         step={goalType === 'weight' ? 1 : 0.5}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-cyan/50 outline-none placeholder-slate-600"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none placeholder-slate-600"
                                     />
                                 </div>
                                 {goalAlert && (
@@ -385,17 +385,17 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Estatura (cm)</label>
                                     <input type="number" value={height === '' ? '' : height} onChange={e => { const v = e.target.value; setHeight(v === '' ? '' : (Number(v) || 0)); }} min={100} max={250}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-cyan/50 outline-none" />
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Peso (kg)</label>
                                     <input type="number" value={weight === '' ? '' : weight} onChange={e => { const v = e.target.value; setWeight(v === '' ? '' : (Number(v) || 0)); }} min={30} max={300}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-cyan/50 outline-none" />
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Edad</label>
                                     <input type="number" value={age === '' ? '' : age} onChange={e => { const v = e.target.value; setAge(v === '' ? '' : (Number(v) || 0)); }} min={10} max={120}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-cyan/50 outline-none" />
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
                                 </div>
                             </div>
                             <div className="mt-4">
@@ -404,7 +404,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                     {GENDER_OPTIONS.map(opt => (
                                         <button key={opt.id} onClick={() => setGender(opt.id)}
                                             className={`px-3 py-2 rounded-lg text-sm font-bold transition-all ${
-                                                gender === opt.id ? 'bg-cyber-cyan text-black border border-cyber-cyan' : 'bg-white/5 text-slate-400 border border-white/10 hover:border-cyber-cyan/30'
+                                                gender === opt.id ? 'bg-emerald-500 text-black border border-emerald-500' : 'bg-white/5 text-slate-400 border border-white/10 hover:border-emerald-500/30'
                                             }`}>
                                             {opt.label}
                                         </button>
@@ -412,7 +412,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 </div>
                             </div>
                             <div className="pt-4 mt-4 border-t border-white/10">
-                                <p className="text-[10px] font-bold text-cyber-cyan uppercase mb-2 flex items-center gap-1">
+                                <p className="text-[10px] font-bold text-emerald-500 uppercase mb-2 flex items-center gap-1">
                                     Bioimpedancia (opcional)
                                     <NutritionTooltip showHelp={showHelp} content="Si tienes %grasa, usamos Katch-McArdle." title="Katch-McArdle" />
                                 </p>
@@ -420,15 +420,15 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Grasa</label>
                                         <input type="number" value={bodyFat} onChange={e => setBodyFat(e.target.value === '' ? '' : Number(e.target.value))} min={5} max={60} step={0.5} placeholder="Ej: 18"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-cyber-cyan/50 outline-none" />
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-emerald-500/50 outline-none" />
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Músculo</label>
                                         <input type="number" value={muscleMass} onChange={e => setMuscleMass(e.target.value === '' ? '' : Number(e.target.value))} min={20} max={50} step={0.5} placeholder="Ej: 42"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-cyber-cyan/50 outline-none" />
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-emerald-500/50 outline-none" />
                                     </div>
                                 </div>
-                                {ffmi != null && <p className="text-xs text-cyber-cyan font-mono mt-2">FFMI estimado: {ffmi}</p>}
+                                {ffmi != null && <p className="text-xs text-emerald-500 font-mono mt-2">FFMI estimado: {ffmi}</p>}
                             </div>
                         </section>
 
@@ -439,7 +439,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <button
                                     onClick={() => setConnectAuge(true)}
                                     className={`flex-1 p-4 rounded-xl border font-bold transition-all ${
-                                        connectAuge ? 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan' : 'bg-white/5 border-white/10 text-slate-400'
+                                        connectAuge ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'bg-white/5 border-white/10 text-slate-400'
                                     }`}
                                 >
                                     Sí
@@ -447,7 +447,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <button
                                     onClick={() => setConnectAuge(false)}
                                     className={`flex-1 p-4 rounded-xl border font-bold transition-all ${
-                                        !connectAuge ? 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan' : 'bg-white/5 border-white/10 text-slate-400'
+                                        !connectAuge ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'bg-white/5 border-white/10 text-slate-400'
                                     }`}
                                 >
                                     No
@@ -469,7 +469,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 {ACTIVITY_OPTIONS.map(opt => (
                                     <button key={opt.id} onClick={() => setActivityLevel(opt.id)}
                                         className={`w-full p-4 rounded-xl border text-left transition-all ${
-                                            activityIdx === opt.id ? 'bg-cyber-cyan/20 border-cyber-cyan text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-cyber-cyan/30'
+                                            activityIdx === opt.id ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-emerald-500/30'
                                         }`}>
                                         <span className="font-bold block">{opt.label}</span>
                                         <span className="text-xs text-slate-500">{opt.desc}</span>
@@ -478,7 +478,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                             </div>
                             <button
                                 onClick={() => setAdvancedActivityExpanded(!advancedActivityExpanded)}
-                                className="flex items-center gap-2 mt-4 text-cyber-cyan/90 text-xs font-bold hover:text-cyber-cyan/80"
+                                className="flex items-center gap-2 mt-4 text-emerald-500/90 text-xs font-bold hover:text-emerald-500/80"
                             >
                                 {advancedActivityExpanded ? <ChevronUpIcon size={14} /> : <ChevronDownIcon size={14} />}
                                 Avanzado
@@ -488,19 +488,19 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Días de ejercicio/semana</label>
                                         <input type="number" value={activityDaysPerWeek} onChange={e => setActivityDaysPerWeek(Number(e.target.value) || 0)} min={0} max={7}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-cyan/50 outline-none" />
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Horas activas/día (promedio)</label>
                                         <input type="number" value={activityHoursPerDay} onChange={e => setActivityHoursPerDay(Number(e.target.value) || 0)} min={0} max={24} step={0.5}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-cyber-cyan/50 outline-none" />
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Factor personalizado (opcional, 1.0–2.0)</label>
                                         <input type="number" value={customActivityFactor} onChange={e => setCustomActivityFactor(e.target.value === '' ? '' : Number(e.target.value))} min={1} max={2} step={0.05} placeholder="Ej: 1.55"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-cyber-cyan/50 outline-none" />
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-emerald-500/50 outline-none" />
                                     </div>
-                                    <p className="text-xs text-cyber-cyan font-mono">Factor efectivo: {derivedActivityFactor.toFixed(2)}</p>
+                                    <p className="text-xs text-emerald-500 font-mono">Factor efectivo: {derivedActivityFactor.toFixed(2)}</p>
                                 </div>
                             )}
                         </div>
@@ -534,7 +534,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 {DIET_OPTIONS.map(opt => (
                                     <button key={opt.id} onClick={() => setDietPreference(opt.id)}
                                         className={`flex-1 p-4 rounded-xl border font-bold transition-all ${
-                                            dietPreference === opt.id ? 'bg-cyber-cyan/20 border-cyber-cyan text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-cyber-cyan/30'
+                                            dietPreference === opt.id ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-emerald-500/30'
                                         }`}>
                                         {opt.label}
                                     </button>
@@ -558,24 +558,24 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <NutritionTooltip showHelp={showHelp} content="TMB: calorías en reposo. TDEE: TMB × factor actividad ± ajuste objetivo. Las fórmulas Mifflin y Katch calculan el TMB." title="TMB y TDEE" />
                             </h2>
                             <div className="bg-slate-900/50 rounded-xl p-4 border border-white/10 space-y-2 font-mono text-sm mt-4">
-                                <p className="text-cyber-cyan flex items-center gap-1">
+                                <p className="text-emerald-500 flex items-center gap-1">
                                     TMB: {bmr != null ? Math.round(bmr) : '—'} kcal
                                     <NutritionTooltip showHelp={showHelp} content="Tasa Metabólica Basal: calorías que quemas en reposo. Base para calcular tu gasto diario." title="TMB" />
                                 </p>
-                                <p className="text-cyber-cyan flex items-center gap-1">
+                                <p className="text-emerald-500 flex items-center gap-1">
                                     TDEE: {tdee != null ? tdee : '—'} kcal
                                     <NutritionTooltip showHelp={showHelp} content="Gasto energético diario total: TMB × factor de actividad. Incluye ejercicio y NEAT." title="TDEE" />
                                 </p>
                                 <p className="text-slate-400 text-xs">Factores Atwater: P=4, C=4, G=9 kcal/g</p>
                                 <button
                                     onClick={() => setFormulaExpanded(!formulaExpanded)}
-                                    className="flex items-center gap-2 mt-2 text-cyber-cyan/90 text-xs font-bold hover:text-cyber-cyan/80"
+                                    className="flex items-center gap-2 mt-2 text-emerald-500/90 text-xs font-bold hover:text-emerald-500/80"
                                 >
                                     {formulaExpanded ? <ChevronUpIcon size={14} /> : <ChevronDownIcon size={14} />}
                                     {formulaExpanded ? 'Ocultar fórmulas' : 'Ver fórmulas'}
                                 </button>
                                 {formulaExpanded && (
-                                    <div className="mt-3 pt-3 border-t border-white/10 space-y-2 text-[11px] text-cyber-cyan/80 font-mono">
+                                    <div className="mt-3 pt-3 border-t border-white/10 space-y-2 text-[11px] text-emerald-500/80 font-mono">
                                         <p>Mifflin-St Jeor: TMB = 10×peso + 6.25×altura − 5×edad + s</p>
                                         <p>Katch-McArdle: TMB = 370 + (21.6 × LBM)</p>
                                         <p>Calorías = P×4 + C×4 + G×9</p>
@@ -597,7 +597,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                             <button
                                                 onClick={() => setTrendMode('kg_per_week')}
                                                 className={`flex-1 p-3 rounded-xl border font-bold text-sm transition-all ${
-                                                    trendMode === 'kg_per_week' ? 'bg-cyber-cyan/20 border-cyber-cyan text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-cyber-cyan/30'
+                                                    trendMode === 'kg_per_week' ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-emerald-500/30'
                                                 }`}
                                             >
                                                 kg/semana
@@ -605,7 +605,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                             <button
                                                 onClick={() => setTrendMode('pct_fat_per_week')}
                                                 className={`flex-1 p-3 rounded-xl border font-bold text-sm transition-all ${
-                                                    trendMode === 'pct_fat_per_week' ? 'bg-cyber-cyan/20 border-cyber-cyan text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-cyber-cyan/30'
+                                                    trendMode === 'pct_fat_per_week' ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-emerald-500/30'
                                                 }`}
                                             >
                                                 % grasa/sem
@@ -630,7 +630,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                                 step={0.05}
                                                 value={trendValue}
                                                 onChange={e => setTrendValue(Number(e.target.value))}
-                                                className="w-full accent-cyber-cyan"
+                                                className="w-full accent-emerald-500"
                                             />
                                             <p className="text-xs text-slate-400 mt-1 font-mono">{trendValue >= 0 ? '+' : ''}{trendValue} %/sem</p>
                                         </div>
@@ -695,7 +695,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                                         onChange={e => { const v = e.target.value; if (allowEmpty && v === '') (set as (x: number | '') => void)(''); else (set as (x: number) => void)(Number(v) || 0); }}
                                                         min={0}
                                                         max={max}
-                                                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-cyber-cyan/50 outline-none"
+                                                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-emerald-500/50 outline-none"
                                                     />
                                                     <span className="text-[10px] text-slate-500">g</span>
                                                 </div>
@@ -712,7 +712,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 {tdee != null && (
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="text-slate-400">Calorías objetivo</span>
-                                        <span className="font-mono font-bold text-cyber-cyan">{tdee} kcal/día</span>
+                                        <span className="font-mono font-bold text-emerald-500">{tdee} kcal/día</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center text-sm">
@@ -723,12 +723,12 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                                 <p className="text-2xl font-black font-mono text-white">{trend >= 0 ? '+' : ''}{trend.toFixed(2)} kg/sem</p>
                                 <p className="text-xs text-slate-500">({pctWeekly >= 0 ? '+' : ''}{pctWeekly.toFixed(2)}% del peso corporal)</p>
                                 {(goal === 'lose' || goal === 'gain') && tdee != null && Math.abs(caloriesFromMacros - tdee) > 50 && (
-                                    <p className="text-xs text-cyber-cyan/90 mt-2">
+                                    <p className="text-xs text-emerald-500/90 mt-2">
                                         Ajusta macros para acercarte a {tdee} kcal/día ({trendMode === 'kg_per_week' ? `target ${goal === 'lose' ? '-' : '+'}${weeklyChangeKg} kg/sem` : `target ${trendValue >= 0 ? '+' : ''}${trendValue} % grasa/sem`}).
                                     </p>
                                 )}
                                 {estimatedEndDate && (
-                                    <p className="text-xs text-cyber-cyan/90 mt-2 font-mono">
+                                    <p className="text-xs text-emerald-500/90 mt-2 font-mono">
                                         Fecha estimada para alcanzar meta: {estimatedEndDate}
                                     </p>
                                 )}
@@ -761,16 +761,16 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-8 pb-28 custom-scrollbar">
                     <div className="max-w-4xl mx-auto">
                         <div className="flex items-center gap-3 mb-8">
-                            <span className="text-[9px] font-black text-cyber-cyan uppercase tracking-[0.2em] font-mono shrink-0">
+                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] font-mono shrink-0">
                                 Paso {step + 1} de {TOTAL_STEPS}
                             </span>
-                            <WizardStepper currentStep={step} totalSteps={TOTAL_STEPS} className="flex-1 justify-center" />
+                            <WizardStepper currentStep={step} totalSteps={TOTAL_STEPS} className="flex-1 justify-center" variant="emerald" />
                             <button
                                 type="button"
                                 onClick={() => setShowHelp((h) => !h)}
                                 aria-label={showHelp ? 'Ocultar ayuda' : 'Mostrar ayuda con tooltips'}
                                 aria-pressed={showHelp}
-                                className={`text-[10px] font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#050505] rounded px-2 py-1 ${showHelp ? 'text-cyber-cyan' : 'text-slate-500 hover:text-slate-400'}`}
+                                className={`text-[10px] font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-[#050505] rounded px-2 py-1 ${showHelp ? 'text-emerald-500' : 'text-slate-500 hover:text-slate-400'}`}
                             >
                                 ¿Ayuda?
                             </button>
@@ -786,6 +786,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                     onNext={step < TOTAL_STEPS - 1 ? () => setStep((s) => s + 1) : handleFinish}
                     isLast={step === TOTAL_STEPS - 1}
                     disabled={step === TOTAL_STEPS - 1 && !isValid}
+                    variant="emerald"
                 />
             </div>
         </div>

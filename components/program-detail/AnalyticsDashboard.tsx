@@ -209,6 +209,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                             setSelectedMusclePos(prev => prev?.muscle === muscle ? null : { muscle, x: x ?? 0, y: y ?? 0 });
                                             setFocusedMuscle(muscle);
                                         }}
+                                        onBodyBackgroundClick={() => {
+                                            setSelectedMusclePos(null);
+                                            setFocusedMuscle(null);
+                                        }}
                                     />
                                 </div>
                                 <MuscleStatsPanel

@@ -41,7 +41,7 @@ const MacroProgressBar: React.FC<{
                     {Math.round(value)} <span className="text-zinc-600">/ {Math.round(max)} {unit}</span>
                 </span>
             </div>
-            <div className="w-full bg-white/5 rounded-full h-1.5 relative overflow-hidden border border-white/5">
+            <div className="w-full bg-white/5 rounded-full h-1.5 relative overflow-hidden">
                 <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{ width: `${percentage}%`, backgroundColor: color }}
@@ -221,10 +221,10 @@ export const NutritionDashboard: React.FC<{
             {showSetupBanner && onOpenWizard && (
                 <button
                     onClick={onOpenWizard}
-                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/20 transition-colors"
+                    className="w-full py-4 text-left hover:bg-white/[0.03] transition-colors rounded-lg -mx-1 px-1"
                 >
                     <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Plan de alimentación</span>
-                    <p className="text-[10px] text-zinc-500 mt-2">Configura tu plan de nutrición</p>
+                    <p className="text-[10px] text-zinc-500 mt-1">Configura tu plan de nutrición</p>
                 </button>
             )}
             {!hideHeader && (
@@ -243,9 +243,34 @@ export const NutritionDashboard: React.FC<{
                 </header>
             )}
 
-            {/* Panel Estado nutrición — barras macros paleta Tú */}
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
-                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+            {/* Hoy — métricas integradas sin tarjetas */}
+            <section className="space-y-3">
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                    Hoy
+                </h2>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-[10px]">
+                    <div className="flex justify-between items-baseline py-1.5 border-b border-white/5">
+                        <span className="text-zinc-500 font-medium">TMB</span>
+                        {bmr != null ? <span className="font-mono text-emerald-400">{Math.round(bmr)} kcal</span> : <span className="text-zinc-600">—</span>}
+                    </div>
+                    <div className="flex justify-between items-baseline py-1.5 border-b border-white/5">
+                        <span className="text-zinc-500 font-medium">TDEE</span>
+                        {tdee != null ? <span className="font-mono text-emerald-400">{tdee} kcal</span> : <span className="text-zinc-600">—</span>}
+                    </div>
+                    <div className="flex justify-between items-baseline py-1.5 border-b border-white/5">
+                        <span className="text-zinc-500 font-medium">Déficit/Superávit</span>
+                        {hasCalorieGoal ? <span className={`font-mono ${deficitSurplus >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{deficitSurplus >= 0 ? '+' : ''}{deficitSurplus} kcal</span> : <span className="text-zinc-600">—</span>}
+                    </div>
+                    <div className="flex justify-between items-baseline py-1.5 border-b border-white/5">
+                        <span className="text-zinc-500 font-medium">Fibra</span>
+                        <span className="font-mono text-emerald-400">{fiberToday.toFixed(0)} g</span>
+                    </div>
+                </div>
+            </section>
+
+            {/* Estado nutrición — barras macros integradas */}
+            <section className="space-y-3 pt-2">
+                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
                     Estado nutrición
                 </p>
                 <div className="space-y-3">
@@ -260,7 +285,7 @@ export const NutritionDashboard: React.FC<{
                             <span />
                             <span className="text-[10px] font-mono text-zinc-400">{Math.round(dailyTotals.fats)} / {Math.round(settings.dailyFatGoal || 70)} g</span>
                         </div>
-                        <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden border border-white/5">
+                        <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
                             <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (dailyTotals.fats / (settings.dailyFatGoal || 70)) * 100)}%`, backgroundColor: getMacroBarColor(Math.min(100, (dailyTotals.fats / (settings.dailyFatGoal || 70)) * 100)) }} />
                         </div>
                         {fatExpanded && (
@@ -273,26 +298,18 @@ export const NutritionDashboard: React.FC<{
                         )}
                     </div>
                 </div>
-            </div>
-
-            {/* Métricas */}
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
-                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
-                    Métricas
-                </p>
-                <div className="grid grid-cols-2 gap-3 text-[10px] font-mono">
-                    {bmr != null && <div><span className="text-zinc-500">TMB</span><span className="text-emerald-400 ml-1">{Math.round(bmr)} kcal</span></div>}
-                    {tdee != null && <div><span className="text-zinc-500">TDEE</span><span className="text-emerald-400 ml-1">{tdee} kcal</span></div>}
-                    {hasCalorieGoal && <div><span className="text-zinc-500">Déficit/Superávit</span><span className={deficitSurplus >= 0 ? 'text-emerald-400' : 'text-rose-400'}>{deficitSurplus >= 0 ? '+' : ''}{deficitSurplus} kcal</span></div>}
-                    {proteinPerKg && <div><span className="text-zinc-500">Proteína/kg</span><span className="text-emerald-400 ml-1">{proteinPerKg} g</span></div>}
-                    <div><span className="text-zinc-500">Fibra</span><span className="text-emerald-400 ml-1">{fiberToday.toFixed(0)} g</span></div>
-                </div>
-            </div>
+                {proteinPerKg && (
+                    <div className="flex justify-between items-baseline pt-1 text-[10px] border-t border-white/5">
+                        <span className="text-zinc-500">Proteína/kg</span>
+                        <span className="font-mono text-emerald-400">{proteinPerKg} g</span>
+                    </div>
+                )}
+            </section>
 
             {/* Gráfico tendencia */}
             {trendChartData.length >= 2 && (
-                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+                <section className="space-y-3 pt-2">
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
                         Tendencia calorías
                     </p>
                     <ResponsiveContainer width="100%" height={160}>
@@ -305,13 +322,13 @@ export const NutritionDashboard: React.FC<{
                             {hasCalorieGoal && <ReferenceLine y={calorieGoal} stroke="#10b981" strokeDasharray="3 3" />}
                         </BarChart>
                     </ResponsiveContainer>
-                </div>
+                </section>
             )}
 
             {/* Gráfico distribución macros */}
             {macroPieData.length > 0 && macroPieData.some(d => d.value > 0) && (
-                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+                <section className="space-y-3 pt-2">
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
                         Distribución macros
                     </p>
                     <ResponsiveContainer width="100%" height={120}>
@@ -322,54 +339,51 @@ export const NutritionDashboard: React.FC<{
                             <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(16,185,129,0.3)' }} formatter={(v: number) => `${v.toFixed(0)}g`} />
                         </PieChart>
                     </ResponsiveContainer>
-                </div>
+                </section>
             )}
 
             {/* Micronutrientes */}
             {dailyTotals.micronutrients.length > 0 && (
-                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+                <section className="space-y-3 pt-2">
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
                         Micronutrientes
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {dailyTotals.micronutrients.map((m, i) => (
                             <span
                                 key={i}
-                                className="px-2 py-1 rounded-lg bg-white/5 text-[10px] font-mono text-zinc-400 border border-white/5"
+                                className="text-[10px] font-mono text-zinc-400"
                             >
                                 {m.name}: {m.amount.toFixed(0)}{m.unit}
                             </span>
                         ))}
                     </div>
-                </div>
+                </section>
             )}
 
-            {/* Reporte de micronutrientes faltantes (al final del día) */}
+            {/* Reporte de micronutrientes faltantes */}
             {micronutrientDeficiencies.length > 0 && (
-                <div className="bg-amber-950/30 border border-amber-500/30 rounded-2xl p-5">
-                    <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <section className="space-y-3 pt-2 pl-2 border-l-2 border-amber-500/30">
+                    <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-2">
                         <AlertTriangleIcon size={12} />
                         Posibles carencias hoy
                     </p>
-                    <p className="text-[10px] text-zinc-400 mb-3">
-                        Estos micronutrientes están por debajo del 70% del valor diario recomendado:
-                    </p>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                         {micronutrientDeficiencies.map((d, i) => (
                             <div key={i} className="flex justify-between items-center text-[10px]">
                                 <span className="text-amber-300 font-medium">{d.name}</span>
                                 <span className="text-zinc-500 font-mono">
-                                    {d.amount.toFixed(0)}{d.unit} ({d.pct}% del objetivo)
+                                    {d.amount.toFixed(0)}{d.unit} ({d.pct}%)
                                 </span>
                             </div>
                         ))}
                     </div>
-                </div>
+                </section>
             )}
 
             {/* Comidas del día — acordeón */}
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
-                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest px-5 py-3 border-b border-white/5">
+            <section className="space-y-0 pt-2">
+                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
                     Comidas del día
                 </p>
                 <div className="divide-y divide-white/5">
@@ -381,7 +395,7 @@ export const NutritionDashboard: React.FC<{
                             <div key={mealType}>
                                 <button
                                     onClick={() => toggleMeal(mealType)}
-                                    className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/5 transition-colors"
+                                    className="w-full flex items-center justify-between py-3 text-left hover:bg-white/[0.03] transition-colors"
                                 >
                                     <span className="text-[10px] font-black text-white uppercase tracking-widest">
                                         {mealNames[mealType]}
@@ -394,7 +408,7 @@ export const NutritionDashboard: React.FC<{
                                             const cals = log.foods.reduce((s, f) => s + f.calories, 0);
                                             const prot = log.foods.reduce((s, f) => s + f.protein, 0);
                                             return (
-                                                <div key={log.id} className="px-5 py-3 flex justify-between items-start group">
+                                                <div key={log.id} className="py-3 flex justify-between items-start group">
                                                     <div>
                                                         {log.foods.map(f => (
                                                             <p key={f.id} className="text-sm text-white font-medium">
@@ -421,37 +435,52 @@ export const NutritionDashboard: React.FC<{
                     })}
                 </div>
                 {consumedLogs.length === 0 && (
-                    <div className="p-8 text-center">
-                        <UtensilsIcon size={32} className="mx-auto text-zinc-600 mb-2" />
+                    <div className="py-8 text-center">
+                        <UtensilsIcon size={24} className="mx-auto text-zinc-600 mb-2" />
                         <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Sin registros</p>
                     </div>
                 )}
-            </div>
+            </section>
 
-            {activePlan && onUpdateBodyData && (
-                <button
-                    onClick={onUpdateBodyData}
-                    className="w-full py-3 rounded-xl border border-white/10 bg-white/5 text-zinc-300 font-bold text-sm hover:bg-white/10 transition-colors"
-                >
-                    Actualizar datos corporales
-                </button>
+            {/* Sección Plan */}
+            {activePlan && (
+                <section className="space-y-3 pt-2">
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+                        Plan activo
+                    </p>
+                    <p className="text-sm font-black text-white uppercase tracking-tight">{activePlan.name}</p>
+                    <p className="text-xs text-zinc-400 mt-1">
+                        Objetivo: {activePlan.goalType === 'weight' ? `${activePlan.goalValue} kg` : activePlan.goalType === 'bodyFat' ? `${activePlan.goalValue}% grasa` : `${activePlan.goalValue}% músculo`}
+                    </p>
+                    {activePlan.estimatedEndDate && (
+                        <p className="text-xs text-zinc-500 mt-1 font-mono">Fecha est.: {activePlan.estimatedEndDate}</p>
+                    )}
+                    {onUpdateBodyData && (
+                        <button
+                            onClick={onUpdateBodyData}
+                            className="mt-3 w-full py-2.5 rounded-lg border border-white/10 bg-white/[0.03] text-zinc-300 font-bold text-xs hover:bg-white/5 transition-colors"
+                        >
+                            Actualizar datos corporales
+                        </button>
+                    )}
+                </section>
             )}
 
             {onAnalyticsExpand && renderAnalytics && (
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
+                <section className="space-y-0 pt-2">
                     <button
                         onClick={onAnalyticsExpand}
-                        className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/5 transition-colors"
+                        className="w-full flex items-center justify-between py-3 text-left hover:bg-white/[0.03] transition-colors"
                     >
                         <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Analytics</span>
                         {analyticsExpanded ? <ChevronDownIcon size={14} className="text-zinc-500" /> : <ChevronRightIcon size={14} className="text-zinc-500" />}
                     </button>
                     {analyticsExpanded && (
-                        <div className="px-5 pb-5 space-y-6 border-t border-white/5 pt-4">
+                        <div className="pb-4 pt-2 space-y-6 border-t border-white/5 mt-2">
                             {renderAnalytics()}
                         </div>
                     )}
-                </div>
+                </section>
             )}
         </div>
     );

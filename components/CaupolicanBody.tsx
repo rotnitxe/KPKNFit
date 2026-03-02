@@ -8,8 +8,9 @@ export const CaupolicanBody: React.FC<{
     isPowerlifting?: boolean,
     focusedMuscle?: string | null,
     discomforts?: {name: string, count: number}[],
-    onMuscleClick?: (muscle: string, x?: number, y?: number) => void
-}> = ({ data, isPowerlifting, focusedMuscle, discomforts = [], onMuscleClick }) => {
+    onMuscleClick?: (muscle: string, x?: number, y?: number) => void,
+    onBodyBackgroundClick?: () => void
+}> = ({ data, isPowerlifting, focusedMuscle, discomforts = [], onMuscleClick, onBodyBackgroundClick }) => {
     const [view, setView] = useState<'front' | 'back'>('front');
 
     const getMuscleData = (name: string) => {
@@ -39,7 +40,10 @@ export const CaupolicanBody: React.FC<{
         return (
             <div 
                 // Capturamos el clic y pasamos las coordenadas de la pantalla (clientX/Y)
-                onClick={(e) => onMuscleClick && onMuscleClick(muscle, e.clientX, e.clientY)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onMuscleClick?.(muscle, e.clientX, e.clientY);
+                }}
                 className={`absolute rounded-full filter blur-[8.6px] transition-all duration-300 cursor-pointer hover:scale-125 pointer-events-auto ${isFocused ? 'animate-pulse scale-110 z-20' : ''}`}
                 style={{ 
                     top: toStyleVal(top ?? 0), left: toStyleVal(left ?? 0), width: toStyleVal(width ?? 0), height: toStyleVal(height ?? 0),
@@ -101,12 +105,19 @@ export const CaupolicanBody: React.FC<{
                                 <div className="absolute top-[50%] w-[52%] h-[30%] bg-zinc-700 rounded-[30px]"></div>
                                 <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-zinc-700 rounded-[20px]"></div>
                             </div>
-                            <div className="absolute inset-0 z-10 p-8">
+                            {/* Silueta del cuerpo primero (z-10) */}
+                            <div className="absolute inset-0 z-10 p-8 flex items-center justify-center opacity-100 pointer-events-none"><CaupolicanA /></div>
+                            {/* Zonas de calor ENCIMA de la silueta para que sean visibles */}
+                            <div
+                                className="absolute inset-0 z-20 p-8 cursor-default pointer-events-auto"
+                                onClick={onBodyBackgroundClick ?? undefined}
+                                role="presentation"
+                            >
                                 <HeatZone top="148px" left="92px" width="33px" height="37px" muscle="Pectoral" />
                                 <HeatZone top="147px" left="133px" width="36px" height="34px" muscle="Pectoral" />
                                 <HeatZone top="190px" left="103px" width="59px" height="55px" muscle="Abdomen" />
                                 <HeatZone top="278px" left="84px" width={15} height={15} muscle="Cuádriceps" />
-                                <HeatZone top="281px" left="145px" width="29px" height={15} muscle="Cuádriceps" />
+                                <HeatZone top="281px" left="145px" width="29px" height="15px" muscle="Cuádriceps" />
                                 {/* Deltoides: hombros, centrados en la masa del hombro */}
                                 <HeatZone top="133px" left="61px" width="19px" height="38px" muscle="Deltoides" />
                                 <HeatZone top="139px" left="176px" width="21px" height="27px" muscle="Deltoides" />
@@ -117,8 +128,7 @@ export const CaupolicanBody: React.FC<{
                                 <HeatZone top="212px" left="49px" width="21px" height="53px" muscle="Antebrazo" />
                                 <HeatZone top="217px" left="190px" width="21px" height="53px" muscle="Antebrazo" />
                             </div>
-                            <div className="absolute inset-0 z-[15] p-8">{renderDiscomforts('front')}</div>
-                            <div className="absolute inset-0 z-20 p-8 flex items-center justify-center opacity-100 pointer-events-none"><CaupolicanA /></div>
+                            <div className="absolute inset-0 z-[25] p-8 pointer-events-none">{renderDiscomforts('front')}</div>
                             
                             {/* Marcos encapsulados en la cara frontal */}
                             <div className="absolute top-0 left-0 right-0 h-[60px] bg-black z-30 pointer-events-none" />
@@ -137,10 +147,17 @@ export const CaupolicanBody: React.FC<{
                                 <div className="absolute top-[50%] w-[52%] h-[30%] bg-zinc-700 rounded-[30px]"></div>
                                 <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-zinc-700 rounded-[20px]"></div>
                             </div>
-                            <div className="absolute inset-0 z-10 p-8">
+                            {/* Silueta del cuerpo primero (z-10) */}
+                            <div className="absolute inset-0 z-10 p-8 flex items-center justify-center opacity-100 pointer-events-none"><CaupolicanB /></div>
+                            {/* Zonas de calor ENCIMA de la silueta para que sean visibles */}
+                            <div
+                                className="absolute inset-0 z-20 p-8 cursor-default pointer-events-auto"
+                                onClick={onBodyBackgroundClick ?? undefined}
+                                role="presentation"
+                            >
                                 <HeatZone top="167px" left="92px" width="46px" height="24px" muscle="Dorsal" />
                                 {/* Trapecio: espalda alta, entre hombros (no en cuello/cabeza) */}
-                                <HeatZone top="-53px" left="328px" width={24} height="25px" muscle="Trapecio" />
+                                <HeatZone top="-53px" left="328px" width={24} height={25} muscle="Trapecio" />
                                 <HeatZone top="210px" left="108px" width={16} height={8} muscle="Espalda Baja" />
                                 {/* Glúteos: zona glútea (encima de isquios) */}
                                 <HeatZone top="257px" left="134px" width={18} height={68} muscle="Glúteos" />
@@ -158,8 +175,7 @@ export const CaupolicanBody: React.FC<{
                                 <HeatZone top="133px" left="61px" width="19px" height="38px" muscle="Deltoides" />
                                 <HeatZone top="139px" left="176px" width="21px" height="27px" muscle="Deltoides" />
                             </div>
-                            <div className="absolute inset-0 z-[15] p-8">{renderDiscomforts('back')}</div>
-                            <div className="absolute inset-0 z-20 p-8 flex items-center justify-center opacity-100 pointer-events-none"><CaupolicanB /></div>
+                            <div className="absolute inset-0 z-[25] p-8 pointer-events-none">{renderDiscomforts('back')}</div>
                             
                             {/* Marcos encapsulados en la cara posterior */}
                             <div className="absolute top-0 left-0 right-0 h-[60px] bg-black z-30 pointer-events-none" />
