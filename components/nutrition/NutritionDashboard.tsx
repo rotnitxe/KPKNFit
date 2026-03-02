@@ -41,9 +41,9 @@ const MacroProgressBar: React.FC<{
                     {Math.round(value)} <span className="text-zinc-600">/ {Math.round(max)} {unit}</span>
                 </span>
             </div>
-            <div className="w-full bg-white/5 rounded-full h-1.5 relative overflow-hidden">
+            <div className="w-full bg-white/5 rounded-none h-1.5 relative overflow-hidden">
                 <div
-                    className="h-full rounded-full transition-all duration-500"
+                    className="h-full rounded-none transition-all duration-500"
                     style={{ width: `${percentage}%`, backgroundColor: color }}
                 />
             </div>
@@ -221,7 +221,7 @@ export const NutritionDashboard: React.FC<{
             {showSetupBanner && onOpenWizard && (
                 <button
                     onClick={onOpenWizard}
-                    className="w-full py-4 text-left hover:bg-white/[0.03] transition-colors rounded-lg -mx-1 px-1"
+                    className="w-full py-4 text-left hover:bg-white/[0.03] transition-colors rounded-none -mx-1 px-1"
                 >
                     <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Plan de alimentación</span>
                     <p className="text-[10px] text-zinc-500 mt-1">Configura tu plan de nutrición</p>
@@ -285,8 +285,8 @@ export const NutritionDashboard: React.FC<{
                             <span />
                             <span className="text-[10px] font-mono text-zinc-400">{Math.round(dailyTotals.fats)} / {Math.round(settings.dailyFatGoal || 70)} g</span>
                         </div>
-                        <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
-                            <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (dailyTotals.fats / (settings.dailyFatGoal || 70)) * 100)}%`, backgroundColor: getMacroBarColor(Math.min(100, (dailyTotals.fats / (settings.dailyFatGoal || 70)) * 100)) }} />
+                        <div className="w-full bg-white/5 rounded-none h-1.5 overflow-hidden">
+                            <div className="h-full rounded-none transition-all" style={{ width: `${Math.min(100, (dailyTotals.fats / (settings.dailyFatGoal || 70)) * 100)}%`, backgroundColor: getMacroBarColor(Math.min(100, (dailyTotals.fats / (settings.dailyFatGoal || 70)) * 100)) }} />
                         </div>
                         {fatExpanded && (
                             <div className="mt-3 pl-2 border-l-2 border-white/10 space-y-1">
@@ -381,60 +381,64 @@ export const NutritionDashboard: React.FC<{
                 </section>
             )}
 
-            {/* Comidas del día — acordeón */}
+            {/* Comidas del día — timeline vertical */}
             <section className="space-y-0 pt-2">
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">
                     Comidas del día
                 </p>
-                <div className="divide-y divide-white/5">
-                    {mealOrder.map(mealType => {
-                        const logs = groupedLogs[mealType] || [];
-                        const isExpanded = mealsExpanded[mealType] ?? (logs.length > 0);
-                        if (logs.length === 0) return null;
-                        return (
-                            <div key={mealType}>
-                                <button
-                                    onClick={() => toggleMeal(mealType)}
-                                    className="w-full flex items-center justify-between py-3 text-left hover:bg-white/[0.03] transition-colors"
-                                >
-                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">
-                                        {mealNames[mealType]}
-                                    </span>
-                                    {isExpanded ? <ChevronDownIcon size={14} className="text-zinc-500" /> : <ChevronRightIcon size={14} className="text-zinc-500" />}
-                                </button>
-                                {isExpanded && (
-                                    <div className="divide-y divide-white/5 animate-fade-in">
-                                        {logs.map(log => {
-                                            const cals = log.foods.reduce((s, f) => s + f.calories, 0);
-                                            const prot = log.foods.reduce((s, f) => s + f.protein, 0);
-                                            return (
-                                                <div key={log.id} className="py-3 flex justify-between items-start group">
-                                                    <div>
-                                                        {log.foods.map(f => (
-                                                            <p key={f.id} className="text-sm text-white font-medium">
-                                                                {f.foodName}{' '}
-                                                                <span className="text-zinc-500 text-xs">({f.amount}{f.unit})</span>
-                                                            </p>
-                                                        ))}
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs font-mono text-zinc-400">
-                                                            {Math.round(cals)} kcal · {prot.toFixed(0)}g P
-                                                        </span>
-                                                        <button onClick={() => handleDelete(log.id)} className="text-zinc-600 hover:text-rose-400 p-1" aria-label="Eliminar">
-                                                            <TrashIcon size={14} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                {consumedLogs.length > 0 ? (
+                    <div className="relative pl-4 border-l-2 border-white/10">
+                        {mealOrder.map((mealType) => {
+                            const logs = groupedLogs[mealType] || [];
+                            if (logs.length === 0) return null;
+                            const isExpanded = mealsExpanded[mealType] ?? true;
+                            return (
+                                <div key={mealType} className="relative -ml-[9px]">
+                                    <div className="absolute left-0 top-3 w-3 h-3 rounded-full bg-emerald-500/80 border-2 border-[#121212]" />
+                                    <div className="pl-5 pb-6 last:pb-0">
+                                        <button
+                                            onClick={() => toggleMeal(mealType)}
+                                            className="flex items-center justify-between w-full text-left mb-1"
+                                        >
+                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">
+                                                {mealNames[mealType]}
+                                            </span>
+                                            {isExpanded ? <ChevronDownIcon size={12} className="text-zinc-500" /> : <ChevronRightIcon size={12} className="text-zinc-500" />}
+                                        </button>
+                                        {isExpanded && (
+                                            <div className="space-y-2 pt-1">
+                                                {logs.map(log => {
+                                                    const cals = log.foods.reduce((s, f) => s + (f.calories || 0), 0);
+                                                    const prot = log.foods.reduce((s, f) => s + (f.protein || 0), 0);
+                                                    return (
+                                                        <div key={log.id} className="flex justify-between items-start gap-2 group py-1">
+                                                            <div className="min-w-0 flex-1">
+                                                                {log.foods.map(f => (
+                                                                    <p key={f.id} className="text-xs text-white font-medium truncate">
+                                                                        {f.foodName}{' '}
+                                                                        <span className="text-zinc-500">({f.amount}{f.unit})</span>
+                                                                    </p>
+                                                                ))}
+                                                            </div>
+                                                            <div className="flex items-center gap-1 shrink-0">
+                                                                <span className="text-[10px] font-mono text-zinc-400">
+                                                                    {Math.round(cals)} kcal · {prot.toFixed(0)}g P
+                                                                </span>
+                                                                <button onClick={() => handleDelete(log.id)} className="text-zinc-600 hover:text-rose-400 p-1" aria-label="Eliminar">
+                                                                    <TrashIcon size={12} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-                {consumedLogs.length === 0 && (
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
                     <div className="py-8 text-center">
                         <UtensilsIcon size={24} className="mx-auto text-zinc-600 mb-2" />
                         <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Sin registros</p>
@@ -458,7 +462,7 @@ export const NutritionDashboard: React.FC<{
                     {onUpdateBodyData && (
                         <button
                             onClick={onUpdateBodyData}
-                            className="mt-3 w-full py-2.5 rounded-lg border border-white/10 bg-white/[0.03] text-zinc-300 font-bold text-xs hover:bg-white/5 transition-colors"
+                            className="mt-3 w-full py-2.5 rounded-none border border-white/10 bg-white/[0.03] text-zinc-300 font-bold text-xs hover:bg-white/5 transition-colors"
                         >
                             Actualizar datos corporales
                         </button>

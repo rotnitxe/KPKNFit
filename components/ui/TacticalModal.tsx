@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { XIcon } from '../icons';
 import TacticalBackdrop from './TacticalBackdrop';
 
-export type TacticalVariant = 'default' | 'failure' | 'pr';
+export type TacticalVariant = 'default' | 'failure' | 'pr' | 'sheet';
 
 interface TacticalModalProps {
   isOpen: boolean;
@@ -49,9 +49,12 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
         ? 'tactical-modal-critical-pr'
         : '';
 
+  const isSheet = variant === 'sheet';
+
   return ReactDOM.createPortal(
     <div
-      className={`fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 transition-opacity duration-200 ease-out
+      className={`fixed inset-0 z-[200] flex transition-opacity duration-200 ease-out
+                  ${isSheet ? 'items-end justify-center' : 'items-center justify-center p-4 sm:p-6'}
                   ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       role="dialog"
       aria-modal="true"
@@ -61,13 +64,15 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
 
       <div
         className={`
-          relative z-10 w-full max-w-md tactical-modal-base
-          flex flex-col max-h-[85vh]
+          relative z-10 w-full tactical-modal-base
+          flex flex-col
           transform transition-all duration-200 ease-out
-          ${isOpen ? 'animate-tactical-enter' : 'animate-tactical-exit opacity-0'}
+          ${isSheet ? 'max-h-[90dvh] animate-slide-up' : 'max-w-md max-h-[85vh]'}
+          ${!isSheet ? (isOpen ? 'animate-tactical-enter' : 'animate-tactical-exit opacity-0') : ''}
           ${borderClass}
           ${className}
         `}
+        style={isSheet ? { height: '90vh', maxHeight: '90dvh' } : undefined}
       >
         {title !== undefined && (
           <div className="flex items-center justify-between px-5 py-4 flex-shrink-0 border-b border-[#2A2D38]">

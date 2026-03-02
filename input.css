@@ -78,7 +78,7 @@
     background: rgba(0,0,0,0.4);
 }
 .tactical-modal-base {
-    border-radius: 2px;
+    border-radius: 0;
     border: 1px solid #2A2D38;
     background: #15171E;
     box-shadow: 0 2px 4px rgba(0,0,0,0.5);

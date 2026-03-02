@@ -90,7 +90,7 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
                     key={tabKey}
                     testId={`nav-${tabKey}`}
                     icon={TAB_CONFIG[tabKey].icon}
-                    isActive={activeView === TAB_CONFIG[tabKey].view}
+                    isActive={activeView === TAB_CONFIG[tabKey].view || (tabKey === 'nutrition' && activeView === 'body-progress')}
                     onClick={() => handleNavClick(TAB_CONFIG[tabKey].view)}
                     label={TAB_CONFIG[tabKey].label}
                     isTextIcon={TAB_CONFIG[tabKey].isTextIcon}
@@ -113,7 +113,7 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions 
                     key={tabKey}
                     testId={`nav-${tabKey}`}
                     icon={TAB_CONFIG[tabKey].icon}
-                    isActive={activeView === TAB_CONFIG[tabKey].view}
+                    isActive={activeView === TAB_CONFIG[tabKey].view || (tabKey === 'nutrition' && activeView === 'body-progress')}
                     onClick={() => handleNavClick(TAB_CONFIG[tabKey].view)}
                     label={TAB_CONFIG[tabKey].label}
                     isTextIcon={TAB_CONFIG[tabKey].isTextIcon}

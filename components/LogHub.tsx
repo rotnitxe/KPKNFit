@@ -8,11 +8,14 @@ import { useAppDispatch } from '../contexts/AppContext';
 
 interface LogHubProps {
   onNavigate: (view: View) => void;
-  setIsBodyLogModalOpen: (isOpen: boolean) => void;
   setIsNutritionLogModalOpen: (isOpen: boolean) => void;
 }
 
-const LogHub: React.FC<LogHubProps> = ({ onNavigate, setIsBodyLogModalOpen, setIsNutritionLogModalOpen }) => {
+const LogHub: React.FC<LogHubProps> = ({ onNavigate, setIsNutritionLogModalOpen }) => {
+  const handleNutritionClick = () => {
+    onNavigate('nutrition');
+    setIsNutritionLogModalOpen(true);
+  };
   const { setIsStartWorkoutModalOpen } = useAppDispatch();
   return (
     <div className="animate-fade-in space-y-8 max-w-2xl mx-auto text-center tab-bar-safe-area">
@@ -31,7 +34,7 @@ const LogHub: React.FC<LogHubProps> = ({ onNavigate, setIsBodyLogModalOpen, setI
           </div>
         </Card>
         <Card
-          onClick={() => setIsBodyLogModalOpen(true)}
+          onClick={() => onNavigate('body-progress')}
           className="cursor-pointer hover:border-sky-500 transition-all duration-300 transform hover:scale-105 border-2 border-transparent"
         >
           <div className="flex flex-col items-center p-4">
@@ -41,7 +44,7 @@ const LogHub: React.FC<LogHubProps> = ({ onNavigate, setIsBodyLogModalOpen, setI
           </div>
         </Card>
         <Card
-          onClick={() => setIsNutritionLogModalOpen(true)}
+          onClick={handleNutritionClick}
           className="cursor-pointer hover:border-cyber-cyan transition-all duration-300 transform hover:scale-105 border-2 border-transparent"
         >
           <div className="flex flex-col items-center p-4">

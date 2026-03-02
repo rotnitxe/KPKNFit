@@ -16,7 +16,6 @@ import { PCEActionModal } from './components/PCEActionModal';
 // Import UI Components
 import TabBar from './components/TabBar';
 import SubTabBar from './components/SubTabBar';
-import AddNutritionLogModal from './components/AddNutritionLogModal';
 import CoachChatModal from './components/CoachChatModal';
 import AppBackground from './components/AppBackground';
 import TimersModal from './components/TimersModal';
@@ -27,7 +26,7 @@ import ReadinessDrawer from './components/ReadinessDrawer';
 import AddToPlaylistSheet from './components/AddToPlaylistSheet';
 import StartWorkoutDrawer from './components/StartWorkoutDrawer';
 import CoachBriefingDrawer from './components/CoachBriefingDrawer';
-import AddBodyLogModal from './components/AddBodyLogModal';
+import { BodyProgressSheet } from './components/BodyProgressSheet';
 import LogActionSheet from './components/LogActionSheet';
 import FoodEditorModal from './components/FoodEditorModal';
 import AddPantryItemModal from './components/AddPantryItemModal';
@@ -77,7 +76,6 @@ const SessionDetailView = React.lazy(() => import('./components/SessionDetailVie
 const SmartMealPlannerView = React.lazy(() => import('./components/SmartMealPlannerView'));
 const NutritionView = React.lazy(() => import('./components/NutritionView'));
 const FoodDatabaseView = React.lazy(() => import('./components/FoodDatabaseView'));
-const BodyProgressView = React.lazy(() => import('./components/BodyProgressView'));
 const ProgramMetricVolumeDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricVolumeDetail'));
 const ProgramMetricStrengthDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricStrengthDetail'));
 const ProgramMetricDensityDetail = React.lazy(() => import('./components/program-detail/metrics/ProgramMetricDensityDetail'));
@@ -154,7 +152,6 @@ export const App: React.FC = () => {
         exerciseList,
         isOnline,
         isBodyLogModalOpen,
-        isNutritionLogModalOpen,
         isFinishModalOpen,
         isTimeSaverModalOpen,
         isTimersModalOpen,
@@ -550,7 +547,7 @@ export const App: React.FC = () => {
             }
             case 'session-detail': return viewingSessionInfo && <SessionDetailView sessionInfo={viewingSessionInfo} />;
             case 'progress': return <PhysicalProgress />;
-            case 'body-progress': return <Suspense fallback={<ViewFallback />}><BodyProgressView /></Suspense>;
+            case 'body-progress': return <Suspense fallback={<ViewFallback />}><NutritionView initialTab="progreso" /></Suspense>;
             case 'home-card-page': {
                 const cardData = historyStack[historyStack.length - 1]?.data;
                 const cardType = cardData?.cardType ?? 'exercise-history';
@@ -562,7 +559,7 @@ export const App: React.FC = () => {
             }
             case 'settings': return <SettingsComponent settings={settings} onSettingsChange={setSettings} setPrograms={setPrograms} setHistory={setHistory} setSkippedLogs={setSkippedLogs} setBodyProgress={setBodyProgress} setNutritionLogs={setNutritionLogs} drive={drive} installPromptEvent={installPromptEvent} setInstallPromptEvent={setInstallPromptEvent} isOnline={isOnline} />;
             case 'coach': return <CoachView programs={programs} history={history} skippedLogs={skippedLogs} settings={settings} bodyProgress={bodyProgress} nutritionLogs={nutritionLogs} isOnline={isOnline} />;
-            case 'log-hub': return <LogHub onNavigate={navigateTo} setIsBodyLogModalOpen={setIsBodyLogModalOpen} setIsNutritionLogModalOpen={setIsNutritionLogModalOpen} />;
+            case 'log-hub': return <LogHub onNavigate={navigateTo} setIsNutritionLogModalOpen={setIsNutritionLogModalOpen} />;
             case 'achievements': return <AchievementsView unlocked={unlockedAchievements} />;
             case 'log-workout': {
                 if (loggingSessionInfo) {
@@ -628,7 +625,7 @@ export const App: React.FC = () => {
             style={{
                 background: `linear-gradient(180deg, #1a1a1a 0px, #1a1a1a max(32px, env(safe-area-inset-top, 0px)), #121212 max(32px, env(safe-area-inset-top, 0px)))`,
             }}
-            data-view={view === 'nutrition' ? 'nutrition' : undefined}
+            data-view={view === 'nutrition' || view === 'body-progress' ? 'nutrition' : undefined}
         >
             
             <AppBackground />
@@ -662,7 +659,7 @@ export const App: React.FC = () => {
             />
             
             <main className={`app-main-content scroll-flexible flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : view === 'workout' ? 'pt-0 pb-0' : 'pt-4 pb-[max(150px,calc(var(--tab-bar-safe-bottom,140px)+24px))]'}`}>
-                <div className={`${view === 'home' || view === 'sleep' || view === 'workout' || view === 'nutrition' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
+                <div className={`${view === 'home' || view === 'sleep' || view === 'workout' || view === 'nutrition' || view === 'body-progress' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
                         <Suspense fallback={<ViewFallback />}>
                             {renderView()}
@@ -672,7 +669,7 @@ export const App: React.FC = () => {
             </main>
             
             {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor, Session Editor, Workout, and Nutrition Wizard/Landing */}
-            {view !== 'program-editor' && view !== 'session-editor' && view !== 'workout' && (view !== 'nutrition' || settings.hasSeenNutritionWizard) && (
+            {view !== 'program-editor' && view !== 'session-editor' && view !== 'workout' && (view !== 'nutrition' && view !== 'body-progress' || settings.hasSeenNutritionWizard) && (
                 <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] rounded-t-none min-h-[88px] flex flex-col`}>
                      <div className="flex flex-col w-full flex-1 min-h-0">
                         <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />
@@ -691,8 +688,15 @@ export const App: React.FC = () => {
             
             <EditSleepLogModal isOpen={!!editingSleepLog} onClose={() => setEditingSleepLog(null)} onSave={handleSaveSleepLog} log={editingSleepLog} />
             {isCoachChatOpen && <CoachChatModal isOpen={isCoachChatOpen} onClose={() => setIsCoachChatOpen(false)} sessionContext={coachChatContext} programs={programs} history={history} isOnline={isOnline} settings={settings} />}
-            {isNutritionLogModalOpen && <AddNutritionLogModal isOpen={isNutritionLogModalOpen} onClose={() => setIsNutritionLogModalOpen(false)} onSave={handleSaveNutritionLog} isOnline={isOnline} settings={settings} />}
-            {isBodyLogModalOpen && <AddBodyLogModal isOpen={isBodyLogModalOpen} onClose={() => setIsBodyLogModalOpen(false)} onSave={handleSaveBodyLog} settings={settings} isOnline={isOnline} />}
+            {isBodyLogModalOpen && (
+                <BodyProgressSheet
+                    isOpen={isBodyLogModalOpen}
+                    onClose={() => setIsBodyLogModalOpen(false)}
+                    onSave={handleSaveBodyLog}
+                    settings={settings}
+                    activePlan={state.nutritionPlans?.find(p => p.id === state.activeNutritionPlanId) ?? null}
+                />
+            )}
             {isTimersModalOpen && <TimersModal isOpen={isTimersModalOpen} onClose={() => setIsTimersModalOpen(false)} />}
             {isCustomExerciseEditorOpen && <CustomExerciseEditorModal isOpen={isCustomExerciseEditorOpen} onClose={closeCustomExerciseEditor} onSave={addOrUpdateCustomExercise} isOnline={isOnline} existingExercise={editingCustomExerciseData?.exercise} preFilledName={editingCustomExerciseData?.preFilledName} />}
             {isFoodEditorOpen && <FoodEditorModal />}

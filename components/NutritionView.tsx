@@ -1,24 +1,35 @@
 // components/NutritionView.tsx
-// Vista principal Nutrición — estética Tú: hero con anillos, flujo único, barra fija
+// Vista principal Nutrición — tabs Nutrición | Progreso, hero condicional, FAB, barra
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { NutritionDashboard, RegisterFoodDrawer, NutritionWizard, NutritionSetupModal, useNutritionStats, NutritionPlanEditorModal } from './nutrition/index';
 import NutritionHeroBanner from './nutrition/NutritionHeroBanner';
+import { ProgressHeroBanner } from './nutrition/ProgressHeroBanner';
 import { getLocalDateString } from '../utils/dateUtils';
-import { UtensilsIcon } from './icons';
+import { UtensilsIcon, PencilIcon, TrashIcon } from './icons';
 import ErrorBoundary from './ui/ErrorBoundary';
 import WeightVsTargetChart from './WeightVsTargetChart';
 import BodyFatChart from './BodyFatChart';
 import MuscleMassChart from './MuscleMassChart';
 import FFMIChart from './FFMIChart';
 import { GoalReachedModal } from './nutrition/GoalReachedModal';
+import { BodyProgressSheet } from './BodyProgressSheet';
 
-const NutritionView: React.FC = () => {
-    const { settings, bodyProgress, nutritionPlans, activeNutritionPlanId } = useAppState();
-    const { handleSaveNutritionLog, setSettings, navigateTo, setIsBodyLogModalOpen } = useAppDispatch();
+type NutritionTab = 'nutricion' | 'progreso';
+
+interface NutritionViewProps {
+    initialTab?: NutritionTab;
+}
+
+const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
+    const { settings, bodyProgress, nutritionPlans, activeNutritionPlanId, isNutritionLogModalOpen } = useAppState();
+    const { handleSaveNutritionLog, handleSaveBodyLog, setSettings, navigateTo, setIsBodyLogModalOpen, setBodyProgress, setIsNutritionLogModalOpen } = useAppDispatch();
     const [selectedDate, setSelectedDate] = useState(getLocalDateString());
+    const [activeTab, setActiveTab] = useState<NutritionTab>(initialTab ?? 'nutricion');
+    const [progressMetric, setProgressMetric] = useState<'weight' | 'bodyFat' | 'muscleMass'>('weight');
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [editingBodyLog, setEditingBodyLog] = useState<import('../types').BodyProgressLog | null>(null);
     const [showWizard, setShowWizard] = useState(false);
     const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
     const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -88,6 +99,81 @@ const NutritionView: React.FC = () => {
         } catch (_) {}
     }, []);
 
+    useEffect(() => {
+        if (initialTab) setActiveTab(initialTab);
+    }, [initialTab]);
+
+    useEffect(() => {
+        if (isNutritionLogModalOpen) {
+            setIsDrawerOpen(true);
+            setActiveTab('nutricion');
+            setIsNutritionLogModalOpen(false);
+        }
+    }, [isNutritionLogModalOpen, setIsNutritionLogModalOpen]);
+
+    const sortedLogs = useMemo(
+        () => [...bodyProgress].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+        [bodyProgress]
+    );
+
+    const height = settings.userVitals?.height ?? '--';
+    const weightVal = lastLog?.weight ?? settings.userVitals?.weight ?? '--';
+    const bodyFatVal = lastLog?.bodyFatPercentage ?? settings.userVitals?.bodyFatPercentage ?? '--';
+    const muscleMassVal = lastLog?.muscleMassPercentage ?? settings.userVitals?.muscleMassPercentage ?? '--';
+
+    const { estimatedDate, trendStatus } = useMemo(() => {
+        const metric = progressMetric;
+        const plan = activePlan;
+        if (!plan || bodyProgress.length < 2 || plan.goalType !== metric) {
+            return { estimatedDate: plan?.estimatedEndDate ?? null, trendStatus: 'on_track' as const };
+        }
+        const sorted = [...bodyProgress].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const points = sorted
+            .map((log) => {
+                let y: number | undefined;
+                if (metric === 'weight') y = log.weight;
+                else if (metric === 'bodyFat') y = log.bodyFatPercentage;
+                else y = log.muscleMassPercentage;
+                const x = new Date(log.date).getTime() / (24 * 60 * 60 * 1000);
+                return { x, y };
+            })
+            .filter((p) => p.y != null && !Number.isNaN(p.y)) as { x: number; y: number }[];
+        if (points.length < 2) {
+            return { estimatedDate: plan?.estimatedEndDate ?? null, trendStatus: 'on_track' as const };
+        }
+        const n = points.length;
+        const sumX = points.reduce((s, p) => s + p.x, 0);
+        const sumY = points.reduce((s, p) => s + p.y, 0);
+        const sumXY = points.reduce((s, p) => s + p.x * p.y, 0);
+        const sumX2 = points.reduce((s, p) => s + p.x * p.x, 0);
+        const denom = n * sumX2 - sumX * sumX;
+        if (Math.abs(denom) < 1e-10) {
+            return { estimatedDate: plan?.estimatedEndDate ?? null, trendStatus: 'on_track' as const };
+        }
+        const slope = (n * sumXY - sumX * sumY) / denom;
+        const intercept = sumY / n - slope * (sumX / n);
+        const currentY = points[points.length - 1].y;
+        const goal = plan.goalValue;
+        const diff = goal - currentY;
+        let etaDate: string | null = null;
+        if (Math.abs(slope) > 1e-10 && (diff > 0 ? slope > 0 : slope < 0)) {
+            const daysToGoal = diff / slope;
+            const etaMs = points[points.length - 1].x * 24 * 60 * 60 * 1000 + daysToGoal * 24 * 60 * 60 * 1000;
+            const d = new Date(etaMs);
+            etaDate = d.toISOString().slice(0, 10);
+        }
+        const planEta = plan?.estimatedEndDate ?? etaDate ?? null;
+        let trend: 'on_track' | 'behind' | 'ahead' = 'on_track';
+        if (planEta && etaDate) {
+            const planDays = new Date(planEta).getTime() / (24 * 60 * 60 * 1000);
+            const ourDays = new Date(etaDate).getTime() / (24 * 60 * 60 * 1000);
+            const diffDays = ourDays - planDays;
+            if (diffDays > 7) trend = 'behind';
+            else if (diffDays < -7) trend = 'ahead';
+        }
+        return { estimatedDate: etaDate ?? planEta, trendStatus: trend };
+    }, [activePlan, bodyProgress, progressMetric]);
+
     if (showWizard) {
         return (
             <NutritionWizard
@@ -98,69 +184,157 @@ const NutritionView: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-full bg-[#121212]">
-            <div className="flex-1 min-h-0 overflow-y-auto">
-                <NutritionHeroBanner
-                    selectedDate={selectedDate}
-                    onDateChange={setSelectedDate}
-                    dailyCalories={dailyCalories}
-                    calorieGoal={calorieGoal}
-                    hasCalorieGoal={hasCalorieGoal}
-                    protein={dailyTotals.protein}
-                    proteinGoal={proteinGoal}
-                    carbs={dailyTotals.carbs}
-                    carbGoal={carbGoal}
-                    fats={dailyTotals.fats}
-                    fatGoal={fatGoal}
-                    onProgresoPress={() => navigateTo('body-progress')}
-                    progressPct={progressPct}
-                    activePlanName={activePlan?.name}
-                    goalLabel={goalLabel}
-                    onEditCalories={() => setIsGoalModalOpen(true)}
-                />
-
-                <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-32">
-                    <NutritionDashboard
-                        selectedDate={selectedDate}
-                        onDateChange={setSelectedDate}
-                        onOpenDrawer={() => setIsDrawerOpen(true)}
-                        showSetupBanner={hasDismissed}
-                        onOpenWizard={() => setShowWizard(true)}
-                        hideHeader
-                        activePlan={activePlan}
-                        onUpdateBodyData={() => setIsBodyLogModalOpen(true)}
-                        analyticsExpanded={analyticsExpanded}
-                        onAnalyticsExpand={() => setAnalyticsExpanded(v => !v)}
-                        renderAnalytics={() => (
-                            <>
-                                <ErrorBoundary fallbackLabel="WeightVsTargetChart">
-                                    <WeightVsTargetChart />
-                                </ErrorBoundary>
-                                <ErrorBoundary fallbackLabel="BodyFatChart">
-                                    <BodyFatChart />
-                                </ErrorBoundary>
-                                <ErrorBoundary fallbackLabel="MuscleMassChart">
-                                    <MuscleMassChart />
-                                </ErrorBoundary>
-                                <ErrorBoundary fallbackLabel="FFMIChart">
-                                    <FFMIChart />
-                                </ErrorBoundary>
-                            </>
-                        )}
-                    />
-                </div>
-            </div>
-
-            <div className="fixed left-0 right-0 bottom-0 z-30 bg-[#0a0a0a] border-t border-white/10 px-4 py-3 flex gap-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+            {/* Tabs */}
+            <div className="shrink-0 flex border-b border-white/10 bg-[#1a1a1a]">
                 <button
-                    onClick={() => setIsDrawerOpen(true)}
-                    className="flex-1 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-emerald-500/30 transition-colors"
+                    onClick={() => setActiveTab('nutricion')}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
+                        activeTab === 'nutricion' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'
+                    }`}
                 >
-                    <UtensilsIcon size={18} />
-                    Añadir comida
+                    Nutrición
                 </button>
                 <button
+                    onClick={() => setActiveTab('progreso')}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
+                        activeTab === 'progreso' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'
+                    }`}
+                >
+                    Progreso
+                </button>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-y-auto">
+                {activeTab === 'nutricion' ? (
+                    <>
+                        <NutritionHeroBanner
+                            selectedDate={selectedDate}
+                            onDateChange={setSelectedDate}
+                            dailyCalories={dailyCalories}
+                            calorieGoal={calorieGoal}
+                            hasCalorieGoal={hasCalorieGoal}
+                            protein={dailyTotals.protein}
+                            proteinGoal={proteinGoal}
+                            carbs={dailyTotals.carbs}
+                            carbGoal={carbGoal}
+                            fats={dailyTotals.fats}
+                            fatGoal={fatGoal}
+                            onProgresoPress={() => setActiveTab('progreso')}
+                            progressPct={progressPct}
+                            activePlanName={activePlan?.name}
+                            goalLabel={goalLabel}
+                            onEditCalories={() => setIsGoalModalOpen(true)}
+                        />
+                        <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-32">
+                            <NutritionDashboard
+                                selectedDate={selectedDate}
+                                onDateChange={setSelectedDate}
+                                onOpenDrawer={() => setIsDrawerOpen(true)}
+                                showSetupBanner={hasDismissed}
+                                onOpenWizard={() => setShowWizard(true)}
+                                hideHeader
+                                activePlan={activePlan}
+                                onUpdateBodyData={() => setIsBodyLogModalOpen(true)}
+                                analyticsExpanded={analyticsExpanded}
+                                onAnalyticsExpand={() => setAnalyticsExpanded(v => !v)}
+                                renderAnalytics={() => (
+                                    <>
+                                        <ErrorBoundary fallbackLabel="WeightVsTargetChart"><WeightVsTargetChart /></ErrorBoundary>
+                                        <ErrorBoundary fallbackLabel="BodyFatChart"><BodyFatChart /></ErrorBoundary>
+                                        <ErrorBoundary fallbackLabel="MuscleMassChart"><MuscleMassChart /></ErrorBoundary>
+                                        <ErrorBoundary fallbackLabel="FFMIChart"><FFMIChart /></ErrorBoundary>
+                                    </>
+                                )}
+                            />
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <ProgressHeroBanner
+                            weight={weightVal}
+                            bodyFat={bodyFatVal}
+                            muscleMass={muscleMassVal}
+                            activePlan={activePlan}
+                            progressPct={progressPct}
+                            selectedMetric={progressMetric}
+                            onSelectMetric={setProgressMetric}
+                            estimatedDate={estimatedDate}
+                            trendStatus={trendStatus}
+                            onRegisterPress={() => setIsBodyLogModalOpen(true)}
+                            weightUnit={settings.weightUnit}
+                        />
+                        <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-32 space-y-6">
+                            <section>
+                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">Evolución</p>
+                                <ErrorBoundary fallbackLabel="WeightVsTargetChart"><WeightVsTargetChart /></ErrorBoundary>
+                            </section>
+                            <section>
+                                <ErrorBoundary fallbackLabel="BodyFatChart"><BodyFatChart /></ErrorBoundary>
+                            </section>
+                            <section>
+                                <ErrorBoundary fallbackLabel="MuscleMassChart"><MuscleMassChart /></ErrorBoundary>
+                            </section>
+                            <section>
+                                <ErrorBoundary fallbackLabel="FFMIChart"><FFMIChart /></ErrorBoundary>
+                            </section>
+                            <section>
+                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">Registros</p>
+                                {sortedLogs.length === 0 ? (
+                                    <p className="text-zinc-500 text-[10px] py-4">No hay registros. Pulsa Registrar avance.</p>
+                                ) : (
+                                    <div className="divide-y divide-white/5">
+                                        {sortedLogs.map(log => (
+                                            <div key={log.id} className="py-3 flex justify-between items-start">
+                                                <div>
+                                                    <p className="text-sm font-bold text-white">
+                                                        {log.weight != null ? `${log.weight} ${settings.weightUnit}` : '--'}
+                                                        {log.bodyFatPercentage != null && ` · ${log.bodyFatPercentage}% grasa`}
+                                                        {log.muscleMassPercentage != null && ` · ${log.muscleMassPercentage}% músculo`}
+                                                    </p>
+                                                    <p className="text-[10px] text-zinc-500">
+                                                        {new Date(log.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </p>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    <button
+                                                        onClick={() => { setEditingBodyLog(log); }}
+                                                        className="p-2 text-zinc-500 hover:text-white"
+                                                        aria-label="Editar"
+                                                    >
+                                                        <PencilIcon size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => window.confirm('¿Eliminar?') && setBodyProgress(prev => prev.filter(l => l.id !== log.id))}
+                                                        className="p-2 text-zinc-500 hover:text-rose-400"
+                                                        aria-label="Eliminar"
+                                                    >
+                                                        <TrashIcon size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {activeTab === 'nutricion' && (
+                <button
+                    onClick={() => setIsDrawerOpen(true)}
+                    className="fixed bottom-24 right-4 z-20 w-14 h-14 bg-white text-black font-black flex items-center justify-center shadow-lg"
+                    aria-label="Añadir comida"
+                >
+                    <UtensilsIcon size={22} />
+                </button>
+            )}
+
+            <div className="fixed left-0 right-0 bottom-0 z-30 bg-[#0a0a0a] border-t border-white/10 px-4 py-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+                <button
                     onClick={() => setIsBodyLogModalOpen(true)}
-                    className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-sm uppercase tracking-wide hover:bg-white/10 transition-colors"
+                    className="w-full py-3 bg-white text-black font-black text-sm uppercase tracking-wider hover:bg-white/90 transition-colors"
                 >
                     Actualizar datos
                 </button>
@@ -198,6 +372,20 @@ const NutritionView: React.FC = () => {
                 }}
             />
             <NutritionPlanEditorModal isOpen={isGoalModalOpen} onClose={() => setIsGoalModalOpen(false)} />
+
+            {editingBodyLog && (
+                <BodyProgressSheet
+                    isOpen
+                    onClose={() => setEditingBodyLog(null)}
+                    onSave={(log) => {
+                        handleSaveBodyLog(log);
+                        setEditingBodyLog(null);
+                    }}
+                    settings={settings}
+                    initialLog={editingBodyLog}
+                    activePlan={activePlan}
+                />
+            )}
         </div>
     );
 };

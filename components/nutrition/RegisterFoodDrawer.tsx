@@ -464,8 +464,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         <>
             <div className="fixed inset-0 z-[110] bg-black/40" onClick={onClose} />
             <div
-                className="fixed top-0 right-0 bottom-0 w-full max-w-[400px] z-[111] bg-[#0a0a0a] border-l border-white/10 flex flex-col animate-slide-left"
-                style={{ width: 'min(400px, 90vw)' }}
+                className="fixed left-0 right-0 bottom-0 z-[111] bg-[#0a0a0a] border-t border-white/10 flex flex-col animate-slide-up"
+                style={{ height: '90vh', maxHeight: '90dvh' }}
             >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 shrink-0">
                     <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Registrar Comida</h3>

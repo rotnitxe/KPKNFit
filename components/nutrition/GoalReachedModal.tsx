@@ -58,7 +58,7 @@ export const GoalReachedModal: React.FC<GoalReachedModalProps> = ({
     const within = isWithinTolerance();
 
     return (
-        <TacticalModal isOpen={isOpen} onClose={onClose} title="¿Alcanzaste tu meta?">
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="¿Alcanzaste tu meta?" variant="sheet">
             <div className="space-y-4 p-1">
                 <p className="text-slate-300 text-sm">
                     La fecha estimada para tu objetivo ha pasado. ¿Lograste alcanzar tu meta?

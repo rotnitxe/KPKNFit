@@ -5,7 +5,7 @@ import React, { useState, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { BodyProgressLog } from '../types';
 import { ArrowLeftIcon, PlusIcon, PencilIcon, TrashIcon } from './icons';
-import AddBodyLogModal from './AddBodyLogModal';
+import { BodyProgressSheet } from './BodyProgressSheet';
 import BodyFatChart from './BodyFatChart';
 import WeightVsTargetChart from './WeightVsTargetChart';
 import FFMIChart from './FFMIChart';
@@ -232,13 +232,13 @@ const BodyProgressView: React.FC = () => {
                 <PlusIcon size={24} />
             </button>
 
-            <AddBodyLogModal
+            <BodyProgressSheet
                 isOpen={isModalOpen}
                 onClose={() => { setIsModalOpen(false); setEditingLog(null); }}
                 onSave={handleSave}
                 settings={settings}
-                isOnline={true}
                 initialLog={editingLog}
+                activePlan={activePlan}
             />
             <GoalReachedModal
                 isOpen={goalReachedModalOpen}

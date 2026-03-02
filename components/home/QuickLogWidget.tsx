@@ -46,7 +46,7 @@ export const QuickLogWidget: React.FC = () => {
             label: 'Nutrición',
             icon: UtensilsIcon,
             completed: hasNutritionToday,
-            onClick: () => setIsNutritionLogModalOpen(true),
+            onClick: () => { navigateTo('nutrition'); setIsNutritionLogModalOpen(true); },
             color: 'emerald',
         },
     ];
@@ -60,7 +60,7 @@ export const QuickLogWidget: React.FC = () => {
     const allEmpty = !hasWeightToday && !hasSleepToday && !hasNutritionToday;
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
+        <div className="bg-[#0a0a0a] border border-white/10 rounded-none overflow-hidden">
             <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em]">
                     Quick Log
@@ -73,7 +73,7 @@ export const QuickLogWidget: React.FC = () => {
                         <div className="flex items-center gap-2">
                             <button onClick={() => setIsBodyLogModalOpen(true)} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Peso</button>
                             <button onClick={() => navigateTo('sleep')} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Sueño</button>
-                            <button onClick={() => setIsNutritionLogModalOpen(true)} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Nutrición</button>
+                            <button onClick={() => { navigateTo('nutrition'); setIsNutritionLogModalOpen(true); }} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Nutrición</button>
                         </div>
                     </div>
                 </div>
@@ -85,7 +85,7 @@ export const QuickLogWidget: React.FC = () => {
                         <button
                             key={id}
                             onClick={onClick}
-                            className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all cursor-pointer bg-white/[0.02] ${cc.border}`}
+                            className={`flex flex-col items-center justify-center gap-2 p-4 rounded-none border transition-all cursor-pointer bg-white/[0.02] ${cc.border}`}
                         >
                             <div className={`relative ${cc.icon}`}>
                                 <Icon size={24} />

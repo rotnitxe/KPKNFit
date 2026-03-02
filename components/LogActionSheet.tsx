@@ -123,7 +123,7 @@ const LogActionSheet: React.FC = () => {
             label: "Registrar comida", 
             action: () => {
                 navigateTo('nutrition');
-                setIsNutritionLogModalOpen(true);
+                setIsNutritionLogModalOpen(true); // NutritionView will open RegisterFoodDrawer on mount
             },
             color: "bg-amber-600",
             delay: 210,

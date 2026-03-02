@@ -197,7 +197,7 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
     const labelClass = 'block text-[10px] font-bold text-slate-500 uppercase mb-1';
 
     return (
-        <TacticalModal isOpen={isOpen} onClose={onClose} title="Editor de plan de alimentación" useCustomContent>
+        <TacticalModal isOpen={isOpen} onClose={onClose} title="Editor de plan de alimentación" useCustomContent variant="sheet">
             <div className="flex flex-col flex-1 min-h-0">
             <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 custom-scrollbar space-y-2">
                 <Section title="Objetivo">
