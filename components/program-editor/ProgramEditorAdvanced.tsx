@@ -81,7 +81,7 @@ const ProgramEditorAdvanced: React.FC<ProgramEditorAdvancedProps> = ({
     }, [program, addToast]);
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black text-white flex flex-col">
+        <div className="fixed inset-0 z-[100] bg-[#1a1a1a] text-white flex flex-col font-sans">
             {/* Toolbar */}
             <EditorToolbar
                 programName={program.name || ''}

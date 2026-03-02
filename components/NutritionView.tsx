@@ -263,6 +263,14 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                             onRegisterPress={() => setIsBodyLogModalOpen(true)}
                             weightUnit={settings.weightUnit}
                         />
+                        <div className="max-w-4xl mx-auto px-4 pt-2 pb-2">
+                            <button
+                                onClick={() => setIsBodyLogModalOpen(true)}
+                                className="w-full py-3 bg-white text-[#1a1a1a] font-medium text-sm uppercase tracking-wide"
+                            >
+                                Actualizar datos
+                            </button>
+                        </div>
                         <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-32 space-y-6">
                             <section>
                                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">Evolución</p>
@@ -324,21 +332,12 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
             {activeTab === 'nutricion' && (
                 <button
                     onClick={() => setIsDrawerOpen(true)}
-                    className="fixed bottom-24 right-4 z-20 w-14 h-14 bg-white text-black font-black flex items-center justify-center shadow-lg"
+                    className="fixed bottom-24 right-4 z-20 w-14 h-14 bg-white text-black font-semibold flex items-center justify-center"
                     aria-label="Añadir comida"
                 >
                     <UtensilsIcon size={22} />
                 </button>
             )}
-
-            <div className="fixed left-0 right-0 bottom-0 z-30 bg-[#0a0a0a] border-t border-white/10 px-4 py-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-                <button
-                    onClick={() => setIsBodyLogModalOpen(true)}
-                    className="w-full py-3 bg-white text-black font-black text-sm uppercase tracking-wider hover:bg-white/90 transition-colors"
-                >
-                    Actualizar datos
-                </button>
-            </div>
 
             <RegisterFoodDrawer
                 isOpen={isDrawerOpen}

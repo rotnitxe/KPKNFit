@@ -34,8 +34,7 @@ import { SleepWidgetHeader } from './components/SleepWidgetHeader';
 import { PostSessionQuestionnaireWidget } from './components/PostSessionQuestionnaireWidget';
 import AthleteIDDashboard from './components/AthleteIDDashboard';
 import { UpdateNoveltiesModal } from './components/UpdateNoveltiesModal';
-import { GeneralOnboardingWizard } from './components/onboarding/GeneralOnboardingWizard';
-import { WelcomeWizard } from './components/onboarding/WelcomeWizard';
+import { UnifiedWelcomeWizard } from './components/onboarding/UnifiedWelcomeWizard';
 import { SetupChecklistCard } from './components/home/index';
 
 // Icons for header & new menu
@@ -631,12 +630,7 @@ export const App: React.FC = () => {
             <AppBackground />
 
             {!settings.hasSeenWelcome && (
-                <WelcomeWizard onComplete={() => setSettings({ hasSeenWelcome: true })} />
-            )}
-            {settings.hasSeenWelcome && !settings.hasSeenGeneralWizard && (
-                <GeneralOnboardingWizard
-                    onComplete={() => setSettings({ hasSeenGeneralWizard: true })}
-                />
+                <UnifiedWelcomeWizard onComplete={() => setSettings({ hasSeenWelcome: true })} />
             )}
             {settings.hasSeenWelcome && settings.hasSeenGeneralWizard && (programs.length === 0 || !settings.hasSeenNutritionWizard) && view === 'home' && (
                 <div className="fixed top-[max(1.25rem,env(safe-area-inset-top))] left-4 right-4 z-[200] animate-fade-in">
@@ -668,8 +662,8 @@ export const App: React.FC = () => {
                 </div>
             </main>
             
-            {/* UPDATED TAB BAR CONTAINER: Hides on Program Editor, Session Editor, Workout, and Nutrition Wizard/Landing */}
-            {view !== 'program-editor' && view !== 'session-editor' && view !== 'workout' && (view !== 'nutrition' && view !== 'body-progress' || settings.hasSeenNutritionWizard) && (
+            {/* TAB BAR: Hides on Program Editor, Session Editor, Workout. Always visible on nutrition/body-progress. */}
+            {view !== 'program-editor' && view !== 'session-editor' && view !== 'workout' && (
                 <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] rounded-t-none min-h-[88px] flex flex-col`}>
                      <div className="flex flex-col w-full flex-1 min-h-0">
                         <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />

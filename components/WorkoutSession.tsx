@@ -202,45 +202,45 @@ const HeaderAccordion: React.FC<{
             <div className="flex gap-2 mb-2 px-2">
                  <button 
                     onClick={() => toggleSection('tags')} 
-                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-black tracking-wider py-1.5 rounded-lg border transition-all ${expandedSection === 'tags' ? 'bg-cyber-cyan/10 border-cyber-cyan/40 text-cyber-cyan' : 'border-white/10 bg-white/5 text-[#999] hover:bg-cyber-cyan/10 hover:text-cyber-cyan'}`}
+                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-medium py-1.5 transition-all ${expandedSection === 'tags' ? 'bg-[#3f3f3f] text-white' : 'bg-[#252525] text-[#a3a3a3] hover:bg-[#3f3f3f] hover:text-white'}`}
                 >
                    <BodyIcon size={12}/> {selectedTag && selectedTag !== 'Base' ? selectedTag : 'Etiquetas'} {expandedSection === 'tags' ? <ChevronRightIcon className="-rotate-90" size={12}/> : <ChevronRightIcon className="rotate-90" size={12}/>}
                 </button>
                 <button 
                     onClick={() => toggleSection('setup')} 
-                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-black tracking-wider py-1.5 rounded-lg border transition-all ${expandedSection === 'setup' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400' : 'border-white/10 bg-white/5 text-[#999] hover:bg-amber-500/10 hover:text-amber-400'}`}
+                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-medium py-1.5 transition-all ${expandedSection === 'setup' ? 'bg-[#3f3f3f] text-white' : 'bg-[#252525] text-[#a3a3a3] hover:bg-[#3f3f3f] hover:text-white'}`}
                 >
-                    <SettingsIcon size={12}/> Setup Info {expandedSection === 'setup' ? <ChevronRightIcon className="-rotate-90" size={12}/> : <ChevronRightIcon className="rotate-90" size={12}/>}
+                    <SettingsIcon size={12}/> Setup {expandedSection === 'setup' ? <ChevronRightIcon className="-rotate-90" size={12}/> : <ChevronRightIcon className="rotate-90" size={12}/>}
                 </button>
             </div>
 
             {expandedSection === 'tags' && (
-                <div className="animate-fade-in bg-[#111] border border-white/10 rounded-xl p-3">
+                <div className="animate-fade-in bg-[#252525] p-3">
                     <div className="flex flex-wrap gap-2 mb-3">
                         {tags.map(tag => (
-                            <button key={tag} onClick={() => { onTagChange(tag); setExpandedSection(null); }} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${selectedTag === tag ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'}`}>{tag}</button>
+                            <button key={tag} onClick={() => { onTagChange(tag); setExpandedSection(null); }} className={`px-3 py-1.5 text-[10px] font-medium transition-all ${selectedTag === tag ? 'bg-white text-[#1a1a1a]' : 'bg-[#1a1a1a] text-[#a3a3a3] hover:bg-[#3f3f3f] hover:text-white'}`}>{tag}</button>
                         ))}
                     </div>
                     {isEditingTag ? (
                         <div className="flex gap-2 items-center mt-2 animate-fade-in">
-                            <input type="text" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="Nueva..." className="flex-1 bg-transparent border-b border-white/10 rounded-none px-2 py-1.5 text-xs text-white outline-none focus:border-cyber-cyan placeholder-[#555]" autoFocus />
-                            <button onClick={handleCreateTag} className="px-2 py-1.5 rounded-lg border border-white/10 bg-cyber-success/20 text-cyber-success hover:bg-cyber-success/30 transition-colors"><CheckIcon size={14}/></button>
-                            <button onClick={() => setIsEditingTag(false)} className="px-2 py-1.5 rounded-lg border border-white/10 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"><XCircleIcon size={14}/></button>
+                            <input type="text" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="Nueva..." className="flex-1 bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" autoFocus />
+                            <button onClick={handleCreateTag} className="px-2 py-1.5 bg-white text-[#1a1a1a] text-[10px] font-medium"><CheckIcon size={14}/></button>
+                            <button onClick={() => setIsEditingTag(false)} className="px-2 py-1.5 bg-[#3f3f3f] text-[#a3a3a3] text-[10px] font-medium"><XCircleIcon size={14}/></button>
                         </div>
                     ) : (
-                         <button onClick={() => setIsEditingTag(true)} className="w-full py-2 rounded-lg border border-dashed border-white/10 text-slate-400 text-[10px] hover:text-white hover:border-white/20 flex items-center justify-center gap-1"><PlusIcon size={10} /> Crear Nueva Etiqueta</button>
+                         <button onClick={() => setIsEditingTag(true)} className="w-full py-2 text-[#a3a3a3] text-[10px] hover:text-white flex items-center justify-center gap-1"><PlusIcon size={10} /> Crear Nueva Etiqueta</button>
                     )}
                 </div>
             )}
 
             {expandedSection === 'setup' && (
-                 <div className="animate-fade-in bg-[#111] border border-white/10 rounded-xl p-3 space-y-3">
+                 <div className="animate-fade-in bg-[#252525] p-3 space-y-3">
                      <div className="grid grid-cols-2 gap-3">
-                         <div><label className="text-[9px] text-amber-400/90 font-bold uppercase block mb-1">Asiento</label><input type="text" value={localDetails.seatPosition || ''} onChange={e => setLocalDetails({...localDetails, seatPosition: e.target.value})} className="w-full bg-transparent border-b border-white/10 rounded-none px-2 py-1.5 text-xs text-white outline-none focus:border-cyber-cyan placeholder-[#555]"/></div>
-                         <div><label className="text-[9px] text-amber-400/90 font-bold uppercase block mb-1">Pines</label><input type="text" value={localDetails.pinPosition || ''} onChange={e => setLocalDetails({...localDetails, pinPosition: e.target.value})} className="w-full bg-transparent border-b border-white/10 rounded-none px-2 py-1.5 text-xs text-white outline-none focus:border-cyber-cyan placeholder-[#555]"/></div>
+                         <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Asiento</label><input type="text" value={localDetails.seatPosition || ''} onChange={e => setLocalDetails({...localDetails, seatPosition: e.target.value})} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]"/></div>
+                         <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Pines</label><input type="text" value={localDetails.pinPosition || ''} onChange={e => setLocalDetails({...localDetails, pinPosition: e.target.value})} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]"/></div>
                      </div>
-                     <div><label className="text-[9px] text-amber-400/90 font-bold uppercase block mb-1">Notas</label><textarea value={localDetails.equipmentNotes || ''} onChange={e => setLocalDetails({...localDetails, equipmentNotes: e.target.value})} rows={2} className="w-full bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white outline-none focus:border-cyber-cyan placeholder-[#555]"/></div>
-                     <Button onClick={handleSaveSetup} className="w-full !py-2 !text-[10px] uppercase font-black border border-white/10 bg-white/5 hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-400">Guardar Setup</Button>
+                     <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Notas</label><textarea value={localDetails.equipmentNotes || ''} onChange={e => setLocalDetails({...localDetails, equipmentNotes: e.target.value})} rows={2} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]"/></div>
+                     <button onClick={handleSaveSetup} className="w-full py-2 text-[10px] uppercase font-medium bg-white text-[#1a1a1a]">Guardar Setup</button>
                  </div>
             )}
         </div>
@@ -295,28 +295,28 @@ const WorkoutHeader: React.FC<{
         ? Math.round((completedSetsCount / totalSetsCount) * 100) : 0;
 
     return (
-        <div className="sticky top-0 z-30 bg-[#0a0a0a] h-auto min-h-[90px] shadow-sm">
+        <div className="sticky top-0 z-30 bg-[#2a2a2a] h-auto min-h-[90px]">
             <div className="flex flex-col px-4 py-3 gap-3">
                 <div className="w-full">
-                    <h2 className="font-bold text-white text-lg leading-tight break-words">{sessionName}</h2>
+                    <h2 className="font-semibold text-white text-lg leading-tight break-words">{sessionName}</h2>
                     {activePartName && (
-                        <span className="text-[9px] font-mono font-bold uppercase tracking-widest mt-0.5 block text-slate-400" style={{ color: isResting ? '#f59e0b' : (activePartColor || '#64748b') }}>{isResting ? 'DESCANSO' : activePartName}</span>
+                        <span className="text-[9px] font-medium uppercase tracking-wide mt-0.5 block text-[#a3a3a3]">{isResting ? 'DESCANSO' : activePartName}</span>
                     )}
                 </div>
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                         {restTimerRemaining != null && restTimerRemaining > 0 && (
-                            <span className="text-xs font-mono font-bold text-amber-400 bg-amber-950/40 px-2 py-1 rounded-lg border border-amber-500/30 tabular-nums">{formatTime(restTimerRemaining)}</span>
+                            <span className="text-xs font-medium text-[#1a1a1a] bg-white px-2 py-1 tabular-nums">{formatTime(restTimerRemaining)}</span>
                         )}
                         {elapsedSeconds != null && (
-                            <span className="text-[10px] font-mono text-slate-500 tabular-nums">{formatTime(elapsedSeconds)}</span>
+                            <span className="text-[10px] text-[#a3a3a3] tabular-nums">{formatTime(elapsedSeconds)}</span>
                         )}
                         {completedSetsCount != null && totalSetsCount != null && totalSetsCount > 0 && (
                             <div className="flex-1 min-w-[80px] max-w-[120px]">
-                                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-amber-500/60 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                                <div className="h-1 bg-[#404040] overflow-hidden">
+                                    <div className="h-full bg-[#737373] transition-all duration-300" style={{ width: `${progressPercent}%` }} />
                                 </div>
-                                <span className="text-[9px] font-mono text-slate-500">{completedSetsCount}/{totalSetsCount}</span>
+                                <span className="text-[9px] text-[#a3a3a3]">{completedSetsCount}/{totalSetsCount}</span>
                             </div>
                         )}
                     </div>
@@ -326,7 +326,7 @@ const WorkoutHeader: React.FC<{
                             onPointerUp={handlePointerUp}
                             onPointerLeave={handlePointerUp}
                             onClick={handleClick}
-                            className="min-w-[44px] min-h-[44px] p-2.5 rounded-full bg-amber-950/40 border border-amber-500/30 text-amber-400 hover:bg-amber-950/60 transition-colors flex items-center justify-center"
+                            className="min-w-[44px] min-h-[44px] p-2.5 bg-white text-[#1a1a1a] flex items-center justify-center"
                             title="Finalizar sesión (mantener para más opciones)"
                         >
                             <CheckCircleIcon size={20} strokeWidth={2.5} />
@@ -358,7 +358,7 @@ const GhostSetInfo: React.FC<{ exerciseId: string; setIndex: number; history: Wo
     if (!lastLog) return null;
     const { date, set } = lastLog;
     const dateStr = new Date(date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
-    return ( <div className="text-[10px] text-slate-500 flex items-center justify-center gap-1.5 mb-2 py-1 border-b border-slate-800/50 uppercase font-black tracking-widest"><span>{dateStr}: {set.weight}{settings.weightUnit} x {set.completedReps}{set.completedRPE && <span className="ml-1 text-primary-color">(@{set.completedRPE})</span>}</span></div>);
+    return ( <div className="text-[10px] text-[#a3a3a3] flex items-center justify-center gap-1.5 mb-2 py-1 border-b border-[#252525] font-medium"><span>{dateStr}: {set.weight}{settings.weightUnit} x {set.completedReps}{set.completedRPE && <span className="ml-1">(@{set.completedRPE})</span>}</span></div>);
 };
 
 const SetDetails: React.FC<{
@@ -525,10 +525,10 @@ const SetDetails: React.FC<{
         }
     }
     
-    let containerClass = "set-card-content flex flex-col bg-slate-900/30 p-3 transition-all duration-500";
-    if (cardAnimation === 'amrap') containerClass += " border border-amber-500/30 bg-amber-950/10";
-    else if (cardAnimation === 'success') containerClass += " border border-slate-500/30 bg-slate-800/20";
-    else if (cardAnimation === 'failure') containerClass += " border border-red-500/30 bg-red-950/10";
+    let containerClass = "set-card-content flex flex-col bg-[#252525] p-3 transition-all duration-500";
+    if (cardAnimation === 'amrap') containerClass += " bg-[#2a2a2a]";
+    else if (cardAnimation === 'success') containerClass += " bg-[#2a2a2a]";
+    else if (cardAnimation === 'failure') containerClass += " bg-[#2a2a2a]";
 
     if (tableRowMode) {
         return (
@@ -598,13 +598,13 @@ const SetDetails: React.FC<{
 
     return (
         <div ref={cardRef} className={`${containerClass} scroll-mb-48`}>
-            {set.isAmrap && !cardAnimation && <div className="absolute inset-0 bg-amber-500/5 z-0 pointer-events-none"></div>}
+            {set.isAmrap && !cardAnimation && <div className="absolute inset-0 bg-[#2a2a2a]/50 z-0 pointer-events-none"></div>}
             {isStagnant && <div className="bg-slate-800/60 border border-slate-600/40 p-2 mb-2 rounded-lg text-center text-xs text-slate-400 font-bold flex items-center justify-center gap-2 mx-2 mt-2"><AlertTriangleIcon size={14}/> Mismo peso/reps en 3 sesiones</div>}
 
             {isUnilateral && (
-                <div className="flex bg-slate-800/60 p-1 rounded-lg mb-2 relative z-10 shrink-0 mx-2">
-                    <button onClick={() => setActiveSide('left')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all min-h-[40px] ${activeSide === 'left' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'}`}>Izquierda</button>
-                    <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all min-h-[40px] ${activeSide === 'right' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'}`}>Derecha</button>
+                <div className="flex bg-[#1a1a1a] p-1 mb-2 relative z-10 shrink-0 mx-2">
+                    <button onClick={() => setActiveSide('left')} className={`flex-1 py-1.5 text-xs font-medium transition-all min-h-[40px] ${activeSide === 'left' ? 'bg-white text-[#1a1a1a]' : 'text-[#a3a3a3] hover:text-white'}`}>Izquierda</button>
+                    <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-medium transition-all min-h-[40px] ${activeSide === 'right' ? 'bg-white text-[#1a1a1a]' : 'text-[#a3a3a3] hover:text-white'}`}>Derecha</button>
                 </div>
             )}
             
@@ -691,21 +691,21 @@ const SetDetails: React.FC<{
                 </div>
 
                 {set.isAmrap ? (
-                    <div className={`flex justify-center items-center py-3 rounded-lg border w-full ${set.isCalibrator ? 'bg-yellow-900/30 border-yellow-500 text-yellow-400' : 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan'}`}>
-                        <span className="text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                    <div className="flex justify-center items-center py-3 bg-[#3f3f3f] w-full">
+                        <span className="text-xs font-medium uppercase tracking-wide flex items-center gap-2 text-white">
                             <FlameIcon size={14} />
-                            {set.isCalibrator ? "AMRAP CALIBRADOR" : "AMRAP AISLADO"}
+                            {set.isCalibrator ? "AMRAP Calibrador" : "AMRAP Aislado"}
                         </span>
                     </div>
                 ) : (
                     <div className="flex justify-center items-center gap-2">
-                        <button onClick={() => handlePerformanceModeChange('target')} className={`flex-1 py-2 rounded-lg border text-[10px] font-black uppercase transition-all ${safeInputs.performanceMode === 'target' ? 'bg-primary-color text-white border-primary-color shadow-lg' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-white'}`}>
+                        <button onClick={() => handlePerformanceModeChange('target')} className={`flex-1 py-2 text-[10px] font-medium uppercase transition-all ${safeInputs.performanceMode === 'target' ? 'bg-white text-[#1a1a1a]' : 'bg-[#1a1a1a] text-[#a3a3a3] hover:text-white'}`}>
                             {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? 'RIR' : 'RPE'}
                         </button>
-                        <button onClick={() => handlePerformanceModeChange('failure')} className={`flex-1 py-2 rounded-lg border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1 ${safeInputs.performanceMode === 'failure' ? 'bg-red-600 text-white border-red-500 shadow-lg shadow-red-900/50' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-red-400'}`}>
+                        <button onClick={() => handlePerformanceModeChange('failure')} className={`flex-1 py-2 text-[10px] font-medium uppercase transition-all flex items-center justify-center gap-1 ${safeInputs.performanceMode === 'failure' ? 'bg-white text-[#1a1a1a]' : 'bg-[#1a1a1a] text-[#a3a3a3] hover:text-white'}`}>
                             <FlameIcon size={10} /> Fallo
                         </button>
-                        <button onClick={() => handlePerformanceModeChange('failed')} className={`flex-1 py-2 rounded-lg border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1 ${safeInputs.performanceMode === 'failed' ? 'bg-yellow-600 text-white border-yellow-500' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-yellow-400'}`}>
+                        <button onClick={() => handlePerformanceModeChange('failed')} className={`flex-1 py-2 text-[10px] font-medium uppercase transition-all flex items-center justify-center gap-1 ${safeInputs.performanceMode === 'failed' ? 'bg-[#525252] text-white' : 'bg-[#1a1a1a] text-[#a3a3a3] hover:text-white'}`}>
                             <AlertTriangleIcon size={10} /> Fallido
                         </button>
                     </div>
@@ -729,8 +729,8 @@ const SetDetails: React.FC<{
 
                 {/* Dropset / Rest-Pause: enlaces de texto */}
                 <div className="mx-2 mt-2 flex gap-4 text-[10px] font-bold">
-                    <button type="button" onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Dropset {(safeInputs.dropSets?.length || 0) > 0 && <span className="text-slate-500">({(safeInputs.dropSets?.length || 0)})</span>}</button>
-                    <button type="button" onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Rest-Pause {(safeInputs.restPauses?.length || 0) > 0 && <span className="text-slate-500">({(safeInputs.restPauses?.length || 0)})</span>}</button>
+                    <button type="button" onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-[#a3a3a3] hover:text-white">+ Dropset {(safeInputs.dropSets?.length || 0) > 0 && <span className="text-[#737373]">({(safeInputs.dropSets?.length || 0)})</span>}</button>
+                    <button type="button" onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-[#a3a3a3] hover:text-white">+ Rest-Pause {(safeInputs.restPauses?.length || 0) > 0 && <span className="text-[#737373]">({(safeInputs.restPauses?.length || 0)})</span>}</button>
                 </div>
                 {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
                     <div className="mx-2 mt-2 p-3 bg-slate-900/50 border border-white/5 rounded-xl space-y-3 animate-fade-in">
@@ -797,9 +797,9 @@ const SetDetails: React.FC<{
             )}
 
             <div className="mt-4 px-2">
-                <Button onClick={handleLogAttempt} className={`w-full !py-4 !text-sm !font-black uppercase tracking-widest shadow-xl transition-all active:scale-[0.98] ${isLogged ? 'bg-green-600 hover:bg-green-500' : set.isAmrap ? 'bg-yellow-600 hover:bg-yellow-500 text-black' : ''}`}>
-                    {isLogged ? 'ACTUALIZAR SERIE' : set.isAmrap ? 'GUARDAR AMRAP' : 'GUARDAR SERIE'}
-                </Button>
+                <button onClick={handleLogAttempt} className={`w-full py-4 text-sm font-medium uppercase tracking-wide transition-all active:scale-[0.98] bg-white text-[#1a1a1a]`}>
+                    {isLogged ? 'Actualizar serie' : set.isAmrap ? 'Guardar AMRAP' : 'Guardar serie'}
+                </button>
             </div>
         </div>
     );
@@ -982,6 +982,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         }
         return renderExercises;
     }, [activeExerciseId, carouselItems, renderExercises, skippedExerciseIds]);
+
     const [activeSetId, setActiveSetId] = useState<string | null>(null);
     const [setInputs, setSetInputs] = useState<Record<string, SetInputState | UnilateralSetInputs>>((ongoingWorkout?.unilateralSetInputs as any) || {}); 
 
@@ -1458,8 +1459,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     };
 
     return (
-        <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)]">
-             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} asDrawer allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
+        <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)] bg-[#1a1a1a]">
+             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} fullPage allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
             {activeSetId?.startsWith('warmup-') && (() => {
                 const exId = activeSetId.replace('warmup-', '');
                 const ex = allExercises.find((e: Exercise) => e.id === exId);
@@ -1555,7 +1556,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 <WorkoutHeader
                 sessionName={currentSession.name}
                 activePartName={activePartInfo?.name}
-                activePartColor={activePartInfo ? getPartTheme(activePartInfo.name || '').color : undefined}
+                activePartColor={undefined}
                 isResting={!!(restTimer && restTimer.remaining > 0)}
                 onFinishPress={() => setIsFinishModalOpen(true)}
                 onFinishLongPress={() => setFinishContextOpen(true)}
@@ -1572,12 +1573,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             />
             
             <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative">
-            {displayParts.map((part: any, partIndex: number) => {
-                    const theme = getPartTheme(part.name || '');
-                    return (
+            {displayParts.map((part: any, partIndex: number) => (
                     <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group [&>summary]:hidden">
-                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({...prev, [part.id]: !prev[part.id]})); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none rounded-xl border border-white/5 shadow-sm" style={{ borderLeft: `4px solid ${theme.color}`, background: `linear-gradient(90deg, ${theme.bgColor} 0%, transparent 100%)` }}>
-                            <div className="flex items-center gap-3"><h3 className="text-sm font-black uppercase tracking-widest" style={{ color: theme.color }}>{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-slate-500 transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
+                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({...prev, [part.id]: !prev[part.id]})); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none bg-[#252525]">
+                            <div className="flex items-center gap-3"><h3 className="text-sm font-medium uppercase tracking-wide text-[#a3a3a3]">{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-[#737373] transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
                         </summary>
                         <div className="space-y-4 relative pl-0 pr-0 w-full">
                             {part.exercises.map((ex: Exercise) => {
@@ -1591,12 +1590,12 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                     <div key={ex.id} className="relative transition-all duration-500 w-full max-w-none" id={`exercise-card-${ex.id}`}>
                                         <details 
                                             open={isActive || true} 
-                                            className={`set-card-details w-full overflow-visible transition-all duration-500 !border-0 !shadow-none !bg-transparent ${ex.isStarTarget ? 'border-amber-400/50' : ''} ${isFocused ? 'z-40 ring-2 ring-amber-500/30' : ''}`}
+                                            className={`set-card-details w-full overflow-visible transition-all duration-500 !border-0 !shadow-none !bg-transparent ${isFocused ? 'z-40 ring-2 ring-white/30' : ''}`}
                                         >
                                             <summary className="set-card-summary p-3 flex flex-col items-stretch hidden" onClick={() => handleHeaderClick(ex.id)}>
                                                 <div className="flex items-center justify-between gap-3 w-full">
                                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-lg flex-shrink-0 ${ex.isStarTarget ? 'bg-amber-400 text-black' : 'bg-slate-800 text-slate-400'}`}>
+                                                        <div className={`w-8 h-8 flex items-center justify-center font-medium text-lg flex-shrink-0 bg-[#252525] text-[#a3a3a3]`}>
                                                             {allExercises.findIndex(e => e.id === ex.id) + 1}
                                                         </div>
                                                         <p className="font-bold text-lg text-white truncate">{ex.name}</p>
@@ -1612,9 +1611,9 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                             <div className="set-card-content !border-none !p-3 space-y-2 relative !p-3 sm:!p-4 !max-w-none w-full">
                                                 <div className="mb-4 flex items-center justify-between">
                                                     <h3 className="text-lg font-bold text-white truncate">{ex.name}</h3>
-                                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1.5 rounded-lg text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Historial"><ClockIcon size={18} /></button>
+                                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1.5 text-[#737373] hover:text-white shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Historial"><ClockIcon size={18} /></button>
                                                 </div>
-                                                {pr && <div className="p-2 text-center text-sm bg-amber-900/20 border border-amber-500/30 text-amber-300 rounded-lg font-mono font-bold"><p className="font-semibold flex items-center justify-center gap-2"><TrophyIcon size={16}/> {pr.prString}</p></div>}
+                                                {pr && <div className="p-2 text-center text-sm bg-[#252525] text-[#a3a3a3]"><p className="font-medium flex items-center justify-center gap-2"><TrophyIcon size={16}/> {pr.prString}</p></div>}
                                                 
                                                 <HeaderAccordion 
                                                     exercise={ex} 
@@ -1703,10 +1702,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                             })}
                                                         </div>
                                                     </div>
-                                                    <div id={`feedback-card-${ex.id}`} className="overflow-hidden rounded-none border-0 border-t border-white/5 bg-slate-900/30">
-                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-amber-500/5 transition-colors min-h-[48px]">
-                                                            <ActivityIcon size={24} className="text-amber-400" />
-                                                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-400">Feedback Post-Ejercicio</span>
+                                                    <div id={`feedback-card-${ex.id}`} className="overflow-hidden border-t border-[#252525] bg-[#252525]">
+                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-[#2a2a2a] transition-colors min-h-[48px]">
+                                                            <ActivityIcon size={24} className="text-[#a3a3a3]" />
+                                                            <span className="text-[10px] font-medium uppercase tracking-wide text-[#a3a3a3]">Feedback Post-Ejercicio</span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1717,17 +1716,17 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                             })}
                         </div>
                     </details>
-                )})}
+                ))}
             </div>
 
             {/* Carrusel de tarjetas + acciones */}
-            <div className="fixed left-0 right-0 bottom-0 z-20 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/5 pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col">
-                    {/* Acciones rápidas: 90s y Notas (sin Saltar) */}
-                    <div className="flex justify-center gap-2 px-4 py-2 border-b border-white/5 shrink-0">
-                        <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-white/10 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-amber-400 hover:border-amber-500/30 hover:bg-amber-500/5 transition-colors min-h-[44px]">
+            <div className="fixed left-0 right-0 bottom-0 z-20 bg-[#1a1a1a] pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col">
+                    {/* Acciones rápidas: 90s y Notas */}
+                    <div className="flex justify-center gap-2 px-4 py-2 shrink-0">
+                        <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide min-h-[44px]">
                             <ClockIcon size={14} /> 90s
                         </button>
-                        <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-white/10 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-amber-400 hover:border-amber-500/30 hover:bg-amber-500/5 transition-colors min-h-[44px]">
+                        <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide min-h-[44px]">
                             <PencilIcon size={14} /> Notas
                         </button>
                     </div>
@@ -1759,8 +1758,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             {showNotesDrawer && (
                 <WorkoutDrawer isOpen={true} onClose={() => setShowNotesDrawer(false)} title="Notas de Sesión" height="50vh">
                     <div className="p-5">
-                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg p-4 text-white text-sm font-mono placeholder-slate-500 focus:border-amber-500/40 outline-none" />
-                        <p className="text-[9px] text-slate-500 mt-2 font-mono">Se incluirán al finalizar la sesión.</p>
+                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full bg-white p-4 text-[#1a1a1a] text-sm placeholder-[#737373] outline-none" />
+                        <p className="text-[9px] text-[#525252] mt-2">Se incluirán al finalizar la sesión.</p>
                     </div>
                 </WorkoutDrawer>
             )}

@@ -236,7 +236,7 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
           >
             {onReorder && (
               <div
-                className="p-2 -m-2 rounded-lg text-slate-500 hover:text-slate-400 active:text-cyber-cyan shrink-0 touch-manipulation"
+                className="p-2 -m-2 text-[#737373] hover:text-white shrink-0 touch-manipulation"
                 style={{ touchAction: 'none' }}
                 onPointerDown={(e) => handlePointerDown(e, item.firstExerciseId, idx)}
                 title="Mantén y arrastra para reordenar"
@@ -270,18 +270,12 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
             width: 144,
           }}
         >
-          <div className="rounded-xl border-2 shadow-2xl scale-105 origin-center" style={{
-            borderColor: draggedItem.color,
-            backgroundColor: `${draggedItem.color}20`,
-            boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 24px ${draggedItem.color}50`,
-          }}>
-            <div className="p-3 flex flex-col items-center justify-center min-h-[56px]">
-              <span className="text-xs font-bold text-center line-clamp-2 leading-tight text-white">
-                {draggedItem.exercises.length > 1
-                  ? draggedItem.exercises.map(e => e.name).join(' • ')
-                  : draggedItem.exercises[0]?.name ?? ''}
-              </span>
-            </div>
+          <div className="scale-105 origin-center bg-[#3f3f3f] p-3 flex flex-col items-center justify-center min-h-[56px]">
+            <span className="text-xs font-medium text-center line-clamp-2 leading-tight text-white">
+              {draggedItem.exercises.length > 1
+                ? draggedItem.exercises.map(e => e.name).join(' • ')
+                : draggedItem.exercises[0]?.name ?? ''}
+            </span>
           </div>
         </div>
       )}

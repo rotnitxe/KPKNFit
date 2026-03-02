@@ -138,7 +138,7 @@ const TabBar: React.FC<TabBarProps> = (props) => {
     return (
         <div
             className="w-full h-full pointer-events-auto"
-            style={{ backgroundColor: '#1E1E1E' }}
+            style={{ backgroundColor: 'var(--tab-bar-bg-color, #121212)' }}
         >
             {content}
         </div>

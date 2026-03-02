@@ -716,6 +716,7 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({ sessionInfo, settings, 
             onFinish={handleSave}
             mode="log"
             initialDurationInSeconds={3600}
+            fullPage
         />
         {historyModalExercise && (
             <ExerciseHistoryModal

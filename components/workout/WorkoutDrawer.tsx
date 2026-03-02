@@ -1,5 +1,5 @@
 // components/workout/WorkoutDrawer.tsx
-// Wrapper drawer genérico para modales de WorkoutSession - estilo NERD
+// Wrapper drawer unificado: gris medio-claro, sin bordes, sin colores llamativos
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -25,27 +25,27 @@ const WorkoutDrawer: React.FC<WorkoutDrawerProps> = ({
   const content = (
     <>
       <div
-        className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 z-[99999] bg-black/30 animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className="fixed bottom-0 left-0 right-0 z-[100000] bg-[#15171E] border-t border-white/10 rounded-t-2xl flex flex-col animate-slide-up pb-[max(1rem,env(safe-area-inset-bottom))]"
+        className="fixed bottom-0 left-0 right-0 z-[100000] bg-[#e5e5e5] flex flex-col animate-slide-up pb-[env(safe-area-inset-bottom,0px)]"
         style={{ maxHeight: height }}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
-          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">
+        <div className="flex items-center justify-between px-4 py-3 shrink-0">
+          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-[#1a1a1a]">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="p-2 -mr-2 text-slate-500 hover:text-white transition-colors rounded-lg hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
+            className="p-2 -mr-2 text-[#525252] hover:text-[#1a1a1a] transition-colors rounded-none hover:bg-black/5"
             aria-label="Cerrar"
           >
             <XIcon size={18} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pb-8">
+        <div className="flex-1 overflow-y-auto min-h-0 pb-[max(2rem,env(safe-area-inset-bottom))]" style={{ WebkitOverflowScrolling: 'touch' }}>
           {children}
         </div>
       </div>

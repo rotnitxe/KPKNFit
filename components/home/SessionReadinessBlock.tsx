@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Session } from '../../types';
 import { getSessionMusclesWithBatteries, SessionMuscleForBattery } from '../../utils/sessionMusclesForBattery';
+import { getSessionArticularBatteries } from '../../utils/sessionArticularBatteries';
 import { useAppState } from '../../contexts/AppContext';
 import { getPerMuscleBatteries } from '../../services/auge';
 import { calculateGlobalBatteriesAsync } from '../../services/computeWorkerService';
@@ -59,7 +60,7 @@ export const SessionReadinessBlock: React.FC<SessionReadinessBlockProps> = ({
     const { history, exerciseList, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs, dailyWellbeingLogs, nutritionLogs, isAppLoading } = useAppState();
 
     const [perMuscle, setPerMuscle] = useState<Record<string, number>>({});
-    const [globalBatteries, setGlobalBatteries] = useState<{ cns: number; muscular: number; spinal: number } | null>(null);
+    const [globalBatteries, setGlobalBatteries] = useState<Awaited<ReturnType<typeof calculateGlobalBatteriesAsync>> | null>(null);
 
     useEffect(() => {
         if (isAppLoading || !history || !exerciseList?.length) return;
@@ -90,8 +91,11 @@ export const SessionReadinessBlock: React.FC<SessionReadinessBlockProps> = ({
     }, [history, exerciseList, sleepLogs, settings, muscleHierarchy, postSessionFeedback, waterLogs, dailyWellbeingLogs, nutritionLogs, isAppLoading]);
 
     const muscles = getSessionMusclesWithBatteries(session, exerciseList ?? [], perMuscle);
+    const articularBatteries = globalBatteries?.articularBatteries
+        ? getSessionArticularBatteries(session, exerciseList ?? [], globalBatteries.articularBatteries)
+        : [];
 
-    if (muscles.length === 0) return null;
+    if (muscles.length === 0 && articularBatteries.length === 0) return null;
 
     const cns = globalBatteries ? Math.round(globalBatteries.cns) : 80;
     const spinal = globalBatteries ? Math.round(globalBatteries.spinal) : 85;
@@ -117,6 +121,25 @@ export const SessionReadinessBlock: React.FC<SessionReadinessBlockProps> = ({
                     <MuscleChip key={m.id} muscle={m} compact={compact} />
                 ))}
             </div>
+
+            {articularBatteries.length > 0 && (
+                <div className={`flex flex-wrap gap-1.5 ${compact ? 'mb-2' : 'mb-2.5'}`}>
+                    <span className="text-[8px] text-zinc-500 uppercase tracking-wider w-full">Tendones</span>
+                    {articularBatteries.map((ab) => (
+                        <span
+                            key={ab.id}
+                            className={`inline-flex items-center gap-1 ${compact ? 'py-0.5' : 'py-1'}`}
+                        >
+                            <span
+                                className="shrink-0 rounded-full w-1 h-1"
+                                style={{ backgroundColor: getBarColor(ab.battery) }}
+                            />
+                            <span className={`${compact ? 'text-[8px]' : 'text-[9px]'} text-zinc-500`}>{ab.shortLabel}</span>
+                            <span className={`tabular-nums ${compact ? 'text-[8px]' : 'text-[9px]'} text-zinc-600`}>{ab.battery}%</span>
+                        </span>
+                    ))}
+                </div>
+            )}
 
             <p className="text-xs text-zinc-400 leading-relaxed">
                 {message}

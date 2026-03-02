@@ -20,22 +20,22 @@ const StructureSection: React.FC<StructureSectionProps> = ({ program, onUpdatePr
         acc + (m.blocks || []).reduce((ba, b) =>
             ba + b.mesocycles.reduce((ma, me) => ma + me.weeks.length, 0), 0), 0);
 
-    const blockColors = ['bg-blue-500', 'bg-purple-500', 'bg-yellow-500', 'bg-emerald-500', 'bg-rose-500'];
+    const blockColors = ['bg-[#525252]', 'bg-[#6b6b6b]', 'bg-[#737373]', 'bg-[#858585]', 'bg-[#a3a3a3]'];
 
     return (
         <div className="space-y-4">
-            <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                <ActivityIcon size={14} className="text-zinc-400" /> Estructura del Programa
+            <h3 className="text-xs font-medium text-white flex items-center gap-2">
+                <ActivityIcon size={14} className="text-[#a3a3a3]" /> Estructura del Programa
             </h3>
 
             {/* Timeline bar */}
             {totalWeeks > 0 && (
-                <div className="bg-zinc-950 border border-white/5 rounded-xl p-3">
+                <div className="bg-[#252525] border border-[#3f3f3f] p-3">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Timeline</span>
-                        <span className="text-[9px] text-zinc-500 font-bold">{totalWeeks} semanas</span>
+                        <span className="text-[8px] font-medium text-[#737373] uppercase tracking-widest">Timeline</span>
+                        <span className="text-[9px] text-[#a3a3a3] font-medium">{totalWeeks} semanas</span>
                     </div>
-                    <div className="flex gap-0.5 h-4 rounded-full overflow-hidden">
+                    <div className="flex gap-0.5 h-4 overflow-hidden">
                         {program.macrocycles.flatMap((m, mi) =>
                             (m.blocks || []).map((b, bi) => {
                                 const weeks = b.mesocycles.reduce((a, me) => a + me.weeks.length, 0);
@@ -59,12 +59,12 @@ const StructureSection: React.FC<StructureSectionProps> = ({ program, onUpdatePr
 
             {/* Macrocycles */}
             {program.macrocycles.map((macro, macroIdx) => (
-                <div key={macro.id} className="bg-zinc-950 border border-white/5 rounded-xl p-4 space-y-3">
+                <div key={macro.id} className="bg-[#252525] border border-[#3f3f3f] p-4 space-y-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 flex-1">
-                            <span className="bg-white/10 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase">M{macroIdx + 1}</span>
+                            <span className="bg-[#3f3f3f] text-white text-[7px] font-medium px-1.5 py-0.5 uppercase">M{macroIdx + 1}</span>
                             <input
-                                className="bg-transparent text-xs font-black text-white uppercase focus:ring-0 border-none p-0 flex-1"
+                                className="bg-transparent text-xs font-medium text-white focus:ring-0 border-none p-0 flex-1"
                                 value={macro.name}
                                 onChange={e => update(p => { p.macrocycles[macroIdx].name = e.target.value; })}
                             />
@@ -72,21 +72,21 @@ const StructureSection: React.FC<StructureSectionProps> = ({ program, onUpdatePr
                     </div>
 
                     {/* Blocks */}
-                    <div className="space-y-3 pl-3 border-l-2 border-white/10">
+                    <div className="space-y-3 pl-3 border-l-2 border-[#3f3f3f]">
                         {(macro.blocks || []).map((block, blockIdx) => (
-                            <div key={block.id} className="bg-black/40 border border-white/5 rounded-xl p-3 space-y-2">
+                            <div key={block.id} className="bg-[#1a1a1a] border border-[#3f3f3f] p-3 space-y-2">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 flex-1">
-                                        <span className="text-[7px] font-black text-zinc-500 uppercase">B{blockIdx + 1}</span>
+                                        <span className="text-[7px] font-medium text-[#737373] uppercase">B{blockIdx + 1}</span>
                                         <input
-                                            className="bg-transparent text-[11px] font-black text-white uppercase focus:ring-0 border-none p-0 flex-1"
+                                            className="bg-transparent text-[11px] font-medium text-white focus:ring-0 border-none p-0 flex-1"
                                             value={block.name}
                                             onChange={e => update(p => { p.macrocycles[macroIdx].blocks[blockIdx].name = e.target.value; })}
                                         />
                                     </div>
                                     <button
                                         onClick={() => { if (window.confirm('¿Eliminar bloque?')) update(p => { p.macrocycles[macroIdx].blocks.splice(blockIdx, 1); }); }}
-                                        className="p-1 text-zinc-700 hover:text-red-500 transition-colors"
+                                        className="p-1 text-[#737373] hover:text-red-400 transition-colors"
                                     >
                                         <TrashIcon size={10} />
                                     </button>
@@ -94,30 +94,30 @@ const StructureSection: React.FC<StructureSectionProps> = ({ program, onUpdatePr
 
                                 {/* Mesocycles */}
                                 {block.mesocycles.map((meso, mesoIdx) => (
-                                    <div key={meso.id} className="flex items-center justify-between bg-zinc-950 rounded-lg p-2">
+                                    <div key={meso.id} className="flex items-center justify-between bg-[#252525] p-2">
                                         <div className="flex items-center gap-2 flex-1">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#525252]" />
                                             <input
-                                                className="bg-transparent text-[9px] font-bold text-zinc-300 focus:ring-0 border-none p-0 flex-1"
+                                                className="bg-transparent text-[9px] font-medium text-[#a3a3a3] focus:ring-0 border-none p-0 flex-1"
                                                 value={meso.name}
                                                 onChange={e => update(p => { p.macrocycles[macroIdx].blocks[blockIdx].mesocycles[mesoIdx].name = e.target.value; })}
                                             />
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                             <select
-                                                className="bg-black text-[7px] text-zinc-400 border border-white/10 rounded px-1 py-0.5 font-bold"
+                                                className="bg-[#1a1a1a] text-[7px] text-[#a3a3a3] border border-[#3f3f3f] px-1 py-0.5 font-medium"
                                                 value={meso.goal}
                                                 onChange={e => update(p => { p.macrocycles[macroIdx].blocks[blockIdx].mesocycles[mesoIdx].goal = e.target.value; })}
                                             >
                                                 {GOAL_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
                                             </select>
-                                            <span className="text-[8px] text-zinc-500 font-bold">{meso.weeks.length}sem</span>
+                                            <span className="text-[8px] text-[#737373] font-medium">{meso.weeks.length}sem</span>
                                             <button
                                                 onClick={() => update(p => {
                                                     const m = p.macrocycles[macroIdx].blocks[blockIdx].mesocycles[mesoIdx];
                                                     m.weeks.push({ id: crypto.randomUUID(), name: `Semana ${m.weeks.length + 1}`, sessions: [] });
                                                 })}
-                                                className="p-0.5 text-zinc-600 hover:text-white transition-colors"
+                                                className="p-0.5 text-[#737373] hover:text-white transition-colors"
                                             >
                                                 <PlusIcon size={10} />
                                             </button>

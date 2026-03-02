@@ -5,6 +5,7 @@ import { calculateSetStress, getDynamicAugeMetrics, WEEKLY_CNS_FATIGUE_REFERENCE
 import { buildExerciseIndex, findExercise, findExerciseWithFallback, ExerciseIndex } from '../utils/exerciseIndex';
 import { inferInvolvedMuscles } from '../data/inferMusclesFromName';
 import { getLocalDateString } from '../utils/dateUtils';
+import { calculateArticularBatteries } from './tendonRecoveryService';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
 
@@ -790,12 +791,16 @@ export const calculateGlobalBatteries = (
     else if (finalMusc < 30) verdict = "Alta fatiga muscular residual. Asegúrate de comer suficiente proteína y haz rutinas de bombeo.";
     else if (cnsPenalty > 10) verdict = "Tu falta de sueño/estrés está limitando tu potencial hoy. Autorregula tu peso y no vayas al fallo.";
 
+    // 7. BATERÍAS ARTICULARES (tendones y articulaciones)
+    const articularBatteries = calculateArticularBatteries(history, exerciseList, undefined, settings);
+
     return {
         cns: Math.round(finalCns),
         muscular: Math.round(finalMusc),
         spinal: Math.round(finalSpinal),
         auditLogs,
-        verdict
+        verdict,
+        articularBatteries,
     };
 };
 

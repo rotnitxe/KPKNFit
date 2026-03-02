@@ -150,7 +150,7 @@ const FoodEditorModal: React.FC = () => {
                 </div>
 
                 {/* Pie de Página Fijo (Sticky Footer) */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 pb-6 bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-white/10 z-20 flex gap-3">
+                <div className="absolute bottom-0 left-0 right-0 p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-white/10 z-20 flex gap-3">
                     <Button onClick={closeFoodEditor} variant="secondary" className="flex-1 !py-3 uppercase font-bold text-xs !bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
                         Cancelar
                     </Button>

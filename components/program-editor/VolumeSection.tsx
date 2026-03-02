@@ -40,25 +40,25 @@ const VolumeSection: React.FC<VolumeSectionProps> = ({ program, exerciseList }) 
 
     return (
         <div className="space-y-4">
-            <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                <ActivityIcon size={14} className="text-zinc-400" /> Volumen Planificado
+            <h3 className="text-xs font-medium text-white flex items-center gap-2">
+                <ActivityIcon size={14} className="text-[#a3a3a3]" /> Volumen Planificado
             </h3>
 
             {weeklyVolumes.length > 0 && allMuscles.length > 0 ? (
-                <div className="bg-zinc-950 border border-white/5 rounded-xl p-4 overflow-x-auto">
+                <div className="bg-[#252525] border border-[#3f3f3f] p-4 overflow-x-auto">
                     {/* Heatmap */}
                     <div className="min-w-[400px]">
                         <div className="flex mb-2">
                             <div className="w-24 shrink-0" />
                             {weeklyVolumes.map((w, i) => (
-                                <div key={i} className="flex-1 text-center text-[7px] font-black text-zinc-500 uppercase">
+                                <div key={i} className="flex-1 text-center text-[7px] font-medium text-[#737373] uppercase">
                                     {w.weekName.replace('Semana ', 'S')}
                                 </div>
                             ))}
                         </div>
                         {allMuscles.slice(0, 15).map(muscle => (
                             <div key={muscle} className="flex items-center mb-0.5">
-                                <div className="w-24 shrink-0 text-[8px] font-bold text-zinc-400 truncate pr-2">{muscle}</div>
+                                <div className="w-24 shrink-0 text-[8px] font-medium text-[#a3a3a3] truncate pr-2">{muscle}</div>
                                 {weeklyVolumes.map((w, i) => {
                                     const vol = w.muscles[muscle] || 0;
                                     const intensity = maxVolume > 0 ? vol / maxVolume : 0;
@@ -68,8 +68,8 @@ const VolumeSection: React.FC<VolumeSectionProps> = ({ program, exerciseList }) 
                                                 className="h-4 rounded-sm transition-colors"
                                                 style={{
                                                     backgroundColor: vol === 0
-                                                        ? 'rgb(39, 39, 42)'
-                                                        : `rgba(59, 130, 246, ${0.15 + intensity * 0.85})`,
+                                                        ? '#252525'
+                                                        : `rgba(163, 163, 163, ${0.2 + intensity * 0.6})`,
                                                 }}
                                                 title={`${muscle}: ${vol.toFixed(1)} sets`}
                                             />

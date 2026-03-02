@@ -35,11 +35,11 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
 
   const categoryMap: Record<string, string[]> = {
     Pecho: ['pectoral', 'pecho'],
-    Espalda: ['dorsal', 'trapecio', 'espalda', 'romboide'],
+    Espalda: ['dorsal', 'trapecio', 'espalda', 'romboide', 'erectores'],
     Hombros: ['deltoide', 'hombro'],
-    Piernas: ['cuádriceps', 'cuadriceps', 'isquio', 'glúteo', 'gluteo', 'pantorrilla', 'pierna', 'femoral'],
-    Brazos: ['bíceps', 'biceps', 'tríceps', 'triceps', 'antebrazo', 'brazo'],
-    Core: ['abdomen', 'core', 'lumbar', 'espalda baja'],
+    Piernas: ['cuádriceps', 'cuadriceps', 'isquio', 'glúteo', 'gluteo', 'gluteos', 'pantorrilla', 'pierna', 'femoral', 'gastrocnemio', 'sóleo', 'soleo', 'vasto', 'recto femoral', 'aductores'],
+    Brazos: ['bíceps', 'biceps', 'tríceps', 'triceps', 'antebrazo', 'brazo', 'braquiorradial'],
+    Core: ['abdomen', 'core', 'lumbar', 'espalda baja', 'recto abdominal', 'oblicuos', 'transverso'],
   };
 
   const topTierNames = [
@@ -161,48 +161,48 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[99999] bg-black/40 flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
       <div
-        className="bg-zinc-950 border border-white/10 shadow-2xl relative z-10 flex flex-col w-full max-w-lg min-h-[60vh] max-h-[85vh] rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-[#e5e5e5] border border-[#a3a3a3] shadow-xl relative z-10 flex flex-col w-full max-w-lg min-h-[60vh] max-h-[85vh] overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 border-b border-white/5 bg-black/50 backdrop-blur-lg shrink-0 flex flex-col gap-3">
+        <div className="p-4 border-b border-[#a3a3a3] bg-white shrink-0 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setViewMode((prev) => (prev === 'grid' ? 'list' : 'grid'))}
-                className="p-2 bg-white/5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 bg-[#f5f5f5] border border-[#a3a3a3] text-[#525252] hover:text-[#1a1a1a] hover:bg-[#e5e5e5] transition-colors"
               >
                 {viewMode === 'grid' ? <ActivityIcon size={16} /> : <GridIcon size={16} />}
               </button>
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#525252]">
                 {viewMode === 'grid' ? 'Categorías' : 'Lista Detallada'}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={onCreateNew}
-                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-black uppercase text-white transition-colors flex items-center gap-1"
+                className="px-3 py-1.5 bg-white border border-[#a3a3a3] text-[#1a1a1a] hover:bg-[#f5f5f5] transition-colors flex items-center gap-1 font-medium text-[10px] uppercase"
               >
                 <PlusIcon size={12} /> Crear
               </button>
-              <button onClick={onClose} className="p-2 bg-white/5 rounded-full text-zinc-400 hover:text-red-500 transition-colors">
+              <button onClick={onClose} className="p-2 text-[#525252] hover:text-[#1a1a1a] transition-colors">
                 <XIcon size={16} />
               </button>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-zinc-900 border border-white/10 rounded-xl px-3 focus-within:border-white/30 transition-colors">
+          <div className="flex items-center gap-3 bg-white border border-[#a3a3a3] px-3 focus-within:border-[#737373] transition-colors">
             {activeCategory && !search ? (
-              <button onClick={() => setActiveCategory(null)} className="p-1 text-zinc-400 hover:text-white transition-colors">
+              <button onClick={() => setActiveCategory(null)} className="p-1 text-[#525252] hover:text-[#1a1a1a] transition-colors">
                 <ChevronLeftIcon size={18} />
               </button>
             ) : (
-              <SearchIcon size={18} className="text-zinc-500" />
+              <SearchIcon size={18} className="text-[#737373]" />
             )}
             <input
               ref={inputRef}
-              className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-white placeholder-zinc-600 h-10 p-0 focus:ring-0"
+              className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-[#1a1a1a] placeholder-[#a3a3a3] h-10 p-0 focus:ring-0"
               placeholder={activeCategory ? `Buscar en ${activeCategory}...` : 'Nombre del ejercicio...'}
               value={search}
               onChange={(e) => {
@@ -212,18 +212,18 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
             />
           </div>
         </div>
-        <div className="overflow-y-auto flex-1 custom-scrollbar relative bg-zinc-950 p-2">
+        <div className="overflow-y-auto flex-1 custom-scrollbar relative bg-[#e5e5e5] p-2">
           {viewMode === 'grid' && !search && !activeCategory ? (
             <div className="grid grid-cols-2 gap-2 p-2 auto-rows-[80px]">
               {[
-                { id: 'KPKN Top Tier', cols: 'col-span-2 row-span-1', border: 'border-yellow-500/30', text: 'text-yellow-500', label: '★ KPKN Top Tier' },
-                { id: 'Baja Fatiga', cols: 'col-span-1 row-span-1', border: 'border-emerald-500/30', text: 'text-emerald-500', label: 'Baja Fatiga' },
-                { id: 'Piernas', cols: 'col-span-1 row-span-1', border: 'border-white/10', text: 'text-white', label: 'Piernas' },
-                { id: 'Pecho', cols: 'col-span-1 row-span-1', border: 'border-white/10', text: 'text-white', label: 'Pecho' },
-                { id: 'Espalda', cols: 'col-span-1 row-span-1', border: 'border-white/10', text: 'text-white', label: 'Espalda' },
-                { id: 'Hombros', cols: 'col-span-2 row-span-1', border: 'border-white/10', text: 'text-white', label: 'Hombros' },
-                { id: 'Brazos', cols: 'col-span-1 row-span-1', border: 'border-white/10', text: 'text-white', label: 'Brazos' },
-                { id: 'Core', cols: 'col-span-1 row-span-1', border: 'border-white/10', text: 'text-white', label: 'Core' },
+                { id: 'KPKN Top Tier', cols: 'col-span-2 row-span-1', border: 'border-[#525252]', text: 'text-[#1a1a1a]', label: '★ KPKN Top Tier' },
+                { id: 'Baja Fatiga', cols: 'col-span-1 row-span-1', border: 'border-[#a3a3a3]', text: 'text-[#1a1a1a]', label: 'Baja Fatiga' },
+                { id: 'Piernas', cols: 'col-span-1 row-span-1', border: 'border-[#a3a3a3]', text: 'text-[#1a1a1a]', label: 'Piernas' },
+                { id: 'Pecho', cols: 'col-span-1 row-span-1', border: 'border-[#a3a3a3]', text: 'text-[#1a1a1a]', label: 'Pecho' },
+                { id: 'Espalda', cols: 'col-span-1 row-span-1', border: 'border-[#a3a3a3]', text: 'text-[#1a1a1a]', label: 'Espalda' },
+                { id: 'Hombros', cols: 'col-span-2 row-span-1', border: 'border-[#a3a3a3]', text: 'text-[#1a1a1a]', label: 'Hombros' },
+                { id: 'Brazos', cols: 'col-span-1 row-span-1', border: 'border-[#a3a3a3]', text: 'text-[#1a1a1a]', label: 'Brazos' },
+                { id: 'Core', cols: 'col-span-1 row-span-1', border: 'border-[#a3a3a3]', text: 'text-[#1a1a1a]', label: 'Core' },
               ].map((cat) => (
                 <button
                   key={cat.id}
@@ -231,24 +231,23 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
                     setActiveCategory(cat.id);
                     setViewMode('list');
                   }}
-                  className={`${cat.cols} bg-black border ${cat.border} hover:border-white/50 rounded-2xl p-4 text-left flex flex-col justify-center items-start transition-all group relative overflow-hidden`}
+                  className={`${cat.cols} bg-white border ${cat.border} hover:border-[#737373] hover:bg-[#f5f5f5] p-4 text-left flex flex-col justify-center items-start transition-all`}
                 >
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors" />
-                  <span className={`font-black text-sm uppercase tracking-tight relative z-10 ${cat.text}`}>{cat.label}</span>
+                  <span className={`font-semibold text-sm uppercase tracking-tight ${cat.text}`}>{cat.label}</span>
                 </button>
               ))}
             </div>
           ) : (
             <div className="flex flex-col h-full">
               {filteredAndSorted.length > 0 && (
-                <div className="grid grid-cols-[2fr_1fr_1fr] gap-2 px-4 py-2 border-b border-white/5 sticky top-0 bg-zinc-950 z-20">
-                  <button onClick={() => handleSort('name')} className="text-left flex items-center gap-1 text-[9px] font-black uppercase text-zinc-500 hover:text-white">
+                <div className="grid grid-cols-[2fr_1fr_1fr] gap-2 px-4 py-2 border-b border-[#a3a3a3] sticky top-0 bg-[#e5e5e5] z-20">
+                  <button onClick={() => handleSort('name')} className="text-left flex items-center gap-1 text-[9px] font-semibold uppercase text-[#525252] hover:text-[#1a1a1a]">
                     Ejercicio {sortKey === 'name' && (sortDir === 'asc' ? '↑' : '↓')}
                   </button>
-                  <button onClick={() => handleSort('muscle')} className="text-left flex items-center gap-1 text-[9px] font-black uppercase text-zinc-500 hover:text-white">
+                  <button onClick={() => handleSort('muscle')} className="text-left flex items-center gap-1 text-[9px] font-semibold uppercase text-[#525252] hover:text-[#1a1a1a]">
                     Músculo {sortKey === 'muscle' && (sortDir === 'asc' ? '↑' : '↓')}
                   </button>
-                  <button onClick={() => handleSort('fatigue')} className="text-right flex items-center justify-end gap-1 text-[9px] font-black uppercase text-zinc-500 hover:text-white">
+                  <button onClick={() => handleSort('fatigue')} className="text-right flex items-center justify-end gap-1 text-[9px] font-semibold uppercase text-[#525252] hover:text-[#1a1a1a]">
                     Fatiga {sortKey === 'fatigue' && (sortDir === 'asc' ? '↑' : '↓')}
                   </button>
                 </div>
@@ -270,24 +269,24 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
                   );
 
                   return (
-                    <div key={ex.id} className="w-full bg-black rounded-xl border border-white/5 hover:border-white/20 transition-all flex flex-col">
+                    <div key={ex.id} className="w-full bg-white border border-[#a3a3a3] hover:border-[#737373] transition-all flex flex-col">
                       <div className="flex items-center justify-between px-2 py-1">
                         <button onClick={() => onSelect(ex)} className="flex-1 text-left py-2 px-3 flex flex-col group">
-                          <span className={`font-bold text-[13px] leading-tight mb-1.5 break-words ${topTier ? 'text-yellow-400' : 'text-white'}`}>
+                          <span className={`font-semibold text-[13px] leading-tight mb-1.5 break-words ${topTier ? 'text-[#525252]' : 'text-[#1a1a1a]'}`}>
                             {topTier && '★ '}
                             {ex.name}
                           </span>
                           <div className="flex justify-between items-center w-full">
-                            <span className="text-[9px] text-zinc-500 uppercase font-bold truncate">
+                            <span className="text-[9px] text-[#737373] uppercase font-medium truncate">
                               {ex.equipment} • {primaryMuscle}
                             </span>
                             <div className="flex items-center gap-1.5 shrink-0">
-                              <div className={`w-1.5 h-1.5 rounded-full ${fatigueUI.color} shadow-[0_0_8px_currentColor]`} />
-                              <span className="text-[9px] font-mono text-zinc-400 bg-zinc-900 px-1 rounded border border-white/5">
-                                -{fatigueScore.cnsDrainPct.toFixed(1)}% <span className="text-yellow-500">⚡</span>
+                              <div className={`w-1.5 h-1.5 rounded-full ${fatigueUI.color}`} />
+                              <span className="text-[9px] text-[#525252] bg-[#f5f5f5] px-1 border border-[#a3a3a3]">
+                                -{fatigueScore.cnsDrainPct.toFixed(1)}% ⚡
                               </span>
-                              <span className="text-[9px] font-mono text-zinc-400 bg-zinc-900 px-1 rounded border border-white/5">
-                                -{fatigueScore.muscularDrainPct.toFixed(1)}% <span className="text-red-400">🥩</span>
+                              <span className="text-[9px] text-[#525252] bg-[#f5f5f5] px-1 border border-[#a3a3a3]">
+                                -{fatigueScore.muscularDrainPct.toFixed(1)}% 🥩
                               </span>
                             </div>
                           </div>
@@ -297,43 +296,43 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
                             e.stopPropagation();
                             setTooltipExId(tooltipExId === ex.id ? null : ex.id);
                           }}
-                          className={`p-2 transition-colors ${tooltipExId === ex.id ? 'text-blue-400' : 'text-zinc-600 hover:text-white'}`}
+                          className={`p-2 transition-colors ${tooltipExId === ex.id ? 'text-[#525252]' : 'text-[#737373] hover:text-[#1a1a1a]'}`}
                         >
                           <InfoIcon size={16} />
                         </button>
                       </div>
                       {tooltipExId === ex.id && (
-                        <div className="bg-zinc-900 border-t border-white/5 p-4 animate-in slide-in-from-top-2 duration-200">
+                        <div className="bg-[#f5f5f5] border-t border-[#a3a3a3] p-4 animate-in slide-in-from-top-2 duration-200">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Aporte (1 Serie Efectiva)</span>
+                              <span className="text-[9px] font-semibold uppercase text-[#525252] tracking-wide">Aporte (1 Serie Efectiva)</span>
                               <div className="space-y-1">
                                 {Object.entries(groupedMuscles).map(([muscle, maxVal], idx) => (
                                   <div key={idx} className="flex justify-between items-center text-[10px]">
-                                    <span className="font-bold text-zinc-300">{muscle}</span>
-                                    <span className="text-zinc-400 font-mono">+{(maxVal as number).toFixed(1)}</span>
+                                    <span className="font-medium text-[#1a1a1a]">{muscle}</span>
+                                    <span className="text-[#525252]">+{(maxVal as number).toFixed(1)}</span>
                                   </div>
                                 ))}
                               </div>
                             </div>
-                            <div className="space-y-2 border-l border-white/10 pl-4">
-                              <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest block">Índices AUGE</span>
-                              <div className="bg-black border border-white/5 p-2 rounded-lg grid grid-cols-1 gap-1.5">
+                            <div className="space-y-2 border-l border-[#a3a3a3] pl-4">
+                              <span className="text-[9px] font-semibold uppercase text-[#525252] tracking-wide block">Índices AUGE</span>
+                              <div className="bg-white border border-[#a3a3a3] p-2 grid grid-cols-1 gap-1.5">
                                 {(() => {
                                   const { efc, ssc, cnc } = getAugeIndexes(ex.name, ex);
                                   return (
                                     <>
                                       <div className="flex justify-between items-center">
-                                        <span className="text-[9px] text-zinc-400">Metabólico (EFC)</span>
-                                        <span className="text-[10px] font-mono text-white">{efc.toFixed(1)}</span>
+                                        <span className="text-[9px] text-[#525252]">Metabólico (EFC)</span>
+                                        <span className="text-[10px] font-medium text-[#1a1a1a]">{efc.toFixed(1)}</span>
                                       </div>
                                       <div className="flex justify-between items-center">
-                                        <span className="text-[9px] text-zinc-400">Neural (CNC)</span>
-                                        <span className="text-[10px] font-mono text-white">{cnc.toFixed(1)}</span>
+                                        <span className="text-[9px] text-[#525252]">Neural (CNC)</span>
+                                        <span className="text-[10px] font-medium text-[#1a1a1a]">{cnc.toFixed(1)}</span>
                                       </div>
                                       <div className="flex justify-between items-center">
-                                        <span className="text-[9px] text-zinc-400">Espinal (SSC)</span>
-                                        <span className="text-[10px] font-mono text-red-400">{ssc.toFixed(1)}</span>
+                                        <span className="text-[9px] text-[#525252]">Espinal (SSC)</span>
+                                        <span className="text-[10px] font-medium text-[#525252]">{ssc.toFixed(1)}</span>
                                       </div>
                                     </>
                                   );
@@ -348,11 +347,11 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
                 })}
                 {filteredAndSorted.length === 0 && (
                   <div className="text-center py-12">
-                    <DumbbellIcon size={32} className="mx-auto text-zinc-800 mb-2" />
-                    <p className="text-xs text-zinc-500 font-bold mb-4">No se encontraron ejercicios</p>
+                    <DumbbellIcon size={32} className="mx-auto text-[#a3a3a3] mb-2" />
+                    <p className="text-xs text-[#525252] font-medium mb-4">No se encontraron ejercicios</p>
                     <button
                       onClick={onCreateNew}
-                      className="px-6 py-2 bg-white text-black rounded-full font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-transform"
+                      className="px-6 py-2 bg-white text-[#1a1a1a] border border-[#a3a3a3] font-semibold text-[10px] uppercase tracking-wide hover:bg-[#f5f5f5] transition-colors"
                     >
                       Crear Ejercicio Personalizado
                     </button>

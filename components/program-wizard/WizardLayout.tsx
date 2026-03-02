@@ -77,7 +77,7 @@ const WizardLayout: React.FC<WizardLayoutProps> = ({
 
             {/* Mobile bottom sheet preview */}
             {previewOpen && (
-                <div className="sm:hidden fixed inset-x-0 bottom-0 z-50 bg-zinc-950/95 backdrop-blur-xl border-t border-white/10 rounded-t-2xl max-h-[50vh] overflow-y-auto custom-scrollbar animate-slide-up shadow-2xl">
+                <div className="sm:hidden fixed inset-x-0 bottom-0 z-50 bg-zinc-950/95 backdrop-blur-xl border-t border-white/10 rounded-t-2xl max-h-[50vh] overflow-y-auto custom-scrollbar animate-slide-up shadow-2xl pb-[env(safe-area-inset-bottom,0px)]">
                     <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-white/5">
                         <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Preview</span>
                         <button onClick={() => setPreviewOpen(false)} className="p-1 text-zinc-500 hover:text-white">

@@ -1,10 +1,9 @@
-// components/SubstituteExerciseSheet.tsx
+// components/SubstituteExerciseSheet.tsx - Diseño unificado: gris medio-claro
 import React, { useState, useEffect } from 'react';
 import { Exercise, Settings } from '../types';
 import { suggestExerciseAlternatives } from '../services/aiService';
 import { useAppState } from '../contexts/AppContext';
 import { XIcon } from './icons';
-import Button from './ui/Button';
 import SkeletonLoader from './ui/SkeletonLoader';
 
 interface SubstituteExerciseSheetProps {
@@ -55,25 +54,25 @@ const SubstituteExerciseSheet: React.FC<SubstituteExerciseSheetProps> = ({ isOpe
             return <div className="p-4"><SkeletonLoader lines={5} /></div>;
         }
         if (error) {
-            return <p className="p-4 text-center text-red-400">{error}</p>;
+            return <p className="p-4 text-center text-[#525252]">{error}</p>;
         }
         if (reason && alternatives.length > 0) {
             return (
-                 <div className="space-y-3">
+                <div className="space-y-3">
                     {alternatives.map((alt, index) => (
-                        <button key={index} onClick={() => onSelectAlternative(alt.name)} className="w-full text-left p-3 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg">
-                            <p className="font-semibold text-primary-color">{alt.name}</p>
-                            <p className="text-xs text-slate-400">{alt.justification}</p>
+                        <button key={index} onClick={() => onSelectAlternative(alt.name)} className="w-full text-left p-3 bg-white border border-[#a3a3a3] hover:bg-[#f5f5f5]">
+                            <p className="font-semibold text-[#1a1a1a]">{alt.name}</p>
+                            <p className="text-xs text-[#525252]">{alt.justification}</p>
                         </button>
                     ))}
                 </div>
             );
         }
         return (
-             <div className="space-y-3">
-                <Button onClick={() => handleReasonSelect('busy')} className="w-full !justify-start !py-3">Equipo Ocupado</Button>
-                <Button onClick={() => handleReasonSelect('pain')} className="w-full !justify-start !py-3">Molestia Leve</Button>
-                <Button onClick={() => handleReasonSelect('variety')} className="w-full !justify-start !py-3">Buscar Variedad</Button>
+            <div className="space-y-3">
+                <button onClick={() => handleReasonSelect('busy')} className="w-full text-left py-3 px-4 bg-white text-[#1a1a1a] font-semibold text-sm border border-[#a3a3a3]">Equipo Ocupado</button>
+                <button onClick={() => handleReasonSelect('pain')} className="w-full text-left py-3 px-4 bg-white text-[#1a1a1a] font-semibold text-sm border border-[#a3a3a3]">Molestia Leve</button>
+                <button onClick={() => handleReasonSelect('variety')} className="w-full text-left py-3 px-4 bg-white text-[#1a1a1a] font-semibold text-sm border border-[#a3a3a3]">Buscar Variedad</button>
             </div>
         );
     }
@@ -82,15 +81,16 @@ const SubstituteExerciseSheet: React.FC<SubstituteExerciseSheetProps> = ({ isOpe
     
     return (
         <>
-            <div className="bottom-sheet-backdrop animate-fade-in" onClick={onClose} />
-            <div className="bottom-sheet-content open animate-slide-in-up">
-                <div className="bottom-sheet-grabber" />
-                 <header className="flex items-center justify-between p-4 flex-shrink-0 border-b border-border-color">
-                    <h2 className="text-xl font-bold text-white">Sustituir: {exercise?.name}</h2>
-                    <button onClick={onClose} className="p-2 text-slate-300"><XIcon /></button>
+            <div className="fixed inset-0 z-[200] bg-black/30 animate-fade-in" onClick={onClose} aria-hidden />
+            <div className="fixed left-0 right-0 bottom-0 z-[201] bg-[#e5e5e5] flex flex-col animate-slide-up" style={{ height: '90vh', maxHeight: '90dvh' }}>
+                <header className="flex items-center justify-between p-4 shrink-0">
+                    <h2 className="text-base font-black text-[#1a1a1a] uppercase tracking-tight">Sustituir: {exercise?.name}</h2>
+                    <button onClick={onClose} className="p-2 text-[#525252] hover:text-[#1a1a1a]" aria-label="Cerrar">
+                        <XIcon size={18} />
+                    </button>
                 </header>
-                <div className="flex-grow overflow-y-auto p-4">
-                    {!reason && <p className="text-sm text-slate-400 mb-4">¿Por qué quieres sustituir este ejercicio?</p>}
+                <div className="flex-1 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                    {!reason && <p className="text-sm text-[#525252] mb-4">¿Por qué quieres sustituir este ejercicio?</p>}
                     {renderContent()}
                 </div>
             </div>

@@ -52,6 +52,24 @@ export {
 
 export { calculateGlobalBatteriesAsync } from './computeWorkerService';
 
+// ─── BATERÍA ESTRUCTURAL PERIFÉRICA (Tendones y Articulaciones) ─────────────
+
+export {
+  calculateTTC,
+  calculateSetTendonDrain,
+  getTendonDrainInput,
+} from './ttcService';
+export {
+  getArticularBatteriesForExercise,
+  ARTICULAR_BATTERIES,
+  type ArticularBatteryId,
+} from '../data/articularBatteryConfig';
+export {
+  calculateArticularBatteries,
+  MUSCLE_TO_ARTICULAR_BATTERIES,
+  type ArticularBatteryState,
+} from './tendonRecoveryService';
+
 // ─── CONSTANTES CENTRALIZADAS ───────────────────────────────────────────────
 
 /**

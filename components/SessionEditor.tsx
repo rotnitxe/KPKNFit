@@ -253,10 +253,10 @@ const SessionAugeDashboard: React.FC<{
             </div>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#222]">
                  <div className="flex gap-4 overflow-x-auto hide-scrollbar w-full">
-                    <button onClick={() => setViewMode('volume')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'volume' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><TargetIcon size={12}/> Estímulo</button>
-                    <button onClick={() => setViewMode('drain')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'drain' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ActivityIcon size={12}/> Fatiga</button>
-                    <button onClick={() => setViewMode('ranking')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'ranking' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><LayersIcon size={12}/> Ranking</button>
-                    <button onClick={() => setViewMode('prediction')} className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'prediction' ? 'text-violet-400 underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ZapIcon size={12}/> Predicción</button>
+                    <button onClick={() => setViewMode('volume')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'volume' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><TargetIcon size={12}/> Estímulo</button>
+                    <button onClick={() => setViewMode('drain')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'drain' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ActivityIcon size={12}/> Fatiga</button>
+                    <button onClick={() => setViewMode('ranking')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'ranking' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><LayersIcon size={12}/> Ranking</button>
+                    <button onClick={() => setViewMode('prediction')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'prediction' ? 'text-violet-400 underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ZapIcon size={12}/> Predicción</button>
                  </div>
             </div>
 
@@ -300,7 +300,7 @@ const SessionAugeDashboard: React.FC<{
                                 <div className="flex-1 mx-2 h-1.5 bg-[#111] rounded-full overflow-hidden">
                                     <div className={`h-full transition-all ${isDanger ? 'bg-red-500' : 'bg-white'}`} style={{ width: `${Math.min(100, (stat.volume / maxScale) * 100)}%` }}></div>
                                 </div>
-                                <span className="text-[10px] font-mono font-bold text-white text-right whitespace-nowrap">{stat.volume} series</span>
+                                <span className="text-[10px] font-semibold text-white text-right whitespace-nowrap">{stat.volume} series</span>
                             </div>
                         )}) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">Sin datos de volumen</p>}
                      </div>
@@ -320,7 +320,7 @@ const SessionAugeDashboard: React.FC<{
                         <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-[9px] font-black uppercase text-zinc-500">MSC</span>
-                                <span className={`text-xs font-mono font-bold ${globalDrain.muscular >= 80 ? 'text-red-500' : globalDrain.muscular >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.muscular.toFixed(0)}%</span>
+                                <span className={`text-xs font-semibold ${globalDrain.muscular >= 80 ? 'text-red-500' : globalDrain.muscular >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.muscular.toFixed(0)}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
                                 <div className={`h-full transition-all ${globalDrain.muscular >= 80 ? 'bg-red-500' : globalDrain.muscular >= 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.muscular}%` }}></div>
@@ -329,7 +329,7 @@ const SessionAugeDashboard: React.FC<{
                         <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-[9px] font-black uppercase text-zinc-500">SNC</span>
-                                <span className={`text-xs font-mono font-bold ${globalDrain.cns >= 80 ? 'text-red-500' : globalDrain.cns >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.cns.toFixed(0)}%</span>
+                                <span className={`text-xs font-semibold ${globalDrain.cns >= 80 ? 'text-red-500' : globalDrain.cns >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.cns.toFixed(0)}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
                                 <div className={`h-full transition-all ${globalDrain.cns >= 80 ? 'bg-red-500' : globalDrain.cns >= 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.cns}%` }}></div>
@@ -338,7 +338,7 @@ const SessionAugeDashboard: React.FC<{
                         <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-[9px] font-black uppercase text-zinc-500">ESP</span>
-                                <span className={`text-xs font-mono font-bold ${globalDrain.spinal >= 80 ? 'text-red-500' : globalDrain.spinal >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.spinal.toFixed(0)}%</span>
+                                <span className={`text-xs font-semibold ${globalDrain.spinal >= 80 ? 'text-red-500' : globalDrain.spinal >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.spinal.toFixed(0)}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
                                 <div className={`h-full transition-all ${globalDrain.spinal >= 80 ? 'bg-red-500' : globalDrain.spinal >= 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.spinal}%` }}></div>
@@ -855,7 +855,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                         max={5}
                                         value={Math.floor((Math.min(300, exercise.restTime || 90)) / 60)}
                                         onChange={e => { const m = Math.min(5, Math.max(0, parseInt(e.target.value, 10) || 0)); const sec = (exercise.restTime || 90) % 60; onExerciseChange('restTime', Math.min(300, m * 60 + sec)); }}
-                                        className="w-10 bg-transparent border-b border-zinc-700 text-white font-mono focus:border-white focus:ring-0 p-1 text-xs text-center"
+                                        className="w-10 bg-transparent border-b border-zinc-700 text-white font-medium focus:border-white focus:ring-0 p-1 text-xs text-center"
                                         placeholder="0"
                                     />
                                     <span className="text-zinc-500 text-xs">:</span>
@@ -866,7 +866,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                         max={59}
                                         value={((exercise.restTime || 90) % 60)}
                                         onChange={e => { const sec = Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0)); const m = Math.floor((Math.min(300, exercise.restTime || 90)) / 60); onExerciseChange('restTime', Math.min(300, m * 60 + sec)); }}
-                                        className="w-10 bg-transparent border-b border-zinc-700 text-white font-mono focus:border-white focus:ring-0 p-1 text-xs text-center"
+                                        className="w-10 bg-transparent border-b border-zinc-700 text-white font-medium focus:border-white focus:ring-0 p-1 text-xs text-center"
                                         placeholder="00"
                                     />
                                 </div>

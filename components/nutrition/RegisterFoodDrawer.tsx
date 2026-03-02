@@ -15,7 +15,6 @@ import { XIcon, TrashIcon, InfoIcon, UtensilsIcon, SearchIcon } from '../icons';
 import { FoodSearchModal } from '../FoodSearchModal';
 import { MealTemplateSelector } from './MealTemplateSelector';
 import { PortionSelector } from '../PortionSelector';
-import Button from '../ui/Button';
 import { getLocalDateString, dateStringToISOString } from '../../utils/dateUtils';
 
 function foodToLoggedFood(food: FoodItem, amountGrams: number, portionInput?: PortionInput): LoggedFood {
@@ -462,22 +461,22 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
     return (
         <>
-            <div className="fixed inset-0 z-[110] bg-black/40" onClick={onClose} />
+            <div className="fixed inset-0 z-[110] bg-black/30" onClick={onClose} />
             <div
-                className="fixed left-0 right-0 bottom-0 z-[111] bg-[#0a0a0a] border-t border-white/10 flex flex-col animate-slide-up"
+                className="fixed left-0 right-0 bottom-0 z-[111] bg-[#e5e5e5] flex flex-col animate-slide-up"
                 style={{ height: '90vh', maxHeight: '90dvh' }}
             >
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 shrink-0">
-                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Registrar Comida</h3>
+                <div className="flex items-center justify-between px-4 py-3 shrink-0">
+                    <h3 className="text-[10px] font-black text-[#525252] uppercase tracking-[0.2em]">Registrar Comida</h3>
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => setShowHelp(!showHelp)}
-                            className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-colors"
+                            className="p-1.5 text-[#525252] hover:text-[#1a1a1a] hover:bg-black/5 transition-colors"
                             title="Ayuda"
                         >
                             <InfoIcon size={18} />
                         </button>
-                        <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors p-1">
+                        <button onClick={onClose} className="text-[#525252] hover:text-[#1a1a1a] transition-colors p-1">
                             <XIcon size={18} />
                         </button>
                     </div>
@@ -485,39 +484,39 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
                     {showHelp && (
-                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
-                            <h4 className="text-xs font-bold text-white">Cómo escribir la descripción</h4>
-                            <ul className="text-[11px] text-zinc-400 space-y-1.5 list-disc list-inside">
-                                <li><strong className="text-zinc-300">Gramos:</strong> 200g arroz, 150g pechuga</li>
-                                <li><strong className="text-zinc-300">Referencias:</strong> 1 cucharada de aceite, una taza de arroz, un toque de sal, una palma de pollo</li>
-                                <li><strong className="text-zinc-300">Cantidad:</strong> 2 huevos, 3 panes</li>
-                                <li><strong className="text-zinc-300">Cocción:</strong> cocido, frito, a la plancha, al horno. Si pesas cocido (pollo, carnes) o hidratado (soya), los macros se ajustan automáticamente.</li>
-                                <li><strong className="text-zinc-300">Porción:</strong> grande, mediano, chico</li>
+                        <div className="bg-white p-4 space-y-3">
+                            <h4 className="text-xs font-bold text-[#1a1a1a]">Cómo escribir la descripción</h4>
+                            <ul className="text-[11px] text-[#525252] space-y-1.5 list-disc list-inside">
+                                <li><strong className="text-[#737373]">Gramos:</strong> 200g arroz, 150g pechuga</li>
+                                <li><strong className="text-[#737373]">Referencias:</strong> 1 cucharada de aceite, una taza de arroz, un toque de sal, una palma de pollo</li>
+                                <li><strong className="text-[#737373]">Cantidad:</strong> 2 huevos, 3 panes</li>
+                                <li><strong className="text-[#737373]">Cocción:</strong> cocido, frito, a la plancha, al horno. Si pesas cocido (pollo, carnes) o hidratado (soya), los macros se ajustan automáticamente.</li>
+                                <li><strong className="text-[#737373]">Porción:</strong> grande, mediano, chico</li>
                                 <li>Separa con comas o &quot;y&quot;: 200g arroz, 150g pollo</li>
                             </ul>
-                            <p className="text-[10px] text-zinc-500">Ejemplos: 1 cucharada de aceite, una taza de arroz cocido y una palma de pechuga a la plancha</p>
+                            <p className="text-[10px] text-[#525252]">Ejemplos: 1 cucharada de aceite, una taza de arroz cocido y una palma de pechuga a la plancha</p>
                             <button
                                 onClick={() => setShowHelp(false)}
-                                className="text-[10px] font-bold text-zinc-500 hover:text-white"
+                                className="text-[10px] font-bold text-[#525252] hover:text-[#1a1a1a]"
                             >
                                 Cerrar
                             </button>
                         </div>
                     )}
 
-                    <div className="flex gap-1 bg-white/5 p-1 rounded-lg overflow-x-auto">
+                    <div className="flex gap-1 bg-[#d4d4d4] p-1 overflow-x-auto">
                         <button
                             onClick={() => setActiveTab('description')}
-                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
-                                activeTab === 'description' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 text-[10px] font-bold uppercase transition-all ${
+                                activeTab === 'description' ? 'bg-white text-[#1a1a1a]' : 'text-[#525252] hover:text-[#1a1a1a]'
                             }`}
                         >
                             Comida
                         </button>
                         <button
                             onClick={() => setActiveTab('search')}
-                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
-                                activeTab === 'search' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 text-[10px] font-bold uppercase transition-all ${
+                                activeTab === 'search' ? 'bg-white text-[#1a1a1a]' : 'text-[#525252] hover:text-[#1a1a1a]'
                             }`}
                         >
                             <SearchIcon size={12} />
@@ -525,16 +524,16 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         </button>
                         <button
                             onClick={() => setActiveTab('hybrid')}
-                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
-                                activeTab === 'hybrid' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 text-[10px] font-bold uppercase transition-all ${
+                                activeTab === 'hybrid' ? 'bg-white text-[#1a1a1a]' : 'text-[#525252] hover:text-[#1a1a1a]'
                             }`}
                         >
                             Híbrido
                         </button>
                         <button
                             onClick={() => setActiveTab('templates')}
-                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
-                                activeTab === 'templates' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                            className={`shrink-0 flex items-center justify-center gap-1 px-2 py-2 text-[10px] font-bold uppercase transition-all ${
+                                activeTab === 'templates' ? 'bg-white text-[#1a1a1a]' : 'text-[#525252] hover:text-[#1a1a1a]'
                             }`}
                         >
                             <UtensilsIcon size={12} />
@@ -544,7 +543,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
                     {activeTab === 'templates' ? (
                         <div>
-                            <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                            <label className="block text-[9px] font-black text-[#525252] uppercase tracking-widest mb-2">
                                 Plantillas guardadas
                             </label>
                             <MealTemplateSelector
@@ -554,24 +553,24 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         </div>
                     ) : activeTab === 'search' ? (
                         <div className="space-y-4 animate-fade-in">
-                            <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                            <label className="block text-[9px] font-black text-[#525252] uppercase tracking-widest mb-2">
                                 Buscar alimento
                             </label>
                             {!selectedFoodForPortion ? (
                                 <>
                                     <div className="relative">
-                                        <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                        <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#525252]" />
                                         <input
                                             type="text"
                                             value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
                                             placeholder="Ej: pechuga de pollo, arroz..."
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
+                                            className="w-full bg-white border border-[#a3a3a3] pl-10 pr-4 py-3 text-sm text-[#1a1a1a] placeholder-[#737373] focus:border-[#525252] outline-none"
                                         />
                                     </div>
-                                    {searchLoading && <p className="text-xs text-zinc-500">Buscando...</p>}
+                                    {searchLoading && <p className="text-xs text-[#525252]">Buscando...</p>}
                                     {!searchLoading && searchMatchType === 'fuzzy' && searchResults.length > 0 && (
-                                        <p className="text-xs text-amber-400/90 bg-amber-500/10 rounded-lg px-3 py-2">
+                                        <p className="text-xs text-[#525252] bg-[#d4d4d4] px-3 py-2">
                                             No hay coincidencia exacta. Mostrando los resultados más cercanos.
                                         </p>
                                     )}
@@ -580,25 +579,25 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                             <button
                                                 key={food.id}
                                                 onClick={() => setSelectedFoodForPortion(food)}
-                                                className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3"
+                                                className="w-full text-left px-3 py-2.5 hover:bg-black/5 transition-colors flex items-center gap-3"
                                             >
-                                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0">
                                                     {food.image ? (
                                                         <img src={food.image} alt="" className="w-8 h-8 rounded-lg object-cover" />
                                                     ) : (
-                                                        <UtensilsIcon size={14} className="text-zinc-500" />
+                                                        <UtensilsIcon size={14} className="text-[#525252]" />
                                                     )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-sm font-medium text-white truncate">{food.name}</p>
-                                                    <p className="text-[10px] text-zinc-500 font-mono">
+                                                    <p className="text-[10px] text-[#525252] font-mono">
                                                         {Math.round(food.calories)} kcal · P:{food.protein} C:{food.carbs} F:{food.fats}
                                                     </p>
                                                 </div>
                                             </button>
                                         ))}
                                         {!searchLoading && searchQuery && searchResults.length === 0 && (
-                                            <p className="text-center text-sm text-zinc-500 py-6">No se encontraron resultados</p>
+                                            <p className="text-center text-sm text-[#525252] py-6">No se encontraron resultados</p>
                                         )}
                                     </div>
                                 </>
@@ -610,8 +609,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 />
                             )}
                             {tagItems.length > 0 && (
-                                <div className="pt-2 border-t border-white/10">
-                                    <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                                <div className="pt-2 border-t border-[#d4d4d4]">
+                                    <label className="block text-[9px] font-black text-[#525252] uppercase tracking-widest mb-2">
                                         Añadidos
                                     </label>
                                     <div className="flex flex-wrap gap-2">
@@ -621,8 +620,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                     onClick={() => setExpandedTagIdx(prev => (prev === idx ? null : idx))}
                                                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                                                         t.loggedFood
-                                                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                                                            : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
+                                                            ? 'bg-[#d4d4d4] border-[#a3a3a3] text-[#1a1a1a]'
+                                                            : 'bg-white border-[#a3a3a3] text-[#525252] hover:border-[#737373]'
                                                     }`}
                                                     title={t.isFuzzyMatch ? `No encontramos exactamente "${t.tag}"; usamos el alimento más parecido.` : undefined}
                                                 >
@@ -630,86 +629,86 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                     {t.amountGrams != null && <span>{t.amountGrams}g</span>}
                                                     <span>{t.tag}</span>
                                                     {t.isFuzzyMatch && (
-                                                        <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300" title="Coincidencia aproximada">Aprox.</span>
+                                                        <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-[#d4d4d4] text-[#525252]" title="Coincidencia aproximada">Aprox.</span>
                                                     )}
                                                     {t.loggedFood && (
                                                         <span className="font-mono text-[10px] opacity-80">{t.loggedFood.calories}kcal</span>
                                                     )}
                                                 </button>
                                                 {expandedTagIdx === idx && (
-                                                    <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-[#111] border border-white/10 shadow-xl space-y-2">
+                                                    <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-white border border-[#a3a3a3] shadow-xl space-y-2">
                                                         <div>
-                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Gramos</label>
-                                                            <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white" />
+                                                            <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Gramos</label>
+                                                            <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white border border-[#a3a3a3] rounded-lg px-2 py-1.5 text-sm text-white" />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Referencia (auto-rellena gramos)</label>
+                                                            <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Referencia (auto-rellena gramos)</label>
                                                             <div className="flex gap-1 flex-wrap">
                                                                 {PORTION_REFERENCES.map(ref => (
-                                                                    <button key={ref.key} onClick={() => setPortionReferenceForTag(idx, ref.key)} className="px-2 py-1 rounded text-[9px] font-bold bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10" title={`≈${getGramsForReference(ref.key, t.foodItem ? getFoodTypeForPortion(t.foodItem) : 'mixed')}g`}>{ref.label}</button>
+                                                                    <button key={ref.key} onClick={() => setPortionReferenceForTag(idx, ref.key)} className="px-2 py-1 rounded text-[9px] font-bold bg-white text-[#525252] hover:text-white hover:bg-black/5" title={`≈${getGramsForReference(ref.key, t.foodItem ? getFoodTypeForPortion(t.foodItem) : 'mixed')}g`}>{ref.label}</button>
                                                                 ))}
                                                             </div>
                                                         </div>
                                                         <div>
-                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Porción</label>
+                                                            <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Porción</label>
                                                             <div className="flex gap-1 flex-wrap">
                                                                 {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(p => (
-                                                                    <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{portionLabels[p]}</button>
+                                                                    <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white text-[#525252] border border-[#a3a3a3]'}`}>{portionLabels[p]}</button>
                                                                 ))}
                                                             </div>
                                                         </div>
                                                         <div>
-                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Cocción</label>
+                                                            <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Cocción</label>
                                                             <div className="flex gap-1 flex-wrap">
                                                                 {(['crudo', 'cocido', 'plancha', 'horno', 'frito', 'empanizado_frito'] as CookingMethod[]).map(m => (
-                                                                    <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{cookingLabels[m]}</button>
+                                                                    <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white text-[#525252] border border-[#a3a3a3]'}`}>{cookingLabels[m]}</button>
                                                                 ))}
                                                             </div>
                                                         </div>
                                                         {t.foodItem?.micronutrients && t.foodItem.micronutrients.length > 0 && (
                                                             <div>
-                                                                <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Micronutrientes</label>
-                                                                <p className="text-[10px] text-zinc-400 font-mono">
+                                                                <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Micronutrientes</label>
+                                                                <p className="text-[10px] text-[#525252] font-mono">
                                                                     {t.foodItem.micronutrients.map(m => `${m.name} ${m.amount}${m.unit}`).join(', ')}
                                                                 </p>
                                                             </div>
                                                         )}
-                                                        <div className="flex justify-between pt-2 border-t border-white/5">
-                                                            <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
-                                                            {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}
+                                                        <div className="flex justify-between pt-2 border-t border-[#d4d4d4]">
+                                                            <button onClick={() => removeTag(idx)} className="text-[10px] text-[#525252] font-bold">Eliminar</button>
+                                                            {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-[#525252] font-semibold font-bold">Elegir manual</button>}
                                                         </div>
-                                                        {t.loggedFood && <p className="text-[10px] text-zinc-500 font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
+                                                        {t.loggedFood && <p className="text-[10px] text-[#525252] font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
                                                     </div>
                                                 )}
                                             </div>
                                         ))}
                                     </div>
                                     <div className="mt-2 flex items-center gap-4">
-                                        <span className="text-lg font-black text-white font-mono">{Math.round(totalMacros.calories)} kcal</span>
-                                        <span className="text-xs text-zinc-500">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
+                                        <span className="text-lg font-black text-[#1a1a1a] font-mono">{Math.round(totalMacros.calories)} kcal</span>
+                                        <span className="text-xs text-[#525252]">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
                                     </div>
                                     {!showSaveTemplate && (
                                         <button
                                             onClick={() => setShowSaveTemplate(true)}
-                                            className="mt-2 flex items-center gap-2 text-[10px] font-bold text-cyan-400 hover:text-cyan-300"
+                                            className="mt-2 flex items-center gap-2 text-[10px] font-bold text-[#525252] font-semibold hover:text-[#1a1a1a]"
                                         >
                                             <UtensilsIcon size={14} />
                                             Guardar como plantilla
                                         </button>
                                     )}
                                     {showSaveTemplate && (
-                                        <div className="mt-2 p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                                        <div className="mt-2 p-3 rounded-xl bg-white border border-[#a3a3a3] space-y-2">
                                             <input
                                                 type="text"
                                                 value={templateName}
                                                 onChange={e => setTemplateName(e.target.value)}
                                                 placeholder="Nombre de la plantilla"
-                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600"
+                                                className="w-full bg-white border border-[#a3a3a3] rounded-lg px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#737373]"
                                                 autoFocus
                                             />
                                             <div className="flex gap-2">
-                                                <button onClick={handleSaveAsTemplate} className="flex-1 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 text-xs font-bold">Guardar</button>
-                                                <button onClick={() => { setShowSaveTemplate(false); setTemplateName(''); }} className="py-2 px-3 rounded-lg bg-white/5 text-zinc-500 text-xs font-bold">Cancelar</button>
+                                                <button onClick={handleSaveAsTemplate} className="flex-1 py-2 rounded-lg bg-[#d4d4d4] text-[#1a1a1a] text-xs font-bold">Guardar</button>
+                                                <button onClick={() => { setShowSaveTemplate(false); setTemplateName(''); }} className="py-2 px-3 rounded-lg bg-white text-[#525252] border border-[#a3a3a3] text-xs font-bold">Cancelar</button>
                                             </div>
                                         </div>
                                     )}
@@ -718,7 +717,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         </div>
                     ) : activeTab === 'hybrid' ? (
                         <div className="animate-fade-in">
-                            <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                            <label className="block text-[9px] font-black text-[#525252] uppercase tracking-widest mb-2">
                                 Escribe o busca
                             </label>
                             <div className="relative">
@@ -738,12 +737,12 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                         }
                                     }}
                                     placeholder="200g arroz cocido, 150g pechuga... o escribe 'pechuga' para buscar"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
+                                    className="w-full bg-white border border-[#a3a3a3] rounded-xl px-4 py-3 text-sm text-[#1a1a1a] placeholder-[#737373] focus:border-[#525252] outline-none"
                                 />
                                 {activeTab === 'hybrid' && description.trim() && !hasStructuredContent(description) && (
-                                    <div className="absolute top-full left-0 right-0 mt-1 z-20 max-h-48 overflow-y-auto rounded-xl bg-[#111] border border-white/10 shadow-xl custom-scrollbar">
+                                    <div className="absolute top-full left-0 right-0 mt-1 z-20 max-h-48 overflow-y-auto rounded-xl bg-white border border-[#a3a3a3] shadow-xl custom-scrollbar">
                                         {hybridSuggestionsLoading ? (
-                                            <p className="px-4 py-3 text-xs text-zinc-500">Buscando...</p>
+                                            <p className="px-4 py-3 text-xs text-[#525252]">Buscando...</p>
                                         ) : hybridSuggestions.length > 0 ? (
                                             hybridSuggestions.map(food => (
                                                 <button
@@ -752,25 +751,25 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                         addTagFromFoodItem(food, undefined, hybridMatchType === 'fuzzy');
                                                         setDescription('');
                                                     }}
-                                                    className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 border-b border-white/5 last:border-0"
+                                                    className="w-full text-left px-4 py-2.5 hover:bg-white flex items-center gap-3 border-b border-[#d4d4d4] last:border-0"
                                                 >
-                                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0">
                                                         {food.image ? (
                                                             <img src={food.image} alt="" className="w-8 h-8 rounded-lg object-cover" />
                                                         ) : (
-                                                            <UtensilsIcon size={14} className="text-zinc-500" />
+                                                            <UtensilsIcon size={14} className="text-[#525252]" />
                                                         )}
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <p className="text-sm font-medium text-white truncate">{food.name}</p>
-                                                        <p className="text-[10px] text-zinc-500 font-mono">
+                                                        <p className="text-[10px] text-[#525252] font-mono">
                                                             {Math.round(food.calories)} kcal · P:{food.protein} C:{food.carbs} F:{food.fats}
                                                         </p>
                                                     </div>
                                                 </button>
                                             ))
                                         ) : (
-                                            <p className="px-4 py-3 text-xs text-zinc-500">No hay sugerencias</p>
+                                            <p className="px-4 py-3 text-xs text-[#525252]">No hay sugerencias</p>
                                         )}
                                     </div>
                                 )}
@@ -783,8 +782,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                 onClick={() => setExpandedTagIdx(prev => (prev === idx ? null : idx))}
                                                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                                                     t.loggedFood
-                                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                                                        : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
+                                                        ? 'bg-[#d4d4d4] border-[#a3a3a3] text-[#1a1a1a]'
+                                                        : 'bg-white border-[#a3a3a3] text-[#525252] hover:border-[#737373]'
                                                 }`}
                                                 title={t.isFuzzyMatch ? `No encontramos exactamente "${t.tag}"; usamos el alimento más parecido.` : undefined}
                                             >
@@ -792,55 +791,55 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                 {t.amountGrams != null && <span>{t.amountGrams}g</span>}
                                                 <span>{t.tag}</span>
                                                 {t.isFuzzyMatch && (
-                                                    <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300" title="Coincidencia aproximada">Aprox.</span>
+                                                    <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-[#d4d4d4] text-[#525252]" title="Coincidencia aproximada">Aprox.</span>
                                                 )}
                                                 {t.loggedFood && (
                                                     <span className="font-mono text-[10px] opacity-80">{t.loggedFood.calories}kcal</span>
                                                 )}
                                             </button>
                                             {expandedTagIdx === idx && (
-                                                <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-[#111] border border-white/10 shadow-xl space-y-2">
+                                                <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-white border border-[#a3a3a3] shadow-xl space-y-2">
                                                     <div>
-                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Gramos</label>
-                                                        <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white" />
+                                                        <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Gramos</label>
+                                                        <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white border border-[#a3a3a3] rounded-lg px-2 py-1.5 text-sm text-white" />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Referencia (auto-rellena gramos)</label>
+                                                        <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Referencia (auto-rellena gramos)</label>
                                                         <div className="flex gap-1 flex-wrap">
                                                             {PORTION_REFERENCES.map(ref => (
-                                                                <button key={ref.key} onClick={() => setPortionReferenceForTag(idx, ref.key)} className="px-2 py-1 rounded text-[9px] font-bold bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10" title={`≈${getGramsForReference(ref.key, t.foodItem ? getFoodTypeForPortion(t.foodItem) : 'mixed')}g`}>{ref.label}</button>
+                                                                <button key={ref.key} onClick={() => setPortionReferenceForTag(idx, ref.key)} className="px-2 py-1 rounded text-[9px] font-bold bg-white text-[#525252] hover:text-white hover:bg-black/5" title={`≈${getGramsForReference(ref.key, t.foodItem ? getFoodTypeForPortion(t.foodItem) : 'mixed')}g`}>{ref.label}</button>
                                                             ))}
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Porción</label>
+                                                        <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Porción</label>
                                                         <div className="flex gap-1 flex-wrap">
                                                             {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(p => (
-                                                                <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{portionLabels[p]}</button>
+                                                                <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white text-[#525252] border border-[#a3a3a3]'}`}>{portionLabels[p]}</button>
                                                             ))}
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Cocción</label>
+                                                        <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Cocción</label>
                                                         <div className="flex gap-1 flex-wrap">
                                                             {(['crudo', 'cocido', 'plancha', 'horno', 'frito', 'empanizado_frito'] as CookingMethod[]).map(m => (
-                                                                <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{cookingLabels[m]}</button>
+                                                                <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white text-[#525252] border border-[#a3a3a3]'}`}>{cookingLabels[m]}</button>
                                                             ))}
                                                         </div>
                                                     </div>
                                                     {t.foodItem?.micronutrients && t.foodItem.micronutrients.length > 0 && (
                                                         <div>
-                                                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Micronutrientes</label>
-                                                            <p className="text-[10px] text-zinc-400 font-mono">
+                                                            <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Micronutrientes</label>
+                                                            <p className="text-[10px] text-[#525252] font-mono">
                                                                 {t.foodItem.micronutrients.map(m => `${m.name} ${m.amount}${m.unit}`).join(', ')}
                                                             </p>
                                                         </div>
                                                     )}
-                                                    <div className="flex justify-between pt-2 border-t border-white/5">
-                                                        <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
-                                                        {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}
+                                                    <div className="flex justify-between pt-2 border-t border-[#d4d4d4]">
+                                                        <button onClick={() => removeTag(idx)} className="text-[10px] text-[#525252] font-bold">Eliminar</button>
+                                                        {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-[#525252] font-semibold font-bold">Elegir manual</button>}
                                                     </div>
-                                                    {t.loggedFood && <p className="text-[10px] text-zinc-500 font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
+                                                    {t.loggedFood && <p className="text-[10px] text-[#525252] font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
                                                 </div>
                                             )}
                                         </div>
@@ -849,39 +848,39 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             )}
                             {tagItems.length > 0 && foods.length > 0 && (
                                 <div className="mt-3 flex items-center gap-4">
-                                    <span className="text-lg font-black text-white font-mono">{Math.round(totalMacros.calories)} kcal</span>
-                                    <span className="text-xs text-zinc-500">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
+                                    <span className="text-lg font-black text-[#1a1a1a] font-mono">{Math.round(totalMacros.calories)} kcal</span>
+                                    <span className="text-xs text-[#525252]">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
                                 </div>
                             )}
                             {foods.length > 0 && !showSaveTemplate && (
                                 <button
                                     onClick={() => setShowSaveTemplate(true)}
-                                    className="mt-3 flex items-center gap-2 text-[10px] font-bold text-cyan-400 hover:text-cyan-300"
+                                    className="mt-3 flex items-center gap-2 text-[10px] font-bold text-[#525252] font-semibold hover:text-[#1a1a1a]"
                                 >
                                     <UtensilsIcon size={14} />
                                     Guardar como plantilla
                                 </button>
                             )}
                             {showSaveTemplate && (
-                                <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                                <div className="mt-3 p-3 rounded-xl bg-white border border-[#a3a3a3] space-y-2">
                                     <input
                                         type="text"
                                         value={templateName}
                                         onChange={e => setTemplateName(e.target.value)}
                                         placeholder="Nombre de la plantilla"
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600"
+                                        className="w-full bg-white border border-[#a3a3a3] rounded-lg px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#737373]"
                                         autoFocus
                                     />
                                     <div className="flex gap-2">
                                         <button
                                             onClick={handleSaveAsTemplate}
-                                            className="flex-1 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 text-xs font-bold"
+                                            className="flex-1 py-2 rounded-lg bg-[#d4d4d4] text-[#1a1a1a] text-xs font-bold"
                                         >
                                             Guardar
                                         </button>
                                         <button
                                             onClick={() => { setShowSaveTemplate(false); setTemplateName(''); }}
-                                            className="py-2 px-3 rounded-lg bg-white/5 text-zinc-500 text-xs font-bold"
+                                            className="py-2 px-3 rounded-lg bg-white text-[#525252] border border-[#a3a3a3] text-xs font-bold"
                                         >
                                             Cancelar
                                         </button>
@@ -891,7 +890,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         </div>
                     ) : (
                     <div>
-                        <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                        <label className="block text-[9px] font-black text-[#525252] uppercase tracking-widest mb-2">
                             Comida
                         </label>
                         <input
@@ -901,7 +900,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             onBlur={handleDescriptionBlur}
                             onKeyDown={handleKeyDown}
                             placeholder="Ej: 200g arroz cocido, 150g pechuga a la plancha"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
+                            className="w-full bg-white border border-[#a3a3a3] rounded-xl px-4 py-3 text-sm text-[#1a1a1a] placeholder-[#737373] focus:border-[#525252] outline-none"
                         />
                         {tagItems.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-3">
@@ -911,8 +910,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                             onClick={() => setExpandedTagIdx(prev => (prev === idx ? null : idx))}
                                             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                                                 t.loggedFood
-                                                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                                                    : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'
+                                                    ? 'bg-[#d4d4d4] border-[#a3a3a3] text-[#1a1a1a]'
+                                                    : 'bg-white border-[#a3a3a3] text-[#525252] hover:border-[#737373]'
                                             }`}
                                             title={t.isFuzzyMatch ? `No encontramos exactamente "${t.tag}"; usamos el alimento más parecido.` : undefined}
                                         >
@@ -920,7 +919,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                             {t.amountGrams != null && <span>{t.amountGrams}g</span>}
                                             <span>{t.tag}</span>
                                             {t.isFuzzyMatch && (
-                                                <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300" title="Coincidencia aproximada">Aprox.</span>
+                                                <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-[#d4d4d4] text-[#525252]" title="Coincidencia aproximada">Aprox.</span>
                                             )}
                                             {t.loggedFood && (
                                                 <span className="font-mono text-[10px] opacity-80">
@@ -929,40 +928,40 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                             )}
                                         </button>
                                         {expandedTagIdx === idx && (
-                                            <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-[#111] border border-white/10 shadow-xl space-y-2">
+                                            <div className="absolute top-full left-0 mt-1 z-20 w-64 p-3 rounded-xl bg-white border border-[#a3a3a3] shadow-xl space-y-2">
                                                 <div>
-                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Gramos</label>
-                                                    <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white" />
+                                                    <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Gramos</label>
+                                                    <input type="number" value={t.amountGrams ?? ''} onChange={e => setAmountGramsForTag(idx, e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Ej: 200" min={1} className="w-full bg-white border border-[#a3a3a3] rounded-lg px-2 py-1.5 text-sm text-white" />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Porción</label>
+                                                    <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Porción</label>
                                                     <div className="flex gap-1 flex-wrap">
                                                         {(['small', 'medium', 'large', 'extra'] as PortionPreset[]).map(p => (
-                                                            <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{portionLabels[p]}</button>
+                                                            <button key={p} onClick={() => setPortionForTag(idx, p)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.portion === p ? 'bg-white text-black' : 'bg-white text-[#525252] border border-[#a3a3a3]'}`}>{portionLabels[p]}</button>
                                                         ))}
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Cocción</label>
+                                                    <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Cocción</label>
                                                     <div className="flex gap-1 flex-wrap">
                                                         {(['crudo', 'cocido', 'plancha', 'horno', 'frito', 'empanizado_frito'] as CookingMethod[]).map(m => (
-                                                            <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white/5 text-zinc-500'}`}>{cookingLabels[m]}</button>
+                                                            <button key={m} onClick={() => setCookingForTag(idx, t.cookingMethod === m ? undefined : m)} className={`px-2 py-1 rounded text-[9px] font-bold ${t.cookingMethod === m ? 'bg-white text-black' : 'bg-white text-[#525252] border border-[#a3a3a3]'}`}>{cookingLabels[m]}</button>
                                                         ))}
                                                     </div>
                                                 </div>
                                                 {t.foodItem?.micronutrients && t.foodItem.micronutrients.length > 0 && (
                                                     <div>
-                                                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Micronutrientes</label>
-                                                        <p className="text-[10px] text-zinc-400 font-mono">
+                                                        <label className="block text-[9px] font-bold text-[#525252] uppercase mb-1">Micronutrientes</label>
+                                                        <p className="text-[10px] text-[#525252] font-mono">
                                                             {t.foodItem.micronutrients.map(m => `${m.name} ${m.amount}${m.unit}`).join(', ')}
                                                         </p>
                                                     </div>
                                                 )}
-                                                <div className="flex justify-between pt-2 border-t border-white/5">
-                                                    <button onClick={() => removeTag(idx)} className="text-[10px] text-red-400 font-bold">Eliminar</button>
-                                                    {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-cyan-400 font-bold">Elegir manual</button>}
+                                                <div className="flex justify-between pt-2 border-t border-[#d4d4d4]">
+                                                    <button onClick={() => removeTag(idx)} className="text-[10px] text-[#525252] font-bold">Eliminar</button>
+                                                    {!t.foodItem && <button onClick={() => setSearchModalForTagIdx(idx)} className="text-[10px] text-[#525252] font-semibold font-bold">Elegir manual</button>}
                                                 </div>
-                                                {t.loggedFood && <p className="text-[10px] text-zinc-500 font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
+                                                {t.loggedFood && <p className="text-[10px] text-[#525252] font-mono">{t.loggedFood.calories} kcal · P{t.loggedFood.protein} C{t.loggedFood.carbs} G{t.loggedFood.fats}</p>}
                                             </div>
                                         )}
                                     </div>
@@ -971,39 +970,39 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         )}
                         {tagItems.length > 0 && foods.length > 0 && (
                             <div className="mt-3 flex items-center gap-4">
-                                <span className="text-lg font-black text-white font-mono">{Math.round(totalMacros.calories)} kcal</span>
-                                <span className="text-xs text-zinc-500">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
+                                <span className="text-lg font-black text-[#1a1a1a] font-mono">{Math.round(totalMacros.calories)} kcal</span>
+                                <span className="text-xs text-[#525252]">P {totalMacros.protein.toFixed(0)} · C {totalMacros.carbs.toFixed(0)} · G {totalMacros.fats.toFixed(0)}</span>
                             </div>
                         )}
                         {foods.length > 0 && !showSaveTemplate && (
                             <button
                                 onClick={() => setShowSaveTemplate(true)}
-                                className="mt-3 flex items-center gap-2 text-[10px] font-bold text-cyan-400 hover:text-cyan-300"
+                                className="mt-3 flex items-center gap-2 text-[10px] font-bold text-[#525252] font-semibold hover:text-[#1a1a1a]"
                             >
                                 <UtensilsIcon size={14} />
                                 Guardar como plantilla
                             </button>
                         )}
                         {showSaveTemplate && (
-                            <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                            <div className="mt-3 p-3 rounded-xl bg-white border border-[#a3a3a3] space-y-2">
                                 <input
                                     type="text"
                                     value={templateName}
                                     onChange={e => setTemplateName(e.target.value)}
                                     placeholder="Nombre de la plantilla"
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600"
+                                    className="w-full bg-white border border-[#a3a3a3] rounded-lg px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#737373]"
                                     autoFocus
                                 />
                                 <div className="flex gap-2">
                                     <button
                                         onClick={handleSaveAsTemplate}
-                                        className="flex-1 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 text-xs font-bold"
+                                        className="flex-1 py-2 rounded-lg bg-[#d4d4d4] text-[#1a1a1a] text-xs font-bold"
                                     >
                                         Guardar
                                     </button>
                                     <button
                                         onClick={() => { setShowSaveTemplate(false); setTemplateName(''); }}
-                                        className="py-2 px-3 rounded-lg bg-white/5 text-zinc-500 text-xs font-bold"
+                                        className="py-2 px-3 rounded-lg bg-white text-[#525252] border border-[#a3a3a3] text-xs font-bold"
                                     >
                                         Cancelar
                                     </button>
@@ -1014,16 +1013,16 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                     )}
 
                     {multiFoodWarning && (
-                        <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-950/30 border border-amber-500/20">
-                            <InfoIcon size={16} className="text-amber-400 shrink-0 mt-0.5" />
-                            <p className="text-[11px] text-amber-200/90">
+                        <div className="flex items-start gap-2 p-3 bg-[#d4d4d4]">
+                            <InfoIcon size={16} className="text-[#525252] shrink-0 mt-0.5" />
+                            <p className="text-[11px] text-[#525252]">
                                 Has añadido varios alimentos. Revisa que cada uno tenga la cantidad correcta.
                             </p>
                         </div>
                     )}
 
                     <div>
-                        <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                        <label className="block text-[9px] font-black text-[#525252] uppercase tracking-widest mb-2">
                             Fecha y tipo
                         </label>
                         <div className="flex gap-2">
@@ -1031,15 +1030,15 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 type="date"
                                 value={logDate}
                                 onChange={e => setLogDate(e.target.value)}
-                                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white"
+                                className="flex-1 bg-white border border-[#a3a3a3] rounded-lg px-3 py-2 text-xs text-white"
                             />
-                            <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+                            <div className="flex gap-1 bg-white p-1 rounded-lg">
                                 {mealOptions.map(opt => (
                                     <button
                                         key={opt.id}
                                         onClick={() => setMealType(opt.id)}
                                         className={`px-2 py-1 rounded text-[9px] font-black uppercase transition-all ${
-                                            mealType === opt.id ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-300'
+                                            mealType === opt.id ? 'bg-white text-black' : 'text-[#525252] hover:text-zinc-300'
                                         }`}
                                     >
                                         {opt.label.substring(0, 3)}
@@ -1051,16 +1050,17 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
                 </div>
 
-                <div className="p-4 pt-3 pb-[max(1rem,calc(var(--tab-bar-safe-bottom,120px)+12px))] border-t border-white/5 shrink-0">
-                    <Button
+                <div className="p-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-[#d4d4d4] shrink-0">
+                    <button
+                        type="button"
                         onClick={handleSave}
                         disabled={foods.length === 0}
-                        className={`w-full !py-3.5 !rounded-xl !text-sm font-black uppercase ${
-                            foods.length > 0 ? 'bg-white text-black hover:bg-zinc-200' : 'bg-white/10 text-zinc-600 cursor-not-allowed'
+                        className={`w-full py-3.5 text-sm font-black uppercase border ${
+                            foods.length > 0 ? 'bg-white text-[#1a1a1a] border-[#a3a3a3] hover:bg-[#f5f5f5]' : 'bg-[#d4d4d4] text-[#737373] border-[#a3a3a3] cursor-not-allowed'
                         }`}
                     >
                         {foods.length > 0 ? `Guardar (${Math.round(totalMacros.calories)} kcal)` : 'Busca coincidencias para guardar'}
-                    </Button>
+                    </button>
                 </div>
             </div>
 

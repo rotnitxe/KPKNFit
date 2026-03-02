@@ -1,5 +1,5 @@
 // components/workout/ExerciseCard.tsx
-// Tarjeta compacta para el carrusel de ejercicios
+// Carrusel de ejercicios — estilo "Tú": plano, sin tarjetas, integrado en fondo
 
 import React from 'react';
 import type { Exercise } from '../../types';
@@ -15,7 +15,6 @@ interface ExerciseCardProps {
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({
   exercises,
-  color,
   isActive,
   isSkipped = false,
   onPress,
@@ -52,20 +51,15 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
       onTouchEnd={clearTimer}
       onTouchCancel={clearTimer}
       className={
-        'flex-shrink-0 w-36 min-h-[56px] rounded-xl border-2 px-3 py-2.5 flex flex-col items-center justify-center gap-0.5 transition-all duration-200 active:scale-95 ' +
-        (isSkipped ? 'opacity-60 border-slate-600 bg-slate-800/50' : '')
+        'flex-shrink-0 w-36 min-h-[56px] px-3 py-2.5 flex flex-col items-center justify-center gap-0.5 transition-all duration-200 active:scale-95 ' +
+        (isSkipped ? 'opacity-50 bg-[#1a1a1a]' : isActive ? 'bg-[#3f3f3f]' : 'bg-[#252525]')
       }
-      style={{
-        borderColor: isSkipped ? '#475569' : (isActive ? color : `${color}50`),
-        backgroundColor: isSkipped ? 'rgba(30,41,59,0.5)' : (isActive ? `${color}12` : 'rgba(15,23,42,0.9)'),
-        boxShadow: isActive && !isSkipped ? `0 0 6px ${color}20` : undefined,
-      }}
     >
-      <span className={'text-xs font-bold text-center line-clamp-2 leading-tight ' + (isSkipped ? 'text-slate-500' : 'text-white')}>
+      <span className={'text-xs font-medium text-center line-clamp-2 leading-tight ' + (isSkipped ? 'text-[#737373]' : 'text-white')}>
         {label}
       </span>
       {isSkipped && (
-        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-0.5">
+        <span className="text-[9px] font-medium uppercase tracking-wide text-[#737373] mt-0.5">
           Omitido
         </span>
       )}

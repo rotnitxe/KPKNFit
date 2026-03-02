@@ -10,6 +10,7 @@ import {
     getPerMuscleBatteries,
     getSpinalDrainByExercise,
     ACCORDION_MUSCLES,
+    MUSCLE_TO_ARTICULAR_BATTERIES,
     type SpinalDrainEntry,
 } from '../../services/auge';
 import { BrainIcon, ActivityIcon, TargetIcon, ZapIcon, InfoIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
@@ -107,6 +108,7 @@ export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact 
     const [columnaTab, setColumnaTab] = useState<number | null>(7);
     const [muscularExpanded, setMuscularExpanded] = useState(false);
     const [deltoidsExpanded, setDeltoidsExpanded] = useState(false);
+    const [expandedMuscleId, setExpandedMuscleId] = useState<string | null>(null);
     const versionRef = React.useRef(0);
 
     const [calibratingId, setCalibratingId] = useState<BatteryId | null>(null);
@@ -329,12 +331,53 @@ export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact 
                     </button>
                     {muscularExpanded && (
                         <div className="space-y-1 mt-2 animate-fade-in">
-                            {mainMuscles.map(m => (
-                                <div key={m.id} className="flex justify-between items-center py-2 px-3 rounded-lg bg-black/30 border border-white/5">
-                                    <span className="text-[10px] font-bold text-zinc-300">{m.label}</span>
-                                    <span className={`text-[10px] font-mono font-black ${getStatusColor(perMuscle[m.id] ?? 100)}`}>{perMuscle[m.id] ?? 100}%</span>
-                                </div>
-                            ))}
+                            {mainMuscles.map(m => {
+                                const articularIds = MUSCLE_TO_ARTICULAR_BATTERIES[m.id];
+                                const hasSubBatteries = articularIds && articularIds.length > 0 && batteries.articularBatteries;
+                                const isExpanded = expandedMuscleId === m.id;
+                                return (
+                                    <div key={m.id} className="rounded-lg bg-black/30 border border-white/5 overflow-hidden">
+                                        {hasSubBatteries ? (
+                                            <button
+                                                onClick={() => setExpandedMuscleId(isExpanded ? null : m.id)}
+                                                className="w-full flex justify-between items-center py-2 px-3 hover:bg-white/5 transition-colors"
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-zinc-300">{m.label}</span>
+                                                    {isExpanded ? <ChevronDownIcon size={10} className="text-zinc-500" /> : <ChevronRightIcon size={10} className="text-zinc-500" />}
+                                                </span>
+                                                <span className={`text-[10px] font-mono font-black ${getStatusColor(perMuscle[m.id] ?? 100)}`}>{perMuscle[m.id] ?? 100}%</span>
+                                            </button>
+                                        ) : (
+                                            <div className="w-full flex justify-between items-center py-2 px-3">
+                                                <span className="text-[10px] font-bold text-zinc-300">{m.label}</span>
+                                                <span className={`text-[10px] font-mono font-black ${getStatusColor(perMuscle[m.id] ?? 100)}`}>{perMuscle[m.id] ?? 100}%</span>
+                                            </div>
+                                        )}
+                                        {hasSubBatteries && isExpanded && (
+                                            <div className="px-3 pb-2 pt-0 border-t border-white/5 mt-1 flex flex-col gap-1.5">
+                                                {articularIds.map(aid => {
+                                                    const ab = batteries.articularBatteries?.[aid];
+                                                    if (!ab) return null;
+                                                    const cfg = { shoulder: 'Hombro', elbow: 'Codo', knee: 'Rodilla', hip: 'Cadera', ankle: 'Tobillo' }[aid];
+                                                    return (
+                                                        <div key={aid} className="flex items-center gap-2">
+                                                            <span className="text-[8px] text-zinc-500 w-14 shrink-0">{cfg}</span>
+                                                            <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className="h-full rounded-full transition-all"
+                                                                    style={{ width: `${ab.recoveryScore}%`, backgroundColor: ab.recoveryScore >= 70 ? '#10b981' : ab.recoveryScore >= 40 ? '#f59e0b' : '#ef4444' }}
+                                                                />
+                                                            </div>
+                                                            <span className={`text-[9px] font-mono font-black w-8 text-right ${getStatusColor(ab.recoveryScore)}`}>{ab.recoveryScore}%</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                             {/* Deltoides sub-acordeón */}
                             <div>
                                 <button
@@ -352,6 +395,12 @@ export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact 
                                                 <span className={`text-[9px] font-mono font-black ${getStatusColor(perMuscle[m.id] ?? 100)}`}>{perMuscle[m.id] ?? 100}%</span>
                                             </div>
                                         ))}
+                                        {batteries.articularBatteries?.shoulder != null && (
+                                            <div className="flex justify-between items-center py-1.5 pt-2 mt-1 border-t border-white/5">
+                                                <span className="text-[8px] text-zinc-500">Hombro (tendones)</span>
+                                                <span className={`text-[9px] font-mono font-black ${getStatusColor(batteries.articularBatteries.shoulder.recoveryScore)}`}>{batteries.articularBatteries.shoulder.recoveryScore}%</span>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

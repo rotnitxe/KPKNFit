@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { TacticalModal } from './ui/TacticalOverlays';
 import WorkoutDrawer from './workout/WorkoutDrawer';
-import Button from './ui/Button';
 import { DISCOMFORT_DATABASE } from '../data/discomfortList';
 import { CheckCircleIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, ClockIcon, FlameIcon, ChevronDownIcon, ChevronRightIcon, SearchIcon } from './icons';
 import { useAppDispatch, useAppState } from '../contexts/AppContext';
@@ -29,7 +28,10 @@ interface FinishWorkoutModalProps {
   initialNotes?: string;
   initialDiscomforts?: string[];
   initialBatteries?: InitialBatteriesFromFeedback;
+  /** @deprecated Use fullPage. When true, shows full-screen page instead of drawer. */
   asDrawer?: boolean;
+  /** Vista full-screen en lugar de modal/drawer. Estética "Tú" (gris claro, limpio). */
+  fullPage?: boolean;
   allExercises?: Exercise[];
   completedSets?: Record<string, { left: any; right: any }>;
   exerciseList?: ExerciseMuscleInfo[];
@@ -165,7 +167,34 @@ const MUSCLE_LABEL_MAP: Record<string, string> = {
   'Pantorrillas': 'Pantorrillas', 'Abdomen': 'Abdomen', 'Espalda Baja': 'Espalda Baja', 'Trapecio': 'Trapecio',
 };
 
-const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, initialDiscomforts = [], initialBatteries, asDrawer, allExercises = [], completedSets = {}, exerciseList = [] }) => {
+/** Selector de puntos 1–10, estilo ReadinessDrawer */
+const PointSelector: React.FC<{ value: number; onChange: (v: number) => void; labels?: [string, string] }> = ({ value, onChange, labels }) => (
+  <div className="flex flex-col">
+    <div className="flex flex-wrap gap-1">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => (
+        <button
+          key={v}
+          type="button"
+          onClick={() => onChange(v)}
+          className={`w-7 h-7 rounded-full border transition-colors text-[10px] font-medium ${
+            value === v ? 'bg-[#525252] border-[#525252] text-white' : 'bg-white border-[#a3a3a3] text-[#1a1a1a] hover:border-[#737373]'
+          }`}
+          aria-label={`${v} de 10`}
+        >
+          {v}
+        </button>
+      ))}
+    </div>
+    {labels && (
+      <div className="flex justify-between w-full mt-0.5 text-[9px] text-[#737373]">
+        <span>{labels[0]}</span>
+        <span>{labels[1]}</span>
+      </div>
+    )}
+  </div>
+);
+
+const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, initialDiscomforts = [], initialBatteries, asDrawer, fullPage, allExercises = [], completedSets = {}, exerciseList = [] }) => {
   const { addRecommendationTrigger, addToast } = useAppDispatch();
   const { settings } = useAppState();
   const weightUnit = settings?.weightUnit ?? 'kg';
@@ -341,12 +370,14 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     setState(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
 
+  const useFullPage = fullPage ?? asDrawer;
+
   const TagGroup: React.FC<{title:string; tags: string[]; selected: string[]; onToggle: (tag:string) => void;}> = ({title, tags, selected, onToggle}) => (
       <div>
-        <label className="block text-[10px] font-mono font-black text-cyber-cyan/80 uppercase tracking-widest mb-2">{title}</label>
+        <label className={`block text-[10px] font-semibold uppercase tracking-wide mb-2 ${useFullPage ? 'text-[#525252]' : 'text-cyber-cyan/80 font-mono font-black tracking-widest'}`}>{title}</label>
         <div className="flex flex-wrap gap-2">
             {tags.map(tag => (
-                <button key={tag} onClick={() => onToggle(tag)} className={`px-3 py-1.5 text-[10px] font-mono font-bold uppercase rounded-lg border transition-all ${selected.includes(tag) ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan' : 'bg-slate-900/80 border-slate-700 text-slate-500 hover:border-cyber-cyan/30 hover:text-slate-400'}`}>
+                <button key={tag} onClick={() => onToggle(tag)} className={`px-3 py-1.5 text-[10px] font-medium border transition-all ${useFullPage ? (selected.includes(tag) ? 'bg-[#525252] border-[#525252] text-white' : 'bg-white border-[#a3a3a3] text-[#1a1a1a] hover:border-[#737373]') : (selected.includes(tag) ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan font-mono font-bold uppercase rounded-lg' : 'bg-slate-900/80 border-slate-700 text-slate-500 hover:border-cyber-cyan/30 hover:text-slate-400 font-mono font-bold uppercase rounded-lg')}`}>
                     {tag}
                 </button>
             ))}
@@ -354,15 +385,16 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     </div>
   );
 
-  const BatterySlider: React.FC<{ label: string; value: number; onChange: (v: number) => void; color?: string }> = ({ label, value, onChange }) => (
-    <div>
-      <label className="block text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider mb-2">{label}</label>
-      <div className="flex items-center gap-3">
-        <input type="range" min="0" max="100" value={value} onChange={(e) => onChange(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-900 border border-cyber-cyan/20 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyber-cyan [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-slate-950" style={{ accentColor: 'rgb(0, 240, 255)' }} />
-        <span className="text-lg font-mono font-black text-cyber-cyan w-10 text-right tabular-nums">{value}%</span>
+  /** Selector de batería: puntos 1-10 → 10%-100% */
+  const BatteryPointSelector: React.FC<{ label: string; value: number; onChange: (v: number) => void }> = ({ label, value, onChange }) => {
+    const point = Math.min(10, Math.max(1, Math.round(value / 10)));
+    return (
+      <div>
+        <label className="block text-[10px] font-semibold text-[#525252] uppercase tracking-wide mb-1">{label}</label>
+        <PointSelector value={point} onChange={(v) => onChange(v * 10)} labels={['10%', '100%']} />
       </div>
-    </div>
-  );
+    );
+  };
 
   const title = showRecoverySuggestion ? "Recuperación Prioritaria" : "Finalizar Sesión";
   const content = (
@@ -380,136 +412,154 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
       </div>
 
       {!showRecoverySuggestion ? (
-        <div className="space-y-5 p-4 bg-[#0a0c10]">
+        <div className={`space-y-5 p-4 ${useFullPage ? 'bg-[#e5e5e5]' : 'bg-[#0a0c10]'}`}>
             {/* Resumen compacto */}
-            <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-slate-950/80 border border-cyber-cyan/20">
+            <div className={`flex items-center justify-between gap-4 p-4 ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl bg-slate-950/80 border border-cyber-cyan/20'}`}>
                 <div>
-                    <span className="text-[9px] font-mono font-black text-cyber-cyan/70 uppercase tracking-widest block">Sesión Completada</span>
-                    <span className="text-lg font-mono font-black text-white">{new Date(logDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    <span className={`text-[9px] font-semibold uppercase tracking-wide block ${useFullPage ? 'text-[#737373]' : 'font-mono font-black text-cyber-cyan/70 tracking-widest'}`}>Sesión Completada</span>
+                    <span className={`text-lg font-semibold ${useFullPage ? 'text-[#1a1a1a]' : 'font-mono font-black text-white'}`}>{new Date(logDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                 </div>
-                <div className="flex items-center gap-3 text-cyber-cyan font-mono font-bold">
+                <div className={`flex items-center gap-3 font-medium ${useFullPage ? 'text-[#525252]' : 'text-cyber-cyan font-mono font-bold'}`}>
                     <span>{durationInMinutes || '--'} min</span>
-                    <span className="text-slate-600">|</span>
+                    <span className={useFullPage ? 'text-[#a3a3a3]' : 'text-slate-600'}>|</span>
                     <span>Nivel {sessionDifficulty}</span>
                 </div>
             </div>
 
             {/* Duración y fecha */}
             <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/80 overflow-hidden">
-                    <label className="block px-3 pt-2 text-[9px] font-mono font-bold text-slate-500 uppercase">Duración (min)</label>
-                    <input type="number" value={durationInMinutes} onChange={(e) => setDurationInMinutes(e.target.value)} className="w-full pb-3 px-3 text-lg font-mono font-bold bg-slate-950/50 text-white focus:outline-none focus:ring-0 border-none [color-scheme:dark]" placeholder="60" />
+                <div className={`overflow-hidden ${useFullPage ? 'border border-[#a3a3a3] bg-white' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80'}`}>
+                    <label className={`block px-3 pt-2 text-[9px] font-semibold uppercase ${useFullPage ? 'text-[#525252]' : 'font-mono font-bold text-slate-500'}`}>Duración (min)</label>
+                    <input type="number" value={durationInMinutes} onChange={(e) => setDurationInMinutes(e.target.value)} className={`w-full pb-3 px-3 text-lg font-medium focus:outline-none focus:ring-0 border-none ${useFullPage ? 'bg-white text-[#1a1a1a] [color-scheme:light]' : 'bg-slate-950/50 text-white font-mono font-bold [color-scheme:dark]'}`} placeholder="60" />
                 </div>
-                <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/80 overflow-hidden">
-                    <label className="block px-3 pt-2 text-[9px] font-mono font-bold text-slate-500 uppercase">Fecha</label>
-                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className="w-full pb-3 px-3 text-sm font-mono font-bold bg-slate-950/50 text-white focus:outline-none focus:ring-0 border-none [color-scheme:dark]" />
+                <div className={`overflow-hidden ${useFullPage ? 'border border-[#a3a3a3] bg-white' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80'}`}>
+                    <label className={`block px-3 pt-2 text-[9px] font-semibold uppercase ${useFullPage ? 'text-[#525252]' : 'font-mono font-bold text-slate-500'}`}>Fecha</label>
+                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className={`w-full pb-3 px-3 text-sm font-medium focus:outline-none focus:ring-0 border-none ${useFullPage ? 'bg-white text-[#1a1a1a] [color-scheme:light]' : 'bg-slate-950/50 text-white font-mono font-bold [color-scheme:dark]'}`} />
                 </div>
             </div>
             
-            {/* Baterías AUGE */}
-            <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/60 p-4 space-y-5">
-                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">% de batería consumida (0–100)</p>
-                <BatterySlider label="1. Estado general" value={generalBattery} onChange={setGeneralBattery} />
+            {/* Baterías AUGE: selectores de puntos 1–10 */}
+            <div className={`p-4 space-y-5 ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
+                <p className={`text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[#525252]' : 'font-mono text-slate-500'}`}>Batería consumida (1–10)</p>
+                <BatteryPointSelector label="1. Estado general" value={generalBattery} onChange={setGeneralBattery} />
                 
                 <div>
-                    <button type="button" onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)} className="w-full flex items-center justify-between text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-2 py-1">
+                    <button type="button" onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)} className={`w-full flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide mb-2 py-1 ${useFullPage ? 'text-[#525252]' : 'font-mono font-bold text-slate-400'}`}>
                         <span>2. Músculos trabajados</span>
-                        {muscleAccordionOpen ? <ChevronDownIcon size={14} className="text-cyber-cyan" /> : <ChevronRightIcon size={14} className="text-cyber-cyan" />}
+                        {muscleAccordionOpen ? <ChevronDownIcon size={14} className={useFullPage ? 'text-[#525252]' : 'text-cyber-cyan'} /> : <ChevronRightIcon size={14} className={useFullPage ? 'text-[#525252]' : 'text-cyber-cyan'} />}
                     </button>
                     {muscleAccordionOpen && musclesWithEffectiveSets.length > 0 && (
-                        <div className="space-y-3 mt-3 animate-fade-in pl-2 border-l-2 border-cyber-cyan/20">
+                        <div className={`space-y-3 mt-3 animate-fade-in pl-2 ${useFullPage ? 'border-l-2 border-[#a3a3a3]' : 'border-l-2 border-cyber-cyan/20'}`}>
                             {musclesWithEffectiveSets.map(m => (
-                                <BatterySlider key={m} label={MUSCLE_LABEL_MAP[m] || m} value={muscleBatteries[m] ?? 50} onChange={(v) => setMuscleBatteries(prev => ({ ...prev, [m]: v }))} />
+                                <BatteryPointSelector key={m} label={MUSCLE_LABEL_MAP[m] || m} value={muscleBatteries[m] ?? 50} onChange={(v) => setMuscleBatteries(prev => ({ ...prev, [m]: v }))} />
                             ))}
                         </div>
                     )}
                     {muscleAccordionOpen && musclesWithEffectiveSets.length === 0 && (
-                        <p className="text-[10px] text-slate-600 font-mono">No hay músculos con series efectivas.</p>
+                        <p className={`text-[10px] ${useFullPage ? 'text-[#737373]' : 'text-slate-600 font-mono'}`}>No hay músculos con series efectivas.</p>
                     )}
                 </div>
 
-                <BatterySlider label="3. Columna" value={spinalBattery} onChange={setSpinalBattery} />
+                <BatteryPointSelector label="3. Columna" value={spinalBattery} onChange={setSpinalBattery} />
             </div>
 
             <div className="space-y-4 pt-1">
-                <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/60 overflow-hidden">
-                    <button type="button" onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)} className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider hover:text-cyber-cyan/90 transition-colors">
+                <div className={`overflow-hidden ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
+                    <button type="button" onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)} className={`w-full flex items-center justify-between px-4 py-3 text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[#525252] hover:bg-[#f5f5f5]' : 'font-mono font-bold text-slate-400 hover:text-cyber-cyan/90'}`}>
                         <span>¿Tuviste alguna molestia?</span>
-                        {showDiscomfortSearch ? <ChevronDownIcon size={14} className="text-cyber-cyan shrink-0" /> : <ChevronRightIcon size={14} className="text-cyber-cyan shrink-0" />}
+                        {showDiscomfortSearch ? <ChevronDownIcon size={14} className={useFullPage ? 'text-[#525252] shrink-0' : 'text-cyber-cyan shrink-0'} /> : <ChevronRightIcon size={14} className={useFullPage ? 'text-[#525252] shrink-0' : 'text-cyber-cyan shrink-0'} />}
                     </button>
                     {showDiscomfortSearch && (
-                        <div className="animate-fade-in space-y-3 px-4 pb-4 pt-3 border-t border-cyber-cyan/10">
-                            <div className="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-cyber-cyan/20">
-                                <SearchIcon size={14} className="text-cyber-cyan/60 shrink-0" />
-                                <input type="text" value={discomfortSearchQuery} onChange={(e) => setDiscomfortSearchQuery(e.target.value)} placeholder="Describe tu molestia o busca..." className="bg-transparent border-none text-sm text-white placeholder-slate-500 w-full focus:ring-0 focus:outline-none" />
+                        <div className={`animate-fade-in space-y-3 px-4 pb-4 pt-3 border-t ${useFullPage ? 'border-[#d4d4d4]' : 'border-cyber-cyan/10'}`}>
+                            <div className={`flex items-center gap-2 p-2 ${useFullPage ? 'bg-[#f5f5f5] border border-[#a3a3a3]' : 'bg-slate-900/80 rounded-lg border border-cyber-cyan/20'}`}>
+                                <SearchIcon size={14} className={useFullPage ? 'text-[#737373] shrink-0' : 'text-cyber-cyan/60 shrink-0'} />
+                                <input type="text" value={discomfortSearchQuery} onChange={(e) => setDiscomfortSearchQuery(e.target.value)} placeholder="Describe tu molestia o busca..." className={`bg-transparent border-none text-sm w-full focus:ring-0 focus:outline-none ${useFullPage ? 'text-[#1a1a1a] placeholder:text-[#a3a3a3]' : 'text-white placeholder-slate-500'}`} />
                             </div>
                             <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-2">
                                 {filteredDiscomforts.map(d => (
-                                    <button key={d.id} type="button" onClick={() => toggleDiscomfort(d.name)} className={`w-full text-left p-3 rounded-lg border transition-all ${selectedDiscomforts.includes(d.name) ? 'bg-cyber-cyan/20 border-cyber-cyan/50' : 'bg-slate-800/50 border-cyber-cyan/10 hover:border-cyber-cyan/30'}`}>
-                                        <span className="font-bold text-sm text-white">{d.name}</span>
-                                        <p className="text-[10px] text-slate-400 mt-1">{d.description}</p>
+                                    <button key={d.id} type="button" onClick={() => toggleDiscomfort(d.name)} className={`w-full text-left p-3 border transition-all ${useFullPage ? (selectedDiscomforts.includes(d.name) ? 'bg-[#525252] border-[#525252] text-white' : 'bg-white border-[#a3a3a3] text-[#1a1a1a] hover:border-[#737373]') : (selectedDiscomforts.includes(d.name) ? 'rounded-lg bg-cyber-cyan/20 border-cyber-cyan/50' : 'rounded-lg bg-slate-800/50 border-cyber-cyan/10 hover:border-cyber-cyan/30')}`}>
+                                        <span className="font-semibold text-sm">{d.name}</span>
+                                        <p className={`text-[10px] mt-1 ${useFullPage ? (selectedDiscomforts.includes(d.name) ? 'text-white/80' : 'text-[#737373]') : 'text-slate-400'}`}>{d.description}</p>
                                     </button>
                                 ))}
                             </div>
                             {selectedDiscomforts.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                     {selectedDiscomforts.map(name => (
-                                        <span key={name} className="px-2 py-0.5 rounded-full bg-cyber-cyan/30 text-cyber-cyan text-[10px] font-bold">{name} <button type="button" onClick={() => toggleDiscomfort(name)} className="ml-1 opacity-70 hover:text-white">×</button></span>
+                                        <span key={name} className={`px-2 py-0.5 text-[10px] font-medium flex items-center gap-1 inline-flex ${useFullPage ? 'bg-[#525252] text-white' : 'rounded-full bg-cyber-cyan/30 text-cyber-cyan font-bold'}`}>{name} <button type="button" onClick={() => toggleDiscomfort(name)} className={useFullPage ? 'opacity-80 hover:opacity-100' : 'ml-1 opacity-70 hover:text-white'}>×</button></span>
                                     ))}
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
-                <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/60 p-4 space-y-4">
+                <div className={`p-4 space-y-4 ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
                     <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
                     <TagGroup title="Adherencia" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
                 </div>
             </div>
             
-            <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/60 overflow-hidden">
-              <label className="block px-3 pt-3 text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider">Notas del Diario</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="¿Algo que destacar hoy?" className="w-full px-3 pb-3 pt-1 text-sm font-mono bg-transparent text-white placeholder-slate-500 focus:outline-none focus:ring-0 border-none resize-none" />
+            <div className={`overflow-hidden ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
+              <label className={`block px-3 pt-3 text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[#525252]' : 'font-mono font-bold text-slate-500'}`}>Notas del Diario</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="¿Algo que destacar hoy?" className={`w-full px-3 pb-3 pt-1 text-sm focus:outline-none focus:ring-0 border-none resize-none ${useFullPage ? 'bg-white text-[#1a1a1a] placeholder:text-[#a3a3a3]' : 'font-mono bg-transparent text-white placeholder-slate-500'}`} />
             </div>
-            <div className="flex gap-2 pt-4 border-t border-cyber-cyan/20">
-                <Button onClick={handleShare} variant="secondary" className="flex-1 !py-4 !border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80 transition-all font-mono" disabled={isSharing}>
+            <div className={`flex gap-2 pt-4 border-t ${useFullPage ? 'border-[#a3a3a3]' : 'border-cyber-cyan/20'}`}>
+                <button onClick={handleShare} disabled={isSharing} className={`flex-1 py-4 font-semibold uppercase tracking-wide flex items-center justify-center gap-2 ${useFullPage ? 'bg-white text-[#1a1a1a] border border-[#a3a3a3] hover:bg-[#f5f5f5] disabled:opacity-50' : '!border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80 transition-all font-mono'}`}>
                     {isSharing ? (
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-cyber-cyan/40 border-t-cyber-cyan rounded-full animate-spin"></div>
-                            <span className="text-[10px] tracking-widest text-cyber-cyan/90">FORJANDO...</span>
+                            <div className="w-4 h-4 border-2 border-[#737373] border-t-[#1a1a1a] rounded-full animate-spin"></div>
+                            <span className={`text-[10px] tracking-wide ${useFullPage ? 'text-[#525252]' : 'text-cyber-cyan/90'}`}>Compartiendo...</span>
                         </div>
                     ) : (
-                        <><LinkIcon size={18} className="text-cyber-cyan/80"/> <span className="text-[11px] tracking-widest text-cyber-cyan/90">HISTORIA</span></>
+                        <><LinkIcon size={18} className={useFullPage ? 'text-[#525252]' : 'text-cyber-cyan/80'}/> <span className={`text-[11px] tracking-wide ${useFullPage ? 'text-[#1a1a1a]' : 'text-cyber-cyan/90'}`}>Compartir</span></>
                     )}
-                </Button>
-                <Button onClick={handleFinishAttempt} variant="primary" className="flex-[2] !py-4 !text-base !bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black uppercase tracking-widest shadow-[0_0_20px_rgba(0,240,255,0.3)]">
-                    <CheckCircleIcon size={20}/> FINALIZAR
-                </Button>
+                </button>
+                <button onClick={handleFinishAttempt} className={`flex-[2] py-4 text-base font-semibold uppercase tracking-wide flex items-center justify-center gap-2 ${useFullPage ? 'bg-white text-[#1a1a1a] border border-[#a3a3a3]' : '!bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black tracking-widest shadow-[0_0_20px_rgba(0,240,255,0.3)]'}`}>
+                    <CheckCircleIcon size={20}/> Finalizar sesión
+                </button>
             </div>
         </div>
       ) : (
-          <div className="space-y-6 p-4 animate-fade-in bg-[#0a0c10] rounded-xl">
-              <div className="bg-cyber-cyan/10 border border-cyber-cyan/30 p-4 rounded-xl text-center">
-                <ActivityIcon size={40} className="mx-auto text-cyber-cyan mb-2" />
-                <h4 className="text-lg font-bold text-cyber-cyan font-mono uppercase tracking-wider">Señales de Fatiga Acumulada</h4>
-                <p className="text-sm text-slate-400 mt-1 font-mono">Tu nivel de fatiga ({fatigueLevel}) y claridad mental ({mentalClarity}) sugieren que necesitas un descanso para evitar el sobreentrenamiento.</p>
+          <div className={`space-y-6 p-4 animate-fade-in ${useFullPage ? 'bg-[#e5e5e5]' : 'bg-[#0a0c10] rounded-xl'}`}>
+              <div className={`p-4 text-center ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-xl'}`}>
+                <ActivityIcon size={40} className={`mx-auto mb-2 ${useFullPage ? 'text-[#525252]' : 'text-cyber-cyan'}`} />
+                <h4 className={`text-lg font-bold uppercase tracking-wider ${useFullPage ? 'text-[#1a1a1a]' : 'text-cyber-cyan font-mono'}`}>Señales de Fatiga Acumulada</h4>
+                <p className={`text-sm mt-1 ${useFullPage ? 'text-[#525252]' : 'text-slate-400 font-mono'}`}>Tu nivel de fatiga ({fatigueLevel}) y claridad mental ({mentalClarity}) sugieren que necesitas un descanso para evitar el sobreentrenamiento.</p>
               </div>
 
               <div className="space-y-3">
-                  <p className="text-sm text-slate-300 font-mono text-center italic">"He detectado que tu sistema nervioso está bajo estrés. ¿Insertamos una sesión de descarga mañana?"</p>
+                  <p className={`text-sm text-center italic ${useFullPage ? 'text-[#525252]' : 'text-slate-300 font-mono'}`}>"He detectado que tu sistema nervioso está bajo estrés. ¿Insertamos una sesión de descarga mañana?"</p>
                   
-                  <Button onClick={handleAcceptDeload} className="w-full !py-4 !justify-start !bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black uppercase tracking-widest">
+                  <button onClick={handleAcceptDeload} className={`w-full py-4 flex items-center justify-center gap-2 font-semibold uppercase tracking-wide ${useFullPage ? 'bg-white text-[#1a1a1a] border border-[#a3a3a3]' : '!bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black tracking-widest'}`}>
                     <ZapIcon size={20}/> Sí, programar Descarga / Descanso Activo
-                  </Button>
+                  </button>
                   
-                  <Button onClick={executeFinish} variant="secondary" className="w-full !py-4 !justify-start !border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80">
+                  <button onClick={executeFinish} className={`w-full py-4 flex items-center justify-center gap-2 font-semibold uppercase tracking-wide ${useFullPage ? 'bg-white text-[#1a1a1a] border border-[#a3a3a3]' : '!border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80'}`}>
                     <BrainIcon size={20}/> No, seguiré con mi programa habitual
-                  </Button>
+                  </button>
               </div>
           </div>
       )}
     </>
   );
+
+  if (!isOpen) return null;
+
+  if (useFullPage) {
+    return (
+      <div className="fixed inset-0 z-[100000] flex flex-col bg-[#e5e5e5] animate-fade-in">
+        <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-[#a3a3a3] bg-white">
+          <h3 className="text-[10px] font-semibold uppercase tracking-wide text-[#1a1a1a]">{title}</h3>
+          <button onClick={onClose} className="p-2 -mr-2 text-[#525252] hover:text-[#1a1a1a] transition-colors" aria-label="Cerrar">
+            <span className="text-xl leading-none">×</span>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto min-h-0 pb-8 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {content}
+        </div>
+      </div>
+    );
+  }
 
   if (asDrawer) {
     return (
