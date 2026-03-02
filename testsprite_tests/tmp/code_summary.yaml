@@ -2,141 +2,195 @@ version: "2"
 type: frontend
 tech_stack:
   - TypeScript
-  - React
   - React 19
+  - TanStack Router
+  - Zustand
   - Tailwind CSS
   - Capacitor
-  - Recharts
+  - Supabase
   - esbuild
-  - Zod
 routes:
   - path: /
-    file: index.html
+    file: components/Home.tsx
     auth_required: false
-    description: Single-page app entry, client-side routing via state
+    description: Home / main dashboard
+  - path: /nutrition
+    file: components/NutritionView.tsx
+    auth_required: false
+    description: Nutrition tracking view
+  - path: /programs
+    file: components/ProgramsView.tsx
+    auth_required: false
+    description: Programs list
+  - path: /programs/$programId
+    file: components/ProgramDetail.tsx
+    auth_required: false
+    description: Program detail view
+  - path: /programs/$programId/edit
+    file: components/ProgramEditor.tsx
+    auth_required: false
+    description: Program editor
+  - path: /workout
+    file: components/WorkoutSession.tsx
+    auth_required: false
+    description: Active workout session
+  - path: /session-editor
+    file: components/SessionEditor.tsx
+    auth_required: false
+    description: Session editor
+  - path: /settings
+    file: components/SettingsComponent.tsx
+    auth_required: false
+    description: Settings
+  - path: /progress
+    file: components/PhysicalProgress.tsx
+    auth_required: false
+    description: Progress tracking
+  - path: /recovery
+    file: components/MuscleRecoveryWidget
+    auth_required: false
+    description: Recovery view
+  - path: /sleep
+    file: components/SleepTrackerWidget
+    auth_required: false
+    description: Sleep tracking
+  - path: /achievements
+    file: components/AchievementsView.tsx
+    auth_required: false
+    description: Achievements
+  - path: /kpkn
+    file: components/KPKNView.tsx
+    auth_required: false
+    description: Exercise knowledge base
+  - path: /exercise-database
+    file: components/ExerciseDatabaseView.tsx
+    auth_required: false
+    description: Exercise database
+  - path: /food-database
+    file: components/FoodDatabaseView.tsx
+    auth_required: false
+    description: Food database
+  - path: /smart-meal-planner
+    file: components/SmartMealPlannerView.tsx
+    auth_required: false
+    description: Smart meal planner
+  - path: /body-lab
+    file: components/BodyLabView.tsx
+    auth_required: false
+    description: Body analysis lab
+  - path: /log-hub
+    file: components/LogHub.tsx
+    auth_required: false
+    description: Log hub
+  - path: /coach
+    file: components/CoachView.tsx
+    auth_required: false
+    description: AI coach
 features:
   - name: Home Dashboard
-    description: Main home screen with active program, quick actions, 1RM analytics widget, muscle recovery
+    description: Main home screen with workout summary, readiness, streaks
     files:
       - components/Home.tsx
-      - App.tsx
+      - components/home/BatteryHeroSection.tsx
     entry_route: /
     user_interactions:
-      - View home dashboard with active program card
-      - Tap Programs tab to open programs list
-      - Tap Nutrition tab to open nutrition view
-      - Tap Your Lab tab to open exercise/food database
-      - Tap Plus button for log hub
-      - Tap active program card to open program detail
+      - View dashboard cards
+      - Navigate via tab bar
+      - Tap session card to start workout
     api_calls: []
     auth_required: false
-  - name: Programs List
-    description: List of training programs, create new, swipe to delete, tap to open detail
+  - name: Programs Management
+    description: View and manage training programs
     files:
       - components/ProgramsView.tsx
-      - App.tsx
-    entry_route: /
-    user_interactions:
-      - View list of programs
-      - Tap Nuevo to create program
-      - Tap program card to open program detail
-      - Swipe program card left to delete
-    api_calls: []
-    auth_required: false
-  - name: Program Detail
-    description: Program overview with macrocycle/weekly view, sessions, start workout
-    files:
       - components/ProgramDetail.tsx
-      - App.tsx
-    entry_route: /
-    user_interactions:
-      - View program structure and sessions
-      - Switch between weekly and macrocycle view
-      - Tap session to edit
-      - Tap Start workout button
-      - Use back button to return to programs list
-    api_calls: []
-    auth_required: false
-  - name: Program Editor
-    description: Create or edit training programs with wizard or advanced editor
-    files:
       - components/ProgramEditor.tsx
-      - App.tsx
-    entry_route: /
+    entry_route: /programs
     user_interactions:
-      - Create new program via wizard
-      - Edit existing program in advanced editor
-      - Configure blocks, mesocycles, weeks
-      - Save or cancel
-    api_calls: []
-    auth_required: false
-  - name: Session Editor
-    description: Edit individual session with exercises and sets
-    files:
-      - components/SessionEditor.tsx
-      - App.tsx
-    entry_route: /
-    user_interactions:
-      - Add or remove exercises
-      - Edit sets, reps, weight, RPE
-      - Mark competition lifts
-      - Save session
+      - View program list
+      - Tap program to see detail
+      - Edit program
+      - Change split
     api_calls: []
     auth_required: false
   - name: Workout Session
-    description: Live workout tracking with set completion, timers, judging lights for competition lifts
+    description: Track workout with sets, reps, weight
     files:
       - components/WorkoutSession.tsx
-      - App.tsx
-    entry_route: /
+      - components/workout/ExerciseCard.tsx
+    entry_route: /workout
     user_interactions:
-      - Complete sets with weight and reps
-      - Use rest timer
-      - Tap judging lights for competition lifts
-      - Finish or cancel workout
+      - Log sets with reps and weight
+      - Use numpad overlay for input
+      - Finish workout
     api_calls: []
     auth_required: false
-  - name: Nutrition View
-    description: Nutrition tracking and meal logging
+  - name: Session Editor
+    description: Edit workout session structure
+    files:
+      - components/SessionEditor.tsx
+      - components/session-editor/ExerciseRow.tsx
+    entry_route: /session-editor
+    user_interactions:
+      - Add/remove exercises
+      - Reorder exercises
+      - Edit sets configuration
+    api_calls: []
+    auth_required: false
+  - name: Nutrition Tracking
+    description: Log meals and track nutrition
     files:
       - components/NutritionView.tsx
-      - App.tsx
-    entry_route: /
+      - components/nutrition/NutritionPlanLanding.tsx
+    entry_route: /nutrition
     user_interactions:
-      - View nutrition dashboard
-      - Log meals
-      - Navigate to food database
-    api_calls: []
-    auth_required: false
-  - name: KPKN
-    description: Exercise and food database, custom exercises
-    files:
-      - components/KPKNView.tsx
-      - components/ExerciseDatabaseView.tsx
-      - components/FoodDatabaseView.tsx
-    entry_route: /
-    user_interactions:
-      - Browse exercise database
-      - Add custom exercises
-      - Browse food database
+      - Add nutrition log
+      - View meal plans
+      - Search food database
     api_calls: []
     auth_required: false
   - name: Settings
-    description: App settings, theme, preferences
+    description: App settings and preferences
     files:
       - components/SettingsComponent.tsx
-      - App.tsx
-    entry_route: /
+      - stores/settingsStore.ts
+    entry_route: /settings
     user_interactions:
       - Change theme
-      - Toggle haptics and sound
-      - Manage data
+      - Configure notifications
+      - Export/import data
     api_calls: []
     auth_required: false
+  - name: Exercise Database
+    description: Browse exercise knowledge base
+    files:
+      - components/KPKNView.tsx
+      - components/ExerciseDatabaseView.tsx
+    entry_route: /kpkn
+    user_interactions:
+      - Browse by muscle, joint, pattern
+      - View exercise details
+      - Search exercises
+    api_calls: []
+    auth_required: false
+  - name: Auth (Supabase OAuth)
+    description: Sign in with Google or Apple via Supabase
+    files:
+      - stores/authStore.ts
+      - services/supabaseService.ts
+    entry_route: /
+    user_interactions:
+      - Tap sign in with Google
+      - Tap sign in with Apple
+      - Sign out
+    api_calls:
+      - method: POST
+        endpoint: Supabase auth OAuth flow
+    auth_required: false
 known_limitations:
-  - issue: Navigation is state-based, no URL routes; all views reached via tab bar and buttons
-    location: contexts/AppContext.tsx
-    impact: TestSprite must interact with UI elements to navigate, not URL navigation
-  - issue: Data stored in localStorage, no backend API
-    location: services/storageService.ts
-    impact: No API calls to test; all data is client-side
+  - issue: App uses hash routing (#/) - base path may need adjustment for TestSprite
+    location: routes/router.tsx
+    impact: Tests may need to target /#/path format
+  - issue: Supabase auth requires redirect - may not complete in headless
+    location: stores/authStore.ts
+    impact: OAuth flows may fail in automated tests

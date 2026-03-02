@@ -1456,16 +1456,6 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
       }
   }, [activeSplitBlockStep0, wizardStep, splitMode]);
 
-  // Al entrar a step 3 (session design) con per_block, sincronizar splitPattern
-  useEffect(() => {
-      if (wizardStep === 3 && selectedTemplateId === 'power-complex' && splitMode === 'per_block' && blockSplits[activeBlockEdit]) {
-          const blockSplit = blockSplits[activeBlockEdit];
-          if (blockSplit?.pattern) {
-              setSplitPattern(blockSplit.pattern.map((p: string) => p || 'Descanso'));
-          }
-      }
-  }, [wizardStep, selectedTemplateId, splitMode, activeBlockEdit, blockSplits]);
-
   // Draft saving
   useEffect(() => {
     if (isAppContextDirty && program && existingProgram) {
@@ -1795,7 +1785,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             
             <div className="px-6 pt-12 pb-4 bg-black border-b border-white/10 shrink-0 z-20">
                  <div className="flex justify-between items-start mb-6">
-                    <button onClick={onCancel} className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Cancelar</button>
+                    <button onClick={() => { if (window.confirm('¿Salir? Puedes perder los cambios no guardados.')) onCancel(); }} className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Cancelar</button>
                     <button onClick={handleSave} className="bg-white text-black px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform">Guardar Cambios</button>
                 </div>
                 
@@ -2101,7 +2091,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             <div className="pt-8 pb-4 px-6 bg-black flex-shrink-0 z-20 border-b border-white/5">
                  <div className="relative max-w-md mx-auto text-center">
                  <div className="flex justify-between items-center mb-2">
-                        <button onClick={onCancel} className="text-zinc-500 hover:text-red-400 transition-colors" title="Salir del Wizard">
+                        <button data-testid="wizard-cancel-header" aria-label="Salir del wizard" onClick={() => { if (window.confirm('¿Salir? Puedes perder los cambios no guardados.')) onCancel(); }} className="text-zinc-500 hover:text-red-400 transition-colors" title="Salir del Wizard">
                             <XIcon size={20}/>
                         </button>
                         <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex-1 text-center">
@@ -2498,89 +2488,22 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                         />
                     )}
 
-                    {/* === PASO 2: ROADMAP Y PREPARACIÓN DE SESIONES === */}
-                    {wizardStep === 2 && (
-                        <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in-up safe-area-root">
-                            <div className="flex-1 overflow-y-auto p-6">
-                                <button onClick={() => setWizardStep(1)} className="p-2 -ml-2 text-zinc-500 hover:text-white mb-4">
-                                    <ArrowLeftIcon size={20} />
-                                </button>
-                                <h2 className="text-xl font-black uppercase text-white mb-2">Vista general</h2>
-                                <p className="text-xs text-zinc-500 mb-6">
-                                    Volumen configurado. Puedes crear el programa o preparar las sesiones con ejercicios.
-                                </p>
-                                <div className="bg-zinc-900/50 rounded-xl p-4 border border-white/5 mb-6">
-                                    <p className="text-xs text-zinc-400">
-                                        <span className="font-bold text-white">{selectedSplit?.name}</span> • {splitPattern.filter(l => l?.toLowerCase() !== 'descanso').length} días de entrenamiento
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => setWizardStep(3)}
-                                    className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/30 transition-all mb-4"
-                                >
-                                    Preparar sesiones con ejercicios
-                                </button>
-                                <p className="text-[10px] text-zinc-600 text-center">O crea el programa directamente con el botón inferior</p>
-                            </div>
-                            
-                            {/* --- FOOTER FLOTANTE (BOTONES FINALES) --- */}
-                            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-40 flex flex-col items-center gap-4 pointer-events-none">
-                                <div className="pointer-events-auto flex items-center gap-3 bg-black/80 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 shadow-xl">
-                                    <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Activar al crear</span>
-                                    <ToggleSwitch checked={autoActivate} onChange={setAutoActivate} size="sm" />
-                                </div>
-
-                                <div className="flex gap-3 pointer-events-auto w-full max-w-md justify-center">
-                                    <button 
-                                        onClick={() => handleCreate(true)} 
-                                        className="bg-zinc-900 text-zinc-400 px-6 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:text-white hover:bg-zinc-800 transition-colors border border-white/10 shadow-lg"
-                                    >
-                                        Borrador
-                                    </button>
-                                    <button 
-                                        onClick={() => handleCreate(false)}
-                                        disabled={(() => {
-                                            if (selectedTemplateId !== 'power-complex' || splitMode === 'global') return !selectedSplit;
-                                            return Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length;
-                                        })()}
-                                        className={`flex-1 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(255,255,255,0.25)] transition-all flex items-center justify-center gap-2 border border-transparent 
-                                            ${((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit) || (selectedTemplateId === 'power-complex' && splitMode === 'per_block' && Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length)
-                                                ? 'bg-zinc-900 text-zinc-500 cursor-not-allowed border-white/5'
-                                                : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 hover:bg-cyan-500/30 hover:scale-105 active:scale-95 cursor-pointer'
-                                            }`}
-                                    >
-                                        <SaveIcon size={16}/>
-                                        <span>
-                                            {(() => {
-                                                if (selectedTemplateId === 'power-complex' && splitMode === 'per_block') {
-                                                    const missing = POWER_BLOCK_NAMES.length - Object.keys(blockSplits).length;
-                                                    if (missing > 0) return `Faltan ${missing} Bloques`;
-                                                }
-                                                if ((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit) {
-                                                    return "Selecciona Split";
-                                                }
-                                                return "Crear Programa";
-                                            })()}
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
+                    {/* === PASO 2: VISTA GENERAL - CREAR PROGRAMA (sin paso de sesiones) === */}
                     {wizardStep === 2 && (
                         <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in safe-area-root">
                             
                             {/* --- BOTONES DE NAVEGACIÓN FLOTANTES --- */}
                             <button 
-                                onClick={() => setWizardStep(2)} 
-                                className="fixed top-4 left-4 z-[220] p-2.5 rounded-full bg-black/40 text-white border border-white/10 backdrop-blur-md hover:bg-white/20 transition-all shadow-lg"
-                                title="Volver al Roadmap"
+                                onClick={() => setWizardStep(1)} 
+                                className="fixed top-4 left-4 z-[220] p-2.5 rounded-full bg-black/40 text-white border border-white/10 backdrop-blur-md hover:bg-cyber-cyan/20 transition-all shadow-lg"
+                                title="Volver a Volumen"
                             >
                                 <ArrowLeftIcon size={18} />
                             </button>
                             
                             <button 
+                                data-testid="wizard-cancel"
+                                aria-label="Salir sin guardar"
                                 onClick={() => {
                                     if (window.confirm('¿Seguro que quieres salir? Perderás los cambios no guardados.')) {
                                         onCancel();
@@ -2597,98 +2520,80 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                 <div className="flex flex-col gap-1 max-w-4xl mx-auto w-full">
                                     <div className="flex items-center gap-2">
                                         <EditIcon size={20} className="text-white"/>
-                                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Prepara tus sesiones</h3>
+                                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Vista general</h3>
                                     </div>
                                     <p className="text-[10px] text-gray-500 font-medium leading-relaxed">
-                                        Podrás hacer una modificación más detallada más adelante una vez creado el programa.
+                                        Las sesiones se crean en el detalle del programa tras guardar.
                                     </p>
-
-                                    {/* SELECTOR DE BLOQUES (Integrado en el Header para ahorrar espacio) */}
-                                    {selectedTemplateId === 'power-complex' && (
-                                        <div className="mt-4 w-full overflow-x-auto hide-scrollbar">
-                                            <div className="flex gap-2 pb-1">
-                                                {POWER_BLOCK_NAMES.map((name, idx) => {
-                                                    const isActive = activeBlockEdit === idx;
-                                                    return (
-                                                        <button
-                                                            key={name}
-                                                            onClick={() => handleSwitchBlockEdit(idx)}
-                                                            className={`px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap border
-                                                                ${isActive 
-                                                                    ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow-lg scale-[1.02]' 
-                                                                    : 'bg-zinc-950 text-zinc-500 border-white/10 hover:border-cyan-500/30 hover:text-white'
-                                                                }
-                                                            `}
-                                                        >
-                                                            {name}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 
-                            {/* --- ÁREA DE EDICIÓN (MAXIMIZADA) --- */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-0 bg-[#050505]">
-                                <div className="max-w-4xl mx-auto p-4 pb-40 space-y-4">
-
-                                {/* KPKN Feedback Loop: Barra de Volumen Inteligente */}
-                                <VolumeBudgetBar 
-                                    currentVolume={Object.fromEntries(Object.entries(currentWeeklyVolume).map(([k, v]) => [k, v.total]))} 
-                                    recommendation={volumeLimits} 
-                                />
-                                    
-                                    {/* Barra de Herramientas Contextual (Switch Corregido) */}
-                                    {selectedTemplateId === 'power-complex' && splitMode === 'per_block' && (
-                                        <div className="flex justify-end mb-2 px-1">
-                                            <div className="flex items-center gap-3 bg-[#111] px-4 py-2 rounded-full border border-white/10 shadow-sm transition-colors duration-300">
-                                                <span className={`text-[9px] font-bold uppercase tracking-wider transition-colors ${applyToAllBlocks ? 'text-white' : 'text-gray-500'}`}>
-                                                    {/* NOMBRE DINÁMICO DEL SPLIT */}
-                                                    Aplicar a bloques con mismo split <span className="text-gray-400">({blockSplits[activeBlockEdit]?.name || 'Actual'})</span>
-                                                </span>
-                                                <ToggleSwitch checked={applyToAllBlocks} onChange={setApplyToAllBlocks} size="sm" />
-                                            </div>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-[#050505]">
+                                <div className="space-y-4 max-w-2xl">
+                                    <div className="bg-zinc-900/50 rounded-xl p-4 border border-white/10">
+                                        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Split y estructura</h4>
+                                        <p className="text-sm text-white font-bold">{selectedSplit?.name}</p>
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            {splitPattern.filter(l => l?.toLowerCase() !== 'descanso').length} días de entrenamiento • {splitPattern.filter(l => l?.toLowerCase() === 'descanso').length} días descanso
+                                        </p>
+                                    </div>
+                                    {wizardVolumeConfig && (
+                                        <div className="bg-zinc-900/50 rounded-xl p-4 border border-white/10">
+                                            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Volumen</h4>
+                                            <p className="text-xs text-slate-400">
+                                                Sistema: {wizardVolumeConfig.volumeSystem === 'israetel' ? 'Israetel' : wizardVolumeConfig.volumeSystem === 'kpnk' ? 'KPKN' : 'Manual'}
+                                                {wizardVolumeConfig.athleteProfileScore && (
+                                                    <span> • Perfil: {wizardVolumeConfig.athleteProfileScore.profileLevel}</span>
+                                                )}
+                                            </p>
+                                            {wizardVolumeConfig.volumeRecommendations.length > 0 && (
+                                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                                    {wizardVolumeConfig.volumeRecommendations.slice(0, 6).map(r => (
+                                                        <span key={r.muscleGroup} className="px-2 py-0.5 rounded bg-white/5 text-[10px] text-slate-300">
+                                                            {r.muscleGroup}: {r.minEffectiveVolume}-{r.maxRecoverableVolume} series/sem
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
-
-                                    {/* Lista de Sesiones */}
-                                    <div className="space-y-3">
-                                        {splitPattern.map((label, index) => {
-                                            const dayLabel = getDayLabel(index);
-                                            const isRest = label.toLowerCase() === 'descanso';
-                                            return (
-                                                <InlineSessionCreator
-                                                    key={index}
-                                                    dayLabel={dayLabel}
-                                                    sessionName={label}
-                                                    isRest={isRest}
-                                                    sessionData={detailedSessions[index]}
-                                                    onRename={(name) => handleRenameSession(index, name)}
-                                                    onUpdateSession={(s) => handleUpdateSessionSmart(index, s)}
-                                                    onMoveUp={() => handleMoveSession(index, 'up')}
-                                                    onMoveDown={() => handleMoveSession(index, 'down')}
-                                                    isFirst={index === 0}
-                                                    isLast={index === cycleDuration - 1}
-                                                    exerciseList={exerciseList}
-                                                />
-                                            );
-                                        })}
+                                    <div className="bg-zinc-900/50 rounded-xl p-4 border border-white/10">
+                                        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Semana</h4>
+                                        <div className="grid grid-cols-7 gap-1">
+                                            {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((day, i) => (
+                                                <div key={day} className="text-center">
+                                                    <p className="text-[9px] text-slate-500 uppercase">{day}</p>
+                                                    <p className="text-[10px] font-mono text-white truncate" title={splitPattern[i]}>
+                                                        {splitPattern[i]?.toLowerCase() === 'descanso' ? '—' : splitPattern[i]?.slice(0, 4) || '—'}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* --- FOOTER FLOTANTE --- */}
-                            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-40 flex flex-col items-center gap-4 pointer-events-none">
+                            {/* --- FOOTER FLOTANTE (wizard-safe-footer) --- */}
+                            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-40 flex flex-col items-center gap-4 pointer-events-none wizard-safe-footer">
                                 {/* Toggle Activación */}
                                 <div className="pointer-events-auto flex items-center gap-3 bg-black/80 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 shadow-xl">
                                     <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Activar al guardar</span>
                                     <ToggleSwitch checked={autoActivate} onChange={setAutoActivate} size="sm" />
                                 </div>
 
-                                <div className="flex gap-3 pointer-events-auto">
+                                <div className="flex flex-col sm:flex-row items-center gap-3 pointer-events-auto w-full max-w-md justify-center">
+                                    <button
+                                        data-testid="wizard-cancel-footer"
+                                        aria-label="Cancelar y volver"
+                                        onClick={() => { if (window.confirm('¿Salir? Puedes perder los cambios no guardados.')) onCancel(); }}
+                                        className="order-2 sm:order-1 text-zinc-500 hover:text-red-400 text-[10px] font-black uppercase tracking-widest transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <div className="flex gap-3 order-1 sm:order-2">
                                     <button 
+                                        data-testid="wizard-save-draft"
+                                        aria-label="Guardar borrador"
                                         onClick={() => handleCreate(true)} 
                                         className="bg-zinc-900 text-zinc-400 px-6 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:text-white hover:bg-zinc-800 transition-colors border border-white/10"
                                     >
@@ -2696,13 +2601,15 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                                     </button>
                                     {/* Botón Principal */}
                                     <button 
+                                        data-testid="wizard-create-program"
+                                        aria-label="Crear programa"
                                         onClick={() => handleCreate(false)} 
-                                        aria-label="Guardar"
-                                        className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-cyan-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                                        className="bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/50 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-cyber-cyan/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
                                     >
                                         <SaveIcon size={16}/>
                                         <span>Crear Programa</span>
                                     </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

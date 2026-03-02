@@ -68,6 +68,8 @@ export const StreakWidget: React.FC = () => {
         return { streak: streakCount, weeklyAdherence: Math.min(100, adherence) };
     }, [history, activeProgramState, programs, settings?.startWeekOn]);
 
+    const hasHistory = history.length > 0;
+
     return (
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
             <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
@@ -76,6 +78,13 @@ export const StreakWidget: React.FC = () => {
                 </span>
             </div>
             <div className="p-5 flex flex-col items-center">
+            {!hasHistory ? (
+                <div className="flex items-center justify-between gap-3 py-2 px-3 w-full rounded-lg bg-white/[0.02] border border-white/5 min-h-[44px]">
+                    <span className="text-[9px] text-zinc-500 font-bold uppercase">0 días</span>
+                    <span className="text-[8px] text-zinc-600">Añade entrenamientos</span>
+                </div>
+            ) : (
+                <>
                 <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-black font-mono text-white">{streak}</span>
                     <span className="text-[10px] text-zinc-500 font-black uppercase">días</span>
@@ -95,6 +104,8 @@ export const StreakWidget: React.FC = () => {
                         />
                     </div>
                 </div>
+                </>
+            )}
             </div>
         </div>
     );

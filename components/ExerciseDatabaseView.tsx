@@ -32,11 +32,12 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ e
             <div className="min-w-0 flex-1">
                 <h3 className="font-bold text-white text-md group-hover:text-cyber-cyan/90 transition-colors">{exercise.name}</h3>
                 <p className="text-xs text-slate-400 mt-0.5">{exercise.type} • {exercise.equipment}</p>
-                {(exercise.efc != null || exercise.cnc != null || exercise.ssc != null) && (
+                {(exercise.efc != null || exercise.cnc != null || exercise.ssc != null || exercise.ttc != null) && (
                     <div className="flex gap-2 mt-2 text-[10px] font-mono text-slate-500">
                         {exercise.efc != null && <span>EFC:{exercise.efc}</span>}
                         {exercise.cnc != null && <span>CNC:{exercise.cnc}</span>}
                         {exercise.ssc != null && <span>SSC:{exercise.ssc}</span>}
+                        {exercise.ttc != null && <span>TTC:{exercise.ttc}</span>}
                     </div>
                 )}
             </div>

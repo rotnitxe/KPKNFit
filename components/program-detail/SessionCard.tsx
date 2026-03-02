@@ -89,12 +89,16 @@ const SessionCard: React.FC<SessionCardProps> = ({
 
                 <div className="flex gap-2">
                     <button
+                        data-testid="session-start"
+                        aria-label="Iniciar entrenamiento"
                         onClick={onStart}
                         className="flex-1 bg-white text-black text-[10px] font-black uppercase tracking-widest py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors"
                     >
                         <PlayIcon size={11} fill="black" /> INICIAR
                     </button>
                     <button
+                        data-testid="session-edit"
+                        aria-label="Editar sesión"
                         onClick={e => { e.stopPropagation(); onEdit(); }}
                         className="w-10 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-colors"
                     >

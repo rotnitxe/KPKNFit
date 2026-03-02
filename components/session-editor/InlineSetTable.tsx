@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ExerciseSet } from '../../types';
 import { PlusIcon, FlameIcon } from '../icons';
 import { calculateWeightFrom1RMAndIntensity } from '../../utils/calculations';
+import NumpadOverlay from '../workout/NumpadOverlay';
 
 const SWIPE_THRESHOLD = 80;
 const SWIPE_ACTIVATE_PX = 25;
@@ -16,11 +17,13 @@ interface InlineSetTableProps {
     onAmrapToggle?: (setIndex: number) => void;
     reference1RM?: number;
     onFirstAddSet?: () => void;
+    weightUnit?: string;
 }
 
 const InlineSetTable: React.FC<InlineSetTableProps> = ({
-    sets, trainingMode = 'reps', onSetChange, onAddSet, onRemoveSet, onAmrapToggle, reference1RM, onFirstAddSet,
+    sets, trainingMode = 'reps', onSetChange, onAddSet, onRemoveSet, onAmrapToggle, reference1RM, onFirstAddSet, weightUnit = 'kg',
 }) => {
+    const [numpad, setNumpad] = useState<{ setIndex: number; field: 'targetReps' | 'targetDuration' | 'targetPercentageRM' | 'weight' | 'targetRIR' | 'targetRPE' } | null>(null);
     const isPercent = trainingMode === 'percent';
     const isTime = trainingMode === 'time';
     const showWeightColumn = isPercent;
@@ -52,7 +55,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                     <span className="w-8 text-center">Set</span>
                     <span className="w-12 max-w-[48px]">{isTime ? 'Seg' : 'Reps'}</span>
                     {showPercentColumn && <span className="w-14 text-right">%1RM</span>}
-                    {showWeightColumn && <span className="w-16 text-right">Peso</span>}
+                    {showWeightColumn && <span className="w-14 text-right">Peso</span>}
                     <span className="w-14 text-center">Int.</span>
                     <span className="w-20 text-center">Tipo</span>
                 </div>
@@ -71,6 +74,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                         onSetChange={onSetChange}
                         onRemoveSet={onRemoveSet}
                         onAmrapToggle={onAmrapToggle}
+                        onOpenNumpad={setNumpad}
                     />
                 ))}
 
@@ -82,6 +86,28 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
                     <span className="text-xs font-medium">Añadir serie</span>
                 </button>
             </div>
+            {numpad && (() => {
+                const set = sets[numpad.setIndex];
+                if (!set) return null;
+                const val = numpad.field === 'targetReps' ? (set.targetReps ?? '') : numpad.field === 'targetDuration' ? (set.targetDuration ?? '') : numpad.field === 'targetPercentageRM' ? (set.targetPercentageRM ?? '') : numpad.field === 'weight' ? (set.weight != null ? String(set.weight) : '') : numpad.field === 'targetRIR' ? (set.targetRIR ?? '') : (set.targetRPE ?? '');
+                return (
+                    <NumpadOverlay
+                        value={String(val)}
+                        onChange={(v) => {
+                            if (numpad.field === 'targetReps') onSetChange(numpad.setIndex, 'targetReps', v === '' ? undefined : parseInt(v, 10));
+                            else if (numpad.field === 'targetDuration') onSetChange(numpad.setIndex, 'targetDuration', v === '' ? undefined : parseInt(v, 10));
+                            else if (numpad.field === 'targetPercentageRM') onSetChange(numpad.setIndex, 'targetPercentageRM', v === '' ? undefined : parseInt(v, 10));
+                            else if (numpad.field === 'weight') onSetChange(numpad.setIndex, 'weight', v === '' ? undefined : parseFloat(v) || 0);
+                            else if (numpad.field === 'targetRIR') onSetChange(numpad.setIndex, 'targetRIR', v === '' ? undefined : parseFloat(v));
+                            else onSetChange(numpad.setIndex, 'targetRPE', v === '' ? undefined : parseFloat(v));
+                        }}
+                        onClose={() => setNumpad(null)}
+                        mode={numpad.field === 'weight' ? 'decimal' : 'integer'}
+                        label={numpad.field === 'weight' ? `Kg (${weightUnit})` : numpad.field === 'targetDuration' ? 'Seg' : numpad.field === 'targetPercentageRM' ? '%1RM' : numpad.field === 'targetRIR' ? 'RIR' : 'RPE'}
+                        showNextButton={false}
+                    />
+                );
+            })()}
         </div>
     );
 };
@@ -98,7 +124,8 @@ const SwipeableSetRow: React.FC<{
     onSetChange: (i: number, f: keyof ExerciseSet | Partial<ExerciseSet>, v?: any) => void;
     onRemoveSet: (i: number) => void;
     onAmrapToggle?: (i: number) => void;
-}> = ({ set, setIndex, isPercent, isTime, showPercentColumn, showWeightColumn, getEstimatedWeight, reference1RM, onSetChange, onRemoveSet, onAmrapToggle }) => {
+    onOpenNumpad: (opts: { setIndex: number; field: 'targetReps' | 'targetDuration' | 'targetPercentageRM' | 'weight' | 'targetRIR' | 'targetRPE' }) => void;
+}> = ({ set, setIndex, isPercent, isTime, showPercentColumn, showWeightColumn, getEstimatedWeight, reference1RM, onSetChange, onRemoveSet, onAmrapToggle, onOpenNumpad }) => {
     const rowRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const [swipeOffset, setSwipeOffset] = useState(0);
@@ -179,53 +206,27 @@ const SwipeableSetRow: React.FC<{
                 <span className="w-8 text-center text-xs font-mono text-[#999] font-bold tabular-nums shrink-0">{setIndex + 1}</span>
 
                 <div className="w-12 max-w-[48px] shrink-0">
-                    <input
-                        type="number"
-                        min={0}
-                        max={isTime ? 9999 : 99}
-                        maxLength={isTime ? 4 : 2}
-                        value={isTime ? (set.targetDuration ?? '') : (set.targetReps ?? '')}
-                        onChange={e => {
-                            const raw = e.target.value;
-                            if (raw === '') { onSetChange(setIndex, isTime ? 'targetDuration' : 'targetReps', undefined); return; }
-                            const val = parseInt(raw, 10);
-                            if (Number.isNaN(val)) return;
-                            const clamped = isTime ? val : Math.min(99, Math.max(0, val));
-                            onSetChange(setIndex, isTime ? 'targetDuration' : 'targetReps', clamped);
-                        }}
-                        className="w-full bg-transparent border-b border-transparent focus:border-[#00F0FF] text-sm font-mono text-white py-1 px-1 rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums"
-                        placeholder="—"
-                    />
+                    <button type="button" onClick={() => onOpenNumpad({ setIndex, field: isTime ? 'targetDuration' : 'targetReps' })} className="w-full bg-transparent border-b border-transparent hover:border-[#00F0FF] text-sm font-mono text-white py-1 px-1 rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums text-left">
+                        {isTime ? (set.targetDuration ?? '—') : (set.targetReps ?? '—')}
+                    </button>
                 </div>
 
                 {showPercentColumn && mode === 'load' && (
                     <div className="w-14 shrink-0">
-                        <input
-                            type="number"
-                            value={set.targetPercentageRM ?? ''}
-                            onChange={e => onSetChange(setIndex, 'targetPercentageRM', e.target.value === '' ? undefined : parseInt(e.target.value, 10))}
-                            className="w-full bg-transparent border-b border-transparent focus:border-[#00F0FF] text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums"
-                            placeholder="%"
-                        />
+                        <button type="button" onClick={() => onOpenNumpad({ setIndex, field: 'targetPercentageRM' })} className="w-full bg-transparent border-b border-transparent hover:border-[#00F0FF] text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none tabular-nums">
+                            {set.targetPercentageRM ?? '%'}
+                        </button>
                     </div>
                 )}
 
                 {showWeightColumn && (
-                    <div className="w-16 flex flex-col items-end shrink-0">
+                    <div className="w-14 flex flex-col items-end shrink-0">
                         {useIntensityWeight && estimatedKg != null ? (
                             <span className="text-[10px] font-mono text-cyber-cyan/90">{estimatedKg}kg</span>
                         ) : (
-                            <input
-                                type="number"
-                                step="0.5"
-                                value={weightValue}
-                                onChange={e => {
-                                    const raw = e.target.value;
-                                    onSetChange(setIndex, 'weight', raw === '' ? undefined : (parseFloat(raw) || 0));
-                                }}
-                                className="w-full bg-transparent border-b border-transparent focus:border-[#00F0FF] text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums"
-                                placeholder={suggestedWeight != null ? String(suggestedWeight) : 'kg'}
-                            />
+                            <button type="button" onClick={() => onOpenNumpad({ setIndex, field: 'weight' })} className="w-full bg-transparent border-b border-transparent hover:border-[#00F0FF] text-sm font-mono text-white py-1 text-right rounded transition-colors outline-none tabular-nums">
+                                {weightValue || (suggestedWeight != null ? String(suggestedWeight) : 'kg')}
+                            </button>
                         )}
                     </div>
                 )}
@@ -238,21 +239,9 @@ const SwipeableSetRow: React.FC<{
                     ) : mode === 'load' ? (
                         <span className="text-[10px] font-bold text-[#999]">—</span>
                     ) : (
-                        <input
-                            type="number"
-                            step="0.5"
-                            min={0}
-                            max={10}
-                            value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')}
-                            onChange={e => {
-                                const raw = e.target.value;
-                                if (raw === '') { onSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); return; }
-                                const val = parseFloat(raw);
-                                if (!isNaN(val)) onSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', val);
-                            }}
-                            className="w-full bg-transparent border-b border-transparent focus:border-[#00F0FF] text-sm font-mono text-white py-1 text-center rounded transition-colors outline-none placeholder-[#A0A7B8]/80 tabular-nums"
-                            placeholder={mode === 'rir' ? 'RIR' : 'RPE'}
-                        />
+                        <button type="button" onClick={() => onOpenNumpad({ setIndex, field: mode === 'rir' ? 'targetRIR' : 'targetRPE' })} className="w-full bg-transparent border-b border-transparent hover:border-[#00F0FF] text-sm font-mono text-white py-1 text-center rounded transition-colors outline-none tabular-nums">
+                            {mode === 'rir' ? (set.targetRIR ?? '—') : (set.targetRPE ?? '—')}
+                        </button>
                     )}
                 </div>
 

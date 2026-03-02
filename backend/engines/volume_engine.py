@@ -2,7 +2,7 @@
 from __future__ import annotations
 from models.common import (
     AthleteProfileScore, Settings, Session, ExerciseMuscleInfo,
-    MuscleRole, PostSessionFeedback,
+    MuscleRole, PostSessionFeedback, PostSessionMuscle,
 )
 from engines.exercise_index import ExerciseIndex
 
@@ -167,11 +167,11 @@ def normalize_muscle_group(specific_muscle: str) -> str:
     if any(k in low for k in ("trapecio", "romboides", "espinal", "alta")):
         return "Trapecio"
     if any(k in low for k in ("dorsal", "lat", "redondo", "ancho")):
-        return "Dorsal"
+        return "Dorsales"
     if any(k in low for k in ("erector", "lumbar", "baja")):
         return "Espalda Baja"
     if "espalda" in low:
-        return "Dorsal"
+        return "Dorsales"
 
     # Brazos
     if "tríceps" in low or "triceps" in low:
@@ -201,6 +201,177 @@ def normalize_muscle_group(specific_muscle: str) -> str:
 
 
 # ── Unified muscle volume ─────────────────────────────────
+
+# ── Adaptive recalibration (EMA, half-life, regression) ───────
+
+MUSCLE_ALIASES: dict[str, list[str]] = {
+    "Abdomen": ["Abdominales"],
+    "Pantorrillas": ["Gemelos"],
+}
+
+
+def _get_normalized_feedback_for_muscle(
+    muscle_group: str,
+    feedback_history: list[PostSessionFeedback],
+) -> list[PostSessionFeedback]:
+    """Build feedback history with normalized keys for a given muscle group."""
+    accept = {muscle_group}
+    accept.update(MUSCLE_ALIASES.get(muscle_group, []))
+    result: list[PostSessionFeedback] = []
+    for log in feedback_history:
+        if not log.feedback:
+            continue
+        merged: dict[str, PostSessionMuscle] = {}
+        for key, val in log.feedback.items():
+            norm = normalize_muscle_group(key)
+            if norm in accept:
+                mg = muscle_group
+                if mg not in merged:
+                    merged[mg] = val
+                else:
+                    m = merged[mg]
+                    merged[mg] = PostSessionMuscle(
+                        doms=(m.doms + val.doms) / 2,
+                        jointPain=m.jointPain or val.jointPain,
+                        strengthCapacity=(m.strengthCapacity + val.strengthCapacity) / 2,
+                        notes=m.notes or val.notes or "",
+                    )
+        if merged:
+            result.append(
+                PostSessionFeedback(
+                    logId=log.logId,
+                    date=log.date,
+                    cnsRecovery=log.cnsRecovery,
+                    feedback=merged,
+                )
+            )
+    return result
+
+
+def _ema(values: list[float], alpha: float = 0.3) -> float:
+    """Exponential moving average."""
+    if not values:
+        return 0.0
+    ema_val = values[0]
+    for v in values[1:]:
+        ema_val = alpha * v + (1 - alpha) * ema_val
+    return ema_val
+
+
+def _simple_linear_trend(values: list[float]) -> float:
+    """Slope of simple linear regression (values over indices). Positive = increasing."""
+    n = len(values)
+    if n < 2:
+        return 0.0
+    x_mean = (n - 1) / 2
+    y_mean = sum(values) / n
+    num = sum((i - x_mean) * (v - y_mean) for i, v in enumerate(values))
+    den = sum((i - x_mean) ** 2 for i in range(n))
+    if den == 0:
+        return 0.0
+    return num / den
+
+
+def calculate_adaptive_recalibration(
+    volume_recommendations: list[dict],
+    feedback_history: list[PostSessionFeedback],
+    settings: dict | None = None,
+) -> dict:
+    """
+    Advanced recalibration using EMA, trend analysis, and KPKN rules.
+    Returns { suggestions: [...], confidence: number }.
+    """
+    MAX_FACTOR = 1.15
+    MIN_FACTOR = 0.85
+    EMA_ALPHA = 0.3
+    WEEKS_WINDOW = 6  # ~4-8 weeks
+
+    suggestions: list[dict] = []
+    total_muscles = len(volume_recommendations) if volume_recommendations else 1
+    muscles_with_feedback = 0
+
+    for rec in volume_recommendations or []:
+        muscle = rec.get("muscleGroup", "")
+        if not muscle:
+            continue
+
+        mev = rec.get("minEffectiveVolume", 10)
+        mav = rec.get("maxAdaptiveVolume", 15)
+        mrv = rec.get("maxRecoverableVolume", 20)
+        freq_cap = rec.get("frequencyCap", 4)
+
+        normalized_logs = _get_normalized_feedback_for_muscle(muscle, feedback_history or [])
+        if not normalized_logs:
+            continue
+
+        muscles_with_feedback += 1
+        sorted_logs = sorted(normalized_logs, key=lambda f: f.date, reverse=True)
+        window = sorted_logs[: min(len(sorted_logs), WEEKS_WINDOW * 4)]  # ~4 sessions/week max
+        if not window:
+            continue
+
+        doms_list = [w.feedback[muscle].doms for w in window]
+        str_list = [w.feedback[muscle].strengthCapacity for w in window]
+
+        ema_doms = _ema(doms_list, EMA_ALPHA)
+        ema_str = _ema(str_list, EMA_ALPHA)
+
+        doms_trend = _simple_linear_trend(doms_list)
+        str_trend = _simple_linear_trend(str_list)
+
+        factor = 1.0
+        status = "optimal"
+        reason = f"Carga óptima para {muscle}. Mantén el plan."
+
+        if ema_doms >= 3.5 or ema_str <= 5:
+            factor = MIN_FACTOR
+            status = "recovery_debt"
+            reason = f"Recuperación lenta en {muscle} (DOMS altos). Reducir volumen 15%."
+        elif ema_doms <= 1.5 and ema_str >= 8:
+            factor = MAX_FACTOR
+            status = "undertraining"
+            reason = f"{muscle} recupera sobrado. Aumentar volumen 10%."
+        else:
+            if doms_trend > 0.05 and len(doms_list) >= 3:
+                factor = max(MIN_FACTOR, factor - 0.05)
+                status = "recovery_debt"
+                reason = f"Tendencia DOMS al alza en {muscle}. Ligera reducción."
+            elif doms_trend < -0.05 and ema_str >= 7:
+                factor = min(MAX_FACTOR, factor + 0.05)
+                status = "undertraining"
+                reason = f"DOMS descendente y fuerza estable en {muscle}. Ligero aumento."
+
+        factor = max(MIN_FACTOR, min(MAX_FACTOR, factor))
+
+        def _apply(v: float) -> int:
+            return max(1, round(v * factor))
+
+        new_mev = _apply(mev)
+        new_mav = _apply(mav)
+        new_mrv = _apply(mrv)
+
+        suggestions.append({
+            "muscle": muscle,
+            "currentRec": {
+                "minEffectiveVolume": mev,
+                "maxAdaptiveVolume": mav,
+                "maxRecoverableVolume": mrv,
+                "frequencyCap": freq_cap,
+            },
+            "suggestedRec": {
+                "minEffectiveVolume": new_mev,
+                "maxAdaptiveVolume": new_mav,
+                "maxRecoverableVolume": new_mrv,
+                "frequencyCap": freq_cap,
+            },
+            "factor": factor,
+            "reason": reason,
+            "status": status,
+        })
+
+    confidence = muscles_with_feedback / total_muscles if total_muscles else 0
+    return {"suggestions": suggestions, "confidence": round(confidence, 2)}
+
 
 def calculate_unified_muscle_volume(
     sessions: list[Session],

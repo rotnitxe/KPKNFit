@@ -3,6 +3,7 @@
 // Replaces O(n) linear scans via exerciseList.find() in hot paths.
 
 import { ExerciseMuscleInfo } from '../types';
+import { EXERCISE_ID_ALIASES } from '../data/exerciseDatabaseMerged';
 
 export interface ExerciseIndex {
     byId: Map<string, ExerciseMuscleInfo>;
@@ -16,6 +17,12 @@ export function buildExerciseIndex(exerciseList: ExerciseMuscleInfo[]): Exercise
     for (const ex of exerciseList) {
         byId.set(ex.id, ex);
         byName.set(ex.name.toLowerCase(), ex);
+    }
+
+    // Registrar aliases: IDs de duplicados eliminados apuntan al ejercicio canónico
+    for (const [aliasId, canonicalId] of EXERCISE_ID_ALIASES) {
+        const canonical = byId.get(canonicalId);
+        if (canonical) byId.set(aliasId, canonical);
     }
 
     return { byId, byName };

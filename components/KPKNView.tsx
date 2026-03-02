@@ -140,11 +140,12 @@ const KPKNView: React.FC = () => {
                                     className="p-4 rounded-xl bg-[#0a0a0a] border border-cyber-cyan/20 hover:border-cyber-cyan/50 cursor-pointer transition-all">
                                     <h3 className="font-bold text-white text-sm">{ex.name}</h3>
                                     <p className="text-[10px] text-cyber-cyan/80 font-mono mt-0.5">{normalizeMuscleGroup(ex.involvedMuscles?.find(m => m.role === 'primary')?.muscle || ex.subMuscleGroup || 'General')}</p>
-                                    {(ex.efc != null || ex.cnc != null || ex.ssc != null) && (
+                                    {(ex.efc != null || ex.cnc != null || ex.ssc != null || ex.ttc != null) && (
                                         <div className="flex gap-1.5 mt-2 text-[9px] font-mono text-slate-500">
                                             {ex.efc != null && <span>EFC:{ex.efc}</span>}
                                             {ex.cnc != null && <span>CNC:{ex.cnc}</span>}
                                             {ex.ssc != null && <span>SSC:{ex.ssc}</span>}
+                                            {ex.ttc != null && <span>TTC:{ex.ttc}</span>}
                                         </div>
                                     )}
                                 </div>

@@ -47,7 +47,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
             <div className="absolute bottom-0 left-0 w-full p-5 pr-[120px] z-20 space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="bg-white/10 backdrop-blur-md border border-white/20 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full text-white">
-                        {program.mode === 'powerlifting' ? 'Powerlifting' : 'Hipertrofia'}
+                        {program.mode === 'powerlifting' ? 'Powerlifting' : program.mode === 'powerbuilding' ? 'Powerbuilding' : 'Hipertrofia'}
                     </span>
                     {isActive && (
                         <span className="bg-emerald-500 text-black text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.6)]">

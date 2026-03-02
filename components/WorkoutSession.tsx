@@ -1,6 +1,7 @@
 // components/WorkoutSession.tsx
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { requestPermissions, setupNotificationChannels } from '../services/notificationService';
 import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, ExerciseSet, WarmupSetDefinition, SessionBackground, OngoingSetData, SetInputState, UnilateralSetInputs, DropSetData, RestPauseData, ExerciseMuscleInfo, Program, Settings, PlanDeviation, CoverStyle, ToastData } from '../types';
 import Button from './ui/Button';
 import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons'; 
@@ -8,18 +9,19 @@ import { playSound, preloadSounds, configureAudioSession } from '../services/sou
 import { hapticImpact, ImpactStyle, hapticNotification, NotificationType } from '../services/hapticsService';
 import { calculateBrzycki1RM, getWeightSuggestionForSet, roundWeight, calculateWeightFrom1RM } from '../utils/calculations';
 import { useAppDispatch, useAppState, useAppContext } from '../contexts/AppContext';
-import { calculateSpinalScore, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from '../services/auge';
+import { calculateSpinalScore, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain, getDynamicAugeMetrics } from '../services/auge';
 import { normalizeMuscleGroup } from '../services/volumeCalculator';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 import { GPFatigueCurve } from './ui/AugeDeepView';
 import FinishWorkoutModal from './FinishWorkoutModal';
 import ExerciseHistoryModal from './ExerciseHistoryModal';
-import SubstituteExerciseSheet from './SubstituteExerciseSheet';
+import { AdvancedExercisePickerModal } from './AdvancedExercisePickerModal';
 import { TacticalModal } from './ui/TacticalOverlays';
 import WarmupDrawer from './workout/WarmupDrawer';
 import PostExerciseDrawer from './workout/PostExerciseDrawer';
 import WorkoutDrawer from './workout/WorkoutDrawer';
 import NumpadOverlay from './workout/NumpadOverlay';
+import { FinishContextBottomSheet } from './workout/FinishContextBottomSheet';
 import CardCarouselBar, { type CarouselItem, type CarouselItemType } from './workout/CardCarouselBar';
 import ExerciseCardContextMenu from './workout/ExerciseCardContextMenu';
 import { InCardTimer } from './workout/InCardTimer';
@@ -57,68 +59,34 @@ const GoalProgressOverlay: React.FC<{
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6 animate-fade-in pointer-events-auto">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onAnimationComplete} />
-            
-            <div className="relative z-10 w-full max-w-sm overflow-hidden bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] p-8 text-center animate-modal-enter">
-                <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-yellow-500/20 to-transparent pointer-events-none rounded-t-3xl z-0" />
-                
-                <div className="relative inline-block mb-6">
-                    <div className="absolute inset-0 bg-yellow-400 blur-2xl opacity-20 animate-pulse" />
-                    <TrophyIcon size={64} className={`${isGoalMet ? 'text-yellow-400' : 'text-slate-400'} relative z-10 mx-auto drop-shadow-lg`} />
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onAnimationComplete} />
+            <div className="relative z-10 w-full max-w-sm overflow-hidden bg-[#0a0a0a] border border-white/10 rounded-lg shadow-xl p-6 text-center animate-fade-in">
+                <h3 className="text-lg font-bold text-white mb-1">
+                    {isGoalMet ? 'Meta alcanzada' : 'Progreso hacia objetivo'}
+                </h3>
+                <p className="text-sm text-slate-400 mb-4">
+                    {current1RM.toFixed(1)}{unit} / {goal1RM}{unit} ({renderProgress.toFixed(0)}%)
+                </p>
+                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden mb-6">
+                    <div className="h-full bg-amber-500/70 rounded-full transition-all duration-500" style={{ width: `${renderProgress}%` }} />
                 </div>
-
-                <div className="space-y-1 mb-8">
-                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter italic">
-                        {isGoalMet ? '¡META ALCANZADA!' : 'SINCRO DE POTENCIAL'}
-                    </h3>
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em]">
-                        {isGoalMet ? 'Has superado tus límites' : 'Progresando hacia el objetivo'}
-                    </p>
-                </div>
-
-                <div className="space-y-6">
-                    <div className="flex justify-between items-end px-1">
-                        <div className="text-left">
-                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Actual (1RMe)</p>
-                            <p className="text-xl font-black text-white">{current1RM.toFixed(1)} <span className="text-[10px] text-slate-500 font-bold">{unit}</span></p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Objetivo</p>
-                            <p className="text-xl font-black text-yellow-400">{goal1RM} <span className="text-[10px] text-yellow-900 font-bold">{unit}</span></p>
-                        </div>
-                    </div>
-
-                    <div className="relative h-4 bg-slate-800 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                        <div 
-                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-600 via-yellow-400 to-white shadow-[0_0_20px_rgba(250,204,21,0.6)] transition-all duration-[2500ms] ease-out" 
-                            style={{ width: `${renderProgress}%` }}
-                        />
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                        <span className="text-6xl font-black text-white tracking-tighter tabular-nums">
-                            {renderProgress.toFixed(1)}%
-                        </span>
-                    </div>
-                </div>
-
-                <p className="mt-8 text-[9px] text-slate-500 font-bold uppercase tracking-widest animate-pulse">Analizando Biomarcadores...</p>
-                
-                <button onClick={onAnimationComplete} className="mt-6 w-full py-3 rounded-2xl bg-white/5 text-slate-500 font-bold text-xs uppercase tracking-widest">Cerrar</button>
+                <button onClick={onAnimationComplete} className="w-full py-2.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:bg-white/10 hover:text-white transition-colors">Cerrar</button>
             </div>
         </div>
     );
 };
 
+const PART_THEME_COLORS = { warmup: '#64748b', main: '#D97706', finisher: '#7c3aed', default: '#64748b' } as const;
+
 const getPartTheme = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes('calentamiento') || n.includes('warmup') || n.includes('movilidad')) 
-        return { color: '#fbbf24', icon: '🔥', bgColor: 'rgba(251, 191, 36, 0.05)', borderColor: '#fbbf24' };
-    if (n.includes('principal') || n.includes('main') || n.includes('fuerza') || n.includes('básicos')) 
-        return { color: '#3b82f6', icon: '💪', bgColor: 'rgba(59, 130, 246, 0.05)', borderColor: '#3b82f6' };
-    if (n.includes('finisher') || n.includes('accesorio') || n.includes('aislamiento') || n.includes('bombeo')) 
-        return { color: '#a855f7', icon: '⚡', bgColor: 'rgba(168, 85, 247, 0.05)', borderColor: '#a855f7' };
-    return { color: '#64748b', icon: '📋', bgColor: 'rgba(100, 116, 139, 0.05)', borderColor: '#64748b' };
+    if (n.includes('calentamiento') || n.includes('warmup') || n.includes('movilidad'))
+        return { color: PART_THEME_COLORS.warmup, bgColor: 'rgba(100, 116, 139, 0.08)', borderColor: PART_THEME_COLORS.warmup };
+    if (n.includes('principal') || n.includes('main') || n.includes('fuerza') || n.includes('básicos'))
+        return { color: PART_THEME_COLORS.main, bgColor: 'rgba(217, 119, 6, 0.08)', borderColor: PART_THEME_COLORS.main };
+    if (n.includes('finisher') || n.includes('accesorio') || n.includes('aislamiento') || n.includes('bombeo'))
+        return { color: PART_THEME_COLORS.finisher, bgColor: 'rgba(124, 58, 237, 0.08)', borderColor: PART_THEME_COLORS.finisher };
+    return { color: PART_THEME_COLORS.default, bgColor: 'rgba(100, 116, 139, 0.08)', borderColor: PART_THEME_COLORS.default };
 };
 
 const findPrForExercise = (exerciseInfo: ExerciseMuscleInfo, history: WorkoutLog[], settings: any, currentTag?: string): { prString: string, e1rm: number, reps: number } | null => {
@@ -234,45 +202,45 @@ const HeaderAccordion: React.FC<{
             <div className="flex gap-2 mb-2 px-2">
                  <button 
                     onClick={() => toggleSection('tags')} 
-                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-black tracking-wider py-1.5 rounded-lg border transition-all ${expandedSection === 'tags' ? 'bg-cyan-900/40 border-cyan-500 text-cyan-400' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-cyan-400'}`}
+                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-black tracking-wider py-1.5 rounded-lg border transition-all ${expandedSection === 'tags' ? 'bg-cyber-cyan/10 border-cyber-cyan/40 text-cyber-cyan' : 'border-white/10 bg-white/5 text-[#999] hover:bg-cyber-cyan/10 hover:text-cyber-cyan'}`}
                 >
                    <BodyIcon size={12}/> {selectedTag && selectedTag !== 'Base' ? selectedTag : 'Etiquetas'} {expandedSection === 'tags' ? <ChevronRightIcon className="-rotate-90" size={12}/> : <ChevronRightIcon className="rotate-90" size={12}/>}
                 </button>
                 <button 
                     onClick={() => toggleSection('setup')} 
-                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-black tracking-wider py-1.5 rounded-lg border transition-all ${expandedSection === 'setup' ? 'bg-amber-900/40 border-amber-500 text-amber-400' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-amber-400'}`}
+                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-black tracking-wider py-1.5 rounded-lg border transition-all ${expandedSection === 'setup' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400' : 'border-white/10 bg-white/5 text-[#999] hover:bg-amber-500/10 hover:text-amber-400'}`}
                 >
                     <SettingsIcon size={12}/> Setup Info {expandedSection === 'setup' ? <ChevronRightIcon className="-rotate-90" size={12}/> : <ChevronRightIcon className="rotate-90" size={12}/>}
                 </button>
             </div>
 
             {expandedSection === 'tags' && (
-                <div className="animate-fade-in bg-slate-900 border-y border-cyan-500/30 p-3 shadow-inner">
+                <div className="animate-fade-in bg-[#111] border border-white/10 rounded-xl p-3">
                     <div className="flex flex-wrap gap-2 mb-3">
                         {tags.map(tag => (
-                            <button key={tag} onClick={() => { onTagChange(tag); setExpandedSection(null); }} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${selectedTag === tag ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}>{tag}</button>
+                            <button key={tag} onClick={() => { onTagChange(tag); setExpandedSection(null); }} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${selectedTag === tag ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'}`}>{tag}</button>
                         ))}
                     </div>
                     {isEditingTag ? (
                         <div className="flex gap-2 items-center mt-2 animate-fade-in">
-                            <input type="text" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="Nueva..." className="flex-1 bg-slate-950 border border-slate-700 rounded px-2 py-1.5 text-xs text-white outline-none focus:border-cyan-500" autoFocus />
-                            <button onClick={handleCreateTag} className="p-1 bg-green-600 rounded text-white"><CheckIcon size={14}/></button>
-                            <button onClick={() => setIsEditingTag(false)} className="p-1 bg-red-600 rounded text-white"><XCircleIcon size={14}/></button>
+                            <input type="text" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="Nueva..." className="flex-1 bg-transparent border-b border-white/10 rounded-none px-2 py-1.5 text-xs text-white outline-none focus:border-cyber-cyan placeholder-[#555]" autoFocus />
+                            <button onClick={handleCreateTag} className="px-2 py-1.5 rounded-lg border border-white/10 bg-cyber-success/20 text-cyber-success hover:bg-cyber-success/30 transition-colors"><CheckIcon size={14}/></button>
+                            <button onClick={() => setIsEditingTag(false)} className="px-2 py-1.5 rounded-lg border border-white/10 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"><XCircleIcon size={14}/></button>
                         </div>
                     ) : (
-                         <button onClick={() => setIsEditingTag(true)} className="w-full py-2 rounded-lg border border-dashed border-slate-600 text-slate-400 text-[10px] hover:text-white hover:border-slate-400 flex items-center justify-center gap-1"><PlusIcon size={10} /> Crear Nueva Etiqueta</button>
+                         <button onClick={() => setIsEditingTag(true)} className="w-full py-2 rounded-lg border border-dashed border-white/10 text-slate-400 text-[10px] hover:text-white hover:border-white/20 flex items-center justify-center gap-1"><PlusIcon size={10} /> Crear Nueva Etiqueta</button>
                     )}
                 </div>
             )}
 
             {expandedSection === 'setup' && (
-                 <div className="animate-fade-in bg-slate-900 border-y border-amber-500/30 p-3 shadow-inner space-y-3">
+                 <div className="animate-fade-in bg-[#111] border border-white/10 rounded-xl p-3 space-y-3">
                      <div className="grid grid-cols-2 gap-3">
-                         <div><label className="text-[9px] text-amber-500/80 font-bold uppercase block mb-1">Asiento</label><input type="text" value={localDetails.seatPosition || ''} onChange={e => setLocalDetails({...localDetails, seatPosition: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-white"/></div>
-                         <div><label className="text-[9px] text-amber-500/80 font-bold uppercase block mb-1">Pines</label><input type="text" value={localDetails.pinPosition || ''} onChange={e => setLocalDetails({...localDetails, pinPosition: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-white"/></div>
+                         <div><label className="text-[9px] text-amber-400/90 font-bold uppercase block mb-1">Asiento</label><input type="text" value={localDetails.seatPosition || ''} onChange={e => setLocalDetails({...localDetails, seatPosition: e.target.value})} className="w-full bg-transparent border-b border-white/10 rounded-none px-2 py-1.5 text-xs text-white outline-none focus:border-cyber-cyan placeholder-[#555]"/></div>
+                         <div><label className="text-[9px] text-amber-400/90 font-bold uppercase block mb-1">Pines</label><input type="text" value={localDetails.pinPosition || ''} onChange={e => setLocalDetails({...localDetails, pinPosition: e.target.value})} className="w-full bg-transparent border-b border-white/10 rounded-none px-2 py-1.5 text-xs text-white outline-none focus:border-cyber-cyan placeholder-[#555]"/></div>
                      </div>
-                     <div><label className="text-[9px] text-amber-500/80 font-bold uppercase block mb-1">Notas</label><textarea value={localDetails.equipmentNotes || ''} onChange={e => setLocalDetails({...localDetails, equipmentNotes: e.target.value})} rows={2} className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-white"/></div>
-                     <Button onClick={handleSaveSetup} className="w-full !py-2 !text-[10px] uppercase font-black bg-amber-700 hover:bg-amber-600 border-none">Guardar Setup</Button>
+                     <div><label className="text-[9px] text-amber-400/90 font-bold uppercase block mb-1">Notas</label><textarea value={localDetails.equipmentNotes || ''} onChange={e => setLocalDetails({...localDetails, equipmentNotes: e.target.value})} rows={2} className="w-full bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white outline-none focus:border-cyber-cyan placeholder-[#555]"/></div>
+                     <Button onClick={handleSaveSetup} className="w-full !py-2 !text-[10px] uppercase font-black border border-white/10 bg-white/5 hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-400">Guardar Setup</Button>
                  </div>
             )}
         </div>
@@ -289,82 +257,83 @@ const WorkoutHeader: React.FC<{
     sessionName: string;
     activePartName?: string;
     activePartColor?: string;
-    background?: SessionBackground;
-    coverStyle?: CoverStyle;
-    isFocusMode?: boolean;
-    onToggleFocusMode?: () => void;
-    isLiveCoachActive?: boolean;
-    onToggleLiveCoach?: () => void;
     isResting?: boolean;
-    zenMode?: boolean;
-    liveBatteryDrain?: { cns: number; muscular: number; spinal: number };
-    adaptiveCache?: AugeAdaptiveCache | null;
-    viewMode?: 'carousel' | 'list';
-    onToggleViewMode?: () => void;
     onFinishPress?: () => void;
+    onFinishLongPress?: () => void;
     restTimerRemaining?: number;
     elapsedSeconds?: number;
     completedSetsCount?: number;
     totalSetsCount?: number;
-}> = React.memo(({ sessionName, activePartName, activePartColor, background, coverStyle, isResting, zenMode, viewMode, onToggleViewMode, onFinishPress, restTimerRemaining, elapsedSeconds, completedSetsCount, totalSetsCount }) => {
-    const bgImage = background?.type === 'image' ? `url(${background.value})` : undefined;
-    const bgColor = background?.type === 'color' ? background.value : undefined;
-    const tintClass = zenMode ? '' : (isResting ? 'bg-sky-900/30' : 'bg-red-900/10');
-    const pulseClass = (isResting && !zenMode) ? 'animate-pulse-slow' : '';
-
-    const getFilterString = () => {
-        if (!coverStyle?.filters) return 'none';
-        const f = coverStyle.filters;
-        return `contrast(${f.contrast}%) saturate(${f.saturation}%) brightness(${f.brightness}%) grayscale(${f.grayscale}%) sepia(${f.sepia}%)`;
+}> = React.memo(({ sessionName, activePartName, activePartColor, isResting, onFinishPress, onFinishLongPress, restTimerRemaining, elapsedSeconds, completedSetsCount, totalSetsCount }) => {
+    const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const longPressFiredRef = React.useRef(false);
+    const handlePointerDown = () => {
+        longPressFiredRef.current = false;
+        if (!onFinishLongPress) return;
+        longPressTimerRef.current = setTimeout(() => {
+            longPressTimerRef.current = null;
+            longPressFiredRef.current = true;
+            onFinishLongPress();
+        }, 500);
+    };
+    const handlePointerUp = () => {
+        if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+        }
+    };
+    const handleClick = (e: React.MouseEvent) => {
+        if (longPressFiredRef.current) {
+            e.preventDefault();
+            longPressFiredRef.current = false;
+            return;
+        }
+        onFinishPress?.();
     };
 
+    const progressPercent = (completedSetsCount != null && totalSetsCount != null && totalSetsCount > 0)
+        ? Math.round((completedSetsCount / totalSetsCount) * 100) : 0;
+
     return (
-        <div className={`sticky top-0 z-30 bg-[#0a0c10] h-auto min-h-[90px] shadow-lg border-b border-cyber-cyan/10 ${tintClass} ${pulseClass}`}>
-            <div className="relative w-full h-full overflow-hidden">
-                 <div className="absolute inset-0 w-full h-full bg-cover bg-center z-0" style={{ 
-                     backgroundImage: bgImage, 
-                     backgroundColor: bgColor, 
-                     opacity: 0.6, 
-                     filter: `${getFilterString()} ${background?.style?.blur ? `blur(${background.style.blur}px)` : 'none'}` 
-                 }} />
-                <div className={`absolute inset-0 z-0 ${isResting ? 'bg-sky-950/40' : 'bg-black/50'}`} />
-                <div className="relative z-10 flex flex-col px-4 py-3 gap-3">
-                    {/* Nombre de sesión: espacio principal */}
-                    <div className="w-full">
-                        <h2 className="font-black text-white text-xl drop-shadow-lg leading-tight break-words pr-2">{sessionName}</h2>
-                        {activePartName && (
-                            <span className="text-[9px] font-mono font-black uppercase tracking-widest mt-1 block" style={{ color: isResting ? '#38bdf8' : (activePartColor || 'var(--primary-color)') }}>{isResting ? 'DESCANSO' : activePartName}</span>
+        <div className="sticky top-0 z-30 bg-[#0a0a0a] h-auto min-h-[90px] shadow-sm">
+            <div className="flex flex-col px-4 py-3 gap-3">
+                <div className="w-full">
+                    <h2 className="font-bold text-white text-lg leading-tight break-words">{sessionName}</h2>
+                    {activePartName && (
+                        <span className="text-[9px] font-mono font-bold uppercase tracking-widest mt-0.5 block text-slate-400" style={{ color: isResting ? '#f59e0b' : (activePartColor || '#64748b') }}>{isResting ? 'DESCANSO' : activePartName}</span>
+                    )}
+                </div>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {restTimerRemaining != null && restTimerRemaining > 0 && (
+                            <span className="text-xs font-mono font-bold text-amber-400 bg-amber-950/40 px-2 py-1 rounded-lg border border-amber-500/30 tabular-nums">{formatTime(restTimerRemaining)}</span>
+                        )}
+                        {elapsedSeconds != null && (
+                            <span className="text-[10px] font-mono text-slate-500 tabular-nums">{formatTime(elapsedSeconds)}</span>
+                        )}
+                        {completedSetsCount != null && totalSetsCount != null && totalSetsCount > 0 && (
+                            <div className="flex-1 min-w-[80px] max-w-[120px]">
+                                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-amber-500/60 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                                </div>
+                                <span className="text-[9px] font-mono text-slate-500">{completedSetsCount}/{totalSetsCount}</span>
+                            </div>
                         )}
                     </div>
-                    {/* Barra de controles compacta */}
-                    <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <div className="flex items-center gap-2">
-                            {restTimerRemaining != null && restTimerRemaining > 0 && (
-                                <span className="text-xs font-mono font-black text-cyber-cyan bg-black/50 px-2 py-1 rounded-lg border border-cyber-cyan/30">{formatTime(restTimerRemaining)}</span>
-                            )}
-                            {elapsedSeconds != null && (
-                                <span className="text-[10px] font-mono text-slate-500 tabular-nums">{formatTime(elapsedSeconds)}</span>
-                            )}
-                            {completedSetsCount != null && totalSetsCount != null && (
-                                <span className="text-[10px] font-mono text-slate-500 tabular-nums">{completedSetsCount}/{totalSetsCount} sets</span>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {viewMode != null && onToggleViewMode && (
-                                <button onClick={onToggleViewMode} className="px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-cyber-cyan hover:border-cyber-cyan/30 text-[10px] font-mono font-bold uppercase transition-colors" title={viewMode === 'carousel' ? 'Ver lista' : 'Ver carrusel'}>
-                                    {viewMode === 'carousel' ? 'Lista' : 'Carrusel'}
-                                </button>
-                            )}
-                            {onFinishPress && (
-                                <button onClick={onFinishPress} className="p-2.5 rounded-full bg-cyber-cyan/20 border border-cyber-cyan/50 text-cyber-cyan hover:bg-cyber-cyan/30 transition-colors" title="Finalizar sesión">
-                                    <CheckCircleIcon size={20} strokeWidth={2.5} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                    {onFinishPress && (
+                        <button
+                            onPointerDown={handlePointerDown}
+                            onPointerUp={handlePointerUp}
+                            onPointerLeave={handlePointerUp}
+                            onClick={handleClick}
+                            className="min-w-[44px] min-h-[44px] p-2.5 rounded-full bg-amber-950/40 border border-amber-500/30 text-amber-400 hover:bg-amber-950/60 transition-colors flex items-center justify-center"
+                            title="Finalizar sesión (mantener para más opciones)"
+                        >
+                            <CheckCircleIcon size={20} strokeWidth={2.5} />
+                        </button>
+                    )}
                 </div>
             </div>
-            <style>{`@keyframes pulse-slow { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.4; } } .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }`}</style>
         </div>
     );
 });
@@ -410,9 +379,10 @@ const SetDetails: React.FC<{
     addToast: (message: string, type?: ToastData['type'], title?: string, duration?: number) => void;
     suggestedWeight?: number;
     selectedTag?: string;
-    /** When true, only render RPE/performance/dropset/rest-pause and Guardar (for table row expanded view) */
     tableRowMode?: boolean;
-}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast, suggestedWeight, selectedTag, tableRowMode }) => {
+    setId: string;
+    onOpenNumpad: (opts: { field: 'weight' | 'reps' | 'partialReps' | 'duration' | 'rpe' | 'rir' | 'dropSetWeight' | 'dropSetReps' | 'restPauseRestTime' | 'restPauseReps'; dropSetIndex?: number; restPauseIndex?: number; side?: 'left' | 'right' }) => void;
+}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast, suggestedWeight, selectedTag, tableRowMode, setId, onOpenNumpad }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const el = cardRef.current;
@@ -555,29 +525,29 @@ const SetDetails: React.FC<{
         }
     }
     
-    let containerClass = "set-card-content flex flex-col bg-slate-900/30 p-2 transition-all duration-700";
-    if (cardAnimation === 'amrap') containerClass += " shadow-[0_0_50px_rgba(234,179,8,0.3)] border-2 border-yellow-400 bg-yellow-900/20";
-    else if (cardAnimation === 'success') containerClass += " shadow-[0_0_40px_rgba(59,130,246,0.3)] border border-blue-400 bg-blue-900/10";
-    else if (cardAnimation === 'failure') containerClass += " shadow-[0_0_40px_rgba(239,68,68,0.3)] border border-red-500 bg-red-900/20";
+    let containerClass = "set-card-content flex flex-col bg-slate-900/30 p-3 transition-all duration-500";
+    if (cardAnimation === 'amrap') containerClass += " border border-amber-500/30 bg-amber-950/10";
+    else if (cardAnimation === 'success') containerClass += " border border-slate-500/30 bg-slate-800/20";
+    else if (cardAnimation === 'failure') containerClass += " border border-red-500/30 bg-red-950/10";
 
     if (tableRowMode) {
         return (
             <div ref={cardRef} className="space-y-3 px-2 py-2 bg-[#0A0B0E]/80 rounded border border-[#2A2D38] animate-fade-in">
                 {isUnilateral && (
-                    <div className="flex bg-slate-800 p-1 rounded-lg relative z-10 shrink-0">
-                        <button onClick={() => setActiveSide('left')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeSide === 'left' ? 'bg-primary-color text-white' : 'text-slate-400'}`}>IZQ</button>
-                        <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeSide === 'right' ? 'bg-primary-color text-white' : 'text-slate-400'}`}>DER</button>
+                    <div className="flex bg-slate-800/60 p-1 rounded-lg relative z-10 shrink-0">
+                        <button onClick={() => setActiveSide('left')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all min-h-[36px] ${activeSide === 'left' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'}`}>IZQ</button>
+                        <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all min-h-[36px] ${activeSide === 'right' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'}`}>DER</button>
                     </div>
                 )}
                 {set.isAmrap ? (
-                    <div className={`flex justify-center items-center py-2 rounded-lg border w-full ${set.isCalibrator ? 'bg-yellow-900/30 border-yellow-500 text-yellow-400' : 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan'}`}>
-                        <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1"><FlameIcon size={12} />{set.isCalibrator ? 'AMRAP Calibrador' : 'AMRAP'}</span>
+                    <div className={`flex justify-center items-center py-2 rounded-lg border w-full ${set.isCalibrator ? 'bg-amber-950/30 border-amber-500/40 text-amber-400' : 'bg-amber-950/20 border-amber-500/30 text-amber-400'}`}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"><FlameIcon size={12} />{set.isCalibrator ? 'AMRAP Calibrador' : 'AMRAP'}</span>
                     </div>
                 ) : (
-                    <div className="flex justify-center items-center gap-2">
-                        <button onClick={() => handlePerformanceModeChange('target')} className={`flex-1 py-1.5 rounded-lg border text-[10px] font-black uppercase transition-all ${safeInputs.performanceMode === 'target' ? 'bg-primary-color text-white border-primary-color' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-white'}`}>{(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? 'RIR' : 'RPE'}</button>
-                        <button onClick={() => handlePerformanceModeChange('failure')} className={`flex-1 py-1.5 rounded-lg border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1 ${safeInputs.performanceMode === 'failure' ? 'bg-red-600 text-white border-red-500' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-red-400'}`}><FlameIcon size={10} /> Fallo</button>
-                        <button onClick={() => handlePerformanceModeChange('failed')} className={`flex-1 py-1.5 rounded-lg border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1 ${safeInputs.performanceMode === 'failed' ? 'bg-yellow-600 text-white border-yellow-500' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-yellow-400'}`}><AlertTriangleIcon size={10} /> Fallido</button>
+                    <div className="flex justify-center items-center gap-1 p-1 rounded-lg bg-slate-800/40">
+                        <button onClick={() => handlePerformanceModeChange('target')} className={`flex-1 py-1.5 rounded-md border text-[10px] font-bold uppercase transition-all min-h-[36px] ${safeInputs.performanceMode === 'target' ? 'bg-slate-700 border-white/20 text-white' : 'border-transparent text-slate-500 hover:text-white'}`}>{(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? 'RIR' : 'RPE'}</button>
+                        <button onClick={() => handlePerformanceModeChange('failure')} className={`flex-1 py-1.5 rounded-md border text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 min-h-[36px] ${safeInputs.performanceMode === 'failure' ? 'bg-slate-700 border-white/20 text-white' : 'border-transparent text-slate-500 hover:text-white'}`}><FlameIcon size={10} /> Fallo</button>
+                        <button onClick={() => handlePerformanceModeChange('failed')} className={`flex-1 py-1.5 rounded-md border text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 min-h-[36px] ${safeInputs.performanceMode === 'failed' ? 'bg-slate-700 border-white/20 text-white' : 'border-transparent text-slate-500 hover:text-white'}`}><AlertTriangleIcon size={10} /> Fallido</button>
                     </div>
                 )}
                 {safeInputs.performanceMode === 'target' && (
@@ -595,26 +565,26 @@ const SetDetails: React.FC<{
                         )}
                     </div>
                 )}
-                <div className="flex gap-2">
-                    <button onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-cyber-cyan/30 text-[10px] font-black uppercase bg-cyber-cyan/10 text-cyber-cyan">+ Dropset</button>
-                    <button onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-sky-500/30 text-[10px] font-black uppercase bg-sky-500/10 text-sky-400">+ Rest-Pause</button>
+                <div className="flex gap-3 text-[10px] font-bold">
+                    <button type="button" onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Dropset</button>
+                    <button type="button" onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Rest-Pause</button>
                 </div>
                 {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
-                    <div className="p-2 bg-slate-900/50 border border-cyber-cyan/20 rounded-lg space-y-2 text-xs">
+                    <div className="p-2 bg-slate-900/50 border border-white/5 rounded-lg space-y-2 text-xs">
                         {(safeInputs.dropSets || []).map((ds, i) => (
-                            <div key={`ds-${i}`} className="flex gap-2 items-center">
-                                <span className="text-[9px] text-cyber-cyan/80 w-12">Dropset</span>
-                                <input type="number" step="0.5" placeholder="Peso" value={ds.weight === 0 ? '' : ds.weight} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: v === '' ? 0 : (parseFloat(v) || 0), reps: arr[i].reps }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
-                                <input type="number" placeholder="Reps" value={ds.reps === 0 ? '' : ds.reps} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: arr[i].weight, reps: v === '' ? 0 : (parseInt(v, 10) || 0) }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
-                                <button type="button" onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0" title="Eliminar dropset"><MinusIcon size={12}/></button>
+                            <div key={`ds-${i}`} className="flex gap-1.5 items-center">
+                                <span className="text-[9px] text-slate-400 w-10 shrink-0">Dropset</span>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetWeight', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{ds.weight === 0 ? 'Kg' : ds.weight}</button>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetReps', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{ds.reps === 0 ? 'Reps' : ds.reps}</button>
+                                <button type="button" onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 shrink-0" title="Eliminar dropset"><MinusIcon size={12}/></button>
                             </div>
                         ))}
                         {(safeInputs.restPauses || []).map((rp, i) => (
-                            <div key={`rp-${i}`} className="flex gap-2 items-center">
-                                <span className="text-[9px] text-sky-500/80 w-12">Rest-Pause</span>
-                                <input type="number" placeholder="s" value={rp.restTime === 0 ? '' : rp.restTime} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: v === '' ? 0 : (parseInt(v, 10) || 0), reps: arr[i].reps }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
-                                <input type="number" placeholder="Reps" value={rp.reps === 0 ? '' : rp.reps} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: arr[i].restTime, reps: v === '' ? 0 : (parseInt(v, 10) || 0) }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white tabular-nums" />
-                                <button type="button" onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0" title="Eliminar rest-pause"><MinusIcon size={12}/></button>
+                            <div key={`rp-${i}`} className="flex gap-1.5 items-center">
+                                <span className="text-[9px] text-slate-400 w-10 shrink-0">Rest-Pause</span>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseRestTime', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{rp.restTime === 0 ? 's' : rp.restTime}</button>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseReps', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{rp.reps === 0 ? 'Reps' : rp.reps}</button>
+                                <button type="button" onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 shrink-0" title="Eliminar rest-pause"><MinusIcon size={12}/></button>
                             </div>
                         ))}
                     </div>
@@ -628,13 +598,13 @@ const SetDetails: React.FC<{
 
     return (
         <div ref={cardRef} className={`${containerClass} scroll-mb-48`}>
-            {set.isAmrap && !cardAnimation && <div className="absolute inset-0 bg-yellow-500/5 z-0 animate-pulse pointer-events-none"></div>}
-            {isStagnant && <div className="bg-red-900/20 border border-red-500/30 p-2 mb-2 rounded text-center text-xs text-red-300 font-bold flex items-center justify-center gap-2 mx-2 mt-2"><AlertTriangleIcon size={14}/> Estancamiento Detectado (3 sesiones)</div>}
+            {set.isAmrap && !cardAnimation && <div className="absolute inset-0 bg-amber-500/5 z-0 pointer-events-none"></div>}
+            {isStagnant && <div className="bg-slate-800/60 border border-slate-600/40 p-2 mb-2 rounded-lg text-center text-xs text-slate-400 font-bold flex items-center justify-center gap-2 mx-2 mt-2"><AlertTriangleIcon size={14}/> Mismo peso/reps en 3 sesiones</div>}
 
             {isUnilateral && (
-                <div className="flex bg-slate-800 p-1 rounded-lg mb-2 relative z-10 shrink-0 mx-2">
-                    <button onClick={() => setActiveSide('left')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeSide === 'left' ? 'bg-primary-color text-white' : 'text-slate-400'}`}>IZQUIERDA</button>
-                    <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeSide === 'right' ? 'bg-primary-color text-white' : 'text-slate-400'}`}>DERECHA</button>
+                <div className="flex bg-slate-800/60 p-1 rounded-lg mb-2 relative z-10 shrink-0 mx-2">
+                    <button onClick={() => setActiveSide('left')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all min-h-[40px] ${activeSide === 'left' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'}`}>Izquierda</button>
+                    <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all min-h-[40px] ${activeSide === 'right' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'}`}>Derecha</button>
                 </div>
             )}
             
@@ -673,7 +643,7 @@ const SetDetails: React.FC<{
                     </div>
                 </div>
 
-                <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                <div className="grid gap-2 items-center" style={{ gridTemplateColumns: 'minmax(64px,90px) auto minmax(64px,90px)' }}>
                     <div className={`flex flex-col rounded-xl overflow-hidden border shadow-sm relative transition-colors duration-300 ${inputActiveColor}`}>
                          <button 
                             onClick={() => !isTimeMode && setRepInputMode(prev => prev === 'standard' ? 'partial' : 'standard')} 
@@ -681,23 +651,10 @@ const SetDetails: React.FC<{
                         >
                             {isTimeMode ? 'Segundos' : (repInputMode === 'standard' ? 'Reps Reales' : 'Parciales')}
                         </button>
-                        <div className="relative flex-1 py-1 flex items-center justify-center">
-                             <input 
-                                type="number" 
-                                inputMode="numeric" 
-                                value={isTimeMode ? safeInputs.duration : (repInputMode === 'standard' ? safeInputs.reps : safeInputs.partialReps)} 
-                                onChange={e => { 
-                                    const val = e.target.value; 
-                                    if (isTimeMode) {
-                                        onInputChange('duration', val, isUnilateral ? activeSide : undefined);
-                                    } else {
-                                        onInputChange(repInputMode === 'standard' ? 'reps' : 'partialReps', val, isUnilateral ? activeSide : undefined); 
-                                        if (repInputMode === 'partial' && parseFloat(val) > 0) { onInputChange('isPartial', true, isUnilateral ? activeSide : undefined); } 
-                                    }
-                                }} 
-                                className="w-full text-center bg-transparent border-none text-3xl font-black focus:ring-0 p-0 text-inherit placeholder-white/20" 
-                                placeholder="0" 
-                             />
+                        <div className="relative flex-1 py-1 flex items-center justify-center min-w-0">
+                             <button type="button" onClick={() => onOpenNumpad({ field: isTimeMode ? 'duration' : (repInputMode === 'standard' ? 'reps' : 'partialReps'), side: isUnilateral ? activeSide : undefined })} className="w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 text-inherit placeholder-white/20 min-w-0 truncate" style={{ fontFamily: 'ui-monospace, monospace' }}>
+                                {isTimeMode ? safeInputs.duration || '0' : (repInputMode === 'standard' ? safeInputs.reps : safeInputs.partialReps) || '0'}
+                             </button>
                              {debt !== 0 && !isTimeMode && repInputMode === 'standard' && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}</span>}
                              {debt !== 0 && isTimeMode && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}s</span>}
                         </div>
@@ -718,8 +675,10 @@ const SetDetails: React.FC<{
                             {isBodyweight ? (
                                 <div className="flex items-center justify-center gap-1 text-emerald-400"><BodyIcon size={24} /><span className="text-xl font-bold">BW</span></div>
                             ) : (
-                                <div className="relative w-full">
-                                     <input type="number" inputMode="decimal" step="0.5" value={safeInputs.weight} onChange={e => onInputChange('weight', e.target.value, isUnilateral ? activeSide : undefined)} className={`w-full text-center bg-transparent border-none text-3xl font-black focus:ring-0 p-0 placeholder-slate-600 ${isWeightWarning ? 'text-red-400' : 'text-white'}`} placeholder="0" />
+                                <div className="relative w-full min-w-0">
+                                     <button type="button" onClick={() => onOpenNumpad({ field: 'weight', side: isUnilateral ? activeSide : undefined })} className={`w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 min-w-0 truncate ${isWeightWarning ? 'text-red-400' : 'text-white'}`} style={{ fontFamily: 'ui-monospace, monospace' }}>
+                                        {safeInputs.weight || '0'}
+                                     </button>
                                      {isWeightWarning && <AlertTriangleIcon size={12} className="absolute top-1 right-2 text-red-500 animate-pulse" />}
                                 </div>
                             )}
@@ -755,44 +714,40 @@ const SetDetails: React.FC<{
                 {safeInputs.performanceMode === 'target' && (
                     <div className="flex justify-center animate-fade-in relative">
                          {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? (
-                             <div className={`flex items-center rounded-lg p-1.5 border w-32 justify-between transition-colors ${intensityContainerClass}`}>
-                                 <span className="text-slate-500 font-bold text-xs uppercase px-2">RIR</span>
-                                 <input type="number" step="1" value={safeInputs.rir} onChange={e => onInputChange('rir', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-lg" placeholder="-"/>
+                             <div className={`flex items-center rounded-lg p-1.5 border w-24 justify-between transition-colors shrink-0 ${intensityContainerClass}`}>
+                                 <span className="text-slate-500 font-bold text-[10px] uppercase px-1.5">RIR</span>
+                                 <button type="button" onClick={() => onOpenNumpad({ field: 'rir', side: isUnilateral ? activeSide : undefined })} className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono">{safeInputs.rir || '—'}</button>
                              </div>
                          ) : (
-                             <div className={`flex items-center rounded-lg p-1.5 border w-32 justify-between transition-colors ${intensityContainerClass}`}>
-                                 <span className="text-slate-500 font-bold text-xs uppercase px-2">RPE</span>
-                                 <input type="number" step="0.5" value={safeInputs.rpe} onChange={e => onInputChange('rpe', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-lg" placeholder="-"/>
+                             <div className={`flex items-center rounded-lg p-1.5 border w-24 justify-between transition-colors shrink-0 ${intensityContainerClass}`}>
+                                 <span className="text-slate-500 font-bold text-[10px] uppercase px-1.5">RPE</span>
+                                 <button type="button" onClick={() => onOpenNumpad({ field: 'rpe', side: isUnilateral ? activeSide : undefined })} className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono">{safeInputs.rpe || '—'}</button>
                              </div>
                          )}
                     </div>
                 )}
 
-                {/* Dropset / Rest-Pause: botones visibles + filas expandibles */}
-                <div className="mx-2 mt-2 flex gap-2">
-                    <button onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-cyber-cyan/30 text-[10px] font-black uppercase bg-cyber-cyan/10 text-cyber-cyan hover:bg-cyber-cyan/20 hover:border-cyber-cyan/50 transition-colors">
-                        <PlusIcon size={12} /> Dropset {(safeInputs.dropSets?.length || 0) > 0 && <span className="bg-cyber-cyan/30 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.dropSets?.length || 0)}</span>}
-                    </button>
-                    <button onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-sky-500/30 text-[10px] font-black uppercase bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 hover:border-sky-500/50 transition-colors">
-                        <PlusIcon size={12} /> Rest-Pause {(safeInputs.restPauses?.length || 0) > 0 && <span className="bg-sky-500/30 px-1.5 py-0.5 rounded text-[9px]">{(safeInputs.restPauses?.length || 0)}</span>}
-                    </button>
+                {/* Dropset / Rest-Pause: enlaces de texto */}
+                <div className="mx-2 mt-2 flex gap-4 text-[10px] font-bold">
+                    <button type="button" onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Dropset {(safeInputs.dropSets?.length || 0) > 0 && <span className="text-slate-500">({(safeInputs.dropSets?.length || 0)})</span>}</button>
+                    <button type="button" onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Rest-Pause {(safeInputs.restPauses?.length || 0) > 0 && <span className="text-slate-500">({(safeInputs.restPauses?.length || 0)})</span>}</button>
                 </div>
                 {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
-                    <div className="mx-2 mt-2 p-3 bg-slate-900/50 border border-cyber-cyan/20 rounded-xl space-y-3 animate-fade-in">
+                    <div className="mx-2 mt-2 p-3 bg-slate-900/50 border border-white/5 rounded-xl space-y-3 animate-fade-in">
                         {(safeInputs.dropSets || []).map((ds, i) => (
-                            <div key={`ds-${i}`} className="flex gap-2 items-center">
-                                <span className="text-[9px] font-mono text-cyber-cyan/80 w-14">Dropset</span>
-                                <input type="number" step="0.5" placeholder="Peso" value={ds.weight === 0 ? '' : ds.weight} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: v === '' ? 0 : (parseFloat(v) || 0), reps: arr[i].reps }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
-                                <input type="number" placeholder="Reps" value={ds.reps === 0 ? '' : ds.reps} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.dropSets || [])]; arr[i] = { ...arr[i], weight: arr[i].weight, reps: v === '' ? 0 : (parseInt(v, 10) || 0) }; onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined); }} className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
-                                <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
+                            <div key={`ds-${i}`} className="flex gap-1.5 items-center">
+                                <span className="text-[9px] font-mono text-slate-400 w-12 shrink-0">Dropset</span>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetWeight', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{ds.weight === 0 ? 'Peso' : ds.weight}</button>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetReps', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{ds.reps === 0 ? 'Reps' : ds.reps}</button>
+                                <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0"><MinusIcon size={12}/></button>
                             </div>
                         ))}
                         {(safeInputs.restPauses || []).map((rp, i) => (
-                            <div key={`rp-${i}`} className="flex gap-2 items-center">
-                                <span className="text-[9px] font-mono text-sky-500/80 w-14">Rest-Pause</span>
-                                <input type="number" placeholder="Descanso (s)" value={rp.restTime === 0 ? '' : rp.restTime} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: v === '' ? 0 : (parseInt(v, 10) || 0), reps: arr[i].reps }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="flex-1 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
-                                <input type="number" placeholder="Reps" value={rp.reps === 0 ? '' : rp.reps} onChange={e => { const v = e.target.value; const arr = [...(safeInputs.restPauses || [])]; arr[i] = { ...arr[i], restTime: arr[i].restTime, reps: v === '' ? 0 : (parseInt(v, 10) || 0) }; onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined); }} className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white" />
-                                <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50"><MinusIcon size={12}/></button>
+                            <div key={`rp-${i}`} className="flex gap-1.5 items-center">
+                                <span className="text-[9px] font-mono text-slate-400 w-12 shrink-0">Rest-Pause</span>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseRestTime', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{rp.restTime === 0 ? 's' : rp.restTime}</button>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseReps', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{rp.reps === 0 ? 'Reps' : rp.reps}</button>
+                                <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0"><MinusIcon size={12}/></button>
                             </div>
                         ))}
                     </div>
@@ -858,6 +813,7 @@ interface WorkoutSessionProps {
     history: WorkoutLog[];
     onFinish: (completedExercises: CompletedExercise[], duration: number, notes?: string, discomforts?: string[], fatigue?: number, clarity?: number, logDate?: string, photoUri?: string, planDeviations?: PlanDeviation[], focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[]) => void;
     onCancel: () => void;
+    onPause?: () => void;
     onUpdateExercise1RM: (exerciseDbId: string | undefined, exerciseName: string, weight: number, reps: number, testDate?: string, machineBrand?: string) => void;
     isFinishModalOpen: boolean;
     setIsFinishModalOpen: (isOpen: boolean) => void;
@@ -868,18 +824,23 @@ interface WorkoutSessionProps {
     isTimersModalOpen: boolean;
     setIsTimersModalOpen: (isOpen: boolean) => void;
     exerciseList: ExerciseMuscleInfo[];
-    onWorkoutViewModeChange?: (mode: 'carousel' | 'list') => void;
 }
 
-export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program, programId, settings, history, onFinish, onCancel, onUpdateExercise1RM, isFinishModalOpen, setIsFinishModalOpen, exerciseList, onUpdateSessionInProgram, isTimeSaverModalOpen, setIsTimeSaverModalOpen, onUpdateExerciseInProgram: updateExInProg, isTimersModalOpen, setIsTimersModalOpen, onWorkoutViewModeChange }) => {
-    const { ongoingWorkout, isLiveCoachActive, isOnline, muscleHierarchy, restTimer } = useAppState();
+export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program, programId, settings, history, onFinish, onCancel, onPause, onUpdateExercise1RM, isFinishModalOpen, setIsFinishModalOpen, exerciseList, onUpdateSessionInProgram, isTimeSaverModalOpen, setIsTimeSaverModalOpen, onUpdateExerciseInProgram: updateExInProg, isTimersModalOpen, setIsTimersModalOpen }) => {
+    const { ongoingWorkout, isOnline, muscleHierarchy, restTimer } = useAppState();
     const dispatch = useAppDispatch();
     useKeyboardOverlayMode(true);
-    const { setOngoingWorkout, handleStartRest, handleSkipRestTimer, addToast, setIsLiveCoachActive, addOrUpdateCustomExercise } = dispatch;
+    const { setOngoingWorkout, handleStartRest, handleSkipRestTimer, addToast, addOrUpdateCustomExercise, openCustomExerciseEditor } = dispatch;
 
     useEffect(() => {
         configureAudioSession();
         preloadSounds();
+    }, []);
+
+    useEffect(() => {
+        if (Capacitor.isNativePlatform()) {
+            setupNotificationChannels().then(() => requestPermissions());
+        }
     }, []);
 
     useEffect(() => {
@@ -900,7 +861,6 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         };
     }, []);
     
-    const [isFocusMode, setIsFocusMode] = useState(true); 
     const [isSkippingRest, setIsSkippingRest] = useState(false); // CANDADO DE SEGURIDAD
     const [currentSession, setCurrentSession] = useState<Session>(ongoingWorkout?.session || session);
     const [startTime] = useState(ongoingWorkout?.startTime || Date.now());
@@ -918,7 +878,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null);
     const [sessionNotes, setSessionNotes] = useState<string>(ongoingWorkout?.sessionNotes || '');
     const [showNotesDrawer, setShowNotesDrawer] = useState(false);
-    const [numpadState, setNumpadState] = useState<{ setId: string; field: 'weight' | 'reps'; exerciseId: string } | null>(null);
+    const [numpadState, setNumpadState] = useState<{ setId: string; field: 'weight' | 'reps' | 'partialReps' | 'duration' | 'rpe' | 'rir' | 'dropSetWeight' | 'dropSetReps' | 'restPauseRestTime' | 'restPauseReps'; exerciseId: string; dropSetIndex?: number; restPauseIndex?: number; side?: 'left' | 'right' } | null>(null);
     const [setTypeOverrides, setSetTypeOverrides] = useState<Record<string, 'W' | 'T' | 'F' | 'D'>>((ongoingWorkout?.setTypeOverrides as any) || {});
     const isFinishingRef = useRef(false);
 
@@ -1004,9 +964,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         });
     }, [activeMode]);
 
-    const [viewMode, setViewMode] = useState<'carousel' | 'list'>('carousel');
-    useEffect(() => { onWorkoutViewModeChange?.(viewMode); }, [viewMode, onWorkoutViewModeChange]);
     const [skippedExerciseIds, setSkippedExerciseIds] = useState<Set<string>>(new Set());
+    const [finishContextOpen, setFinishContextOpen] = useState(false);
     const [contextMenuItem, setContextMenuItem] = useState<{ item: CarouselItem } | null>(null);
     const [replaceModalExercise, setReplaceModalExercise] = useState<Exercise | null>(null);
     const [finishCardExpanded, setFinishCardExpanded] = useState(false);
@@ -1014,7 +973,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     const displayParts = useMemo(() => {
         const skipped = skippedExerciseIds;
-        if (viewMode === 'carousel' && activeExerciseId) {
+        if (activeExerciseId) {
             const item = carouselItems.find((it): it is CarouselItem => it.type === 'exercise' && it.exercises.some(e => e.id === activeExerciseId));
             if (!item || item.type !== 'exercise') return renderExercises;
             const filtered = item.exercises.filter(e => !skipped.has(e.id));
@@ -1022,7 +981,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             return [{ id: 'focused', name: '', exercises: filtered }];
         }
         return renderExercises;
-    }, [viewMode, activeExerciseId, carouselItems, renderExercises, skippedExerciseIds]);
+    }, [activeExerciseId, carouselItems, renderExercises, skippedExerciseIds]);
     const [activeSetId, setActiveSetId] = useState<string | null>(null);
     const [setInputs, setSetInputs] = useState<Record<string, SetInputState | UnilateralSetInputs>>((ongoingWorkout?.unilateralSetInputs as any) || {}); 
 
@@ -1268,44 +1227,62 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             
             let adaptiveRestTime = exercise.restTime || 90;
             let addedRest = 0;
-            
-            // Calculamos RPE efectivo en la UI usando la misma lógica que AUGE para escalar el descanso
-            let uiEffectiveRpe = primaryData.rpe || set.targetRPE || 7;
-            if (primaryData.isFailure || primaryData.performanceMode === 'failure' || set.isAmrap) uiEffectiveRpe = Math.max(uiEffectiveRpe, 11);
-            if (primaryData.dropSets && primaryData.dropSets.length > 0) uiEffectiveRpe += primaryData.dropSets.length * 1.5;
-            if (primaryData.restPauses && primaryData.restPauses.length > 0) uiEffectiveRpe += primaryData.restPauses.length * 1.0;
-            if (primaryData.partialReps && primaryData.partialReps > 0) uiEffectiveRpe += 0.5;
 
             const targetRPE = set.targetRPE || 8;
+            const targetReps = (exercise.trainingMode === 'time') ? (set.targetDuration || 0) : (set.targetReps || 0);
+            const actualReps = (exercise.trainingMode === 'time') ? (primaryData.duration || 0) : (primaryData.reps || 0);
+            const exInfo = exerciseList.find(e => e.id === exercise.exerciseDbId || e.name === exercise.name);
+            const auge = getDynamicAugeMetrics(exInfo, exercise.name);
+            const fatigueFactor = Math.min(1.5, Math.max(0.4, (auge.cnc + auge.ssc * 0.5) / 3.5));
+
+            const wasProgrammedAsFailure = set.intensityMode === 'failure' || set.isAmrap;
+            const wasProgrammedNearFailure = (set.targetRPE ?? 8) >= 9;
+            const hadProgrammedDropsets = (set.dropSets?.length ?? 0) > 0;
+            const hadProgrammedRestPause = (set.restPauses?.length ?? 0) > 0;
+            const userDidDropsets = (primaryData.dropSets?.length ?? 0) > 0;
+            const userDidRestPause = (primaryData.restPauses?.length ?? 0) > 0;
+            const userWentToFailure = primaryData.isFailure || primaryData.performanceMode === 'failure';
 
             if (primaryData.performanceMode === 'failed') {
-                addedRest = 60; // Fallo total requiere tiempo substancial para purgar lactato
-                addToast("Fallo técnico o muscular total. Descanso de emergencia +60s.", "suggestion");
                 setSetCardAnimations(prev => ({...prev, [set.id]: 'failure'}));
                 hapticNotification(NotificationType.Error);
-            } else if (uiEffectiveRpe >= 10 || uiEffectiveRpe > targetRPE) {
-                // Exceso de intensidad sobre zona óptima (Target 8, Exceso empieza en 9)
-                const rpeExcess = Math.max(0, uiEffectiveRpe - Math.min(targetRPE, 9)); 
-                const fatigueFactor = settings.algorithmSettings?.failureFatigueFactor ?? 1.25;
-                
-                // Crecimiento proporcional: 25s base por cada punto de exceso * factor de fatiga
-                addedRest = Math.round(rpeExcess * 25 * fatigueFactor); 
-                addedRest = Math.min(addedRest, 120); // Hard Cap de 2 minutos máximos adicionales
-
-                if (addedRest > 0) {
-                    addToast(`Intensidad Extrema detectada. Compensando SNC: +${addedRest}s de descanso.`, "suggestion");
-                }
-                
-                const target = (exercise.trainingMode === 'time') ? (set.targetDuration || 0) : (set.targetReps || 0);
-                const actual = (exercise.trainingMode === 'time') ? (primaryData.duration || 0) : (primaryData.reps || 0);
-                if (actual >= target) setSetCardAnimations(prev => ({...prev, [set.id]: set.isAmrap ? 'amrap' : 'success'}));
-                else setSetCardAnimations(prev => ({...prev, [set.id]: null}));
-
+            } else if (actualReps >= targetReps) {
+                setSetCardAnimations(prev => ({...prev, [set.id]: set.isAmrap ? 'amrap' : 'success'}));
             } else {
-                const target = (exercise.trainingMode === 'time') ? (set.targetDuration || 0) : (set.targetReps || 0);
-                const actual = (exercise.trainingMode === 'time') ? (primaryData.duration || 0) : (primaryData.reps || 0);
-                if (actual >= target) setSetCardAnimations(prev => ({...prev, [set.id]: set.isAmrap ? 'amrap' : 'success'}));
-                else setSetCardAnimations(prev => ({...prev, [set.id]: null}));
+                setSetCardAnimations(prev => ({...prev, [set.id]: null}));
+            }
+
+            const completedSetsForExercise = exercise.sets.slice(0, setIndex).map(s => {
+                const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined;
+                if (!d) return { weight: 0 };
+                const p = exercise.isUnilateral ? (d.left || d.right) : d.left;
+                return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 };
+            });
+            const suggestedWeight = getWeightSuggestionForSet(exercise, exInfo, setIndex, completedSetsForExercise, settings, history, selectedTags[exercise.id], sessionAdjusted1RMs[exercise.id]);
+            const actualWeight = primaryData.weight ?? 0;
+            const targetRepsNum = typeof targetReps === 'number' ? targetReps : (typeof targetReps === 'string' ? parseInt(String(targetReps), 10) : 0) || 0;
+            const actualRepsNum = typeof actualReps === 'number' ? actualReps : (typeof actualReps === 'string' ? parseInt(String(actualReps), 10) : 0) || 0;
+            const isSignificantlyHeavier = suggestedWeight != null && actualWeight > 0 && actualWeight > suggestedWeight * 1.05;
+            const didHalfOrFewerReps = targetRepsNum > 0 && actualRepsNum < targetRepsNum * 0.5;
+            const deviatedByWeight = isSignificantlyHeavier && didHalfOrFewerReps;
+            const deviatedByDropsets = userDidDropsets && !hadProgrammedDropsets;
+            const deviatedByRestPause = userDidRestPause && !hadProgrammedRestPause;
+            const deviatedByFailure = userWentToFailure && !wasProgrammedAsFailure && !wasProgrammedNearFailure && (primaryData.rpe ?? 10) >= 10;
+
+            if (primaryData.performanceMode === 'failed' && !wasProgrammedAsFailure) {
+                addedRest = Math.round(30 * fatigueFactor);
+                addedRest = Math.min(addedRest, 60);
+                if (addedRest > 0) addToast("He extendido en " + addedRest + " segundos el descanso porque noté que tu serie fue más exigente de lo previsto.", "suggestion");
+            } else if (wasProgrammedAsFailure && userWentToFailure) {
+                addedRest = 0;
+            } else if (deviatedByWeight || deviatedByDropsets || deviatedByRestPause || deviatedByFailure) {
+                let baseAdded = 0;
+                if (deviatedByWeight) baseAdded = Math.min(90, 20 + Math.round((actualWeight / (suggestedWeight || 1) - 1) * 60));
+                else if (deviatedByDropsets || deviatedByRestPause) baseAdded = 15 * ((primaryData.dropSets?.length ?? 0) + (primaryData.restPauses?.length ?? 0));
+                else if (deviatedByFailure) baseAdded = 25;
+                addedRest = Math.round(baseAdded * fatigueFactor);
+                addedRest = Math.min(addedRest, 120);
+                if (addedRest > 0) addToast("He extendido en " + addedRest + " segundos el descanso porque noté que tu serie fue más exigente de lo previsto.", "suggestion");
             }
 
             adaptiveRestTime += addedRest;
@@ -1344,7 +1321,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             const hasProgrammedRest = (exercise.restTime ?? 0) > 0;
             if (adaptiveRestTime > 0 && !isUnilateral && hasProgrammedRest) handleStartRest(adaptiveRestTime, exercise.name);
         }
-    }, [setInputs, selectedTags, handleStartRest, moveToNextSet, addToast, settings.algorithmSettings, settings.weightUnit, completedSets, exerciseFeedback, allExercises, program.mode, (program as any).goals, exerciseList, history]);
+    }, [setInputs, selectedTags, handleStartRest, moveToNextSet, addToast, settings.algorithmSettings, settings.weightUnit, completedSets, exerciseFeedback, allExercises, program.mode, (program as any).goals, exerciseList, history, sessionAdjusted1RMs]);
 
     const handleGoalAnimationComplete = () => {
         setStarGoalProgress(null);
@@ -1481,7 +1458,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     };
 
     return (
-        <div className={`tab-bar-safe-area ${isFocusMode ? 'focus-mode-active' : ''} transition-colors duration-700 ${viewMode === 'carousel' ? 'flex flex-col min-h-[calc(100vh-1rem)]' : ''}`}>
+        <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)]">
              <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} asDrawer allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
             {activeSetId?.startsWith('warmup-') && (() => {
                 const exId = activeSetId.replace('warmup-', '');
@@ -1513,18 +1490,18 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             })()}
             {historyModalExercise && <ExerciseHistoryModal exercise={historyModalExercise} programId={programId} history={history} settings={settings} onClose={() => setHistoryModalExercise(null)} />}
 
-            <SubstituteExerciseSheet
+            <AdvancedExercisePickerModal
                 isOpen={!!replaceModalExercise}
                 onClose={() => setReplaceModalExercise(null)}
-                exercise={replaceModalExercise}
-                onSelectAlternative={(newExerciseName) => {
+                exerciseList={exerciseList}
+                initialSearch={replaceModalExercise?.name}
+                onSelect={(sugg) => {
                     if (!replaceModalExercise) return;
-                    const newExerciseData = exerciseList.find(ex => ex.name.toLowerCase() === newExerciseName.toLowerCase());
                     const newExercise: Exercise = {
                         ...replaceModalExercise,
                         id: crypto.randomUUID(),
-                        name: newExerciseName,
-                        exerciseDbId: newExerciseData?.id,
+                        name: sugg.name,
+                        exerciseDbId: sugg.id,
                     };
                     const updatedSession: Session = { ...currentSession };
                     if (updatedSession.parts) {
@@ -1537,7 +1514,13 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     }
                     setCurrentSession(updatedSession);
                     setOngoingWorkout(prev => prev ? { ...prev, session: updatedSession } : prev);
-                    addToast(`'${replaceModalExercise.name}' sustituido por '${newExerciseName}' (solo hoy).`, 'suggestion');
+                    addToast(`'${replaceModalExercise.name}' sustituido por '${sugg.name}' (solo hoy).`, 'suggestion');
+                    setReplaceModalExercise(null);
+                }}
+                onCreateNew={() => {
+                    if (replaceModalExercise) {
+                        openCustomExerciseEditor({ preFilledName: replaceModalExercise.name || 'Nuevo ejercicio' });
+                    }
                     setReplaceModalExercise(null);
                 }}
             />
@@ -1571,37 +1554,32 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
 <WorkoutHeader
                 sessionName={currentSession.name}
-                background={currentSession.background}
-                coverStyle={currentSession.coverStyle}
-                isFocusMode={isFocusMode}
-                onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-                isLiveCoachActive={isLiveCoachActive}
-                onToggleLiveCoach={() => setIsLiveCoachActive(!isLiveCoachActive)}
                 activePartName={activePartInfo?.name}
                 activePartColor={activePartInfo ? getPartTheme(activePartInfo.name || '').color : undefined}
                 isResting={!!(restTimer && restTimer.remaining > 0)}
-                zenMode={settings.enableZenMode}
-                liveBatteryDrain={liveBatteryDrain}
-                adaptiveCache={adaptiveCache}
-                viewMode={viewMode}
-                onToggleViewMode={() => setViewMode(m => m === 'carousel' ? 'list' : 'carousel')}
                 onFinishPress={() => setIsFinishModalOpen(true)}
+                onFinishLongPress={() => setFinishContextOpen(true)}
                 restTimerRemaining={restTimer?.remaining}
                 elapsedSeconds={duration}
                 completedSetsCount={Object.keys(completedSets).length}
                 totalSetsCount={allExercises.reduce((acc, ex) => acc + (ex.sets?.filter((s: any) => (s as any).type !== 'warmup').length ?? 0), 0)}
             />
+            <FinishContextBottomSheet
+                isOpen={finishContextOpen}
+                onClose={() => setFinishContextOpen(false)}
+                onPause={() => { if (onPause) onPause(); }}
+                onCancel={() => { if (window.confirm('¿Cancelar sesión? Se perderán los datos no guardados.')) onCancel(); }}
+            />
             
-            <div className={`${viewMode === 'carousel' ? 'mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none' : 'mt-4 px-2 sm:px-4 space-y-10 pb-20'} relative`}>
+            <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative">
             {displayParts.map((part: any, partIndex: number) => {
                     const theme = getPartTheme(part.name || '');
-                    const isCarousel = viewMode === 'carousel';
                     return (
-                    <details key={part.id || partIndex} open={!collapsedParts[part.id]} className={`group ${isCarousel ? '[&>summary]:hidden' : ''}`}>
-                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({...prev, [part.id]: !prev[part.id]})); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none rounded-xl border border-white/5 shadow-lg" style={{ borderLeft: `4px solid ${theme.color}`, background: `linear-gradient(90deg, ${theme.bgColor} 0%, transparent 100%)` }}>
-                            <div className="flex items-center gap-3"><span className="text-xl" role="img">{theme.icon}</span><h3 className="text-sm font-black uppercase tracking-widest" style={{ color: theme.color }}>{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-slate-500 transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
+                    <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group [&>summary]:hidden">
+                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({...prev, [part.id]: !prev[part.id]})); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none rounded-xl border border-white/5 shadow-sm" style={{ borderLeft: `4px solid ${theme.color}`, background: `linear-gradient(90deg, ${theme.bgColor} 0%, transparent 100%)` }}>
+                            <div className="flex items-center gap-3"><h3 className="text-sm font-black uppercase tracking-widest" style={{ color: theme.color }}>{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-slate-500 transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
                         </summary>
-                        <div className={`space-y-4 relative ${isCarousel ? 'pl-0 pr-0 w-full' : 'pl-1'}`}>
+                        <div className="space-y-4 relative pl-0 pr-0 w-full">
                             {part.exercises.map((ex: Exercise) => {
                                 const exInfo = exerciseList.find(e => e.id === ex.exerciseDbId);
                                 const pr = findPrForExercise(exInfo || ({} as any), history, settings, selectedTags[ex.id]);
@@ -1610,14 +1588,12 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                 const hasWarmup = ex.warmupSets && ex.warmupSets.length > 0;
 
                                 return (
-                                    <div key={ex.id} className={`relative transition-all duration-500 ${isCarousel ? 'w-full max-w-none' : ''}`} id={`exercise-card-${ex.id}`}>
+                                    <div key={ex.id} className="relative transition-all duration-500 w-full max-w-none" id={`exercise-card-${ex.id}`}>
                                         <details 
-                                            open={isActive || isCarousel} 
-                                            className={`set-card-details w-full overflow-visible transition-all duration-500 ${isCarousel ? '!border-0 !shadow-none !bg-transparent' : ''} ${ex.isStarTarget ? 'border-amber-400/50' : ''} ${isFocused ? 'z-40 ring-2 ring-yellow-500/50 shadow-[0_0_40px_rgba(234,179,8,0.2)]' : ''}`} 
-                                            onToggle={(e) => { if (!isCarousel && (e.target as HTMLDetailsElement).open) setActiveExerciseId(ex.id)}}
-                                            style={!isCarousel ? { boxShadow: isActive && !isFocused ? `0 0 30px ${theme.color}20` : undefined, borderColor: isActive && !isFocused ? theme.borderColor : undefined } : undefined}
+                                            open={isActive || true} 
+                                            className={`set-card-details w-full overflow-visible transition-all duration-500 !border-0 !shadow-none !bg-transparent ${ex.isStarTarget ? 'border-amber-400/50' : ''} ${isFocused ? 'z-40 ring-2 ring-amber-500/30' : ''}`}
                                         >
-                                            <summary className={`set-card-summary p-3 flex flex-col items-stretch ${isCarousel ? 'hidden' : ''}`} onClick={() => handleHeaderClick(ex.id)}>
+                                            <summary className="set-card-summary p-3 flex flex-col items-stretch hidden" onClick={() => handleHeaderClick(ex.id)}>
                                                 <div className="flex items-center justify-between gap-3 w-full">
                                                     <div className="flex items-center gap-3 min-w-0 flex-1">
                                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-lg flex-shrink-0 ${ex.isStarTarget ? 'bg-amber-400 text-black' : 'bg-slate-800 text-slate-400'}`}>
@@ -1633,13 +1609,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                     </div>
                                                 </div>
                                             </summary>
-                                            <div className={`set-card-content !border-none !p-2 space-y-2 relative ${isCarousel ? '!p-3 sm:!p-4 !max-w-none w-full' : ''}`}>
-                                                {isCarousel && (
-                                                    <div className="mb-4 flex items-center justify-between">
-                                                        <h3 className="text-lg font-mono font-black text-cyber-cyan truncate">{ex.name}</h3>
-                                                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1.5 rounded-lg text-slate-500 hover:text-cyber-cyan hover:bg-cyber-cyan/10 shrink-0" title="Historial"><ClockIcon size={18} /></button>
-                                                    </div>
-                                                )}
+                                            <div className="set-card-content !border-none !p-3 space-y-2 relative !p-3 sm:!p-4 !max-w-none w-full">
+                                                <div className="mb-4 flex items-center justify-between">
+                                                    <h3 className="text-lg font-bold text-white truncate">{ex.name}</h3>
+                                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1.5 rounded-lg text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Historial"><ClockIcon size={18} /></button>
+                                                </div>
                                                 {pr && <div className="p-2 text-center text-sm bg-amber-900/20 border border-amber-500/30 text-amber-300 rounded-lg font-mono font-bold"><p className="font-semibold flex items-center justify-center gap-2"><TrophyIcon size={16}/> {pr.prString}</p></div>}
                                                 
                                                 <HeaderAccordion 
@@ -1652,11 +1626,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                 {/* Series de aproximación (vista separada) + Series efectivas */}
                                                 <div className="space-y-4" ref={(el) => { setsContainerRefs.current[ex.id] = el; }}>
                                                     {hasWarmup && (
-                                                        <div id={`warmup-card-${ex.id}`} className={`overflow-hidden ${isCarousel ? 'rounded-none border-0 border-t border-sky-500/20 bg-slate-900/40' : 'rounded-xl border border-sky-500/20 bg-slate-900/60'} ${!isCarousel ? 'border-l-4 border-l-sky-500/60' : 'border-l-0'}`}>
-                                                            <div className="px-3 py-2 border-b border-sky-500/20 flex items-center justify-between">
+                                                        <div id={`warmup-card-${ex.id}`} className="overflow-hidden rounded-none border-0 border-t border-slate-600/30 bg-slate-800/40">
+                                                            <div className="px-3 py-2 border-b border-slate-600/30 flex items-center justify-between">
                                                                 <div className="flex items-center gap-2">
-                                                                    <FlameIcon size={18} className="text-sky-400" />
-                                                                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-sky-400">Series de aproximación</span>
+                                                                    <FlameIcon size={16} className="text-slate-400" />
+                                                                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Series de aproximación</span>
                                                                 </div>
                                                                 <span className="text-[9px] font-mono text-slate-500">{ex.warmupSets!.length} series</span>
                                                             </div>
@@ -1666,26 +1640,26 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                     const baseW = consolidatedWeights[ex.id] ?? suggested ?? 0;
                                                                     const calcKg = baseW > 0 ? roundWeight((baseW * wSet.percentageOfWorkingWeight) / 100, settings.weightUnit) : '—';
                                                                     return (
-                                                                        <div key={wSet.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/20 border border-sky-500/10 text-left">
+                                                                        <div key={wSet.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/20 border border-slate-600/20 text-left">
                                                                             <span className="text-xs font-mono font-bold text-slate-400 w-6">{wi + 1}</span>
-                                                                            <span className="text-[10px] font-mono text-sky-400/90">{wSet.percentageOfWorkingWeight}%</span>
+                                                                            <span className="text-[10px] font-mono text-slate-400">{wSet.percentageOfWorkingWeight}%</span>
                                                                             <span className="text-sm font-mono font-bold text-white tabular-nums">{calcKg}{typeof calcKg === 'number' ? settings.weightUnit : ''}</span>
                                                                             <span className="text-sm font-mono font-bold text-slate-300 tabular-nums">{wSet.targetReps} reps</span>
                                                                         </div>
                                                                     );
                                                                 })}
-                                                                <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`warmup-${ex.id}`); }} className="w-full py-2.5 mt-1 rounded-lg border border-sky-500/40 text-sky-400 hover:bg-sky-500/10 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors">
+                                                                <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`warmup-${ex.id}`); }} className="w-full py-2.5 mt-1 rounded-lg border border-slate-600/40 text-slate-400 hover:bg-slate-700/30 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors min-h-[44px]">
                                                                     Iniciar aproximación
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     )}
-                                                    <div className={`overflow-hidden ${isCarousel ? 'rounded-none border-0 border-t border-cyber-cyan/10 bg-transparent' : 'session-card-base'}`}>
-                                                        <div className={`${isCarousel ? 'px-2 py-1 border-b border-cyber-cyan/15' : 'px-2 py-1.5 border-b border-cyber-cyan/20'} flex items-center gap-2`}>
-                                                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-cyber-cyan/90">Series efectivas</span>
+                                                    <div className="overflow-hidden rounded-none border-0 border-t border-white/5 bg-transparent">
+                                                        <div className="px-2 py-1 border-b border-white/5 flex items-center gap-2">
+                                                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Series efectivas</span>
                                                         </div>
                                                         <div className="session-table w-full" data-tabular="true">
-                                                            <div className="flex items-center gap-2 px-2 py-1.5 border-b border-cyber-cyan/20 text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">
+                                                            <div className="flex items-center gap-2 px-2 py-1.5 border-b border-white/5 text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">
                                                                 <span className="w-8 text-center">Set</span>
                                                                 <span className="flex-1 min-w-[60px] text-center">Kg</span>
                                                                 <span className="flex-1 min-w-[56px] text-center">Reps</span>
@@ -1714,14 +1688,14 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                                 <span className={`w-full max-w-[56px] text-center text-sm font-mono py-1 tabular-nums block ${(ex.trainingMode === 'time' ? safeInputsRow.duration : safeInputsRow.reps) ? 'text-white' : 'text-slate-500'}`}>{ex.trainingMode === 'time' ? (safeInputsRow.duration || placeholderReps || '—') : (safeInputsRow.reps || placeholderReps || '—')}</span>
                                                                             </div>
                                                                             <div className="w-10 flex justify-center" onClick={e => e.stopPropagation()}>
-                                                                                <button type="button" onClick={() => handleLogSet(ex, set, false)} className={`w-8 h-8 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? 'border-cyber-cyan bg-cyber-cyan/20 text-cyber-cyan' : 'border-cyber-cyan/30 bg-transparent text-slate-500 hover:border-cyber-cyan hover:text-cyber-cyan'}`}>
+                                                                                <button type="button" onClick={() => handleLogSet(ex, set, false)} className={`min-w-[44px] min-h-[44px] w-10 h-10 rounded-lg border flex items-center justify-center transition-all ${isCompleted ? 'border-amber-500/40 bg-amber-950/30 text-amber-400' : 'border-white/10 bg-transparent text-slate-500 hover:border-amber-500/30 hover:text-amber-400'}`}>
                                                                                     <CheckCircleIcon size={18} />
                                                                                 </button>
                                                                             </div>
                                                                         </div>
                                                                         {isActiveRow && (
                                                                             <div id={`set-card-${setId}`} className="px-2 pb-2">
-                                                                                <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode />
+                                                                                <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} onOpenNumpad={(opts) => { setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), exerciseId: ex.id, ...opts }); }} />
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -1729,10 +1703,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                             })}
                                                         </div>
                                                     </div>
-                                                    <div id={`feedback-card-${ex.id}`} className={`overflow-hidden ${isCarousel ? 'rounded-none border-0 border-t border-cyber-cyan/10 bg-slate-900/30' : 'session-card-base'}`}>
-                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-cyber-cyan/5 transition-colors min-h-[48px]">
-                                                            <ActivityIcon size={24} className="text-cyber-cyan" />
-                                                            <span className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan">Feedback Post-Ejercicio</span>
+                                                    <div id={`feedback-card-${ex.id}`} className="overflow-hidden rounded-none border-0 border-t border-white/5 bg-slate-900/30">
+                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-amber-500/5 transition-colors min-h-[48px]">
+                                                            <ActivityIcon size={24} className="text-amber-400" />
+                                                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-400">Feedback Post-Ejercicio</span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1746,19 +1720,15 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 )})}
             </div>
 
-            {/* Carrusel de tarjetas + acciones (vista Carousel) */}
-            {viewMode === 'carousel' && (
-                <div className="fixed left-0 right-0 bottom-0 z-20 bg-[#0a0a0a]/98 backdrop-blur-xl border-t border-cyber-cyan/20 pb-[env(safe-area-inset-bottom)] flex flex-col">
-                    {/* Acciones rápidas integradas */}
-                    <div className="flex justify-center gap-2 px-4 py-2 border-b border-cyber-cyan/10 shrink-0">
-                        <button onClick={() => { const ex = allExercises.find(e => e.id === activeExerciseId); if (ex) handleFinishFeedback(ex.id, { technicalQuality: 8, discomforts: [], perceivedFatigue: 5 }); addToast('Ejercicio saltado', 'info'); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyber-cyan/30 text-[10px] font-mono font-bold uppercase tracking-wider text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors">
-                            <ChevronRightIcon size={12} /> Saltar
+            {/* Carrusel de tarjetas + acciones */}
+            <div className="fixed left-0 right-0 bottom-0 z-20 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/5 pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col">
+                    {/* Acciones rápidas: 90s y Notas (sin Saltar) */}
+                    <div className="flex justify-center gap-2 px-4 py-2 border-b border-white/5 shrink-0">
+                        <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-white/10 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-amber-400 hover:border-amber-500/30 hover:bg-amber-500/5 transition-colors min-h-[44px]">
+                            <ClockIcon size={14} /> 90s
                         </button>
-                        <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-sky-500/30 text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400 hover:bg-sky-500/10 transition-colors">
-                            <ClockIcon size={12} /> 90s
-                        </button>
-                        <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-500/30 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:bg-slate-500/10 transition-colors">
-                            <PencilIcon size={12} /> Notas
+                        <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-white/10 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-amber-400 hover:border-amber-500/30 hover:bg-amber-500/5 transition-colors min-h-[44px]">
+                            <PencilIcon size={14} /> Notas
                         </button>
                     </div>
                     <div className="shrink-0">
@@ -1785,27 +1755,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     />
                     </div>
                 </div>
-            )}
-
-            {/* Barra de acciones rápidas (solo en vista lista; TabBar oculto durante workout) */}
-            {viewMode !== 'carousel' && (
-                <div className="fixed left-0 right-0 z-20 px-4 py-2 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-cyber-cyan/20 flex justify-center gap-3 bottom-[env(safe-area-inset-bottom)]">
-                    <button onClick={() => { const ex = allExercises.find(e => e.id === activeExerciseId); if (ex) handleFinishFeedback(ex.id, { technicalQuality: 8, discomforts: [], perceivedFatigue: 5 }); addToast('Ejercicio saltado', 'info'); }} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-cyber-cyan/30 text-[10px] font-mono font-bold uppercase tracking-widest text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors">
-                        <ChevronRightIcon size={14} /> Saltar
-                    </button>
-                    <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-sky-500/30 text-[10px] font-mono font-bold uppercase tracking-widest text-sky-400 hover:bg-sky-500/10 transition-colors">
-                        <ClockIcon size={14} /> 90s
-                    </button>
-                    <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-500/30 text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 hover:bg-slate-500/10 transition-colors">
-                        <PencilIcon size={14} /> Notas
-                    </button>
-                </div>
-            )}
 
             {showNotesDrawer && (
                 <WorkoutDrawer isOpen={true} onClose={() => setShowNotesDrawer(false)} title="Notas de Sesión" height="50vh">
                     <div className="p-5">
-                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full bg-[#0d0d0d] border border-cyber-cyan/20 rounded-xl p-4 text-white text-sm font-mono placeholder-slate-500 focus:border-cyber-cyan/50 outline-none" />
+                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg p-4 text-white text-sm font-mono placeholder-slate-500 focus:border-amber-500/40 outline-none" />
                         <p className="text-[9px] text-slate-500 mt-2 font-mono">Se incluirán al finalizar la sesión.</p>
                     </div>
                 </WorkoutDrawer>
@@ -1815,19 +1769,78 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 const raw = setInputs[numpadState.setId];
                 const ex = allExercises.find(e => e.id === numpadState.exerciseId);
                 const isTimeMode = ex?.trainingMode === 'time';
-                const effectiveField = numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field;
-                const currentValue = !raw ? '' : ('left' in raw ? (raw as UnilateralSetInputs).left[effectiveField] : (raw as SetInputState)[effectiveField]) ?? '';
-                const side = ex?.isUnilateral ? 'left' as const : undefined;
+                const side = numpadState.side ?? (ex?.isUnilateral ? 'left' as const : undefined);
+                const base = raw && side && 'left' in raw ? (raw as UnilateralSetInputs)[side] : (raw as SetInputState);
+
+                let currentValue = '';
+                if (base) {
+                    if (numpadState.field === 'dropSetWeight' && numpadState.dropSetIndex != null && base.dropSets?.[numpadState.dropSetIndex])
+                        currentValue = base.dropSets[numpadState.dropSetIndex].weight === 0 ? '' : String(base.dropSets[numpadState.dropSetIndex].weight);
+                    else if (numpadState.field === 'dropSetReps' && numpadState.dropSetIndex != null && base.dropSets?.[numpadState.dropSetIndex])
+                        currentValue = base.dropSets[numpadState.dropSetIndex].reps === 0 ? '' : String(base.dropSets[numpadState.dropSetIndex].reps);
+                    else if (numpadState.field === 'restPauseRestTime' && numpadState.restPauseIndex != null && base.restPauses?.[numpadState.restPauseIndex])
+                        currentValue = base.restPauses[numpadState.restPauseIndex].restTime === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].restTime);
+                    else if (numpadState.field === 'restPauseReps' && numpadState.restPauseIndex != null && base.restPauses?.[numpadState.restPauseIndex])
+                        currentValue = base.restPauses[numpadState.restPauseIndex].reps === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].reps);
+                    else {
+                        const ef = numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field;
+                        if (['weight','reps','duration','partialReps','rpe','rir'].includes(ef))
+                            currentValue = String(base[ef as keyof SetInputState] ?? '');
+                    }
+                }
+
+                const handleNumpadChange = (v: string) => {
+                    if (numpadState.field === 'dropSetWeight' && numpadState.dropSetIndex != null) {
+                        const arr = [...(base?.dropSets || [])];
+                        if (!arr[numpadState.dropSetIndex]) arr[numpadState.dropSetIndex] = { weight: 0, reps: 0 };
+                        arr[numpadState.dropSetIndex] = { ...arr[numpadState.dropSetIndex], weight: v === '' ? 0 : parseFloat(v) || 0 };
+                        handleSetInputChange(numpadState.setId, 'dropSets', arr, side);
+                    } else if (numpadState.field === 'dropSetReps' && numpadState.dropSetIndex != null) {
+                        const arr = [...(base?.dropSets || [])];
+                        if (!arr[numpadState.dropSetIndex]) arr[numpadState.dropSetIndex] = { weight: 0, reps: 0 };
+                        arr[numpadState.dropSetIndex] = { ...arr[numpadState.dropSetIndex], reps: v === '' ? 0 : parseInt(v, 10) || 0 };
+                        handleSetInputChange(numpadState.setId, 'dropSets', arr, side);
+                    } else if (numpadState.field === 'restPauseRestTime' && numpadState.restPauseIndex != null) {
+                        const arr = [...(base?.restPauses || [])];
+                        if (!arr[numpadState.restPauseIndex]) arr[numpadState.restPauseIndex] = { restTime: 15, reps: 0 };
+                        arr[numpadState.restPauseIndex] = { ...arr[numpadState.restPauseIndex], restTime: v === '' ? 0 : parseInt(v, 10) || 0 };
+                        handleSetInputChange(numpadState.setId, 'restPauses', arr, side);
+                    } else if (numpadState.field === 'restPauseReps' && numpadState.restPauseIndex != null) {
+                        const arr = [...(base?.restPauses || [])];
+                        if (!arr[numpadState.restPauseIndex]) arr[numpadState.restPauseIndex] = { restTime: 15, reps: 0 };
+                        arr[numpadState.restPauseIndex] = { ...arr[numpadState.restPauseIndex], reps: v === '' ? 0 : parseInt(v, 10) || 0 };
+                        handleSetInputChange(numpadState.setId, 'restPauses', arr, side);
+                    } else {
+                        const ef = (numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field) as keyof SetInputState;
+                        handleSetInputChange(numpadState.setId, ef, v, side);
+                        if (numpadState.field === 'partialReps' && parseFloat(v) > 0)
+                            handleSetInputChange(numpadState.setId, 'isPartial', true, side);
+                    }
+                };
+
+                const isDecimal = ['weight','rpe','dropSetWeight'].includes(numpadState.field);
+                const labels: Record<string, string> = {
+                    weight: `Kg (${settings.weightUnit})`,
+                    reps: 'Reps',
+                    partialReps: 'Parciales',
+                    duration: 'Seg',
+                    rpe: 'RPE',
+                    rir: 'RIR',
+                    dropSetWeight: `Kg`,
+                    dropSetReps: 'Reps',
+                    restPauseRestTime: 's',
+                    restPauseReps: 'Reps',
+                };
                 return (
                     <NumpadOverlay
                         value={currentValue}
-                        onChange={(v) => handleSetInputChange(numpadState.setId, effectiveField as keyof SetInputState, v, side)}
+                        onChange={handleNumpadChange}
                         onClose={() => setNumpadState(null)}
                         onNext={settings.sessionAutoAdvanceFields !== false && numpadState.field === 'weight'
                             ? () => setNumpadState({ ...numpadState, field: 'reps' })
                             : undefined}
-                        mode={numpadState.field === 'weight' ? 'decimal' : 'integer'}
-                        label={numpadState.field === 'weight' ? `Kg (${settings.weightUnit})` : (isTimeMode ? 'Seg' : 'Reps')}
+                        mode={isDecimal ? 'decimal' : 'integer'}
+                        label={labels[numpadState.field] ?? numpadState.field}
                         showNextButton={numpadState.field === 'weight'}
                     />
                 );

@@ -73,7 +73,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                             {step === 'gallery' ? 'Selecciona plantilla' : selectedSplit?.name}
                         </p>
                     </div>
-                    <button onClick={onClose} className="w-7 h-7 rounded-lg border border-cyber-cyan/20 flex items-center justify-center text-slate-500 hover:text-white hover:border-cyber-cyan/40 transition-colors">
+                    <button onClick={onClose} aria-label="Cerrar" className="w-7 h-7 rounded-lg border border-cyber-cyan/20 flex items-center justify-center text-slate-500 hover:text-white hover:border-cyber-cyan/40 transition-colors focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#0a0a0a]">
                         <XIcon size={14} />
                     </button>
                 </div>

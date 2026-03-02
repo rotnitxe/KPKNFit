@@ -81,10 +81,25 @@ export const useExerciseStore = create<ExerciseStoreState>()(
             }),
             onRehydrateStorage: () => (state, _err) => {
                 useExerciseStore.setState({ _hasHydrated: true });
-                // Migración: si se restauró una lista antigua (<400), usar la base ampliada
                 const restored = state?.exerciseList;
-                if (Array.isArray(restored) && restored.length < 400) {
+                if (!Array.isArray(restored)) return;
+                // Migración: lista antigua con pocos ejercicios
+                if (restored.length < 400) {
                     useExerciseStore.setState({ exerciseList: FULL_EXERCISE_LIST });
+                    return;
+                }
+                // Migración: lista con duplicados (auditoría detectó cientos) - usar base deduplicada y preservar customs
+                const hasDuplicates = restored.length > 900;
+                if (hasDuplicates) {
+                    const baseNames = new Set(FULL_EXERCISE_LIST.map((e) => e.name.toLowerCase().trim()));
+                    const customOnly = restored.filter((e) => e.isCustom && !baseNames.has((e.name || '').toLowerCase().trim()));
+                    const merged = [...FULL_EXERCISE_LIST];
+                    for (const c of customOnly) {
+                        if (!merged.some((e) => e.name.toLowerCase().trim() === (c.name || '').toLowerCase().trim())) {
+                            merged.push(c);
+                        }
+                    }
+                    useExerciseStore.setState({ exerciseList: merged });
                 }
             },
         }

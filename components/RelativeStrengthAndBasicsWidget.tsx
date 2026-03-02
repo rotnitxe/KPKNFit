@@ -120,156 +120,111 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
         return slides;
     }, [history]);
 
+    // Metas típicas en ratio BW (1x, 1.5x, 2x, 2.5x)
+    const BW_GOALS = [1, 1.5, 2, 2.5];
+    const BAR_MAX_BW = 2.5;
+
     const PatternSlide = ({ title, stats, iconType }: any) => {
         const hasWeight = bodyWeight > 0;
         const rm = Math.round(stats.rm);
-        
-        // El máximo de la escala permite que el anillo se llene dinámicamente.
-        // Si hay peso, el máximo es el mayor entre RM * 1.2 o BW * 2 (Para no llenar el círculo muy rápido)
-        const scaleMax = Math.max(rm * 1.2, hasWeight ? bodyWeight * 2 : 100);
-        
-        const bwPercentage = hasWeight ? Math.min((bodyWeight / scaleMax) * 100, 100) : 0;
-        const rmPercentage = Math.min((rm / scaleMax) * 100, 100);
-        const nextStep = Math.ceil((rm + 0.1) / 2.5) * 2.5; 
-
-        // Lógica de color de la barra circular brillante
-        const isStrongerThanBw = hasWeight && rm >= bodyWeight;
-        const ringColorClass = isStrongerThanBw 
-            ? 'stroke-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]' 
-            : 'stroke-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.8)]';
-        
-        const textColorClass = isStrongerThanBw ? 'text-emerald-400' : 'text-cyan-400';
-
-        // Matemáticas del círculo SVG (Radio = 132px para un tamaño de 288x288)
-        const radius = 132;
-        const circumference = 2 * Math.PI * radius;
-        const rmOffset = circumference - (rmPercentage / 100) * circumference;
+        const ratioBw = hasWeight && bodyWeight > 0 ? rm / bodyWeight : 0;
+        const nextGoal = BW_GOALS.find(g => g > ratioBw) ?? BW_GOALS[BW_GOALS.length - 1];
+        const barMax = hasWeight ? bodyWeight * BAR_MAX_BW : 100;
+        const rmPercentage = Math.min((rm / barMax) * 100, 100);
+        const goalPositions = hasWeight ? BW_GOALS.map(g => (g / BAR_MAX_BW) * 100).filter(p => p > 0 && p < 100) : [];
 
         return (
-            <div className="w-[90vw] max-w-[420px] shrink-0 snap-center flex flex-col items-center">
-                
-                {/* 1. CONTENEDOR CIRCULAR CON ANILLO DE ENERGÍA SVG */}
-                <div className="relative w-72 h-72 flex items-center justify-center mb-6">
-                    
-                    {/* SVG Anillo de Progreso */}
-                    <svg className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none z-20" viewBox="0 0 288 288">
-                        {/* Fondo del anillo oscuro */}
-                        <circle cx="144" cy="144" r={radius} fill="none" className="stroke-zinc-900" strokeWidth="10" />
-                        
-                        {/* Marca de Peso Corporal (Línea blanca difuminada en el perímetro) */}
-                        {hasWeight && (
-                            <circle 
-                                cx="144" cy="144" r={radius} fill="none" 
-                                className="stroke-white/50" strokeWidth="18"
-                                strokeDasharray={`4 ${circumference - 4}`}
-                                strokeDashoffset={-((bwPercentage / 100) * circumference)}
-                                strokeLinecap="round"
-                            />
-                        )}
-
-                        {/* Barra de Progreso Circular Brillante (RM) */}
-                        <circle 
-                            cx="144" cy="144" r={radius} fill="none" 
-                            className={`transition-all duration-1000 ease-out ${ringColorClass}`} 
-                            strokeWidth="10" 
-                            strokeLinecap="round"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={rmOffset}
-                        />
-                    </svg>
-
-                    {/* El Círculo Caupolicán Interior - SVG con filter para visibilidad en fondo oscuro */}
-                    <div className="w-56 h-56 bg-black rounded-full border-[3px] border-zinc-200 shadow-[0_0_30px_rgba(255,255,255,0.15)] flex items-center justify-center relative overflow-hidden z-10">
-                        <div className="relative w-full h-full flex items-center justify-center z-10 scale-[1.25]">
-                            {iconType === 'squat' ? <CaupolicanSquat /> : 
-                             iconType === 'bench' ? <CaupolicanBench /> : 
-                             iconType === 'deadlift_sumo' ? <CaupolicanSDL /> : 
-                             iconType === 'deadlift_conv' ? <CaupolicanCDL /> : 
-                             <DumbbellIcon size={80} className="text-white" />}
-                        </div>
-                    </div>
-
-                    {/* Etiqueta flotante del Peso Corporal (si lo superaste, brilla verde) */}
-                    {hasWeight && (
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 bg-black/80 px-4 py-1.5 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg flex items-center gap-1.5">
-                            <span className="text-zinc-500">BW</span>
-                            <span className={isStrongerThanBw ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'text-white'}>
-                                {bodyWeight} kg
-                            </span>
-                        </div>
-                    )}
+            <div className="w-[90vw] max-w-[420px] shrink-0 snap-center flex flex-col items-center bg-black">
+                {/* Ilustración más grande */}
+                <div className="w-64 h-64 flex items-center justify-center">
+                    {iconType === 'squat' ? <CaupolicanSquat /> :
+                     iconType === 'bench' ? <CaupolicanBench /> :
+                     iconType === 'deadlift_sumo' ? <CaupolicanSDL /> :
+                     iconType === 'deadlift_conv' ? <CaupolicanCDL /> :
+                     <DumbbellIcon size={80} className="text-white" />}
                 </div>
 
-                {/* 2. DATOS DE FUERZA */}
-                <div className="text-center w-full mt-2">
-                    <h4 className="text-4xl font-black text-white uppercase tracking-tighter leading-none mb-1">{title}</h4>
-                    <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-widest truncate">{stats.name}</p>
-                    
-                    <div className="mt-4 flex flex-col items-center">
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-6xl font-black text-white tracking-tighter leading-none">{rm}</span>
-                            <span className="text-2xl text-zinc-600 font-bold ml-1">KG</span>
-                        </div>
-                        <p className={`text-[10px] font-black uppercase tracking-[0.2em] mt-2 ${textColorClass}`}>
-                            1RM Estimado
-                        </p>
+                {/* Datos: ratio BW como principal, kg más pequeño */}
+                <div className="text-center w-full px-4">
+                    <h4 className="text-sm font-bold text-white uppercase tracking-tight leading-none mb-0.5">{title}</h4>
+                    <p className="text-[9px] text-zinc-500 truncate">{stats.name}</p>
+                    <div className="mt-2 flex items-baseline justify-center gap-1">
+                        <span className="text-xl font-black text-white leading-none">
+                            {hasWeight ? (ratioBw >= 0.1 ? ratioBw.toFixed(1) : '—') : '—'}
+                        </span>
+                        <span className="text-xs text-zinc-600 font-bold">× peso corporal</span>
                     </div>
+                    <p className="text-[9px] text-zinc-500 mt-0.5">{rm} kg 1RM</p>
 
-                    {/* Meta Próxima (Reemplazo visual de la barra lineal inferior) */}
-                    <div className="mt-6 flex items-center justify-center gap-2">
-                        <div className="h-px bg-white/10 w-12" />
-                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Próxima meta: <span className="text-white ml-1">{nextStep} kg</span></span>
-                        <div className="h-px bg-white/10 w-12" />
+                    {/* Barra con metas (marcas 1×, 1.5×, 2×, 2.5× BW) */}
+                    <div className="mt-3 w-full">
+                        <div className="flex justify-between text-[8px] text-zinc-600 mb-1">
+                            <span>0</span>
+                            {BW_GOALS.map(g => (
+                                <span key={g} className="text-zinc-500">{g}×</span>
+                            ))}
+                        </div>
+                        <div className="w-full h-2 bg-zinc-800 rounded-full overflow-visible relative">
+                            {goalPositions.map((pos, i) => (
+                                <div key={i} className="absolute top-0 bottom-0 w-px bg-white/30 z-10" style={{ left: `${pos}%` }} title={`${BW_GOALS[i]}× BW`} />
+                            ))}
+                            <div className="h-full bg-white/80 rounded-full transition-all duration-1000 ease-out relative z-0" style={{ width: `${rmPercentage}%` }} />
+                        </div>
+                        <p className="mt-2 text-[8px] text-zinc-500">Meta: <span className="text-white">{nextGoal}× BW</span>{hasWeight ? ` (${Math.round(nextGoal * bodyWeight)} kg)` : ''}</p>
                     </div>
                 </div>
             </div>
         );
     };
     
-    // COMPONENTE DE FILA (PERSONALIZADOS)
+    // COMPONENTE DE FILA (PERSONALIZADOS) - ratio BW + metas
     const CustomListRow: React.FC<{ exName: string }> = ({ exName }) => {
         const stats = findExactBestLift(exName);
         const hasWeight = bodyWeight > 0;
         const rm = Math.round(stats.rm);
-        const scaleMax = Math.max(rm * 1.5, hasWeight ? bodyWeight * 2 : 100);
-        const bwPercentage = hasWeight ? Math.min((bodyWeight / scaleMax) * 100, 100) : 0;
-        const rmPercentage = Math.min((rm / scaleMax) * 100, 100);
-        const nextStep = Math.ceil((rm + 0.1) / 2.5) * 2.5; 
+        const ratioBw = hasWeight && bodyWeight > 0 ? rm / bodyWeight : 0;
+        const nextGoal = BW_GOALS.find(g => g > ratioBw) ?? BW_GOALS[BW_GOALS.length - 1];
+        const barMax = hasWeight ? bodyWeight * BAR_MAX_BW : 100;
+        const rmPercentage = Math.min((rm / barMax) * 100, 100);
+        const goalPositions = hasWeight ? BW_GOALS.map(g => (g / BAR_MAX_BW) * 100).filter(p => p > 0 && p < 100) : [];
 
         return (
-            <div className="pb-6 mb-6 border-b border-white/5 last:border-0 last:mb-0 last:pb-0 relative group">
+            <div className="pb-4 mb-4 border-b border-white/5 last:border-0 last:mb-0 last:pb-0 relative group">
                 <button onClick={() => handleSaveCustomExercises(customExercises.filter(e => e !== exName))} className="absolute top-0 right-0 p-2 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
                     <XIcon size={14} />
                 </button>
-                <div className="flex justify-between items-end mb-4 pr-8">
+                <div className="flex justify-between items-end mb-2 pr-8">
                     <div>
-                        <h4 className="text-sm font-black text-white uppercase tracking-tight">{exName}</h4>
-                        {rm === 0 && <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Sin registros aún</p>}
+                        <h4 className="text-xs font-bold text-white uppercase tracking-tight">{exName}</h4>
+                        {rm === 0 && <p className="text-[8px] text-zinc-500 mt-0.5">Sin registros aún</p>}
                     </div>
                     <div className="text-right">
-                        <span className="text-2xl font-black text-white">{rm}</span><span className="text-[10px] text-zinc-500 ml-1">kg</span>
+                        <span className="text-sm font-black text-white">{hasWeight && ratioBw >= 0.1 ? ratioBw.toFixed(1) : rm}</span>
+                        <span className="text-[9px] text-zinc-500 ml-1">{hasWeight && ratioBw >= 0.1 ? '× BW' : 'kg'}</span>
                     </div>
                 </div>
                 <div className="w-full relative">
-                    <div className="flex justify-between text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1.5 relative h-3">
-                        <span className="absolute left-0 bottom-0">0</span>
-                        {hasWeight && <span className="text-emerald-500 absolute bottom-0" style={{ left: `calc(${bwPercentage}% - 10px)` }}>Tú: {bodyWeight}</span>}
-                        <span className="text-blue-500 absolute right-0 bottom-0">Próx: {nextStep}</span>
+                    <div className="flex justify-between text-[8px] text-zinc-600 mb-1">
+                        <span>0</span>
+                        {BW_GOALS.map(g => <span key={g} className="text-zinc-500">{g}×</span>)}
                     </div>
-                    <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden relative">
-                        {hasWeight && <div className="absolute top-0 bottom-0 w-[2px] bg-emerald-500 z-20 shadow-[0_0_8px_rgba(16,185,129,1)]" style={{ left: `${bwPercentage}%` }} />}
-                        <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 relative z-10 rounded-full transition-all duration-1000 ease-out" style={{ width: `${rmPercentage}%` }} />
+                    <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-visible relative">
+                        {goalPositions.map((pos, i) => (
+                            <div key={i} className="absolute top-0 bottom-0 w-px bg-white/30 z-10" style={{ left: `${pos}%` }} />
+                        ))}
+                        <div className="h-full bg-white/80 relative z-0 rounded-full transition-all duration-1000 ease-out" style={{ width: `${rmPercentage}%` }} />
                     </div>
+                    {hasWeight && <p className="mt-1 text-[8px] text-zinc-500">Meta: {nextGoal}× BW</p>}
                 </div>
             </div>
         );
     };
 
     return (
-        <div className="mt-8 mb-8 bg-zinc-950/50 p-6 rounded-[2rem] border border-white/5 shadow-xl">
+        <div className="mt-8 mb-8 bg-black p-6">
             <div className="flex justify-between items-center mb-8">
                 <h3 className="text-[11px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                    <ActivityIcon size={14} className="text-emerald-400" /> Fuerza Relativa
+                    <ActivityIcon size={14} className="text-zinc-400" /> Fuerza Relativa
                 </h3>
                 {/* INTERRUPTOR PL / PERSONALIZADO */}
                 <div className="flex bg-black rounded-full p-1 border border-white/10">
@@ -285,7 +240,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
                         <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Tu Peso:</span>
                         <span className="text-sm font-black text-white">{bodyWeight} kg</span>
                         <div className="w-px h-4 bg-white/20 mx-1"></div>
-                        <button onClick={() => { setBwInput(bodyWeight.toString()); setIsEditingBw(true); }} className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest hover:text-cyan-300 transition-colors">
+                        <button onClick={() => { setBwInput(bodyWeight.toString()); setIsEditingBw(true); }} className="text-[10px] font-bold text-white/80 uppercase tracking-widest hover:text-white transition-colors">
                             Modificar
                         </button>
                     </div>
@@ -296,7 +251,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
                 ) : (
                     <div className="flex items-center gap-2 bg-zinc-900 p-1.5 rounded-full border border-white/20 animate-fade-in w-full max-w-[280px] shadow-lg">
                         <input type="number" value={bwInput} onChange={(e) => setBwInput(e.target.value)} placeholder="Ej: 80" autoFocus className="bg-transparent text-white font-black text-sm px-4 outline-none w-full text-center" />
-                        <button onClick={handleSaveWeight} className={`px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shrink-0 ${isSaved ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-white text-black hover:bg-zinc-200'}`}>
+                        <button onClick={handleSaveWeight} className={`px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shrink-0 ${isSaved ? 'bg-white/90 text-black' : 'bg-white text-black hover:bg-zinc-200'}`}>
                             {isSaved ? '¡Guardado!' : 'Guardar'}
                         </button>
                         {bodyWeight > 0 && !isSaved && (
@@ -330,7 +285,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
             {mode === 'custom' && (
                 <div className="animate-fade-in">
                     <div className="mb-6 relative">
-                        <div className="flex bg-black border border-white/10 rounded-2xl overflow-hidden focus-within:border-emerald-500 transition-colors">
+                        <div className="flex bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden focus-within:border-white/20 transition-colors">
                             <input 
                                 type="text" 
                                 list="exercise-suggestions" 
@@ -341,7 +296,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
                             />
                             <button 
                                 onClick={() => { if(searchQuery) { handleSaveCustomExercises([...customExercises, searchQuery]); setSearchQuery(''); } }}
-                                className="bg-emerald-500 text-black px-4 font-black uppercase text-[10px] tracking-widest hover:bg-emerald-400 flex items-center gap-1"
+                                className="bg-white text-black px-4 font-black uppercase text-[10px] tracking-widest hover:bg-white/90 flex items-center gap-1"
                             >
                                 <PlusIcon size={14} /> Add
                             </button>

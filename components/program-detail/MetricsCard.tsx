@@ -3,6 +3,7 @@ import { Program, Session, ExerciseMuscleInfo, ProgramWeek } from '../../types';
 import { ActivityIcon, DumbbellIcon, ChevronDownIcon, XIcon } from '../icons';
 import { WorkoutVolumeAnalysis } from '../WorkoutVolumeAnalysis';
 import { CaupolicanBody } from '../CaupolicanBody';
+import { MuscleStatsPanel } from '../MuscleStatsPanel';
 import { RelativeStrengthAndBasicsWidget } from '../RelativeStrengthAndBasicsWidget';
 import ExerciseHistoryWidget from '../ExerciseHistoryWidget';
 
@@ -131,38 +132,51 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
                                     </button>
                                 </div>
 
-                                <div className="flex flex-col items-center">
-                                    <CaupolicanBody
-                                        data={visualizerData as any}
-                                        isPowerlifting={program.mode === 'powerlifting'}
-                                        focusedMuscle={focusedMuscle}
-                                        discomforts={programDiscomforts}
-                                        onMuscleClick={(muscle, x, y) => setSelectedMusclePos({ muscle, x, y })}
+                                <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-start">
+                                    <div className="flex justify-center shrink-0">
+                                        <CaupolicanBody
+                                            data={visualizerData as any}
+                                            isPowerlifting={program.mode === 'powerlifting' || program.mode === 'powerbuilding'}
+                                            focusedMuscle={selectedMusclePos?.muscle ?? focusedMuscle}
+                                            discomforts={programDiscomforts}
+                                            onMuscleClick={(muscle, x, y) => {
+                                                setSelectedMusclePos(prev => prev?.muscle === muscle ? null : { muscle, x: x ?? 0, y: y ?? 0 });
+                                                setFocusedMuscle(muscle);
+                                            }}
+                                        />
+                                    </div>
+                                    <MuscleStatsPanel
+                                        selectedMuscle={selectedMusclePos?.muscle ?? null}
+                                        data={visualizerData ?? []}
+                                        program={program}
+                                        settings={settings}
+                                        onClose={() => {
+                                            setSelectedMusclePos(null);
+                                            setFocusedMuscle(null);
+                                        }}
                                     />
-                                    {programDiscomforts.length > 0 && (
-                                        <div className="mt-4 w-full max-w-[260px]">
-                                            <h4 className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-2 flex items-center justify-center gap-1.5">
-                                                <ActivityIcon size={10} /> Foco de Tensión
-                                            </h4>
-                                            <div className="flex flex-wrap justify-center gap-1.5">
-                                                {programDiscomforts.slice(0, 5).map((disc, idx) => (
-                                                    <div key={idx} className="bg-red-950/40 border border-red-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                                        <span className="text-[9px] font-bold text-red-200">{disc.name}</span>
-                                                        <span className="text-[8px] text-red-300 font-black">{disc.count}x</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
+                                {programDiscomforts.length > 0 && (
+                                    <div className="mt-4 w-full max-w-[260px] mx-auto">
+                                        <h4 className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-2 flex items-center justify-center gap-1.5">
+                                            <ActivityIcon size={10} /> Foco de Tensión
+                                        </h4>
+                                        <div className="flex flex-wrap justify-center gap-1.5">
+                                            {programDiscomforts.slice(0, 5).map((disc, idx) => (
+                                                <div key={idx} className="bg-red-950/40 border border-red-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                    <span className="text-[9px] font-bold text-red-200">{disc.name}</span>
+                                                    <span className="text-[8px] text-red-300 font-black">{disc.count}x</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="mt-6 relative z-50">
                                     <WorkoutVolumeAnalysis
                                         sessions={displayedSessions}
                                         history={history}
                                         isOnline={isOnline}
                                         settings={settings}
-                                        selectedMuscleInfo={selectedMusclePos}
-                                        onCloseMuscle={() => setSelectedMusclePos(null)}
                                     />
                                 </div>
                             </div>

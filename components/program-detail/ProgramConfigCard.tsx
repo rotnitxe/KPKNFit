@@ -34,7 +34,7 @@ const ProgramConfigCard: React.FC<ProgramConfigCardProps> = ({
                     <div>
                         <h3 className="text-xs font-black text-white uppercase tracking-widest">Configuración</h3>
                         <p className="text-[9px] text-zinc-500 font-bold">
-                            {program.mode === 'powerlifting' ? 'Powerlifting' : 'Hipertrofia'} • {DAYS_OF_WEEK.find(d => d.value === startDay)?.label || 'Lunes'}
+                            {program.mode === 'powerlifting' ? 'Powerlifting' : program.mode === 'powerbuilding' ? 'Powerbuilding' : 'Hipertrofia'} • {DAYS_OF_WEEK.find(d => d.value === startDay)?.label || 'Lunes'}
                         </p>
                     </div>
                 </div>
@@ -57,6 +57,7 @@ const ProgramConfigCard: React.FC<ProgramConfigCardProps> = ({
                         >
                             <option value="hypertrophy">Hipertrofia</option>
                             <option value="powerlifting">Powerlifting</option>
+                            <option value="powerbuilding">Powerbuilding</option>
                         </select>
                     </div>
 

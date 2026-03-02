@@ -8,6 +8,7 @@ from engines.volume_engine import (
     calculate_fractional_volume,
     calculate_volume_adjustment,
     calculate_unified_muscle_volume,
+    calculate_adaptive_recalibration,
 )
 
 router = APIRouter(prefix="/volume", tags=["volume"])
@@ -61,3 +62,18 @@ def volume_adjustment(req: VolumeAdjustmentRequest):
 @router.post("/unified")
 def unified_volume(req: UnifiedVolumeRequest):
     return calculate_unified_muscle_volume(req.sessions, req.exerciseList)
+
+
+class AdaptiveRecalibrateRequest(BaseModel):
+    volumeRecommendations: list[dict]
+    postSessionFeedback: list[PostSessionFeedback]
+    settings: dict | None = None
+
+
+@router.post("/adaptive-recalibrate")
+def adaptive_recalibrate(req: AdaptiveRecalibrateRequest):
+    return calculate_adaptive_recalibration(
+        req.volumeRecommendations,
+        req.postSessionFeedback,
+        req.settings,
+    )

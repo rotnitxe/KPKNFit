@@ -7,9 +7,12 @@ import ReactDOM from 'react-dom';
 interface NutritionTooltipProps {
     content: string;
     title?: string;
+    /** Cuando false, no se muestra el ícono de ayuda (modo compacto) */
+    showHelp?: boolean;
 }
 
-export const NutritionTooltip: React.FC<NutritionTooltipProps> = ({ content, title }) => {
+export const NutritionTooltip: React.FC<NutritionTooltipProps> = ({ content, title, showHelp = true }) => {
+    if (!showHelp) return null;
     const [isVisible, setIsVisible] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const [style, setStyle] = useState<React.CSSProperties>({ opacity: 0, pointerEvents: 'none' });

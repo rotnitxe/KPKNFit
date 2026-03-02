@@ -40,12 +40,12 @@ const FinishCard: React.FC<FinishCardProps> = ({
   return (
     <div
       className={`
-        flex-shrink-0 rounded-xl border-2 border-emerald-500/50
+        flex-shrink-0 rounded-lg border border-amber-500/30
         overflow-hidden transition-all duration-200
         ${expanded ? 'w-64 min-h-[120px]' : 'w-36 min-h-[56px]'}
       `}
       style={{
-        backgroundColor: expanded ? 'rgba(16,185,129,0.1)' : 'rgba(15,23,42,0.8)',
+        backgroundColor: expanded ? 'rgba(120, 53, 15, 0.25)' : 'rgba(15,23,42,0.9)',
       }}
     >
       <button
@@ -57,8 +57,8 @@ const FinishCard: React.FC<FinishCardProps> = ({
           ${!expanded ? 'min-h-[56px]' : ''}
         `}
       >
-        <CheckCircleIcon size={expanded ? 24 : 20} className="text-emerald-400" />
-        <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
+        <CheckCircleIcon size={expanded ? 24 : 20} className="text-amber-400" />
+        <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
           Finalizar
         </span>
         {expanded && (
@@ -74,7 +74,7 @@ const FinishCard: React.FC<FinishCardProps> = ({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onFinish(); }}
-              className="w-full mt-2 py-2 rounded-lg bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-colors"
+              className="w-full mt-2 py-2 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest transition-colors"
             >
               Abrir modal de finalización
             </button>

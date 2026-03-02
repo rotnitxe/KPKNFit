@@ -78,7 +78,8 @@ export type View =
   | 'program-metric-recovery'
   | 'program-metric-adherence'
   | 'program-metric-rpe'
-  | 'body-progress';
+  | 'body-progress'
+  | 'home-card-page';
 
 // --- LÓGICA DE VOLUMEN V3 (INFORME TÉCNICO) ---
 
@@ -111,6 +112,18 @@ export interface VolumeRecommendation {
     maxAdaptiveVolume: number;  // MAV Personalizado (El Target)
     maxRecoverableVolume: number; // MRV Personalizado
     frequencyCap: number;       // Límite de sesiones por semana para este músculo
+}
+
+export interface VolumeRecSnapshot {
+    minEffectiveVolume: number;
+    maxAdaptiveVolume: number;
+    maxRecoverableVolume: number;
+}
+
+export interface VolumeCalibrationEntry {
+    date: string;
+    source: 'auto' | 'manual';
+    changes: { muscle: string; prev: VolumeRecSnapshot; next: VolumeRecSnapshot; reason: string }[];
 }
 
 export interface CoverStyle {
@@ -159,8 +172,8 @@ export interface Settings {
   trainingProfile?: 'Aesthetics' | 'Powerlifting' | 'Powerbuilding'; // Define qué motor lógico usar
   preferredIntensity?: 'RIR_High' | 'Failure'; // Define el factor de ajuste de volumen (Módulo 4.1)
   athleteScore?: AthleteProfileScore; // Guardamos aquí el resultado del test
-  /** Sistema de recomendación de volumen: israetel (Israetel/Schoenfeld por defecto), kpnk (KPKN calibrado) */
-  volumeSystem?: 'israetel' | 'kpnk';
+  /** Sistema de recomendación de volumen: israetel, kpnk (KPKN Personalizado), manual */
+  volumeSystem?: 'israetel' | 'kpnk' | 'manual';
 
   // General & Entrenamiento
   soundsEnabled: boolean;
@@ -211,7 +224,11 @@ export interface Settings {
   };
 
   // UI / UX / Estética
-  appTheme: 'default' | 'deep-black' | 'volt';
+  appTheme: 'default' | 'deep-black' | 'volt' | 'dark' | 'light';
+  /** Pack de sonidos: classic, minimal, none */
+  soundPack?: 'classic' | 'minimal' | 'none';
+  /** Estilo barra inferior: default, compact, icons-only */
+  tabBarStyle?: 'default' | 'compact' | 'icons-only';
   themePrimaryColor: string;
   enableGlassmorphism: boolean;
   enableAnimations: boolean;
@@ -299,6 +316,11 @@ export interface Settings {
   
   // --- LÍMITES CALIBRADOS DEL ATLETA (KPKN ENGINE) ---
   volumeLimits?: Record<string, { maxSession: number; max: number; min?: number }>;
+
+  /** Fecha última recalibración de volumen (YYYY-MM-DD) */
+  volumeLastRecalibrationDate?: string;
+  /** Historial de recalibraciones KPKN */
+  volumeCalibrationHistory?: VolumeCalibrationEntry[];
   
   // --- AUTO-CALIBRACIÓN CIBERNÉTICA (Deltas del Usuario) ---
   batteryCalibration?: {
@@ -541,7 +563,7 @@ export interface ExerciseMuscleInfo {
     category: 'Fuerza' | 'Hipertrofia' | 'Resistencia' | 'Potencia' | 'Movilidad' | 'Pliometría' | 'Estabilidad' | 'Calistenia';
     type: 'Básico' | 'Accesorio' | 'Aislamiento';
     tier?: 'T1' | 'T2' | 'T3'; // Módulo 2.3: T1 (Neural x1.5), T2 (Metabólico x1.0)
-    equipment: 'Barra' | 'Mancuerna' | 'Máquina' | 'Peso Corporal' | 'Banda' | 'Kettlebell' | 'Polea' | 'Otro';
+    equipment: 'Barra' | 'Mancuerna' | 'Máquina' | 'Peso Corporal' | 'Banda' | 'Kettlebell' | 'Polea' | 'Saco de arena' | 'TRX' | 'Trineo' | 'Balón Medicinal' | 'Disco' | 'Rodillo' | 'Slider' | 'Arnés' | 'Piedra' | 'Neumático' | 'Tronco' | 'Escudo' | 'Eje' | 'Cuerdas' | 'Toalla' | 'Rueda' | 'Otro';
     force: 'Empuje' | 'Tirón' | 'Bisagra' | 'Sentadilla' | 'Rotación' | 'Anti-Rotación' | 'Flexión' | 'Extensión' | 'Anti-Flexión' | 'Anti-Extensión' | 'Salto' | 'Otro';
     isCustom?: boolean;
     bodyPart?: 'upper' | 'lower' | 'full';
@@ -560,6 +582,7 @@ export interface ExerciseMuscleInfo {
     efc?: number; // Costo Metabólico/Fatiga Local (1-5)
     ssc?: number; // Costo Estructural/Espinal (0-2.0) - Reemplaza a axialLoadFactor
     cnc?: number; // Costo Neural Central (1-5)
+    ttc?: number; // Estrés tendinoso (sub-batería futura dentro de la batería muscular)
     axialLoadFactor?: number; // Legacy support
     // -------------------------
     postureFactor?: number;   // Multiplicador de postura (ej. Barra Baja = 1.2)
@@ -611,6 +634,8 @@ export interface OngoingWorkoutState {
     readinessData?: any; // <-- SISTEMA AUGE
     programId: string;
     session: Session;
+    /** true = usuario pulsó Pausar explícitamente; false/undefined = app cerrada por accidente o en curso */
+    isPaused?: boolean;
     startTime: number;
     activeExerciseId: string | null;
     activeSetId: string | null;
@@ -1469,6 +1494,7 @@ export interface AppContextDispatch {
     handleSaveSession: (session: Session | Session[], programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleUpdateSessionInProgram: (session: Session, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     handleDeleteSession: (sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
+    handleReorderSessions: (programId: string, targetBlockId: string, targetWeekId: string, sessionId: string, sessionName: string, fromDayOfWeek: number, toDayOfWeek: number, scope: 'cyclic' | 'block' | 'same-split') => void;
     handleChangeSplit: (programId: string, splitPattern: string[], splitId: string, scope: 'week' | 'block' | 'program', preserveExercises: boolean, startDay: number, targetBlockId?: string, targetWeekId?: string) => void;
     handleCopySessionsToMeso: (programId: string, macroIndex: number, mesoIndex: number) => void;
     handleStartProgram: (programId: string) => void;

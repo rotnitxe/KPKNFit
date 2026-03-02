@@ -19,9 +19,9 @@ interface VolumeCalibrationStepProps {
     settings: Settings;
 }
 
-const VOLUME_INFO = `El volumen de entrenamiento se mide en series efectivas por semana por grupo muscular. Determina cuánto estímulo necesitas para crecer sin sobreentrenar. MEV = mínimo efectivo, MAV = máximo adaptable (zona óptima), MRV = máximo recuperable.`;
+const VOLUME_INFO = `El volumen de entrenamiento se mide en series efectivas por semana por grupo muscular. Determina cuánto estímulo necesitas para crecer sin sobreentrenar. Mínimo = para mantener, Óptimo = zona de crecimiento, Máximo = límite antes de sobreentrenar.`;
 
-const ISRAETEL_INFO = `Guías basadas en la investigación de Mike Israetel (Renaissance Periodization). Rangos MEV-MAV-MRV publicados para cada grupo muscular, aplicables a la población general. Son un excelente punto de partida.`;
+const ISRAETEL_INFO = `Guías basadas en la investigación de Mike Israetel (Renaissance Periodization). Rangos de volumen (mínimo–óptimo–máximo) publicados para cada grupo muscular, aplicables a la población general. Son un excelente punto de partida.`;
 
 export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
     onComplete,
@@ -145,10 +145,10 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-white/10 bg-black/50">
+                <div className="p-6 border-t border-white/10 bg-black/50 wizard-safe-footer">
                     <button
                         onClick={handleSummaryConfirm}
-                        className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/30 transition-all"
+                        className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/50 hover:bg-cyber-cyan/30 transition-all"
                     >
                         Confirmar y continuar
                     </button>
@@ -162,19 +162,19 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
         return (
             <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in-up safe-area-root">
                 <div className="p-4 border-b border-white/10 flex items-center gap-3">
-                    <button onClick={() => setView('choose')} className="p-2 -ml-2 text-zinc-500 hover:text-white">
+                    <button onClick={() => setView('choose')} className="p-2 -ml-2 text-zinc-500 hover:text-cyber-cyan transition-colors">
                         <ArrowLeftIcon size={20} />
                     </button>
                     <h2 className="text-lg font-black uppercase text-white">Volumen por músculo</h2>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                    <p className="text-xs text-zinc-500 mb-4">Define MEV, objetivo y MRV (series/semana) para cada grupo.</p>
+                    <p className="text-xs text-zinc-500 mb-4">Define mínimo, objetivo y máximo (series/semana) para cada grupo.</p>
                     {volumeRecommendations.map(rec => (
                         <div key={rec.muscleGroup} className="mb-4 p-4 bg-zinc-900/40 rounded-xl border border-white/5">
                             <p className="text-sm font-bold text-white mb-3">{rec.muscleGroup}</p>
                             <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label className="text-[9px] text-zinc-500 uppercase">MEV</label>
+                                    <label className="text-[9px] text-zinc-500 uppercase">Mínimo</label>
                                     <input
                                         type="number"
                                         min={0}
@@ -199,7 +199,7 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] text-zinc-500 uppercase">MRV</label>
+                                    <label className="text-[9px] text-zinc-500 uppercase">Máximo</label>
                                     <input
                                         type="number"
                                         min={1}
@@ -213,10 +213,10 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                         </div>
                     ))}
                 </div>
-                <div className="p-6 border-t border-white/10">
+                <div className="p-6 border-t border-white/10 wizard-safe-footer">
                     <button
                         onClick={handleManualConfirm}
-                        className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/30 transition-all"
+                        className="w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/50 hover:bg-cyber-cyan/30 transition-all"
                     >
                         Ver resumen y continuar
                     </button>
@@ -235,20 +235,29 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
         );
     }
 
-    // Vista principal: elegir sistema
+    // Vista principal: selector único
+    const handleSelectChange = (value: VolumeSystem) => {
+        setVolumeSystem(value);
+        if (value === 'israetel') {
+            setVolumeRecommendations(getIsraetelVolumeRecommendations());
+        } else if (value === 'manual') {
+            setVolumeRecommendations(getIsraetelVolumeRecommendations().map(r => ({ ...r })));
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in-up safe-area-root">
             <div className="p-6 border-b border-white/10">
                 <div className="flex items-center gap-2 mb-2">
-                    <button onClick={onBack} className="p-2 -ml-2 text-zinc-500 hover:text-white">
+                    <button onClick={onBack} className="p-2 -ml-2 text-zinc-500 hover:text-cyber-cyan transition-colors">
                         <ArrowLeftIcon size={20} />
                     </button>
                     <h2 className="text-xl font-black uppercase tracking-tight text-white">
-                        Determinemos el volumen de entrenamiento de tu programa
+                        Volumen de entrenamiento
                     </h2>
                     <button
                         onClick={() => setShowVolumeInfo(!showVolumeInfo)}
-                        className="p-1.5 rounded-full text-zinc-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+                        className="p-1.5 rounded-full text-zinc-500 hover:text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors"
                         title="¿Qué es el volumen?"
                     >
                         <InfoIcon size={16} />
@@ -259,64 +268,110 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                         {VOLUME_INFO}
                     </p>
                 )}
+                <div className="mt-4">
+                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Sistema de volumen</label>
+                    <select
+                        value={volumeSystem ?? 'kpnk'}
+                        onChange={e => handleSelectChange(e.target.value as VolumeSystem)}
+                        className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-sm font-bold text-white focus:ring-2 focus:ring-cyber-cyan focus:border-cyber-cyan/50"
+                    >
+                        <option value="israetel">Israetel</option>
+                        <option value="kpnk">KPKN Personalizado</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                    {volumeSystem === 'israetel' && (
+                        <p className="text-[11px] text-zinc-500 mt-2 flex items-center gap-1.5">
+                            <button type="button" onClick={() => setShowIsraetelInfo(!showIsraetelInfo)} className="text-cyber-cyan hover:underline">
+                                <InfoIcon size={12} />
+                            </button>
+                            Rangos población general
+                        </p>
+                    )}
+                    {showIsraetelInfo && volumeSystem === 'israetel' && (
+                        <p className="text-[11px] text-zinc-400 mt-2 p-3 bg-zinc-900/50 rounded-lg border border-white/5">{ISRAETEL_INFO}</p>
+                    )}
+                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                <div className="space-y-3 max-w-lg mx-auto">
-                    {/* Israetel */}
-                    <button
-                        onClick={handleSelectIsraetel}
-                        className="group w-full text-left p-5 rounded-2xl border border-white/10 bg-[#111] hover:bg-white/5 hover:border-cyan-500/30 transition-all active:scale-[0.99]"
-                    >
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-base font-black uppercase text-white">Guías Mike Israetel</span>
-                                    <button
-                                        onClick={e => { e.stopPropagation(); setShowIsraetelInfo(!showIsraetelInfo); }}
-                                        className="p-1 rounded text-zinc-500 hover:text-cyan-400"
-                                    >
-                                        <InfoIcon size={14} />
-                                    </button>
+                {volumeSystem === 'kpnk' && (
+                    <div className="max-w-lg mx-auto">
+                        <p className="text-xs text-zinc-500 mb-4">Completa el cuestionario para calibrar el volumen según tu perfil.</p>
+                        <button
+                            onClick={() => setView('kpnk-wizard')}
+                            className="w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest bg-cyber-cyan/20 text-cyber-cyan border-2 border-cyber-cyan/50 hover:bg-cyber-cyan/30 transition-all flex items-center justify-center gap-2"
+                        >
+                            Iniciar cuestionario KPKN
+                            <ChevronRightIcon size={18} />
+                        </button>
+                    </div>
+                )}
+                {volumeSystem === 'manual' && (
+                    <div>
+                        <p className="text-xs text-zinc-500 mb-4">Define mínimo, objetivo y máximo (series/semana) para cada grupo.</p>
+                        {volumeRecommendations.map(rec => (
+                            <div key={rec.muscleGroup} className="mb-4 p-4 bg-zinc-900/40 rounded-xl border border-white/5">
+                                <p className="text-sm font-bold text-white mb-3">{rec.muscleGroup}</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <label className="text-[9px] text-zinc-500 uppercase">Mínimo</label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={30}
+                                            value={rec.minEffectiveVolume}
+                                            onChange={e => handleUpdateManualRec(rec.muscleGroup, 'minEffectiveVolume', parseInt(e.target.value, 10) || 0)}
+                                            className="w-full bg-black/50 border border-white/20 rounded px-2 py-1.5 text-xs text-white mt-1"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] text-zinc-500 uppercase">Objetivo</label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={30}
+                                            value={Math.round((rec.minEffectiveVolume + rec.maxAdaptiveVolume) / 2)}
+                                            onChange={e => {
+                                                const v = parseInt(e.target.value, 10) || rec.maxAdaptiveVolume;
+                                                handleUpdateManualRec(rec.muscleGroup, 'maxAdaptiveVolume', v);
+                                            }}
+                                            className="w-full bg-black/50 border border-white/20 rounded px-2 py-1.5 text-xs text-white mt-1"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] text-zinc-500 uppercase">Máximo</label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={40}
+                                            value={rec.maxRecoverableVolume}
+                                            onChange={e => handleUpdateManualRec(rec.muscleGroup, 'maxRecoverableVolume', parseInt(e.target.value, 10) || 20)}
+                                            className="w-full bg-black/50 border border-white/20 rounded px-2 py-1.5 text-xs text-white mt-1"
+                                        />
+                                    </div>
                                 </div>
-                                <p className="text-xs text-zinc-500">Rangos MEV-MAV-MRV por músculo (población general)</p>
                             </div>
-                            <ChevronRightIcon size={18} className="text-zinc-500 group-hover:text-cyan-400" />
-                        </div>
-                        {showIsraetelInfo && (
-                            <p className="text-[11px] text-zinc-400 mt-3 pt-3 border-t border-white/5">{ISRAETEL_INFO}</p>
-                        )}
-                    </button>
-
-                    {/* Manual */}
-                    <button
-                        onClick={handleSelectManual}
-                        className="group w-full text-left p-5 rounded-2xl border border-white/10 bg-[#111] hover:bg-white/5 hover:border-cyan-500/30 transition-all active:scale-[0.99] flex justify-between items-center"
-                    >
-                        <div>
-                            <span className="text-base font-black uppercase text-white block mb-1">Yo determinaré el volumen por músculo</span>
-                            <p className="text-xs text-zinc-500">Configura MEV, MAV y MRV manualmente para cada grupo</p>
-                        </div>
-                        <ChevronRightIcon size={18} className="text-zinc-500 group-hover:text-cyan-400" />
-                    </button>
-
-                    {/* KPKN - RECOMENDADO */}
-                    <button
-                        onClick={handleSelectKpnk}
-                        className="group relative w-full text-left p-5 rounded-2xl border-2 border-cyan-500/40 bg-cyan-500/5 hover:bg-cyan-500/15 transition-all active:scale-[0.99]"
-                    >
-                        <span className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-widest text-cyan-400 bg-cyan-500/20 px-2 py-0.5 rounded">
-                            Recomendado
-                        </span>
-                        <div className="flex justify-between items-center pr-16">
-                            <div>
-                                <span className="text-base font-black uppercase text-white block mb-1">Guía KPKN personalizada</span>
-                                <p className="text-xs text-zinc-400">Cuestionario para calibrar volumen según tu perfil</p>
-                            </div>
-                            <ChevronRightIcon size={18} className="text-cyan-400" />
-                        </div>
-                    </button>
-                </div>
+                        ))}
+                        <button
+                            onClick={handleManualConfirm}
+                            className="w-full mt-6 py-4 rounded-xl font-black text-sm uppercase tracking-widest bg-cyber-cyan/20 text-cyber-cyan border-2 border-cyber-cyan/50 hover:bg-cyber-cyan/30 transition-all"
+                        >
+                            Ver resumen y continuar
+                        </button>
+                    </div>
+                )}
+                {(volumeSystem === 'israetel' || volumeSystem === null) && (
+                    <div className="max-w-lg mx-auto">
+                        <p className="text-xs text-zinc-500 mb-4">Rangos publicados para población general. Aplica directamente.</p>
+                        <button
+                            onClick={handleSelectIsraetel}
+                            className="w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest bg-cyber-cyan/20 text-cyber-cyan border-2 border-cyber-cyan/50 hover:bg-cyber-cyan/30 transition-all flex items-center justify-center gap-2"
+                        >
+                            Usar Israetel y continuar
+                            <ChevronRightIcon size={18} />
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -93,7 +93,11 @@ const COLUMNA_TABS: { id: number | null; label: string }[] = [
     { id: null, label: 'Hist.' },
 ];
 
-export const BatteryHeroSection: React.FC = () => {
+interface BatteryHeroSectionProps {
+    compact?: boolean;
+}
+
+export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact = false }) => {
     const { history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList, muscleHierarchy, postSessionFeedback, waterLogs, isAppLoading } = useAppState();
     const { setSettings, addToast } = useAppDispatch();
 
@@ -198,9 +202,21 @@ export const BatteryHeroSection: React.FC = () => {
 
     if (!batteries) return <SkeletonLoader lines={4} />;
 
+    const lowBatteryAlerts = [
+        batteries.cns < 40 && { label: 'SNC', val: batteries.cns },
+        batteries.muscular < 40 && { label: 'Muscular', val: batteries.muscular },
+        batteries.spinal < 40 && { label: 'Columna', val: batteries.spinal },
+    ].filter(Boolean) as { label: string; val: number }[];
+
+    const amberAlerts = [
+        batteries.cns >= 40 && batteries.cns < 70 && { label: 'SNC', val: batteries.cns },
+        batteries.muscular >= 40 && batteries.muscular < 70 && { label: 'Muscular', val: batteries.muscular },
+        batteries.spinal >= 40 && batteries.spinal < 70 && { label: 'Columna', val: batteries.spinal },
+    ].filter(Boolean) as { label: string; val: number }[];
+
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden relative">
-            {showPrecalibBadge && (
+        <div className={`bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden relative ${compact ? 'rounded-xl' : ''}`}>
+            {showPrecalibBadge && !compact && (
                 <div className="absolute top-3 right-3 z-10">
                     <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/20 text-amber-400 border border-amber-500/40">
                         Calibrar
@@ -208,17 +224,32 @@ export const BatteryHeroSection: React.FC = () => {
                 </div>
             )}
 
-            <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
+            <div className={`flex justify-between items-center ${compact ? 'px-4 py-2' : 'px-5 py-3 border-b border-white/5'}`}>
                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em] flex items-center gap-2">
                     <ZapIcon size={10} className="text-amber-400" /> TÚ BATERÍA
-                    <NutritionTooltip content={BATTERIA_TOOLTIP} title="Tú Batería" />
+                    {!compact && <NutritionTooltip content={BATTERIA_TOOLTIP} title="Tú Batería" />}
                 </span>
-                <span className="text-[8px] font-mono text-zinc-600">Sistemas biológicos</span>
+                {!compact && <span className="text-[8px] font-mono text-zinc-600">Sistemas biológicos</span>}
             </div>
 
-            <div className="p-4">
+            <div className={compact ? 'p-4 pt-0' : 'p-4'}>
+                {/* Alertas integradas (batería baja) */}
+                {(lowBatteryAlerts.length > 0 || amberAlerts.length > 0) && (
+                    <div className="mb-3 space-y-1">
+                        {lowBatteryAlerts.map(a => (
+                            <div key={a.label} className="text-[9px] font-mono text-red-400 bg-red-950/30 border border-red-500/20 rounded-lg px-3 py-1.5">
+                                Batería {a.label} baja: {a.val}%
+                            </div>
+                        ))}
+                        {amberAlerts.map(a => (
+                            <div key={a.label} className="text-[9px] font-mono text-amber-400 bg-amber-950/20 border border-amber-500/20 rounded-lg px-3 py-1.5">
+                                Batería {a.label}: {a.val}%
+                            </div>
+                        ))}
+                    </div>
+                )}
                 {/* 3 anillos principales */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className={`grid grid-cols-3 ${compact ? 'gap-2' : 'gap-3'}`}>
                     <BatteryRing
                         id="cns"
                         label="SNC"
@@ -262,6 +293,12 @@ export const BatteryHeroSection: React.FC = () => {
                     />
                 </div>
 
+                {compact && (
+                    <p className="text-[7px] text-zinc-600 mt-2 font-mono">Mantén pulsado para calibrar</p>
+                )}
+
+                {!compact && (
+                <>
                 {/* Desglose consumo (auditLogs) */}
                 <div className="mt-4 pt-4 border-t border-white/5">
                     <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">Consumo reciente</p>
@@ -360,6 +397,8 @@ export const BatteryHeroSection: React.FC = () => {
                 </div>
 
                 <p className="text-[7px] text-zinc-600 mt-2 font-mono">Mantén pulsado un anillo para calibrar</p>
+                </>
+                )}
             </div>
         </div>
     );

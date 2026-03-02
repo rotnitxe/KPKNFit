@@ -56,9 +56,9 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
         (isSkipped ? 'opacity-60 border-slate-600 bg-slate-800/50' : '')
       }
       style={{
-        borderColor: isSkipped ? '#475569' : (isActive ? color : `${color}40`),
-        backgroundColor: isSkipped ? 'rgba(30,41,59,0.5)' : (isActive ? `${color}15` : 'rgba(15,23,42,0.8)'),
-        boxShadow: isActive && !isSkipped ? `0 0 24px ${color}50, 0 0 48px ${color}25` : undefined,
+        borderColor: isSkipped ? '#475569' : (isActive ? color : `${color}50`),
+        backgroundColor: isSkipped ? 'rgba(30,41,59,0.5)' : (isActive ? `${color}12` : 'rgba(15,23,42,0.9)'),
+        boxShadow: isActive && !isSkipped ? `0 0 6px ${color}20` : undefined,
       }}
     >
       <span className={'text-xs font-bold text-center line-clamp-2 leading-tight ' + (isSkipped ? 'text-slate-500' : 'text-white')}>

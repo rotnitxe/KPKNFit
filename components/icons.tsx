@@ -36,6 +36,13 @@ export const PlusCircleIcon: React.FC<IconProps> = ({ size = 20, className = '',
 );
 export const HomeIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>;
 
+/** Icono anillo — para tab Tú (batería/estado) */
+export const RingIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <circle cx="12" cy="12" r="9" />
+    </svg>
+);
+
 // Rediseñado para mayor simetría y estética profesional
 export const SettingsIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
@@ -103,6 +110,27 @@ export const Wand2Icon: React.FC<IconProps> = ({ size = 20, className = '', stro
 export const CheckIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><polyline points="20 6 9 17 4 12"/></svg>;
 export const BodyIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
 export const UtensilsIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Z"/></svg>;
+
+/** Icono plato — para tab Nutrición */
+export const PlateIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="12" r="5" strokeOpacity="0.4" />
+    </svg>
+);
+
+/** Icono WikiLab — W en Times New Roman */
+export const WikiLabIcon: React.FC<IconProps & { size?: number }> = ({ size = 20, className = '', ...props }) => (
+    <span
+        role="img"
+        aria-label="WikiLab"
+        className={`inline-flex items-center justify-center font-bold ${className}`}
+        style={{ fontFamily: 'Times New Roman, Times, serif', fontSize: size * 0.9, lineHeight: 1 }}
+        {...props}
+    >
+        W
+    </span>
+);
 export const SearchIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
 export const ClipboardListIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>;
 export const ClipboardPlusIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><path d="M16 2.5a2.5 2.5 0 0 1 3 3L11 14l-4 1 1-4Z"/><path d="M15 5.5 18.5 9"/><path d="M12.5 11.5 8 7"/><path d="M9 11a7 7 0 0 0 0 10h6a7 7 0 0 0 7-7V9"/><path d="M18 15v6"/><path d="M15 18h6"/></svg>;

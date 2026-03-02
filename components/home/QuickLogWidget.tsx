@@ -47,15 +47,17 @@ export const QuickLogWidget: React.FC = () => {
             icon: UtensilsIcon,
             completed: hasNutritionToday,
             onClick: () => setIsNutritionLogModalOpen(true),
-            color: 'orange',
+            color: 'emerald',
         },
     ];
 
     const colorClasses: Record<string, { border: string; icon: string }> = {
         sky: { border: 'border-sky-500/30 hover:border-sky-400/50', icon: 'text-sky-400' },
         indigo: { border: 'border-indigo-500/30 hover:border-indigo-400/50', icon: 'text-indigo-400' },
-        orange: { border: 'border-cyber-copper/30 hover:border-cyber-copper/50', icon: 'text-cyber-copper' },
+        emerald: { border: 'border-emerald-500/30 hover:border-emerald-400/50', icon: 'text-emerald-400' },
     };
+
+    const allEmpty = !hasWeightToday && !hasSleepToday && !hasNutritionToday;
 
     return (
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
@@ -64,6 +66,18 @@ export const QuickLogWidget: React.FC = () => {
                     Quick Log
                 </span>
             </div>
+            {allEmpty ? (
+                <div className="p-4">
+                    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-white/[0.02] border border-white/5 min-h-[44px]">
+                        <span className="text-[9px] text-zinc-500 font-bold uppercase">Añade datos</span>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setIsBodyLogModalOpen(true)} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Peso</button>
+                            <button onClick={() => navigateTo('sleep')} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Sueño</button>
+                            <button onClick={() => setIsNutritionLogModalOpen(true)} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Nutrición</button>
+                        </div>
+                    </div>
+                </div>
+            ) : (
             <div className="p-4 grid grid-cols-3 gap-3">
                 {tiles.map(({ id, label, icon: Icon, completed, onClick, color }) => {
                     const cc = colorClasses[color];
@@ -91,6 +105,7 @@ export const QuickLogWidget: React.FC = () => {
                     );
                 })}
             </div>
+            )}
         </div>
     );
 };

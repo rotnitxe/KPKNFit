@@ -213,7 +213,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                                     )}
                                     {portion.volumeRecommendations && (
                                         <p className="text-xs text-slate-500 mt-2">
-                                            MEV: {portion.volumeRecommendations.mev} · MAV: {portion.volumeRecommendations.mav} · MRV: {portion.volumeRecommendations.mrv}
+                                            Mín: {portion.volumeRecommendations.mev} · Ópt: {portion.volumeRecommendations.mav} · Máx: {portion.volumeRecommendations.mrv}
                                         </p>
                                     )}
                                 </div>
@@ -293,9 +293,9 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                  <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Volumen Semanal Recomendado (series)</h3>
                     <div className="grid grid-cols-3 gap-2 text-center">
-                        <div><p className="text-xl font-mono font-bold text-green-400">{muscleInfo.volumeRecommendations.mev}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">MEV</p></div>
-                        <div><p className="text-xl font-mono font-bold text-yellow-400">{muscleInfo.volumeRecommendations.mav}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">MAV</p></div>
-                        <div><p className="text-xl font-mono font-bold text-red-400">{muscleInfo.volumeRecommendations.mrv}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">MRV</p></div>
+                        <div><p className="text-xl font-mono font-bold text-green-400">{muscleInfo.volumeRecommendations.mev}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">Mínimo</p></div>
+                        <div><p className="text-xl font-mono font-bold text-yellow-400">{muscleInfo.volumeRecommendations.mav}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">Óptimo</p></div>
+                        <div><p className="text-xl font-mono font-bold text-red-400">{muscleInfo.volumeRecommendations.mrv}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">Máximo</p></div>
                     </div>
                 </div>
                 

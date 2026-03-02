@@ -24,12 +24,13 @@ interface ExerciseRowProps {
     onOpenExerciseModal?: (partIndex: number, exerciseIndex: number) => void;
     scrollRef?: (el: HTMLDivElement | null) => void;
     dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
+    weightUnit?: string;
 }
 
 const ExerciseRow: React.FC<ExerciseRowProps> = ({
     exercise, exerciseIndex, partIndex, exerciseList, isCulprit,
     isExpertMode, fatigue, augeSuggestion, onUpdate, onRemove, onReorder,
-    onLink, onUnlink, onAmrapToggle, onOpenExerciseModal, scrollRef, dragHandleProps,
+    onLink, onUnlink, onAmrapToggle, onOpenExerciseModal, scrollRef, dragHandleProps, weightUnit = 'kg',
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [showSwipeHint, setShowSwipeHint] = useState(false);
@@ -427,6 +428,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         onAmrapToggle={onAmrapToggle ? (setIdx) => onAmrapToggle(partIndex, exerciseIndex, setIdx) : undefined}
                         reference1RM={effectiveReference1RM}
                         onFirstAddSet={() => { try { if (!localStorage.getItem('kpkn_seen_swipe_delete_hint')) setShowSwipeHint(true); } catch (_) {} }}
+                        weightUnit={weightUnit}
                     />
                     {showSwipeHint && <SwipeDeleteHintModal onClose={() => setShowSwipeHint(false)} />}
                 </div>

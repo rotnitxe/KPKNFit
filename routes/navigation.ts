@@ -47,6 +47,8 @@ export function viewToPath(view: View, data?: any): string {
         case 'chain-detail': return `/kpkn/chain/${data?.chainId || '_'}`;
         case 'muscle-category': return `/kpkn/category/${encodeURIComponent(data?.categoryName || '_')}`;
         case 'body-lab': return '/body-lab';
+        case 'body-progress': return '/body-progress';
+        case 'home-card-page': return `/card/${data?.cardType || 'exercise-history'}`;
         case 'mobility-lab': return '/mobility-lab';
         case 'ai-art-studio': return '/ai-art-studio';
         case 'training-purpose': return '/training-purpose';

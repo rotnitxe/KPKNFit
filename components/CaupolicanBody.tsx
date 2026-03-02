@@ -8,7 +8,7 @@ export const CaupolicanBody: React.FC<{
     isPowerlifting?: boolean,
     focusedMuscle?: string | null,
     discomforts?: {name: string, count: number}[],
-    onMuscleClick?: (muscle: string, x: number, y: number) => void // NUEVO: Músculo y coordenadas
+    onMuscleClick?: (muscle: string, x?: number, y?: number) => void
 }> = ({ data, isPowerlifting, focusedMuscle, discomforts = [], onMuscleClick }) => {
     const [view, setView] = useState<'front' | 'back'>('front');
 
@@ -28,7 +28,8 @@ export const CaupolicanBody: React.FC<{
         return '#0088ff';
     };
 
-    const HeatZone = ({ top, left, width, height, muscle }: any) => {
+    const toStyleVal = (v: number | string) => typeof v === 'string' ? v : `${v}%`;
+    const HeatZone = ({ top, left, width, height, muscle }: { top?: number | string; left?: number | string; width?: number | string; height?: number | string; muscle: string }) => {
         const color = getHeatColor(muscle);
         if (!color) return null;
         
@@ -39,12 +40,13 @@ export const CaupolicanBody: React.FC<{
             <div 
                 // Capturamos el clic y pasamos las coordenadas de la pantalla (clientX/Y)
                 onClick={(e) => onMuscleClick && onMuscleClick(muscle, e.clientX, e.clientY)}
-                className={`absolute rounded-full filter blur-md transition-all duration-300 cursor-pointer hover:scale-125 pointer-events-auto ${isFocused ? 'animate-pulse scale-110 z-20' : ''}`}
+                className={`absolute rounded-full filter blur-[8.6px] transition-all duration-300 cursor-pointer hover:scale-125 pointer-events-auto ${isFocused ? 'animate-pulse scale-110 z-20' : ''}`}
                 style={{ 
-                    top: `${top}%`, left: `${left}%`, width: `${width}%`, height: `${height}%`,
+                    top: toStyleVal(top ?? 0), left: toStyleVal(left ?? 0), width: toStyleVal(width ?? 0), height: toStyleVal(height ?? 0),
                     backgroundColor: color, 
-                    opacity: isFaded ? 0.1 : (isFocused ? 0.95 : 0.8), 
-                    zIndex: isFocused ? 20 : 10 
+                    opacity: isFaded ? 0.1 : (isFocused ? 0.95 : 1), 
+                    zIndex: isFocused ? 20 : 10,
+                    borderRadius: '7691px'
                 }}
             />
         );
@@ -100,20 +102,20 @@ export const CaupolicanBody: React.FC<{
                                 <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-zinc-700 rounded-[20px]"></div>
                             </div>
                             <div className="absolute inset-0 z-10 p-8">
-                                <HeatZone top={22} left={32} width={15} height={6} muscle="Pectoral" />
-                                <HeatZone top={22} left={53} width={15} height={6} muscle="Pectoral" />
-                                <HeatZone top={34} left={42} width={16} height={12} muscle="Abdomen" />
-                                <HeatZone top={50} left={28} width={15} height={15} muscle="Cuádriceps" />
-                                <HeatZone top={50} left={57} width={15} height={15} muscle="Cuádriceps" />
+                                <HeatZone top="148px" left="92px" width="33px" height="37px" muscle="Pectoral" />
+                                <HeatZone top="147px" left="133px" width="36px" height="34px" muscle="Pectoral" />
+                                <HeatZone top="190px" left="103px" width="59px" height="55px" muscle="Abdomen" />
+                                <HeatZone top="278px" left="84px" width={15} height={15} muscle="Cuádriceps" />
+                                <HeatZone top="281px" left="145px" width="29px" height={15} muscle="Cuádriceps" />
                                 {/* Deltoides: hombros, centrados en la masa del hombro */}
-                                <HeatZone top={20} left={18} width={16} height={12} muscle="Deltoides" />
-                                <HeatZone top={20} left={66} width={16} height={12} muscle="Deltoides" />
+                                <HeatZone top="133px" left="61px" width="19px" height="38px" muscle="Deltoides" />
+                                <HeatZone top="139px" left="176px" width="21px" height="27px" muscle="Deltoides" />
                                 {/* Bíceps: parte superior del brazo (entre hombro y codo) */}
-                                <HeatZone top={22} left={14} width={10} height={14} muscle="Bíceps" />
-                                <HeatZone top={22} left={76} width={10} height={14} muscle="Bíceps" />
+                                <HeatZone top="175px" left="58px" width="23px" height="39px" muscle="Bíceps" />
+                                <HeatZone top="177px" left="177px" width="33px" height="46px" muscle="Bíceps" />
                                 {/* Antebrazo: entre codo y muñeca */}
-                                <HeatZone top={34} left={10} width={8} height={14} muscle="Antebrazo" />
-                                <HeatZone top={34} left={82} width={8} height={14} muscle="Antebrazo" />
+                                <HeatZone top="212px" left="49px" width="21px" height="53px" muscle="Antebrazo" />
+                                <HeatZone top="217px" left="190px" width="21px" height="53px" muscle="Antebrazo" />
                             </div>
                             <div className="absolute inset-0 z-[15] p-8">{renderDiscomforts('front')}</div>
                             <div className="absolute inset-0 z-20 p-8 flex items-center justify-center opacity-100 pointer-events-none"><CaupolicanA /></div>
@@ -136,25 +138,25 @@ export const CaupolicanBody: React.FC<{
                                 <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-zinc-700 rounded-[20px]"></div>
                             </div>
                             <div className="absolute inset-0 z-10 p-8">
-                                <HeatZone top={26} left={25} width={50} height={18} muscle="Dorsal" />
+                                <HeatZone top="167px" left="92px" width="46px" height="24px" muscle="Dorsal" />
                                 {/* Trapecio: espalda alta, entre hombros (no en cuello/cabeza) */}
-                                <HeatZone top={28} left={38} width={24} height={12} muscle="Trapecio" />
-                                <HeatZone top={42} left={42} width={16} height={8} muscle="Espalda Baja" />
+                                <HeatZone top="-53px" left="328px" width={24} height="25px" muscle="Trapecio" />
+                                <HeatZone top="210px" left="108px" width={16} height={8} muscle="Espalda Baja" />
                                 {/* Glúteos: zona glútea (encima de isquios) */}
-                                <HeatZone top={38} left={28} width={18} height={12} muscle="Glúteos" />
-                                <HeatZone top={38} left={54} width={18} height={12} muscle="Glúteos" />
+                                <HeatZone top="257px" left="134px" width={18} height={68} muscle="Glúteos" />
+                                <HeatZone top="251px" left="85px" width="43px" height="39px" muscle="Glúteos" />
                                 {/* Isquiosurales: parte posterior del muslo (entre glúteo y rodilla) */}
-                                <HeatZone top={52} left={26} width={14} height={18} muscle="Isquiosurales" />
-                                <HeatZone top={52} left={60} width={14} height={18} muscle="Isquiosurales" />
+                                <HeatZone top="304px" left="80px" width="42px" height="75px" muscle="Isquiosurales" />
+                                <HeatZone top="303px" left="142px" width={14} height={18} muscle="Isquiosurales" />
                                 {/* Gemelos/Pantorrillas: parte baja de la pierna */}
-                                <HeatZone top={78} left={28} width={12} height={14} muscle="Gemelos" />
-                                <HeatZone top={78} left={60} width={12} height={14} muscle="Gemelos" />
+                                <HeatZone top="390px" left="78px" width={12} height={14} muscle="Gemelos" />
+                                <HeatZone top="394px" left="151px" width={12} height={14} muscle="Gemelos" />
                                 {/* Tríceps: parte superior del brazo posterior */}
-                                <HeatZone top={22} left={14} width={10} height={14} muscle="Tríceps" />
-                                <HeatZone top={22} left={76} width={10} height={14} muscle="Tríceps" />
+                                <HeatZone top="167px" left="58px" width="27px" height="44px" muscle="Tríceps" />
+                                <HeatZone top="168px" left="179px" width="27px" height="44px" muscle="Tríceps" />
                                 {/* Deltoides posterior: hombros */}
-                                <HeatZone top={20} left={18} width={16} height={12} muscle="Deltoides" />
-                                <HeatZone top={20} left={66} width={16} height={12} muscle="Deltoides" />
+                                <HeatZone top="133px" left="61px" width="19px" height="38px" muscle="Deltoides" />
+                                <HeatZone top="139px" left="176px" width="21px" height="27px" muscle="Deltoides" />
                             </div>
                             <div className="absolute inset-0 z-[15] p-8">{renderDiscomforts('back')}</div>
                             <div className="absolute inset-0 z-20 p-8 flex items-center justify-center opacity-100 pointer-events-none"><CaupolicanB /></div>

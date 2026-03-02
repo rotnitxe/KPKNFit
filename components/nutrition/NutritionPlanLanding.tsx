@@ -9,7 +9,7 @@ interface NutritionPlanLandingProps {
 }
 
 const HOW_IT_WORKS = [
-    { step: 1, title: 'Objetivo y datos', desc: 'Define si buscas definición, mantención o superávit. Conecta con AUGE y añade tus datos corporales.' },
+    { step: 1, title: 'Objetivo y datos', desc: 'Define si buscas definición, mantención o superávit. Conecta con la batería muscular y añade tus datos corporales.' },
     { step: 2, title: 'Actividad y preferencias', desc: 'Nivel de actividad, condiciones metabólicas y preferencia dietética (omnívoro, vegetariano, vegano).' },
     { step: 3, title: 'Desglose y macros', desc: 'Revisa TMB, TDEE, ajusta macros y guarda. Todo editable después en el editor de plan.' },
 ];
@@ -17,7 +17,7 @@ const HOW_IT_WORKS = [
 const BENEFITS = [
     'Calorías ajustadas a tu objetivo',
     'Macros personalizados (P/C/G)',
-    'Conectado con la batería AUGE',
+    'Conectado con la batería muscular',
     'Editor de plan para cambios futuros',
 ];
 

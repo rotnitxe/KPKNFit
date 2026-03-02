@@ -1,3 +1,7 @@
+/**
+ * @deprecated Eliminado del flujo del wizard. Las sesiones se crean en ProgramDetail.
+ * Este componente ya no se exporta ni se usa.
+ */
 import React from 'react';
 import { Session, ExerciseMuscleInfo } from '../../types';
 import { EditIcon, DumbbellIcon, ChevronUpIcon, ChevronDownIcon } from '../icons';

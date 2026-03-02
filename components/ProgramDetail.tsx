@@ -4,13 +4,12 @@ import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon, TrashIcon } from './ic
 import { useAppContext } from '../contexts/AppContext';
 import { calculateUnifiedMuscleVolume } from '../services/volumeCalculator';
 import InteractiveWeekOverlay from './InteractiveWeekOverlay';
-import SplitChangerDrawer from './program-detail/SplitChangerDrawer';
+import SplitChangerModal from './SplitChangerModal';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 
 import CompactHeroBanner from './program-detail/CompactHeroBanner';
 import TrainingCalendarGrid from './program-detail/TrainingCalendarGrid';
 import AnalyticsDashboard from './program-detail/AnalyticsDashboard';
-import StructureDrawer from './program-detail/StructureDrawer';
 
 interface ProgramDetailProps {
     program: Program;
@@ -33,13 +32,12 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
     const {
         history, settings, setSettings, handleEditSession, handleBack, handleAddSession, isOnline,
         exerciseList, handleStartProgram, handlePauseProgram, handleEditProgram,
-        handleUpdateProgram, handleChangeSplit, addToast, handleStartWorkout,
+        handleUpdateProgram, handleChangeSplit, handleReorderSessions, addToast, handleStartWorkout, postSessionFeedback,
     } = useAppContext();
     const { activeProgramState } = useAppContext();
 
     // ─── State ───
     const [activeTab, setActiveTab] = useState<'training' | 'analytics'>('training');
-    const [isStructureDrawerOpen, setIsStructureDrawerOpen] = useState(false);
     const [isSplitChangerOpen, setIsSplitChangerOpen] = useState(false);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
@@ -202,44 +200,44 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     // ─── Render ───
     return (
-        <div className="fixed inset-0 z-[100] bg-black text-white flex flex-col safe-area-root">
-            {/* Hero Banner */}
-            <CompactHeroBanner
-                program={program}
-                isActive={!!isActiveProgram}
-                isPaused={!!isPausedProgram}
-                onBack={handleBack}
-                onEdit={handleProgramEdit}
-                onStart={() => handleStartProgram(program.id)}
-                onPause={handlePauseProgram}
-                onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
-                onUpdateProgram={handleUpdateProgram}
-                currentWeekIndex={currentWeekIndex}
-                totalWeeks={totalWeeks}
-                totalAdherence={totalAdherence}
-                trainingDaysCount={trainingDaysCount}
-            />
+        <div className="fixed inset-0 z-[100] bg-[#121212] text-white flex flex-col min-h-0">
+            {/* Un único scroll: Hero + Tabs + Contenido */}
+            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+                <CompactHeroBanner
+                    program={program}
+                    isActive={!!isActiveProgram}
+                    isPaused={!!isPausedProgram}
+                    onBack={handleBack}
+                    onEdit={handleProgramEdit}
+                    onStart={() => handleStartProgram(program.id)}
+                    onPause={handlePauseProgram}
+                    onUpdateProgram={handleUpdateProgram}
+                    currentWeekIndex={currentWeekIndex}
+                    totalWeeks={totalWeeks}
+                    totalAdherence={totalAdherence}
+                    trainingDaysCount={trainingDaysCount}
+                />
 
-            {/* Tabs: Entrenamiento | Analytics */}
-            <div className="flex border-b border-white/5 shrink-0">
-                <button
-                    onClick={() => setActiveTab('training')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'training' ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#48484A]'}`}
-                >
-                    Entrenamiento
-                </button>
-                <button
-                    onClick={() => setActiveTab('analytics')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'analytics' ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#48484A]'}`}
-                >
-                    Analytics
-                </button>
-            </div>
+                {/* Tabs: Entrenamiento | Analytics */}
+                <div className="flex border-b border-white/10 bg-[#1a1a1a]">
+                    <button
+                        onClick={() => setActiveTab('training')}
+                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest text-center transition-colors ${activeTab === 'training' ? 'text-white border-b-2 border-white/30' : 'text-zinc-500'}`}
+                    >
+                        Entrenar
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('analytics')}
+                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest text-center transition-colors ${activeTab === 'analytics' ? 'text-white border-b-2 border-white/30' : 'text-zinc-500'}`}
+                    >
+                        Analytics
+                    </button>
+                </div>
 
-            {/* Split view (desktop) / Tab content (mobile) */}
-            <div className="flex-1 flex overflow-hidden min-h-0">
+                {/* Contenido: Training y/o Analytics */}
+                <div className="flex flex-col sm:flex-row sm:items-start bg-[#121212] min-h-0">
                 {/* Training panel */}
-                <div className={`flex-1 flex flex-col min-h-0 overflow-hidden bg-black ${activeTab !== 'training' ? 'hidden sm:flex' : ''}`} style={{ minWidth: 0 }}>
+                <div className={`flex-1 w-full max-w-md mx-auto ${activeTab !== 'training' ? 'hidden sm:block' : ''}`} style={{ minWidth: 0 }}>
                     <TrainingCalendarGrid
                         program={program}
                         isCyclic={isCyclic}
@@ -254,17 +252,26 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                         onSelectBlock={setSelectedBlockId}
                         onSelectWeek={setSelectedWeekId}
                         onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
-                        onOpenStructureDrawer={() => setIsStructureDrawerOpen(true)}
+                        onUpdateProgram={handleUpdateProgram}
+                        onEditWeek={setEditingWeekInfo}
+                        onShowAdvancedTransition={() => setShowAdvancedTransition(true)}
+                        onShowSimpleTransition={() => setShowSimpleTransition(true)}
+                        onOpenEventModal={(data) => {
+                            if (data) setNewEventData(data);
+                            else setNewEventData({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' });
+                            setIsEventModalOpen(true);
+                        }}
                         onStartWorkout={handleStartWorkout}
                         onEditSession={onEditSessionClick}
                         onDeleteSession={onDeleteSessionHandler}
+                        onReorderSessions={handleReorderSessions}
                         onAddSession={handleAddSession}
                         addToast={addToast}
                     />
                 </div>
 
                 {/* Analytics panel */}
-                <div className={`sm:w-[40%] sm:max-w-[480px] sm:min-w-[320px] sm:border-l sm:border-white/5 bg-[#111] min-h-0 overflow-hidden flex flex-col ${activeTab !== 'analytics' ? 'hidden sm:flex' : ''}`}>
+                <div className={`sm:w-[40%] sm:max-w-[480px] sm:min-w-[320px] sm:border-l sm:border-white/10 bg-[#121212] ${activeTab !== 'analytics' ? 'hidden sm:block' : ''}`}>
                     <AnalyticsDashboard
                         program={program}
                         history={history}
@@ -284,32 +291,13 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                         setSettings={setSettings}
                         onUpdateProgram={handleUpdateProgram}
                         addToast={addToast}
+                        postSessionFeedback={postSessionFeedback}
                     />
+                </div>
                 </div>
             </div>
 
-            {/* ═══ Drawers & Modals ═══ */}
-
-            <StructureDrawer
-                isOpen={isStructureDrawerOpen}
-                onClose={() => setIsStructureDrawerOpen(false)}
-                program={program}
-                isCyclic={isCyclic}
-                selectedBlockId={selectedBlockId}
-                selectedWeekId={selectedWeekId}
-                onSelectBlock={setSelectedBlockId}
-                onSelectWeek={(id) => { setSelectedWeekId(id); setIsStructureDrawerOpen(false); }}
-                onUpdateProgram={handleUpdateProgram}
-                onEditWeek={setEditingWeekInfo}
-                onShowAdvancedTransition={() => { setIsStructureDrawerOpen(false); setShowAdvancedTransition(true); }}
-                onShowSimpleTransition={() => { setIsStructureDrawerOpen(false); setShowSimpleTransition(true); }}
-                onOpenEventModal={(data) => {
-                    setIsStructureDrawerOpen(false);
-                    if (data) setNewEventData(data);
-                    else setNewEventData({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' });
-                    setIsEventModalOpen(true);
-                }}
-            />
+            {/* ═══ Modals ═══ */}
 
             {/* Week Overlay */}
             {editingWeekInfo && (
@@ -348,17 +336,17 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setIsEventModalOpen(false)}>
                     <div className="bg-[#1a1a1a] border border-white/10 w-full max-w-sm rounded-xl p-5 shadow-2xl relative" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setIsEventModalOpen(false)} className="absolute top-3 right-3 text-[#48484A] hover:text-white"><XIcon size={14} /></button>
-                        <h2 className="text-sm font-bold text-white uppercase tracking-wide mb-4 flex items-center gap-2"><CalendarIcon size={16} className="text-[#00F0FF]" /> Evento</h2>
+                        <h2 className="text-sm font-bold text-white uppercase tracking-wide mb-4 flex items-center gap-2"><CalendarIcon size={16} className="text-zinc-400" /> Evento</h2>
                         <div className="space-y-4">
                             <div>
                                 <label className="text-[10px] text-[#8E8E93] font-bold block mb-1">Nombre</label>
-                                <input type="text" value={newEventData.title} onChange={e => setNewEventData({ ...newEventData, title: e.target.value })} placeholder="Ej: Prueba 1RM" className="w-full bg-black border border-white/10 rounded-lg p-3 text-white text-xs font-bold focus:border-[#00F0FF] focus:ring-0 transition-colors" />
+                                <input type="text" value={newEventData.title} onChange={e => setNewEventData({ ...newEventData, title: e.target.value })} placeholder="Ej: Prueba 1RM" className="w-full bg-black border border-white/10 rounded-lg p-3 text-white text-xs font-bold focus:border-white/30 focus:ring-0 transition-colors" />
                             </div>
                             {isCyclic ? (
                                 <div>
                                     <label className="text-[10px] text-[#8E8E93] font-bold block mb-1">Cada cuántos ciclos</label>
                                     <div className="flex items-center gap-3">
-                                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={newEventData.repeatEveryXCycles} onChange={e => setNewEventData({ ...newEventData, repeatEveryXCycles: e.target.value === '' ? '' as any : parseInt(e.target.value) })} className="w-24 bg-black border border-white/10 rounded-lg p-3 text-white text-center text-xs font-bold focus:border-[#00F0FF] focus:ring-0" />
+                                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={newEventData.repeatEveryXCycles} onChange={e => setNewEventData({ ...newEventData, repeatEveryXCycles: e.target.value === '' ? '' as any : parseInt(e.target.value) })} className="w-24 bg-black border border-white/10 rounded-lg p-3 text-white text-center text-xs font-bold focus:border-white/30 focus:ring-0" />
                                         <span className="text-[10px] text-[#8E8E93] font-bold">Ciclos</span>
                                     </div>
                                 </div>
@@ -367,7 +355,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                     <label className="text-[10px] text-[#8E8E93] font-bold block mb-1">Semana</label>
                                     <div className="flex items-center gap-3">
                                         <span className="text-[10px] text-[#8E8E93] font-bold">Semana</span>
-                                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={newEventData.calculatedWeek === -1 ? '' : newEventData.calculatedWeek + 1} onChange={e => setNewEventData({ ...newEventData, calculatedWeek: e.target.value === '' ? -1 : (parseInt(e.target.value) || 1) - 1 })} className="w-24 bg-black border border-white/10 rounded-lg p-3 text-white text-center text-xs font-bold focus:border-[#00F0FF] focus:ring-0" />
+                                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={newEventData.calculatedWeek === -1 ? '' : newEventData.calculatedWeek + 1} onChange={e => setNewEventData({ ...newEventData, calculatedWeek: e.target.value === '' ? -1 : (parseInt(e.target.value) || 1) - 1 })} className="w-24 bg-black border border-white/10 rounded-lg p-3 text-white text-center text-xs font-bold focus:border-white/30 focus:ring-0" />
                                     </div>
                                 </div>
                             )}
@@ -404,7 +392,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                     if (handleUpdateProgram) handleUpdateProgram(updated);
                                     setIsEventModalOpen(false);
                                     addToast(newEventData.id ? 'Evento actualizado' : 'Evento creado', 'success');
-                                }} className="flex-1 bg-[#00F0FF] text-white font-bold text-xs py-3 rounded-lg hover:brightness-110 transition-all">
+                                }} className="flex-1 bg-white text-black font-bold text-xs py-3 rounded-lg hover:bg-white/90 transition-all">
                                     Guardar
                                 </button>
                             </div>
@@ -418,7 +406,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowAdvancedTransition(false)}>
                     <div className="bg-[#1a1a1a] border border-white/10 w-full max-w-md rounded-xl p-6 shadow-2xl relative" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setShowAdvancedTransition(false)} className="absolute top-4 right-4 text-[#48484A] hover:text-white"><XIcon size={14} /></button>
-                        <h2 className="text-base font-bold text-white uppercase tracking-wide mb-2 flex items-center gap-2"><ActivityIcon className="text-[#00F0FF]" /> Transición a Avanzado</h2>
+                        <h2 className="text-base font-bold text-white uppercase tracking-wide mb-2 flex items-center gap-2"><ActivityIcon className="text-zinc-400" /> Transición a Avanzado</h2>
                         <p className="text-xs text-[#8E8E93] mb-6 leading-relaxed">Convierte tu bucle en <span className="text-white font-bold">Periodización por Bloques</span>.</p>
                         <div className="space-y-3">
                             <button onClick={() => {
@@ -429,7 +417,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 updated.macrocycles[0].blocks.push({ id: crypto.randomUUID(), name: 'Nuevo Bloque', mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación', weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }] }] });
                                 if (handleUpdateProgram) handleUpdateProgram(updated);
                                 setShowAdvancedTransition(false); addToast('Programa convertido.', 'success');
-                            }} className="w-full text-left p-4 rounded-xl bg-white/5 hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/30 border border-white/5 transition-all">
+                            }} className="w-full text-left p-4 rounded-xl bg-white/5 hover:bg-white/10 hover:border-white/20 border border-white/5 transition-all">
                                 <h4 className="text-xs font-bold text-white">Bloque en Blanco</h4>
                                 <p className="text-[10px] text-[#8E8E93] mt-0.5">Crear bloque vacío para empezar.</p>
                             </button>
@@ -441,7 +429,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 updated.macrocycles[0].blocks.push({ id: crypto.randomUUID(), name: 'Bloque de Intensificación', mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Peaking', goal: 'Intensificación', weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }, { id: crypto.randomUUID(), name: 'Semana 2', sessions: [] }] }] });
                                 if (handleUpdateProgram) handleUpdateProgram(updated);
                                 setShowAdvancedTransition(false); addToast('Plantilla de fuerza aplicada.', 'success');
-                            }} className="w-full text-left p-4 rounded-xl bg-white/5 hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/30 border border-white/5 transition-all">
+                            }} className="w-full text-left p-4 rounded-xl bg-white/5 hover:bg-white/10 hover:border-white/20 border border-white/5 transition-all">
                                 <h4 className="text-xs font-bold text-white">Plantilla de Fuerza</h4>
                                 <p className="text-[10px] text-[#8E8E93] mt-0.5">Acumulación + Intensificación pre-configurados.</p>
                             </button>
@@ -464,7 +452,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 updated.macrocycles = [{ id: crypto.randomUUID(), name: 'Macrociclo', blocks: [{ id: crypto.randomUUID(), name: 'BLOQUE CÍCLICO', mesocycles: [{ id: crypto.randomUUID(), name: 'Ciclo Base', goal: 'Custom', weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }] }] }] }];
                                 if (handleUpdateProgram) handleUpdateProgram(updated);
                                 setShowSimpleTransition(false); addToast('Programa simplificado.', 'success');
-                            }} className="w-full text-left p-3 rounded-xl border border-dashed border-white/10 hover:border-[#00F0FF]/30 transition-all">
+                            }} className="w-full text-left p-3 rounded-xl border border-dashed border-white/10 hover:border-white/20 transition-all">
                                 <h4 className="text-xs font-bold text-white">Semana en Blanco</h4>
                                 <p className="text-[10px] text-[#8E8E93]">Empezar desde cero.</p>
                             </button>
@@ -475,7 +463,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                     updated.macrocycles = [{ id: crypto.randomUUID(), name: 'Macrociclo', blocks: [{ id: crypto.randomUUID(), name: 'BLOQUE CÍCLICO', mesocycles: [{ id: crypto.randomUUID(), name: 'Ciclo Base', goal: 'Custom', weeks: [{ ...week, id: crypto.randomUUID(), name: 'Semana 1' }] }] }] }];
                                     if (handleUpdateProgram) handleUpdateProgram(updated);
                                     setShowSimpleTransition(false); addToast(`Usando: ${week.label}`, 'success');
-                                }} className="w-full text-left p-3 rounded-xl bg-white/5 border border-white/5 hover:border-[#00F0FF]/30 transition-all">
+                                }} className="w-full text-left p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/20 transition-all">
                                     <h4 className="text-xs font-bold text-white truncate">{week.label}</h4>
                                     <p className="text-[10px] text-[#8E8E93]">{(week.sessions || []).length} sesiones</p>
                                 </button>
@@ -489,10 +477,10 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
             {tourStep > 0 && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md px-4">
                     <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 max-w-sm w-full shadow-2xl relative text-center">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-[#00F0FF] rounded-t-xl" />
-                        <div className="w-14 h-14 mx-auto bg-[#00F0FF]/10 rounded-xl flex items-center justify-center mb-4">
-                            {tourStep === 1 && <DumbbellIcon size={24} className="text-[#00F0FF]" />}
-                            {tourStep === 2 && <ActivityIcon size={24} className="text-[#00F0FF]" />}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-white/30 rounded-t-xl" />
+                        <div className="w-14 h-14 mx-auto bg-white/5 rounded-xl flex items-center justify-center mb-4">
+                            {tourStep === 1 && <DumbbellIcon size={24} className="text-white" />}
+                            {tourStep === 2 && <ActivityIcon size={24} className="text-white" />}
                         </div>
                         <h3 className="text-base font-bold text-white uppercase mb-2">
                             {tourStep === 1 ? 'Entrenamiento' : 'Analytics'}
@@ -504,13 +492,13 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                         <div className="flex justify-between items-center border-t border-white/5 pt-4">
                             <div className="flex gap-1.5">
                                 {[1, 2].map(step => (
-                                    <div key={step} className={`w-2 h-2 rounded-full ${tourStep === step ? 'bg-[#00F0FF]' : 'bg-white/10'}`} />
+                                    <div key={step} className={`w-2 h-2 rounded-full ${tourStep === step ? 'bg-white' : 'bg-white/10'}`} />
                                 ))}
                             </div>
                             <button onClick={() => {
                                 if (tourStep < 2) setTourStep(prev => prev + 1);
                                 else { setTourStep(0); localStorage.setItem(`kpkn_tour_seen_${program.id}`, 'true'); }
-                            }} className="bg-[#00F0FF] text-white px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wide hover:brightness-110 transition-all">
+                            }} className="bg-white text-black px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wide hover:bg-white/90 transition-all">
                                 {tourStep < 2 ? 'Siguiente' : '¡Listo!'}
                             </button>
                         </div>
@@ -521,8 +509,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 </div>
             )}
 
-            {/* Split Changer */}
-            <SplitChangerDrawer
+            {/* Split Changer - modal integrado */}
+            <SplitChangerModal
                 isOpen={isSplitChangerOpen}
                 onClose={() => setIsSplitChangerOpen(false)}
                 currentSplitId={program.selectedSplitId}

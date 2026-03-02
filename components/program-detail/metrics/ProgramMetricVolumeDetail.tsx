@@ -17,7 +17,7 @@ const ProgramMetricVolumeDetail: React.FC<ProgramMetricVolumeDetailProps> = ({
     <ProgramMetricDetailLayout title="Volumen D/I">
         <div className="space-y-6">
             <p className="text-[11px] text-[#8E8E93]">
-                Sets directos vs indirectos por grupo muscular. MEV/MAV/MRV y tendencia semanal.
+                Sets directos vs indirectos por grupo muscular. Rangos recomendados y tendencia semanal.
             </p>
             <WorkoutVolumeAnalysis
                 program={program}

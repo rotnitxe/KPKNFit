@@ -1,6 +1,7 @@
 // AppContext.tsx — Thin bridge over Zustand stores (migration layer)
 // Components keep using useAppState/useAppDispatch; internally state lives in Zustand stores.
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { getE2ESeedProgram, getE2ESeedActiveProgramState, shouldSeedE2E } from '../services/e2eSeedService';
 import {
     AppContextState, AppContextDispatch, View, Program, Session, WorkoutLog, SkippedWorkoutLog,
     BodyProgressLog, NutritionLog, Settings, ExerciseMuscleInfo, OngoingWorkoutState,
@@ -100,6 +101,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // ═══════════════════════════════════════════════════════════
     // 3. EFFECTS
     // ═══════════════════════════════════════════════════════════
+    const e2eSeedRan = useRef(false);
+    useEffect(() => {
+        if (!isAppLoading && shouldSeedE2E() && programs.length === 0 && !e2eSeedRan.current) {
+            e2eSeedRan.current = true;
+            setPrograms([getE2ESeedProgram()]);
+            setActiveProgramState(getE2ESeedActiveProgramState());
+        }
+    }, [isAppLoading, programs.length, setPrograms, setActiveProgramState]);
+
     useEffect(() => {
         if (window.history.state === null) {
             routerNavigate('home', undefined, true);
@@ -312,6 +322,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 case 'chain-detail': ui.setViewingChainId(data.chainId); break;
                 case 'muscle-category': ui.setViewingMuscleCategoryName(data.categoryName); break;
                 case 'food-detail': ui.setViewingFoodId(data.foodId); break;
+                case 'home-card-page': if (data?.programId) ui.setActiveProgramId(data.programId); break;
             }
         }
         ui.setView(newView);
@@ -519,6 +530,70 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
     }, [setPrograms, addToast]);
 
+    const handleReorderSessions = useCallback((
+        programId: string,
+        targetBlockId: string,
+        targetWeekId: string,
+        sessionId: string,
+        sessionName: string,
+        fromDayOfWeek: number,
+        toDayOfWeek: number,
+        scope: 'cyclic' | 'block' | 'same-split'
+    ) => {
+        const getSplitSignature = (w: ProgramWeek) =>
+            [...(w.sessions || [])].map(s => s.name).sort().join('|');
+
+        setPrograms(prevPrograms => {
+            const newPrograms = JSON.parse(JSON.stringify(prevPrograms));
+            const program = newPrograms.find((p: Program) => p.id === programId);
+            if (!program) return prevPrograms;
+
+            const block = program.macrocycles?.flatMap(m => m.blocks || []).find((b: Block) => b.id === targetBlockId);
+            if (!block) return prevPrograms;
+
+            const allWeeksInBlock: { week: ProgramWeek; globalIdx: number }[] = [];
+            block.mesocycles.forEach(meso => {
+                meso.weeks.forEach(w => {
+                    allWeeksInBlock.push({ week: w, globalIdx: allWeeksInBlock.length });
+                });
+            });
+
+            const targetIdx = allWeeksInBlock.findIndex(x => x.week.id === targetWeekId);
+            if (targetIdx < 0) return prevPrograms;
+
+            const targetWeek = allWeeksInBlock[targetIdx].week;
+            const firstMeso = block.mesocycles[0];
+            const cycleLength = program.structure === 'simple'
+                ? Math.min(2, firstMeso?.weeks?.length || 2)
+                : Math.max(1, firstMeso?.weeks?.length || allWeeksInBlock.length);
+            const cyclePos = targetIdx % cycleLength;
+            const targetSignature = getSplitSignature(targetWeek);
+
+            const applyToWeek = (w: ProgramWeek) => {
+                const sess = w.sessions.find((s: Session) =>
+                    s.id === sessionId || (s.name === sessionName && (s.dayOfWeek ?? 0) === fromDayOfWeek)
+                );
+                if (!sess) return;
+                sess.dayOfWeek = toDayOfWeek;
+            };
+
+            if (scope === 'cyclic') {
+                allWeeksInBlock.forEach(({ week }, idx) => {
+                    if ((idx % cycleLength) === cyclePos) applyToWeek(week);
+                });
+            } else if (scope === 'same-split') {
+                allWeeksInBlock.forEach(({ week }) => {
+                    if (getSplitSignature(week) === targetSignature) applyToWeek(week);
+                });
+            } else {
+                allWeeksInBlock.forEach(({ week }) => applyToWeek(week));
+            }
+
+            return newPrograms;
+        });
+        addToast('Sesiones reordenadas.', 'success');
+    }, [setPrograms, addToast]);
+
     const handleChangeSplit = useCallback((
         programId: string,
         splitPattern: string[],
@@ -649,34 +724,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
         }
 
-        const startWorkoutFlow = (sessionToBegin: Session, readiness?: OngoingWorkoutState['readiness']) => {
-            const activeMode = weekVariant || 'A';
-            const exercisesForMode = (activeMode === 'A' || !(sessionToBegin as any)[`session${activeMode}`])
-                ? (sessionToBegin.parts && sessionToBegin.parts.length > 0 ? sessionToBegin.parts.flatMap(p => p.exercises) : sessionToBegin.exercises)
-                : ((sessionToBegin as any)[`session${activeMode}`].parts && (sessionToBegin as any)[`session${activeMode}`].parts.length > 0 ? (sessionToBegin as any)[`session${activeMode}`].parts.flatMap((p: any) => p.exercises) : (sessionToBegin as any)[`session${activeMode}`].exercises);
-            const newState: OngoingWorkoutState = {
-                programId: program.id, session: sessionToBegin, startTime: Date.now(),
-                activeExerciseId: exercisesForMode?.[0]?.id || null, activeSetId: exercisesForMode?.[0]?.sets?.[0]?.id || null,
-                activeMode, completedSets: {}, dynamicWeights: {}, exerciseFeedback: {}, unilateralImbalances: {},
-                readiness, isCarpeDiem: isCarpeDiemSession,
-                macroIndex: location?.macroIndex, mesoIndex: location?.mesoIndex, weekId: location?.weekId,
-                isLowEnergyMental: isLowEnergyMental || false,
-            };
-            setOngoingWorkout(newState);
-            ui.setActiveSession(sessionToBegin);
+        ui.setPendingWorkoutAfterBriefing(null);
+        ui.setIsStartWorkoutModalOpen(false);
+
+        // Si es la misma sesión en curso (pausada o app cerrada) → reanudar sin modal
+        const ow = useWorkoutStore.getState().ongoingWorkout;
+        if (ow && ow.programId === program.id && ow.session.id === sessionToStart.id) {
+            setOngoingWorkout(prev => prev ? { ...prev, isPaused: false } : null);
             navigateTo('workout');
             if (settings.hapticFeedbackEnabled) hapticImpact(ImpactStyle.Heavy as any);
-        };
-
-        ui.setPendingWorkoutAfterBriefing(null);
-
-        if (settings.readinessCheckEnabled && !ongoingWorkout) {
-            ui.setPendingWorkoutForReadinessCheck({ session: sessionToStart, program, weekVariant, location });
-            ui.setIsReadinessModalOpen(true);
-        } else {
-            startWorkoutFlow(sessionToStart, ongoingWorkout?.readiness);
+            return;
         }
-    }, [addToast, settings, history, setOngoingWorkout, navigateTo, ongoingWorkout]);
+
+        // Nueva sesión → mostrar ReadinessDrawer (modal pre-entreno)
+        ui.setPendingWorkoutForReadinessCheck({ session: sessionToStart, program, weekVariant, location });
+        ui.setIsReadinessModalOpen(true);
+    }, [addToast, settings, history, navigateTo, setOngoingWorkout]);
 
     const handleUpdateExerciseRepDebt = useCallback((exerciseDbId: string, debtUpdate: Record<string, number>) => {
         setExerciseList(prev => prev.map(ex => ex.id === exerciseDbId ? { ...ex, repDebtHistory: { ...(ex.repDebtHistory || {}), ...debtUpdate } } : ex));
@@ -1149,10 +1212,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         handleCreateProgram, handleEditProgram, handleSelectProgram: (p) => navigateTo('program-detail', { programId: p.id }),
         handleSaveProgram, handleUpdateProgram: handleSaveProgram, handleDeleteProgram,
         handleAddSession, handleEditSession, handleSaveSession, handleUpdateSessionInProgram,
-        handleDeleteSession, handleChangeSplit, handleCopySessionsToMeso, handleStartProgram, handlePauseProgram,
+        handleDeleteSession, handleReorderSessions, handleChangeSplit, handleCopySessionsToMeso, handleStartProgram, handlePauseProgram,
         handleFinishProgram, handleRestartProgram, handleStartWorkout,
         handleResumeWorkout: () => navigateTo('workout'), handleContinueFromReadiness,
-        handleContinueWorkoutAfterBriefing, onCancelWorkout, handlePauseWorkout: () => navigateTo('home'),
+        handleContinueWorkoutAfterBriefing, onCancelWorkout, handlePauseWorkout: () => {
+            setOngoingWorkout(prev => prev ? { ...prev, isPaused: true } : null);
+            navigateTo('home');
+        },
         handleFinishWorkout, handleLogWorkout: (programId, sessionId) => navigateTo('log-workout', { programId, sessionId }),
         handleSaveLoggedWorkout,
         handleSkipWorkout: (session, program, reason, notes) => setSkippedLogs(prev => [...prev, { id: crypto.randomUUID(), date: new Date().toISOString(), programId: program.id, sessionId: session.id, sessionName: session.name, programName: program.name, reason, notes }]),

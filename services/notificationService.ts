@@ -89,12 +89,12 @@ export const setupNotificationChannels = async () => {
   try {
     const { LocalNotifications } = await getLocalNotifications();
     await LocalNotifications.createChannel({
-      id: 'yp_timers',
+      id: 'yp_timers_v2',
       name: 'Temporizadores',
       description: 'Descanso entre series: sonido y vibración',
       importance: 5,
-      visibility: 1,
-      sound: 'rest_beep_final.wav',
+      visibility: 2, // VISIBILITY_PUBLIC: mostrar en pantalla de bloqueo
+      sound: 'rest_beep_final',
       vibration: true,
       lights: true,
     });
@@ -162,7 +162,7 @@ export async function scheduleRestEndNotification(durationSeconds: number): Prom
         title: 'Descanso terminado',
         body: '¡A por la siguiente serie!',
         schedule: { at, allowWhileIdle: true },
-        channelId: 'yp_timers',
+        channelId: 'yp_timers_v2',
       }],
     });
   } catch (e) {

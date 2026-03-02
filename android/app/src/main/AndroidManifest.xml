@@ -74,6 +74,9 @@
     </application>
 
     <!-- Permissions -->
-
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Exact alarm for rest timer when app in background / phone locked -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Android 14+: exact alarms without user prompt (rest timer is core to workout) -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 </manifest>

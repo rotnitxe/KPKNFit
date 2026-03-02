@@ -1,17 +1,12 @@
-
-// components/SettingsComponent.tsx
-import React, { useState, useEffect, useRef } from 'react';
+// components/SettingsComponent.tsx — NERDIUM: Reforma total
+// NOTA: Sección Descanso/Sueño (smartSleepEnabled, workDays, wakeTimeWork/Off, sleepTargetHours) está OCULTA.
+// Los datos se mantienen en types/Settings. Resurgirá en una futura gran reforma.
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Settings, Program, WorkoutLog, BodyProgressLog, NutritionLog, SkippedWorkoutLog, UseGoogleDriveReturn, LocalSnapshot, OneRMFormula, HapticIntensity, View } from '../types';
-import Card from './ui/Card';
-import Button from './ui/Button';
-import { 
-    Volume2Icon, VolumeXIcon, SaveIcon, DownloadIcon, UploadIcon, 
-    CloudIcon, UploadCloudIcon, DownloadCloudIcon, KeyIcon, PaletteIcon, 
-    BellIcon, DumbbellIcon, ChevronRightIcon, PencilIcon, SettingsIcon, 
-    Wand2Icon, ActivityIcon, UtensilsIcon, BrainIcon, FlaskConical,
-    ChevronDownIcon, StarIcon, TrashIcon, PlusCircleIcon, BodyIcon, ImageIcon, TargetIcon, UserBadgeIcon,
-    SparklesIcon, LayersIcon, ClockIcon, ZapIcon, TypeIcon, RefreshCwIcon, CheckIcon, MoonIcon, CalculatorIcon,
-    TrendingUpIcon, ClipboardListIcon, CheckCircleIcon, GridIcon, CalendarIcon
+import {
+    SearchIcon, SaveIcon, DownloadIcon, UploadIcon, BellIcon, DumbbellIcon,
+    ActivityIcon, UtensilsIcon, ClockIcon, ZapIcon, TargetIcon, MoonIcon,
+    CalculatorIcon, ChevronRightIcon, XIcon, RefreshCwIcon, CalendarIcon,
 } from './icons';
 import { storageService } from '../services/storageService';
 import { checkForAppUpdate, performImmediateUpdate } from '../services/appUpdateService';
@@ -23,19 +18,69 @@ import useLocalStorage from '../hooks/useLocalStorage';
 import { getLocalDateString } from '../utils/dateUtils';
 import { captureException } from '../services/sentryService';
 
+const APP_VERSION = '3.2';
+
 interface SettingsProps {
-  settings: Settings;
-  onSettingsChange: (newSettings: Partial<Settings>) => void;
-  setPrograms: React.Dispatch<React.SetStateAction<Program[]>>;
-  setHistory: React.Dispatch<React.SetStateAction<WorkoutLog[]>>;
-  setSkippedLogs: React.Dispatch<React.SetStateAction<SkippedWorkoutLog[]>>;
-  setBodyProgress: React.Dispatch<React.SetStateAction<BodyProgressLog[]>>;
-  setNutritionLogs: React.Dispatch<React.SetStateAction<NutritionLog[]>>;
-  drive: UseGoogleDriveReturn;
-  installPromptEvent: any;
-  setInstallPromptEvent: (event: any) => void;
-  isOnline: boolean;
+    settings: Settings;
+    onSettingsChange: (newSettings: Partial<Settings>) => void;
+    setPrograms: React.Dispatch<React.SetStateAction<Program[]>>;
+    setHistory: React.Dispatch<React.SetStateAction<WorkoutLog[]>>;
+    setSkippedLogs: React.Dispatch<React.SetStateAction<SkippedWorkoutLog[]>>;
+    setBodyProgress: React.Dispatch<React.SetStateAction<BodyProgressLog[]>>;
+    setNutritionLogs: React.Dispatch<React.SetStateAction<NutritionLog[]>>;
+    drive: UseGoogleDriveReturn;
+    installPromptEvent: any;
+    setInstallPromptEvent: (event: any) => void;
+    isOnline: boolean;
 }
+
+// Mapeo tema legacy -> NERDIUM (solo Oscuro/Claro)
+const toNerdiumTheme = (t: string): 'dark' | 'light' => 
+    t === 'light' ? 'light' : 'dark';
+const fromNerdiumTheme = (t: 'dark' | 'light'): Settings['appTheme'] => 
+    t === 'light' ? 'light' : 'default';
+
+// --- NERDIUM Components ---
+const NerdiumToggle: React.FC<{ checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; ariaLabel?: string }> = ({ checked, onChange, disabled, ariaLabel }) => (
+    <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={ariaLabel}
+        data-checked={String(checked)}
+        disabled={disabled}
+        onClick={() => !disabled && onChange(!checked)}
+        className={`nerdium-toggle relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center border transition-colors focus:outline-none focus-ring-nerdium disabled:opacity-50 ${checked ? 'bg-[var(--nerdium-accent)] border-[var(--nerdium-accent-active)]' : 'bg-[var(--nerdium-bg-secondary)] border-[var(--nerdium-border)]'}`}
+    >
+        <span className={`pointer-events-none inline-block h-4 w-4 bg-[var(--nerdium-text)] transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} style={{ backgroundColor: 'var(--nerdium-text)' }} />
+    </button>
+);
+
+const NerdiumSection: React.FC<{ title?: string; children: React.ReactNode; className?: string }> = ({ title, children, className = '' }) => (
+    <div className={`nerdium-section border border-[var(--nerdium-border)] bg-[var(--nerdium-bg-secondary)] p-3 ${className}`}>
+        {title && <h4 className="text-[10px] font-bold uppercase tracking-widest text-[var(--nerdium-text-muted)] mb-2">{title}</h4>}
+        {children}
+    </div>
+);
+
+const NerdiumRow: React.FC<{ label: string; description?: string; children: React.ReactNode }> = ({ label, description, children }) => (
+    <div className="flex items-center justify-between gap-4 py-2 border-b border-[var(--nerdium-border)] last:border-0 min-h-[36px]">
+        <div className="min-w-0 flex-1">
+            <span className="text-[11px] font-bold text-[var(--nerdium-text)]">{label}</span>
+            {description && <p className="text-[9px] text-[var(--nerdium-text-muted)] mt-0.5 uppercase tracking-wider">{description}</p>}
+        </div>
+        <div className="shrink-0">{children}</div>
+    </div>
+);
+
+const TABS = [
+    { id: 'general', label: 'General' },
+    { id: 'entreno', label: 'Entreno' },
+    { id: 'algoritmos', label: 'Algoritmos' },
+    { id: 'notif', label: 'Notif.' },
+    { id: 'datos', label: 'Datos' },
+    { id: 'nutricion', label: 'Nutrición' },
+] as const;
 
 const AppUpdateCheckItem: React.FC = () => {
     const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'updating' | 'error' | 'current'>('idle');
@@ -45,146 +90,95 @@ const AppUpdateCheckItem: React.FC = () => {
         const result = await checkForAppUpdate();
         if (!result) { setStatus('error'); return; }
         setInfo({ currentVersion: result.currentVersion, availableVersion: result.availableVersion });
-        if (result.updateAvailable) setStatus('available');
-        else setStatus('current');
+        setStatus(result.updateAvailable ? 'available' : 'current');
     };
     const handleUpdate = async () => {
         setStatus('updating');
-        const ok = await performImmediateUpdate();
-        if (!ok) setStatus('error');
+        await performImmediateUpdate();
     };
     return (
-        <div className="space-y-3">
-            <SettingsItem label="Buscar actualizaciones" description="Google Play (solo si la app está publicada)." icon={<RefreshCwIcon size={18}/>}>
-                <Button onClick={handleCheck} variant="secondary" disabled={status === 'checking'} className="!py-2 !px-4 !text-[10px] font-black uppercase">
+        <NerdiumSection>
+            <NerdiumRow label="Buscar actualizaciones">
+                <button onClick={handleCheck} disabled={status === 'checking'} className="px-3 py-1.5 text-[10px] font-bold uppercase border border-[var(--nerdium-border)] bg-transparent text-[var(--nerdium-accent)] hover:bg-[var(--nerdium-accent)]/10 transition-colors disabled:opacity-50">
                     {status === 'checking' ? 'Buscando...' : 'Comprobar'}
-                </Button>
-            </SettingsItem>
+                </button>
+            </NerdiumRow>
             {status === 'available' && info && (
-                <div className="p-4 rounded-2xl border border-green-500/30 bg-green-500/10 space-y-2">
-                    <p className="text-sm text-green-400 font-bold">Actualización disponible: v{info.availableVersion}</p>
-                    <Button onClick={handleUpdate} className="!py-2 !px-4 !text-[10px] font-black uppercase">Actualizar ahora</Button>
+                <div className="mt-2 p-2 border border-[var(--nerdium-accent)]/30 bg-[var(--nerdium-accent)]/5">
+                    <p className="text-[10px] font-bold text-[var(--nerdium-accent)]">v{info.availableVersion} disponible</p>
+                    <button onClick={handleUpdate} className="mt-1 px-2 py-1 text-[9px] font-bold uppercase border border-[var(--nerdium-accent)] text-[var(--nerdium-accent)]">Actualizar</button>
                 </div>
             )}
-            {status === 'current' && <p className="text-[10px] text-slate-500 font-bold">Estás en la última versión.</p>}
-            {status === 'error' && <p className="text-[10px] text-red-400 font-bold">No se pudo comprobar. (¿App en Play Store?)</p>}
-        </div>
+            {status === 'current' && <p className="text-[9px] text-[var(--nerdium-text-muted)] mt-1">Última versión.</p>}
+            {status === 'error' && <p className="text-[9px] text-[var(--nerdium-danger)] mt-1">Error al comprobar.</p>}
+        </NerdiumSection>
     );
 };
 
-const SettingsSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon, children, defaultOpen = false }) => (
-    <details className="settings-card group" open={defaultOpen}>
-        <summary className="p-4 cursor-pointer flex justify-between items-center bg-slate-900/20 hover:bg-white/5 transition-colors list-none border-b border-white/5 group-open:bg-white/5">
-            <div className="flex items-center gap-3">
-                <div className="text-primary-color">{icon}</div>
-                <h3 className="text-lg font-black text-white uppercase tracking-tight">{title}</h3>
-            </div>
-            <ChevronRightIcon className="details-arrow transition-transform text-slate-500 group-open:rotate-90" />
-        </summary>
-        <div className="p-4 space-y-4 bg-black/20 animate-fade-in">
-            {children}
-        </div>
-    </details>
-);
-
-const SettingsItem: React.FC<{ label: string; description?: string; children: React.ReactNode; icon?: React.ReactNode }> = ({ label, description, children, icon }) => (
-    <div className="flex items-center justify-between p-4 bg-slate-900/40 rounded-2xl border border-white/5 hover:bg-slate-800/40 transition-colors">
-        <div className="flex items-center gap-4 overflow-hidden mr-4">
-            {icon && <div className="text-slate-400 flex-shrink-0">{icon}</div>}
-            <div className="flex flex-col min-w-0">
-                <span className="text-sm font-bold text-slate-200 truncate">{label}</span>
-                {description && <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider leading-tight mt-1">{description}</span>}
-            </div>
-        </div>
-        <div className="flex-shrink-0">
-            {children}
-        </div>
-    </div>
-);
-
-const ToggleSwitch: React.FC<{ checked: boolean, onChange: (checked: boolean) => void, disabled?: boolean }> = ({ checked, onChange, disabled }) => (
-    <button 
-        type="button" 
-        onClick={() => !disabled && onChange(!checked)} 
-        className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none ${disabled ? 'opacity-50' : ''} ${checked ? 'bg-primary-color shadow-[0_0_10px_rgba(var(--primary-hue),0.5)]' : 'bg-slate-600'}`}
-    >
-        <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
-    </button>
-);
-
-const TabBarCustomizer: React.FC<{ 
-    currentTabs: View[]; 
-    onChange: (tabs: View[]) => void; 
-}> = ({ currentTabs, onChange }) => {
-    // List of all available tabs (must match keys in TabBar.tsx TAB_CONFIG)
-    const AVAILABLE_TABS: { id: View, label: string, icon: React.FC<any> }[] = [
-        { id: 'home', label: 'Entreno', icon: DumbbellIcon },
-        { id: 'nutrition', label: 'Nutrición', icon: UtensilsIcon },
-        { id: 'recovery', label: 'Batería', icon: ActivityIcon },
-        { id: 'sleep', label: 'Descanso', icon: MoonIcon },
-        { id: 'kpkn', label: 'KPKN', icon: ClipboardListIcon },
-        { id: 'progress', label: 'Progreso', icon: TrendingUpIcon },
-        { id: 'coach', label: 'Coach IA', icon: BrainIcon },
-        { id: 'tasks', label: 'Tareas', icon: CheckCircleIcon }
+const TabBarCustomizer: React.FC<{ currentTabs: View[]; onChange: (tabs: View[]) => void; style?: string }> = ({ currentTabs, onChange, style }) => {
+    const AVAILABLE_TABS: { id: View; label: string }[] = [
+        { id: 'home', label: 'Entreno' }, { id: 'nutrition', label: 'Nutrición' }, { id: 'recovery', label: 'Batería' },
+        { id: 'sleep', label: 'Descanso' }, { id: 'kpkn', label: 'KPKN' }, { id: 'progress', label: 'Progreso' },
+        { id: 'coach', label: 'Coach' }, { id: 'tasks', label: 'Tareas' },
     ];
-
     const toggleTab = (tabId: View) => {
         if (currentTabs.includes(tabId)) {
-             // Don't allow removing 'home' to prevent getting stuck
             if (tabId === 'home') return;
             onChange(currentTabs.filter(t => t !== tabId));
         } else {
-            if (currentTabs.length >= 4) {
-                // Max limit reached
-                return;
-            }
+            if (currentTabs.length >= 4) return;
             onChange([...currentTabs, tabId]);
         }
     };
-
     return (
-        <div className="bg-slate-900/40 p-4 rounded-3xl border border-white/5">
-            <div className="mb-4">
-                <span className="text-[10px] font-black text-slate-500 uppercase">Menú Inferior (Máx. 4)</span>
-                <p className="text-xs text-slate-400 mt-1">Selecciona qué accesos directos quieres ver en la barra inferior. El botón central siempre será "Crear".</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
+        <NerdiumSection title="Menú inferior (máx. 4)">
+            {style && (
+                <div className="mb-2">
+                    <span className="text-[9px] text-[var(--nerdium-text-muted)]">Estilo: {style}</span>
+                </div>
+            )}
+            <div className="grid grid-cols-2 gap-1">
                 {AVAILABLE_TABS.map(tab => {
                     const isSelected = currentTabs.includes(tab.id);
                     const isFull = !isSelected && currentTabs.length >= 4;
-                    const isHome = tab.id === 'home';
-                    
                     return (
                         <button
                             key={tab.id}
                             onClick={() => toggleTab(tab.id)}
-                            disabled={isFull || isHome}
-                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                                isSelected 
-                                    ? 'bg-primary-color/20 border-primary-color text-white' 
-                                    : 'bg-slate-800 border-transparent text-slate-500 hover:bg-slate-700'
-                            } ${isFull ? 'opacity-50 cursor-not-allowed' : ''} ${isHome ? 'cursor-default opacity-80' : ''}`}
+                            disabled={isFull || tab.id === 'home'}
+                            className={`px-2 py-1.5 text-[9px] font-bold uppercase border text-left transition-colors ${isSelected ? 'border-[var(--nerdium-accent)] bg-[var(--nerdium-accent)]/10 text-[var(--nerdium-accent)]' : 'border-[var(--nerdium-border)] text-[var(--nerdium-text-muted)]'} ${(isFull || tab.id === 'home') ? 'opacity-60' : ''}`}
                         >
-                            <tab.icon size={18} className={isSelected ? 'text-primary-color' : ''}/>
-                            <span className="text-xs font-bold uppercase">{tab.label}</span>
-                            {isSelected && <div className="ml-auto w-2 h-2 bg-primary-color rounded-full shadow-[0_0_8px_currentColor]"/>}
+                            {tab.label}
                         </button>
-                    )
+                    );
                 })}
             </div>
-        </div>
+        </NerdiumSection>
     );
 };
 
-export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSettingsChange, setPrograms, setHistory, setSkippedLogs, setBodyProgress, setNutritionLogs, drive, installPromptEvent, setInstallPromptEvent, isOnline }) => {
+export const SettingsComponent: React.FC<SettingsProps> = ({
+    settings, onSettingsChange, setPrograms, setHistory, setSkippedLogs, setBodyProgress, setNutritionLogs,
+    drive, installPromptEvent, setInstallPromptEvent, isOnline,
+}) => {
     const [pendingSettings, setPendingSettings] = useState<Settings>(settings);
     const [hasChanges, setHasChanges] = useState(false);
+    const [activeTab, setActiveTab] = useState<(typeof TABS)[number]['id']>('general');
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showAdvancedAlgo, setShowAdvancedAlgo] = useState(false);
+    const [dangerZoneOpen, setDangerZoneOpen] = useState(false);
+    const [devMode, setDevMode] = useState(false);
+    const [devTapCount, setDevTapCount] = useState(0);
     const [isBgModalOpen, setIsBgModalOpen] = useState(false);
     const [isNutritionPlanEditorOpen, setIsNutritionPlanEditorOpen] = useState(false);
     const [snapshots, setSnapshots] = useLocalStorage<LocalSnapshot[]>('yourprime-snapshots', []);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { navigateTo, importExerciseDatabase } = useAppDispatch();
+
+    const resolvedTheme = toNerdiumTheme(
+        ['dark', 'light'].includes(settings.appTheme) ? settings.appTheme : 'dark'
+    );
 
     useEffect(() => {
         if (!hasChanges) setPendingSettings(settings);
@@ -198,15 +192,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
     const handleAlgorithmChange = (key: keyof Settings['algorithmSettings'], value: number | boolean) => {
         setPendingSettings(prev => ({
             ...prev,
-            algorithmSettings: { ...prev.algorithmSettings, [key]: value as any }
-        }));
-        setHasChanges(true);
-    };
-
-    const handleApiKeyChange = (provider: 'gemini' | 'deepseek' | 'gpt' | 'usda', value: string) => {
-        setPendingSettings(prev => ({
-            ...prev,
-            apiKeys: { ...(prev.apiKeys || {}), [provider]: value }
+            algorithmSettings: { ...prev.algorithmSettings, [key]: value as never },
         }));
         setHasChanges(true);
     };
@@ -214,9 +200,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
     const toggleWorkDay = (dayIndex: number) => {
         setPendingSettings(prev => {
             const currentDays = prev.workDays || [];
-            const newDays = currentDays.includes(dayIndex) 
-                ? currentDays.filter(d => d !== dayIndex)
-                : [...currentDays, dayIndex];
+            const newDays = currentDays.includes(dayIndex) ? currentDays.filter(d => d !== dayIndex) : [...currentDays, dayIndex];
             return { ...prev, workDays: newDays.sort() };
         });
         setHasChanges(true);
@@ -226,9 +210,9 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
         onSettingsChange(pendingSettings);
         setHasChanges(false);
     };
-    
+
     const handleCreateSnapshot = async () => {
-        const name = prompt("Introduce un nombre para esta copia de seguridad:", `Snapshot ${new Date().toLocaleDateString()}`);
+        const name = prompt('Nombre para esta copia:', `Snapshot ${new Date().toLocaleDateString()}`);
         if (!name) return;
         try {
             const dataToBackup = {
@@ -238,17 +222,12 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                 'body-progress': await storageService.get<BodyProgressLog[]>('body-progress') || [],
                 'nutrition-logs': await storageService.get<NutritionLog[]>('nutrition-logs') || [],
             };
-            const newSnapshot: LocalSnapshot = {
-                id: crypto.randomUUID(),
-                name,
-                date: new Date().toISOString(),
-                data: dataToBackup
-            };
+            const newSnapshot: LocalSnapshot = { id: crypto.randomUUID(), name, date: new Date().toISOString(), data: dataToBackup };
             setSnapshots(prev => [...prev, newSnapshot]);
-            alert("Copia de seguridad local creada con éxito.");
-        } catch (error) {
-            console.error("Error al crear la copia de seguridad:", error);
-            alert("No se pudo crear la copia de seguridad.");
+            alert('Copia creada.');
+        } catch (e) {
+            console.error(e);
+            alert('Error al crear copia.');
         }
     };
 
@@ -256,20 +235,51 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
         try {
             const data = await storageService.getAllDataForExport();
             const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = jsonString;
-            link.download = `yourprime_backup_${getLocalDateString()}.json`;
+            link.download = `kpkn_backup_${getLocalDateString()}.json`;
             link.click();
-        } catch (error) { alert('Error al exportar.'); }
+        } catch (e) {
+            alert('Error al exportar.');
+        }
     };
-    
+
+    const handleResetTours = () => {
+        handleSettingChange('hasSeenWelcome', false);
+        handleSettingChange('hasSeenHomeTour', false);
+        handleSettingChange('hasSeenProgramEditorTour', false);
+        handleSettingChange('hasSeenSessionEditorTour', false);
+        handleSettingChange('hasSeenKPKNTour', false);
+        handleSettingChange('hasSeenNutritionWizard', false);
+        handleSettingChange('hasSeenGeneralWizard', false);
+        alert('Tutoriales reiniciados. Vuelve al inicio para verlos.');
+    };
+
+    const handleDevTap = () => {
+        const next = devTapCount + 1;
+        setDevTapCount(next);
+        if (next >= 7) {
+            setDevMode(true);
+            setDevTapCount(0);
+        }
+    };
+
     const daysOfWeek = [
-        { label: 'D', value: 0 }, { label: 'L', value: 1 }, { label: 'M', value: 2 }, 
-        { label: 'M', value: 3 }, { label: 'J', value: 4 }, { label: 'V', value: 5 }, { label: 'S', value: 6 }
+        { label: 'D', value: 0 }, { label: 'L', value: 1 }, { label: 'M', value: 2 },
+        { label: 'M', value: 3 }, { label: 'J', value: 4 }, { label: 'V', value: 5 }, { label: 'S', value: 6 },
     ];
 
+    const filterItems = useMemo(() => {
+        if (!searchQuery.trim()) return null;
+        const q = searchQuery.toLowerCase();
+        return (label: string, desc?: string) =>
+            label.toLowerCase().includes(q) || (desc && desc.toLowerCase().includes(q));
+    }, [searchQuery]);
+
+    const matchesFilter = (label: string, desc?: string) => !filterItems || filterItems(label, desc);
+
     return (
-        <div className="max-w-4xl mx-auto tab-bar-safe-area animate-fade-in space-y-6">
+        <div data-testid="settings-page" className="nerdium-settings min-h-full bg-[var(--nerdium-bg)] text-[var(--nerdium-text)] animate-fade-in tab-bar-safe-area">
             {isBgModalOpen && (
                 <BackgroundEditorModal
                     isOpen={isBgModalOpen}
@@ -280,349 +290,439 @@ export const SettingsComponent: React.FC<SettingsProps> = ({ settings, onSetting
                     isOnline={isOnline}
                 />
             )}
+            <NutritionPlanEditorModal isOpen={isNutritionPlanEditorOpen} onClose={() => setIsNutritionPlanEditorOpen(false)} />
 
-            <header className="flex justify-between items-end mb-6 px-2 pt-4">
-                <div>
-                    <h1 className="text-4xl font-black uppercase tracking-tighter text-white">Configuración</h1>
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-1">Nivel Maestro • 10000% Personalizado</p>
+            <header className="sticky top-0 z-10 bg-[var(--nerdium-bg)] border-b border-[var(--nerdium-border)] px-4 py-3">
+                <div className="flex items-center justify-between gap-2">
+                    <h1 className="text-sm font-bold uppercase tracking-widest">Ajustes</h1>
+                    <div className="flex items-center gap-2">
+                        <button
+                            aria-label="Buscar ajustes"
+                            onClick={() => setSearchOpen(!searchOpen)}
+                            className="p-1.5 border border-[var(--nerdium-border)] hover:border-[var(--nerdium-accent)]/50 transition-colors"
+                        >
+                            <SearchIcon size={14} />
+                        </button>
+                        {hasChanges && (
+                            <>
+                                <button onClick={() => setPendingSettings(settings)} className="px-2 py-1 text-[9px] font-bold uppercase border border-[var(--nerdium-border)]">Cancelar</button>
+                                <button onClick={handleSaveChanges} className="px-2 py-1 text-[9px] font-bold uppercase bg-[var(--nerdium-accent)] text-[var(--nerdium-bg)] border border-[var(--nerdium-accent-active)]">Guardar</button>
+                            </>
+                        )}
+                    </div>
                 </div>
-                {hasChanges && (
-                    <div className="flex gap-2 animate-bounce">
-                        <Button onClick={() => setPendingSettings(settings)} variant="secondary" className="!py-2 !px-4 font-black uppercase !text-[10px]">Cancelar</Button>
-                        <Button onClick={handleSaveChanges} className="!py-2 !px-4 font-black uppercase !text-[10px] shadow-lg shadow-primary-color/40">Guardar</Button>
+                {searchOpen && (
+                    <div className="mt-2 flex gap-2">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Buscar..."
+                            className="nerdium-input flex-1 px-2 py-1.5 text-[11px]"
+                            autoFocus
+                        />
+                        <button onClick={() => { setSearchOpen(false); setSearchQuery(''); }} aria-label="Cerrar búsqueda">
+                            <XIcon size={14} />
+                        </button>
                     </div>
                 )}
             </header>
 
-            {/* --- SECCIÓN: CEREBRO IA --- */}
-            <SettingsSection title="Cerebro IA & APIs" icon={<SparklesIcon />} defaultOpen={true}>
-                <SettingsItem label="Proveedor Primario" description="Motor que procesa tus consultas y planes." icon={<BrainIcon size={18}/>}>
-                    <select value={pendingSettings.apiProvider} onChange={e => handleSettingChange('apiProvider', e.target.value as any)} className="bg-slate-800 border-none rounded-xl text-[10px] font-black text-white p-2">
-                        <option value="gemini">Google Gemini 2.5</option>
-                        <option value="gpt">OpenAI GPT-4o Mini</option>
-                        <option value="deepseek">DeepSeek Chat</option>
-                    </select>
-                </SettingsItem>
-
-                <div className="grid grid-cols-1 gap-3">
-                    <input type="password" value={pendingSettings.apiKeys?.gemini || ''} onChange={e => handleApiKeyChange('gemini', e.target.value)} placeholder="API Key Gemini" className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3 text-xs font-mono" />
-                    <input type="password" value={pendingSettings.apiKeys?.gpt || ''} onChange={e => handleApiKeyChange('gpt', e.target.value)} placeholder="API Key OpenAI (opcional)" className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3 text-xs font-mono" />
-                    <input type="password" value={pendingSettings.apiKeys?.usda || ''} onChange={e => handleApiKeyChange('usda', e.target.value)} placeholder="API Key USDA FoodData Central (nutrición)" className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3 text-xs font-mono" />
+            <div className="overflow-x-auto no-scrollbar border-b border-[var(--nerdium-border)]" role="tablist" aria-label="Secciones de ajustes">
+                <div className="flex min-w-max px-2">
+                    {TABS.map((tab, idx) => (
+                        <button
+                            key={tab.id}
+                            data-active={activeTab === tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className="nerdium-tab focus-ring-nerdium"
+                            role="tab"
+                            aria-selected={activeTab === tab.id}
+                            tabIndex={activeTab === tab.id ? 0 : -1}
+                            aria-controls={`panel-${tab.id}`}
+                            id={`tab-${tab.id}`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
-
-                <SettingsItem label="Creatividad (Temp)" description="Controla qué tan 'inventiva' es la IA." icon={<ZapIcon size={16}/>}>
-                    <div className="flex items-center gap-3">
-                        <input type="range" min="0" max="1" step="0.1" value={pendingSettings.aiTemperature} onChange={e => handleSettingChange('aiTemperature', parseFloat(e.target.value))} className="w-24"/>
-                        <span className="text-xs font-mono font-bold text-primary-color">{pendingSettings.aiTemperature}</span>
-                    </div>
-                </SettingsItem>
-
-                <SettingsItem label="Respaldo (Fallbacks)" description="Usa otros proveedores si el principal falla." icon={<RefreshCwIcon size={16}/>}>
-                    <ToggleSwitch checked={pendingSettings.fallbackEnabled} onChange={(c) => handleSettingChange('fallbackEnabled', c)} />
-                </SettingsItem>
-            </SettingsSection>
-
-            {/* --- SECCIÓN: ALGORITMOS Y CIENCIA --- */}
-            <SettingsSection title="Algoritmos & Ciencia" icon={<FlaskConical />}>
-                <SettingsItem label="Fórmula de 1RM" description="Cálculo del potencial máximo estimado." icon={<CalculatorIcon size={18}/>}>
-                    <select value={pendingSettings.oneRMFormula} onChange={e => handleSettingChange('oneRMFormula', e.target.value as OneRMFormula)} className="bg-slate-800 border-none rounded-xl text-[10px] font-black text-white p-2">
-                        <option value="brzycki">Brzycki (Estándar)</option>
-                        <option value="epley">Epley (Altas Reps)</option>
-                        <option value="lander">Lander</option>
-                    </select>
-                </SettingsItem>
-
-                <div className="space-y-4 bg-slate-900/40 p-4 rounded-3xl border border-white/5">
-                    <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase"><span>Tasa de Decaimiento (Pérdida de Fuerza)</span><span>{pendingSettings.algorithmSettings.oneRMDecayRate}% / día</span></div>
-                        <input type="range" min="0.01" max="0.5" step="0.01" value={pendingSettings.algorithmSettings.oneRMDecayRate} onChange={e => handleAlgorithmChange('oneRMDecayRate', parseFloat(e.target.value))} className="w-full accent-sky-500" />
-                    </div>
-                    <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase"><span>Factor Fatiga al Fallo</span><span>{pendingSettings.algorithmSettings.failureFatigueFactor}x</span></div>
-                        <input type="range" min="1.0" max="2.0" step="0.05" value={pendingSettings.algorithmSettings.failureFatigueFactor} onChange={e => handleAlgorithmChange('failureFatigueFactor', parseFloat(e.target.value))} className="w-full accent-red-500" />
-                    </div>
-                    <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase"><span>Factor Sinergista (Volumen Indirecto)</span><span>{pendingSettings.algorithmSettings.synergistFactor}x</span></div>
-                        <input type="range" min="0" max="0.6" step="0.05" value={pendingSettings.algorithmSettings.synergistFactor} onChange={e => handleAlgorithmChange('synergistFactor', parseFloat(e.target.value))} className="w-full accent-emerald-500" />
-                    </div>
-                </div>
-
-                {/* --- NUEVO: CONFIGURACIÓN DE BATERÍAS AUGE --- */}
-                <div className="bg-slate-900/40 p-4 rounded-3xl border border-cyber-cyan/30 space-y-4 mt-4 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-cyber-cyan/10 rounded-bl-[100px] pointer-events-none"></div>
-                    
-                    <div className="mb-2 relative z-10">
-                        <span className="text-[10px] font-black text-cyber-cyan uppercase flex items-center gap-1.5"><ActivityIcon size={12}/> Precisión de Baterías (AUGE)</span>
-                        <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
-                            Conecta calorías y macros con la batería muscular para que la recuperación refleje tu alimentación. <strong className="text-cyber-cyan">Si desactivas</strong>, la batería se calcula solo con el entrenamiento (útil si no trackeas siempre la comida).
-                        </p>
-                    </div>
-                    
-                    <div className="flex items-center justify-between border-t border-white/5 pt-3 relative z-10">
-                        <span className="text-xs font-bold text-slate-300 flex items-center gap-2"><UtensilsIcon size={14} className="text-slate-500"/> Conectar nutrición con batería</span>
-                        <ToggleSwitch 
-                            checked={pendingSettings.algorithmSettings?.augeEnableNutritionTracking !== false} 
-                            onChange={(c) => handleAlgorithmChange('augeEnableNutritionTracking', c)} 
-                        />
-                    </div>
-                    
-                    <div className="flex items-center justify-between border-t border-white/5 pt-3 relative z-10">
-                        <span className="text-xs font-bold text-slate-300 flex items-center gap-2"><MoonIcon size={14} className="text-slate-500"/> Tracking de Sueño</span>
-                        <ToggleSwitch 
-                            checked={pendingSettings.algorithmSettings?.augeEnableSleepTracking !== false} 
-                            onChange={(c) => handleAlgorithmChange('augeEnableSleepTracking', c)} 
-                        />
-                    </div>
-                    <div className="border-t border-white/5 pt-3 relative z-10">
-                        <Button onClick={() => setIsNutritionPlanEditorOpen(true)} variant="secondary" className="w-full">
-                            <CalculatorIcon size={16} className="mr-2" />
-                            Editar plan de alimentación
-                        </Button>
-                    </div>
-                </div>
-            </SettingsSection>
-            <NutritionPlanEditorModal isOpen={isNutritionPlanEditorOpen} onClose={() => setIsNutritionPlanEditorOpen(false)} />
-
-            {/* --- SECCIÓN: UI / UX / ESTÉTICA --- */}
-            <SettingsSection title="Interfaz & Estética" icon={<PaletteIcon />}>
-                <SettingsItem label="Tema Visual" description="Aspecto general de la aplicación." icon={<ImageIcon size={18}/>}>
-                    <select value={pendingSettings.appTheme} onChange={e => handleSettingChange('appTheme', e.target.value as any)} className="bg-slate-800 border-none rounded-xl text-[10px] font-black text-white p-2">
-                        <option value="default">Default Prime (Glass)</option>
-                        <option value="deep-black">Pure Black (OLED)</option>
-                        <option value="volt">Volt (Cyber Neon)</option>
-                    </select>
-                </SettingsItem>
-                
-                {/* --- CUSTOM TAB BAR --- */}
-                <TabBarCustomizer 
-                    currentTabs={pendingSettings.enabledTabs || ['home', 'nutrition', 'recovery', 'sleep']}
-                    onChange={(tabs) => handleSettingChange('enabledTabs', tabs)}
-                />
-
-                <SettingsItem label="Fondo Global" description="Imagen o color maestro." icon={<Wand2Icon size={18}/>}>
-                    <button onClick={() => setIsBgModalOpen(true)} className="p-2 bg-primary-color/20 text-primary-color rounded-xl hover:scale-110 transition-transform"><Wand2Icon size={18}/></button>
-                </SettingsItem>
-
-                <div className="grid grid-cols-2 gap-3">
-                    <SettingsItem label="Animaciones" description="Transiciones de página." icon={<ActivityIcon size={16}/>}>
-                        <ToggleSwitch checked={pendingSettings.enableAnimations} onChange={(c) => handleSettingChange('enableAnimations', c)} />
-                    </SettingsItem>
-                    <SettingsItem label="Efecto Glass" description="Desenfoque translúcido." icon={<LayersIcon size={16}/>}>
-                        <ToggleSwitch checked={pendingSettings.enableGlassmorphism} onChange={(c) => handleSettingChange('enableGlassmorphism', c)} />
-                    </SettingsItem>
-                    <SettingsItem label="Efecto Glow" description="Brillos neón y sombras." icon={<StarIcon size={16}/>}>
-                        <ToggleSwitch checked={pendingSettings.enableGlowEffects} onChange={(c) => handleSettingChange('enableGlowEffects', c)} />
-                    </SettingsItem>
-                    <SettingsItem label="Modo Zen" description="Máximo rendimiento." icon={<ClockIcon size={16}/>}>
-                        <ToggleSwitch checked={pendingSettings.enableZenMode} onChange={(c) => handleSettingChange('enableZenMode', c)} />
-                    </SettingsItem>
-                </div>
-
-                <div className="bg-slate-900/40 p-4 rounded-3xl border border-white/5 space-y-4">
-                     <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase"><span>Intensidad de Desenfoque (Blur)</span><span>{pendingSettings.themeBlurAmount}px</span></div>
-                        <input type="range" min="0" max="100" step="5" value={pendingSettings.themeBlurAmount} onChange={e => handleSettingChange('themeBlurAmount', parseInt(e.target.value))} className="w-full" />
-                    </div>
-                    <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase"><span>Escala de Fuente</span><span>{Math.round(pendingSettings.fontSizeScale * 100)}%</span></div>
-                        <input type="range" min="0.8" max="1.3" step="0.05" value={pendingSettings.fontSizeScale} onChange={e => handleSettingChange('fontSizeScale', parseFloat(e.target.value))} className="w-full" />
-                    </div>
-                </div>
-            </SettingsSection>
-
-            {/* --- SECCIÓN: ENTRENAMIENTO --- */}
-            <SettingsSection title="Experiencia de Entreno" icon={<DumbbellIcon />}>
-                <SettingsItem label="Unidad de Peso" icon={<TargetIcon size={18}/>}>
-                    <div className="flex gap-1 bg-slate-800 p-1 rounded-xl">
-                        <button onClick={() => handleSettingChange('weightUnit', 'kg')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${pendingSettings.weightUnit === 'kg' ? 'bg-white text-black' : 'text-slate-500'}`}>KG</button>
-                        <button onClick={() => handleSettingChange('weightUnit', 'lbs')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${pendingSettings.weightUnit === 'lbs' ? 'bg-white text-black' : 'text-slate-500'}`}>LBS</button>
-                    </div>
-                </SettingsItem>
-
-                <SettingsItem label="Inicio Auto. Descanso" description="Inicia el timer al guardar una serie." icon={<ClockIcon size={18}/>}>
-                    <ToggleSwitch checked={pendingSettings.restTimerAutoStart} onChange={(c) => handleSettingChange('restTimerAutoStart', c)} />
-                </SettingsItem>
-
-                <SettingsItem label="Descanso por Defecto" description="En segundos." icon={<ClockIcon size={18}/>}>
-                    <input type="number" step="5" value={pendingSettings.restTimerDefaultSeconds} onChange={e => handleSettingChange('restTimerDefaultSeconds', parseInt(e.target.value) || 90)} className="w-20 bg-slate-800 border-none rounded-lg text-xs font-black text-center p-2" />
-                </SettingsItem>
-
-                <SettingsItem label="Vista compacta (sesión)" description="Filas de 40px en la tabla de sets." icon={<ActivityIcon size={18}/>}>
-                    <ToggleSwitch checked={!!pendingSettings.sessionCompactView} onChange={(c) => handleSettingChange('sessionCompactView', c)} />
-                </SettingsItem>
-
-                <SettingsItem label="Auto-avance entre campos" description="Siguiente en teclado numérico pasa de Kg a Reps." icon={<ClockIcon size={18}/>}>
-                    <ToggleSwitch checked={pendingSettings.sessionAutoAdvanceFields !== false} onChange={(c) => handleSettingChange('sessionAutoAdvanceFields', c)} />
-                </SettingsItem>
-
-                <SettingsItem label="Métrica de Intensidad" icon={<ZapIcon size={18}/>}>
-                     <div className="flex gap-1 bg-slate-800 p-1 rounded-xl">
-                        <button onClick={() => handleSettingChange('intensityMetric', 'rpe')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${pendingSettings.intensityMetric === 'rpe' ? 'bg-primary-color text-white' : 'text-slate-500'}`}>RPE</button>
-                        <button onClick={() => handleSettingChange('intensityMetric', 'rir')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${pendingSettings.intensityMetric === 'rir' ? 'bg-primary-color text-white' : 'text-slate-500'}`}>RIR</button>
-                    </div>
-                </SettingsItem>
-                
-                <SettingsItem label="Feedback Háptico" description="Vibración en interacciones clave." icon={<ActivityIcon size={18}/>}>
-                     <div className="flex items-center gap-3">
-                         <select value={pendingSettings.hapticIntensity} onChange={e => handleSettingChange('hapticIntensity', e.target.value as HapticIntensity)} className="bg-slate-800 border-none rounded-xl text-[10px] font-black text-white p-2">
-                             <option value="soft">Suave</option>
-                             <option value="medium">Media</option>
-                             <option value="heavy">Fuerte</option>
-                         </select>
-                         <ToggleSwitch checked={pendingSettings.hapticFeedbackEnabled} onChange={(c) => handleSettingChange('hapticFeedbackEnabled', c)} />
-                     </div>
-                </SettingsItem>
-            </SettingsSection>
-
-            {/* --- SECCIÓN: NOTIFICACIONES (Android) --- */}
-            <SettingsSection title="Notificaciones" icon={<BellIcon size={22} />}>
-                <SettingsItem label="Recordatorio sesión del día" description="Hora a la que avisar la sesión que toca hoy." icon={<DumbbellIcon size={18}/>}>
-                    <div className="flex items-center gap-2">
-                        <input type="time" value={pendingSettings.reminderTime || '17:00'} onChange={e => handleSettingChange('reminderTime', e.target.value)} className="w-24 bg-slate-800 border-none rounded-lg text-xs font-bold text-center p-2 text-white" />
-                        <ToggleSwitch checked={!!pendingSettings.remindersEnabled} onChange={(c) => handleSettingChange('remindersEnabled', c)} />
-                    </div>
-                </SettingsItem>
-
-                <SettingsItem label="Recordatorios de comidas" description="Desayuno, almuerzo y cena." icon={<UtensilsIcon size={18}/>}>
-                    <ToggleSwitch checked={!!pendingSettings.mealRemindersEnabled} onChange={(c) => handleSettingChange('mealRemindersEnabled', c)} />
-                </SettingsItem>
-                {pendingSettings.mealRemindersEnabled && (
-                    <div className="grid grid-cols-3 gap-2 pl-2">
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-slate-500 uppercase">Desayuno</label>
-                            <input type="time" value={pendingSettings.breakfastReminderTime || '08:00'} onChange={e => handleSettingChange('breakfastReminderTime', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-[10px] font-bold text-center p-1.5 text-white" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-slate-500 uppercase">Almuerzo</label>
-                            <input type="time" value={pendingSettings.lunchReminderTime || '14:00'} onChange={e => handleSettingChange('lunchReminderTime', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-[10px] font-bold text-center p-1.5 text-white" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-slate-500 uppercase">Cena</label>
-                            <input type="time" value={pendingSettings.dinnerReminderTime || '21:00'} onChange={e => handleSettingChange('dinnerReminderTime', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-[10px] font-bold text-center p-1.5 text-white" />
-                        </div>
-                    </div>
-                )}
-
-                <SettingsItem label="Aviso si no registraste entrenamiento" description="Día con sesión asignada y sin registro." icon={<ActivityIcon size={18}/>}>
-                    <div className="flex items-center gap-2">
-                        <input type="time" value={pendingSettings.missedWorkoutReminderTime || '21:00'} onChange={e => handleSettingChange('missedWorkoutReminderTime', e.target.value)} className="w-24 bg-slate-800 border-none rounded-lg text-xs font-bold text-center p-2 text-white" />
-                        <ToggleSwitch checked={!!pendingSettings.missedWorkoutReminderEnabled} onChange={(c) => handleSettingChange('missedWorkoutReminderEnabled', c)} />
-                    </div>
-                </SettingsItem>
-
-                <SettingsItem label="Batería AUGE baja" description="Aviso cuando el modelo Banister indica fitness bajo." icon={<ZapIcon size={18}/>}>
-                    <ToggleSwitch checked={!!pendingSettings.augeBatteryReminderEnabled} onChange={(c) => handleSettingChange('augeBatteryReminderEnabled', c)} />
-                </SettingsItem>
-                {pendingSettings.augeBatteryReminderEnabled && (
-                    <div className="grid grid-cols-2 gap-2 pl-2">
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-slate-500 uppercase">Umbral % (notificar si &lt;)</label>
-                            <input type="number" min="5" max="50" value={pendingSettings.augeBatteryReminderThreshold ?? 20} onChange={e => handleSettingChange('augeBatteryReminderThreshold', parseInt(e.target.value) || 20)} className="w-full bg-slate-800 border-none rounded-lg text-xs font-bold text-center p-1.5 text-white" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-slate-500 uppercase">Hora aviso</label>
-                            <input type="time" value={pendingSettings.augeBatteryReminderTime || '09:00'} onChange={e => handleSettingChange('augeBatteryReminderTime', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-[10px] font-bold text-center p-1.5 text-white" />
-                        </div>
-                    </div>
-                )}
-
-                <SettingsItem label="Eventos y bloques" description="Día de evento o inicio de bloque." icon={<CalendarIcon size={18}/>}>
-                    <ToggleSwitch checked={!!pendingSettings.eventRemindersEnabled} onChange={(c) => handleSettingChange('eventRemindersEnabled', c)} />
-                </SettingsItem>
-            </SettingsSection>
-
-            {/* --- SECCIÓN: SUEÑO --- */}
-            <SettingsSection title="Gestión del Descanso" icon={<MoonIcon />}>
-                <SettingsItem label="Algoritmo Smart Sleep" description="Ajusta tu meta de sueño según tu fatiga." icon={<BrainIcon size={18}/>}>
-                    <ToggleSwitch checked={pendingSettings.smartSleepEnabled} onChange={(c) => handleSettingChange('smartSleepEnabled', c)} />
-                </SettingsItem>
-                
-                <div className="bg-slate-900/40 p-4 rounded-3xl border border-white/5 space-y-4">
-                    <div className="flex flex-col gap-2">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Días Laborales</label>
-                        <div className="flex gap-2 justify-between">
-                            {daysOfWeek.map((day) => (
-                                <button
-                                    key={day.value}
-                                    onClick={() => toggleWorkDay(day.value)}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all border ${
-                                        (pendingSettings.workDays || []).includes(day.value) 
-                                            ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' 
-                                            : 'bg-slate-800 border-slate-700 text-slate-500'
-                                    }`}
-                                >
-                                    {day.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Despertar (Laboral)</label>
-                             <input type="time" value={pendingSettings.wakeTimeWork || '07:00'} onChange={e => handleSettingChange('wakeTimeWork', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-sm font-bold text-center p-2 text-white" />
-                        </div>
-                        <div className="space-y-1">
-                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Despertar (Libre)</label>
-                             <input type="time" value={pendingSettings.wakeTimeOff || '09:00'} onChange={e => handleSettingChange('wakeTimeOff', e.target.value)} className="w-full bg-slate-800 border-none rounded-lg text-sm font-bold text-center p-2 text-white" />
-                        </div>
-                    </div>
-
-                    <div className="space-y-1 pt-2 border-t border-white/5">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Objetivo de Sueño (h)</label>
-                        <div className="flex items-center gap-3">
-                            <input type="range" min="5" max="10" step="0.5" value={pendingSettings.sleepTargetHours} onChange={e => handleSettingChange('sleepTargetHours', parseFloat(e.target.value) || 8)} className="w-full accent-indigo-500" />
-                            <span className="text-lg font-black text-indigo-400 w-12 text-center">{pendingSettings.sleepTargetHours}h</span>
-                        </div>
-                    </div>
-                </div>
-            </SettingsSection>
-
-            {/* --- SECCIÓN: DATOS Y SEGURIDAD --- */}
-            <SettingsSection title="Datos & Seguridad" icon={<CloudIcon />}>
-                <div className="grid grid-cols-2 gap-3">
-                    <Button onClick={handleExportData} variant="secondary" className="!py-4 !text-xs font-black uppercase"><DownloadIcon size={14} className="mr-2"/> Exportar JSON</Button>
-                    <Button onClick={handleCreateSnapshot} variant="secondary" className="!py-4 !text-xs font-black uppercase"><SaveIcon size={14} className="mr-2"/> Crear Snapshot</Button>
-                </div>
-                
-                <div className="pt-4 border-t border-white/5 space-y-3">
-                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Carga de Base de Datos</h4>
-                    <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={async (e) => {
-                         const file = e.target.files?.[0];
-                         if (!file) return;
-                         const text = await file.text();
-                         importExerciseDatabase(text);
-                    }} />
-                    <Button onClick={() => fileInputRef.current?.click()} variant="secondary" className="w-full !py-3 !text-xs font-black uppercase"><UploadIcon size={14} className="mr-2"/> Importar DB Ejercicios</Button>
-                </div>
-            </SettingsSection>
-
-            {/* --- SECCIÓN: ACTUALIZACIONES (Android) --- */}
-            {Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' && (
-                <SettingsSection title="Actualizaciones" icon={<RefreshCwIcon />}>
-                    <AppUpdateCheckItem />
-                </SettingsSection>
-            )}
-
-            {/* --- SECCIÓN: VERIFICACIÓN SENTRY --- */}
-            <SettingsSection title="Verificación Sentry" icon={<FlaskConical />}>
-                <SettingsItem label="Probar captura de errores" description="Envía un error de prueba a Sentry para verificar que todo funciona." icon={<ActivityIcon size={18}/>}>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            captureException(new Error('This is your first error!'));
-                            alert('Error de prueba enviado a Sentry. Revisa tu dashboard en sentry.io');
-                        }}
-                        className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/50 text-red-400 text-xs font-bold uppercase hover:bg-red-500/30 transition-colors"
-                    >
-                        Enviar error de prueba
-                    </button>
-                </SettingsItem>
-            </SettingsSection>
-
-            <div className="text-center pt-10 pb-20">
-                <p className="text-[10px] text-slate-700 font-black uppercase tracking-[0.5em]">KPKN Ecosistema • v3.2</p>
             </div>
+
+            <div role="tabpanel" aria-labelledby={`tab-${activeTab}`} id={`panel-${activeTab}`} className="p-4 pb-24 overflow-y-auto custom-scrollbar space-y-4">
+                {activeTab === 'general' && (
+                    <>
+                        {matchesFilter('Tema', 'Oscuro Claro') && (
+                            <NerdiumSection title="Apariencia">
+                                <NerdiumRow label="Tema">
+                                    <div className="flex gap-1">
+                                        {(['dark', 'light'] as const).map(t => (
+                                            <button
+                                                key={t}
+                                                data-testid={t === 'dark' ? 'settings-theme-dark' : 'settings-theme-light'}
+                                                onClick={() => handleSettingChange('appTheme', fromNerdiumTheme(t))}
+                                                className={`px-3 py-1.5 text-[10px] font-bold uppercase border ${resolvedTheme === t ? 'border-[var(--nerdium-accent)] bg-[var(--nerdium-accent)]/20 text-[var(--nerdium-accent)]' : 'border-[var(--nerdium-border)] text-[var(--nerdium-text-muted)]'}`}
+                                            >
+                                                {t === 'dark' ? 'Oscuro' : 'Claro'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </NerdiumRow>
+                                {matchesFilter('Pack de sonidos') && (
+                                    <NerdiumRow label="Pack de sonidos">
+                                        <select
+                                            value={pendingSettings.soundPack || 'classic'}
+                                            onChange={e => handleSettingChange('soundPack', e.target.value as 'classic' | 'minimal' | 'none')}
+                                            className="nerdium-input px-2 py-1 text-[10px]"
+                                        >
+                                            <option value="classic">Clásico</option>
+                                            <option value="minimal">Minimal</option>
+                                            <option value="none">Ninguno</option>
+                                        </select>
+                                    </NerdiumRow>
+                                )}
+                                {matchesFilter('Estilo barra inferior', 'Tab bar') && (
+                                    <NerdiumRow label="Estilo barra inferior">
+                                        <select
+                                            value={pendingSettings.tabBarStyle || 'default'}
+                                            onChange={e => handleSettingChange('tabBarStyle', e.target.value as 'default' | 'compact' | 'icons-only')}
+                                            className="nerdium-input px-2 py-1 text-[10px]"
+                                        >
+                                            <option value="default">Predeterminado</option>
+                                            <option value="compact">Compacta</option>
+                                            <option value="icons-only">Solo íconos</option>
+                                        </select>
+                                    </NerdiumRow>
+                                )}
+                                <TabBarCustomizer
+                                    currentTabs={pendingSettings.enabledTabs || ['home', 'nutrition', 'recovery', 'sleep']}
+                                    onChange={tabs => handleSettingChange('enabledTabs', tabs)}
+                                    style={pendingSettings.tabBarStyle}
+                                />
+                                {matchesFilter('Escala de fuente') && (
+                                    <NerdiumRow label="Escala de fuente" description={`${Math.round((pendingSettings.fontSizeScale || 1) * 100)}%`}>
+                                        <input
+                                            type="range"
+                                            min="0.8"
+                                            max="1.3"
+                                            step="0.05"
+                                            value={pendingSettings.fontSizeScale || 1}
+                                            onChange={e => handleSettingChange('fontSizeScale', parseFloat(e.target.value))}
+                                            className="w-24 accent-amber-500"
+                                        />
+                                    </NerdiumRow>
+                                )}
+                            </NerdiumSection>
+                        )}
+                        {matchesFilter('Tutoriales', 'Ver de nuevo') && (
+                            <NerdiumSection>
+                                <NerdiumRow label="Ver tutoriales de nuevo" description="Reinicia los tours de la app">
+                                    <button onClick={handleResetTours} className="px-2 py-1 text-[10px] font-bold uppercase border border-[var(--nerdium-border)] hover:border-[var(--nerdium-accent)]/50">Reiniciar</button>
+                                </NerdiumRow>
+                            </NerdiumSection>
+                        )}
+                    </>
+                )}
+
+                {activeTab === 'entreno' && (
+                    <NerdiumSection title="Experiencia de entreno">
+                        {matchesFilter('Unidad de peso') && (
+                            <NerdiumRow label="Unidad de peso">
+                                <div className="flex gap-1">
+                                    {(['kg', 'lbs'] as const).map(u => (
+                                        <button
+                                            key={u}
+                                            onClick={() => handleSettingChange('weightUnit', u)}
+                                            className={`px-3 py-1.5 text-[10px] font-bold uppercase border ${pendingSettings.weightUnit === u ? 'border-[var(--nerdium-accent)] bg-[var(--nerdium-accent)]/20' : 'border-[var(--nerdium-border)]'}`}
+                                        >
+                                            {u.toUpperCase()}
+                                        </button>
+                                    ))}
+                                </div>
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Inicio auto descanso') && (
+                            <NerdiumRow label="Inicio auto descanso" description="Timer al guardar serie">
+                                <NerdiumToggle checked={pendingSettings.restTimerAutoStart} onChange={c => handleSettingChange('restTimerAutoStart', c)} />
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Descanso por defecto') && (
+                            <NerdiumRow label="Descanso por defecto (s)">
+                                <input
+                                    type="number"
+                                    step={5}
+                                    value={pendingSettings.restTimerDefaultSeconds}
+                                    onChange={e => handleSettingChange('restTimerDefaultSeconds', parseInt(e.target.value) || 90)}
+                                    className="nerdium-input w-16 px-2 py-1 text-center text-[10px]"
+                                />
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Vista compacta') && (
+                            <NerdiumRow label="Vista compacta sesión">
+                                <NerdiumToggle checked={!!pendingSettings.sessionCompactView} onChange={c => handleSettingChange('sessionCompactView', c)} />
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Auto-avance campos') && (
+                            <NerdiumRow label="Auto-avance entre campos">
+                                <NerdiumToggle checked={pendingSettings.sessionAutoAdvanceFields !== false} onChange={c => handleSettingChange('sessionAutoAdvanceFields', c)} />
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Métrica de intensidad') && (
+                            <NerdiumRow label="Métrica de intensidad">
+                                <div className="flex gap-1">
+                                    {(['rpe', 'rir'] as const).map(m => (
+                                        <button
+                                            key={m}
+                                            onClick={() => handleSettingChange('intensityMetric', m)}
+                                            className={`px-3 py-1.5 text-[10px] font-bold uppercase border ${pendingSettings.intensityMetric === m ? 'border-[var(--nerdium-accent)] bg-[var(--nerdium-accent)]/20' : 'border-[var(--nerdium-border)]'}`}
+                                        >
+                                            {m.toUpperCase()}
+                                        </button>
+                                    ))}
+                                </div>
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Feedback háptico') && (
+                            <NerdiumRow label="Feedback háptico" description="Vibración">
+                                <div className="flex items-center gap-2" data-testid="settings-haptics">
+                                    <select
+                                        value={pendingSettings.hapticIntensity}
+                                        onChange={e => handleSettingChange('hapticIntensity', e.target.value as HapticIntensity)}
+                                        className="nerdium-input px-2 py-1 text-[10px]"
+                                        aria-label="Intensidad háptica"
+                                    >
+                                        <option value="soft">Suave</option>
+                                        <option value="medium">Media</option>
+                                        <option value="heavy">Fuerte</option>
+                                    </select>
+                                    <NerdiumToggle checked={pendingSettings.hapticFeedbackEnabled} onChange={c => handleSettingChange('hapticFeedbackEnabled', c)} />
+                                </div>
+                            </NerdiumRow>
+                        )}
+                    </NerdiumSection>
+                )}
+
+                {activeTab === 'algoritmos' && (
+                    <>
+                        <NerdiumSection title="Básico">
+                            {matchesFilter('Fórmula 1RM') && (
+                                <NerdiumRow label="Fórmula 1RM">
+                                    <select
+                                        value={pendingSettings.oneRMFormula}
+                                        onChange={e => handleSettingChange('oneRMFormula', e.target.value as OneRMFormula)}
+                                        className="nerdium-input px-2 py-1 text-[10px]"
+                                    >
+                                        <option value="brzycki">Brzycki</option>
+                                        <option value="epley">Epley</option>
+                                        <option value="lander">Lander</option>
+                                    </select>
+                                </NerdiumRow>
+                            )}
+                            {matchesFilter('Sistema de volumen') && (
+                                <NerdiumRow label="Sistema de volumen">
+                                    <select
+                                        value={pendingSettings.volumeSystem || 'kpnk'}
+                                        onChange={e => handleSettingChange('volumeSystem', e.target.value as 'israetel' | 'kpnk' | 'manual')}
+                                        className="nerdium-input px-2 py-1 text-[10px]"
+                                    >
+                                        <option value="israetel">Israetel</option>
+                                        <option value="kpnk">KPKN Personalizado</option>
+                                        <option value="manual">Manual</option>
+                                    </select>
+                                </NerdiumRow>
+                            )}
+                            {matchesFilter('Conectar nutrición batería') && (
+                                <NerdiumRow label="Conectar nutrición con batería AUGE">
+                                    <NerdiumToggle
+                                        checked={pendingSettings.algorithmSettings?.augeEnableNutritionTracking !== false}
+                                        onChange={c => handleAlgorithmChange('augeEnableNutritionTracking', c)}
+                                    />
+                                </NerdiumRow>
+                            )}
+                            {matchesFilter('Tracking sueño AUGE') && (
+                                <NerdiumRow label="Tracking sueño AUGE">
+                                    <NerdiumToggle
+                                        checked={pendingSettings.algorithmSettings?.augeEnableSleepTracking !== false}
+                                        onChange={c => handleAlgorithmChange('augeEnableSleepTracking', c)}
+                                    />
+                                </NerdiumRow>
+                            )}
+                            <div className="pt-2">
+                                <button
+                                    onClick={() => setIsNutritionPlanEditorOpen(true)}
+                                    className="w-full py-2 text-[10px] font-bold uppercase border border-[var(--nerdium-border)] hover:border-[var(--nerdium-accent)]/50"
+                                >
+                                    Editar plan de alimentación
+                                </button>
+                            </div>
+                        </NerdiumSection>
+                        <NerdiumSection>
+                            <button
+                                onClick={() => setShowAdvancedAlgo(!showAdvancedAlgo)}
+                                className="flex items-center gap-2 w-full text-left text-[10px] font-bold uppercase text-[var(--nerdium-text-muted)]"
+                            >
+                                <ChevronRightIcon size={12} className={`transition-transform ${showAdvancedAlgo ? 'rotate-90' : ''}`} />
+                                Opciones avanzadas
+                            </button>
+                            {showAdvancedAlgo && (
+                                <div className="mt-2 space-y-2 pt-2 border-t border-[var(--nerdium-border)]">
+                                    <div>
+                                        <div className="flex justify-between text-[9px] text-[var(--nerdium-text-muted)]"><span>Decaimiento 1RM %/día</span><span>{pendingSettings.algorithmSettings.oneRMDecayRate}</span></div>
+                                        <input type="range" min={0.01} max={0.5} step={0.01} value={pendingSettings.algorithmSettings.oneRMDecayRate} onChange={e => handleAlgorithmChange('oneRMDecayRate', parseFloat(e.target.value))} className="w-full accent-amber-500" />
+                                    </div>
+                                    <div>
+                                        <div className="flex justify-between text-[9px] text-[var(--nerdium-text-muted)]"><span>Factor fatiga al fallo</span><span>{pendingSettings.algorithmSettings.failureFatigueFactor}x</span></div>
+                                        <input type="range" min={1} max={2} step={0.05} value={pendingSettings.algorithmSettings.failureFatigueFactor} onChange={e => handleAlgorithmChange('failureFatigueFactor', parseFloat(e.target.value))} className="w-full accent-amber-500" />
+                                    </div>
+                                    <div>
+                                        <div className="flex justify-between text-[9px] text-[var(--nerdium-text-muted)]"><span>Factor sinergista</span><span>{pendingSettings.algorithmSettings.synergistFactor}x</span></div>
+                                        <input type="range" min={0} max={0.6} step={0.05} value={pendingSettings.algorithmSettings.synergistFactor} onChange={e => handleAlgorithmChange('synergistFactor', parseFloat(e.target.value))} className="w-full accent-amber-500" />
+                                    </div>
+                                </div>
+                            )}
+                        </NerdiumSection>
+                    </>
+                )}
+
+                {activeTab === 'notif' && (
+                    <NerdiumSection title="Notificaciones">
+                        {matchesFilter('Recordatorio sesión') && (
+                            <NerdiumRow label="Recordatorio sesión del día">
+                                <div className="flex items-center gap-2">
+                                    <input type="time" value={pendingSettings.reminderTime || '17:00'} onChange={e => handleSettingChange('reminderTime', e.target.value)} className="nerdium-input w-20 px-1 py-1 text-[10px]" />
+                                    <NerdiumToggle checked={!!pendingSettings.remindersEnabled} onChange={c => handleSettingChange('remindersEnabled', c)} />
+                                </div>
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Recordatorios comidas') && (
+                            <NerdiumRow label="Recordatorios comidas">
+                                <NerdiumToggle checked={!!pendingSettings.mealRemindersEnabled} onChange={c => handleSettingChange('mealRemindersEnabled', c)} />
+                            </NerdiumRow>
+                        )}
+                        {pendingSettings.mealRemindersEnabled && (
+                            <div className="grid grid-cols-3 gap-1 py-2">
+                                <div><label className="text-[8px] text-[var(--nerdium-text-muted)]">Desayuno</label><input type="time" value={pendingSettings.breakfastReminderTime || '08:00'} onChange={e => handleSettingChange('breakfastReminderTime', e.target.value)} className="nerdium-input w-full px-1 py-0.5 text-[9px]" /></div>
+                                <div><label className="text-[8px] text-[var(--nerdium-text-muted)]">Almuerzo</label><input type="time" value={pendingSettings.lunchReminderTime || '14:00'} onChange={e => handleSettingChange('lunchReminderTime', e.target.value)} className="nerdium-input w-full px-1 py-0.5 text-[9px]" /></div>
+                                <div><label className="text-[8px] text-[var(--nerdium-text-muted)]">Cena</label><input type="time" value={pendingSettings.dinnerReminderTime || '21:00'} onChange={e => handleSettingChange('dinnerReminderTime', e.target.value)} className="nerdium-input w-full px-1 py-0.5 text-[9px]" /></div>
+                            </div>
+                        )}
+                        {matchesFilter('Aviso entrenamiento no registrado') && (
+                            <NerdiumRow label="Aviso entrenamiento no registrado">
+                                <div className="flex items-center gap-2">
+                                    <input type="time" value={pendingSettings.missedWorkoutReminderTime || '21:00'} onChange={e => handleSettingChange('missedWorkoutReminderTime', e.target.value)} className="nerdium-input w-20 px-1 py-1 text-[10px]" />
+                                    <NerdiumToggle checked={!!pendingSettings.missedWorkoutReminderEnabled} onChange={c => handleSettingChange('missedWorkoutReminderEnabled', c)} />
+                                </div>
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Batería AUGE baja') && (
+                            <NerdiumRow label="Batería AUGE baja">
+                                <NerdiumToggle checked={!!pendingSettings.augeBatteryReminderEnabled} onChange={c => handleSettingChange('augeBatteryReminderEnabled', c)} />
+                            </NerdiumRow>
+                        )}
+                        {pendingSettings.augeBatteryReminderEnabled && (
+                            <div className="flex gap-2 py-2">
+                                <div><label className="text-[8px] text-[var(--nerdium-text-muted)]">Umbral %</label><input type="number" min={5} max={50} value={pendingSettings.augeBatteryReminderThreshold ?? 20} onChange={e => handleSettingChange('augeBatteryReminderThreshold', parseInt(e.target.value) || 20)} className="nerdium-input w-14 px-1 py-0.5 text-[9px]" /></div>
+                                <div><label className="text-[8px] text-[var(--nerdium-text-muted)]">Hora</label><input type="time" value={pendingSettings.augeBatteryReminderTime || '09:00'} onChange={e => handleSettingChange('augeBatteryReminderTime', e.target.value)} className="nerdium-input w-20 px-1 py-0.5 text-[9px]" /></div>
+                            </div>
+                        )}
+                        {matchesFilter('Eventos y bloques') && (
+                            <NerdiumRow label="Eventos y bloques">
+                                <NerdiumToggle checked={!!pendingSettings.eventRemindersEnabled} onChange={c => handleSettingChange('eventRemindersEnabled', c)} />
+                            </NerdiumRow>
+                        )}
+                    </NerdiumSection>
+                )}
+
+                {activeTab === 'datos' && (
+                    <>
+                        <NerdiumSection title="Respaldos">
+                            <div className="flex flex-wrap gap-2">
+                                <button onClick={handleExportData} className="px-3 py-2 text-[10px] font-bold uppercase border border-[var(--nerdium-border)] hover:border-[var(--nerdium-accent)]/50 flex items-center gap-2">
+                                    <DownloadIcon size={12} /> Exportar JSON
+                                </button>
+                                <button onClick={handleCreateSnapshot} className="px-3 py-2 text-[10px] font-bold uppercase border border-[var(--nerdium-border)] hover:border-[var(--nerdium-accent)]/50 flex items-center gap-2">
+                                    <SaveIcon size={12} /> Crear snapshot
+                                </button>
+                            </div>
+                            <div className="pt-2">
+                                <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={async e => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const text = await file.text();
+                                    importExerciseDatabase(text);
+                                }} />
+                                <button onClick={() => fileInputRef.current?.click()} className="w-full py-2 text-[10px] font-bold uppercase border border-[var(--nerdium-border)] hover:border-[var(--nerdium-accent)]/50 flex items-center justify-center gap-2">
+                                    <UploadIcon size={12} /> Importar DB ejercicios
+                                </button>
+                            </div>
+                        </NerdiumSection>
+                        <details className={`nerdium-danger-zone mt-4 border rounded-sm overflow-hidden ${dangerZoneOpen ? 'open' : ''}`}>
+                            <summary onClick={e => { e.preventDefault(); setDangerZoneOpen(!dangerZoneOpen); }} className="p-2 cursor-pointer text-[10px] font-bold uppercase text-[var(--nerdium-danger)] flex items-center gap-2">
+                                <ChevronRightIcon size={12} className={`transition-transform ${dangerZoneOpen ? 'rotate-90' : ''}`} />
+                                Zona peligrosa
+                            </summary>
+                            {dangerZoneOpen && (
+                                <div className="p-3 border-t border-[var(--nerdium-danger-border)] space-y-2">
+                                    <p className="text-[9px] text-[var(--nerdium-text-muted)]">Acciones irreversibles. Usar con precaución.</p>
+                                    {/* Placeholder para reset/borrar - extensible */}
+                                </div>
+                            )}
+                        </details>
+                        {devMode && (
+                            <NerdiumSection title="Herramientas de desarrollo" className="mt-4">
+                                {Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' && <AppUpdateCheckItem />}
+                                <NerdiumRow label="Probar Sentry">
+                                    <button onClick={() => { captureException(new Error('Test error NERDIUM')); alert('Error enviado a Sentry.'); }} className="px-2 py-1 text-[9px] font-bold uppercase border border-[var(--nerdium-danger)] text-[var(--nerdium-danger)]">Enviar test</button>
+                                </NerdiumRow>
+                            </NerdiumSection>
+                        )}
+                    </>
+                )}
+
+                {activeTab === 'nutricion' && (
+                    <NerdiumSection title="Nutrición y biometría">
+                        {matchesFilter('Objetivo calorías') && (
+                            <NerdiumRow label="Objetivo calorías" description={pendingSettings.calorieGoalObjective}>
+                                <select value={pendingSettings.calorieGoalObjective} onChange={e => handleSettingChange('calorieGoalObjective', e.target.value as 'deficit' | 'maintenance' | 'surplus')} className="nerdium-input px-2 py-1 text-[10px]">
+                                    <option value="deficit">Déficit</option>
+                                    <option value="maintenance">Mantenimiento</option>
+                                    <option value="surplus">Superávit</option>
+                                </select>
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Calorías diarias') && pendingSettings.dailyCalorieGoal != null && (
+                            <NerdiumRow label="Calorías diarias">
+                                <input type="number" value={pendingSettings.dailyCalorieGoal} onChange={e => handleSettingChange('dailyCalorieGoal', parseInt(e.target.value) || undefined)} className="nerdium-input w-20 px-2 py-1 text-[10px] text-right" />
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Proteína diaria') && pendingSettings.dailyProteinGoal != null && (
+                            <NerdiumRow label="Proteína diaria (g)">
+                                <input type="number" value={pendingSettings.dailyProteinGoal} onChange={e => handleSettingChange('dailyProteinGoal', parseInt(e.target.value) || undefined)} className="nerdium-input w-20 px-2 py-1 text-[10px] text-right" />
+                            </NerdiumRow>
+                        )}
+                        {matchesFilter('Preferencia dietética') && (
+                            <NerdiumRow label="Preferencia dietética">
+                                <select value={pendingSettings.dietaryPreference || 'omnivore'} onChange={e => handleSettingChange('dietaryPreference', e.target.value as any)} className="nerdium-input px-2 py-1 text-[10px]">
+                                    <option value="omnivore">Omnívoro</option>
+                                    <option value="vegetarian">Vegetariano</option>
+                                    <option value="vegan">Vegano</option>
+                                    <option value="keto">Keto</option>
+                                </select>
+                            </NerdiumRow>
+                        )}
+                        <div className="pt-2">
+                            <button onClick={() => setIsNutritionPlanEditorOpen(true)} className="w-full py-2 text-[10px] font-bold uppercase border border-[var(--nerdium-border)] hover:border-[var(--nerdium-accent)]/50">
+                                Editar plan de alimentación
+                            </button>
+                        </div>
+                    </NerdiumSection>
+                )}
+            </div>
+
+            <footer className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--nerdium-bg)] border-t border-[var(--nerdium-border)] pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <div onClick={handleDevTap} className="text-center cursor-default" role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && handleDevTap()} aria-label="Área de versión">
+                    {devMode ? <span className="text-[9px] text-[var(--nerdium-text-muted)]">v{APP_VERSION}</span> : <span className="inline-block w-8 h-2" />}
+                </div>
+            </footer>
         </div>
     );
 };

@@ -81,6 +81,8 @@ interface UIStoreState {
     isOnline: boolean;
     installPromptEvent: any;
     toasts: ToastData[];
+    /** Cola de toasts cuando hay 3+ visibles */
+    toastQueue: Array<{ message: string; type: ToastData['type']; title?: string; duration?: number; why?: string }>;
     onExerciseCreated: ((exercise: ExerciseMuscleInfo) => void) | null;
 
     // Actions (all are simple setters)
@@ -228,6 +230,7 @@ export const useUIStore = create<UIStoreState>()(
         installPromptEvent: null,
         toasts: [],
         onExerciseCreated: null,
+        toastQueue: [],
 
         // --- Setters ---
         setView: (v) => set((s) => { s.view = v; }),
@@ -295,10 +298,33 @@ export const useUIStore = create<UIStoreState>()(
         setOnExerciseCreated: (v) => set((s) => { s.onExerciseCreated = applyUpdater(s.onExerciseCreated, v); }),
 
         addToast: (message, type = 'success', title, duration, why) => set((s) => {
-            s.toasts.push({ id: Date.now(), message, type, title, duration, why });
+            const DEDUPE_MS = 2000;
+            const MAX_VISIBLE = 3;
+            const now = Date.now();
+            const isDuplicate = s.toasts.some(
+                t => t.message === message && (now - t.id) < DEDUPE_MS
+            );
+            if (isDuplicate) return;
+            const newToast: ToastData = { id: now, message, type, title, duration, why };
+            if (s.toasts.length < MAX_VISIBLE) {
+                s.toasts.push(newToast);
+            } else {
+                s.toastQueue.push({ message, type, title, duration, why });
+            }
         }),
         removeToast: (id) => set((s) => {
             s.toasts = s.toasts.filter(t => t.id !== id);
+            if (s.toastQueue.length > 0 && s.toasts.length < 3) {
+                const next = s.toastQueue.shift()!;
+                s.toasts.push({
+                    id: Date.now(),
+                    message: next.message,
+                    type: next.type,
+                    title: next.title,
+                    duration: next.duration,
+                    why: next.why
+                });
+            }
         }),
     }))
 );

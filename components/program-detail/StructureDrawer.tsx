@@ -20,6 +20,8 @@ interface StructureDrawerProps {
     onShowAdvancedTransition: () => void;
     onShowSimpleTransition: () => void;
     onOpenEventModal: (data?: any) => void;
+    /** Cuando true, se renderiza inline dentro del tab de entrenamiento en lugar de drawer lateral */
+    inline?: boolean;
 }
 
 const GOAL_OPTIONS = ['Acumulación', 'Intensificación', 'Realización', 'Descarga', 'Custom'];
@@ -29,6 +31,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
     isOpen, onClose, program, isCyclic, selectedBlockId, selectedWeekId,
     onSelectBlock, onSelectWeek, onUpdateProgram, onEditWeek,
     onShowAdvancedTransition, onShowSimpleTransition, onOpenEventModal,
+    inline = false,
 }) => {
     const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['macro-0', 'block-0-0']));
     const [showAddBlockConfirm, setShowAddBlockConfirm] = useState(false);
@@ -60,24 +63,26 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
 
     if (!isOpen) return null;
 
+    const wrapperClassName = inline
+        ? 'flex flex-col flex-1 min-h-0 bg-[#0a0a0a] rounded-2xl border border-white/10 overflow-hidden'
+        : 'fixed top-0 left-0 bottom-0 z-[102] w-[280px] sm:w-[300px] bg-[#0a0a0a] border-r border-white/10 flex flex-col animate-slide-right';
+
     return (
         <>
-            {/* Backdrop */}
-            <div className="fixed inset-0 z-[101] bg-black/50" onClick={onClose} />
+            {!inline && <div className="fixed inset-0 z-[101] bg-black/50" onClick={onClose} />}
 
-            {/* Drawer */}
-            <div className="fixed top-0 left-0 bottom-0 z-[102] w-[280px] sm:w-[300px] bg-[#0a0a0a] border-r border-white/5 flex flex-col animate-slide-right">
+            <div className={wrapperClassName}>
                 {/* Header */}
-                <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between shrink-0">
-                    <span className="text-sm font-bold text-white uppercase tracking-wide">Estructura</span>
-                    <button onClick={onClose} className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors">
+                <div data-testid="structure-drawer" className="px-4 py-3 border-b border-white/10 flex items-center justify-between shrink-0">
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest" aria-label="Estructura del programa">Estructura</span>
+                    <button onClick={onClose} className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-colors">
                         <XIcon size={14} />
                     </button>
                 </div>
 
                 {/* Simple→Advanced warning */}
                 {showSimpleWarning && (
-                    <div className="px-3 py-2 border-b border-white/5 flex items-start gap-2">
+                    <div className="px-3 py-2 border-b border-white/10 flex items-start gap-2">
                         <AlertTriangleIcon size={14} className="text-amber-400 shrink-0 mt-0.5" />
                         <p className="text-[9px] text-amber-200/90">Si añades un bloque, el programa pasará a avanzado y los eventos se perderán.</p>
                     </div>
@@ -85,7 +90,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
 
                 {/* Mini timeline */}
                 {totalWeeks > 0 && !isCyclic && (
-                    <div className="px-4 py-2 border-b border-white/5">
+                    <div className="px-4 py-2 border-b border-white/10">
                         <div className="flex gap-0.5 h-2 rounded-full overflow-hidden">
                             {program.macrocycles.flatMap((m, mi) =>
                                 (m.blocks || []).map((block, bi) => {
@@ -105,8 +110,8 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                             )}
                         </div>
                         <div className="flex justify-between mt-1">
-                            <span className="text-[9px] text-[#48484A] font-bold">{totalWeeks} semanas</span>
-                            <span className="text-[9px] text-[#48484A] font-bold">{events.length} eventos</span>
+                            <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{totalWeeks} semanas</span>
+                            <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{events.length} eventos</span>
                         </div>
                     </div>
                 )}
@@ -120,12 +125,12 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                             <div key={macro.id}>
                                 {/* Macrocycle */}
                                 <button onClick={() => toggleNode(macroKey)} className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-white/5 transition-colors">
-                                    <ChevronDownIcon size={12} className={`text-[#48484A] transition-transform ${macroExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                                    <ChevronDownIcon size={12} className={`text-zinc-500 transition-transform ${macroExpanded ? 'rotate-0' : '-rotate-90'}`} />
                                     <span className="text-[11px] font-bold text-white flex-1 truncate">{macro.name}</span>
                                 </button>
 
                                 {macroExpanded && (
-                                    <div className="ml-3 border-l border-white/5 pl-2 space-y-0.5">
+                                    <div className="ml-3 border-l border-white/10 pl-2 space-y-0.5">
                                         {(macro.blocks || []).map((block, blockIdx) => {
                                             const blockKey = `block-${macroIdx}-${blockIdx}`;
                                             const blockExpanded = expandedNodes.has(blockKey);
@@ -138,22 +143,22 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                         className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${isSelected ? 'bg-white/5' : 'hover:bg-white/5'}`}
                                                     >
                                                         <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: BLOCK_COLORS[colorIdx] }} />
-                                                        <ChevronDownIcon size={10} className={`text-[#48484A] transition-transform ${blockExpanded ? 'rotate-0' : '-rotate-90'}`} />
-                                                        <span className="text-[11px] font-bold text-[#8E8E93] flex-1 truncate">{block.name}</span>
-                                                        <span className="text-[9px] text-[#48484A]">{block.mesocycles.reduce((a, m) => a + m.weeks.length, 0)}s</span>
+                                                        <ChevronDownIcon size={10} className={`text-zinc-500 transition-transform ${blockExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                                                        <span className="text-[11px] font-bold text-zinc-500 flex-1 truncate">{block.name}</span>
+                                                        <span className="text-[9px] text-zinc-500">{block.mesocycles.reduce((a, m) => a + m.weeks.length, 0)}s</span>
                                                     </button>
 
                                                     {blockExpanded && (
-                                                        <div className="ml-5 border-l border-white/5 pl-2 space-y-0.5">
+                                                        <div className="ml-5 border-l border-white/10 pl-2 space-y-0.5">
                                                             {block.mesocycles.map((meso, mesoIdx) => (
                                                                 <div key={meso.id}>
                                                                     {/* Mesocycle */}
                                                                     <div className="flex items-center gap-1 px-2 py-1">
-                                                                        <span className="text-[10px] font-bold text-[#48484A] flex-1 truncate">{meso.name}</span>
+                                                                        <span className="text-[10px] font-bold text-zinc-500 flex-1 truncate">{meso.name}</span>
                                                                         <select
                                                                             value={meso.goal || 'Custom'}
                                                                             onChange={e => update(p => { const t = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx]; if (t) t.goal = e.target.value as any; })}
-                                                                            className="bg-transparent text-[9px] text-[#00F0FF] font-bold border-none p-0 focus:ring-0 cursor-pointer"
+                                                                            className="bg-transparent text-[9px] text-cyan-400 font-bold border-none p-0 focus:ring-0 cursor-pointer"
                                                                         >
                                                                             {GOAL_OPTIONS.map(g => <option key={g} value={g} className="bg-black text-white">{g}</option>)}
                                                                         </select>
@@ -168,12 +173,12 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                                 key={week.id}
                                                                                 onClick={() => { onSelectBlock(block.id); onSelectWeek(week.id); }}
                                                                                 className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-left transition-all ${
-                                                                                    isWeekSelected ? 'bg-[#00F0FF]/10 text-[#00F0FF]' : 'hover:bg-white/5 text-[#8E8E93]'
+                                                                                    isWeekSelected ? 'bg-cyan-500/10 text-cyan-400' : 'hover:bg-white/5 text-zinc-500'
                                                                                 }`}
                                                                             >
                                                                                 <span className="text-[10px] font-bold flex-1">{week.name}</span>
-                                                                                <span className="text-[9px] text-[#48484A]">{week.sessions.length}s</span>
-                                                                                {hasEvent && <CalendarIcon size={10} className="text-[#00F0FF] shrink-0" />}
+                                                                                <span className="text-[9px] text-zinc-500">{week.sessions.length}s</span>
+                                                                                {hasEvent && <CalendarIcon size={10} className="text-cyan-400 shrink-0" />}
                                                                             </button>
                                                                         );
                                                                     })}
@@ -183,7 +188,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                             const target = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx];
                                                                             if (target) target.weeks.push({ id: crypto.randomUUID(), name: `Semana ${target.weeks.length + 1}`, sessions: [] });
                                                                         })}
-                                                                        className="w-full flex items-center gap-1.5 px-3 py-1 text-[9px] text-[#48484A] hover:text-[#00F0FF] transition-colors"
+                                                                        className="w-full flex items-center gap-1.5 px-3 py-1 text-[9px] text-zinc-500 hover:text-cyan-400 transition-colors"
                                                                     >
                                                                         <PlusIcon size={10} /> Semana
                                                                     </button>
@@ -197,7 +202,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                         weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }],
                                                                     });
                                                                 })}
-                                                                className="w-full flex items-center gap-1.5 px-2 py-1 text-[9px] text-[#48484A] hover:text-[#00F0FF] transition-colors"
+                                                                className="w-full flex items-center gap-1.5 px-2 py-1 text-[9px] text-zinc-500 hover:text-cyan-400 transition-colors"
                                                             >
                                                                 <PlusIcon size={10} /> Mesociclo
                                                             </button>
@@ -222,7 +227,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                         });
                                                     }
                                                 }}
-                                                className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[9px] text-[#48484A] hover:text-[#00F0FF] transition-colors"
+                                                className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[9px] text-zinc-500 hover:text-cyan-400 transition-colors"
                                             >
                                                 <PlusIcon size={10} /> Bloque
                                             </button>
@@ -235,10 +240,10 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                 </div>
 
                 {/* Events section */}
-                <div className="border-t border-white/5 px-3 py-3 shrink-0">
+                <div className="border-t border-white/10 px-3 py-3 shrink-0">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wide">Eventos</span>
-                        <button onClick={() => onOpenEventModal()} className="text-[10px] text-[#00F0FF] font-bold hover:underline">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Eventos</span>
+                        <button onClick={() => onOpenEventModal()} className="text-[10px] text-cyan-400 font-bold hover:underline">
                             + Nuevo
                         </button>
                     </div>
@@ -246,27 +251,27 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                         <div className="space-y-1 max-h-[120px] overflow-y-auto custom-scrollbar">
                             {events.map((ev: any, i: number) => (
                                 <div key={ev.id || i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors" onClick={() => onOpenEventModal(ev)}>
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] shrink-0" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
                                     <span className="text-[10px] font-bold text-white flex-1 truncate">{ev.title}</span>
-                                    <span className="text-[9px] text-[#48484A]">
+                                    <span className="text-[9px] text-zinc-500">
                                         {isCyclic ? `c/${ev.repeatEveryXCycles}` : `S${(ev.calculatedWeek || 0) + 1}`}
                                     </span>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <p className="text-[10px] text-[#48484A] text-center py-2">Sin eventos</p>
+                        <p className="text-[10px] text-zinc-500 text-center py-2">Sin eventos</p>
                     )}
                 </div>
 
                 {/* Transition buttons */}
-                <div className="border-t border-white/5 px-3 py-3 shrink-0">
+                <div className="border-t border-white/10 px-3 py-3 shrink-0">
                     {isCyclic ? (
-                        <button onClick={onShowAdvancedTransition} className="w-full py-2 rounded-lg bg-white/5 text-[10px] font-bold text-[#8E8E93] hover:text-white hover:bg-white/10 transition-colors">
+                        <button onClick={onShowAdvancedTransition} className="w-full py-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-500 hover:text-white hover:bg-white/10 transition-colors">
                             Convertir a Avanzado
                         </button>
                     ) : (
-                        <button onClick={onShowSimpleTransition} className="w-full py-2 rounded-lg bg-white/5 text-[10px] font-bold text-[#8E8E93] hover:text-white hover:bg-white/10 transition-colors">
+                        <button onClick={onShowSimpleTransition} className="w-full py-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-500 hover:text-white hover:bg-white/10 transition-colors">
                             Simplificar Programa
                         </button>
                     )}
@@ -283,13 +288,13 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                 <AlertTriangleIcon size={24} className="text-amber-400 shrink-0" />
                                 <div>
                                     <h3 className="text-sm font-bold text-white">Convertir a programa avanzado</h3>
-                                    <p className="text-xs text-[#8E8E93] mt-1">Al añadir un bloque, el programa se convierte en avanzado y los eventos cíclicos se perderán. ¿Continuar?</p>
+                                    <p className="text-xs text-zinc-500 mt-1">Al añadir un bloque, el programa se convierte en avanzado y los eventos cíclicos se perderán. ¿Continuar?</p>
                                 </div>
                             </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => { setShowAddBlockConfirm(false); setPendingAddBlockMacroIdx(null); }}
-                                    className="flex-1 py-2.5 rounded-lg bg-white/5 text-xs font-bold text-[#8E8E93] hover:text-white transition-colors"
+                                    className="flex-1 py-2.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-zinc-500 hover:text-white transition-colors"
                                 >
                                     Cancelar
                                 </button>
@@ -306,7 +311,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                             setPendingAddBlockMacroIdx(null);
                                         }
                                     }}
-                                    className="flex-1 py-2.5 rounded-lg bg-[#00F0FF] text-xs font-bold text-white hover:bg-[#00F0FF]/90 transition-colors"
+                                    className="flex-1 py-2.5 rounded-lg bg-cyan-500/30 border border-cyan-500/50 text-xs font-bold text-cyan-400 hover:bg-cyan-500/40 transition-colors"
                                 >
                                     Continuar
                                 </button>

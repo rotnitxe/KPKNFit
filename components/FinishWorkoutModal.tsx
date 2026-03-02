@@ -343,10 +343,10 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
 
   const TagGroup: React.FC<{title:string; tags: string[]; selected: string[]; onToggle: (tag:string) => void;}> = ({title, tags, selected, onToggle}) => (
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">{title}</label>
+        <label className="block text-[10px] font-mono font-black text-cyber-cyan/80 uppercase tracking-widest mb-2">{title}</label>
         <div className="flex flex-wrap gap-2">
             {tags.map(tag => (
-                <button key={tag} onClick={() => onToggle(tag)} className={`px-2 py-1 text-[10px] uppercase font-black rounded-full border transition-all ${selected.includes(tag) ? 'bg-primary-color border-primary-color text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+                <button key={tag} onClick={() => onToggle(tag)} className={`px-3 py-1.5 text-[10px] font-mono font-bold uppercase rounded-lg border transition-all ${selected.includes(tag) ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan' : 'bg-slate-900/80 border-slate-700 text-slate-500 hover:border-cyber-cyan/30 hover:text-slate-400'}`}>
                     {tag}
                 </button>
             ))}
@@ -354,12 +354,12 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     </div>
   );
 
-  const BatterySlider: React.FC<{ label: string; value: number; onChange: (v: number) => void; color?: string }> = ({ label, value, onChange, color = 'accent-sky-500' }) => (
+  const BatterySlider: React.FC<{ label: string; value: number; onChange: (v: number) => void; color?: string }> = ({ label, value, onChange }) => (
     <div>
-      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</label>
+      <label className="block text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider mb-2">{label}</label>
       <div className="flex items-center gap-3">
-        <input type="range" min="0" max="100" value={value} onChange={(e) => onChange(parseInt(e.target.value))} className={`w-full h-2 rounded-lg appearance-none cursor-pointer bg-black border border-white/10 ${color}`} />
-        <span className="text-xl font-black text-white w-12 text-right tabular-nums">{value}%</span>
+        <input type="range" min="0" max="100" value={value} onChange={(e) => onChange(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-900 border border-cyber-cyan/20 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyber-cyan [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-slate-950" style={{ accentColor: 'rgb(0, 240, 255)' }} />
+        <span className="text-lg font-mono font-black text-cyber-cyan w-10 text-right tabular-nums">{value}%</span>
       </div>
     </div>
   );
@@ -367,78 +367,85 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
   const title = showRecoverySuggestion ? "Recuperación Prioritaria" : "Finalizar Sesión";
   const content = (
     <>
-      <WorkoutShareCard 
+      {/* Tarjeta para compartir: off-screen, el wrapper tiene el id para html2canvas */}
+      <div id="workout-summary-share-card" className="fixed -left-[9999px] top-0 w-[540px] h-[960px] pointer-events-none overflow-hidden">
+        <WorkoutShareCard 
+          preview
           date={logDate} 
           duration={durationInMinutes || '--'} 
           difficulty={sessionDifficulty} 
           pump={pump}
           exerciseSummaries={shareCardExerciseSummaries}
-      />
+        />
+      </div>
 
       {!showRecoverySuggestion ? (
-        <div className="space-y-6 p-2">
-            {/* Shareable visual summary header (In-app view) */}
-            <div className="bg-gradient-to-br from-slate-900 to-black p-4 rounded-xl border border-white/10 text-center mb-2">
-                <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Sesión Completada</p>
-                <h3 className="text-2xl font-black text-white my-2">{new Date(logDate).toLocaleDateString()}</h3>
-                <div className="flex justify-center gap-4 text-sm font-mono text-primary-color">
-                    <span>{durationInMinutes} min</span>
-                    <span>•</span>
+        <div className="space-y-5 p-4 bg-[#0a0c10]">
+            {/* Resumen compacto */}
+            <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-slate-950/80 border border-cyber-cyan/20">
+                <div>
+                    <span className="text-[9px] font-mono font-black text-cyber-cyan/70 uppercase tracking-widest block">Sesión Completada</span>
+                    <span className="text-lg font-mono font-black text-white">{new Date(logDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                </div>
+                <div className="flex items-center gap-3 text-cyber-cyan font-mono font-bold">
+                    <span>{durationInMinutes || '--'} min</span>
+                    <span className="text-slate-600">|</span>
                     <span>Nivel {sessionDifficulty}</span>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
-                    <span className="absolute left-2 top-1 text-[8px] font-black text-slate-500 uppercase z-10">Duración (min)</span>
-                    <input type="number" value={durationInMinutes} onChange={(e) => setDurationInMinutes(e.target.value)} className="w-full pt-4 pb-1 px-2 !text-lg font-bold" placeholder="Ej: 60" />
+            {/* Duración y fecha */}
+            <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/80 overflow-hidden">
+                    <label className="block px-3 pt-2 text-[9px] font-mono font-bold text-slate-500 uppercase">Duración (min)</label>
+                    <input type="number" value={durationInMinutes} onChange={(e) => setDurationInMinutes(e.target.value)} className="w-full pb-3 px-3 text-lg font-mono font-bold bg-slate-950/50 text-white focus:outline-none focus:ring-0 border-none [color-scheme:dark]" placeholder="60" />
                 </div>
-                <div className="relative">
-                    <span className="absolute left-2 top-1 text-[8px] font-black text-slate-500 uppercase z-10">Fecha</span>
-                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className="w-full pt-4 pb-1 px-2 !text-sm font-bold"/>
+                <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/80 overflow-hidden">
+                    <label className="block px-3 pt-2 text-[9px] font-mono font-bold text-slate-500 uppercase">Fecha</label>
+                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className="w-full pb-3 px-3 text-sm font-mono font-bold bg-slate-950/50 text-white focus:outline-none focus:ring-0 border-none [color-scheme:dark]" />
                 </div>
             </div>
             
-            <p className="text-xs text-slate-400 italic mb-4">Si tu cuerpo tuviese tres baterías — una para tu estado general, otra para tus músculos y una última para tu columna — del 0 al 100%:</p>
-            
-            <div className="space-y-6 bg-zinc-950/50 p-5 rounded-3xl border border-white/5 shadow-inner">
-                <BatterySlider label="1. ¿Cuánto % de batería de tu estado general te consumió esta sesión?" value={generalBattery} onChange={setGeneralBattery} color="accent-sky-500" />
+            {/* Baterías AUGE */}
+            <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/60 p-4 space-y-5">
+                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">% de batería consumida (0–100)</p>
+                <BatterySlider label="1. Estado general" value={generalBattery} onChange={setGeneralBattery} />
                 
                 <div>
-                    <button type="button" onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)} className="w-full flex items-center justify-between text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">
-                        <span>2. ¿Cuánto % de batería de los músculos que trabajaste te consumió esta sesión?</span>
-                        {muscleAccordionOpen ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+                    <button type="button" onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)} className="w-full flex items-center justify-between text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-2 py-1">
+                        <span>2. Músculos trabajados</span>
+                        {muscleAccordionOpen ? <ChevronDownIcon size={14} className="text-cyber-cyan" /> : <ChevronRightIcon size={14} className="text-cyber-cyan" />}
                     </button>
                     {muscleAccordionOpen && musclesWithEffectiveSets.length > 0 && (
-                        <div className="space-y-3 mt-3 animate-fade-in">
+                        <div className="space-y-3 mt-3 animate-fade-in pl-2 border-l-2 border-cyber-cyan/20">
                             {musclesWithEffectiveSets.map(m => (
-                                <BatterySlider key={m} label={MUSCLE_LABEL_MAP[m] || m} value={muscleBatteries[m] ?? 50} onChange={(v) => setMuscleBatteries(prev => ({ ...prev, [m]: v }))} color="accent-rose-500" />
+                                <BatterySlider key={m} label={MUSCLE_LABEL_MAP[m] || m} value={muscleBatteries[m] ?? 50} onChange={(v) => setMuscleBatteries(prev => ({ ...prev, [m]: v }))} />
                             ))}
                         </div>
                     )}
                     {muscleAccordionOpen && musclesWithEffectiveSets.length === 0 && (
-                        <p className="text-[10px] text-slate-500 italic">No hay músculos con series efectivas registradas.</p>
+                        <p className="text-[10px] text-slate-600 font-mono">No hay músculos con series efectivas.</p>
                     )}
                 </div>
 
-                <BatterySlider label="3. ¿Cuánto % de batería de tu columna te consumió esta sesión?" value={spinalBattery} onChange={setSpinalBattery} color="accent-amber-500" />
+                <BatterySlider label="3. Columna" value={spinalBattery} onChange={setSpinalBattery} />
             </div>
 
-            <div className="space-y-3 pt-2">
-                <div>
-                    <button type="button" onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)} className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">
-                        ¿Tuviste alguna molestia?
-                        {showDiscomfortSearch ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+            <div className="space-y-4 pt-1">
+                <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/60 overflow-hidden">
+                    <button type="button" onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)} className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider hover:text-cyber-cyan/90 transition-colors">
+                        <span>¿Tuviste alguna molestia?</span>
+                        {showDiscomfortSearch ? <ChevronDownIcon size={14} className="text-cyber-cyan shrink-0" /> : <ChevronRightIcon size={14} className="text-cyber-cyan shrink-0" />}
                     </button>
                     {showDiscomfortSearch && (
-                        <div className="animate-fade-in space-y-3">
-                            <div className="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg border border-white/5">
-                                <SearchIcon size={14} className="text-slate-500" />
-                                <input type="text" value={discomfortSearchQuery} onChange={(e) => setDiscomfortSearchQuery(e.target.value)} placeholder="Describe tu molestia o busca..." className="bg-transparent border-none text-sm w-full focus:ring-0" />
+                        <div className="animate-fade-in space-y-3 px-4 pb-4 pt-3 border-t border-cyber-cyan/10">
+                            <div className="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-cyber-cyan/20">
+                                <SearchIcon size={14} className="text-cyber-cyan/60 shrink-0" />
+                                <input type="text" value={discomfortSearchQuery} onChange={(e) => setDiscomfortSearchQuery(e.target.value)} placeholder="Describe tu molestia o busca..." className="bg-transparent border-none text-sm text-white placeholder-slate-500 w-full focus:ring-0 focus:outline-none" />
                             </div>
                             <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-2">
                                 {filteredDiscomforts.map(d => (
-                                    <button key={d.id} type="button" onClick={() => toggleDiscomfort(d.name)} className={`w-full text-left p-3 rounded-lg border transition-all ${selectedDiscomforts.includes(d.name) ? 'bg-primary-color/20 border-primary-color/50' : 'bg-slate-800/50 border-white/5 hover:border-white/10'}`}>
+                                    <button key={d.id} type="button" onClick={() => toggleDiscomfort(d.name)} className={`w-full text-left p-3 rounded-lg border transition-all ${selectedDiscomforts.includes(d.name) ? 'bg-cyber-cyan/20 border-cyber-cyan/50' : 'bg-slate-800/50 border-cyber-cyan/10 hover:border-cyber-cyan/30'}`}>
                                         <span className="font-bold text-sm text-white">{d.name}</span>
                                         <p className="text-[10px] text-slate-400 mt-1">{d.description}</p>
                                     </button>
@@ -447,53 +454,55 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
                             {selectedDiscomforts.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                     {selectedDiscomforts.map(name => (
-                                        <span key={name} className="px-2 py-0.5 rounded-full bg-primary-color/30 text-primary-color text-[10px] font-bold">{name} <button type="button" onClick={() => toggleDiscomfort(name)} className="ml-1 opacity-70">×</button></span>
+                                        <span key={name} className="px-2 py-0.5 rounded-full bg-cyber-cyan/30 text-cyber-cyan text-[10px] font-bold">{name} <button type="button" onClick={() => toggleDiscomfort(name)} className="ml-1 opacity-70 hover:text-white">×</button></span>
                                     ))}
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
-                <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
-                <TagGroup title="Adherencia" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
+                <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/60 p-4 space-y-4">
+                    <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
+                    <TagGroup title="Adherencia" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
+                </div>
             </div>
             
-            <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Notas del Diario</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full" placeholder="¿Algo que destacar hoy?"/>
+            <div className="rounded-xl border border-cyber-cyan/20 bg-slate-950/60 overflow-hidden">
+              <label className="block px-3 pt-3 text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider">Notas del Diario</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="¿Algo que destacar hoy?" className="w-full px-3 pb-3 pt-1 text-sm font-mono bg-transparent text-white placeholder-slate-500 focus:outline-none focus:ring-0 border-none resize-none" />
             </div>
-            <div className="flex gap-2 pt-4 border-t border-border-color">
-                <Button onClick={handleShare} variant="secondary" className="flex-1 !py-4 border-white/10 hover:border-white/30 hover:bg-white/5 transition-all" disabled={isSharing}>
+            <div className="flex gap-2 pt-4 border-t border-cyber-cyan/20">
+                <Button onClick={handleShare} variant="secondary" className="flex-1 !py-4 !border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80 transition-all font-mono" disabled={isSharing}>
                     {isSharing ? (
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            <span className="text-[10px] tracking-widest">FORJANDO...</span>
+                            <div className="w-4 h-4 border-2 border-cyber-cyan/40 border-t-cyber-cyan rounded-full animate-spin"></div>
+                            <span className="text-[10px] tracking-widest text-cyber-cyan/90">FORJANDO...</span>
                         </div>
                     ) : (
-                        <><LinkIcon size={18} className="text-white/70"/> <span className="text-[11px] tracking-widest">HISTORIA</span></>
+                        <><LinkIcon size={18} className="text-cyber-cyan/80"/> <span className="text-[11px] tracking-widest text-cyber-cyan/90">HISTORIA</span></>
                     )}
                 </Button>
-                <Button onClick={handleFinishAttempt} variant="primary" className="flex-[2] !py-4 !text-base shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                <Button onClick={handleFinishAttempt} variant="primary" className="flex-[2] !py-4 !text-base !bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black uppercase tracking-widest shadow-[0_0_20px_rgba(0,240,255,0.3)]">
                     <CheckCircleIcon size={20}/> FINALIZAR
                 </Button>
             </div>
         </div>
       ) : (
-          <div className="space-y-6 p-2 animate-fade-in">
-              <div className="bg-yellow-900/20 border border-yellow-500/50 p-4 rounded-xl text-center">
-                <ActivityIcon size={40} className="mx-auto text-yellow-400 mb-2" />
-                <h4 className="text-lg font-bold text-yellow-100">Señales de Fatiga Acumulada</h4>
-                <p className="text-sm text-yellow-200/70 mt-1">Tu nivel de fatiga ({fatigueLevel}) y claridad mental ({mentalClarity}) sugieren que necesitas un descanso para evitar el sobreentrenamiento.</p>
+          <div className="space-y-6 p-4 animate-fade-in bg-[#0a0c10] rounded-xl">
+              <div className="bg-cyber-cyan/10 border border-cyber-cyan/30 p-4 rounded-xl text-center">
+                <ActivityIcon size={40} className="mx-auto text-cyber-cyan mb-2" />
+                <h4 className="text-lg font-bold text-cyber-cyan font-mono uppercase tracking-wider">Señales de Fatiga Acumulada</h4>
+                <p className="text-sm text-slate-400 mt-1 font-mono">Tu nivel de fatiga ({fatigueLevel}) y claridad mental ({mentalClarity}) sugieren que necesitas un descanso para evitar el sobreentrenamiento.</p>
               </div>
 
               <div className="space-y-3">
-                  <p className="text-sm text-slate-300 font-semibold text-center italic">"He detectado que tu sistema nervioso está bajo estrés. ¿Insertamos una sesión de descarga mañana?"</p>
+                  <p className="text-sm text-slate-300 font-mono text-center italic">"He detectado que tu sistema nervioso está bajo estrés. ¿Insertamos una sesión de descarga mañana?"</p>
                   
-                  <Button onClick={handleAcceptDeload} className="w-full !py-4 !justify-start !bg-green-600 !border-green-500">
+                  <Button onClick={handleAcceptDeload} className="w-full !py-4 !justify-start !bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black uppercase tracking-widest">
                     <ZapIcon size={20}/> Sí, programar Descarga / Descanso Activo
                   </Button>
                   
-                  <Button onClick={executeFinish} variant="secondary" className="w-full !py-4 !justify-start">
+                  <Button onClick={executeFinish} variant="secondary" className="w-full !py-4 !justify-start !border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80">
                     <BrainIcon size={20}/> No, seguiré con mi programa habitual
                   </Button>
               </div>
@@ -510,7 +519,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     );
   }
   return (
-    <TacticalModal isOpen={isOpen} onClose={onClose} title={title}>
+    <TacticalModal isOpen={isOpen} onClose={onClose} title={title} className="!bg-[#0a0a0a] !border-cyber-cyan/20">
       {content}
     </TacticalModal>
   );

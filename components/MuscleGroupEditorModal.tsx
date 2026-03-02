@@ -132,15 +132,15 @@ const MuscleGroupEditorModal: React.FC<MuscleGroupEditorModalProps> = ({ isOpen,
                 <h4 className="font-semibold text-white mb-2">Volumen Semanal Recomendado</h4>
                 <div className="grid grid-cols-3 gap-2">
                     <div>
-                        <label className="block text-xs text-slate-400">MEV (Mínimo Efectivo)</label>
+                        <label className="block text-xs text-slate-400">Mínimo</label>
                         <input type="text" value={localData.volumeRecommendations.mev} onChange={e => handleNestedChange('volumeRecommendations', 'mev', e.target.value)} className="w-full" />
                     </div>
                     <div>
-                        <label className="block text-xs text-slate-400">MAV (Máximo Adaptativo)</label>
+                        <label className="block text-xs text-slate-400">Óptimo</label>
                         <input type="text" value={localData.volumeRecommendations.mav} onChange={e => handleNestedChange('volumeRecommendations', 'mav', e.target.value)} className="w-full" />
                     </div>
                     <div>
-                        <label className="block text-xs text-slate-400">MRV (Máximo Recuperable)</label>
+                        <label className="block text-xs text-slate-400">Máximo</label>
                         <input type="text" value={localData.volumeRecommendations.mrv} onChange={e => handleNestedChange('volumeRecommendations', 'mrv', e.target.value)} className="w-full" />
                     </div>
                 </div>

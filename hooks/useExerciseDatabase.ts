@@ -1,12 +1,12 @@
 // hooks/useExerciseDatabase.ts
 import { useCallback, useEffect, useRef } from 'react';
-import { DETAILED_EXERCISE_LIST } from '../data/exerciseDatabase';
+import { FULL_EXERCISE_LIST } from '../data/exerciseDatabaseMerged';
 import { ExerciseMuscleInfo } from '../types';
 import useLocalStorage from './useLocalStorage';
 import { getLocalDateString } from '../utils/dateUtils';
 
 const EXERCISE_DB_KEY = 'yourprime-exercise-database';
-const STATIC_EXERCISES = DETAILED_EXERCISE_LIST; // Keep the original default list
+const STATIC_EXERCISES = FULL_EXERCISE_LIST; // Base central: tren superior + tren inferior (PDF)
 
 const useExerciseDatabase = () => {
   const [exerciseList, setExerciseList, isDbLoading] = useLocalStorage<ExerciseMuscleInfo[]>(

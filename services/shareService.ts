@@ -16,15 +16,30 @@ export const shareElementAsImage = async (elementId: string, title: string, text
             return;
         }
 
+        // Para tarjetas off-screen (battery-share-card): mover el contenedor padre al viewport para html2canvas
+        const parent = element.parentElement;
+        let restoreParentStyles: string | null = null;
+        if (elementId === 'battery-share-card' && parent) {
+            const p = parent as HTMLElement;
+            restoreParentStyles = p.getAttribute('style') || '';
+            p.style.cssText = 'position:fixed!important;left:0!important;top:0!important;opacity:0.01!important;z-index:-9999!important;pointer-events:none!important;width:540px!important;height:960px!important;overflow:hidden!important;';
+            await new Promise(r => setTimeout(r, 100));
+        }
+
         // Generate canvas from DOM element (540x960 → 1080x1920 para Instagram Stories)
         const canvas = await html2canvas(element, {
-            backgroundColor: '#000000',
+            backgroundColor: element.id === 'battery-share-card' ? '#0a0a0a' : '#000000',
             useCORS: true,
+            allowTaint: true,
             scale: 2,
             logging: false,
             scrollX: 0,
             scrollY: 0,
         });
+
+        if (restoreParentStyles !== null && parent) {
+            (parent as HTMLElement).setAttribute('style', restoreParentStyles);
+        }
 
         // 1. INTENTO PWA (Web Share API) - Solución para Instagram
         const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png', 1.0));

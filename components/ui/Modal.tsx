@@ -37,6 +37,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
                  ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       role="dialog"
       aria-modal="true"
+      aria-labelledby={title ? 'modal-title' : undefined}
     >
       {/* Deep Darkened Backdrop with blur */}
       <div
@@ -65,7 +66,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
             </h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full text-slate-500 hover:bg-white/10 hover:text-white transition-all active:scale-90"
+              className="p-1.5 rounded-full text-slate-500 hover:bg-white/10 hover:text-white transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
               aria-label="Cerrar"
             >
               <XIcon size={18} />

@@ -101,7 +101,7 @@ export const generateWarmupForSession = async (session: Session, settings: Setti
 };
 
 export const analyzeWorkoutVolume = async (volumeData: Omit<MuscleVolumeAnalysis, 'assessment'>[], settings: Settings): Promise<MuscleVolumeAnalysis[]> => {
-    const prompt = `Analiza estos datos de volumen de entrenamiento semanal. Para cada grupo muscular, proporciona una 'assessment' (evaluación) basada en principios establecidos (ej., MEV, MAV, MRV). Responde ÚNICAMENTE con un array JSON de objetos, añadiendo la clave 'assessment' a cada objeto. Los valores deben estar en español. Datos: ${JSON.stringify(volumeData)}`;
+    const prompt = `Analiza estos datos de volumen de entrenamiento semanal. Para cada grupo muscular, proporciona una 'assessment' (evaluación) basada en rangos de volumen (mínimo, óptimo, máximo). Responde ÚNICAMENTE con un array JSON de objetos, añadiendo la clave 'assessment' a cada objeto. Los valores deben estar en español. Datos: ${JSON.stringify(volumeData)}`;
     const response = await generateContent(prompt, undefined, { type: "json_object" }, settings);
     const result = safeJsonParse<any>(response.text, null);
     if (result && Array.isArray(result)) return result;

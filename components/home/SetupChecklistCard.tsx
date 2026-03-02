@@ -1,8 +1,8 @@
 // components/home/SetupChecklistCard.tsx
-// Tarjeta "Completa tu setup" con checkboxes para programa y/o plan de alimentación
+// Banner discreto "Completa tu configuración" (versión sutil según plan)
 
 import React from 'react';
-import { DumbbellIcon, UtensilsIcon, ChevronRightIcon } from '../icons';
+import { DumbbellIcon, UtensilsIcon } from '../icons';
 
 interface SetupChecklistCardProps {
     hasProgram: boolean;
@@ -20,39 +20,19 @@ export const SetupChecklistCard: React.FC<SetupChecklistCardProps> = ({
     if (hasProgram && hasNutrition) return null;
 
     return (
-        <div className="w-full bg-black/60 backdrop-blur-sm border border-amber-500/20 rounded-2xl p-5">
-            <h3 className="text-[10px] font-black text-amber-500/90 uppercase tracking-[0.2em] font-mono mb-4">
-                Completa tu setup
-            </h3>
-            <div className="space-y-3">
+        <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02]">
+            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest flex-1">
+                Completa tu configuración
+            </span>
+            <div className="flex items-center gap-1">
                 {!hasProgram && (
-                    <button
-                        onClick={onProgramPress}
-                        className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-sky-500/30 transition-all text-left group"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center shrink-0">
-                            <DumbbellIcon size={20} className="text-sky-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <span className="font-bold text-white block font-mono text-sm">Crear programa de entrenamiento</span>
-                            <span className="text-[9px] text-zinc-500 font-mono">Diseña tu plan de entrenamiento</span>
-                        </div>
-                        <ChevronRightIcon size={18} className="text-zinc-500 group-hover:text-white shrink-0" />
+                    <button onClick={onProgramPress} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 hover:border-zinc-500/30 text-[8px] font-black text-zinc-400 uppercase tracking-widest transition-colors">
+                        <DumbbellIcon size={10} /> Programa
                     </button>
                 )}
                 {!hasNutrition && (
-                    <button
-                        onClick={onNutritionPress}
-                        className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyber-copper/30 transition-all text-left group"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-cyber-copper/20 flex items-center justify-center shrink-0">
-                            <UtensilsIcon size={20} className="text-cyber-copper" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <span className="font-bold text-white block font-mono text-sm">Configurar plan de alimentación</span>
-                            <span className="text-[9px] text-zinc-500 font-mono">Calorías, macros y objetivos</span>
-                        </div>
-                        <ChevronRightIcon size={18} className="text-zinc-500 group-hover:text-white shrink-0" />
+                    <button onClick={onNutritionPress} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 hover:border-zinc-500/30 text-[8px] font-black text-zinc-400 uppercase tracking-widest transition-colors">
+                        <UtensilsIcon size={10} /> Nutrición
                     </button>
                 )}
             </div>

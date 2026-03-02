@@ -7,7 +7,8 @@ import { calculateDailyCalorieGoal } from '../../utils/calorieFormulas';
 import { UtensilsIcon, ChevronRightIcon } from '../icons';
 import { getLocalDateString } from '../../utils/dateUtils';
 
-const MACRO_COLORS = { protein: '#3b82f6', carbs: '#22c55e', fats: '#f59e0b' };
+// Paleta Tú
+const getMacroColor = (pct: number) => (pct >= 90 ? '#10b981' : pct >= 70 ? '#f59e0b' : '#f43f5e');
 
 export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNavigate }) => {
     const { nutritionLogs, settings } = useAppState();
@@ -46,7 +47,7 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
         >
             <div className="flex justify-between items-center mb-3">
                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <UtensilsIcon size={10} className="text-cyber-copper" /> Nutrición
+                    <UtensilsIcon size={10} className="text-emerald-400" /> Nutrición
                 </span>
                 <ChevronRightIcon size={14} className="text-zinc-500 group-hover:text-white transition-colors" />
             </div>
@@ -63,7 +64,7 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
                             className="h-full rounded-full transition-all duration-500"
                             style={{
                                 width: `${Math.min(100, caloriePct * 100)}%`,
-                                backgroundColor: caloriePct > 1 ? '#ef4444' : caloriePct < 0.9 ? '#22c55e' : '#eab308',
+                                backgroundColor: caloriePct >= 0.9 && caloriePct <= 1.1 ? '#10b981' : caloriePct > 1.1 ? '#f43f5e' : '#f59e0b',
                             }}
                         />
                     </div>
@@ -77,7 +78,7 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
                                         cy="20"
                                         r="16"
                                         fill="none"
-                                        stroke={MACRO_COLORS.protein}
+                                        stroke={getMacroColor((dailyTotals.protein / proteinGoal) * 100)}
                                         strokeWidth="4"
                                         strokeDasharray={`${Math.min(100, (dailyTotals.protein / proteinGoal) * 100) * 1.005} 100`}
                                         strokeLinecap="round"
@@ -98,7 +99,7 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
                                         cy="20"
                                         r="16"
                                         fill="none"
-                                        stroke={MACRO_COLORS.carbs}
+                                        stroke={getMacroColor((dailyTotals.carbs / carbsGoal) * 100)}
                                         strokeWidth="4"
                                         strokeDasharray={`${Math.min(100, (dailyTotals.carbs / carbsGoal) * 100) * 1.005} 100`}
                                         strokeLinecap="round"
@@ -119,7 +120,7 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
                                         cy="20"
                                         r="16"
                                         fill="none"
-                                        stroke={MACRO_COLORS.fats}
+                                        stroke={getMacroColor((dailyTotals.fats / fatGoal) * 100)}
                                         strokeWidth="4"
                                         strokeDasharray={`${Math.min(100, (dailyTotals.fats / fatGoal) * 100) * 1.005} 100`}
                                         strokeLinecap="round"

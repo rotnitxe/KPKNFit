@@ -11,6 +11,12 @@
     to { transform: translateX(0); }
 }
 .animate-fade-in { animation: fade-in 0.2s ease-out; }
+
+/* Accesibilidad: focus visible cyan cuando no hay estilos de focus propios */
+.focus-ring-cyber:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px #00F0FF;
+}
 .animate-slide-right { animation: slide-right 0.25s ease-out; }
 @keyframes slide-left {
     from { transform: translateX(100%); }
@@ -93,8 +99,8 @@
     border-radius: 8px;
 }
 .session-row-pending { background: transparent; }
-.session-row-active { background: rgba(0, 240, 255, 0.08); border-bottom: 1px solid rgba(0, 240, 255, 0.4); }
-.session-row-completed { background: rgba(0, 255, 157, 0.06); }
+.session-row-active { background: rgba(217, 119, 6, 0.06); border-bottom: 1px solid rgba(217, 119, 6, 0.2); }
+.session-row-completed { background: rgba(100, 116, 139, 0.12); }
 
 .font-tabular {
     font-variant-numeric: tabular-nums;
@@ -104,4 +110,76 @@
 input[type="number"],
 .session-table input {
     font-variant-numeric: tabular-nums;
+}
+
+/* Footer seguro para wizards (Android barra de navegación) */
+.wizard-safe-footer {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* --- NERDIUM: Ajustes (terminal vintage ámbar) --- */
+.nerdium-settings {
+    --nerdium-bg: #0d0a08;
+    --nerdium-bg-secondary: #1a1512;
+    --nerdium-border: rgba(245, 158, 11, 0.15);
+    --nerdium-text: #fef3c7;
+    --nerdium-text-muted: #b45309;
+    --nerdium-accent: #f59e0b;
+    --nerdium-accent-active: #d97706;
+    --nerdium-danger: #dc2626;
+    --nerdium-danger-border: rgba(220, 38, 38, 0.4);
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+.nerdium-settings * {
+    font-family: inherit;
+}
+
+.nerdium-settings .nerdium-tab {
+    color: var(--nerdium-text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 8px 12px;
+    border-bottom: 2px solid transparent;
+}
+
+.nerdium-settings .nerdium-tab[data-active="true"] {
+    color: var(--nerdium-accent);
+    border-bottom-color: var(--nerdium-accent);
+}
+
+.nerdium-settings .nerdium-toggle {
+    width: 36px;
+    height: 20px;
+    border: 1px solid var(--nerdium-border);
+    background: var(--nerdium-bg-secondary);
+}
+
+.nerdium-settings button[data-checked="true"].nerdium-toggle {
+    background: var(--nerdium-accent);
+    border-color: var(--nerdium-accent-active);
+}
+
+.nerdium-settings .nerdium-input {
+    background: var(--nerdium-bg-secondary);
+    border: 1px solid var(--nerdium-border);
+    color: var(--nerdium-text);
+    font-size: 11px;
+}
+
+.nerdium-settings .nerdium-section {
+    border: 1px solid var(--nerdium-border);
+    background: var(--nerdium-bg-secondary);
+}
+
+.nerdium-settings .nerdium-danger-zone {
+    border: 1px solid var(--nerdium-danger-border);
+    background: rgba(220, 38, 38, 0.06);
+}
+
+.nerdium-settings .focus-ring-nerdium:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--nerdium-bg), 0 0 0 4px var(--nerdium-accent);
 }

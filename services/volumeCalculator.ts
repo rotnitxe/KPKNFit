@@ -304,8 +304,11 @@ export const normalizeMuscleGroup = (specificMuscle: string): string => {
     if (lower.includes('cuádriceps') || lower.includes('cuadriceps') || lower.includes('recto femoral') || lower.includes('vasto')) {
         return 'Cuádriceps';
     }
-    if (lower.includes('glúteo') || lower.includes('gluteo')) {
+    if (lower.includes('glúteo') || lower.includes('gluteo') || lower.includes('tensor de la fascia lata')) {
         return 'Glúteos';
+    }
+    if (lower.includes('adductor') || lower.includes('pectíneo') || lower.includes('pectineo')) {
+        return 'Aductores';
     }
     if (lower.includes('gemelo') || lower.includes('sóleo') || lower.includes('soleo') || lower.includes('pantorrilla')) {
         return 'Gemelos';
@@ -592,6 +595,27 @@ export const getKpnkVolumeRecommendations = (
         };
     });
 };
+
+/**
+ * Convierte volumeRecommendations del programa en volumeLimits para SessionEditor.
+ * maxSession = min(10, MRV/frequencyCap) o 6; max = maxRecoverableVolume; min = minEffectiveVolume.
+ */
+export function volumeRecommendationsToLimits(
+    recs: { muscleGroup: string; minEffectiveVolume: number; maxAdaptiveVolume: number; maxRecoverableVolume: number; frequencyCap?: number }[] | undefined
+): Record<string, { maxSession: number; max: number; min?: number }> {
+    if (!recs?.length) return {};
+    const result: Record<string, { maxSession: number; max: number; min?: number }> = {};
+    for (const r of recs) {
+        const freq = r.frequencyCap ?? 4;
+        const maxSession = Math.min(10, Math.max(4, Math.ceil((r.maxRecoverableVolume ?? 18) / Math.max(1, freq))));
+        result[r.muscleGroup] = {
+            maxSession,
+            max: r.maxRecoverableVolume,
+            min: r.minEffectiveVolume,
+        };
+    }
+    return result;
+}
 
 /** Convierte WorkoutLog[] a sesiones virtuales para calcular volumen desde historial completado */
 export const calculateUnifiedMuscleVolumeFromLogs = (

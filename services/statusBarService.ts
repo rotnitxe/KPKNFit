@@ -14,7 +14,7 @@ export async function syncStatusBarWithTheme(settings: Settings): Promise<void> 
     // default and deep-black are dark themes; volt or future light themes use LIGHT
     const isDark = theme === 'default' || theme === 'deep-black';
     await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
-    const bgColor = isDark ? '#000000' : '#ffffff';
+    const bgColor = isDark ? '#1a1a1a' : '#ffffff';
     await StatusBar.setBackgroundColor({ color: bgColor });
     await StatusBar.setOverlaysWebView({ overlay: false });
   } catch (e) {

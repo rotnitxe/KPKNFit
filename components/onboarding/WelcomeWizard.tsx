@@ -1,32 +1,26 @@
 // components/onboarding/WelcomeWizard.tsx
-// Welcome Wizard: 6+ slides, solo 1 vez. Estética NERD con fondo vertical animado.
+// Welcome Wizard: 2-3 slides, solo 1 vez. Estética Cyber/NERD. Sin fondos animados.
 
 import React, { useState, useCallback } from 'react';
-import { AnimatedSvgBackground } from './AnimatedSvgBackground';
 import {
     ZapIcon,
-    BrainIcon,
     DumbbellIcon,
-    TargetIcon,
     UtensilsIcon,
     ChevronRightIcon,
-    ChevronLeftIcon,
-    ActivityIcon,
+    CheckIcon,
 } from '../icons';
 
-const TOTAL_SLIDES = 6;
+const TOTAL_SLIDES = 3;
 
 interface WelcomeWizardProps {
     onComplete: () => void;
-    /** Llamado cuando el usuario hace "Configurar ahora" en un slide. Lleva al wizard correspondiente. */
-    onConfigurar?: (slideId: string) => void;
 }
 
-const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React.ReactNode; configAction?: string }[] = [
+const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React.ReactNode }[] = [
     {
         id: 'welcome',
         title: 'Bienvenido a KPKN',
-        icon: <ZapIcon size={40} className="text-amber-400" />,
+        icon: <ZapIcon size={40} className="text-cyber-cyan" />,
         content: (
             <div className="space-y-4 text-center">
                 <p className="text-zinc-300 text-sm font-medium leading-relaxed">
@@ -39,93 +33,38 @@ const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React
         ),
     },
     {
-        id: 'programs',
-        title: 'Programas',
-        icon: <DumbbellIcon size={40} className="text-sky-400" />,
+        id: 'capabilities',
+        title: 'Todo en uno',
+        icon: <DumbbellIcon size={40} className="text-cyber-cyan" />,
         content: (
             <div className="space-y-4 text-left">
                 <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    <span className="text-white font-bold">Programas simples:</span> lineal u ondulante (A/B). <span className="text-white font-bold">Avanzados:</span> bloques, mesociclos, periodización profesional.
+                    <span className="text-white font-bold">Programas:</span> estructura, bloques, mesociclos. <span className="text-white font-bold">Sesiones:</span> 1RM, RPE/RIR, AMRAP, biseries.
                 </p>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                    Crea la estructura de tu entrenamiento. Tipos adaptados a tu nivel.
+                    Batería muscular en tiempo real. Nutrición conectada. Todo el control que necesitas.
                 </p>
             </div>
         ),
-        configAction: 'program',
     },
     {
-        id: 'sessions',
-        title: 'Creador de sesiones',
-        icon: <ActivityIcon size={40} className="text-cyber-cyan" />,
+        id: 'ready',
+        title: 'Empezar',
+        icon: <UtensilsIcon size={40} className="text-cyber-cyan" />,
         content: (
-            <div className="space-y-4 text-left">
+            <div className="space-y-4 text-center">
                 <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    Diseña sesiones con ejercicios, series, repeticiones. <span className="text-white font-bold">1RM</span>, <span className="text-white font-bold">RPE/RIR</span>, <span className="text-white font-bold">AMRAP</span>, biseries y circuitos.
+                    Configura tu programa y plan nutricional. Puedes omitir y hacerlo después.
                 </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                    Todo el control que necesitas para cada serie.
+                <p className="text-[10px] font-mono text-cyber-cyan/80 uppercase tracking-widest">
+                    Listo para entrenar
                 </p>
             </div>
         ),
-        configAction: 'session',
-    },
-    {
-        id: 'workout',
-        title: 'Sesiones de entrenamiento',
-        icon: <DumbbellIcon size={40} className="text-emerald-400" />,
-        content: (
-            <div className="space-y-4 text-left">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    Entrena con la app: registra series, ve la batería en vivo, sigue tu programa.
-                </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                    Batería muscular en tiempo real para entrenar sin sobreentrenarte.
-                </p>
-            </div>
-        ),
-        configAction: 'workout',
-    },
-    {
-        id: 'battery',
-        title: 'Batería muscular (AUGE)',
-        icon: <BrainIcon size={40} className="text-cyan-400" />,
-        content: (
-            <div className="space-y-4 text-left">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    Tu cuerpo tiene <span className="text-white font-bold">3 baterías</span> que KPKN modela:
-                </p>
-                <ul className="space-y-2 text-xs text-zinc-400 font-mono">
-                    <li><span className="text-cyan-400">SNC</span> — coordinación y fuerza máxima</li>
-                    <li><span className="text-amber-400">Músculos</span> — fatiga por grupo muscular</li>
-                    <li><span className="text-emerald-400">Columna</span> — carga axial</li>
-                </ul>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                    Cada entrenamiento las drena; el sueño y la nutrición las recargan. KPKN te muestra en tiempo real cuánto tienes disponible para entrenar duro sin sobreentrenarte.
-                </p>
-            </div>
-        ),
-        configAction: 'battery',
-    },
-    {
-        id: 'nutrition',
-        title: 'Nutrición',
-        icon: <UtensilsIcon size={40} className="text-cyber-copper" />,
-        content: (
-            <div className="space-y-4 text-left">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    Planes de nutrición, calorías objetivo y progreso corporal. Déficit, mantención o superávit con fórmulas TMB/TDEE.
-                </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                    Conecta nutrición con la batería muscular para un cálculo de recuperación más preciso.
-                </p>
-            </div>
-        ),
-        configAction: 'nutrition',
     },
 ];
 
-export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete, onConfigurar }) => {
+export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
     const [slide, setSlide] = useState(0);
     const isLast = slide === TOTAL_SLIDES - 1;
 
@@ -142,55 +81,42 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete, onConf
     }, []);
 
     const current = SLIDES[slide];
+    const fabBottom = 'max(1.5rem, env(safe-area-inset-bottom))';
 
     return (
-        <div className="fixed inset-0 z-[9999] flex flex-col bg-black overflow-hidden">
-            <AnimatedSvgBackground
-                src="/fondo-welcome.svg"
-                variant="vertical"
-                animation="scroll"
-                opacity={0.3}
-            />
-
+        <div className="fixed inset-0 z-[9999] flex flex-col bg-[#050505] overflow-hidden safe-area-root">
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
                 {/* Contenido del slide */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center justify-center px-6 py-12 pb-24">
                     <div className="w-full max-w-md mx-auto">
                         <div className="flex justify-center mb-6">
-                            <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                            <div className="w-20 h-20 rounded-2xl bg-white/5 border border-cyber-cyan/20 flex items-center justify-center">
                                 {current.icon}
                             </div>
                         </div>
                         <h2 className="text-xl font-black text-white uppercase tracking-tight text-center mb-6 font-mono">
                             {current.title}
                         </h2>
-                        <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+                        <div className="bg-black/60 rounded-2xl border border-white/10 p-6">
                             {current.content}
                         </div>
-                        {current.configAction && onConfigurar && (
-                            <button
-                                onClick={() => onConfigurar(current.configAction!)}
-                                className="mt-4 w-full py-3 rounded-xl border border-amber-500/50 bg-amber-500/20 text-amber-400 font-bold text-sm uppercase tracking-wide"
-                            >
-                                Configurar ahora
-                            </button>
-                        )}
                     </div>
                 </div>
 
-                {/* Navegación */}
-                <div className="shrink-0 px-6 pb-6 pt-4 border-t border-white/5">
+                {/* Navegación inferior */}
+                <div className="shrink-0 px-6 wizard-safe-footer pt-4 border-t border-white/5">
                     <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
                         <button
                             onClick={handlePrev}
                             disabled={slide === 0}
-                            className={`p-3 rounded-xl border transition-all font-mono text-[10px] font-black uppercase tracking-widest ${
+                            aria-label="Atrás"
+                            className={`p-3 rounded-xl border transition-all font-mono text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#0a0a0a] ${
                                 slide === 0
                                     ? 'border-white/5 text-zinc-600 cursor-not-allowed'
-                                    : 'border-white/20 text-zinc-400 hover:text-white hover:border-white/30'
+                                    : 'border-white/20 text-zinc-400 hover:text-white hover:border-cyber-cyan/30'
                             }`}
                         >
-                            <ChevronLeftIcon size={18} className="inline-block mr-1" />
+                            <ChevronRightIcon size={18} className="inline-block mr-1 rotate-180" />
                             Atrás
                         </button>
 
@@ -199,8 +125,8 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete, onConf
                                 <button
                                     key={i}
                                     onClick={() => setSlide(i)}
-                                    className={`w-2 h-2 rounded-full transition-all ${
-                                        i === slide ? 'bg-amber-500 w-6' : 'bg-white/20 hover:bg-white/30'
+                                    className={`w-2 h-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#0a0a0a] ${
+                                        i === slide ? 'bg-cyber-cyan w-6' : 'bg-white/20 hover:bg-white/30'
                                     }`}
                                     aria-label={`Slide ${i + 1}`}
                                 />
@@ -215,9 +141,14 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete, onConf
                 <button
                     onClick={handleNext}
                     aria-label={isLast ? 'Empezar' : 'Siguiente'}
-                    className="absolute bottom-6 right-6 z-20 w-12 h-12 rounded-full border border-amber-500/50 bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 flex items-center justify-center shadow-lg transition-all"
+                    className="absolute z-20 w-12 h-12 rounded-full border border-cyber-cyan/50 bg-cyber-cyan/20 text-cyber-cyan hover:bg-cyber-cyan/30 flex items-center justify-center shadow-lg transition-all right-6 focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
+                    style={{ bottom: fabBottom }}
                 >
-                    <ChevronRightIcon size={22} />
+                    {isLast ? (
+                        <CheckIcon size={22} strokeWidth={2.5} />
+                    ) : (
+                        <ChevronRightIcon size={22} />
+                    )}
                 </button>
             </div>
         </div>

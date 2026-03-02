@@ -61,6 +61,7 @@ const DetailsSection: React.FC<DetailsSectionProps> = ({
                     >
                         <option value="hypertrophy">Hipertrofia</option>
                         <option value="powerlifting">Powerlifting</option>
+                        <option value="powerbuilding">Powerbuilding</option>
                     </select>
                 </div>
                 <div className="bg-zinc-950 border border-white/5 rounded-xl p-3">

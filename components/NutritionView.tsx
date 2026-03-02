@@ -1,13 +1,12 @@
 // components/NutritionView.tsx
-// Vista principal de Nutrición: estructura tipo ProgramDetail (hero + tabs + cards)
+// Vista principal Nutrición — estética Tú: hero con anillos, flujo único, barra fija
 
 import React, { useState, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { calculateDailyCalorieGoal } from '../utils/calorieFormulas';
-import { NutritionDashboard, RegisterFoodDrawer, NutritionWizard, NutritionSetupModal, useNutritionStats, CalorieGoalCard, NutritionPlanEditorModal } from './nutrition/index';
+import { NutritionDashboard, RegisterFoodDrawer, NutritionWizard, NutritionSetupModal, useNutritionStats, NutritionPlanEditorModal } from './nutrition/index';
 import NutritionHeroBanner from './nutrition/NutritionHeroBanner';
 import { getLocalDateString } from '../utils/dateUtils';
-import { PlusIcon } from './icons';
+import { UtensilsIcon } from './icons';
 import ErrorBoundary from './ui/ErrorBoundary';
 import WeightVsTargetChart from './WeightVsTargetChart';
 import BodyFatChart from './BodyFatChart';
@@ -21,12 +20,12 @@ const NutritionView: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState(getLocalDateString());
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [showWizard, setShowWizard] = useState(false);
-    const [activeTab, setActiveTab] = useState<'hoy' | 'plan'>('hoy');
+    const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
 
-    const { dailyCalories, calorieGoal, hasCalorieGoal } = useNutritionStats(selectedDate);
+    const { dailyCalories, calorieGoal, hasCalorieGoal, dailyTotals, proteinGoal, carbGoal, fatGoal } = useNutritionStats(selectedDate);
     const needsSetupModal = !settings.hasSeenNutritionWizard && !settings.hasDismissedNutritionSetup;
     const hasDismissed = settings.hasDismissedNutritionSetup && !settings.hasSeenNutritionWizard;
-    const [fabOpen, setFabOpen] = useState(false);
     const [goalReachedModalOpen, setGoalReachedModalOpen] = useState(false);
 
     const activePlan = useMemo(
@@ -60,6 +59,14 @@ const NutritionView: React.FC = () => {
         return Math.min(100, Math.max(0, Math.round((1 - remaining / total) * 100)));
     }, [activePlan, lastLog, bodyProgress, settings.userVitals]);
 
+    const goalLabel = activePlan
+        ? activePlan.goalType === 'weight'
+            ? `${activePlan.goalValue} kg`
+            : activePlan.goalType === 'bodyFat'
+              ? `${activePlan.goalValue}% grasa`
+              : `${activePlan.goalValue}% músculo`
+        : null;
+
     const showGoalReachedCheck = useMemo(() => {
         if (!activePlan?.estimatedEndDate) return false;
         const today = new Date().toISOString().slice(0, 10);
@@ -91,75 +98,72 @@ const NutritionView: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-full bg-black">
-            <NutritionHeroBanner
-                selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
-                dailyCalories={dailyCalories}
-                calorieGoal={calorieGoal}
-                hasCalorieGoal={hasCalorieGoal}
-                onProgresoPress={() => navigateTo('body-progress')}
-            />
+            <div className="flex-1 min-h-0 overflow-y-auto">
+                <NutritionHeroBanner
+                    selectedDate={selectedDate}
+                    onDateChange={setSelectedDate}
+                    dailyCalories={dailyCalories}
+                    calorieGoal={calorieGoal}
+                    hasCalorieGoal={hasCalorieGoal}
+                    protein={dailyTotals.protein}
+                    proteinGoal={proteinGoal}
+                    carbs={dailyTotals.carbs}
+                    carbGoal={carbGoal}
+                    fats={dailyTotals.fats}
+                    fatGoal={fatGoal}
+                    onProgresoPress={() => navigateTo('body-progress')}
+                    progressPct={progressPct}
+                    activePlanName={activePlan?.name}
+                    goalLabel={goalLabel}
+                    onEditCalories={() => setIsGoalModalOpen(true)}
+                />
 
-            <div className="flex border-b border-white/5 shrink-0">
-                <button
-                    onClick={() => setActiveTab('hoy')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'hoy' ? 'text-cyber-copper border-b-2 border-cyber-copper' : 'text-[#48484A]'}`}
-                >
-                    Hoy
-                </button>
-                <button
-                    onClick={() => setActiveTab('plan')}
-                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'plan' ? 'text-cyber-copper border-b-2 border-cyber-copper' : 'text-[#48484A]'}`}
-                >
-                    Plan
-                </button>
+                <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-32">
+                    <NutritionDashboard
+                        selectedDate={selectedDate}
+                        onDateChange={setSelectedDate}
+                        onOpenDrawer={() => setIsDrawerOpen(true)}
+                        showSetupBanner={hasDismissed}
+                        onOpenWizard={() => setShowWizard(true)}
+                        hideHeader
+                        activePlan={activePlan}
+                        onUpdateBodyData={() => setIsBodyLogModalOpen(true)}
+                        analyticsExpanded={analyticsExpanded}
+                        onAnalyticsExpand={() => setAnalyticsExpanded(v => !v)}
+                        renderAnalytics={() => (
+                            <>
+                                <ErrorBoundary fallbackLabel="WeightVsTargetChart">
+                                    <WeightVsTargetChart />
+                                </ErrorBoundary>
+                                <ErrorBoundary fallbackLabel="BodyFatChart">
+                                    <BodyFatChart />
+                                </ErrorBoundary>
+                                <ErrorBoundary fallbackLabel="MuscleMassChart">
+                                    <MuscleMassChart />
+                                </ErrorBoundary>
+                                <ErrorBoundary fallbackLabel="FFMIChart">
+                                    <FFMIChart />
+                                </ErrorBoundary>
+                            </>
+                        )}
+                    />
+                </div>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto">
-                {activeTab === 'hoy' && (
-                    <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-24">
-                        {activePlan && progressPct != null && (
-                            <div
-                                onClick={() => navigateTo('body-progress')}
-                                className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors"
-                            >
-                                <div className="flex justify-between text-xs text-slate-400 mb-1">
-                                    <span>Progreso hacia meta</span>
-                                    <span>{progressPct}%</span>
-                                </div>
-                                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-cyber-copper rounded-full transition-all"
-                                        style={{ width: `${progressPct}%` }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        <NutritionDashboard
-                            selectedDate={selectedDate}
-                            onDateChange={setSelectedDate}
-                            onOpenDrawer={() => setIsDrawerOpen(true)}
-                            showSetupBanner={hasDismissed}
-                            onOpenWizard={() => setShowWizard(true)}
-                            hideHeader
-                        />
-                    </div>
-                )}
-                {activeTab === 'plan' && (
-                    <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area">
-                        <NutritionPlanTab
-                            activePlan={activePlan}
-                            selectedDate={selectedDate}
-                            onDateChange={setSelectedDate}
-                            onOpenDrawer={() => setIsDrawerOpen(true)}
-                            onOpenWizard={() => setShowWizard(true)}
-                            onProgresoPress={() => navigateTo('body-progress')}
-                            onUpdateBodyData={() => setIsBodyLogModalOpen(true)}
-                            progressPct={progressPct}
-                            hasDismissed={hasDismissed}
-                        />
-                    </div>
-                )}
+            <div className="fixed left-0 right-0 bottom-0 z-30 bg-[#0a0a0a] border-t border-white/10 px-4 py-3 flex gap-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+                <button
+                    onClick={() => setIsDrawerOpen(true)}
+                    className="flex-1 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                >
+                    <UtensilsIcon size={18} />
+                    Añadir comida
+                </button>
+                <button
+                    onClick={() => setIsBodyLogModalOpen(true)}
+                    className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-sm uppercase tracking-wide hover:bg-white/10 transition-colors"
+                >
+                    Actualizar datos
+                </button>
             </div>
 
             <RegisterFoodDrawer
@@ -191,200 +195,10 @@ const NutritionView: React.FC = () => {
                 }}
                 onAdjustPlan={() => {
                     setGoalReachedModalOpen(false);
-                    setActiveTab('plan');
                 }}
             />
-
-            {activeTab === 'hoy' && (
-                <div className="fixed bottom-24 right-6 z-20 flex flex-col items-end gap-2">
-                    {fabOpen && (
-                        <div className="flex flex-col gap-2 animate-fade-in">
-                            <button
-                                onClick={() => {
-                                    setIsBodyLogModalOpen(true);
-                                    setFabOpen(false);
-                                }}
-                                className="px-4 py-2 rounded-xl bg-slate-800 border border-white/10 text-sm font-bold text-white shadow-lg"
-                            >
-                                Actualizar datos
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setIsDrawerOpen(true);
-                                    setFabOpen(false);
-                                }}
-                                className="px-4 py-2 rounded-xl bg-slate-800 border border-white/10 text-sm font-bold text-white shadow-lg"
-                            >
-                                Registrar comida
-                            </button>
-                        </div>
-                    )}
-                    <button
-                        onClick={() => setFabOpen((v) => !v)}
-                        className="w-14 h-14 rounded-full border border-cyber-copper/50 bg-cyber-copper/20 text-cyber-copper flex items-center justify-center shadow-lg"
-                        aria-label="Añadir"
-                    >
-                        <PlusIcon size={24} />
-                    </button>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const NutritionPlanTab: React.FC<{
-    activePlan: { id: string; name: string; goalType: string; goalValue: number; estimatedEndDate?: string } | null;
-    selectedDate: string;
-    onDateChange: (d: string) => void;
-    onOpenDrawer: () => void;
-    onOpenWizard: () => void;
-    onProgresoPress: () => void;
-    onUpdateBodyData: () => void;
-    progressPct: number | null;
-    hasDismissed: boolean;
-}> = ({
-    activePlan,
-    selectedDate,
-    onDateChange,
-    onOpenDrawer,
-    onOpenWizard,
-    onProgresoPress,
-    onUpdateBodyData,
-    progressPct,
-    hasDismissed,
-}) => {
-    const { settings } = useAppState();
-    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
-    const [planSubTab, setPlanSubTab] = useState<'hoy' | 'analytics'>('hoy');
-    const calorieGoal = useMemo(
-        () => calculateDailyCalorieGoal(settings, settings.calorieGoalConfig),
-        [settings]
-    );
-
-    if (!activePlan) {
-        return (
-            <div className="space-y-4">
-                <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center">
-                    <p className="text-slate-400 mb-4">No tienes un plan de nutrición activo.</p>
-                    <button
-                        onClick={onOpenWizard}
-                        className="px-6 py-3 rounded-xl bg-cyber-copper/20 border border-cyber-copper/50 text-cyber-copper font-bold"
-                    >
-                        Crear plan
-                    </button>
-                </div>
-                <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5">
-                    <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wide mb-3">Objetivo calórico</h3>
-                    <CalorieGoalCard calorieGoal={calorieGoal} onEditClick={() => setIsGoalModalOpen(true)} />
-                </div>
-                <NutritionPlanEditorModal isOpen={isGoalModalOpen} onClose={() => setIsGoalModalOpen(false)} />
-            </div>
-        );
-    }
-
-    const goalLabel =
-        activePlan.goalType === 'weight'
-            ? `${activePlan.goalValue} kg`
-            : activePlan.goalType === 'bodyFat'
-              ? `${activePlan.goalValue}% grasa`
-              : `${activePlan.goalValue}% músculo`;
-
-    return (
-        <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                <h3 className="text-lg font-black text-white uppercase tracking-tight">{activePlan.name}</h3>
-                <p className="text-sm text-slate-400 mt-1">Objetivo: {goalLabel}</p>
-                {activePlan.estimatedEndDate && (
-                    <p className="text-xs text-cyber-copper font-mono mt-1">
-                        Fecha estimada: {activePlan.estimatedEndDate}
-                    </p>
-                )}
-                <button
-                    onClick={() => setIsGoalModalOpen(true)}
-                    className="mt-3 text-xs font-bold text-cyber-copper uppercase"
-                >
-                    Editar calorías
-                </button>
-            </div>
-
-            <div className="flex border-b border-white/5">
-                <button
-                    onClick={() => setPlanSubTab('hoy')}
-                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wide text-center ${planSubTab === 'hoy' ? 'text-cyber-copper border-b-2 border-cyber-copper' : 'text-slate-500'}`}
-                >
-                    Hoy
-                </button>
-                <button
-                    onClick={() => setPlanSubTab('analytics')}
-                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wide text-center ${planSubTab === 'analytics' ? 'text-cyber-copper border-b-2 border-cyber-copper' : 'text-slate-500'}`}
-                >
-                    Analytics
-                </button>
-            </div>
-
-            {planSubTab === 'hoy' && (
-                <div className="space-y-4 pb-24">
-                    {progressPct != null && (
-                        <div
-                            onClick={onProgresoPress}
-                            className="p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10"
-                        >
-                            <div className="flex justify-between text-xs text-slate-400 mb-1">
-                                <span>Progreso hacia meta</span>
-                                <span>{progressPct}%</span>
-                            </div>
-                            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-cyber-copper rounded-full transition-all"
-                                    style={{ width: `${progressPct}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
-                    <NutritionDashboard
-                        selectedDate={selectedDate}
-                        onDateChange={onDateChange}
-                        onOpenDrawer={onOpenDrawer}
-                        showSetupBanner={hasDismissed}
-                        onOpenWizard={onOpenWizard}
-                        hideHeader
-                    />
-                    <button
-                        onClick={onUpdateBodyData}
-                        className="w-full py-3 rounded-xl border border-cyber-copper/30 bg-cyber-copper/10 text-cyber-copper font-bold"
-                    >
-                        Actualizar datos corporales
-                    </button>
-                </div>
-            )}
-
-            {planSubTab === 'analytics' && (
-                <div className="space-y-6 pb-24">
-                    <NutritionPlanAnalytics />
-                </div>
-            )}
-
             <NutritionPlanEditorModal isOpen={isGoalModalOpen} onClose={() => setIsGoalModalOpen(false)} />
         </div>
-    );
-};
-
-const NutritionPlanAnalytics: React.FC = () => {
-    return (
-        <>
-            <ErrorBoundary fallbackLabel="WeightVsTargetChart">
-                <WeightVsTargetChart />
-            </ErrorBoundary>
-            <ErrorBoundary fallbackLabel="BodyFatChart">
-                <BodyFatChart />
-            </ErrorBoundary>
-            <ErrorBoundary fallbackLabel="MuscleMassChart">
-                <MuscleMassChart />
-            </ErrorBoundary>
-            <ErrorBoundary fallbackLabel="FFMIChart">
-                <FFMIChart />
-            </ErrorBoundary>
-        </>
     );
 };
 

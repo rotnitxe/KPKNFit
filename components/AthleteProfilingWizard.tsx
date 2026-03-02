@@ -5,12 +5,14 @@ import { ChevronRightIcon, XIcon, ArrowLeftIcon, ActivityIcon, ZapIcon, MoveIcon
 interface AthleteProfilingWizardProps {
     onComplete: (score: AthleteProfileScore) => void;
     onCancel: () => void;
+    /** Modo inline: se renderiza en el flujo del documento (acordeón), sin overlay */
+    inline?: boolean;
 }
 
 // Aseguramos que los IDs coincidan exactamente con las llaves de options
 type QuestionStep = 'preference' | 'technique' | 'consistency' | 'strength' | 'mobility';
 
-const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onComplete, onCancel }) => {
+const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onComplete, onCancel, inline = false }) => {
     const [step, setStep] = useState<number>(0);
     const [scores, setScores] = useState({
         preference: 'Bodybuilder' as 'Bodybuilder' | 'Powerbuilder' | 'Powerlifter',
@@ -20,13 +22,13 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
         mobility: 0 as 1 | 2 | 3,
     });
 
-    // 1. DEFINICIÓN DE PASOS
+    // 1. DEFINICIÓN DE PASOS (títulos amigables)
     const steps: { id: QuestionStep; title: string; description: string; icon: any }[] = [
-        { id: 'preference', title: 'Enfoque de Entrenamiento', description: 'Definirá la lógica de volumen e intensidad del programa.', icon: <TargetIcon size={24} /> },
-        { id: 'technique', title: 'Dominio Técnico', description: 'Tu capacidad para mantener la ejecución bajo carga.', icon: <DumbbellIcon size={24} /> },
-        { id: 'consistency', title: 'Historial Reciente', description: 'Tu regularidad entrenando en los últimos 6 meses.', icon: <ActivityIcon size={24} /> },
-        { id: 'strength', title: 'Nivel de Fuerza', description: 'Referencia relativa a tu peso corporal (Ratio BW).', icon: <ZapIcon size={24} /> },
-        { id: 'mobility', title: 'Salud Articular', description: 'Rango de movimiento y ausencia de molestias.', icon: <MoveIcon size={24} /> },
+        { id: 'preference', title: '¿Cuál es tu enfoque?', description: 'Define cómo quieres entrenar: estética, fuerza o ambos.', icon: <TargetIcon size={24} /> },
+        { id: 'technique', title: '¿Cómo ejecutas los ejercicios?', description: 'Tu capacidad para mantener buena forma bajo carga.', icon: <DumbbellIcon size={24} /> },
+        { id: 'consistency', title: '¿Qué tan regular entrenas?', description: 'Tu constancia en los últimos meses.', icon: <ActivityIcon size={24} /> },
+        { id: 'strength', title: '¿Cómo está tu fuerza?', description: 'Referencia a cuánto mueves respecto a tu peso.', icon: <ZapIcon size={24} /> },
+        { id: 'mobility', title: '¿Cómo está tu movilidad?', description: 'Rango de movimiento y molestias articulares.', icon: <MoveIcon size={24} /> },
     ];
 
     // 2. OPCIONES (Deben coincidir con los IDs de arriba)
@@ -34,86 +36,86 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
         preference: [
             { 
                 value: 'Bodybuilder', 
-                label: 'Bodybuilder', 
-                detail: 'Prioridad: Hipertrofia y Estética. Buscamos maximizar el desarrollo muscular visual.' 
+                label: 'Músculo y estética', 
+                detail: 'Quiero ganar tamaño muscular y verme mejor.' 
             },
             { 
                 value: 'Powerbuilder', 
-                label: 'Powerbuilder', 
-                detail: 'Híbrido: Fuerza + Hipertrofia. Base pesada en compuestos y accesorios estéticos.' 
+                label: 'Fuerza + Músculo', 
+                detail: 'Quiero ser más fuerte y también ganar músculo.' 
             },
             { 
                 value: 'Powerlifter', 
-                label: 'Powerlifter', 
-                detail: 'Prioridad: Rendimiento (1RM). Todo gira en torno a subir tus números en SBD.' 
+                label: 'Solo fuerza', 
+                detail: 'Lo que importa es subir mis números (peso muerto, sentadilla, banca).' 
             },
         ],
         technique: [
             { 
                 value: 1, 
-                label: 'En Desarrollo', 
-                detail: 'Aún estoy aprendiendo los patrones de movimiento o corrigiendo errores básicos.' 
+                label: 'Estoy aprendiendo', 
+                detail: 'Aún corrigiendo la técnica en varios ejercicios.' 
             },
             { 
                 value: 2, 
-                label: 'Consolidada', 
-                detail: 'Ejecución segura y estable en la mayoría de los ejercicios.' 
+                label: 'Técnica sólida', 
+                detail: 'Ejecuto bien la mayoría de los ejercicios.' 
             },
             { 
                 value: 3, 
-                label: 'Avanzada', 
-                detail: 'Control motor total, incluso bajo fatiga o cargas máximas.' 
+                label: 'Dominio total', 
+                detail: 'Mantengo buena forma incluso con peso máximo.' 
             },
         ],
         consistency: [
             { 
                 value: 1, 
-                label: 'Reinicio / Inicio', 
-                detail: 'Retomando el entrenamiento o empezando desde cero.' 
+                label: 'Principiante', 
+                detail: 'Empiezo de cero o acabo de retomar.' 
             },
             { 
                 value: 2, 
-                label: 'Constante', 
-                detail: 'Entreno regularmente (2-3 veces/semana) sin interrupciones mayores.' 
+                label: 'Intermedio', 
+                detail: 'Entreno 2-3 veces por semana sin faltar mucho.' 
             },
             { 
                 value: 3, 
-                label: 'Disciplina Atlética', 
-                detail: 'Entreno 4+ veces por semana como parte innegociable de mi rutina.' 
+                label: 'Muy constante', 
+                detail: 'Entreno 4 o más días por semana, es parte de mi rutina.' 
             },
         ],
         strength: [
             { 
                 value: 1, 
-                label: 'Base (< 1x Peso Corporal)', 
-                detail: 'Aún construyendo mi fuerza base en los levantamientos principales.' 
+                label: 'Estoy empezando', 
+                detail: 'Aún construyo mi fuerza base en los ejercicios principales.' 
             },
             { 
                 value: 2, 
-                label: 'Intermedio (1x - 1.5x Peso Corporal)', 
-                detail: 'Puedo mover mi propio peso corporal en ejercicios como Sentadilla.' 
+                label: 'Muevo mi peso bien', 
+                detail: 'Puedo hacer sentadilla, peso muerto, etc. con mi propio peso o más.' 
             },
             { 
                 value: 3, 
-                label: 'Avanzado (> 1.5x Peso Corporal)', 
-                detail: 'Muevo cargas significativas (1.5x a 2x mi peso) con buena forma.' 
+                label: 'Muevo cargas altas', 
+                detail: 'Muevo 1.5x o más mi peso en los ejercicios compuestos.' 
             },
         ],
         mobility: [
             { 
                 value: 1, 
-                label: 'Restringida', 
-                detail: 'Noto rigidez o molestias que limitan algunos ejercicios.' 
+                label: 'Rigidez o molestias', 
+                detail: 'Algunos ejercicios me cuestan por falta de movilidad.' 
             },
             { 
                 value: 2, 
-                label: 'Funcional', 
-                detail: 'Rango de movimiento completo sin dolor en ejercicios estándar.' 
+                label: 'Sin limitaciones', 
+                detail: 'Hago todos los ejercicios con buen rango de movimiento.' 
             },
             { 
                 value: 3, 
-                label: 'Óptima', 
-                detail: 'Gran flexibilidad y control en rangos profundos.' 
+                label: 'Muy flexible', 
+                detail: 'Tengo buena movilidad incluso en posiciones profundas.' 
             },
         ],
     };
@@ -154,73 +156,75 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
     if (!currentStepData) return null;
 
     return (
-        <div className="fixed inset-0 z-[300] bg-black flex flex-col font-sans animate-in fade-in duration-200">
-            {/* Header: Diseño Limpio y Tech */}
-            <div className="px-6 pt-12 pb-6 bg-black border-b border-white/10">
-                <div className="flex justify-between items-center mb-8">
+        <div className={`flex flex-col font-mono animate-in fade-in duration-200 ${inline ? 'rounded-lg border border-white/10 bg-[#0a0a0a] overflow-hidden' : 'fixed inset-0 z-[300] bg-[#050505] safe-area-root'}`}>
+            {/* Header */}
+            <div className={`px-4 bg-[#050505] border-b border-white/10 ${inline ? 'py-2' : 'pt-12 pb-6'}`}>
+                <div className={`flex justify-between items-center ${inline ? 'mb-2' : 'mb-8'}`}>
                     {step > 0 ? (
-                        <button onClick={() => setStep(step - 1)} className="p-2 -ml-2 text-gray-500 hover:text-white transition-colors">
-                            <ArrowLeftIcon size={20} />
+                        <button onClick={() => setStep(step - 1)} aria-label="Atrás" className="p-1.5 -ml-1.5 text-slate-400 hover:text-white transition-colors rounded">
+                            <ArrowLeftIcon size={16} />
                         </button>
                     ) : (
-                        <button onClick={onCancel} className="p-2 -ml-2 text-gray-500 hover:text-white transition-colors">
-                            <XIcon size={20} />
+                        <button onClick={onCancel} aria-label="Cerrar" className="p-1.5 -ml-1.5 text-slate-400 hover:text-white transition-colors rounded">
+                            <XIcon size={16} />
                         </button>
                     )}
-                    {/* Barra de Progreso Sutil */}
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1">
                         {steps.map((_, i) => (
-                            <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i <= step ? 'w-8 bg-white' : 'w-2 bg-white/10'}`} />
+                            <div key={i} className={`h-0.5 rounded-full transition-all ${i <= step ? 'w-4 bg-white/80' : 'w-1.5 bg-white/10'}`} />
                         ))}
                     </div>
                 </div>
-                
-                <div className="space-y-3 max-w-lg mx-auto w-full">
-                    <div className="flex items-center gap-3 mb-2">
-                         <span className="text-white/80 p-2 bg-white/5 rounded-lg border border-white/5">{currentStepData.icon}</span>
-                         <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Paso {step + 1}/{steps.length}</span>
+
+                <div className={`space-y-1 max-w-lg mx-auto w-full ${inline ? '' : 'space-y-3'}`}>
+                    <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-white/80 p-1.5 bg-white/5 rounded border border-white/10">{React.cloneElement(currentStepData.icon, { size: inline ? 14 : 24 })}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Paso {step + 1}/{steps.length}</span>
                     </div>
-                    <h2 className="text-3xl font-black text-white uppercase tracking-tight leading-none">{currentStepData.title}</h2>
-                    <p className="text-sm text-gray-400 font-medium leading-relaxed">{currentStepData.description}</p>
+                    <h2 id="athlete-step-title" className={`font-bold text-white uppercase tracking-tight leading-tight ${inline ? 'text-sm' : 'text-2xl'}`}>{currentStepData.title}</h2>
+                    <p className={`text-slate-400 leading-snug ${inline ? 'text-[11px]' : 'text-sm'}`}>{currentStepData.description}</p>
                 </div>
             </div>
 
             {/* Body */}
-            <div className="flex-1 p-6 overflow-y-auto bg-[#050505] custom-scrollbar">
-                <div className="flex flex-col gap-3 max-w-lg mx-auto">
-                    {/* El .map ahora es seguro gracias al fallback '|| []' */}
+            <main role="region" aria-labelledby="athlete-step-title" className={`flex-1 overflow-y-auto bg-[#050505] custom-scrollbar ${inline ? 'p-3 max-h-[36vh]' : 'p-6 pb-8'}`}>
+                <div className={`flex flex-col max-w-lg mx-auto ${inline ? 'gap-1.5' : 'gap-3'}`}>
                     {currentOptions.map((opt) => (
                         <button
                             key={opt.value}
                             onClick={() => handleOptionSelect(opt.value)}
-                            className="group relative w-full text-left p-5 rounded-2xl border border-white/10 bg-[#111] hover:bg-white hover:border-white transition-all duration-200 active:scale-[0.98]"
+                            className={`group relative w-full text-left rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.99] focus:outline-none focus:ring-1 focus:ring-white/30 ${inline ? 'p-2.5' : 'p-5'}`}
                         >
-                            <div className="flex justify-between items-center mb-1.5">
-                                <span className="text-base font-black uppercase tracking-tight text-white group-hover:text-black transition-colors">
+                            <div className="flex justify-between items-center mb-0.5">
+                                <span className={`font-bold uppercase tracking-tight text-white ${inline ? 'text-xs' : 'text-base'}`}>
                                     {opt.label}
                                 </span>
                                 {typeof opt.value === 'number' && (
                                     <div className="flex gap-0.5">
                                         {Array.from({ length: 3 }).map((_, i) => (
-                                            <div key={i} className={`w-1 h-3 rounded-full ${i < opt.value ? 'bg-white/40 group-hover:bg-black/40' : 'bg-white/5 group-hover:bg-black/5'}`} />
+                                            <div key={i} className={`w-1 h-2 rounded-full ${i < opt.value ? 'bg-white/60' : 'bg-white/10'}`} />
                                         ))}
                                     </div>
                                 )}
                             </div>
-                            <p className="text-xs text-gray-500 font-medium leading-relaxed group-hover:text-gray-600 transition-colors pr-6">
+                            <p className={`text-slate-500 leading-snug group-hover:text-slate-300 transition-colors ${inline ? 'text-[10px] pr-5' : 'text-xs pr-6'}`}>
                                 {opt.detail}
                             </p>
-                            <div className="absolute right-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                <ChevronRightIcon size={18} className="text-black" />
-                            </div>
+                            {!inline && (
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                    <ChevronRightIcon size={18} className="text-white/60" />
+                                </div>
+                            )}
                         </button>
                     ))}
                 </div>
-            </div>
-            
-            <div className="p-4 bg-black border-t border-white/5 text-center">
-                 <p className="text-[9px] text-gray-600 uppercase tracking-widest font-mono">KPKN Algorithm • Calibración</p>
-            </div>
+            </main>
+
+            {!inline && (
+                <div className="wizard-safe-footer p-4 bg-[#050505] border-t border-white/10 text-center">
+                    <p className="text-[9px] text-slate-600 uppercase tracking-widest font-mono">KPKN • Calibración</p>
+                </div>
+            )}
         </div>
     );
 };

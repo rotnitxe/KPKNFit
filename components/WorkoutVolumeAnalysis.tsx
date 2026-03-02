@@ -68,7 +68,7 @@ const STATUS_LABELS = {
 
 // Helper para obtener estado según umbrales dinámicos (términos amigables)
 const getStatusFromThresholds = (sets: number, thresholds: MuscleVolumeThresholds, programMode?: string) => {
-    const isPowerlifting = programMode === 'powerlifting' || programMode === 'strength';
+    const isPowerlifting = programMode === 'powerlifting' || programMode === 'powerbuilding' || programMode === 'strength';
     const { min, optimal, max } = thresholds;
 
     if (isPowerlifting) {
@@ -236,31 +236,63 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
             {/* Lista de músculos con barras apiladas (Directo verde / Indirecto azul) */}
             {displayAnalysis && displayAnalysis.length > 0 && (
                 <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <span className="w-2 h-2 rounded-full bg-emerald-500" title="Directo" />
                         <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Directo</span>
-                        <span className="w-2 h-2 rounded-full bg-blue-500 ml-2" title="Indirecto" />
+                        <span className="w-2 h-2 rounded-full bg-blue-500" title="Indirecto" />
                         <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Indirecto</span>
+                        <span className="text-[8px] text-zinc-500">|</span>
+                        <span className="w-1 h-3 bg-amber-500/80" title="Umbral mínimo" />
+                        <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Mín.</span>
+                        <span className="w-1 h-3 bg-red-500/80" title="Umbral máximo" />
+                        <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Máx.</span>
                     </div>
                     {displayAnalysis.map((item) => {
                         const directSets = item.directExercises?.reduce((s, e) => s + e.sets, 0) ?? 0;
                         const indirectSets = item.indirectExercises?.reduce((s, e) => s + e.sets, 0) ?? 0;
                         const total = directSets + indirectSets;
-                        const directWidthPct = maxSets > 0 ? (directSets / maxSets) * 100 : 0;
-                        const indirectWidthPct = maxSets > 0 ? (indirectSets / maxSets) * 100 : 0;
                         const thresholds = getVolumeThresholdsForMuscle(item.muscleGroup, { program, settings, athleteScore });
+                        const barMax = Math.max(maxSets, thresholds.max * 1.15, total, 1);
+                        const directWidthPct = (directSets / barMax) * 100;
+                        const indirectWidthPct = (indirectSets / barMax) * 100;
+                        const minPct = (thresholds.min / barMax) * 100;
+                        const maxPct = (thresholds.max / barMax) * 100;
                         return (
                             <div key={item.muscleGroup} className="flex items-center gap-2 group">
                                 <span className="w-24 text-[10px] font-bold text-[#8E8E93] truncate text-right shrink-0">{item.muscleGroup}</span>
-                                <div className="flex-1 h-3 bg-[#1a1a1a] rounded-full overflow-hidden flex min-w-0" title={`Directo: ${directSets} | Indirecto: ${indirectSets} | Recomendado: ${thresholds.rangeLabel}`}>
-                                    <div
-                                        className="h-full bg-emerald-500 transition-all"
-                                        style={{ width: `${directWidthPct}%`, minWidth: directSets > 0 ? '2px' : 0 }}
-                                    />
-                                    <div
-                                        className="h-full bg-blue-500 transition-all"
-                                        style={{ width: `${indirectWidthPct}%`, minWidth: indirectSets > 0 ? '2px' : 0 }}
-                                    />
+                                <div className="flex-1 h-4 relative min-w-0" title={`Directo: ${directSets} | Indirecto: ${indirectSets} | Recomendado: ${thresholds.rangeLabel} (min ${thresholds.min} / max ${thresholds.max})`}>
+                                    {/* Fondo con zonas de umbral: subentreno | óptimo | sobreentreno */}
+                                    <div className="absolute inset-0 flex rounded-lg overflow-hidden bg-[#1a1a1a]">
+                                        <div className="h-full bg-zinc-600/50" style={{ width: `${minPct}%` }} title="Subentreno" />
+                                        <div className="h-full bg-emerald-600/30" style={{ width: `${maxPct - minPct}%` }} title="Zona óptima" />
+                                        <div className="h-full bg-red-600/20 flex-1" title="Riesgo sobreentreno" />
+                                    </div>
+                                    {/* Barras de volumen (directo + indirecto) encima */}
+                                    <div className="absolute inset-0 flex rounded-lg overflow-hidden pointer-events-none">
+                                        <div
+                                            className="h-full bg-emerald-500 transition-all"
+                                            style={{ width: `${directWidthPct}%`, minWidth: directSets > 0 ? '2px' : 0 }}
+                                        />
+                                        <div
+                                            className="h-full bg-blue-500 transition-all"
+                                            style={{ width: `${indirectWidthPct}%`, minWidth: indirectSets > 0 ? '2px' : 0 }}
+                                        />
+                                    </div>
+                                    {/* Líneas umbral: min y max */}
+                                    {minPct > 2 && minPct < 98 && (
+                                        <div
+                                            className="absolute top-0 bottom-0 w-0.5 bg-amber-500/80 z-10"
+                                            style={{ left: `${minPct}%`, transform: 'translateX(-50%)' }}
+                                            title={`Mín. mantener: ${thresholds.min} sets`}
+                                        />
+                                    )}
+                                    {maxPct > 2 && maxPct < 98 && maxPct !== minPct && (
+                                        <div
+                                            className="absolute top-0 bottom-0 w-0.5 bg-red-500/80 z-10"
+                                            style={{ left: `${maxPct}%`, transform: 'translateX(-50%)' }}
+                                            title={`Máx. recomendado: ${thresholds.max} sets`}
+                                        />
+                                    )}
                                 </div>
                                 <span className="w-24 text-[10px] text-right shrink-0">
                                     <span className="font-bold text-white tabular-nums">{directSets}|{indirectSets}</span>

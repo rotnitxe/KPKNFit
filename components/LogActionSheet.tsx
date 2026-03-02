@@ -11,6 +11,7 @@ interface ActionItem {
     delay: number;
     condition?: boolean; // Optional condition to show
     ariaLabel?: string;
+    testId?: string;
 }
 
 const LogActionSheet: React.FC = () => {
@@ -79,7 +80,8 @@ const LogActionSheet: React.FC = () => {
             label: "Entrenar", 
             action: () => setIsStartWorkoutModalOpen(true),
             color: "bg-emerald-500",
-            delay: 0
+            delay: 0,
+            testId: "log-entrenar"
         },
         { 
             icon: isGlobalVoiceActive ? MicOffIcon : MicIcon, 
@@ -87,14 +89,16 @@ const LogActionSheet: React.FC = () => {
             action: toggleVoice,
             color: isGlobalVoiceActive ? "bg-red-500 animate-pulse" : "bg-cyan-500",
             delay: 50,
-            condition: hasApiKey
+            condition: hasApiKey,
+            testId: "log-voz"
         },
         { 
             icon: PlusCircleIcon, 
             label: "Programa", 
             action: () => navigateTo('program-editor'),
             color: "bg-indigo-600",
-            delay: 100
+            delay: 100,
+            testId: "log-programa"
         },
 
         // Fila 2: Creación
@@ -103,14 +107,16 @@ const LogActionSheet: React.FC = () => {
             label: "Ejercicio", 
             action: () => openCustomExerciseEditor(),
             color: "bg-blue-600",
-            delay: 150
+            delay: 150,
+            testId: "log-ejercicio"
         },
         { 
             icon: UtensilsIcon, 
             label: "Alimento", 
             action: () => openFoodEditor(),
             color: "bg-cyber-cyan",
-            delay: 200
+            delay: 200,
+            testId: "log-alimento"
         },
         { 
             icon: UtensilsIcon, 
@@ -120,14 +126,16 @@ const LogActionSheet: React.FC = () => {
                 setIsNutritionLogModalOpen(true);
             },
             color: "bg-amber-600",
-            delay: 210
+            delay: 210,
+            testId: "log-registrar-comida"
         },
          { 
             icon: BodyIcon, 
             label: "Actualizar datos", 
             action: () => setIsBodyLogModalOpen(true),
             color: "bg-pink-500",
-            delay: 250
+            delay: 250,
+            testId: "log-actualizar-datos"
         },
 
         // Fila 3: Navegación
@@ -136,14 +144,16 @@ const LogActionSheet: React.FC = () => {
             label: "KPKN", 
             action: () => navigateTo('kpkn'),
             color: "bg-slate-700",
-            delay: 300
+            delay: 300,
+            testId: "log-kpkn"
         },
         { 
             icon: IdCardIcon, 
             label: "Atleta ID", 
             action: () => setIsMenuOpen(true),
             color: "bg-slate-700",
-            delay: 350
+            delay: 350,
+            testId: "log-atleta-id"
         },
          { 
             icon: SettingsIcon, 
@@ -151,7 +161,8 @@ const LogActionSheet: React.FC = () => {
             action: () => navigateTo('settings'),
             color: "bg-slate-700",
             delay: 400,
-            ariaLabel: "Settings"
+            ariaLabel: "Settings",
+            testId: "log-ajustes"
         }
     ];
     
@@ -169,6 +180,7 @@ const LogActionSheet: React.FC = () => {
                     {validActions.map((item, index) => (
                         <div 
                             key={index}
+                            data-testid={item.testId}
                             onClick={() => handleAction(item)}
                             role="button"
                             aria-label={item.ariaLabel || item.label}

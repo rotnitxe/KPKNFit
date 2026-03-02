@@ -1,12 +1,13 @@
 // components/workout/CardCarouselBar.tsx
-// Carrusel horizontal de tarjetas de ejercicios con drag-and-drop
+// Carrusel horizontal con drag nativo táctil (sigue el dedo en tiempo real)
 
-import React, { useRef, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { Exercise } from '../../types';
 import ExerciseCard from './ExerciseCard';
 import FinishCard from './FinishCard';
 import { DragHandleIcon } from '../icons';
+import { hapticImpact } from '../../services/hapticsService';
+import { ImpactStyle } from '../../services/hapticsService';
 
 export interface CarouselItem {
   type: 'exercise';
@@ -37,6 +38,9 @@ interface CardCarouselBarProps {
   finishCardExpanded?: boolean;
 }
 
+const DRAG_ACTIVATION_DELAY_MS = 120;
+const DRAG_ACTIVATION_DISTANCE_PX = 5;
+
 const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
   items,
   activeExerciseId,
@@ -54,6 +58,19 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
+  const [dragSourceIndex, setDragSourceIndex] = useState<number>(0);
+  const dragStateRef = useRef<{
+    active: boolean;
+    activationTimer: ReturnType<typeof setTimeout> | null;
+    startX: number;
+    startY: number;
+    pointerId: number;
+    itemId: string;
+    sourceIndex: number;
+  } | null>(null);
+  const dragJustEndedRef = useRef(false);
 
   useEffect(() => {
     if (!activeExerciseId || !scrollRef.current) return;
@@ -66,25 +83,130 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
     }
   }, [activeExerciseId, items]);
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!onReorder || !result.destination) return;
-    if (result.source.index === result.destination.index) return;
-    const newItems = Array.from(items);
-    const [removed] = newItems.splice(result.source.index, 1);
-    newItems.splice(result.destination.index, 0, removed);
-    onReorder(newItems);
-  };
+  const getDropIndex = useCallback((clientX: number): number => {
+    const exerciseItems = items.filter((it): it is CarouselItem => it.type === 'exercise');
+    if (exerciseItems.length === 0) return 0;
 
-  const renderCarousel = () => (
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < exerciseItems.length; i++) {
+      const el = cardRefs.current.get(exerciseItems[i].firstExerciseId);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const dist = Math.abs(clientX - centerX);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = i;
+      }
+    }
+    return bestIdx;
+  }, [items]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent, itemId: string, index: number) => {
+    if (!onReorder || itemId === 'finish') return;
+    e.preventDefault();
+    e.stopPropagation();
+    dragStateRef.current = {
+      active: false,
+      activationTimer: setTimeout(() => {
+        if (dragStateRef.current) {
+          dragStateRef.current.active = true;
+          setDraggingId(itemId);
+          setDragSourceIndex(index);
+          setDragPosition({ x: dragStateRef.current.startX, y: dragStateRef.current.startY });
+          hapticImpact(ImpactStyle.Light);
+        }
+      }, DRAG_ACTIVATION_DELAY_MS),
+      startX: e.clientX,
+      startY: e.clientY,
+      pointerId: e.pointerId,
+      itemId,
+      sourceIndex: index,
+    };
+  }, [onReorder]);
+
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      const state = dragStateRef.current;
+      if (!state) return;
+
+      const dx = Math.abs(e.clientX - state.startX);
+      const dy = Math.abs(e.clientY - state.startY);
+      if (!state.active && (dx > DRAG_ACTIVATION_DISTANCE_PX || dy > DRAG_ACTIVATION_DISTANCE_PX)) {
+        if (state.activationTimer) {
+          clearTimeout(state.activationTimer);
+          state.activationTimer = null;
+        }
+        state.active = true;
+        setDraggingId(state.itemId);
+        setDragSourceIndex(state.sourceIndex);
+        setDragPosition({ x: e.clientX, y: e.clientY });
+        hapticImpact(ImpactStyle.Light);
+      }
+
+      if (state.active) {
+        e.preventDefault();
+        setDragPosition({ x: e.clientX, y: e.clientY });
+      }
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      const state = dragStateRef.current;
+      if (!state) return;
+
+      if (state.activationTimer) {
+        clearTimeout(state.activationTimer);
+      }
+
+      if (state.active && onReorder) {
+        e.preventDefault();
+        dragJustEndedRef.current = true;
+        setTimeout(() => { dragJustEndedRef.current = false; }, 280);
+        const destIndex = getDropIndex(e.clientX);
+        const exerciseItems = items.filter((it): it is CarouselItem => it.type === 'exercise');
+        if (destIndex !== state.sourceIndex && destIndex >= 0 && destIndex < exerciseItems.length) {
+          const newItems = Array.from(items);
+          const finishItem = newItems.pop();
+          const [removed] = newItems.splice(state.sourceIndex, 1);
+          newItems.splice(destIndex, 0, removed);
+          if (finishItem) newItems.push(finishItem);
+          onReorder(newItems);
+          hapticImpact(ImpactStyle.Light);
+        }
+      }
+
+      dragStateRef.current = null;
+      setDraggingId(null);
+      setDragPosition(null);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { capture: true, passive: false });
+    window.addEventListener('pointerup', handlePointerUp, { capture: true });
+    window.addEventListener('pointercancel', handlePointerUp, { capture: true });
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove, { capture: true });
+      window.removeEventListener('pointerup', handlePointerUp, { capture: true });
+      window.removeEventListener('pointercancel', handlePointerUp, { capture: true });
+    };
+  }, [items, onReorder, getDropIndex]);
+
+  const draggedItem = draggingId ? items.find((it): it is CarouselItem => it.type === 'exercise' && it.firstExerciseId === draggingId) : null;
+
+  return (
     <div
       ref={scrollRef}
-      className="flex overflow-x-auto gap-3 px-4 py-3 no-scrollbar scroll-smooth"
-      style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+      className={`flex overflow-x-auto gap-3 px-4 py-3 no-scrollbar scroll-smooth select-none ${draggingId ? 'overflow-hidden touch-none' : ''}`}
+      style={{
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
+        touchAction: draggingId ? 'none' : 'pan-x',
+      }}
     >
       {items.map((item, idx) => {
         if (item.type === 'finish') {
           return (
-            <div key="finish" ref={(el) => el && cardRefs.current.set('finish', el)}>
+            <div key="finish" ref={(el) => el && cardRefs.current.set('finish', el)} className="flex-shrink-0">
               <FinishCard
                 isExpanded={finishCardExpanded}
                 onPress={() => {}}
@@ -102,6 +224,7 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
         const exIds = item.exercises.map(e => e.id);
         const isSkipped = exIds.some(id => skippedIds.has(id));
         const isActive = exIds.includes(activeExerciseId ?? '');
+        const isDragging = draggingId === item.firstExerciseId;
 
         return (
           <div
@@ -109,11 +232,16 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
             ref={(el) => {
               if (el) cardRefs.current.set(item.firstExerciseId, el);
             }}
-            className="flex items-center gap-1 flex-shrink-0"
+            className={`flex items-center gap-1 flex-shrink-0 transition-opacity duration-75 ${isDragging ? 'opacity-30' : ''}`}
           >
             {onReorder && (
-              <div className="cursor-grab active:cursor-grabbing touch-none p-1 rounded text-slate-500 hover:text-slate-400 shrink-0" title="Arrastrar para reordenar">
-                <DragHandleIcon size={14} />
+              <div
+                className="p-2 -m-2 rounded-lg text-slate-500 hover:text-slate-400 active:text-cyber-cyan shrink-0 touch-manipulation"
+                style={{ touchAction: 'none' }}
+                onPointerDown={(e) => handlePointerDown(e, item.firstExerciseId, idx)}
+                title="Mantén y arrastra para reordenar"
+              >
+                <DragHandleIcon size={16} />
               </div>
             )}
             <ExerciseCard
@@ -121,98 +249,44 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
               color={item.color}
               isActive={isActive}
               isSkipped={isSkipped}
-              onPress={() => onSelectExercise(item.firstExerciseId)}
+              onPress={() => {
+                if (dragJustEndedRef.current) return;
+                onSelectExercise(item.firstExerciseId);
+              }}
               onLongPress={() => onLongPressExercise(item)}
             />
           </div>
         );
       })}
+
+      {/* Clon flotante que sigue el dedo */}
+      {draggedItem && dragPosition && (
+        <div
+          className="fixed z-[9999] pointer-events-none will-change-transform"
+          style={{
+            left: dragPosition.x,
+            top: dragPosition.y,
+            transform: 'translate(-50%, -50%)',
+            width: 144,
+          }}
+        >
+          <div className="rounded-xl border-2 shadow-2xl scale-105 origin-center" style={{
+            borderColor: draggedItem.color,
+            backgroundColor: `${draggedItem.color}20`,
+            boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 24px ${draggedItem.color}50`,
+          }}>
+            <div className="p-3 flex flex-col items-center justify-center min-h-[56px]">
+              <span className="text-xs font-bold text-center line-clamp-2 leading-tight text-white">
+                {draggedItem.exercises.length > 1
+                  ? draggedItem.exercises.map(e => e.name).join(' • ')
+                  : draggedItem.exercises[0]?.name ?? ''}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-
-  if (onReorder) {
-    return (
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="carousel" direction="horizontal">
-          {(provided) => (
-            <div
-              ref={(el) => {
-                (scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-                provided.innerRef(el);
-              }}
-              {...provided.droppableProps}
-              className="flex overflow-x-auto gap-3 px-4 py-3 no-scrollbar scroll-smooth"
-              style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
-            >
-              {items.map((item, idx) => {
-                if (item.type === 'finish') {
-                  return (
-                    <Draggable key="finish" draggableId="finish" index={idx} isDragDisabled>
-                      {(provided) => (
-                        <div
-                          ref={(el) => {
-                            provided.innerRef(el);
-                            if (el) cardRefs.current.set('finish', el);
-                          }}
-                          {...provided.draggableProps}
-                          className="flex-shrink-0"
-                        >
-                          <FinishCard
-                            isExpanded={finishCardExpanded}
-                            onPress={() => {}}
-                            onExpand={onFinishCardExpand}
-                            onFinish={onFinish}
-                            durationMinutes={durationMinutes}
-                            completedSetsCount={completedSetsCount}
-                            totalSetsCount={totalSetsCount}
-                            totalTonnage={totalTonnage}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  );
-                }
-
-                const exIds = item.exercises.map(e => e.id);
-                const isSkipped = exIds.some(id => skippedIds.has(id));
-                const isActive = exIds.includes(activeExerciseId ?? '');
-
-                return (
-                  <Draggable key={item.firstExerciseId} draggableId={item.firstExerciseId} index={idx}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={(el) => {
-                          provided.innerRef(el);
-                          if (el) cardRefs.current.set(item.firstExerciseId, el);
-                        }}
-                        {...provided.draggableProps}
-                        className={`flex items-center gap-1 flex-shrink-0 ${snapshot.isDragging ? 'opacity-80 z-50' : ''}`}
-                      >
-                        <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing touch-none p-1 rounded text-slate-500 hover:text-slate-400 shrink-0" title="Arrastrar para reordenar">
-                          <DragHandleIcon size={14} />
-                        </div>
-                        <ExerciseCard
-                          exercises={item.exercises}
-                          color={item.color}
-                          isActive={isActive}
-                          isSkipped={isSkipped}
-                          onPress={() => onSelectExercise(item.firstExerciseId)}
-                          onLongPress={() => onLongPressExercise(item)}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                );
-              })}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-    );
-  }
-
-  return renderCarousel();
 };
 
 export default CardCarouselBar;

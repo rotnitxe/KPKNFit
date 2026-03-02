@@ -122,7 +122,8 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
 
           <button 
              onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
-             className="flex-shrink-0 text-white/20 hover:text-white/60 transition-colors p-1 bg-black/20 rounded-full"
+             aria-label="Cerrar notificación"
+             className="flex-shrink-0 text-white/20 hover:text-white/60 transition-colors p-1 bg-black/20 rounded-full focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-transparent"
           >
               <XIcon size={14} />
           </button>

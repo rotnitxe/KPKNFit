@@ -87,6 +87,8 @@ const ProgramsView: React.FC<ProgramsViewProps> = ({ programs, onSelectProgram, 
             <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Programas</h1>
             {programs.length > 0 && (
                 <button
+                    data-testid="programs-create-new"
+                    aria-label="Crear nuevo programa"
                     onClick={onCreateProgram}
                     className="bg-white/10 hover:bg-white text-zinc-300 hover:text-black font-black uppercase text-[10px] tracking-widest py-2.5 px-5 rounded-xl transition-all flex items-center gap-2 border border-white/5 hover:border-white shadow-sm"
                 >
@@ -105,6 +107,8 @@ const ProgramsView: React.FC<ProgramsViewProps> = ({ programs, onSelectProgram, 
                 <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-3">KPKN está vacío</h2>
                 <p className="text-xs text-zinc-500 font-bold mb-10 max-w-[250px] leading-relaxed">El primer paso para el éxito es la planificación. Diseña tu primer bloque de entrenamiento.</p>
                 <button 
+                    data-testid="programs-empty-create"
+                    aria-label="Crear mi primer programa"
                     onClick={onCreateProgram}
                     className="flex items-center gap-2 px-8 py-4 bg-white text-black rounded-full font-black uppercase text-[11px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]"
                 >

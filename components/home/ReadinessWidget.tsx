@@ -132,14 +132,13 @@ export const ReadinessWidget: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-4">
-                        <ActivityIcon size={24} className="text-zinc-600 mx-auto mb-2" />
-                        <p className="text-[9px] text-zinc-500 font-bold uppercase">Sin datos</p>
+                    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-white/[0.02] border border-white/5 min-h-[44px]">
+                        <span className="text-[9px] text-zinc-500 font-bold uppercase">Sin datos</span>
                         <button
                             onClick={() => { setEditValue(7); setIsEditing(true); }}
-                            className="mt-3 text-[8px] font-black text-zinc-500 uppercase tracking-widest hover:text-white transition-colors"
+                            className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors shrink-0"
                         >
-                            Registrar
+                            Añade datos
                         </button>
                     </div>
                 )}

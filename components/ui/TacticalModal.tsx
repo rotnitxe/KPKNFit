@@ -55,6 +55,7 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
                   ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       role="dialog"
       aria-modal="true"
+      aria-labelledby={title !== undefined ? 'tactical-modal-title' : undefined}
     >
       <TacticalBackdrop onClick={onClose} variant="modal" />
 
@@ -78,7 +79,7 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
             </h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-sm text-[#A0A7B8] hover:bg-[#2A2D38] hover:text-white transition-colors duration-200"
+              className="p-1.5 rounded-sm text-[#A0A7B8] hover:bg-[#2A2D38] hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#15171E]"
               aria-label="Cerrar"
             >
               <XIcon size={18} />

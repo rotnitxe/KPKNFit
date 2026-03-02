@@ -69,6 +69,8 @@ const defaultSettings: Settings = {
     enableGlowEffects: true,
     enableZenMode: false,
     enabledTabs: ['home', 'nutrition', 'recovery', 'sleep'],
+    soundPack: 'classic',
+    tabBarStyle: 'default',
     algorithmSettings: {
         oneRMDecayRate: 0.1,
         failureFatigueFactor: 1.25,
@@ -121,6 +123,12 @@ export const useSettingsStore = create<SettingsStoreState>()(
                 const merged = { ...curr, ...pers };
                 if (pers.userVitals && typeof pers.userVitals === 'object') {
                     merged.userVitals = { ...(curr.userVitals || {}), ...pers.userVitals };
+                }
+                // E2E bypass: skip onboarding when TestSprite/Playwright loads with ?e2e=1
+                if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('kpkn-e2e-bypass') === '1') {
+                    merged.hasSeenWelcome = true;
+                    merged.hasSeenGeneralWizard = true;
+                    merged.hasSeenNutritionWizard = true;
                 }
                 return { ...current, settings: merged };
             },

@@ -216,8 +216,8 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
                     </div>
                 </Section>
 
-                <Section title="Conexión AUGE">
-                    <p className="text-xs text-slate-400 mb-2">Conecta calorías y macros con la batería muscular.</p>
+                <Section title="Conectar con la batería muscular">
+                    <p className="text-xs text-slate-400 mb-2">La nutrición se ajusta según tu fatiga y recuperación durante el entrenamiento.</p>
                     <div className="flex gap-3">
                         <button
                             onClick={() => setConnectAuge(true)}
