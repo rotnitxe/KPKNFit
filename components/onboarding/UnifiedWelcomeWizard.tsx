@@ -17,46 +17,72 @@ import { SplitStep } from './steps/SplitStep';
 import { VolumeStep } from './steps/VolumeStep';
 import { RecentWorkoutsStep } from './steps/RecentWorkoutsStep';
 import { BatteryRingsStep } from './steps/BatteryRingsStep';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Zap, Activity, Target, Utensils, BarChart3, ChevronRight } from 'lucide-react';
+
 
 const WELCOME_SLIDES = [
   {
     id: 'logo',
     content: (
-      <div className="flex flex-col items-center justify-center py-12">
-        <img src="/kpkn-logo-welcome.png" alt="KPKN" className="w-[120px] h-[120px] object-contain" />
-      </div>
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col items-center justify-center py-10"
+      >
+        <div className="relative">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-4 border border-dashed border-white/20 rounded-full"
+          />
+          <img src="/kpkn-logo-welcome.png" alt="KPKN" className="w-[140px] h-[140px] object-contain relative z-10" />
+        </div>
+        <motion.h1 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-6 text-white text-2xl font-bold tracking-tighter"
+        >
+          BIENVENIDO A <span className="text-[#facc15]">KPKN</span>
+        </motion.h1>
+      </motion.div>
     ),
   },
   {
-    id: 'intro',
+    id: 'features',
     content: (
-      <div className="space-y-5 text-center px-4 text-[#1a1a1a]">
-        <p className="text-[#2d2d2d] text-sm leading-relaxed">
-          Programa tus entrenamientos, registra tus sesiones y haz seguimiento de tu progreso.
-        </p>
-        <ul className="text-left space-y-2.5 text-sm text-[#2d2d2d] max-w-[300px] mx-auto">
-          <li className="flex items-start gap-2">
-            <span className="text-[#1a1a1a] shrink-0">•</span>
-            <span><strong className="text-[#1a1a1a]">Programas</strong> — Bloques, mesociclos y splits listos</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-[#1a1a1a] shrink-0">•</span>
-            <span><strong className="text-[#1a1a1a]">Batería AUGE</strong> — Tu energía muscular y neural en tiempo real</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-[#1a1a1a] shrink-0">•</span>
-            <span><strong className="text-[#1a1a1a]">1RM y RPE</strong> — Peso, reps y esfuerzo percibido</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-[#1a1a1a] shrink-0">•</span>
-            <span><strong className="text-[#1a1a1a]">Nutrición</strong> — Calorías, macros y plan conectado</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-[#1a1a1a] shrink-0">•</span>
-            <span><strong className="text-[#1a1a1a]">Volumen personalizado</strong> — Según tu perfil de atleta</span>
-          </li>
-        </ul>
-        <p className="text-[#525252] text-xs">Puedes configurar todo ahora o después.</p>
+      <div className="space-y-6 px-4">
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { icon: <Activity size={18} />, txt: "Programas", col: "bg-blue-500/10" },
+            { icon: <Zap size={18} />, txt: "Batería AUGE", col: "bg-yellow-500/10" },
+            { icon: <Target size={18} />, txt: "1RM & RPE", col: "bg-red-500/10" },
+            { icon: <Utensils size={18} />, txt: "Nutrición", col: "bg-green-500/10" },
+          ].map((f, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className={`p-3 rounded-2xl ${f.col} border border-white/5 flex flex-col items-center gap-2 text-center`}
+            >
+              <div className="text-white/80">{f.icon}</div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/90">{f.txt}</span>
+            </motion.div>
+          ))}
+        </div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="bg-black/20 p-4 rounded-2xl border border-white/5"
+        >
+          <p className="text-white/70 text-xs leading-relaxed text-center italic">
+            "La fuerza no viene de la capacidad física, sino de una voluntad indomable."
+          </p>
+        </motion.div>
       </div>
     ),
   },
@@ -251,13 +277,21 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
         >
           Omitir
         </button>
-        {/* Tarjeta: gris medio plano, mensaje de bienvenida (logo + texto + características) */}
-        <div className="relative z-20 flex-1 flex flex-col min-h-0 m-4 mt-14 rounded-3xl overflow-hidden shadow-2xl" style={{ backgroundColor: '#7a7a7a', minHeight: 320 }}>
+        {/* Tarjeta Evolucionada: Cristalina con Gradiente */}
+        <motion.div 
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="relative z-20 flex-1 flex flex-col min-h-0 m-5 mt-16 rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 backdrop-blur-md" 
+          style={{ 
+            background: 'linear-gradient(180deg, rgba(40,40,40,0.95) 0%, rgba(20,20,20,0.98) 100%)',
+            minHeight: 320 
+          }}
+        >
           {/* Swipe entre slides */}
           <div
             ref={scrollRef}
             onScroll={handleScroll}
-            className="flex-1 flex overflow-x-auto overflow-y-auto snap-x snap-mandatory scroll-smooth hide-scrollbar min-h-[200px]"
+            className="flex-1 flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth hide-scrollbar"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {WELCOME_SLIDES.map((slide) => (
@@ -283,9 +317,10 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
             </div>
             <button
               onClick={() => (isLastWelcome ? setPhase('physical') : setWelcomeStep((s) => s + 1))}
-              className="w-full py-4 bg-[#1a1a1a] text-white font-medium text-sm rounded-xl"
+              className="w-full py-4 bg-white text-black font-bold text-sm rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg shadow-white/5"
             >
-              {isLastWelcome ? 'Continuar' : 'Siguiente'}
+              <span>{isLastWelcome ? 'COMENZAR' : 'SIGUIENTE'}</span>
+              <ChevronRight size={18} />
             </button>
           </div>
         </div>
@@ -293,112 +328,131 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
     );
   }
 
-  if (phase === 'physical') {
+  // --- CONTENEDOR UNIFICADO PARA PASOS DE CONFIGURACIÓN ---
+  if (phase !== 'welcome') {
+    const renderStep = () => {
+      switch (phase) {
+        case 'physical':
+          return (
+            <PhysicalDataStep
+              initial={physicalData}
+              settings={settings}
+              onNext={(data) => {
+                setPhysicalData(data);
+                applyPhysicalData(data);
+                setPhase('athlete');
+              }}
+              onSkip={() => setPhase('athlete')}
+            />
+          );
+        case 'athlete':
+          return (
+            <AthleteTypeStep
+              onComplete={(s) => {
+                setAthleteScore(s);
+                setPhase('program-name');
+              }}
+              onSkip={() => {
+                setAthleteScore(DEFAULT_ATHLETE_SCORE);
+                setPhase('program-name');
+              }}
+            />
+          );
+        case 'program-name':
+          return (
+            <ProgramNameStep
+              value={programName}
+              onChange={setProgramName}
+              onNext={() => setPhase('split')}
+              onSkip={() => setPhase('volume')}
+            />
+          );
+        case 'split':
+          return (
+            <SplitStep
+              selectedSplitId={selectedSplit?.id ?? null}
+              onSelect={(s) => setSelectedSplit(s)}
+              onNext={() => {
+                if (programName.trim() && selectedSplit) {
+                  const prog = createProgramFromSplit(programName.trim(), selectedSplit, volumeRecsConfig);
+                  setPrograms((prev) => [...prev, prog]);
+                  addToast('Programa creado con éxito.', 'success');
+                }
+                setPhase('volume');
+              }}
+              onBack={() => setPhase('program-name')}
+              showAdvanced={showAdvancedSplits}
+              onToggleAdvanced={() => setShowAdvancedSplits((v) => !v)}
+            />
+          );
+        case 'volume':
+          return <VolumeStep volumeRecommendations={volumeRecs} onNext={() => setPhase('recent-workouts')} />;
+        case 'recent-workouts':
+          return (
+            <RecentWorkoutsStep
+              exerciseList={exerciseList}
+              onNext={(exs) => {
+                setRecentExercises(exs);
+                setPhase('battery');
+              }}
+              onSkip={() => setPhase('battery')}
+            />
+          );
+        case 'battery':
+          return (
+            <BatteryRingsStep
+              exercises={recentExercises}
+              settings={settings}
+              exerciseList={exerciseList}
+              onApplyCalibration={handleBatteryApplyCalibration}
+              onComplete={handleBatteryComplete}
+            />
+          );
+        default:
+          return null;
+      }
+    };
+
     return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden safe-area-root">
-        <PhysicalDataStep
-          initial={physicalData}
-          settings={settings}
-          onNext={(data) => {
-            setPhysicalData(data);
-            applyPhysicalData(data);
-            setPhase('athlete');
-          }}
-          onSkip={() => setPhase('athlete')}
-        />
-      </div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 z-[9999] flex flex-col bg-[#0a0a0a] overflow-hidden safe-area-root"
+      >
+        {/* Barra de progreso sutil en la parte superior */}
+        <div className="absolute top-0 left-0 right-0 h-1 flex gap-1 px-4 mt-[env(safe-area-inset-top)]">
+          {['physical', 'athlete', 'program-name', 'split', 'volume', 'recent-workouts', 'battery'].map((p, i) => {
+            const phases = ['physical', 'athlete', 'program-name', 'split', 'volume', 'recent-workouts', 'battery'];
+            const currentIndex = phases.indexOf(phase);
+            return (
+              <div 
+                key={p} 
+                className={`h-full flex-1 rounded-full transition-all duration-500 ${i <= currentIndex ? 'bg-[#facc15]' : 'bg-white/10'}`} 
+              />
+            );
+          })}
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={phase}
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -20, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex-1 flex flex-col"
+          >
+            <div className="flex-1 flex flex-col overflow-y-auto hide-scrollbar pb-10">
+              {renderStep()}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+        
+        {/* Decoración Táctica Final: Un gradiente sutil en la base para suavizar el recorte */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none z-50" />
+      </motion.div>
     );
   }
 
-  if (phase === 'athlete') {
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden safe-area-root">
-        <AthleteTypeStep
-          onComplete={(s) => {
-            setAthleteScore(s);
-            setPhase('program-name');
-          }}
-          onSkip={() => {
-            setAthleteScore(DEFAULT_ATHLETE_SCORE);
-            setPhase('program-name');
-          }}
-        />
-      </div>
-    );
-  }
-
-  if (phase === 'program-name') {
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden safe-area-root">
-        <ProgramNameStep
-          value={programName}
-          onChange={setProgramName}
-          onNext={() => setPhase('split')}
-          onSkip={() => setPhase('volume')}
-        />
-      </div>
-    );
-  }
-
-  if (phase === 'split') {
-    const split = SPLIT_TEMPLATES.find((s) => s.id === selectedSplit?.id) ?? null;
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden safe-area-root">
-        <SplitStep
-          selectedSplitId={split?.id ?? null}
-          onSelect={(s) => setSelectedSplit(s)}
-          onNext={() => {
-            if (programName.trim() && selectedSplit) {
-              const prog = createProgramFromSplit(programName.trim(), selectedSplit, volumeRecsConfig);
-              setPrograms((prev) => [...prev, prog]);
-              addToast('Programa creado con éxito.', 'success');
-            }
-            setPhase('volume');
-          }}
-          onBack={() => setPhase('program-name')}
-          showAdvanced={showAdvancedSplits}
-          onToggleAdvanced={() => setShowAdvancedSplits((v) => !v)}
-        />
-      </div>
-    );
-  }
-
-  if (phase === 'volume') {
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden safe-area-root">
-        <VolumeStep volumeRecommendations={volumeRecs} onNext={() => setPhase('recent-workouts')} />
-      </div>
-    );
-  }
-
-  if (phase === 'recent-workouts') {
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden safe-area-root">
-        <RecentWorkoutsStep
-          exerciseList={exerciseList}
-          onNext={(exs) => {
-            setRecentExercises(exs);
-            setPhase('battery');
-          }}
-          onSkip={() => setPhase('battery')}
-        />
-      </div>
-    );
-  }
-
-  if (phase === 'battery') {
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden safe-area-root">
-        <BatteryRingsStep
-          exercises={recentExercises}
-          settings={settings}
-          exerciseList={exerciseList}
-          onApplyCalibration={handleBatteryApplyCalibration}
-          onComplete={handleBatteryComplete}
-        />
-      </div>
-    );
-  }
-
+// Si no estamos en ninguna fase conocida, no renderizamos nada
   return null;
 };
