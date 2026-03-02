@@ -57,8 +57,8 @@ export const PhysicalDataStep: React.FC<PhysicalDataStepProps> = ({
   return (
     <div className="flex flex-col min-h-0 flex-1">
       <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
-        <h2 className="text-lg font-medium text-white mb-1">Datos físicos</h2>
-        <p className="text-sm text-[#a3a3a3] mb-6">Opcional. Ayuda a cálculos de calorías y métricas.</p>
+        <h2 className="text-lg font-medium text-white mb-1">Tus datos físicos</h2>
+        <p className="text-sm text-[#a3a3a3] mb-6">Opcional. Sirve para calorías y métricas.</p>
         <div className="space-y-4">
           <div>
             <label className="block text-xs text-[#737373] mb-1.5">Nombre</label>

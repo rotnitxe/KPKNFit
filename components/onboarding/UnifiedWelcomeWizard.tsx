@@ -1,8 +1,8 @@
 // components/onboarding/UnifiedWelcomeWizard.tsx
 // Wizard único: 2 slides bienvenida + datos físicos + tipo atleta + nombre + split + volumen + entrenamientos + baterías
-// Estética Tú: fondo #1a1a1a, grises, blanco, plano
+// Estética Tú: fondo ilustración, tarjeta gris con bordes redondeados, swipe entre slides
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { getKpnkVolumeRecommendations } from '../../services/volumeCalculator';
 import { SPLIT_TEMPLATES } from '../../data/splitTemplates';
@@ -30,11 +30,33 @@ const WELCOME_SLIDES = [
   {
     id: 'intro',
     content: (
-      <div className="space-y-4 text-center px-4">
-        <p className="text-[#a3a3a3] text-sm leading-relaxed">
+      <div className="space-y-5 text-center px-4 text-[#1a1a1a]">
+        <p className="text-[#2d2d2d] text-sm leading-relaxed">
           Programa tus entrenamientos, registra tus sesiones y haz seguimiento de tu progreso.
         </p>
-        <p className="text-[#737373] text-xs">Puedes configurar todo ahora o después.</p>
+        <ul className="text-left space-y-2.5 text-sm text-[#2d2d2d] max-w-[300px] mx-auto">
+          <li className="flex items-start gap-2">
+            <span className="text-[#1a1a1a] shrink-0">•</span>
+            <span><strong className="text-[#1a1a1a]">Programas</strong> — Bloques, mesociclos y splits listos</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-[#1a1a1a] shrink-0">•</span>
+            <span><strong className="text-[#1a1a1a]">Batería AUGE</strong> — Tu energía muscular y neural en tiempo real</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-[#1a1a1a] shrink-0">•</span>
+            <span><strong className="text-[#1a1a1a]">1RM y RPE</strong> — Peso, reps y esfuerzo percibido</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-[#1a1a1a] shrink-0">•</span>
+            <span><strong className="text-[#1a1a1a]">Nutrición</strong> — Calorías, macros y plan conectado</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-[#1a1a1a] shrink-0">•</span>
+            <span><strong className="text-[#1a1a1a]">Volumen personalizado</strong> — Según tu perfil de atleta</span>
+          </li>
+        </ul>
+        <p className="text-[#525252] text-xs">Puedes configurar todo ahora o después.</p>
       </div>
     ),
   },
@@ -176,31 +198,81 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
 
   if (phase === 'welcome') {
     const isLastWelcome = welcomeStep === WELCOME_SLIDES.length - 1;
-    const current = WELCOME_SLIDES[welcomeStep];
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const programmaticScrollRef = useRef(false);
+
+    useEffect(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      programmaticScrollRef.current = true;
+      el.scrollTo({ left: welcomeStep * el.clientWidth, behavior: 'smooth' });
+      const t = setTimeout(() => { programmaticScrollRef.current = false; }, 400);
+      return () => clearTimeout(t);
+    }, [welcomeStep]);
+
+    const handleScroll = useCallback(() => {
+      const el = scrollRef.current;
+      if (!el || programmaticScrollRef.current) return;
+      const idx = Math.round(el.scrollLeft / el.clientWidth);
+      if (idx >= 0 && idx < WELCOME_SLIDES.length && idx !== welcomeStep) {
+        setWelcomeStep(idx);
+      }
+    }, [welcomeStep]);
+
     return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden safe-area-root">
-        <div className="flex-1 flex flex-col min-h-0 px-4">
-          <div className="flex justify-end pt-4 shrink-0">
-            <button
-              onClick={() => {
-                setSettings({ hasSeenWelcome: true, hasSeenGeneralWizard: true, precalibrationDismissed: true });
-                onComplete();
-              }}
-              className="text-[#737373] text-sm font-medium py-2"
-            >
-              Omitir
-            </button>
+      <div className="fixed inset-0 z-[9999] flex flex-col overflow-hidden safe-area-root">
+        {/* Fondo: ilustración que se asoma por los bordes — detrás de todo */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/fondo-welcome-ilustracion.png"
+            alt=""
+            className="w-full h-full object-cover object-center"
+            aria-hidden
+          />
+        </div>
+        {/* Omitir: flotante sobre el fondo */}
+        <button
+          onClick={() => {
+            setSettings({ hasSeenWelcome: true, hasSeenGeneralWizard: true, precalibrationDismissed: true });
+            onComplete();
+          }}
+          className="absolute top-[max(0.5rem,env(safe-area-inset-top))] right-4 z-10 text-white/90 text-sm font-medium py-2 px-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors"
+        >
+          Omitir
+        </button>
+        {/* Tarjeta: gris medio plano, mensaje de bienvenida (logo + texto + características) */}
+        <div className="relative z-20 flex-1 flex flex-col min-h-0 m-4 mt-14 rounded-3xl overflow-hidden shadow-2xl" style={{ backgroundColor: '#7a7a7a', minHeight: 320 }}>
+          {/* Swipe entre slides */}
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex-1 flex overflow-x-auto overflow-y-auto snap-x snap-mandatory scroll-smooth hide-scrollbar min-h-[200px]"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {WELCOME_SLIDES.map((slide) => (
+              <div
+                key={slide.id}
+                className="flex-shrink-0 w-full snap-center flex flex-col items-center justify-center min-h-[200px] py-8 px-4"
+              >
+                {slide.content}
+              </div>
+            ))}
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center min-h-0">{current.content}</div>
-          <div className="shrink-0 pb-8 flex flex-col gap-4">
+          {/* Footer: indicadores + botón, con safe-area para Android (evita que se tape con la barra de navegación) */}
+          <div className="shrink-0 p-4 flex flex-col gap-4 wizard-safe-footer">
             <div className="flex gap-1.5 justify-center">
               {WELCOME_SLIDES.map((_, i) => (
-                <span key={i} className={`w-2 h-2 ${i === welcomeStep ? 'bg-white' : 'bg-[#525252]'}`} />
+                <button
+                  key={i}
+                  onClick={() => setWelcomeStep(i)}
+                  className={`w-2 h-2 rounded-full transition-colors ${i === welcomeStep ? 'bg-[#1a1a1a]' : 'bg-[#1a1a1a]/40'}`}
+                  aria-label={`Slide ${i + 1}`}
+                />
               ))}
             </div>
             <button
               onClick={() => (isLastWelcome ? setPhase('physical') : setWelcomeStep((s) => s + 1))}
-              className="w-full py-4 bg-white text-[#1a1a1a] font-medium text-sm"
+              className="w-full py-4 bg-[#1a1a1a] text-white font-medium text-sm rounded-xl"
             >
               {isLastWelcome ? 'Continuar' : 'Siguiente'}
             </button>

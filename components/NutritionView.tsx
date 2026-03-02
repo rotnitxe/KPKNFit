@@ -184,20 +184,61 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
 
     return (
         <div className="flex flex-col min-h-full bg-[#121212]">
-            {/* Tabs */}
-            <div className="shrink-0 flex border-b border-white/10 bg-[#1a1a1a]">
+            {/* Hero primero — arriba siempre */}
+            <div className="shrink-0">
+                {activeTab === 'nutricion' ? (
+                    <NutritionHeroBanner
+                        selectedDate={selectedDate}
+                        onDateChange={setSelectedDate}
+                        dailyCalories={dailyCalories}
+                        calorieGoal={calorieGoal}
+                        hasCalorieGoal={hasCalorieGoal}
+                        protein={dailyTotals.protein}
+                        proteinGoal={proteinGoal}
+                        carbs={dailyTotals.carbs}
+                        carbGoal={carbGoal}
+                        fats={dailyTotals.fats}
+                        fatGoal={fatGoal}
+                        onProgresoPress={() => setActiveTab('progreso')}
+                        progressPct={progressPct}
+                        activePlanName={activePlan?.name}
+                        goalLabel={goalLabel}
+                        onEditCalories={() => setIsGoalModalOpen(true)}
+                    />
+                ) : (
+                    <ProgressHeroBanner
+                        weight={weightVal}
+                        bodyFat={bodyFatVal}
+                        muscleMass={muscleMassVal}
+                        activePlan={activePlan}
+                        progressPct={progressPct}
+                        selectedMetric={progressMetric}
+                        onSelectMetric={setProgressMetric}
+                        estimatedDate={estimatedDate}
+                        trendStatus={trendStatus}
+                        onRegisterPress={() => setIsBodyLogModalOpen(true)}
+                        weightUnit={settings.weightUnit}
+                    />
+                )}
+            </div>
+            {/* Tabs debajo del hero — chips interactivos */}
+            <div className="shrink-0 px-4 py-3 flex gap-2 bg-[#121212]">
                 <button
                     onClick={() => setActiveTab('nutricion')}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
-                        activeTab === 'nutricion' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        activeTab === 'nutricion'
+                            ? 'bg-white text-black shadow-lg'
+                            : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
                     }`}
                 >
                     Nutrición
                 </button>
                 <button
                     onClick={() => setActiveTab('progreso')}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
-                        activeTab === 'progreso' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        activeTab === 'progreso'
+                            ? 'bg-white text-black shadow-lg'
+                            : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
                     }`}
                 >
                     Progreso
@@ -207,25 +248,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
             <div className="flex-1 min-h-0 overflow-y-auto">
                 {activeTab === 'nutricion' ? (
                     <>
-                        <NutritionHeroBanner
-                            selectedDate={selectedDate}
-                            onDateChange={setSelectedDate}
-                            dailyCalories={dailyCalories}
-                            calorieGoal={calorieGoal}
-                            hasCalorieGoal={hasCalorieGoal}
-                            protein={dailyTotals.protein}
-                            proteinGoal={proteinGoal}
-                            carbs={dailyTotals.carbs}
-                            carbGoal={carbGoal}
-                            fats={dailyTotals.fats}
-                            fatGoal={fatGoal}
-                            onProgresoPress={() => setActiveTab('progreso')}
-                            progressPct={progressPct}
-                            activePlanName={activePlan?.name}
-                            goalLabel={goalLabel}
-                            onEditCalories={() => setIsGoalModalOpen(true)}
-                        />
-                        <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-32">
+                        <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-40">
                             <NutritionDashboard
                                 selectedDate={selectedDate}
                                 onDateChange={setSelectedDate}
@@ -250,19 +273,6 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                     </>
                 ) : (
                     <>
-                        <ProgressHeroBanner
-                            weight={weightVal}
-                            bodyFat={bodyFatVal}
-                            muscleMass={muscleMassVal}
-                            activePlan={activePlan}
-                            progressPct={progressPct}
-                            selectedMetric={progressMetric}
-                            onSelectMetric={setProgressMetric}
-                            estimatedDate={estimatedDate}
-                            trendStatus={trendStatus}
-                            onRegisterPress={() => setIsBodyLogModalOpen(true)}
-                            weightUnit={settings.weightUnit}
-                        />
                         <div className="max-w-4xl mx-auto px-4 pt-2 pb-2">
                             <button
                                 onClick={() => setIsBodyLogModalOpen(true)}
@@ -271,7 +281,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                 Actualizar datos
                             </button>
                         </div>
-                        <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-32 space-y-6">
+                        <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-40 space-y-6">
                             <section>
                                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">Evolución</p>
                                 <ErrorBoundary fallbackLabel="WeightVsTargetChart"><WeightVsTargetChart /></ErrorBoundary>
@@ -332,7 +342,8 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
             {activeTab === 'nutricion' && (
                 <button
                     onClick={() => setIsDrawerOpen(true)}
-                    className="fixed bottom-24 right-4 z-20 w-14 h-14 bg-white text-black font-semibold flex items-center justify-center"
+                    className="fixed z-20 w-14 h-14 rounded-2xl bg-white text-black font-semibold flex items-center justify-center shadow-xl active:scale-95 transition-transform"
+                    style={{ bottom: 'calc(var(--tab-bar-safe-bottom, 140px) + 0.5rem)', right: '1rem' }}
                     aria-label="Añadir comida"
                 >
                     <UtensilsIcon size={22} />

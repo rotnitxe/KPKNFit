@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { AthleteProfileScore } from '../types';
-import { ChevronRightIcon, XIcon, ArrowLeftIcon, ActivityIcon, ZapIcon, MoveIcon, DumbbellIcon, TargetIcon } from './icons'; 
+import { ArrowLeftIcon, ActivityIcon, ZapIcon, MoveIcon, DumbbellIcon, TargetIcon } from './icons'; 
 
 interface AthleteProfilingWizardProps {
     onComplete: (score: AthleteProfileScore) => void;
     onCancel: () => void;
-    /** Modo inline: se renderiza en el flujo del documento (acordeón), sin overlay */
+    /** Modo inline: se renderiza en acordeón, sin overlay */
     inline?: boolean;
+    /** Modo integrado: dentro del wizard de bienvenida, mismo layout y estética Tú */
+    embedded?: boolean;
 }
 
 // Aseguramos que los IDs coincidan exactamente con las llaves de options
 type QuestionStep = 'preference' | 'technique' | 'consistency' | 'strength' | 'mobility';
 
-const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onComplete, onCancel, inline = false }) => {
+const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onComplete, onCancel, inline = false, embedded = false }) => {
     const [step, setStep] = useState<number>(0);
     const [scores, setScores] = useState({
         preference: 'Bodybuilder' as 'Bodybuilder' | 'Powerbuilder' | 'Powerlifter',
@@ -28,7 +30,7 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
         { id: 'technique', title: '¿Cómo ejecutas los ejercicios?', description: 'Tu capacidad para mantener buena forma bajo carga.', icon: <DumbbellIcon size={24} /> },
         { id: 'consistency', title: '¿Qué tan regular entrenas?', description: 'Tu constancia en los últimos meses.', icon: <ActivityIcon size={24} /> },
         { id: 'strength', title: '¿Cómo está tu fuerza?', description: 'Referencia a cuánto mueves respecto a tu peso.', icon: <ZapIcon size={24} /> },
-        { id: 'mobility', title: '¿Cómo está tu movilidad?', description: 'Rango de movimiento y molestias articulares.', icon: <MoveIcon size={24} /> },
+        { id: 'mobility', title: '¿Cómo está tu movilidad?', description: 'Cómo te sientes con el rango de movimiento de tus articulaciones.', icon: <MoveIcon size={24} /> },
     ];
 
     // 2. OPCIONES (Deben coincidir con los IDs de arriba)
@@ -149,82 +151,98 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
     };
 
     const currentStepData = steps[step];
-    // --- SOLUCIÓN DEL ERROR: Fallback a array vacío si options[...] es undefined ---
     const currentOptions = options[currentStepData?.id] || [];
-
-    // Si por alguna razón currentStepData no existe, no renderizamos nada (Safety check)
     if (!currentStepData) return null;
 
-    return (
-        <div className={`flex flex-col font-mono animate-in fade-in duration-200 ${inline ? 'rounded-lg border border-white/10 bg-[#0a0a0a] overflow-hidden' : 'fixed inset-0 z-[300] bg-[#050505] safe-area-root'}`}>
-            {/* Header */}
-            <div className={`px-4 bg-[#050505] border-b border-white/10 ${inline ? 'py-2' : 'pt-12 pb-6'}`}>
-                <div className={`flex justify-between items-center ${inline ? 'mb-2' : 'mb-8'}`}>
-                    {step > 0 ? (
-                        <button onClick={() => setStep(step - 1)} aria-label="Atrás" className="p-1.5 -ml-1.5 text-slate-400 hover:text-white transition-colors rounded">
-                            <ArrowLeftIcon size={16} />
-                        </button>
-                    ) : (
-                        <button onClick={onCancel} aria-label="Cerrar" className="p-1.5 -ml-1.5 text-slate-400 hover:text-white transition-colors rounded">
-                            <XIcon size={16} />
-                        </button>
-                    )}
-                    <div className="flex gap-1">
+    const content = (
+        <>
+            <h2 className="text-lg font-medium text-white mb-1">{currentStepData.title}</h2>
+            <p className="text-sm text-[#a3a3a3] mb-6">{currentStepData.description}</p>
+            <div className="flex flex-col gap-3">
+                {currentOptions.map((opt) => (
+                    <button
+                        key={opt.value}
+                        onClick={() => handleOptionSelect(opt.value)}
+                        className="group w-full text-left bg-[#252525] border border-[#3f3f3f] hover:border-[#525252] px-4 py-4 transition-all focus:outline-none focus:border-[#525252]"
+                    >
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="font-medium text-white text-sm">{opt.label}</span>
+                            {typeof opt.value === 'number' && (
+                                <div className="flex gap-1">
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className={`w-1.5 h-1.5 ${i < opt.value ? 'bg-white' : 'bg-[#525252]'}`} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-[#a3a3a3] text-xs leading-snug">{opt.detail}</p>
+                    </button>
+                ))}
+            </div>
+        </>
+    );
+
+    if (embedded) {
+        return (
+            <div className="flex flex-col min-h-0 flex-1">
+                <div className="flex justify-end px-4 pt-4 shrink-0">
+                    <button onClick={onCancel} className="text-sm text-[#737373] py-2">Omitir</button>
+                </div>
+                <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
+                    <div className="flex gap-1.5 justify-center mb-4">
                         {steps.map((_, i) => (
-                            <div key={i} className={`h-0.5 rounded-full transition-all ${i <= step ? 'w-4 bg-white/80' : 'w-1.5 bg-white/10'}`} />
+                            <span key={i} className={`w-2 h-2 ${i <= step ? 'bg-white' : 'bg-[#525252]'}`} />
+                        ))}
+                    </div>
+                    {content}
+                </div>
+            </div>
+        );
+    }
+
+    if (inline) {
+        return (
+            <div className="rounded-lg border border-white/10 bg-[#0a0a0a] overflow-hidden">
+                <div className="p-3 space-y-2">
+                    <h2 className="text-sm font-medium text-white">{currentStepData.title}</h2>
+                    <p className="text-[11px] text-slate-400">{currentStepData.description}</p>
+                    <div className="flex flex-col gap-1.5">
+                        {currentOptions.map((opt) => (
+                            <button
+                                key={opt.value}
+                                onClick={() => handleOptionSelect(opt.value)}
+                                className="w-full text-left p-2.5 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-xs"
+                            >
+                                <span className="font-medium text-white">{opt.label}</span>
+                                <p className="text-slate-500 text-[10px]">{opt.detail}</p>
+                            </button>
                         ))}
                     </div>
                 </div>
-
-                <div className={`space-y-1 max-w-lg mx-auto w-full ${inline ? '' : 'space-y-3'}`}>
-                    <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-white/80 p-1.5 bg-white/5 rounded border border-white/10">{React.cloneElement(currentStepData.icon, { size: inline ? 14 : 24 })}</span>
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Paso {step + 1}/{steps.length}</span>
-                    </div>
-                    <h2 id="athlete-step-title" className={`font-bold text-white uppercase tracking-tight leading-tight ${inline ? 'text-sm' : 'text-2xl'}`}>{currentStepData.title}</h2>
-                    <p className={`text-slate-400 leading-snug ${inline ? 'text-[11px]' : 'text-sm'}`}>{currentStepData.description}</p>
-                </div>
             </div>
+        );
+    }
 
-            {/* Body */}
-            <main role="region" aria-labelledby="athlete-step-title" className={`flex-1 overflow-y-auto bg-[#050505] custom-scrollbar ${inline ? 'p-3 max-h-[36vh]' : 'p-6 pb-8'}`}>
-                <div className={`flex flex-col max-w-lg mx-auto ${inline ? 'gap-1.5' : 'gap-3'}`}>
-                    {currentOptions.map((opt) => (
-                        <button
-                            key={opt.value}
-                            onClick={() => handleOptionSelect(opt.value)}
-                            className={`group relative w-full text-left rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.99] focus:outline-none focus:ring-1 focus:ring-white/30 ${inline ? 'p-2.5' : 'p-5'}`}
-                        >
-                            <div className="flex justify-between items-center mb-0.5">
-                                <span className={`font-bold uppercase tracking-tight text-white ${inline ? 'text-xs' : 'text-base'}`}>
-                                    {opt.label}
-                                </span>
-                                {typeof opt.value === 'number' && (
-                                    <div className="flex gap-0.5">
-                                        {Array.from({ length: 3 }).map((_, i) => (
-                                            <div key={i} className={`w-1 h-2 rounded-full ${i < opt.value ? 'bg-white/60' : 'bg-white/10'}`} />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            <p className={`text-slate-500 leading-snug group-hover:text-slate-300 transition-colors ${inline ? 'text-[10px] pr-5' : 'text-xs pr-6'}`}>
-                                {opt.detail}
-                            </p>
-                            {!inline && (
-                                <div className="absolute right-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                    <ChevronRightIcon size={18} className="text-white/60" />
-                                </div>
-                            )}
+    return (
+        <div className="fixed inset-0 z-[300] flex flex-col bg-[#1a1a1a] safe-area-root">
+            <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
+                <div className="flex justify-between items-center mb-4">
+                    {step > 0 ? (
+                        <button onClick={() => setStep(step - 1)} className="text-sm text-[#737373] py-2 flex items-center gap-1">
+                            <ArrowLeftIcon size={16} />
+                            Atrás
                         </button>
-                    ))}
+                    ) : (
+                        <button onClick={onCancel} className="text-sm text-[#737373] py-2">Cerrar</button>
+                    )}
+                    <div className="flex gap-1.5">
+                        {steps.map((_, i) => (
+                            <span key={i} className={`w-2 h-2 ${i <= step ? 'bg-white' : 'bg-[#525252]'}`} />
+                        ))}
+                    </div>
                 </div>
-            </main>
-
-            {!inline && (
-                <div className="wizard-safe-footer p-4 bg-[#050505] border-t border-white/10 text-center">
-                    <p className="text-[9px] text-slate-600 uppercase tracking-widest font-mono">KPKN • Calibración</p>
-                </div>
-            )}
+                {content}
+            </div>
         </div>
     );
 };

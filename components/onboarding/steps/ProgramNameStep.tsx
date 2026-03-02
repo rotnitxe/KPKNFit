@@ -16,8 +16,8 @@ export const ProgramNameStep: React.FC<ProgramNameStepProps> = ({ value, onChang
   return (
     <div className="flex flex-col min-h-0 flex-1">
       <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
-        <h2 className="text-lg font-medium text-white mb-1">Nombre del programa</h2>
-        <p className="text-sm text-[#a3a3a3] mb-6">El nombre de tu primer programa de entrenamiento.</p>
+        <h2 className="text-lg font-medium text-white mb-1">Nombre de tu programa</h2>
+        <p className="text-sm text-[#a3a3a3] mb-6">Cómo quieres llamar a tu primer programa.</p>
         <input
           type="text"
           value={value}

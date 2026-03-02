@@ -54,11 +54,11 @@ export const BatteryRingsStep: React.FC<BatteryRingsStepProps> = ({
     return (
       <div className="flex flex-col min-h-0 flex-1">
         <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
-          <h2 className="text-lg font-medium text-white mb-1">Anillos de batería</h2>
+          <h2 className="text-lg font-medium text-white mb-1">Tu batería inicial</h2>
           <p className="text-sm text-[#a3a3a3] mb-6">
             {exercises.length > 0
-              ? 'Según los ejercicios indicados, la batería se calibrará automáticamente.'
-              : 'Sin entrenamientos recientes, todo estará al 100%.'}
+              ? 'Según lo que indicaste, ajustamos tu energía automáticamente.'
+              : 'Sin entrenamientos recientes, tu batería empieza al 100%.'}
           </p>
           <p className="text-white font-medium mb-4">¿Te representa este estado inicial?</p>
           <div className="flex gap-3">
@@ -83,13 +83,13 @@ export const BatteryRingsStep: React.FC<BatteryRingsStepProps> = ({
   return (
     <div className="flex flex-col min-h-0 flex-1">
       <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
-        <h2 className="text-lg font-medium text-white mb-1">Ajustar batería inicial</h2>
-        <p className="text-sm text-[#a3a3a3] mb-6">Readiness base para calibrar SNC, Columna y músculos.</p>
+        <h2 className="text-lg font-medium text-white mb-1">Ajustar tu batería</h2>
+        <p className="text-sm text-[#a3a3a3] mb-6">Indica cómo te sientes para ajustar tu energía.</p>
         <div className="space-y-4">
           {[
             { label: 'Calidad del sueño', value: sleepQuality, set: setSleepQuality },
-            { label: 'Estrés del SNC', value: stressLevel, set: setStressLevel },
-            { label: 'Daño muscular', value: doms, set: setDoms },
+            { label: 'Estrés mental', value: stressLevel, set: setStressLevel },
+            { label: 'Agujetas', value: doms, set: setDoms },
             { label: 'Motivación', value: motivation, set: setMotivation },
           ].map(({ label, value, set }) => (
             <div key={label} className="bg-[#252525] p-4 border border-[#3f3f3f]">

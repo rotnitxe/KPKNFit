@@ -10,8 +10,8 @@ export const VolumeStep: React.FC<VolumeStepProps> = ({ volumeRecommendations, o
   return (
     <div className="flex flex-col min-h-0 flex-1">
       <div className="flex-1 overflow-y-auto px-4 py-6">
-        <h2 className="text-lg font-medium text-white mb-1">Volumen recomendado</h2>
-        <p className="text-sm text-[#a3a3a3] mb-6">Series por semana por músculo.</p>
+        <h2 className="text-lg font-medium text-white mb-1">Tu volumen recomendado</h2>
+        <p className="text-sm text-[#a3a3a3] mb-6">Estas son tus series por semana según tu perfil.</p>
         <div className="space-y-3">
           {volumeRecommendations.map((rec) => {
             const opt = Math.round((rec.minEffectiveVolume + rec.maxRecoverableVolume) / 2);

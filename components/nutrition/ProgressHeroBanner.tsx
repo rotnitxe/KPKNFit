@@ -1,5 +1,5 @@
 // components/nutrition/ProgressHeroBanner.tsx
-// Hero del tab Progreso: métricas, selector meta, tendencia, botón Registrar
+// Hero vistoso e interactivo: métricas con cards, selector táctil, progreso animado
 
 import React, { useMemo } from 'react';
 
@@ -16,6 +16,12 @@ interface ProgressHeroBannerProps {
     onRegisterPress: () => void;
     weightUnit: string;
 }
+
+const METRIC_CONFIG = [
+    { id: 'weight' as const, label: 'Peso', shortLabel: 'kg' },
+    { id: 'bodyFat' as const, label: '% Grasa', shortLabel: '%' },
+    { id: 'muscleMass' as const, label: '% Músculo', shortLabel: '%' },
+];
 
 export const ProgressHeroBanner: React.FC<ProgressHeroBannerProps> = ({
     weight,
@@ -42,76 +48,106 @@ export const ProgressHeroBanner: React.FC<ProgressHeroBannerProps> = ({
         return 'text-emerald-400';
     }, [trendStatus]);
 
+    const getValue = (m: 'weight' | 'bodyFat' | 'muscleMass') => {
+        if (m === 'weight') return weight;
+        if (m === 'bodyFat') return bodyFat;
+        return muscleMass;
+    };
+
+    const getUnit = (m: 'weight' | 'bodyFat' | 'muscleMass') => {
+        if (m === 'weight') return weightUnit;
+        return '%';
+    };
+
     return (
-        <div className="w-full shrink-0 bg-[#1a1a1a] px-4 py-4" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}>
-            <h1 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-3">
-                Progreso
-            </h1>
+        <div
+            className="w-full shrink-0 relative overflow-hidden"
+            style={{ paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}
+        >
+            {/* Gradiente de fondo */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-[#020617]" />
+            <div className="absolute top-0 left-1/2 w-64 h-64 bg-sky-500/10 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-40 h-40 bg-emerald-500/10 blur-2xl rounded-full translate-y-1/2 translate-x-1/2" />
 
-            <div className="grid grid-cols-3 gap-2 mb-4">
-                <div className="py-2 border-b border-white/5">
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Peso</p>
-                    <p className="text-sm font-black text-white font-mono">{weight}<span className="text-[10px] text-zinc-500 ml-0.5">{weightUnit}</span></p>
-                </div>
-                <div className="py-2 border-b border-white/5">
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">% Grasa</p>
-                    <p className="text-sm font-black text-white font-mono">{bodyFat}<span className="text-[10px] text-zinc-500 ml-0.5">%</span></p>
-                </div>
-                <div className="py-2 border-b border-white/5">
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">% Músculo</p>
-                    <p className="text-sm font-black text-white font-mono">{muscleMass}<span className="text-[10px] text-zinc-500 ml-0.5">%</span></p>
-                </div>
-            </div>
+            <div className="relative z-10 px-4 py-5">
+                <h1 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-4">Tu progreso</h1>
 
-            {activePlan && (
-                <>
-                    <div className="flex gap-2 mb-3">
-                        {(['weight', 'bodyFat', 'muscleMass'] as const).map(m => (
+                {/* Métricas en cards interactivas */}
+                <div className="grid grid-cols-3 gap-2 mb-5">
+                    {METRIC_CONFIG.map((m) => {
+                        const isSelected = selectedMetric === m.id;
+                        return (
                             <button
-                                key={m}
-                                onClick={() => onSelectMetric(m)}
-                                className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors ${
-                                    selectedMetric === m
-                                        ? 'bg-white text-black'
-                                        : 'bg-white/5 text-zinc-500 hover:text-white'
+                                key={m.id}
+                                onClick={() => onSelectMetric(m.id)}
+                                className={`p-4 rounded-2xl border transition-all active:scale-95 ${
+                                    isSelected
+                                        ? 'bg-white/15 border-white/30 shadow-lg shadow-white/5'
+                                        : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/15'
                                 }`}
                             >
-                                {m === 'weight' ? 'Peso' : m === 'bodyFat' ? '% Grasa' : '% Músculo'}
+                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">{m.label}</p>
+                                <p className="text-xl font-black text-white tabular-nums">
+                                    {getValue(m.id)}
+                                    <span className="text-xs font-bold text-zinc-500 ml-0.5">{getUnit(m.id)}</span>
+                                </p>
                             </button>
-                        ))}
-                    </div>
-                    {progressPct != null && (
-                        <div className="mb-3">
-                            <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
-                                <span>Progreso hacia meta</span>
-                                <span>{progressPct}%</span>
-                            </div>
-                            <div className="h-1.5 bg-white/10 overflow-hidden">
-                                <div
-                                    className="h-full bg-emerald-500 transition-all"
-                                    style={{ width: `${Math.min(100, progressPct)}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
-                    <div className="flex justify-between items-center text-[10px] mb-4">
-                        <span className="text-zinc-500">Tendencia</span>
-                        <span className={`font-bold ${trendColor}`}>{trendLabel}</span>
-                    </div>
-                    {estimatedDate && (
-                        <p className="text-[10px] text-zinc-500 mb-4 font-mono">
-                            Fecha est. logro: {estimatedDate}
-                        </p>
-                    )}
-                </>
-            )}
+                        );
+                    })}
+                </div>
 
-            <button
-                onClick={onRegisterPress}
-                className="w-full py-3 bg-white text-black font-black text-sm uppercase tracking-wider hover:bg-white/90 transition-colors"
-            >
-                Registrar avance
-            </button>
+                {/* Progreso hacia meta */}
+                {activePlan && (
+                    <div className="mb-5 p-4 rounded-2xl bg-black/30 border border-white/5 backdrop-blur-sm">
+                        <div className="flex gap-2 mb-3">
+                            {METRIC_CONFIG.map((m) => (
+                                <button
+                                    key={m.id}
+                                    onClick={() => onSelectMetric(m.id)}
+                                    className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        selectedMetric === m.id
+                                            ? 'bg-white text-black'
+                                            : 'bg-white/5 text-zinc-400 hover:text-white'
+                                    }`}
+                                >
+                                    {m.id === 'weight' ? 'Peso' : m.id === 'bodyFat' ? '% Grasa' : '% Músculo'}
+                                </button>
+                            ))}
+                        </div>
+                        {progressPct != null && (
+                            <div className="mb-3">
+                                <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                                    <span>Progreso hacia meta</span>
+                                    <span className="font-black text-emerald-400">{progressPct}%</span>
+                                </div>
+                                <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-700 ease-out"
+                                        style={{ width: `${Math.min(100, progressPct)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="text-zinc-500">Tendencia</span>
+                            <span className={`font-bold ${trendColor}`}>{trendLabel}</span>
+                        </div>
+                        {estimatedDate && (
+                            <p className="text-[11px] text-zinc-500 mt-2 font-medium">
+                                Fecha est. logro: {new Date(estimatedDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {/* Botón principal — grande y táctil */}
+                <button
+                    onClick={onRegisterPress}
+                    className="w-full py-4 rounded-2xl bg-white text-black font-black text-base shadow-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                >
+                    Registrar avance
+                </button>
+            </div>
         </div>
     );
 };
