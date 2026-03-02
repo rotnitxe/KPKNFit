@@ -196,21 +196,32 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
     [setSettings]
   );
 
+  // --- MOVER HOOKS A NIVEL SUPERIOR ---
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const programmaticScrollRef = useRef(false);
+
+  useEffect(() => {
+    if (phase !== 'welcome') return; // Solo ejecutar en fase welcome
+    const el = scrollRef.current;
+    if (!el) return;
+    programmaticScrollRef.current = true;
+    el.scrollTo({ left: welcomeStep * el.clientWidth, behavior: 'smooth' });
+    const t = setTimeout(() => { programmaticScrollRef.current = false; }, 400);
+    return () => clearTimeout(t);
+  }, [welcomeStep, phase]);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || programmaticScrollRef.current) return;
+    const idx = Math.round(el.scrollLeft / el.clientWidth);
+    if (idx >= 0 && idx < WELCOME_SLIDES.length && idx !== welcomeStep) {
+      setWelcomeStep(idx);
+    }
+  }, [welcomeStep]);
+  // ------------------------------------
+
   if (phase === 'welcome') {
     const isLastWelcome = welcomeStep === WELCOME_SLIDES.length - 1;
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const programmaticScrollRef = useRef(false);
-
-    useEffect(() => {
-      const el = scrollRef.current;
-      if (!el) return;
-      programmaticScrollRef.current = true;
-      el.scrollTo({ left: welcomeStep * el.clientWidth, behavior: 'smooth' });
-      const t = setTimeout(() => { programmaticScrollRef.current = false; }, 400);
-      return () => clearTimeout(t);
-    }, [welcomeStep]);
-
-    const handleScroll = useCallback(() => {
       const el = scrollRef.current;
       if (!el || programmaticScrollRef.current) return;
       const idx = Math.round(el.scrollLeft / el.clientWidth);
