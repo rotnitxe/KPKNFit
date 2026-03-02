@@ -69,6 +69,12 @@ export {
   MUSCLE_TO_ARTICULAR_BATTERIES,
   type ArticularBatteryState,
 } from './tendonRecoveryService';
+export {
+  getTendonImbalanceAlerts,
+  getTendonCompensationSuggestions,
+  type TendonImbalanceAlert,
+  type TendonCompensationSuggestion,
+} from './tendonAlertsService';
 
 // ─── CONSTANTES CENTRALIZADAS ───────────────────────────────────────────────
 

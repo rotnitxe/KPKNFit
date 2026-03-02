@@ -11,6 +11,7 @@ import {
     getSpinalDrainByExercise,
     ACCORDION_MUSCLES,
     MUSCLE_TO_ARTICULAR_BATTERIES,
+    getTendonImbalanceAlerts,
     type SpinalDrainEntry,
 } from '../../services/auge';
 import { BrainIcon, ActivityIcon, TargetIcon, ZapIcon, InfoIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
@@ -210,6 +211,10 @@ export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact 
         batteries.spinal < 40 && { label: 'Columna', val: batteries.spinal },
     ].filter(Boolean) as { label: string; val: number }[];
 
+    const tendonImbalanceAlerts = batteries.articularBatteries
+        ? getTendonImbalanceAlerts(perMuscle, batteries.articularBatteries)
+        : [];
+
     const amberAlerts = [
         batteries.cns >= 40 && batteries.cns < 70 && { label: 'SNC', val: batteries.cns },
         batteries.muscular >= 40 && batteries.muscular < 70 && { label: 'Muscular', val: batteries.muscular },
@@ -235,8 +240,8 @@ export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact 
             </div>
 
             <div className={compact ? 'p-4 pt-0' : 'p-4'}>
-                {/* Alertas integradas (batería baja) */}
-                {(lowBatteryAlerts.length > 0 || amberAlerts.length > 0) && (
+                {/* Alertas integradas (batería baja + desfase tendinoso) */}
+                {(lowBatteryAlerts.length > 0 || amberAlerts.length > 0 || tendonImbalanceAlerts.length > 0) && (
                     <div className="mb-3 space-y-1">
                         {lowBatteryAlerts.map(a => (
                             <div key={a.label} className="text-[9px] font-mono text-red-400 bg-red-950/30 border border-red-500/20 rounded-lg px-3 py-1.5">
@@ -246,6 +251,11 @@ export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact 
                         {amberAlerts.map(a => (
                             <div key={a.label} className="text-[9px] font-mono text-amber-400 bg-amber-950/20 border border-amber-500/20 rounded-lg px-3 py-1.5">
                                 Batería {a.label}: {a.val}%
+                            </div>
+                        ))}
+                        {tendonImbalanceAlerts.map((a, i) => (
+                            <div key={`tendon-${i}`} className={`text-[9px] font-mono rounded-lg px-3 py-1.5 ${a.type === 'danger' ? 'text-red-400 bg-red-950/30 border border-red-500/20' : 'text-amber-400 bg-amber-950/20 border border-amber-500/20'}`}>
+                                Desfase: {a.muscleLabel} vs tendones {a.articularLabel}. Evita cargas altas hoy.
                             </div>
                         ))}
                     </div>

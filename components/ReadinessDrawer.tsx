@@ -306,6 +306,37 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
           </div>
         )}
 
+        {/* Alertas de desfase músculo-tendón */}
+        {tendonImbalanceAlerts.length > 0 && (
+          <div className="shrink-0 space-y-2">
+            {tendonImbalanceAlerts.map((a, i) => (
+              <div
+                key={i}
+                className={`p-3 rounded-lg border text-[10px] ${
+                  a.type === 'danger'
+                    ? 'bg-red-50 border-red-200 text-red-800'
+                    : 'bg-amber-50 border-amber-200 text-amber-800'
+                }`}
+              >
+                <p className="font-semibold uppercase tracking-wide mb-0.5">Precaución: tendones</p>
+                <p className="leading-relaxed">{a.message}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Sugerencias de compensación tendinosa */}
+        {tendonCompensations.length > 0 && (
+          <div className="shrink-0 space-y-1.5">
+            <p className="text-[10px] font-semibold text-[#525252] uppercase tracking-wide">Recomendaciones</p>
+            {tendonCompensations.map((s, i) => (
+              <div key={i} className="p-2.5 rounded-lg bg-white/80 border border-[#d4d4d4] text-[10px] text-[#525252]">
+                <span className="font-semibold text-[#1a1a1a]">{s.title}:</span> {s.message}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Baterías articulares (tendones) de la sesión */}
         {sessionArticular.length > 0 && batteries && (
           <div className="shrink-0">
