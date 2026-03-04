@@ -291,7 +291,10 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({ compact 
     const startLongPress = (id: RingId) => {
         if (calibratingId) return;
         if (id === 'muscular') {
-            addToast('Ajusta la fatiga muscular directamente en la sección "Batería Muscular" abajo', 'suggestion');
+            if (!settings.hasSeenMuscleFatigueTip) {
+                addToast('Ajusta la fatiga muscular directamente en la sección "Batería Muscular" abajo', 'suggestion');
+                setSettings({ hasSeenMuscleFatigueTip: true });
+            }
             setIsMuscleSectionOpen(true);
             return;
         }

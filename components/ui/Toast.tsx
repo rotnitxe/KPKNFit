@@ -16,10 +16,10 @@ const ICONS = {
 };
 
 const BORDER_COLORS = {
-  success: 'border-emerald-500/30 bg-emerald-500/5',
-  achievement: 'border-amber-500/30 bg-amber-500/5',
-  suggestion: 'border-sky-500/30 bg-sky-500/5',
-  danger: 'border-red-500/30 bg-red-500/5',
+  success: 'border-emerald-500/50 bg-emerald-500/10',
+  achievement: 'border-amber-500/50 bg-amber-500/10',
+  suggestion: 'border-sky-500/50 bg-sky-500/10',
+  danger: 'border-red-500/50 bg-red-500/10',
 };
 
 const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
@@ -71,7 +71,7 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
           relative overflow-hidden
           flex items-start gap-3 px-4 py-3
           rounded-xl shadow-2xl
-          bg-[#121212]/95 backdrop-blur-md border ${BORDER_COLORS[toast.type]}
+          bg-zinc-900 border ${BORDER_COLORS[toast.type]}
           group hover:scale-[1.02] active:scale-95 transition-transform
       `}>
         <div className="flex-shrink-0 mt-0.5">

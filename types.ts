@@ -159,6 +159,7 @@ export interface Settings {
     hasSeenGeneralWizard?: boolean;
     hasPrecalibratedBattery?: boolean;
     precalibrationDismissed?: boolean;
+    hasSeenMuscleFatigueTip?: boolean;
 
     // Perfil
     username?: string;

@@ -21,7 +21,7 @@ export const SquareCard: React.FC<SquareCardProps> = ({
         <button
             type="button"
             onClick={onClick}
-            className="w-full h-full min-h-0 flex flex-col items-center justify-center p-2.5 bg-[#0a0a0a] border border-white/10 rounded-xl hover:border-white/20 active:bg-white/[0.02] transition-colors text-left overflow-hidden"
+            className="w-full h-full min-h-0 flex flex-col items-center justify-center p-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-xl hover:border-white/20 active:bg-white/[0.02] transition-colors text-left overflow-hidden"
         >
             {isEmpty && emptyLabel ? (
                 <span className="text-[9px] text-zinc-500 text-center">{emptyLabel}</span>

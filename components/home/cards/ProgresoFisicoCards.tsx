@@ -46,7 +46,7 @@ export const MacrosWidgetCard: React.FC<{ onNavigate: () => void }> = ({ onNavig
         return (
             <button
                 onClick={onNavigate}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/20 transition-colors"
+                className="w-full bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-4 text-left hover:border-white/20 transition-colors"
             >
                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Progreso físico</span>
                 <p className="text-[10px] text-zinc-500 mt-2">Configura tu plan de nutrición</p>
@@ -57,7 +57,7 @@ export const MacrosWidgetCard: React.FC<{ onNavigate: () => void }> = ({ onNavig
     return (
         <button
             onClick={onNavigate}
-            className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/20 transition-colors"
+            className="w-full bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-4 text-left hover:border-white/20 transition-colors"
         >
             <div className="flex justify-between items-center mb-2">
                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider flex items-center gap-2">

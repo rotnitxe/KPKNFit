@@ -265,7 +265,10 @@ export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact 
     const handlePointerDown = (id: BatteryId) => {
         if (calibratingId) return;
         if (id === 'muscular') {
-            addToast('Ajusta la fatiga muscular deslizando hacia abajo hasta la sección de Músculos', 'suggestion');
+            if (!settings.hasSeenMuscleFatigueTip) {
+                addToast('Ajusta la fatiga muscular deslizando hacia abajo hasta la sección de Músculos', 'suggestion');
+                setSettings({ hasSeenMuscleFatigueTip: true });
+            }
             setMuscularExpanded(true);
             return;
         }
@@ -349,7 +352,7 @@ export const BatteryHeroSection: React.FC<BatteryHeroSectionProps> = ({ compact 
     const focusedId = calibratingId ?? selectedRingId;
 
     return (
-        <div className={`bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-visible relative ${compact ? 'rounded-xl' : ''}`}>
+        <div className={`bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-visible relative ${compact ? 'rounded-xl' : ''}`}>
             {showPrecalibBadge && !compact && (
                 <div className="absolute top-3 right-3 z-10">
                     <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/20 text-amber-400 border border-amber-500/40">
