@@ -21,65 +21,65 @@ export interface CalorieGoalConfig {
 
 // --- NUEVO: Tipos para el Algoritmo KPKN (Informe v3) ---
 export interface AthleteProfileScore {
-  technicalScore: 1 | 2 | 3;
-  consistencyScore: 1 | 2 | 3;
-  strengthScore: 1 | 2 | 3;
-  mobilityScore: 1 | 2 | 3;
-  // --- TÉRMINOS EXACTOS SOLICITADOS ---
-  trainingStyle: 'Bodybuilder' | 'Powerbuilder' | 'Powerlifter';
-  // ------------------------------------
-  totalScore: number;
-  profileLevel: 'Beginner' | 'Advanced';
+    technicalScore: 1 | 2 | 3;
+    consistencyScore: 1 | 2 | 3;
+    strengthScore: 1 | 2 | 3;
+    mobilityScore: 1 | 2 | 3;
+    // --- TÉRMINOS EXACTOS SOLICITADOS ---
+    trainingStyle: 'Bodybuilder' | 'Powerbuilder' | 'Powerlifter';
+    // ------------------------------------
+    totalScore: number;
+    profileLevel: 'Beginner' | 'Advanced';
 }
 
-export type View = 
-  | 'home' 
-  | 'programs' 
-  | 'program-detail' 
-  | 'program-editor' 
-  | 'session-editor' 
-  | 'workout' 
-  | 'progress' 
-  | 'settings' 
-  | 'coach' 
-  | 'log-hub' 
-  | 'achievements' 
-  | 'log-workout' 
-  | 'kpkn' 
-  | 'ai-art-studio' 
-  | 'body-lab' 
-  | 'mobility-lab' 
-  | 'training-purpose' 
-  | 'exercise-database' 
-  | 'food-database' 
-  | 'smart-meal-planner' 
-  | 'exercise-detail' 
-  | 'muscle-group-detail' 
-  | 'body-part-detail' 
-  | 'muscle-category' 
-  | 'chain-detail'
-  | 'joint-detail'
-  | 'tendon-detail'
-  | 'movement-pattern-detail'
-  | 'wiki-home'
-  | 'nutrition' 
-  | 'food-detail' 
-  | 'session-detail'
-  | 'tasks'
-  | 'social-feed'
-  | 'athlete-profile'
-  | 'recovery'
-  | 'sleep'
-  | 'program-metric-volume'
-  | 'program-metric-strength'
-  | 'program-metric-density'
-  | 'program-metric-frequency'
-  | 'program-metric-banister'
-  | 'program-metric-recovery'
-  | 'program-metric-adherence'
-  | 'program-metric-rpe'
-  | 'body-progress'
-  | 'home-card-page';
+export type View =
+    | 'home'
+    | 'programs'
+    | 'program-detail'
+    | 'program-editor'
+    | 'session-editor'
+    | 'workout'
+    | 'progress'
+    | 'settings'
+    | 'coach'
+    | 'log-hub'
+    | 'achievements'
+    | 'log-workout'
+    | 'kpkn'
+    | 'ai-art-studio'
+    | 'body-lab'
+    | 'mobility-lab'
+    | 'training-purpose'
+    | 'exercise-database'
+    | 'food-database'
+    | 'smart-meal-planner'
+    | 'exercise-detail'
+    | 'muscle-group-detail'
+    | 'body-part-detail'
+    | 'muscle-category'
+    | 'chain-detail'
+    | 'joint-detail'
+    | 'tendon-detail'
+    | 'movement-pattern-detail'
+    | 'wiki-home'
+    | 'nutrition'
+    | 'food-detail'
+    | 'session-detail'
+    | 'tasks'
+    | 'social-feed'
+    | 'athlete-profile'
+    | 'recovery'
+    | 'sleep'
+    | 'program-metric-volume'
+    | 'program-metric-strength'
+    | 'program-metric-density'
+    | 'program-metric-frequency'
+    | 'program-metric-banister'
+    | 'program-metric-recovery'
+    | 'program-metric-adherence'
+    | 'program-metric-rpe'
+    | 'body-progress'
+    | 'home-card-page';
 
 // --- LÓGICA DE VOLUMEN V3 (INFORME TÉCNICO) ---
 
@@ -95,12 +95,12 @@ export interface AthleteProfile {
 export type ExperienceClassification = 'beginner' | 'intermediate' | 'advanced';
 
 // Módulo 2: Factores de Modulación
-export type TrainingPhase = 
+export type TrainingPhase =
     | 'accumulation'    // F_Fase = 1.0 (Hipertrofia Base)
     | 'transformation'  // F_Fase = 0.75 (Fuerza/Hibrido)
     | 'realization';    // F_Fase = 0.50 (Peaking/Taper)
 
-export type IntensityTier = 
+export type IntensityTier =
     | 'failure'   // RPE 10 (F_Int = 0.6)
     | 'rpe_8_9'   // RPE 8-9 (F_Int = 1.0)
     | 'rpe_6_7';  // RPE 6-7 (F_Int = 1.2)
@@ -140,195 +140,196 @@ export interface CoverStyle {
 }
 
 export interface SessionBackground {
-  type: 'color' | 'image';
-  value: string;
-  style?: {
-    blur?: number;
-    brightness?: number;
-  };
+    type: 'color' | 'image';
+    value: string;
+    style?: {
+        blur?: number;
+        brightness?: number;
+    };
 }
 
 export interface Settings {
-  hasSeenWelcome: boolean;
-  hasSeenHomeTour: boolean;
-  hasSeenProgramEditorTour: boolean;
-  hasSeenSessionEditorTour: boolean;
-  hasSeenKPKNTour: boolean;
-  hasSeenNutritionWizard?: boolean;
-  hasDismissedNutritionSetup?: boolean;
-  hasSeenGeneralWizard?: boolean;
-  hasPrecalibratedBattery?: boolean;
-  precalibrationDismissed?: boolean;
+    hasSeenWelcome: boolean;
+    hasSeenHomeTour: boolean;
+    hasSeenProgramEditorTour: boolean;
+    hasSeenSessionEditorTour: boolean;
+    hasSeenKPKNTour: boolean;
+    hasSeenNutritionWizard?: boolean;
+    hasDismissedNutritionSetup?: boolean;
+    hasSeenGeneralWizard?: boolean;
+    hasPrecalibratedBattery?: boolean;
+    precalibrationDismissed?: boolean;
 
-  // Perfil
-  username?: string;
-  profilePicture?: string;
-  age?: number;
-  athleteType: 'enthusiast' | 'powerlifter' | 'bodybuilder' | 'powerbuilder' | 'zercher_lifter' | 'hybrid' | 'weightlifter' | 'parapowerlifter' | 'calisthenics';
-  powerliftingDeadliftStyle?: 'conventional' | 'sumo';
-  gymName?: string;
-
-  // Algoritmo KPKN: Perfilamiento
-  trainingProfile?: 'Aesthetics' | 'Powerlifting' | 'Powerbuilding'; // Define qué motor lógico usar
-  preferredIntensity?: 'RIR_High' | 'Failure'; // Define el factor de ajuste de volumen (Módulo 4.1)
-  athleteScore?: AthleteProfileScore; // Guardamos aquí el resultado del test
-  /** Sistema de recomendación de volumen: israetel, kpnk (KPKN Personalizado), manual */
-  volumeSystem?: 'israetel' | 'kpnk' | 'manual';
-
-  // General & Entrenamiento
-  soundsEnabled: boolean;
-  weightUnit: WeightUnit;
-  intensityMetric: 'rpe' | 'rir';
-  barbellWeight: number;
-  showTimeSaverPrompt: boolean;
-  restTimerAutoStart: boolean;
-  restTimerDefaultSeconds: number;
-  /** Vista compacta en tabla de sets (40px en lugar de 48px) */
-  sessionCompactView?: boolean;
-  /** Auto-avance Kg → Reps al pulsar Siguiente en teclado numérico */
-  sessionAutoAdvanceFields?: boolean;
-  showPRsInWorkout: boolean;
-  readinessCheckEnabled: boolean;
-  workoutLoggerMode: 'pro' | 'simple';
-  oneRMFormula: OneRMFormula;
-  
-  // Custom Tab Bar
-  enabledTabs?: View[];
-
-  // IA & APIs
-  apiProvider: 'gemini' | 'gpt' | 'deepseek';
-  fallbackEnabled: boolean;
-  apiKeys: {
-    gemini?: string;
-    gpt?: string;
-    deepseek?: string;
-    usda?: string;
-  };
-  aiTemperature: number; // 0.0 a 1.0 (Creatividad)
-  aiMaxTokens: number;
-  aiVoice: string;
-  // Added missing googleClientId for Google Drive synchronization
-  googleClientId?: string;
-
-  // Algoritmos Prime
-  algorithmSettings: {
-    oneRMDecayRate: number;
-    failureFatigueFactor: number;
-    legVolumeMultiplier: number;
-    torsoVolumeMultiplier: number;
-    synergistFactor: number; // Cuánto cuenta una serie secundaria (0.1 a 0.5)
-    
-    // --- NUEVO: Configuración de Precisión AUGE ---
-    augeEnableNutritionTracking: boolean;
-    augeEnableSleepTracking: boolean;
-  };
-
-  // UI / UX / Estética
-  appTheme: 'default' | 'deep-black' | 'volt' | 'dark' | 'light';
-  /** Pack de sonidos: classic, minimal, none */
-  soundPack?: 'classic' | 'minimal' | 'none';
-  /** Estilo barra inferior: default, compact, icons-only */
-  tabBarStyle?: 'default' | 'compact' | 'icons-only';
-  themePrimaryColor: string;
-  enableGlassmorphism: boolean;
-  enableAnimations: boolean;
-  enableGlowEffects: boolean;
-  enableZenMode: boolean;
-  enableParallax: boolean;
-  themeCardBorderRadius: number;
-  themeBlurAmount: number;
-  themeGlowIntensity: number;
-  fontSizeScale: number; // 0.8 a 1.2
-  hapticFeedbackEnabled: boolean;
-  hapticIntensity: HapticIntensity;
-  // Added missing feedSettings for the feed view customization
-  feedSettings?: {
-    background: string;
-    cardColor: string;
-  };
-  /** Orden de tarjetas en Home (IDs: battery, session, nutrition, program, top5, readiness, streak, quicklog) */
-  homeCardOrder?: string[];
-
-  // Nutrición & Biometría
-  userVitals: {
+    // Perfil
+    username?: string;
+    profilePicture?: string;
     age?: number;
-    weight?: number;
-    height?: number;
-    gender?: 'male' | 'female' | 'transmale' | 'transfemale' | 'other';
-    activityLevel?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
-    bodyFatPercentage?: number;
-    muscleMassPercentage?: number;
-    targetWeight?: number;
-    targetDate?: string;
-    targetStartWeight?: number;
-    targetStartDate?: string;
-    wingspan?: number;
-    torsoLength?: number;
-    femurLength?: number;
-    tibiaLength?: number;
-    humerusLength?: number;
-    forearmLength?: number;
-    somatotype?: { endomorph: number; mesomorph: number; ectomorph: number };
-    bodyFatDistribution?: 'android' | 'gynoid' | 'even';
-    jointHealthNotes?: { joint: string; note: string }[];
-    // Nuevos campos para calibración de fatiga
-    workHours?: number;
-    studyHours?: number;
-    workIntensity?: IntensityLevel;
-    studyIntensity?: IntensityLevel;
-  };
-  calorieGoalObjective: 'deficit' | 'maintenance' | 'surplus';
-  dailyCalorieGoal?: number;
-  dailyProteinGoal?: number;
-  dailyCarbGoal?: number;
-  dailyFatGoal?: number;
-  calorieGoalConfig?: CalorieGoalConfig;
-  waterIntakeGoal_L?: number;
-  dietaryPreference?: 'omnivore' | 'vegetarian' | 'vegan' | 'keto';
-  metabolicConditions?: string[];
-  micronutrientFocus?: string[];
-  muscleRecoveryMultipliers?: Record<string, number>;
+    athleteType: 'enthusiast' | 'powerlifter' | 'bodybuilder' | 'powerbuilder' | 'zercher_lifter' | 'hybrid' | 'weightlifter' | 'parapowerlifter' | 'calisthenics';
+    powerliftingDeadliftStyle?: 'conventional' | 'sumo';
+    gymName?: string;
 
-  // Sueño
-  smartSleepEnabled: boolean;
-  sleepTargetHours: number;
-  workDays: number[]; // 0=Domingo, 1=Lunes, etc.
-  wakeTimeWork: string; // HH:mm format
-  wakeTimeOff: string; // HH:mm format
+    // Algoritmo KPKN: Perfilamiento
+    trainingProfile?: 'Aesthetics' | 'Powerlifting' | 'Powerbuilding'; // Define qué motor lógico usar
+    preferredIntensity?: 'RIR_High' | 'Failure'; // Define el factor de ajuste de volumen (Módulo 4.1)
+    athleteScore?: AthleteProfileScore; // Guardamos aquí el resultado del test
+    /** Sistema de recomendación de volumen: israetel, kpnk (KPKN Personalizado), manual */
+    volumeSystem?: 'israetel' | 'kpnk' | 'manual';
 
-  // Otros
-  startWeekOn: number; // 0=Dom, 1=Lun
-  remindersEnabled: boolean;
-  reminderTime?: string;
-  mealRemindersEnabled: boolean;
-  breakfastReminderTime: string;
-  lunchReminderTime: string;
-  dinnerReminderTime: string;
-  missedWorkoutReminderEnabled: boolean;
-  missedWorkoutReminderTime: string;
-  augeBatteryReminderEnabled: boolean;
-  augeBatteryReminderThreshold: number;
-  augeBatteryReminderTime: string;
-  eventRemindersEnabled: boolean;
-  autoSyncEnabled: boolean;
-  appBackground?: SessionBackground;
-  homeWidgetOrder?: string[];
-  
-  // --- LÍMITES CALIBRADOS DEL ATLETA (KPKN ENGINE) ---
-  volumeLimits?: Record<string, { maxSession: number; max: number; min?: number }>;
+    // General & Entrenamiento
+    soundsEnabled: boolean;
+    weightUnit: WeightUnit;
+    intensityMetric: 'rpe' | 'rir';
+    barbellWeight: number;
+    showTimeSaverPrompt: boolean;
+    restTimerAutoStart: boolean;
+    restTimerDefaultSeconds: number;
+    /** Vista compacta en tabla de sets (40px en lugar de 48px) */
+    sessionCompactView?: boolean;
+    /** Auto-avance Kg → Reps al pulsar Siguiente en teclado numérico */
+    sessionAutoAdvanceFields?: boolean;
+    showPRsInWorkout: boolean;
+    readinessCheckEnabled: boolean;
+    workoutLoggerMode: 'pro' | 'simple';
+    oneRMFormula: OneRMFormula;
 
-  /** Fecha última recalibración de volumen (YYYY-MM-DD) */
-  volumeLastRecalibrationDate?: string;
-  /** Historial de recalibraciones KPKN */
-  volumeCalibrationHistory?: VolumeCalibrationEntry[];
-  
-  // --- AUTO-CALIBRACIÓN CIBERNÉTICA (Deltas del Usuario) ---
-  batteryCalibration?: {
-      cnsDelta: number;
-      muscularDelta: number;
-      spinalDelta: number;
-      lastCalibrated: string;
-  };
+    // Custom Tab Bar
+    enabledTabs?: View[];
+
+    // IA & APIs
+    apiProvider: 'gemini' | 'gpt' | 'deepseek';
+    fallbackEnabled: boolean;
+    apiKeys: {
+        gemini?: string;
+        gpt?: string;
+        deepseek?: string;
+        usda?: string;
+    };
+    aiTemperature: number; // 0.0 a 1.0 (Creatividad)
+    aiMaxTokens: number;
+    aiVoice: string;
+    // Added missing googleClientId for Google Drive synchronization
+    googleClientId?: string;
+
+    // Algoritmos Prime
+    algorithmSettings: {
+        oneRMDecayRate: number;
+        failureFatigueFactor: number;
+        legVolumeMultiplier: number;
+        torsoVolumeMultiplier: number;
+        synergistFactor: number; // Cuánto cuenta una serie secundaria (0.1 a 0.5)
+
+        // --- NUEVO: Configuración de Precisión AUGE ---
+        augeEnableNutritionTracking: boolean;
+        augeEnableSleepTracking: boolean;
+    };
+
+    // UI / UX / Estética
+    appTheme: 'default' | 'deep-black' | 'volt' | 'dark' | 'light';
+    /** Pack de sonidos: classic, minimal, none */
+    soundPack?: 'classic' | 'minimal' | 'none';
+    /** Estilo barra inferior: default, compact, icons-only */
+    tabBarStyle?: 'default' | 'compact' | 'icons-only';
+    themePrimaryColor: string;
+    enableGlassmorphism: boolean;
+    enableAnimations: boolean;
+    enableGlowEffects: boolean;
+    enableZenMode: boolean;
+    enableParallax: boolean;
+    themeCardBorderRadius: number;
+    themeBlurAmount: number;
+    themeGlowIntensity: number;
+    fontSizeScale: number; // 0.8 a 1.2
+    hapticFeedbackEnabled: boolean;
+    hapticIntensity: HapticIntensity;
+    // Added missing feedSettings for the feed view customization
+    feedSettings?: {
+        background: string;
+        cardColor: string;
+    };
+    /** Orden de tarjetas en Home (IDs: battery, session, nutrition, program, top5, readiness, streak, quicklog) */
+    homeCardOrder?: string[];
+
+    // Nutrición & Biometría
+    userVitals: {
+        age?: number;
+        weight?: number;
+        height?: number;
+        gender?: 'male' | 'female' | 'transmale' | 'transfemale' | 'other';
+        activityLevel?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+        bodyFatPercentage?: number;
+        muscleMassPercentage?: number;
+        targetWeight?: number;
+        targetDate?: string;
+        targetStartWeight?: number;
+        targetStartDate?: string;
+        wingspan?: number;
+        torsoLength?: number;
+        femurLength?: number;
+        tibiaLength?: number;
+        humerusLength?: number;
+        forearmLength?: number;
+        somatotype?: { endomorph: number; mesomorph: number; ectomorph: number };
+        bodyFatDistribution?: 'android' | 'gynoid' | 'even';
+        jointHealthNotes?: { joint: string; note: string }[];
+        // Nuevos campos para calibración de fatiga
+        workHours?: number;
+        studyHours?: number;
+        workIntensity?: IntensityLevel;
+        studyIntensity?: IntensityLevel;
+    };
+    calorieGoalObjective: 'deficit' | 'maintenance' | 'surplus';
+    dailyCalorieGoal?: number;
+    dailyProteinGoal?: number;
+    dailyCarbGoal?: number;
+    dailyFatGoal?: number;
+    calorieGoalConfig?: CalorieGoalConfig;
+    waterIntakeGoal_L?: number;
+    dietaryPreference?: 'omnivore' | 'vegetarian' | 'vegan' | 'keto';
+    metabolicConditions?: string[];
+    micronutrientFocus?: string[];
+    muscleRecoveryMultipliers?: Record<string, number>;
+
+    // Sueño
+    smartSleepEnabled: boolean;
+    sleepTargetHours: number;
+    workDays: number[]; // 0=Domingo, 1=Lunes, etc.
+    wakeTimeWork: string; // HH:mm format
+    wakeTimeOff: string; // HH:mm format
+
+    // Otros
+    startWeekOn: number; // 0=Dom, 1=Lun
+    remindersEnabled: boolean;
+    reminderTime?: string;
+    mealRemindersEnabled: boolean;
+    breakfastReminderTime: string;
+    lunchReminderTime: string;
+    dinnerReminderTime: string;
+    missedWorkoutReminderEnabled: boolean;
+    missedWorkoutReminderTime: string;
+    augeBatteryReminderEnabled: boolean;
+    augeBatteryReminderThreshold: number;
+    augeBatteryReminderTime: string;
+    eventRemindersEnabled: boolean;
+    autoSyncEnabled: boolean;
+    appBackground?: SessionBackground;
+    homeWidgetOrder?: string[];
+
+    // --- LÍMITES CALIBRADOS DEL ATLETA (KPKN ENGINE) ---
+    volumeLimits?: Record<string, { maxSession: number; max: number; min?: number }>;
+
+    /** Fecha última recalibración de volumen (YYYY-MM-DD) */
+    volumeLastRecalibrationDate?: string;
+    /** Historial de recalibraciones KPKN */
+    volumeCalibrationHistory?: VolumeCalibrationEntry[];
+
+    // --- AUTO-CALIBRACIÓN CIBERNÉTICA (Deltas del Usuario) ---
+    batteryCalibration?: {
+        cnsDelta: number;
+        muscularDelta: number;
+        spinalDelta: number;
+        muscleDeltas?: Record<string, number>;
+        lastCalibrated: string;
+    };
 }
 
 export interface Program {
@@ -342,14 +343,14 @@ export interface Program {
     author?: string;
     isPublic?: boolean;
     tags?: string[];
-    background?: any; 
-    events?: { 
-        id?: string; 
-        title: string; 
-        type: string; 
-        date: string; 
-        endDate?: string; 
-        calculatedWeek: number; 
+    background?: any;
+    events?: {
+        id?: string;
+        title: string;
+        type: string;
+        date: string;
+        endDate?: string;
+        calculatedWeek: number;
         createMacrocycle?: boolean;
         repeatEveryXCycles?: number; // Nueva propiedad para eventos cíclicos (Programas Simples)
         sessions?: Session[]; // Soporte para sesiones exclusivas del evento
@@ -360,17 +361,17 @@ export interface Program {
     goals?: { squat1RM?: number; bench1RM?: number; deadlift1RM?: number };
 
     // --- CONFIGURACIÓN TÉCNICA Y MOTOR LÓGICO ---
-    athleteProfile?: AthleteProfile; 
+    athleteProfile?: AthleteProfile;
     trainingPhase?: TrainingPhase;
     intensityTier?: IntensityTier;
-    volumeRecommendations?: VolumeRecommendation[]; 
+    volumeRecommendations?: VolumeRecommendation[];
     /** Sistema de volumen: israetel (guías Mike Israetel), manual (usuario), kpnk (KPKN personalizado) */
     volumeSystem?: 'israetel' | 'manual' | 'kpnk';
     /** Activar alertas al añadir ejercicios en sesión cuando se excede volumen recomendado */
     volumeAlertsEnabled?: boolean;
     /** Perfil atleta usado para KPKN (permite evolución automática) */
     athleteProfileScore?: AthleteProfileScore;
-    
+
     // --- PREFERENCIAS AVANZADAS DEL PROGRAMA ---
     autoVolumeEnabled?: boolean;
     manualVolumeTargets?: Record<string, number>;
@@ -400,139 +401,139 @@ export interface Program {
 }
 
 export interface Macrocycle {
-  id: string;
-  name: string;
-  blocks?: Block[];
+    id: string;
+    name: string;
+    blocks?: Block[];
 }
 
 export interface Block {
-  id: string;
-  name: string;
-  mesocycles: Mesocycle[];
+    id: string;
+    name: string;
+    mesocycles: Mesocycle[];
 }
 
 export interface Mesocycle {
-  id: string;
-  name: string;
-  goal: 'Acumulación' | 'Intensificación' | 'Realización' | 'Descarga' | 'Custom';
-  customGoal?: string;
-  weeks: ProgramWeek[];
+    id: string;
+    name: string;
+    goal: 'Acumulación' | 'Intensificación' | 'Realización' | 'Descarga' | 'Custom';
+    customGoal?: string;
+    weeks: ProgramWeek[];
 }
 
 export interface ProgramWeek {
-  id: string;
-  name: string;
-  sessions: Session[];
-  variant?: 'A' | 'B' | 'C' | 'D';
+    id: string;
+    name: string;
+    sessions: Session[];
+    variant?: 'A' | 'B' | 'C' | 'D';
 }
 
 export interface Session {
-  id: string;
-  name: string;
-  description?: string;
-  exercises: Exercise[];
-  warmup?: WarmupExercise[];
-  parts?: SessionPart[];
-  background?: SessionBackground;
-  coverStyle?: CoverStyle;
-  dayOfWeek?: number;
-  scheduleLabel?: string; 
-  assignedDays?: number[]; // Transient property for multi-day assignment in Editor
-  sessionB?: Session;
-  sessionC?: Session;
-  sessionD?: Session;
-  isMeetDay?: boolean;
-  meetBodyweight?: number;
-  meetResults?: { placement?: string; total?: number; dots?: number; awards?: string[] };
+    id: string;
+    name: string;
+    description?: string;
+    exercises: Exercise[];
+    warmup?: WarmupExercise[];
+    parts?: SessionPart[];
+    background?: SessionBackground;
+    coverStyle?: CoverStyle;
+    dayOfWeek?: number;
+    scheduleLabel?: string;
+    assignedDays?: number[]; // Transient property for multi-day assignment in Editor
+    sessionB?: Session;
+    sessionC?: Session;
+    sessionD?: Session;
+    isMeetDay?: boolean;
+    meetBodyweight?: number;
+    meetResults?: { placement?: string; total?: number; dots?: number; awards?: string[] };
 }
 
 export interface SessionPart {
-  id: string;
-  name: string;
-  exercises: Exercise[];
-  color?: string;
+    id: string;
+    name: string;
+    exercises: Exercise[];
+    color?: string;
 }
 
 export interface WarmupExercise {
-  id: string;
-  name: string;
-  description?: string;
-  category?: string;
-  duration?: number;
-  sets?: number;
-  reps?: string;
+    id: string;
+    name: string;
+    description?: string;
+    category?: string;
+    duration?: number;
+    sets?: number;
+    reps?: string;
 }
 
 export interface WarmupSetDefinition {
     id: string;
-    percentageOfWorkingWeight: number; 
+    percentageOfWorkingWeight: number;
     targetReps: number;
-    matchRPE?: number; 
+    matchRPE?: number;
 }
 
 export interface Exercise {
-  id: string;
-  name: string;
-  exerciseDbId?: string;
-  exerciseId?: string; 
-  sets: ExerciseSet[];
-  warmupSets?: WarmupSetDefinition[];
-  restTime?: number;
-  isFavorite?: boolean;
-  trainingMode?: 'reps' | 'time' | 'percent' | 'custom';
-  customUnit?: string;
-  reference1RM?: number;
-  targetSessionGoal?: string;
-  isStarTarget?: boolean;
-  trackHeartRate?: boolean;
-  setupDetails?: {
-      seatPosition?: string;
-      pinPosition?: string;
-      equipmentNotes?: string;
-  };
-  supersetId?: string;
-  variantName?: string;
-  prFor1RM?: { weight: number, reps: number };
-  /** Peso consolidado (kg + reps) para autosugerir cargas en modo REPS */
-  consolidatedWeight?: { weightKg: number; reps: number };
-  brandEquivalencies?: BrandEquivalency[];
-  isUnilateral?: boolean;
-  isCalibratorAmrap?: boolean;
-  goal1RM?: number;
-  calculated1RM?: number;
-  damageProfile?: 'stretch' | 'squeeze' | 'normal'; 
-  isCompetitionLift?: boolean;
+    id: string;
+    name: string;
+    exerciseDbId?: string;
+    exerciseId?: string;
+    sets: ExerciseSet[];
+    warmupSets?: WarmupSetDefinition[];
+    restTime?: number;
+    isFavorite?: boolean;
+    trainingMode?: 'reps' | 'time' | 'percent' | 'custom';
+    customUnit?: string;
+    reference1RM?: number;
+    targetSessionGoal?: string;
+    isStarTarget?: boolean;
+    trackHeartRate?: boolean;
+    setupDetails?: {
+        seatPosition?: string;
+        pinPosition?: string;
+        equipmentNotes?: string;
+    };
+    supersetId?: string;
+    variantName?: string;
+    prFor1RM?: { weight: number, reps: number };
+    /** Peso consolidado (kg + reps) para autosugerir cargas en modo REPS */
+    consolidatedWeight?: { weightKg: number; reps: number };
+    brandEquivalencies?: BrandEquivalency[];
+    isUnilateral?: boolean;
+    isCalibratorAmrap?: boolean;
+    goal1RM?: number;
+    calculated1RM?: number;
+    damageProfile?: 'stretch' | 'squeeze' | 'normal';
+    isCompetitionLift?: boolean;
 }
 
 export interface ExerciseSet {
-  id: string;
-  targetReps?: number;
-  targetDuration?: number;
-  targetRPE?: number;
-  targetRIR?: number;
-  intensityMode?: 'rpe' | 'rir' | 'failure' | 'amrap' | 'load' | 'solo_rm'; 
-  targetPercentageRM?: number;
-  weight?: number; 
-  advancedTechnique?: string;
-  completedReps?: number;
-  completedDuration?: number;
-  completedRPE?: number;
-  completedRIR?: number;
-  isFailure?: boolean;
-  isIneffective?: boolean;
-  isPartial?: boolean;
-  partialReps?: number;
-  isAmrap?: boolean;
-  isCalibrator?: boolean; 
-  machineBrand?: string;
-  isChangeOfPlans?: boolean;
-  dropSets?: DropSetData[];
-  restPauses?: RestPauseData[];
-  performanceMode?: 'target' | 'failure' | 'failed';
-  technicalWeight?: number;
-  consolidatedWeight?: number;
-  attemptResult?: 'good' | 'no-lift' | 'pending';
-  judgingLights?: [boolean | null, boolean | null, boolean | null];
+    id: string;
+    targetReps?: number;
+    targetDuration?: number;
+    targetRPE?: number;
+    targetRIR?: number;
+    intensityMode?: 'rpe' | 'rir' | 'failure' | 'amrap' | 'load' | 'solo_rm';
+    targetPercentageRM?: number;
+    weight?: number;
+    advancedTechnique?: string;
+    completedReps?: number;
+    completedDuration?: number;
+    completedRPE?: number;
+    completedRIR?: number;
+    isFailure?: boolean;
+    isIneffective?: boolean;
+    isPartial?: boolean;
+    partialReps?: number;
+    isAmrap?: boolean;
+    isCalibrator?: boolean;
+    machineBrand?: string;
+    isChangeOfPlans?: boolean;
+    dropSets?: DropSetData[];
+    restPauses?: RestPauseData[];
+    performanceMode?: 'target' | 'failure' | 'failed';
+    technicalWeight?: number;
+    consolidatedWeight?: number;
+    attemptResult?: 'good' | 'no-lift' | 'pending';
+    judgingLights?: [boolean | null, boolean | null, boolean | null];
 }
 
 // NUEVO: Definimos los roles exactos (AUGE)
@@ -555,9 +556,9 @@ export interface ExerciseMuscleInfo {
     description: string;
     // AQUÍ ESTÁ EL CAMBIO CLAVE:
     involvedMuscles: {
-      muscle: string;
-      role: MuscleRole;
-      activation?: number; // K_rol: Coeficiente de Participación Sinérgica (AUGE)
+        muscle: string;
+        role: MuscleRole;
+        activation?: number; // K_rol: Coeficiente de Participación Sinérgica (AUGE)
     }[];
     subMuscleGroup?: string;
     category: 'Fuerza' | 'Hipertrofia' | 'Resistencia' | 'Potencia' | 'Movilidad' | 'Pliometría' | 'Estabilidad' | 'Calistenia';
@@ -655,7 +656,7 @@ export interface OngoingWorkoutState {
     selectedBrands?: Record<string, string>;
     exerciseHeartRates?: Record<string, { initial?: number, peak?: number }>;
     topSetAmrapState?: { status: string };
-    consolidatedWeights?: Record<string, number>; 
+    consolidatedWeights?: Record<string, number>;
     isLowEnergyMental?: boolean;
 }
 
@@ -882,7 +883,7 @@ export interface NutritionLog {
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
     foods: LoggedFood[];
     notes?: string;
-    description?: string; 
+    description?: string;
     status?: 'planned' | 'consumed';
     calories?: number;
     protein?: number;
@@ -898,7 +899,7 @@ export interface FoodItem {
     name: string;
     brand?: string;
     servingSize: number;
-    servingUnit?: string; 
+    servingUnit?: string;
     unit: string;
     calories: number;
     protein: number;
@@ -1139,12 +1140,12 @@ export interface DailyWellbeingLog {
     doms: number;
     motivation: number;
     readiness?: number; // 1-10, manual for rest days
-    workHours?: number; 
-    workIntensity?: IntensityLevel; 
-    studyHours?: number; 
-    studyIntensity?: IntensityLevel; 
-    moodState?: 'happy' | 'neutral' | 'sad' | 'anxious' | 'energetic'; 
-    isDepressiveEpisode?: boolean; 
+    workHours?: number;
+    workIntensity?: IntensityLevel;
+    studyHours?: number;
+    studyIntensity?: IntensityLevel;
+    moodState?: 'happy' | 'neutral' | 'sad' | 'anxious' | 'energetic';
+    isDepressiveEpisode?: boolean;
     notes?: string;
 }
 
@@ -1221,17 +1222,17 @@ export interface LocalSnapshot {
 }
 
 export interface UseGoogleDriveReturn {
-  isSupported: boolean;
-  isSignedIn: boolean;
-  isAuthLoading: boolean;
-  isSyncing: boolean;
-  isLoading: boolean;
-  user: GoogleUserProfile | null;
-  lastSyncDate: string | null;
-  signIn: () => void;
-  signOut: () => void;
-  syncToDrive: () => Promise<void>;
-  loadFromDrive: () => Promise<void>;
+    isSupported: boolean;
+    isSignedIn: boolean;
+    isAuthLoading: boolean;
+    isSyncing: boolean;
+    isLoading: boolean;
+    user: GoogleUserProfile | null;
+    lastSyncDate: string | null;
+    signIn: () => void;
+    signOut: () => void;
+    syncToDrive: () => Promise<void>;
+    loadFromDrive: () => Promise<void>;
 }
 
 export interface GoogleUserProfile {
@@ -1255,7 +1256,7 @@ export interface MuscleVolumeAnalysis {
     assessment?: string;
 }
 
-export interface DetailedMuscleVolumeAnalysis extends MuscleVolumeAnalysis {}
+export interface DetailedMuscleVolumeAnalysis extends MuscleVolumeAnalysis { }
 
 export interface SfrData {
     exercise: string;
@@ -1389,7 +1390,7 @@ export interface AppContextState {
     onExerciseCreated: ((exercise: ExerciseMuscleInfo) => void) | null;
     pendingQuestionnaires: PendingQuestionnaire[];
     postSessionFeedback: PostSessionFeedback[];
-    dailyWellbeingLogs: DailyWellbeingLog[]; 
+    dailyWellbeingLogs: DailyWellbeingLog[];
     isBodyLogModalOpen: boolean;
     isNutritionLogModalOpen: boolean;
     isMeasurementsModalOpen: boolean;
@@ -1508,14 +1509,14 @@ export interface AppContextDispatch {
     onCancelWorkout: () => void;
     handlePauseWorkout: () => void;
     handleFinishWorkout: (
-        completedExercises: CompletedExercise[], 
-        duration: number, 
-        notes?: string, 
-        discomforts?: string[], 
-        fatigue?: number, 
-        clarity?: number, 
-        logDate?: string, 
-        photoUri?: string, 
+        completedExercises: CompletedExercise[],
+        duration: number,
+        notes?: string,
+        discomforts?: string[],
+        fatigue?: number,
+        clarity?: number,
+        logDate?: string,
+        photoUri?: string,
         planDeviations?: PlanDeviation[],
         focus?: number,
         pump?: number,
@@ -1557,7 +1558,7 @@ export interface AppContextDispatch {
     addRecommendationTrigger: (trigger: Omit<RecommendationTrigger, 'id' | 'date' | 'actionTaken'>) => void;
     markRecommendationAsTaken: (id: string) => void;
     setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    handleLogDailyWellbeing: (data: Omit<DailyWellbeingLog, 'id'>) => void; 
+    handleLogDailyWellbeing: (data: Omit<DailyWellbeingLog, 'id'>) => void;
     setIsSpecialSessionModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setSpecialSessionData: React.Dispatch<React.SetStateAction<any | null>>;
 }
@@ -1600,34 +1601,34 @@ export interface SocialPost {
 
 // Zod Schema for WorkoutLog validation
 export const WorkoutLogSchema = z.object({
-  id: z.string(),
-  programId: z.string(),
-  programName: z.string(),
-  sessionId: z.string(),
-  sessionName: z.string(),
-  date: z.string(),
-  duration: z.number().optional(),
-  completedExercises: z.array(z.any()), // Simplified for now
-  notes: z.string().optional(),
-  discomforts: z.array(z.string()).optional(),
-  fatigueLevel: z.number(),
-  mentalClarity: z.number(),
-  gymName: z.string().optional(),
-  photoUri: z.string().optional(),
-  sessionVariant: z.enum(['A','B','C','D']).optional(),
-  planDeviations: z.array(z.any()).optional(),
-  readiness: z.any().optional(),
-  focus: z.number().optional(),
-  pump: z.number().optional(),
-  environmentTags: z.array(z.string()).optional(),
-  sessionDifficulty: z.number().optional(),
-  planAdherenceTags: z.array(z.string()).optional(),
-  sessionStressScore: z.number().optional(),
-  muscleBatteries: z.record(z.string(), z.number()).optional(),
-  postTitle: z.string().optional(),
-  postSummary: z.string().optional(),
-  postPhotos: z.array(z.string()).optional(),
-  isCustomPost: z.boolean().optional(),
-  photo: z.string().optional(),
-  caloriesBurned: z.number().optional(),
+    id: z.string(),
+    programId: z.string(),
+    programName: z.string(),
+    sessionId: z.string(),
+    sessionName: z.string(),
+    date: z.string(),
+    duration: z.number().optional(),
+    completedExercises: z.array(z.any()), // Simplified for now
+    notes: z.string().optional(),
+    discomforts: z.array(z.string()).optional(),
+    fatigueLevel: z.number(),
+    mentalClarity: z.number(),
+    gymName: z.string().optional(),
+    photoUri: z.string().optional(),
+    sessionVariant: z.enum(['A', 'B', 'C', 'D']).optional(),
+    planDeviations: z.array(z.any()).optional(),
+    readiness: z.any().optional(),
+    focus: z.number().optional(),
+    pump: z.number().optional(),
+    environmentTags: z.array(z.string()).optional(),
+    sessionDifficulty: z.number().optional(),
+    planAdherenceTags: z.array(z.string()).optional(),
+    sessionStressScore: z.number().optional(),
+    muscleBatteries: z.record(z.string(), z.number()).optional(),
+    postTitle: z.string().optional(),
+    postSummary: z.string().optional(),
+    postPhotos: z.array(z.string()).optional(),
+    isCustomPost: z.boolean().optional(),
+    photo: z.string().optional(),
+    caloriesBurned: z.number().optional(),
 });

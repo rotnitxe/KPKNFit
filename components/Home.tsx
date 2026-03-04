@@ -1,40 +1,83 @@
 // components/Home.tsx
-// Reforma Home: pantalla seria con secciones (Hoy, Estado, Progreso, Programa), hero contextual, acordeón
+// ══════════════════════════════════════════════════════════════════════════════
+// Dashboard de Entrenamiento — Pantalla Home
+//
+// Arquitectura M3 (traducida de Compose a React):
+//   Scaffold       → Wrapper <div> con safe-area
+//   TopAppBar      → Hero contextual (AugeTelemetryPanel)
+//   NavigationBar  → TabBar (gestionada en App.tsx)
+//   ElevatedCard   → Componente <ElevatedCard> con sombra dinámica
+//   LazyColumn     → Scroll nativo con overflow-y-auto
+//
+// Reglas:
+//   • Todos los colores usan tokens M3 (--md-sys-color-*), nunca hex fijos
+//   • Espaciados siguen rejilla 8dp (8px, 16px, 24px, 32px, 40px, 48px)
+//   • Cada componente tiene un comentario explicando la decisión UX
+// ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useMemo, useState } from 'react';
-import { Program, Session, SleepLog, View, ProgramWeek, WorkoutLog } from '../types';
-import Button from './ui/Button';
-import { PlusIcon, TargetIcon, LinkIcon } from './icons';
+import type { Program, Session, View, WorkoutLog, SleepLog, ProgramWeek } from '../types';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
+import { AugeTelemetryPanel } from './home/AugeTelemetryPanel';
+import { SessionTodayCard } from './home/SessionTodayCard';
+import { HomeCardsSection } from './home/HomeCardsSection';
 import { CaupolicanIcon } from './CaupolicanIcon';
-import {
-    SessionTodayCard,
-    AugeTelemetryPanel,
-    HomeCardsSection,
-} from './home/index';
+import { TargetIcon, PlusIcon, LinkIcon } from './icons';
+import Button from './ui/Button';
 import { ExerciseHistoryNerdView } from './ExerciseHistoryNerdView';
 import { getLocalDateString } from '../utils/dateUtils';
 import { WorkoutShareCard, buildShareCardDataFromLog } from './FinishWorkoutModal';
 import { shareElementAsImage } from '../services/shareService';
 
+// ─── Tipos ────────────────────────────────────────────────────────────────────
+
 interface HomeProps {
     onNavigate: (view: View, program?: Program) => void;
     onResumeWorkout: () => void;
     onEditSleepLog: (log: SleepLog) => void;
-    /** Navegación desde tarjetas del Home */
     onNavigateToCard?: (cardType: string) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCard }) => {
+// ─── ElevatedCard (equivalente a ElevatedCard de M3) ──────────────────────────
+// UX: Las tarjetas elevadas crean jerarquía visual. El usuario distingue
+// elementos interactivos (cards) del fondo (surface). La sombra tenue
+// refuerza la profundidad sin ser agresiva (M3 elevation level 1).
+
+const ElevatedCard: React.FC<{
+    children: React.ReactNode;
+    className?: string;
+    onClick?: () => void;
+}> = ({ children, className = '', onClick }) => (
+    <div
+        className={`
+            bg-[var(--md-sys-color-surface-container)]
+            border border-[var(--md-sys-color-outline-variant)]
+            rounded-xl
+            shadow-[0_1px_3px_rgba(0,0,0,0.3),0_4px_8px_rgba(0,0,0,0.2)]
+            transition-all duration-200
+            ${onClick ? 'cursor-pointer hover:shadow-[0_2px_6px_rgba(0,0,0,0.4),0_8px_16px_rgba(0,0,0,0.25)] active:scale-[0.98]' : ''}
+            ${className}
+        `}
+        onClick={onClick}
+    >
+        {/* Glow sutil en el borde superior para heredar luz ambiental */}
+        <div className="absolute inset-0 rounded-xl pointer-events-none border-t border-white/10 opacity-40" />
+        {children}
+    </div>
+);
+
+// ─── Componente Principal ─────────────────────────────────────────────────────
+
+// ─── useHomeViewModel (State Hoisting) ────────────────────────────────────────
+// UX: Separamos la lógica de negocio de la UI para facilitar el testing
+// y seguir patrones de arquitectura modernos (MVVM).
+
+function useHomeViewModel(onNavigate: HomeProps['onNavigate'], onNavigateToCard: HomeProps['onNavigateToCard']) {
     const { programs, history, activeProgramState, settings, ongoingWorkout } = useAppState();
     const { handleStartWorkout, navigateTo, setIsStartWorkoutModalOpen, handleStartProgram } = useAppDispatch();
-    const [exerciseHistoryModal, setExerciseHistoryModal] = useState<string | null>(null);
-    const [shareLog, setShareLog] = useState<WorkoutLog | null>(null);
-    const [isSharing, setIsSharing] = useState(false);
 
     const todayStr = getLocalDateString();
     const currentDayOfWeek = new Date().getDay();
-
     const activeProgram = programs.find(p => p.id === activeProgramState?.programId);
 
     const todaySessions = useMemo(() => {
@@ -49,10 +92,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
         for (const block of (macro.blocks || [])) {
             for (const meso of (block.mesocycles || [])) {
                 const week = (meso.weeks || []).find(w => w.id === activeProgramState.currentWeekId);
-                if (week) {
-                    activeWeek = week;
-                    break;
-                }
+                if (week) { activeWeek = week; break; }
                 mesoIdxTotal++;
             }
             if (activeWeek) break;
@@ -88,229 +128,357 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
         }, ...todaySessions];
     }, [todaySessions, ongoingWorkout, activeProgram, programs]);
 
-    const handleShareLog = (log: WorkoutLog) => setShareLog(log);
+    const handleCardNav = (cardType: string) => {
+        if (onNavigateToCard) onNavigateToCard(cardType);
+        else if (['macros', 'evolution'].includes(cardType)) navigateTo('body-progress');
+        else if (cardType === 'calories-history') navigateTo('nutrition');
+        else if (activeProgram) navigateTo('program-detail', { programId: activeProgram.id });
+        else if (programs[0]) navigateTo('program-detail', { programId: programs[0].id });
+        else navigateTo('program-editor');
+    };
 
-    const dateHeaderStr = new Date().toLocaleDateString('es-ES', {
+    return {
+        programs,
+        history,
+        settings,
+        activeProgram,
+        sessionsWithOngoing,
+        ongoingWorkout,
+        handleStartWorkout,
+        handleStartProgram,
+        navigateTo,
+        setIsStartWorkoutModalOpen,
+        handleCardNav
+    };
+}
+
+const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCard }) => {
+    const vm = useHomeViewModel(onNavigate, onNavigateToCard);
+
+    // Estados internos de UI (no negocio)
+    const [exerciseHistoryModal, setExerciseHistoryModal] = useState<string | null>(null);
+    const [shareLog, setShareLog] = useState<WorkoutLog | null>(null);
+    const [isSharing, setIsSharing] = useState(false);
+
+    const dateHeaderStr = useMemo(() => new Date().toLocaleDateString('es-ES', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
-    });
+    }), []);
 
+    const handleShareLog = (log: WorkoutLog) => setShareLog(log);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // renderWithProgram 
+    // ═══════════════════════════════════════════════════════════════════════════
     const renderWithProgram = () => (
         <>
-            {/* Anillos arriba — hero #1a1a1a; fondo general #121212 más oscuro */}
             <div
                 className="w-full flex flex-col"
-                style={{ backgroundColor: '#1a1a1a', paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))' }}
+                style={{
+                    backgroundColor: 'var(--md-sys-color-surface-container)',
+                    paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))',
+                }}
             >
                 <div className="w-full max-w-md mx-auto px-4 sm:px-6 pt-2 pb-5">
-                    <p className="text-xs text-zinc-500 mb-3">{dateHeaderStr}</p>
+                    <p
+                        className="text-label-sm mb-3 opacity-70"
+                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                    >
+                        {dateHeaderStr}
+                    </p>
                     <AugeTelemetryPanel variant="hero" shareable />
                 </div>
             </div>
 
-            {/* Sesión de hoy + resto del contenido — debajo de los anillos */}
-            <div className="relative z-10 flex flex-col w-full max-w-md mx-auto pb-6">
-                <div className="flex flex-col px-6 pt-4 space-y-6">
-                <div className="w-full">
-                    {(() => {
-                        const primaryProgram = (sessionsWithOngoing.length > 0 && ongoingWorkout && todaySessions.length === 0)
-                            ? programs.find(p => p.id === ongoingWorkout.programId) || activeProgram!
-                            : activeProgram!;
-                        return (
-                            <SessionTodayCard
-                                key="session"
-                                variant="continuation"
-                                programName={primaryProgram?.name ?? 'Entrenamiento'}
-                                programId={primaryProgram?.id ?? ''}
-                                todaySessions={sessionsWithOngoing}
-                                ongoingWorkout={ongoingWorkout ? { session: ongoingWorkout.session, programId: ongoingWorkout.programId, isPaused: ongoingWorkout.isPaused } : null}
-                                onStartWorkout={handleStartWorkout}
-                                onResumeWorkout={onResumeWorkout}
-                                onEditSession={(programId, macroIndex, mesoIndex, weekId, sessionId) =>
-                                    navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, sessionId })
-                                }
-                                onViewProgram={(programId) => navigateTo('program-detail', { programId })}
-                                onOpenStartWorkoutModal={() => setIsStartWorkoutModalOpen(true)}
-                                onShareLog={handleShareLog}
-                            />
-                        );
-                    })()}
-                </div>
+            <div
+                className="relative z-10 flex flex-col w-full max-w-md mx-auto pb-10"
+                style={{ backgroundColor: 'var(--md-sys-color-background)' }}
+            >
+                <div className="flex flex-col px-6 pt-6 space-y-8">
 
-                {/* Tarjetas cuadradas por categorías */}
-                <HomeCardsSection
-                    onNavigateToCard={(cardType) => {
-                        if (onNavigateToCard) onNavigateToCard(cardType);
-                        else if (['macros', 'evolution'].includes(cardType)) navigateTo('body-progress');
-                        else if (cardType === 'calories-history') navigateTo('nutrition');
-                        else if (activeProgram) navigateTo('program-detail', { programId: activeProgram.id });
-                    }}
-                />
+                    <div className="w-full">
+                        {(() => {
+                            const primaryProgram = (vm.sessionsWithOngoing.length > 0 && vm.ongoingWorkout && vm.sessionsWithOngoing.length === 1)
+                                ? vm.programs.find(p => p.id === vm.ongoingWorkout!.programId) || vm.activeProgram!
+                                : vm.activeProgram!;
+                            return (
+                                <SessionTodayCard
+                                    key="session"
+                                    variant="continuation"
+                                    programName={primaryProgram?.name ?? 'Entrenamiento'}
+                                    programId={primaryProgram?.id ?? ''}
+                                    todaySessions={vm.sessionsWithOngoing}
+                                    ongoingWorkout={vm.ongoingWorkout ? { session: vm.ongoingWorkout.session, programId: vm.ongoingWorkout.programId, isPaused: vm.ongoingWorkout.isPaused } : null}
+                                    onStartWorkout={vm.handleStartWorkout}
+                                    onResumeWorkout={onResumeWorkout}
+                                    onEditSession={(programId, macroIndex, mesoIndex, weekId, sessionId) =>
+                                        vm.navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, sessionId })
+                                    }
+                                    onViewProgram={(programId) => vm.navigateTo('program-detail', { programId })}
+                                    onOpenStartWorkoutModal={() => vm.setIsStartWorkoutModalOpen(true)}
+                                    onShareLog={handleShareLog}
+                                />
+                            );
+                        })()}
+                    </div>
+
+                    <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
                 </div>
             </div>
         </>
     );
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // renderSelectProgram
+    // ═══════════════════════════════════════════════════════════════════════════
     const renderSelectProgram = () => (
         <>
-            <div className="w-full flex flex-col" style={{ backgroundColor: '#1a1a1a', paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))' }}>
+            <div
+                className="w-full flex flex-col"
+                style={{
+                    backgroundColor: 'var(--md-sys-color-surface-container)',
+                    paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))',
+                }}
+            >
                 <div className="w-full max-w-md mx-auto px-4 sm:px-6 pt-2 pb-5">
-                    <p className="text-xs text-zinc-500 mb-3">{dateHeaderStr}</p>
+                    <p className="text-label-sm mb-3 opacity-70" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                        {dateHeaderStr}
+                    </p>
                     <AugeTelemetryPanel variant="hero" shareable />
                 </div>
             </div>
-            <div className="relative z-10 flex flex-col px-6 pt-5 w-full max-w-md mx-auto pb-10 space-y-6">
-                <div className="text-center mb-4">
-                    <h2 className="text-xl font-black text-white uppercase tracking-tight">Selecciona un Programa</h2>
-                    <p className="text-zinc-400 text-xs mt-1.5">Activa uno para comenzar.</p>
-                </div>
-            <HomeCardsSection
-                onNavigateToCard={(cardType) => {
-                    if (onNavigateToCard) onNavigateToCard(cardType);
-                    else if (['macros', 'evolution'].includes(cardType)) navigateTo('body-progress');
-                    else if (cardType === 'calories-history') navigateTo('nutrition');
-                    else if (programs[0]) navigateTo('program-detail', { programId: programs[0].id });
-                }}
-            />
-            <div className="space-y-4 mt-6">
-                {programs.map(prog => (
-                    <div
-                        key={prog.id}
-                        className="bg-gradient-to-b from-white/[0.06] to-transparent border border-white/10 p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden group hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300"
+
+            <div
+                className="relative z-10 flex flex-col px-6 pt-8 w-full max-w-md mx-auto pb-10 space-y-8"
+                style={{ backgroundColor: 'var(--md-sys-color-background)' }}
+            >
+                <div className="text-center mb-2">
+                    <h2
+                        className="text-headline-sm uppercase tracking-tight font-black"
+                        style={{ color: 'var(--md-sys-color-on-background)' }}
                     >
-                        <div className="relative z-10 flex justify-between items-center">
-                            <div>
-                                <h3 className="text-lg font-black text-white uppercase tracking-tight truncate max-w-[200px]">{prog.name}</h3>
-                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                        Selecciona un Programa
+                    </h2>
+                    <p
+                        className="text-body-sm mt-2 opacity-60"
+                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                    >
+                        Activa uno para comenzar tu evolución.
+                    </p>
+                </div>
+
+                <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
+
+                <div className="space-y-4">
+                    {vm.programs.map(prog => (
+                        <ElevatedCard key={prog.id} className="p-5 flex items-center justify-between group overflow-hidden">
+                            <div className="relative z-10 flex flex-col gap-1">
+                                <h3
+                                    className="text-title-md uppercase tracking-tight font-black truncate max-w-[180px]"
+                                    style={{ color: 'var(--md-sys-color-on-surface)' }}
+                                >
+                                    {prog.name}
+                                </h3>
+                                <p
+                                    className="text-label-sm uppercase tracking-widest opacity-50"
+                                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                                >
                                     {prog.macrocycles?.length || 0} Fases • {prog.mode || 'Estándar'}
                                 </p>
                             </div>
                             <Button
                                 onClick={() => {
-                                    handleStartProgram(prog.id);
-                                    navigateTo('program-detail', { programId: prog.id });
+                                    vm.handleStartProgram(prog.id);
+                                    vm.navigateTo('program-detail', { programId: prog.id });
                                 }}
-                                className="!py-2 !px-4 !text-[10px] !bg-white !text-black hover:scale-105 transition-transform shrink-0"
+                                className="!py-3 !px-6 !text-label-sm font-black transition-transform min-h-[48px]"
+                                style={{
+                                    backgroundColor: 'var(--md-sys-color-primary)',
+                                    color: 'var(--md-sys-color-on-primary)',
+                                    borderRadius: '12px'
+                                }}
                             >
-                                Activar
+                                ACTIVAR
                             </Button>
-                        </div>
-                        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none text-cyan-400/50">
-                            <TargetIcon size={80} />
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <Button
-                onClick={() => navigateTo('program-editor')}
-                variant="secondary"
-                className="w-full !py-4 !text-xs !font-black !rounded-2xl border-dashed border-white/10 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/30 hover:bg-cyan-500/5 mt-4 bg-transparent transition-all duration-300"
-            >
-                <PlusIcon className="mr-2" size={16} /> CREAR OTRO PROGRAMA
-            </Button>
+                            <div
+                                className="absolute -right-6 -bottom-6 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity pointer-events-none"
+                                style={{ color: 'var(--md-sys-color-primary)' }}
+                            >
+                                <TargetIcon size={100} />
+                            </div>
+                        </ElevatedCard>
+                    ))}
+                </div>
+
+                <Button
+                    onClick={() => vm.navigateTo('program-editor')}
+                    variant="secondary"
+                    className="w-full !py-5 !text-label-lg font-black !rounded-xl border-dashed opacity-80 hover:opacity-100 transition-all min-h-[48px]"
+                    style={{
+                        borderColor: 'var(--md-sys-color-outline-variant)',
+                        color: 'var(--md-sys-color-on-surface-variant)',
+                        backgroundColor: 'transparent',
+                    }}
+                >
+                    <PlusIcon className="mr-2" size={18} /> CREAR OTRO PROGRAMA
+                </Button>
             </div>
         </>
     );
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // renderNoPrograms
+    // ═══════════════════════════════════════════════════════════════════════════
     const renderNoPrograms = () => (
         <>
-            <div className="w-full flex flex-col" style={{ backgroundColor: '#1a1a1a', paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))' }}>
+            <div
+                className="w-full flex flex-col"
+                style={{
+                    backgroundColor: 'var(--md-sys-color-surface-container)',
+                    paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))',
+                }}
+            >
                 <div className="w-full max-w-md mx-auto px-4 sm:px-6 pt-2 pb-5">
-                    <p className="text-xs text-zinc-500 mb-3">{dateHeaderStr}</p>
+                    <p className="text-label-sm mb-3 opacity-70" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                        {dateHeaderStr}
+                    </p>
                     <AugeTelemetryPanel variant="hero" shareable />
                 </div>
             </div>
-            <div className="relative z-10 flex flex-col px-6 pt-5 w-full max-w-md mx-auto pb-10">
-                <HomeCardsSection
-                    onNavigateToCard={(cardType) => {
-                        if (onNavigateToCard) onNavigateToCard(cardType);
-                        else if (['macros', 'evolution'].includes(cardType)) navigateTo('body-progress');
-                        else if (cardType === 'calories-history') navigateTo('nutrition');
-                        else navigateTo('program-editor');
-                    }}
-                />
-                <div className="text-center w-full pt-2 mt-6">
-                <div className="w-full flex justify-center mb-6 animate-fade-in">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-cyan-500/10 rounded-full blur-2xl scale-150" />
-                        <CaupolicanIcon size={200} color="white" />
+
+            <div
+                className="relative z-10 flex flex-col px-6 pt-5 w-full max-w-md mx-auto pb-10"
+                style={{ backgroundColor: 'var(--md-sys-color-background)' }}
+            >
+                <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
+
+                <div className="text-center w-full pt-8">
+                    <div className="w-full flex justify-center mb-10 animate-fade-in">
+                        <div className="relative">
+                            <div
+                                className="absolute inset-0 rounded-full blur-3xl scale-150 opacity-[0.15]"
+                                style={{ backgroundColor: 'var(--md-sys-color-primary)' }}
+                            />
+                            <CaupolicanIcon size={200} color="currentColor" />
+                        </div>
                     </div>
-                </div>
-                <h3 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-lg leading-[0.9]">
-                    CREA TU PRIMER<br />
-                    <span className="bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">PROGRAMA DE</span>
-                    <br />
-                    ENTRENAMIENTO
-                </h3>
-                <p className="text-zinc-400 text-xs mb-8 font-medium leading-relaxed max-w-xs mx-auto">
-                    No olvides presionar en <span className="text-cyan-400 font-bold">&quot;iniciar programa&quot;</span> para que aparezcan tus sesiones acá.
-                </p>
-                <Button
-                    onClick={() => navigateTo('program-editor')}
-                    className="w-full max-w-xs mx-auto !py-4 !text-base !font-black !rounded-2xl !bg-white !text-black border-none mb-10 hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-300"
-                >
-                    <PlusIcon className="mr-2" /> CREAR PROGRAMA
-                </Button>
+
+                    <h3
+                        className="text-display-sm sm:text-display-md font-black uppercase tracking-tighter mb-6 leading-[0.85]"
+                        style={{ color: 'var(--md-sys-color-on-background)' }}
+                    >
+                        DISEÑA TU<br />
+                        <span style={{ color: 'var(--md-sys-color-primary)' }}>PRIMER PLAN</span>
+                        <br />
+                        MAESTRO
+                    </h3>
+
+                    <p
+                        className="text-body-sm mb-10 leading-relaxed max-w-xs mx-auto opacity-70"
+                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                    >
+                        Activa la ingeniería de tu cuerpo. Inicia un programa para desbloquear la telemetría avanzada.
+                    </p>
+
+                    <Button
+                        onClick={() => vm.navigateTo('program-editor')}
+                        className="w-full max-w-xs mx-auto !py-5 !text-title-sm font-black !rounded-2xl border-none mb-10 hover:scale-[1.05] shadow-lg shadow-primary/20 transition-all min-h-[56px]"
+                        style={{
+                            backgroundColor: 'var(--md-sys-color-primary)',
+                            color: 'var(--md-sys-color-on-primary)',
+                        }}
+                    >
+                        <PlusIcon className="mr-2" size={20} /> CREAR PROGRAMA
+                    </Button>
                 </div>
             </div>
         </>
     );
 
     return (
-        <div className="relative min-h-full w-full flex flex-col bg-[#121212] tab-bar-safe-area">
-            {/* Fondos sutiles Minimal NERD - orbs con menor opacidad */}
+        <div
+            className="relative min-h-full w-full flex flex-col tab-bar-safe-area"
+            style={{ backgroundColor: 'var(--md-sys-color-background)' }}
+        >
             <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-                <div className="absolute -top-40 -right-20 w-80 h-80 rounded-full bg-cyan-500/[0.03] blur-3xl" />
-                <div className="absolute top-1/3 -left-20 w-60 h-60 rounded-full bg-zinc-500/[0.02] blur-3xl" />
+                <div
+                    className="absolute -top-40 -right-20 w-80 h-80 rounded-full blur-[100px] opacity-[0.04]"
+                    style={{ backgroundColor: 'var(--md-sys-color-primary)' }}
+                />
+                <div
+                    className="absolute top-1/3 -left-20 w-60 h-60 rounded-full blur-[80px] opacity-[0.03]"
+                    style={{ backgroundColor: 'var(--md-sys-color-tertiary)' }}
+                />
             </div>
 
-            {activeProgram ? renderWithProgram() : programs.length > 0 ? renderSelectProgram() : renderNoPrograms()}
+            {vm.activeProgram ? renderWithProgram() : vm.programs.length > 0 ? renderSelectProgram() : renderNoPrograms()}
 
             {exerciseHistoryModal && (
                 <ExerciseHistoryNerdView
                     exerciseName={exerciseHistoryModal}
-                    history={history}
-                    settings={settings}
+                    history={vm.history}
+                    settings={vm.settings}
                     onClose={() => setExerciseHistoryModal(null)}
                 />
             )}
 
             {shareLog && (() => {
-                const cardData = buildShareCardDataFromLog(shareLog, settings?.weightUnit ?? 'kg');
+                const cardData = buildShareCardDataFromLog(shareLog, vm.settings?.weightUnit ?? 'kg');
                 return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80">
-                    <div className="bg-zinc-900 border border-white/10 rounded-xl p-4 w-full max-w-[260px] flex flex-col items-center">
-                        <h3 className="text-xs font-black text-white mb-2 uppercase">Compartir</h3>
-                        <div className="rounded border border-white/10 mb-2 overflow-hidden" style={{ width: 108, height: 192 }}>
-                            <div className="w-[540px] h-[960px] origin-top-left" style={{ transform: 'scale(0.2)' }}>
-                                <WorkoutShareCard {...cardData} preview />
-                            </div>
-                        </div>
-                        <WorkoutShareCard {...cardData} />
-                        <div className="flex gap-2 w-full mt-2">
-                            <Button variant="secondary" className="flex-1 !py-2.5 !text-xs" onClick={() => setShareLog(null)}>
-                                Cancelar
-                            </Button>
-                            <Button
-                                className="flex-1 !py-2.5 !text-xs flex items-center justify-center gap-2"
-                                onClick={async () => {
-                                    setIsSharing(true);
-                                    await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'Registra tus entrenamientos con KPKN. #KPKN #Fitness');
-                                    setIsSharing(false);
-                                    setShareLog(null);
-                                }}
-                                disabled={isSharing}
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm">
+                        <ElevatedCard className="p-6 w-full max-w-[280px] flex flex-col items-center gap-4 animate-scale-up">
+                            <h3
+                                className="text-title-small uppercase font-black tracking-widest"
+                                style={{ color: 'var(--md-sys-color-on-surface)' }}
                             >
-                                {isSharing ? <span className="animate-pulse">Compartiendo...</span> : <><LinkIcon size={14} /> Compartir</>}
-                            </Button>
-                        </div>
+                                Compartir Log
+                            </h3>
+                            <div
+                                className="rounded-xl overflow-hidden shadow-2xl"
+                                style={{
+                                    width: 140,
+                                    height: 248,
+                                    borderColor: 'var(--md-sys-color-outline-variant)',
+                                    borderWidth: 1,
+                                }}
+                            >
+                                <div className="w-[540px] h-[960px] origin-top-left" style={{ transform: 'scale(0.259)' }}>
+                                    <WorkoutShareCard {...cardData} preview />
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-2 w-full">
+                                <Button
+                                    className="w-full !py-3 bg-primary text-on-primary font-black uppercase text-xs rounded-xl min-h-[48px]"
+                                    style={{
+                                        backgroundColor: 'var(--md-sys-color-primary)',
+                                        color: 'var(--md-sys-color-on-primary)',
+                                    }}
+                                    onClick={async () => {
+                                        setIsSharing(true);
+                                        await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'Registra tus entrenamientos con KPKN. #KPKN #Fitness');
+                                        setIsSharing(false);
+                                        setShareLog(null);
+                                    }}
+                                    disabled={isSharing}
+                                >
+                                    {isSharing ? 'Generando...' : 'COMPARTIR'}
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    className="w-full !py-3 font-black uppercase text-xs rounded-xl min-h-[48px]"
+                                    onClick={() => setShareLog(null)}
+                                >
+                                    CANCELAR
+                                </Button>
+                            </div>
+                        </ElevatedCard>
                     </div>
-                </div>
                 );
             })()}
         </div>
     );
 };
+
 
 export default Home;

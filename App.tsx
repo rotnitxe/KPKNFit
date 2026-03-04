@@ -12,6 +12,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import SpecialSessionLoggerModal from './components/SpecialSessionLoggerModal';
 import { PCEActionModal } from './components/PCEActionModal';
+import { useKPKNTheme } from './utils/theme';
 
 // Import UI Components
 import TabBar from './components/TabBar';
@@ -34,8 +35,6 @@ import { SleepWidgetHeader } from './components/SleepWidgetHeader';
 import { PostSessionQuestionnaireWidget } from './components/PostSessionQuestionnaireWidget';
 import AthleteIDDashboard from './components/AthleteIDDashboard';
 import { UpdateNoveltiesModal } from './components/UpdateNoveltiesModal';
-import { UnifiedWelcomeWizard } from './components/onboarding/UnifiedWelcomeWizard';
-import { SetupChecklistCard } from './components/home/index';
 
 // Icons for header & new menu
 import { ArrowLeftIcon, IdCardIcon } from './components/icons';
@@ -123,7 +122,7 @@ const WorkoutViewFallback: React.FC<{ onFallback: () => void }> = ({ onFallback 
 export const App: React.FC = () => {
     const state = useAppState();
     const dispatch = useAppDispatch();
-    
+
     const {
         view,
         activeProgramId,
@@ -177,7 +176,7 @@ export const App: React.FC = () => {
         pendingWorkoutForReadinessCheck,
         historyStack
     } = state;
-    
+
     const {
         navigateTo,
         setIsBodyLogModalOpen,
@@ -248,6 +247,11 @@ export const App: React.FC = () => {
     const [isVideoAnalysisModalOpen, setIsVideoAnalysisModalOpen] = useState(false);
     const [editingSleepLog, setEditingSleepLog] = useState<any | null>(null);
 
+    // ── Material You Dynamic Color (KPKN Theme Engine) ───────────────────────
+    // Genera y aplica tokens de color en CSS variables, siguiendo el dark/light
+    // mode del sistema del usuario automáticamente.
+    useKPKNTheme({ followSystemDark: true });
+
     const handleSaveSleepLog = useCallback((log: SleepLog) => {
         setSleepLogs(prev => prev.map(l => l.id === log.id ? log : l));
         setEditingSleepLog(null);
@@ -272,7 +276,7 @@ export const App: React.FC = () => {
                 console.error(`Error al solicitar Wake Lock: ${err.name}, ${err.message}`);
             }
         } else {
-             console.warn('La API de Wake Lock no es compatible con este navegador.');
+            console.warn('La API de Wake Lock no es compatible con este navegador.');
         }
     }, []);
 
@@ -302,14 +306,14 @@ export const App: React.FC = () => {
 
     // --- VIP PASS PARA IOS (PROMPT DE INSTALACIÓN NATIVO) ---
     const [showIOSPrompt, setShowIOSPrompt] = useState(false);
-    
+
     useEffect(() => {
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
         // Detecta Safari en iOS estrictamente
         const isSafari = navigator.vendor && navigator.vendor.indexOf('Apple') > -1 && navigator.userAgent && navigator.userAgent.indexOf('CriOS') === -1 && navigator.userAgent.indexOf('FxiOS') === -1;
         // Detecta si ya está instalada (Standalone mode)
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
-        
+
         // Si es iPhone, usa Safari, no está instalada y no la hemos ocultado previamente
         if (isIOS && isSafari && !isStandalone && !localStorage.getItem('kpkn_ios_prompt_hidden')) {
             setShowIOSPrompt(true);
@@ -394,7 +398,7 @@ export const App: React.FC = () => {
     }, []);
 
     const isTopLevelView = useMemo(() => ['home', 'nutrition', 'recovery', 'sleep', 'kpkn', 'progress', 'tasks'].includes(view), [view]);
-    
+
     const onMenuClick = useCallback(() => setIsMenuOpen(prev => !prev), [setIsMenuOpen]);
     const viewingExercise = useMemo(() => viewingExerciseId ? exerciseList.find(e => e.id === viewingExerciseId) : null, [exerciseList, viewingExerciseId]);
     const onFinishWorkoutPress = useCallback(() => setIsFinishModalOpen(true), [setIsFinishModalOpen]);
@@ -406,7 +410,7 @@ export const App: React.FC = () => {
     const onTimersPress = useCallback(() => setIsTimersModalOpen(true), [setIsTimersModalOpen]);
     const onModifyPress = useCallback(() => handleModifyWorkout(), [handleModifyWorkout]);
     const onAddCustomExercisePress = useCallback(() => openCustomExerciseEditor(), [openCustomExerciseEditor]);
-    
+
     const onCoachPress = useCallback(() => {
         if (view === 'workout' && ongoingWorkout) setCoachChatContext(ongoingWorkout);
         else setCoachChatContext(undefined);
@@ -457,7 +461,7 @@ export const App: React.FC = () => {
         onCustomizeFeedPress: () => addToast("No implementado.", "suggestion"),
     }), [handleLogPress, onFinishWorkoutPress, onTimeSaverPress, onModifyPress, onTimersPress, onCancelWorkout, onPauseWorkoutPress, onSaveSessionPress, onAddExercisePress, handleBack, onSaveProgramPress, onSaveLoggedWorkoutPress, onAddCustomExercisePress, onCoachPress, onEditExercisePress, onAnalyzeTechniquePress, onAddToPlaylistPress, addToast]);
 
-     const subTabBarContext = useMemo(() => {
+    const subTabBarContext = useMemo(() => {
         if (['kpkn', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'joint-detail', 'tendon-detail', 'movement-pattern-detail'].includes(view)) return 'kpkn';
         if (['food-database', 'food-detail'].includes(view)) return 'food-database';
         if (['progress'].includes(view)) return 'progress';
@@ -483,7 +487,7 @@ export const App: React.FC = () => {
                 </div>
             );
             case 'sleep': return <SleepTrackerWidget onEditLog={setEditingSleepLog} />;
-            
+
             case 'tasks': return <TasksView />;
             case 'programs': return <ProgramsView programs={programs} onSelectProgram={handleSelectProgram} onCreateProgram={handleCreateProgram} isOnline={isOnline} />;
             case 'program-detail': {
@@ -610,12 +614,12 @@ export const App: React.FC = () => {
                 if (view === 'program-metric-rpe') return <ProgramMetricRPEDetail program={program} displayedSessions={displayedSessions} />;
                 return null;
             }
-            
+
             default: return <Home onNavigate={handleHomeNavigation} onResumeWorkout={handleResumeWorkout} onEditSleepLog={setEditingSleepLog} onNavigateToCard={handleHomeCardNavigation} />;
         }
     }, [view, historyStack, programs, history, settings, isOnline, activeProgramId, editingProgramId, editingSessionInfo, loggingSessionInfo, viewingSessionInfo, activeSession, viewingExerciseId, viewingMuscleGroupId, viewingJointId, viewingTendonId, viewingMovementPatternId, viewingBodyPartId, viewingChainId, viewingMuscleCategoryName, ongoingWorkout, isFinishModalOpen, isTimeSaverModalOpen, isTimersModalOpen, isLogFinishModalOpen, exerciseList, muscleHierarchy, saveProgramTrigger, saveSessionTrigger, saveLoggedWorkoutTrigger, addExerciseTrigger]);
-    
-    
+
+
     const tabBarContainerHeight = 'h-[88px]'; // Barra más ancha, diseño plano
 
     return (
@@ -626,32 +630,18 @@ export const App: React.FC = () => {
             }}
             data-view={view === 'nutrition' || view === 'body-progress' ? 'nutrition' : undefined}
         >
-            
+
             <AppBackground />
 
-            {!settings.hasSeenWelcome && (
-                <UnifiedWelcomeWizard onComplete={() => setSettings({ hasSeenWelcome: true })} />
-            )}
-            {settings.hasSeenWelcome && settings.hasSeenGeneralWizard && (programs.length === 0 || !settings.hasSeenNutritionWizard) && view === 'home' && (
-                <div className="fixed top-[max(1.25rem,env(safe-area-inset-top))] left-4 right-4 z-[200] animate-fade-in">
-                    <SetupChecklistCard
-                        hasProgram={programs.length > 0}
-                        hasNutrition={!!settings.hasSeenNutritionWizard}
-                        onProgramPress={() => navigateTo('program-editor')}
-                        onNutritionPress={() => navigateTo('nutrition')}
-                    />
-                </div>
-            )}
-            
             <GlobalVoiceAssistant />
-            
-            <AthleteIDDashboard 
-                isOpen={isMenuOpen} 
-                onClose={() => setIsMenuOpen(false)} 
+
+            <AthleteIDDashboard
+                isOpen={isMenuOpen}
+                onClose={() => setIsMenuOpen(false)}
                 onNavigate={(v) => navigateTo(v)}
                 onSettingsClick={() => navigateTo('settings')}
             />
-            
+
             <main className={`app-main-content scroll-flexible flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : view === 'workout' ? 'pt-0 pb-0' : 'pt-4 pb-[max(150px,calc(var(--tab-bar-safe-bottom,140px)+24px))]'}`}>
                 <div className={`${view === 'home' || view === 'sleep' || view === 'workout' || view === 'nutrition' || view === 'body-progress' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
@@ -661,11 +651,11 @@ export const App: React.FC = () => {
                     </ErrorBoundary>
                 </div>
             </main>
-            
+
             {/* TAB BAR: Hides on Program Editor, Session Editor, Workout. Always visible on nutrition/body-progress. */}
             {view !== 'program-editor' && view !== 'session-editor' && view !== 'workout' && (
                 <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] rounded-t-none min-h-[88px] flex flex-col`}>
-                     <div className="flex flex-col w-full flex-1 min-h-0">
+                    <div className="flex flex-col w-full flex-1 min-h-0">
                         <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />
                         <div className="h-[88px] shrink-0">
                             <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext} workoutViewMode="carousel" />
@@ -673,13 +663,13 @@ export const App: React.FC = () => {
                     </div>
                 </div>
             )}
-            
+
             <div className="fixed left-1/2 -translate-x-1/2 z-[300] flex flex-col gap-2 items-center pointer-events-none safe-area-toast-top">
                 {toasts.map(toast => (
                     <Toast key={toast.id} toast={toast} onDismiss={removeToast} />
                 ))}
             </div>
-            
+
             <EditSleepLogModal isOpen={!!editingSleepLog} onClose={() => setEditingSleepLog(null)} onSave={handleSaveSleepLog} log={editingSleepLog} />
             {isCoachChatOpen && <CoachChatModal isOpen={isCoachChatOpen} onClose={() => setIsCoachChatOpen(false)} sessionContext={coachChatContext} programs={programs} history={history} isOnline={isOnline} settings={settings} />}
             {isBodyLogModalOpen && (
@@ -720,11 +710,11 @@ export const App: React.FC = () => {
                         <div className="flex-1">
                             <h3 className="text-white font-black text-sm uppercase tracking-tight leading-none mb-1">Instala KPKN</h3>
                             <p className="text-slate-400 text-[10px] font-bold leading-tight">
-                                Toca <svg className="inline w-4 h-4 text-sky-500 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> y selecciona <br/><span className="text-white font-black">"Añadir a inicio"</span>
+                                Toca <svg className="inline w-4 h-4 text-sky-500 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg> y selecciona <br /><span className="text-white font-black">"Añadir a inicio"</span>
                             </p>
                         </div>
-                        <button 
-                            onClick={() => { setShowIOSPrompt(false); localStorage.setItem('kpkn_ios_prompt_hidden', 'true'); }} 
+                        <button
+                            onClick={() => { setShowIOSPrompt(false); localStorage.setItem('kpkn_ios_prompt_hidden', 'true'); }}
                             className="text-slate-500 hover:text-white bg-white/5 border border-white/10 p-2.5 rounded-full transition-colors"
                         >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>

@@ -1,39 +1,25 @@
 // components/ui/Toast.tsx
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ToastData } from '../../types';
-import { CheckCircleIcon, XIcon } from '../icons';
+import { XIcon, InfoIcon, AlertTriangleIcon, CheckCircleIcon, TargetIcon } from '../icons';
 
 interface ToastProps {
   toast: ToastData;
   onDismiss: (id: number) => void;
 }
 
-const toastIconClass = 'w-10 h-10 object-contain flex-shrink-0';
-
-const CAUPOLICAN_ICONS = {
-  suggestion: (
-    <img src="/caupoNotificacion.svg" alt="" className={toastIconClass} aria-hidden />
-  ),
-  achievement: (
-    <img src="/CaupolicanLogros.svg" alt="" className={toastIconClass} aria-hidden />
-  ),
-  danger: (
-    <img src="/CaupolicanAlerta.svg" alt="" className={toastIconClass} aria-hidden />
-  ),
-};
-
 const ICONS = {
-    success: <CheckCircleIcon className="text-emerald-400" size={20} />,
-    achievement: CAUPOLICAN_ICONS.achievement,
-    suggestion: CAUPOLICAN_ICONS.suggestion,
-    danger: CAUPOLICAN_ICONS.danger,
+  success: <CheckCircleIcon size={18} className="text-emerald-400" />,
+  achievement: <TargetIcon size={18} className="text-amber-400" />,
+  suggestion: <InfoIcon size={18} className="text-sky-400" />,
+  danger: <AlertTriangleIcon size={18} className="text-red-400" />,
 };
 
-const GRADIENTS = {
-    success: 'from-emerald-500/10 to-emerald-900/20 border-emerald-500/20',
-    achievement: 'from-amber-500/15 to-yellow-900/20 border-amber-500/30 bg-gradient-to-r from-amber-500/12 to-[#1a1808]',
-    suggestion: 'from-[#00F0FF]/15 to-[#00F0FF]/5 border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/12 to-[#0a1628]',
-    danger: 'from-red-500/15 to-red-900/20 border-red-500/30 bg-gradient-to-r from-red-500/12 to-[#1a0a0a]',
+const BORDER_COLORS = {
+  success: 'border-emerald-500/30 bg-emerald-500/5',
+  achievement: 'border-amber-500/30 bg-amber-500/5',
+  suggestion: 'border-sky-500/30 bg-sky-500/5',
+  danger: 'border-red-500/30 bg-red-500/5',
 };
 
 const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
@@ -59,7 +45,7 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
 
   const handleDismiss = useCallback(() => {
     setIsExiting(true);
-    setTimeout(() => onDismiss(toast.id), 400); 
+    setTimeout(() => onDismiss(toast.id), 400);
   }, [onDismiss, toast.id]);
 
   useEffect(() => {
@@ -75,58 +61,54 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
   return (
     <div
       onClick={handleDismiss}
-      className={`cursor-pointer w-auto min-w-[300px] max-w-[90vw] pointer-events-auto
-                  transition-all duration-500 cubic-bezier(0.19, 1, 0.22, 1) mb-3
-                  ${isMounting ? 'opacity-0 scale-90 -translate-y-4' : 
-                    isExiting ? 'opacity-0 scale-95 translate-x-4' : 'opacity-100 scale-100 translate-y-0'}
+      className={`cursor-pointer w-auto min-w-[280px] max-w-[90vw] pointer-events-auto
+                  transition-all duration-500 ease-out mb-3 origin-bottom
+                  ${isMounting ? 'opacity-0 scale-95 translate-y-2 blur-[2px]' :
+          isExiting ? 'opacity-0 scale-95 translate-x-4 blur-[2px]' : 'opacity-100 scale-100 translate-y-0 blur-0'}
       `}
     >
       <div className={`
-          relative overflow-visible
-          flex items-center gap-4 px-5 py-3.5
-          rounded-sm
-          bg-[#15171E] border border-[#2A2D38]
-          shadow-[0_2px_8px_rgba(0,0,0,0.4)]
+          relative overflow-hidden
+          flex items-start gap-3 px-4 py-3
+          rounded-xl shadow-2xl
+          bg-[#121212]/95 backdrop-blur-md border ${BORDER_COLORS[toast.type]}
           group hover:scale-[1.02] active:scale-95 transition-transform
-          ${GRADIENTS[toast.type]}
       `}>
-          <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-50 pointer-events-none" />
-          
-          <div className="flex-shrink-0 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
-              {ICONS[toast.type]}
-          </div>
+        <div className="flex-shrink-0 mt-0.5">
+          {ICONS[toast.type] || <InfoIcon size={18} className="text-zinc-400" />}
+        </div>
 
-          <div className="flex-grow flex flex-col justify-center min-w-0">
-             {toast.title && <span className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none mb-1">{toast.title}</span>}
-             <span className="text-sm font-bold text-white/90 leading-tight">{toast.message}</span>
-             {hasWhy && (
-               <div ref={whyRef} className="relative mt-2">
-                 <button
-                   onClick={(e) => { e.stopPropagation(); setShowWhy(prev => !prev); }}
-                   className="text-[10px] font-bold text-red-300/90 hover:text-red-200 uppercase tracking-wider underline underline-offset-1"
-                 >
-                   ¿Por qué?
-                 </button>
-                 {showWhy && (
-                   <div
-                     onClick={(e) => e.stopPropagation()}
-                     className="absolute left-0 top-full mt-2 z-50 min-w-[260px] max-w-[90vw] p-3 rounded-lg bg-zinc-900/95 border border-red-500/30 shadow-xl flex gap-3"
-                   >
-                     <img src="/CaupolicanAlerta.svg" alt="" className="w-12 h-12 object-contain flex-shrink-0" aria-hidden />
-                     <p className="text-xs text-white/90 leading-relaxed">{toast.why}</p>
-                   </div>
-                 )}
-               </div>
-             )}
-          </div>
+        <div className="flex-grow flex flex-col justify-center min-w-0 pt-0.5">
+          {toast.title && <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.1em] mb-1">{toast.title}</span>}
+          <span className="text-[13px] font-medium text-white/90 leading-snug">{toast.message}</span>
 
-          <button 
-             onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
-             aria-label="Cerrar notificación"
-             className="flex-shrink-0 text-white/20 hover:text-white/60 transition-colors p-1 bg-black/20 rounded-full focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-transparent"
-          >
-              <XIcon size={14} />
-          </button>
+          {hasWhy && (
+            <div ref={whyRef} className="relative mt-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowWhy(prev => !prev); }}
+                className="text-[10px] font-bold text-red-400 hover:text-red-300 uppercase tracking-wider"
+              >
+                Ver más
+              </button>
+              {showWhy && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute left-0 top-full mt-2 z-50 min-w-[240px] max-w-[85vw] p-3 rounded-lg bg-black/95 border border-red-500/20 shadow-xl"
+                >
+                  <p className="text-xs text-zinc-300 leading-relaxed">{toast.why}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
+          aria-label="Cerrar"
+          className="flex-shrink-0 text-zinc-500 hover:text-white transition-colors p-1"
+        >
+          <XIcon size={14} />
+        </button>
       </div>
     </div>
   );
