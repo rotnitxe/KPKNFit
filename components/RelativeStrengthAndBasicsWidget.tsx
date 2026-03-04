@@ -135,13 +135,13 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
 
         return (
             <div className="w-[90vw] max-w-[420px] shrink-0 snap-center flex flex-col items-center bg-transparent">
-                {/* Ilustración más grande */}
-                <div className="w-72 h-72 flex items-center justify-center p-4 bg-[var(--md-sys-color-surface-container-highest)] rounded-full shadow-inner mb-6">
+                {/* Ilustración mucho más grande y sin fondo que distraiga */}
+                <div className="w-80 h-80 flex items-center justify-center bg-black rounded-full mb-4">
                     {iconType === 'squat' ? <CaupolicanSquat /> :
                         iconType === 'bench' ? <CaupolicanBench /> :
                             iconType === 'deadlift_sumo' ? <CaupolicanSDL /> :
                                 iconType === 'deadlift_conv' ? <CaupolicanCDL /> :
-                                    <DumbbellIcon size={96} style={{ color: 'var(--md-sys-color-primary)' }} />}
+                                    <DumbbellIcon size={120} style={{ color: 'var(--md-sys-color-primary)' }} />}
                 </div>
 
                 {/* Datos: ratio BW como principal, kg más pequeño */}
@@ -221,7 +221,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
     };
 
     return (
-        <div className="mt-8 mb-8 bg-[var(--md-sys-color-surface-container-low)] p-8 rounded-[2rem] border border-[var(--md-sys-color-outline-variant)]/30">
+        <div className="mt-8 mb-8 bg-black p-8 rounded-[3rem] border border-white/10 shadow-2xl">
             <div className="flex justify-between items-center mb-10">
                 <h3 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-widest flex items-center gap-3">
                     <ActivityIcon size={18} className="text-[var(--md-sys-color-primary)]" /> Fuerza Relativa

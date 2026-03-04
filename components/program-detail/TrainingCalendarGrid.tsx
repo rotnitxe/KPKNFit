@@ -53,12 +53,17 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
     onStartWorkout, onEditSession, onDeleteSession, onReorderSessions, onAddSession, addToast,
 }) => {
     const [showCyclicHistory, setShowCyclicHistory] = useState(false);
-    const [showStructureView, setShowStructureView] = useState(false);
+    const [mainTab, setMainTab] = useState<'semanas' | 'estructura'>('semanas');
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [startDayDropdownOpen, setStartDayDropdownOpen] = useState(false);
+    const [actionMenuOpen, setActionMenuOpen] = useState(false);
     const [pendingReorder, setPendingReorder] = useState<PendingReorder | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const startDayRef = useRef<HTMLDivElement>(null);
+    const actionMenuRef = useRef<HTMLDivElement>(null);
+    // Swipe support
+    const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
 
     const isAdvanced = !isCyclic;
 
@@ -66,10 +71,59 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
         const handleClickOutside = (e: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false);
             if (startDayRef.current && !startDayRef.current.contains(e.target as Node)) setStartDayDropdownOpen(false);
+            if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) setActionMenuOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // ── Quick Programming Tools ──
+    const handleCopyWeek = () => {
+        if (!onUpdateProgram || !selectedBlockId || !selectedWeekId) return;
+        const clone = JSON.parse(JSON.stringify(program));
+        const macro = clone.macrocycles.find((m: any) => m.blocks?.some((b: any) => b.id === selectedBlockId));
+        if (!macro) return;
+        const srcBlock = macro.blocks.find((b: any) => b.id === selectedBlockId);
+        const srcMeso = srcBlock?.mesocycles.find((m: any) => m.weeks.some((w: any) => w.id === selectedWeekId));
+        const srcWeek = srcMeso?.weeks.find((w: any) => w.id === selectedWeekId);
+        if (!srcWeek) return;
+
+        const newWeek = JSON.parse(JSON.stringify(srcWeek));
+        newWeek.id = crypto.randomUUID();
+        newWeek.name = `Semana ${srcMeso.weeks.length + 1}`;
+        newWeek.sessions.forEach((s: any) => { s.id = crypto.randomUUID(); });
+
+        srcMeso.weeks.push(newWeek);
+        onUpdateProgram(clone);
+        setActionMenuOpen(false);
+        addToast('Semana duplicada al final del mesociclo', 'success');
+    };
+
+    const handleDuplicateBlock = () => {
+        if (!onUpdateProgram || !selectedBlockId) return;
+        const clone = JSON.parse(JSON.stringify(program));
+        const macro = clone.macrocycles.find((m: any) => m.blocks?.some((b: any) => b.id === selectedBlockId));
+        if (!macro) return;
+        const srcBlock = macro.blocks.find((b: any) => b.id === selectedBlockId);
+        if (!srcBlock) return;
+
+        const newBlock = JSON.parse(JSON.stringify(srcBlock));
+        newBlock.id = crypto.randomUUID();
+        newBlock.name = newBlock.name + " (Copia)";
+        newBlock.mesocycles.forEach((m: any) => {
+            m.id = crypto.randomUUID();
+            m.weeks.forEach((w: any) => {
+                w.id = crypto.randomUUID();
+                w.sessions.forEach((s: any) => { s.id = crypto.randomUUID(); });
+            });
+        });
+
+        const bIndex = macro.blocks.findIndex((b: any) => b.id === selectedBlockId);
+        macro.blocks.splice(bIndex + 1, 0, newBlock);
+        onUpdateProgram(clone);
+        setActionMenuOpen(false);
+        addToast('Bloque duplicado con éxito', 'success');
+    };
 
     useEffect(() => {
         if (!pendingReorder) return;
@@ -262,99 +316,187 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                 </div>,
                 document.body
             )}
-            {/* Dropdown: Bloques + Filtros - estilo Tú */}
-            <div className="relative w-full px-6 py-2.5 border-b border-[var(--md-sys-color-outline-variant)] shrink-0" ref={dropdownRef}>
-                <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] text-left"
-                >
-                    <span className="text-label-sm font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                        {selectedBlock?.name || 'Bloque'}
-                        {isCyclic && <span className="opacity-50"> · {showCyclicHistory ? 'Historial' : 'Rutina'}</span>}
-                    </span>
-                    <ChevronDownIcon size={16} className={`text-zinc-500 shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {dropdownOpen && (
-                    <div className="mt-2 absolute left-6 right-6 z-30 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-2xl overflow-hidden py-1">
-                        {!isCyclic && roadmapBlocks.length > 1 && (
-                            <>
-                                {roadmapBlocks.map(block => (
-                                    <button
-                                        key={block.id}
-                                        onClick={() => { onSelectBlock(block.id); setDropdownOpen(false); }}
-                                        className={`w-full px-4 py-2.5 text-left text-[11px] font-bold transition-colors ${block.id === selectedBlockId ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'
-                                            }`}
-                                    >
-                                        {block.name}
-                                    </button>
-                                ))}
-                                <div className="border-t border-white/10 my-1" />
-                            </>
-                        )}
-                        {isCyclic && (
+
+            {/* ── Block selector: chip row for advanced, hidden for simple ── */}
+            {!isCyclic && roadmapBlocks.length > 1 && (
+                <div className="px-4 py-2 border-b border-[var(--md-sys-color-outline-variant)]/50 shrink-0 overflow-x-auto no-scrollbar">
+                    <div className="flex gap-2">
+                        {roadmapBlocks.map(block => (
                             <button
-                                onClick={() => { setShowCyclicHistory(!showCyclicHistory); setShowStructureView(false); setDropdownOpen(false); }}
-                                className={`w-full px-4 py-2.5 text-left text-[11px] font-bold ${showCyclicHistory ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                                key={block.id}
+                                onClick={() => { onSelectBlock(block.id); }}
+                                className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${block.id === selectedBlockId
+                                    ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent shadow-md'
+                                    : 'bg-transparent text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/60 hover:border-[var(--md-sys-color-outline)]'
+                                    }`}
                             >
-                                {showCyclicHistory ? 'Rutina' : 'Historial'}
+                                {block.name}
+                                {block.id === activeBlockId && (
+                                    <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-primary)] align-middle" />
+                                )}
                             </button>
-                        )}
-                        <button onClick={() => { setShowStructureView(!showStructureView); setShowCyclicHistory(false); setDropdownOpen(false); }} className={`w-full px-4 py-2.5 text-left text-[11px] font-bold ${showStructureView ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}>
-                            Estructura
-                        </button>
+                        ))}
                     </div>
-                )}
+                </div>
+            )}
+
+            {/* ── Sub-tabs: Semanas | Estructura ── */}
+            <div className="flex border-b border-[var(--md-sys-color-outline-variant)]/50 shrink-0 px-4" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
+                <button
+                    onClick={() => setMainTab('semanas')}
+                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-center transition-all ${mainTab === 'semanas'
+                        ? 'border-b-2 border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-primary)]'
+                        : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'
+                        }`}
+                >
+                    Semanas
+                </button>
+                <button
+                    onClick={() => setMainTab('estructura')}
+                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-center transition-all ${mainTab === 'estructura'
+                        ? 'border-b-2 border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-primary)]'
+                        : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'
+                        }`}
+                >
+                    Estructura
+                </button>
             </div>
 
-            {/* Week nav - texto plano estilo Tú */}
-            <div className="px-6 py-3 border-b border-[var(--md-sys-color-outline-variant)] shrink-0">
-                <div className="flex items-center justify-center gap-4">
-                    <button onClick={() => navigateWeek(-1)} disabled={selectedWeekIndex <= 0} className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-20 transition-colors shrink-0" aria-label="Semana anterior">
-                        <ChevronDownIcon size={18} className="rotate-90" />
-                    </button>
-                    <span className="text-title-sm font-black uppercase tracking-[0.1em]" style={{ color: 'var(--md-sys-color-on-background)' }}>
-                        {selectedWeekId && currentWeeks.find(w => w.id === selectedWeekId)
-                            ? getWeekLabel(currentWeeks.findIndex(w => w.id === selectedWeekId))
-                            : getWeekLabel(0)}
-                    </span>
-                    <button onClick={() => navigateWeek(1)} disabled={selectedWeekIndex >= currentWeeks.length - 1} className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-20 transition-colors shrink-0" aria-label="Semana siguiente">
-                        <ChevronDownIcon size={18} className="-rotate-90" />
-                    </button>
-                </div>
-                <div className="flex items-center justify-center gap-3 mt-1 flex-wrap">
-                    <span className="text-label-sm font-black uppercase tracking-widest opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                        {isCyclic && currentWeeks.length === 2 ? 'Alternancia A/B' : `${selectedWeekIndex + 1} de ${currentWeeks.length}`}
-                    </span>
-                    <span className="opacity-20" style={{ color: 'var(--md-sys-color-outline)' }}>·</span>
-                    <div className="relative" ref={startDayRef}>
-                        <button
-                            onClick={() => setStartDayDropdownOpen(!startDayDropdownOpen)}
-                            className="text-label-sm font-black uppercase tracking-widest transition-colors"
-                            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                        >
-                            Inicio: {DAY_NAMES_SHORT[startOn]}
-                        </button>
-                        {startDayDropdownOpen && onUpdateProgram && (
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-30 py-1 rounded-xl bg-[#0a0a0a] border border-white/10 shadow-xl min-w-[120px]">
-                                {DAY_NAMES_SHORT.map((d, i) => (
+            {/* ── Week nav: stepper dots + arrows (only in Semanas tab) ── */}
+            {mainTab === 'semanas' && (
+                <div className="px-4 py-2.5 border-b border-[var(--md-sys-color-outline-variant)]/40 shrink-0 select-none">
+                    {/* Stepper: dots or compact label */}
+                    {currentWeeks.length > 1 && currentWeeks.length <= 8 ? (
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            {currentWeeks.map((w, idx) => {
+                                const isSelected = w.id === selectedWeekId;
+                                const hasEv = weekHasEvent(idx);
+                                return (
                                     <button
-                                        key={i}
-                                        onClick={() => {
-                                            const updated = JSON.parse(JSON.stringify(program));
-                                            updated.startDay = i;
-                                            onUpdateProgram(updated);
-                                            setStartDayDropdownOpen(false);
-                                        }}
-                                        className={`w-full px-3 py-2 text-left text-[10px] font-bold transition-colors ${startOn === i ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                                        key={w.id}
+                                        onClick={() => onSelectWeek(w.id)}
+                                        className={`relative transition-all rounded-full ${isSelected
+                                            ? 'w-6 h-2 bg-[var(--md-sys-color-primary)]'
+                                            : 'w-2 h-2 bg-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-on-surface-variant)]'
+                                            }`}
+                                        aria-label={`Ir a semana ${idx + 1}`}
                                     >
-                                        {d}
+                                        {hasEv && (
+                                            <span className="absolute -top-1 -right-0.5 w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-tertiary)] border border-[var(--md-sys-color-background)]" />
+                                        )}
                                     </button>
-                                ))}
+                                );
+                            })}
+                        </div>
+                    ) : currentWeeks.length > 8 ? (
+                        <div className="text-center mb-2">
+                            <span className="text-label-sm font-black uppercase tracking-widest opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                                Sem {selectedWeekIndex + 1} / {currentWeeks.length}
+                            </span>
+                        </div>
+                    ) : null}
+                    {/* Label row + arrows */}
+                    <div className="flex items-center justify-between gap-2">
+                        <button
+                            onClick={() => navigateWeek(-1)}
+                            disabled={selectedWeekIndex <= 0}
+                            className="p-1.5 text-[var(--md-sys-color-on-surface-variant)] disabled:opacity-20 transition-colors shrink-0"
+                            aria-label="Semana anterior"
+                        >
+                            <ChevronDownIcon size={16} className="rotate-90" />
+                        </button>
+                        <div className="flex flex-col items-center gap-0.5 flex-1">
+                            <span className="text-title-sm font-black uppercase tracking-[0.1em]" style={{ color: 'var(--md-sys-color-on-background)' }}>
+                                {selectedWeekId && currentWeeks.find(w => w.id === selectedWeekId)
+                                    ? getWeekLabel(currentWeeks.findIndex(w => w.id === selectedWeekId))
+                                    : getWeekLabel(0)}
+                            </span>
+                            <div className="relative" ref={startDayRef}>
+                                <button
+                                    onClick={() => setStartDayDropdownOpen(!startDayDropdownOpen)}
+                                    className="text-label-sm font-black uppercase tracking-widest opacity-40 hover:opacity-80 transition-opacity"
+                                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                                >
+                                    Inicio: {DAY_NAMES_SHORT[startOn]}
+                                </button>
+                                {startDayDropdownOpen && onUpdateProgram && (
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-30 py-1 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-xl min-w-[120px]" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }}>
+                                        {DAY_NAMES_SHORT.map((d, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => {
+                                                    const updated = JSON.parse(JSON.stringify(program));
+                                                    updated.startDay = i;
+                                                    onUpdateProgram(updated);
+                                                    setStartDayDropdownOpen(false);
+                                                }}
+                                                className={`w-full px-3 py-2 text-left text-[10px] font-bold transition-colors ${startOn === i
+                                                    ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
+                                                    : 'text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-variant)]'
+                                                    }`}
+                                            >
+                                                {d}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
+                        <button
+                            onClick={() => navigateWeek(1)}
+                            disabled={selectedWeekIndex >= currentWeeks.length - 1}
+                            className="p-1.5 text-[var(--md-sys-color-on-surface-variant)] disabled:opacity-20 transition-colors shrink-0"
+                            aria-label="Semana siguiente"
+                        >
+                            <ChevronDownIcon size={16} className="-rotate-90" />
+                        </button>
+
+                        {/* Action menu (Kebab) */}
+                        <div className="relative" ref={actionMenuRef}>
+                            <button
+                                onClick={() => setActionMenuOpen(!actionMenuOpen)}
+                                className="w-8 h-8 rounded-full hover:bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center transition-colors"
+                                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                            >
+                                {/* Kebab explicit rendering */}
+                                <div className="flex flex-col gap-[3px]">
+                                    <div className="w-[3px] h-[3px] rounded-full bg-current" />
+                                    <div className="w-[3px] h-[3px] rounded-full bg-current" />
+                                    <div className="w-[3px] h-[3px] rounded-full bg-current" />
+                                </div>
+                            </button>
+                            {actionMenuOpen && (
+                                <div className="absolute right-0 top-full mt-1 w-48 py-1 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-xl z-[100]" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }}>
+                                    <button
+                                        onClick={() => { setActionMenuOpen(false); onOpenSplitChanger(); }}
+                                        className="w-full px-4 py-2.5 text-left text-xs font-black uppercase tracking-widest hover:bg-[var(--md-sys-color-surface-variant)] transition-colors"
+                                        style={{ color: 'var(--md-sys-color-primary)' }}
+                                    >
+                                        Cambiar Split
+                                    </button>
+                                    <div className="h-px bg-white/10 my-1" />
+                                    <button
+                                        onClick={handleCopyWeek}
+                                        className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-[var(--md-sys-color-surface-variant)] transition-colors"
+                                        style={{ color: 'var(--md-sys-color-on-surface)' }}
+                                    >
+                                        Copiar semana actual
+                                    </button>
+                                    {isAdvanced && (
+                                        <button
+                                            onClick={handleDuplicateBlock}
+                                            className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-[var(--md-sys-color-surface-variant)] transition-colors"
+                                            style={{ color: 'var(--md-sys-color-on-surface)' }}
+                                        >
+                                            Duplicar bloque act.
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Event banner - estilo Tú */}
             {weekEvent && (
@@ -364,29 +506,46 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                 </div>
             )}
 
-            {/* Contenido principal: Estructura inline | Rutina | Historial */}
-            {showStructureView && onUpdateProgram && onEditWeek && onShowAdvancedTransition && onShowSimpleTransition && onOpenEventModal ? (
-                <div className="flex-1 min-h-0 overflow-hidden flex flex-col px-4 py-3">
+            {/* Contenido principal: Estructura | Semanas */}
+            {mainTab === 'estructura' && onUpdateProgram && onEditWeek && onShowAdvancedTransition && onShowSimpleTransition && onOpenEventModal ? (
+                <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                     <StructureDrawer
                         isOpen={true}
-                        onClose={() => setShowStructureView(false)}
+                        onClose={() => setMainTab('semanas')}
                         program={program}
                         isCyclic={isCyclic}
                         selectedBlockId={selectedBlockId}
                         selectedWeekId={selectedWeekId}
                         onSelectBlock={onSelectBlock}
-                        onSelectWeek={(id) => { onSelectWeek(id); setShowStructureView(false); }}
+                        onSelectWeek={(id) => { onSelectWeek(id); setMainTab('semanas'); }}
                         onUpdateProgram={onUpdateProgram}
                         onEditWeek={onEditWeek}
-                        onShowAdvancedTransition={() => { setShowStructureView(false); onShowAdvancedTransition(); }}
-                        onShowSimpleTransition={() => { setShowStructureView(false); onShowSimpleTransition(); }}
-                        onOpenEventModal={(data) => { setShowStructureView(false); onOpenEventModal?.(data); }}
+                        onShowAdvancedTransition={() => { setMainTab('semanas'); onShowAdvancedTransition(); }}
+                        onShowSimpleTransition={() => { setMainTab('semanas'); onShowSimpleTransition(); }}
+                        onOpenEventModal={(data) => { onOpenEventModal?.(data); }}
                         inline
                     />
                 </div>
-            ) : !showCyclicHistory ? (
+            ) : mainTab === 'semanas' ? (
                 <DragDropContext onDragEnd={handleSessionDragEnd}>
-                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-8 custom-scrollbar">
+                    <div
+                        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-8 custom-scrollbar"
+                        onTouchStart={e => {
+                            touchStartX.current = e.touches[0].clientX;
+                            touchStartY.current = e.touches[0].clientY;
+                        }}
+                        onTouchEnd={e => {
+                            if (touchStartX.current === null || touchStartY.current === null) return;
+                            const dx = e.changedTouches[0].clientX - touchStartX.current;
+                            const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
+                            if (Math.abs(dx) > 50 && dy < 40) {
+                                if (dx < 0) navigateWeek(1);
+                                else navigateWeek(-1);
+                            }
+                            touchStartX.current = null;
+                            touchStartY.current = null;
+                        }}
+                    >
                         {currentWeeks.map((week, weekIdx) => {
                             const weekSessionsByDay = getSessionsByDayForWeek(week);
                             const isSelected = week.id === selectedWeekId;
@@ -513,28 +672,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                         })}
                     </div>
                 </DragDropContext>
-            ) : (
-                /* Cyclic history view - estilo Tú */
-                <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-3 custom-scrollbar">
-                    {programLogs.length > 0 ? programLogs.slice(0, 20).map((log: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]">
-                            <div className="w-10 h-10 rounded-xl bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center shrink-0">
-                                <DumbbellIcon size={18} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <span className="text-title-sm font-black uppercase tracking-tight block truncate" style={{ color: 'var(--md-sys-color-on-surface)' }}>{log.sessionName || 'Sesión'}</span>
-                                <span className="text-label-sm mt-0.5 block opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{new Date(log.date).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</span>
-                            </div>
-                            <span className="text-label-sm font-black uppercase tracking-widest opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{log.exercises?.length || 0} ej.</span>
-                        </div>
-                    )) : (
-                        <div className="text-center py-20 opacity-30">
-                            <DumbbellIcon size={40} className="mx-auto mb-4" />
-                            <p className="text-label-lg font-black uppercase tracking-[0.2em]">Sin historial aún</p>
-                        </div>
-                    )}
-                </div>
-            )}
+            ) : null}
         </div>
     );
 };

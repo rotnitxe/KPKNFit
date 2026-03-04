@@ -105,7 +105,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                             <ChevronDownIcon size={12} className={`transition-transform ${modeDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {modeDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-1 z-20 py-1 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] shadow-2xl min-w-[140px]">
+                            <div className="absolute top-full left-0 mt-1 z-50 py-1 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-2xl min-w-[140px] backdrop-blur-xl" style={{ backgroundColor: 'var(--md-sys-color-surface-container-highest)' }}>
                                 {(['hypertrophy', 'powerlifting', 'powerbuilding'] as const).map(m => (
                                     <button
                                         key={m}

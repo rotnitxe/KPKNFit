@@ -4,7 +4,7 @@ import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon, TrashIcon } from './ic
 import { useAppContext } from '../contexts/AppContext';
 import { calculateUnifiedMuscleVolume } from '../services/volumeCalculator';
 import InteractiveWeekOverlay from './InteractiveWeekOverlay';
-import SplitChangerModal from './SplitChangerModal';
+import SplitChangerDrawer from './program-detail/SplitChangerDrawer';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 
 import CompactHeroBanner from './program-detail/CompactHeroBanner';
@@ -511,16 +511,16 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 </div>
             )}
 
-            {/* Split Changer - modal integrado */}
-            <SplitChangerModal
+            {/* Split Changer - drawer integrado con scopes */}
+            <SplitChangerDrawer
                 isOpen={isSplitChangerOpen}
                 onClose={() => setIsSplitChangerOpen(false)}
                 currentSplitId={program.selectedSplitId}
                 currentStartDay={program.startDay ?? settings?.startWeekOn ?? 1}
                 isSimpleProgram={isCyclic}
                 onApply={(split, scope, preserveExercises, startDay) => {
-                    const block = roadmapBlocks.find(b => b.id === selectedBlockId);
-                    const week = currentWeeks.find(w => w.id === selectedWeekId);
+                    const block = program.macrocycles[0]?.blocks?.find(b => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
+                    const week = block?.mesocycles.flatMap(m => m.weeks).find(w => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
                     handleChangeSplit(program.id, split.pattern, split.id, scope, preserveExercises, startDay, block?.id, week?.id);
                 }}
             />

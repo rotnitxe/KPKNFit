@@ -101,11 +101,10 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                     <button
                                         key={tag}
                                         onClick={() => setFilter(tag)}
-                                        className={`px-2.5 py-1 rounded border shrink-0 whitespace-nowrap text-[9px] font-mono font-black uppercase tracking-wider transition-all ${
-                                            filter === tag
+                                        className={`px-2.5 py-1 rounded border shrink-0 whitespace-nowrap text-[9px] font-mono font-black uppercase tracking-wider transition-all ${filter === tag
                                                 ? 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/40'
                                                 : 'bg-transparent text-slate-500 border-slate-700/50 hover:border-cyber-cyan/30'
-                                        }`}
+                                            }`}
                                     >
                                         {tag}
                                     </button>
@@ -114,7 +113,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                         </div>
 
                         {/* Split list */}
-                        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 space-y-2">
+                        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 space-y-2 pb-[max(120px,calc(80px+env(safe-area-inset-bottom)))]">
                             {filteredSplits.map(split => {
                                 const isCurrent = split.id === currentSplitId;
                                 const trainingDays = split.pattern.filter(d => d.toLowerCase() !== 'descanso').length;
@@ -122,11 +121,10 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                     <button
                                         key={split.id}
                                         onClick={() => handleSelectSplit(split)}
-                                        className={`w-full text-left p-3 rounded-xl border transition-all ${
-                                            isCurrent
+                                        className={`w-full text-left p-3 rounded-xl border transition-all ${isCurrent
                                                 ? 'bg-cyber-cyan/10 border-cyber-cyan/30'
                                                 : 'bg-[#0d0d0d]/80 border-cyber-cyan/10 hover:border-cyber-cyan/30'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="flex items-start justify-between gap-2 mb-1.5">
                                             <div className="flex-1 min-w-0">
@@ -146,9 +144,8 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                             {split.pattern.map((day, i) => (
                                                 <div
                                                     key={i}
-                                                    className={`flex-1 h-1 rounded-full ${
-                                                        day.toLowerCase() === 'descanso' ? 'bg-slate-800' : 'bg-cyber-cyan/40'
-                                                    }`}
+                                                    className={`flex-1 h-1 rounded-full ${day.toLowerCase() === 'descanso' ? 'bg-slate-800' : 'bg-cyber-cyan/40'
+                                                        }`}
                                                 />
                                             ))}
                                         </div>
@@ -210,9 +207,8 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                 {!isSimpleProgram && (
                                     <button
                                         onClick={() => setScope('week')}
-                                        className={`w-full text-left p-3 rounded-xl border transition-all ${
-                                            scope === 'week' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
-                                        }`}
+                                        className={`w-full text-left p-3 rounded-xl border transition-all ${scope === 'week' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
+                                            }`}
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'week' ? 'border-cyber-cyan bg-cyber-cyan/30' : 'border-slate-600'}`}>
@@ -228,9 +224,8 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                 {!isSimpleProgram && (
                                     <button
                                         onClick={() => setScope('block')}
-                                        className={`w-full text-left p-3 rounded-xl border transition-all ${
-                                            scope === 'block' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
-                                        }`}
+                                        className={`w-full text-left p-3 rounded-xl border transition-all ${scope === 'block' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
+                                            }`}
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'block' ? 'border-cyber-cyan bg-cyber-cyan/30' : 'border-slate-600'}`}>
@@ -245,9 +240,8 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                 )}
                                 <button
                                     onClick={() => setScope('program')}
-                                    className={`w-full text-left p-3 rounded-xl border transition-all ${
-                                        scope === 'program' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
-                                    }`}
+                                    className={`w-full text-left p-3 rounded-xl border transition-all ${scope === 'program' ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10 hover:border-cyber-cyan/30'
+                                        }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'program' ? 'border-cyber-cyan bg-cyber-cyan/30' : 'border-slate-600'}`}>
@@ -271,18 +265,16 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                     <div className="space-y-2">
                                         <button
                                             onClick={() => setPreserveExercises(true)}
-                                            className={`w-full text-left px-3 py-2 rounded-lg border transition-all ${
-                                                preserveExercises ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10'
-                                            }`}
+                                            className={`w-full text-left px-3 py-2 rounded-lg border transition-all ${preserveExercises ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10'
+                                                }`}
                                         >
                                             <span className="text-[10px] font-mono font-bold text-white">Preservar</span>
                                             <p className="text-[9px] font-mono text-slate-500">Mapea por nombre de sesión</p>
                                         </button>
                                         <button
                                             onClick={() => setPreserveExercises(false)}
-                                            className={`w-full text-left px-3 py-2 rounded-lg border transition-all ${
-                                                !preserveExercises ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10'
-                                            }`}
+                                            className={`w-full text-left px-3 py-2 rounded-lg border transition-all ${!preserveExercises ? 'bg-cyber-cyan/10 border-cyber-cyan/30' : 'border-cyber-cyan/10'
+                                                }`}
                                         >
                                             <span className="text-[10px] font-mono font-bold text-white">Empezar limpio</span>
                                             <p className="text-[9px] font-mono text-slate-500">Sesiones vacías</p>
