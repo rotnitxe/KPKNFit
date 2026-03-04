@@ -664,7 +664,7 @@ export const App: React.FC = () => {
                 </div>
             )}
 
-            <div className="fixed left-1/2 -translate-x-1/2 z-[300] flex flex-col gap-2 items-center pointer-events-none safe-area-toast-top">
+            <div className="fixed left-1/2 -translate-x-1/2 z-[100000] flex flex-col gap-2 items-center pointer-events-none safe-area-toast-top">
                 {toasts.map(toast => (
                     <Toast key={toast.id} toast={toast} onDismiss={removeToast} />
                 ))}
