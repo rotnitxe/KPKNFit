@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AthleteProfileScore } from '../types';
-import { ArrowLeftIcon, ActivityIcon, ZapIcon, MoveIcon, DumbbellIcon, TargetIcon } from './icons'; 
+import { ArrowLeftIcon, ActivityIcon, ZapIcon, MoveIcon, DumbbellIcon, TargetIcon } from './icons';
 
 interface AthleteProfilingWizardProps {
     onComplete: (score: AthleteProfileScore) => void;
@@ -36,88 +36,88 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
     // 2. OPCIONES (Deben coincidir con los IDs de arriba)
     const options: Record<string, { value: any; label: string; detail: string }[]> = {
         preference: [
-            { 
-                value: 'Bodybuilder', 
-                label: 'Músculo y estética', 
-                detail: 'Quiero ganar tamaño muscular y verme mejor.' 
+            {
+                value: 'Bodybuilder',
+                label: 'Músculo y estética',
+                detail: 'Quiero ganar tamaño muscular y verme mejor.'
             },
-            { 
-                value: 'Powerbuilder', 
-                label: 'Fuerza + Músculo', 
-                detail: 'Quiero ser más fuerte y también ganar músculo.' 
+            {
+                value: 'Powerbuilder',
+                label: 'Fuerza + Músculo',
+                detail: 'Quiero ser más fuerte y también ganar músculo.'
             },
-            { 
-                value: 'Powerlifter', 
-                label: 'Solo fuerza', 
-                detail: 'Lo que importa es subir mis números (peso muerto, sentadilla, banca).' 
+            {
+                value: 'Powerlifter',
+                label: 'Solo fuerza',
+                detail: 'Lo que importa es subir mis números (peso muerto, sentadilla, banca).'
             },
         ],
         technique: [
-            { 
-                value: 1, 
-                label: 'Estoy aprendiendo', 
-                detail: 'Aún corrigiendo la técnica en varios ejercicios.' 
+            {
+                value: 1,
+                label: 'Estoy aprendiendo',
+                detail: 'Aún corrigiendo la técnica en varios ejercicios.'
             },
-            { 
-                value: 2, 
-                label: 'Técnica sólida', 
-                detail: 'Ejecuto bien la mayoría de los ejercicios.' 
+            {
+                value: 2,
+                label: 'Técnica sólida',
+                detail: 'Ejecuto bien la mayoría de los ejercicios.'
             },
-            { 
-                value: 3, 
-                label: 'Dominio total', 
-                detail: 'Mantengo buena forma incluso con peso máximo.' 
+            {
+                value: 3,
+                label: 'Dominio total',
+                detail: 'Mantengo buena forma incluso con peso máximo.'
             },
         ],
         consistency: [
-            { 
-                value: 1, 
-                label: 'Principiante', 
-                detail: 'Empiezo de cero o acabo de retomar.' 
+            {
+                value: 1,
+                label: 'Principiante',
+                detail: 'Empiezo de cero o acabo de retomar.'
             },
-            { 
-                value: 2, 
-                label: 'Intermedio', 
-                detail: 'Entreno 2-3 veces por semana sin faltar mucho.' 
+            {
+                value: 2,
+                label: 'Intermedio',
+                detail: 'Entreno 2-3 veces por semana sin faltar mucho.'
             },
-            { 
-                value: 3, 
-                label: 'Muy constante', 
-                detail: 'Entreno 4 o más días por semana, es parte de mi rutina.' 
+            {
+                value: 3,
+                label: 'Muy constante',
+                detail: 'Entreno 4 o más días por semana, es parte de mi rutina.'
             },
         ],
         strength: [
-            { 
-                value: 1, 
-                label: 'Estoy empezando', 
-                detail: 'Aún construyo mi fuerza base en los ejercicios principales.' 
+            {
+                value: 1,
+                label: 'Estoy empezando',
+                detail: 'Aún construyo mi fuerza base en los ejercicios principales.'
             },
-            { 
-                value: 2, 
-                label: 'Muevo mi peso bien', 
-                detail: 'Puedo hacer sentadilla, peso muerto, etc. con mi propio peso o más.' 
+            {
+                value: 2,
+                label: 'Muevo mi peso bien',
+                detail: 'Puedo hacer sentadilla, peso muerto, etc. con mi propio peso o más.'
             },
-            { 
-                value: 3, 
-                label: 'Muevo cargas altas', 
-                detail: 'Muevo 1.5x o más mi peso en los ejercicios compuestos.' 
+            {
+                value: 3,
+                label: 'Muevo cargas altas',
+                detail: 'Muevo 1.5x o más mi peso en los ejercicios compuestos.'
             },
         ],
         mobility: [
-            { 
-                value: 1, 
-                label: 'Rigidez o molestias', 
-                detail: 'Algunos ejercicios me cuestan por falta de movilidad.' 
+            {
+                value: 1,
+                label: 'Rigidez o molestias',
+                detail: 'Algunos ejercicios me cuestan por falta de movilidad.'
             },
-            { 
-                value: 2, 
-                label: 'Sin limitaciones', 
-                detail: 'Hago todos los ejercicios con buen rango de movimiento.' 
+            {
+                value: 2,
+                label: 'Sin limitaciones',
+                detail: 'Hago todos los ejercicios con buen rango de movimiento.'
             },
-            { 
-                value: 3, 
-                label: 'Muy flexible', 
-                detail: 'Tengo buena movilidad incluso en posiciones profundas.' 
+            {
+                value: 3,
+                label: 'Muy flexible',
+                detail: 'Tengo buena movilidad incluso en posiciones profundas.'
             },
         ],
     };
@@ -136,9 +136,9 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
 
     const finishWizard = (finalScores: typeof scores) => {
         const total = finalScores.technique + finalScores.consistency + finalScores.strength + finalScores.mobility;
-        
+
         const result: AthleteProfileScore = {
-            trainingStyle: finalScores.preference, 
+            trainingStyle: finalScores.preference,
             technicalScore: finalScores.technique,
             consistencyScore: finalScores.consistency,
             strengthScore: finalScores.strength,
@@ -146,7 +146,7 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
             totalScore: total,
             profileLevel: total >= 8 ? 'Advanced' : 'Beginner'
         };
-        
+
         onComplete(result);
     };
 
@@ -155,43 +155,43 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
     if (!currentStepData) return null;
 
     const content = (
-        <>
-            <h2 className="text-lg font-medium text-white mb-1">{currentStepData.title}</h2>
-            <p className="text-sm text-[#a3a3a3] mb-6">{currentStepData.description}</p>
-            <div className="flex flex-col gap-3">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <h2 className="text-xl font-black text-[var(--md-sys-color-on-surface)] mb-2 uppercase tracking-tight">{currentStepData.title}</h2>
+            <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] mb-8 opacity-60 leading-relaxed">{currentStepData.description}</p>
+            <div className="flex flex-col gap-4">
                 {currentOptions.map((opt) => (
                     <button
                         key={opt.value}
                         onClick={() => handleOptionSelect(opt.value)}
-                        className="group w-full text-left bg-[#252525] border border-[#3f3f3f] hover:border-[#525252] px-4 py-4 transition-all focus:outline-none focus:border-[#525252]"
+                        className="group w-full text-left bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/30 rounded-[1.5rem] px-5 py-5 transition-all hover:scale-[1.02] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:border-[var(--md-sys-color-primary)] active:scale-98 shadow-sm"
                     >
-                        <div className="flex justify-between items-center mb-1">
-                            <span className="font-medium text-white text-sm">{opt.label}</span>
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-wide">{opt.label}</span>
                             {typeof opt.value === 'number' && (
-                                <div className="flex gap-1">
+                                <div className="flex gap-1.5">
                                     {Array.from({ length: 3 }).map((_, i) => (
-                                        <div key={i} className={`w-1.5 h-1.5 ${i < opt.value ? 'bg-white' : 'bg-[#525252]'}`} />
+                                        <div key={i} className={`w-2 h-2 rounded-full ${i < opt.value ? 'bg-[var(--md-sys-color-primary)]' : 'bg-[var(--md-sys-color-surface-variant)]'}`} />
                                     ))}
                                 </div>
                             )}
                         </div>
-                        <p className="text-[#a3a3a3] text-xs leading-snug">{opt.detail}</p>
+                        <p className="text-[var(--md-sys-color-on-surface-variant)] text-label-sm leading-snug opacity-60">{opt.detail}</p>
                     </button>
                 ))}
             </div>
-        </>
+        </div>
     );
 
     if (embedded) {
         return (
             <div className="flex flex-col min-h-0 flex-1">
-                <div className="flex justify-end px-4 pt-4 shrink-0">
-                    <button onClick={onCancel} className="text-sm text-[#737373] py-2">Omitir</button>
+                <div className="flex justify-end px-6 pt-6 shrink-0">
+                    <button onClick={onCancel} className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-40 hover:opacity-100 py-2">Omitir</button>
                 </div>
-                <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
-                    <div className="flex gap-1.5 justify-center mb-4">
+                <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
+                    <div className="flex gap-2 justify-center mb-8">
                         {steps.map((_, i) => (
-                            <span key={i} className={`w-2 h-2 ${i <= step ? 'bg-white' : 'bg-[#525252]'}`} />
+                            <span key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i <= step ? 'w-8 bg-[var(--md-sys-color-primary)]' : 'w-2 bg-[var(--md-sys-color-surface-variant)]'}`} />
                         ))}
                     </div>
                     {content}
@@ -202,42 +202,34 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
 
     if (inline) {
         return (
-            <div className="rounded-lg border border-white/10 bg-[#0a0a0a] overflow-hidden">
-                <div className="p-3 space-y-2">
-                    <h2 className="text-sm font-medium text-white">{currentStepData.title}</h2>
-                    <p className="text-[11px] text-slate-400">{currentStepData.description}</p>
-                    <div className="flex flex-col gap-1.5">
-                        {currentOptions.map((opt) => (
-                            <button
-                                key={opt.value}
-                                onClick={() => handleOptionSelect(opt.value)}
-                                className="w-full text-left p-2.5 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-xs"
-                            >
-                                <span className="font-medium text-white">{opt.label}</span>
-                                <p className="text-slate-500 text-[10px]">{opt.detail}</p>
-                            </button>
+            <div className="rounded-[2.5rem] border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-container-low)] overflow-hidden shadow-2xl scale-in-center">
+                <div className="p-8">
+                    <div className="flex gap-1.5 justify-center mb-6">
+                        {steps.map((_, i) => (
+                            <span key={i} className={`h-1 rounded-full transition-all duration-300 ${i <= step ? 'w-6 bg-[var(--md-sys-color-primary)]' : 'w-1.5 bg-[var(--md-sys-color-surface-variant)]'}`} />
                         ))}
                     </div>
+                    {content}
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="fixed inset-0 z-[300] flex flex-col bg-[#1a1a1a] safe-area-root">
-            <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
-                <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 z-[300] flex flex-col bg-[var(--md-sys-color-background)] safe-area-root">
+            <div className="flex-1 overflow-y-auto px-6 py-8 custom-scrollbar">
+                <div className="flex justify-between items-center mb-8">
                     {step > 0 ? (
-                        <button onClick={() => setStep(step - 1)} className="text-sm text-[#737373] py-2 flex items-center gap-1">
-                            <ArrowLeftIcon size={16} />
+                        <button onClick={() => setStep(step - 1)} className="text-label-sm font-black text-[var(--md-sys-color-primary)] uppercase tracking-widest py-2 flex items-center gap-2 hover:translate-x-[-4px] transition-transform">
+                            <ArrowLeftIcon size={18} />
                             Atrás
                         </button>
                     ) : (
-                        <button onClick={onCancel} className="text-sm text-[#737373] py-2">Cerrar</button>
+                        <button onClick={onCancel} className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-40 hover:opacity-100 py-2">Cerrar</button>
                     )}
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-2">
                         {steps.map((_, i) => (
-                            <span key={i} className={`w-2 h-2 ${i <= step ? 'bg-white' : 'bg-[#525252]'}`} />
+                            <span key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i <= step ? 'w-10 bg-[var(--md-sys-color-primary)]' : 'w-2 bg-[var(--md-sys-color-surface-variant)]'}`} />
                         ))}
                     </div>
                 </div>

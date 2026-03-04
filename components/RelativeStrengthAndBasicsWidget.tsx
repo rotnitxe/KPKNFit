@@ -66,7 +66,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
                     }
                     return max;
                 }, 0);
-                if (plNames.some(p => name.includes(p))) { if (maxRm > bestPL.rm) bestPL = { name: ex.exerciseName || ex.name, rm: maxRm, type: patternType }; } 
+                if (plNames.some(p => name.includes(p))) { if (maxRm > bestPL.rm) bestPL = { name: ex.exerciseName || ex.name, rm: maxRm, type: patternType }; }
                 else if (varNames.some(p => name.includes(p))) { if (maxRm > bestVar.rm) bestVar = { name: ex.exerciseName || ex.name, rm: maxRm, type: patternType }; }
             });
         });
@@ -103,7 +103,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
         const vars = findBestLift([], PATTERNS.deadlift.vars, 'deadlift_conv');
 
         const slides: any[] = [];
-        
+
         // Si tiene convencional, lo agrega
         if (conv.rm > 0) slides.push({ title: 'Peso Muerto Conv.', stats: conv, iconType: 'deadlift_conv' });
         // Si tiene sumo, también lo agrega (o lo pone como único si no hace convencional)
@@ -134,49 +134,49 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
         const goalPositions = hasWeight ? BW_GOALS.map(g => (g / BAR_MAX_BW) * 100).filter(p => p > 0 && p < 100) : [];
 
         return (
-            <div className="w-[90vw] max-w-[420px] shrink-0 snap-center flex flex-col items-center bg-black">
+            <div className="w-[90vw] max-w-[420px] shrink-0 snap-center flex flex-col items-center bg-transparent">
                 {/* Ilustración más grande */}
-                <div className="w-64 h-64 flex items-center justify-center">
+                <div className="w-72 h-72 flex items-center justify-center p-4 bg-[var(--md-sys-color-surface-container-highest)] rounded-full shadow-inner mb-6">
                     {iconType === 'squat' ? <CaupolicanSquat /> :
-                     iconType === 'bench' ? <CaupolicanBench /> :
-                     iconType === 'deadlift_sumo' ? <CaupolicanSDL /> :
-                     iconType === 'deadlift_conv' ? <CaupolicanCDL /> :
-                     <DumbbellIcon size={80} className="text-white" />}
+                        iconType === 'bench' ? <CaupolicanBench /> :
+                            iconType === 'deadlift_sumo' ? <CaupolicanSDL /> :
+                                iconType === 'deadlift_conv' ? <CaupolicanCDL /> :
+                                    <DumbbellIcon size={96} style={{ color: 'var(--md-sys-color-primary)' }} />}
                 </div>
 
                 {/* Datos: ratio BW como principal, kg más pequeño */}
-                <div className="text-center w-full px-4">
-                    <h4 className="text-sm font-bold text-white uppercase tracking-tight leading-none mb-0.5">{title}</h4>
-                    <p className="text-[9px] text-zinc-500 truncate">{stats.name}</p>
-                    <div className="mt-2 flex items-baseline justify-center gap-1">
-                        <span className="text-xl font-black text-white leading-none">
+                <div className="text-center w-full px-6">
+                    <h4 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tight leading-none mb-1">{title}</h4>
+                    <p className="text-label-sm text-[var(--md-sys-color-on-surface-variant)] truncate opacity-50">{stats.name}</p>
+                    <div className="mt-4 flex items-baseline justify-center gap-2">
+                        <span className="text-4xl font-black text-[var(--md-sys-color-primary)] leading-none">
                             {hasWeight ? (ratioBw >= 0.1 ? ratioBw.toFixed(1) : '—') : '—'}
                         </span>
-                        <span className="text-xs text-zinc-600 font-bold">× peso corporal</span>
+                        <span className="text-label-sm text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-widest opacity-40">× peso corp.</span>
                     </div>
-                    <p className="text-[9px] text-zinc-500 mt-0.5">{rm} kg 1RM</p>
+                    <p className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] mt-1 opacity-50">{rm} kg 1RM estimado</p>
 
                     {/* Barra con metas (marcas 1×, 1.5×, 2×, 2.5× BW) */}
-                    <div className="mt-3 w-full">
-                        <div className="flex justify-between text-[8px] text-zinc-600 mb-1">
+                    <div className="mt-6 w-full">
+                        <div className="flex justify-between text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] mb-2 opacity-30">
                             <span>0</span>
                             {BW_GOALS.map(g => (
-                                <span key={g} className="text-zinc-500">{g}×</span>
+                                <span key={g} className="text-[var(--md-sys-color-on-surface-variant)]">{g}×</span>
                             ))}
                         </div>
-                        <div className="w-full h-2 bg-zinc-800 rounded-full overflow-visible relative">
+                        <div className="w-full h-3 bg-[var(--md-sys-color-surface-container-highest)] rounded-full overflow-visible relative border border-[var(--md-sys-color-outline-variant)]/20 shadow-inner">
                             {goalPositions.map((pos, i) => (
-                                <div key={i} className="absolute top-0 bottom-0 w-px bg-white/30 z-10" style={{ left: `${pos}%` }} title={`${BW_GOALS[i]}× BW`} />
+                                <div key={i} className="absolute top-0 bottom-0 w-1 bg-[var(--md-sys-color-outline-variant)]/40 z-10" style={{ left: `${pos}%` }} title={`${BW_GOALS[i]}× BW`} />
                             ))}
-                            <div className="h-full bg-white/80 rounded-full transition-all duration-1000 ease-out relative z-0" style={{ width: `${rmPercentage}%` }} />
+                            <div className="h-full bg-[var(--md-sys-color-primary)] rounded-full transition-all duration-1000 ease-out relative z-0 shadow-[0_0_15px_var(--md-sys-color-primary)]" style={{ width: `${rmPercentage}%`, opacity: 0.8 }} />
                         </div>
-                        <p className="mt-2 text-[8px] text-zinc-500">Meta: <span className="text-white">{nextGoal}× BW</span>{hasWeight ? ` (${Math.round(nextGoal * bodyWeight)} kg)` : ''}</p>
+                        <p className="mt-4 text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] opacity-40 uppercase tracking-widest">Próxima meta: <span className="text-[var(--md-sys-color-primary)] opacity-100">{nextGoal}× BW</span>{hasWeight ? ` (${Math.round(nextGoal * bodyWeight)} kg)` : ''}</p>
                     </div>
                 </div>
             </div>
         );
     };
-    
+
     // COMPONENTE DE FILA (PERSONALIZADOS) - ratio BW + metas
     const CustomListRow: React.FC<{ exName: string }> = ({ exName }) => {
         const stats = findExactBestLift(exName);
@@ -189,74 +189,74 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
         const goalPositions = hasWeight ? BW_GOALS.map(g => (g / BAR_MAX_BW) * 100).filter(p => p > 0 && p < 100) : [];
 
         return (
-            <div className="pb-4 mb-4 border-b border-white/5 last:border-0 last:mb-0 last:pb-0 relative group">
-                <button onClick={() => handleSaveCustomExercises(customExercises.filter(e => e !== exName))} className="absolute top-0 right-0 p-2 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <XIcon size={14} />
+            <div className="pb-6 mb-6 border-b border-[var(--md-sys-color-outline-variant)]/30 last:border-0 last:mb-0 last:pb-0 relative group">
+                <button onClick={() => handleSaveCustomExercises(customExercises.filter(e => e !== exName))} className="absolute top-0 right-0 p-3 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-error)] opacity-0 group-hover:opacity-100 transition-all active:scale-90">
+                    <XIcon size={18} />
                 </button>
-                <div className="flex justify-between items-end mb-2 pr-8">
+                <div className="flex justify-between items-end mb-3 pr-10">
                     <div>
-                        <h4 className="text-xs font-bold text-white uppercase tracking-tight">{exName}</h4>
-                        {rm === 0 && <p className="text-[8px] text-zinc-500 mt-0.5">Sin registros aún</p>}
+                        <h4 className="text-label-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-wider opacity-80">{exName}</h4>
+                        {rm === 0 && <p className="text-label-sm text-[var(--md-sys-color-on-surface-variant)] mt-1 opacity-40">Sin registros registrados</p>}
                     </div>
                     <div className="text-right">
-                        <span className="text-sm font-black text-white">{hasWeight && ratioBw >= 0.1 ? ratioBw.toFixed(1) : rm}</span>
-                        <span className="text-[9px] text-zinc-500 ml-1">{hasWeight && ratioBw >= 0.1 ? '× BW' : 'kg'}</span>
+                        <span className="text-lg font-black text-[var(--md-sys-color-primary)]">{hasWeight && ratioBw >= 0.1 ? ratioBw.toFixed(1) : rm}</span>
+                        <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] ml-1 opacity-50">{hasWeight && ratioBw >= 0.1 ? '× BW' : 'kg'}</span>
                     </div>
                 </div>
                 <div className="w-full relative">
-                    <div className="flex justify-between text-[8px] text-zinc-600 mb-1">
+                    <div className="flex justify-between text-[8px] font-black text-[var(--md-sys-color-on-surface-variant)] mb-1.5 opacity-30">
                         <span>0</span>
-                        {BW_GOALS.map(g => <span key={g} className="text-zinc-500">{g}×</span>)}
+                        {BW_GOALS.map(g => <span key={g} className="text-[var(--md-sys-color-on-surface-variant)]">{g}×</span>)}
                     </div>
-                    <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-visible relative">
+                    <div className="w-full h-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-full overflow-hidden relative border border-[var(--md-sys-color-outline-variant)]/10 shadow-inner">
                         {goalPositions.map((pos, i) => (
-                            <div key={i} className="absolute top-0 bottom-0 w-px bg-white/30 z-10" style={{ left: `${pos}%` }} />
+                            <div key={i} className="absolute top-0 bottom-0 w-px bg-[var(--md-sys-color-outline-variant)]/30 z-10" style={{ left: `${pos}%` }} />
                         ))}
-                        <div className="h-full bg-white/80 relative z-0 rounded-full transition-all duration-1000 ease-out" style={{ width: `${rmPercentage}%` }} />
+                        <div className="h-full bg-[var(--md-sys-color-primary)] relative z-0 rounded-full transition-all duration-1000 ease-out opacity-70" style={{ width: `${rmPercentage}%` }} />
                     </div>
-                    {hasWeight && <p className="mt-1 text-[8px] text-zinc-500">Meta: {nextGoal}× BW</p>}
+                    {hasWeight && rm > 0 && <p className="mt-2 text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] opacity-30 uppercase tracking-widest">Meta: {nextGoal}× BW</p>}
                 </div>
             </div>
         );
     };
 
     return (
-        <div className="mt-8 mb-8 bg-black p-6">
-            <div className="flex justify-between items-center mb-8">
-                <h3 className="text-[11px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                    <ActivityIcon size={14} className="text-zinc-400" /> Fuerza Relativa
+        <div className="mt-8 mb-8 bg-[var(--md-sys-color-surface-container-low)] p-8 rounded-[2rem] border border-[var(--md-sys-color-outline-variant)]/30">
+            <div className="flex justify-between items-center mb-10">
+                <h3 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-widest flex items-center gap-3">
+                    <ActivityIcon size={18} className="text-[var(--md-sys-color-primary)]" /> Fuerza Relativa
                 </h3>
                 {/* INTERRUPTOR PL / PERSONALIZADO */}
-                <div className="flex bg-black rounded-full p-1 border border-white/10">
-                    <button onClick={() => setMode('pl')} className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${mode === 'pl' ? 'bg-white text-black' : 'text-zinc-500'}`}>Básicos PL</button>
-                    <button onClick={() => setMode('custom')} className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${mode === 'custom' ? 'bg-white text-black' : 'text-zinc-500'}`}>Libre</button>
+                <div className="flex bg-[var(--md-sys-color-surface-container-high)] rounded-full p-1 border border-[var(--md-sys-color-outline-variant)]">
+                    <button onClick={() => setMode('pl')} className={`px-4 py-2 rounded-full text-label-sm font-black uppercase tracking-widest transition-all ${mode === 'pl' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-lg' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'}`}>Básicos PL</button>
+                    <button onClick={() => setMode('custom')} className={`px-4 py-2 rounded-full text-label-sm font-black uppercase tracking-widest transition-all ${mode === 'custom' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-lg' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'}`}>Libre</button>
                 </div>
             </div>
 
             {/* GESTOR DE PESO CORPORAL MEJORADO */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-10">
                 {!isEditingBw && bodyWeight > 0 ? (
-                    <div className="flex items-center gap-3 bg-zinc-900/50 border border-white/10 px-5 py-2.5 rounded-full shadow-sm animate-fade-in">
-                        <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Tu Peso:</span>
-                        <span className="text-sm font-black text-white">{bodyWeight} kg</span>
-                        <div className="w-px h-4 bg-white/20 mx-1"></div>
-                        <button onClick={() => { setBwInput(bodyWeight.toString()); setIsEditingBw(true); }} className="text-[10px] font-bold text-white/80 uppercase tracking-widest hover:text-white transition-colors">
+                    <div className="flex items-center gap-4 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)]/50 px-6 py-3 rounded-full shadow-md animate-fade-in group">
+                        <span className="text-label-sm font-black uppercase text-[var(--md-sys-color-on-surface-variant)] tracking-widest opacity-60">Tu Peso</span>
+                        <span className="text-lg font-black text-[var(--md-sys-color-on-surface)]">{bodyWeight} kg</span>
+                        <div className="w-px h-5 bg-[var(--md-sys-color-outline-variant)] mx-1 opacity-50"></div>
+                        <button onClick={() => { setBwInput(bodyWeight.toString()); setIsEditingBw(true); }} className="text-label-sm font-black text-[var(--md-sys-color-primary)] uppercase tracking-widest hover:scale-110 active:scale-95 transition-all">
                             Modificar
                         </button>
                     </div>
                 ) : !isEditingBw ? (
-                    <button onClick={() => { setBwInput(''); setIsEditingBw(true); }} className="bg-white text-black font-black uppercase text-[10px] tracking-widest px-8 py-3 rounded-full active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:scale-105">
+                    <button onClick={() => { setBwInput(''); setIsEditingBw(true); }} className="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-black uppercase text-label-sm tracking-widest px-10 py-4 rounded-full active:scale-95 transition-all shadow-xl hover:scale-105">
                         Añadir Peso Corporal
                     </button>
                 ) : (
-                    <div className="flex items-center gap-2 bg-zinc-900 p-1.5 rounded-full border border-white/20 animate-fade-in w-full max-w-[280px] shadow-lg">
-                        <input type="number" value={bwInput} onChange={(e) => setBwInput(e.target.value)} placeholder="Ej: 80" autoFocus className="bg-transparent text-white font-black text-sm px-4 outline-none w-full text-center" />
-                        <button onClick={handleSaveWeight} className={`px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shrink-0 ${isSaved ? 'bg-white/90 text-black' : 'bg-white text-black hover:bg-zinc-200'}`}>
-                            {isSaved ? '¡Guardado!' : 'Guardar'}
+                    <div className="flex items-center gap-3 bg-[var(--md-sys-color-surface-container-highest)] p-2 rounded-full border border-[var(--md-sys-color-primary)] animate-fade-in w-full max-w-[320px] shadow-2xl">
+                        <input type="number" value={bwInput} onChange={(e) => setBwInput(e.target.value)} placeholder="Ej: 80" autoFocus className="bg-transparent text-[var(--md-sys-color-on-surface)] font-black text-lg px-6 outline-none w-full text-center" />
+                        <button onClick={handleSaveWeight} className={`px-6 py-3 rounded-full font-black text-label-sm uppercase tracking-widest active:scale-95 transition-all shrink-0 ${isSaved ? 'bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)]' : 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]'}`}>
+                            {isSaved ? '¡Listo!' : 'Guardar'}
                         </button>
                         {bodyWeight > 0 && !isSaved && (
-                            <button onClick={() => setIsEditingBw(false)} className="px-3 py-2.5 rounded-full text-zinc-500 hover:text-white transition-colors">
-                                <XIcon size={14} />
+                            <button onClick={() => setIsEditingBw(false)} className="px-4 py-3 rounded-full text-[var(--md-sys-color-on-surface-variant)] opacity-50 hover:opacity-100 transition-opacity">
+                                <XIcon size={18} />
                             </button>
                         )}
                     </div>
@@ -265,18 +265,18 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
 
             {/* VISTA 1: CARRUSEL POWERLIFTING */}
             {mode === 'pl' && (
-                <div className="-mx-6">
-                    <div className="flex overflow-x-auto gap-8 snap-x snap-mandatory no-scrollbar px-6 pb-4 pt-2">
+                <div className="-mx-8">
+                    <div className="flex overflow-x-auto gap-12 snap-x snap-mandatory no-scrollbar px-8 pb-4 pt-2">
                         <PatternSlide title="Sentadilla" stats={squatStats} iconType="squat" />
                         <PatternSlide title="Press Banca" stats={benchStats} iconType="bench" />
-                        
+
                         {/* Se renderizan los slides de Peso Muerto dinámicamente (1 o 2 dependiendo de qué haga el usuario) */}
                         {deadliftSlides.map((dl, idx) => (
                             <PatternSlide key={`dl-${idx}`} title={dl.title} stats={dl.stats} iconType={dl.iconType} />
                         ))}
-                        
+
                         {/* Este bloque invisible al final fuerza el espacio del margen derecho para que no se corte */}
-                        <div className="w-2 shrink-0" aria-hidden="true"></div>
+                        <div className="w-4 shrink-0" aria-hidden="true"></div>
                     </div>
                 </div>
             )}
@@ -284,21 +284,21 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
             {/* VISTA 2: LISTA PERSONALIZADA SIMPLE */}
             {mode === 'custom' && (
                 <div className="animate-fade-in">
-                    <div className="mb-6 relative">
-                        <div className="flex bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden focus-within:border-white/20 transition-colors">
-                            <input 
-                                type="text" 
-                                list="exercise-suggestions" 
+                    <div className="mb-8 relative">
+                        <div className="flex bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl overflow-hidden focus-within:border-[var(--md-sys-color-primary)] transition-all shadow-lg">
+                            <input
+                                type="text"
+                                list="exercise-suggestions"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Buscar ejercicio a seguir..." 
-                                className="flex-1 bg-transparent text-white text-xs font-bold px-4 py-3 outline-none"
+                                placeholder="Buscar ejercicio a seguir..."
+                                className="flex-1 bg-transparent text-[var(--md-sys-color-on-surface)] text-label-sm font-black px-6 py-4 outline-none placeholder:opacity-40"
                             />
-                            <button 
-                                onClick={() => { if(searchQuery) { handleSaveCustomExercises([...customExercises, searchQuery]); setSearchQuery(''); } }}
-                                className="bg-white text-black px-4 font-black uppercase text-[10px] tracking-widest hover:bg-white/90 flex items-center gap-1"
+                            <button
+                                onClick={() => { if (searchQuery) { handleSaveCustomExercises([...customExercises, searchQuery]); setSearchQuery(''); } }}
+                                className="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] px-8 font-black uppercase text-label-sm tracking-widest hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
                             >
-                                <PlusIcon size={14} /> Add
+                                <PlusIcon size={16} /> AÑADIR
                             </button>
                         </div>
                         <datalist id="exercise-suggestions">
@@ -306,11 +306,11 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
                         </datalist>
                     </div>
 
-                    <div className="bg-black/30 p-4 rounded-3xl border border-white/5">
+                    <div className="bg-[var(--md-sys-color-surface-container-high)]/50 p-6 rounded-[2rem] border border-[var(--md-sys-color-outline-variant)]/20 shadow-inner">
                         {customExercises.length > 0 ? (
                             customExercises.map((ex, i) => <CustomListRow key={i} exName={ex} />)
                         ) : (
-                            <p className="text-center text-[10px] text-zinc-500 font-bold uppercase tracking-widest py-6">No has agregado ejercicios personalizados.</p>
+                            <p className="text-center text-label-sm text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-widest py-10 opacity-30">No hay ejercicios personalizados.</p>
                         )}
                     </div>
                 </div>

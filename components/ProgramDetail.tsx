@@ -54,7 +54,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
     // ─── Derived data ───
     const isCyclic = useMemo(() =>
         program.structure === 'simple' || (!program.structure && program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1),
-    [program]);
+        [program]);
 
     const roadmapBlocks = useMemo(() =>
         program.macrocycles.flatMap((macro, macroIdx) =>
@@ -63,7 +63,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 totalWeeks: block.mesocycles.reduce((acc, m) => acc + m.weeks.length, 0),
             }))
         ),
-    [program]);
+        [program]);
 
     const activeBlockId = useMemo(() => {
         if (!activeProgramState || activeProgramState.programId !== program.id) return null;
@@ -116,7 +116,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     const programLogs = useMemo(() =>
         history.filter((log: any) => log.programId === program.id).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [history, program.id]);
+        [history, program.id]);
 
     const totalAdherence = useMemo(() => {
         const completedIds = new Set(programLogs.map((l: any) => l.sessionId));
@@ -133,11 +133,11 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
             const planned = week.sessions.length;
             return { weekName: `Semana ${idx + 1}`, pct: planned > 0 ? Math.round((completed / planned) * 100) : 0 };
         }),
-    [currentWeeks, programLogs]);
+        [currentWeeks, programLogs]);
 
     const totalWeeks = useMemo(() =>
         program.macrocycles.reduce((acc, m) => acc + (m.blocks || []).reduce((ba, b) => ba + b.mesocycles.reduce((ma, me) => ma + me.weeks.length, 0), 0), 0),
-    [program]);
+        [program]);
 
     const currentWeekIndex = useMemo(() => {
         if (!activeProgramState || activeProgramState.programId !== program.id) return 0;
@@ -200,7 +200,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     // ─── Render ───
     return (
-        <div className="fixed inset-0 z-[100] bg-[#121212] text-white flex flex-col min-h-0">
+        <div className="fixed inset-0 z-[100] flex flex-col min-h-0" style={{ backgroundColor: 'var(--md-sys-color-background)', color: 'var(--md-sys-color-on-background)' }}>
             {/* Un único scroll: Hero + Tabs + Contenido */}
             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 <CompactHeroBanner
@@ -219,81 +219,83 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 />
 
                 {/* Tabs: Entrenamiento | Analytics */}
-                <div className="flex border-b border-white/10 bg-[#1a1a1a]">
+                <div className="flex border-b border-[var(--md-sys-color-outline-variant)]" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
                     <button
                         onClick={() => setActiveTab('training')}
-                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest text-center transition-colors ${activeTab === 'training' ? 'text-white border-b-2 border-white/30' : 'text-zinc-500'}`}
+                        className={`flex-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-center transition-all ${activeTab === 'training' ? 'border-b-2 border-[var(--md-sys-color-primary)]' : 'opacity-40'}`}
+                        style={{ color: activeTab === 'training' ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)' }}
                     >
                         Entrenar
                     </button>
                     <button
                         onClick={() => setActiveTab('analytics')}
-                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest text-center transition-colors ${activeTab === 'analytics' ? 'text-white border-b-2 border-white/30' : 'text-zinc-500'}`}
+                        className={`flex-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-center transition-all ${activeTab === 'analytics' ? 'border-b-2 border-[var(--md-sys-color-primary)]' : 'opacity-40'}`}
+                        style={{ color: activeTab === 'analytics' ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)' }}
                     >
                         Analytics
                     </button>
                 </div>
 
                 {/* Contenido: Training y/o Analytics */}
-                <div className="flex flex-col sm:flex-row sm:items-start bg-[#121212] min-h-0">
-                {/* Training panel */}
-                <div className={`flex-1 w-full max-w-md mx-auto ${activeTab !== 'training' ? 'hidden sm:block' : ''}`} style={{ minWidth: 0 }}>
-                    <TrainingCalendarGrid
-                        program={program}
-                        isCyclic={isCyclic}
-                        roadmapBlocks={roadmapBlocks}
-                        currentWeeks={currentWeeks}
-                        selectedBlockId={selectedBlockId}
-                        selectedWeekId={selectedWeekId}
-                        activeBlockId={activeBlockId}
-                        settings={settings}
-                        exerciseList={exerciseList}
-                        history={history}
-                        onSelectBlock={setSelectedBlockId}
-                        onSelectWeek={setSelectedWeekId}
-                        onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
-                        onUpdateProgram={handleUpdateProgram}
-                        onEditWeek={setEditingWeekInfo}
-                        onShowAdvancedTransition={() => setShowAdvancedTransition(true)}
-                        onShowSimpleTransition={() => setShowSimpleTransition(true)}
-                        onOpenEventModal={(data) => {
-                            if (data) setNewEventData(data);
-                            else setNewEventData({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' });
-                            setIsEventModalOpen(true);
-                        }}
-                        onStartWorkout={handleStartWorkout}
-                        onEditSession={onEditSessionClick}
-                        onDeleteSession={onDeleteSessionHandler}
-                        onReorderSessions={handleReorderSessions}
-                        onAddSession={handleAddSession}
-                        addToast={addToast}
-                    />
-                </div>
+                <div className="flex flex-col sm:flex-row sm:items-start min-h-0" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
+                    {/* Training panel */}
+                    <div className={`flex-1 w-full max-w-md mx-auto ${activeTab !== 'training' ? 'hidden sm:block' : ''}`} style={{ minWidth: 0 }}>
+                        <TrainingCalendarGrid
+                            program={program}
+                            isCyclic={isCyclic}
+                            roadmapBlocks={roadmapBlocks}
+                            currentWeeks={currentWeeks}
+                            selectedBlockId={selectedBlockId}
+                            selectedWeekId={selectedWeekId}
+                            activeBlockId={activeBlockId}
+                            settings={settings}
+                            exerciseList={exerciseList}
+                            history={history}
+                            onSelectBlock={setSelectedBlockId}
+                            onSelectWeek={setSelectedWeekId}
+                            onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
+                            onUpdateProgram={handleUpdateProgram}
+                            onEditWeek={setEditingWeekInfo}
+                            onShowAdvancedTransition={() => setShowAdvancedTransition(true)}
+                            onShowSimpleTransition={() => setShowSimpleTransition(true)}
+                            onOpenEventModal={(data) => {
+                                if (data) setNewEventData(data);
+                                else setNewEventData({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' });
+                                setIsEventModalOpen(true);
+                            }}
+                            onStartWorkout={handleStartWorkout}
+                            onEditSession={onEditSessionClick}
+                            onDeleteSession={onDeleteSessionHandler}
+                            onReorderSessions={handleReorderSessions}
+                            onAddSession={handleAddSession}
+                            addToast={addToast}
+                        />
+                    </div>
 
-                {/* Analytics panel */}
-                <div className={`sm:w-[40%] sm:max-w-[480px] sm:min-w-[320px] sm:border-l sm:border-white/10 bg-[#121212] ${activeTab !== 'analytics' ? 'hidden sm:block' : ''}`}>
-                    <AnalyticsDashboard
-                        program={program}
-                        history={history}
-                        settings={settings}
-                        isOnline={isOnline}
-                        isActive={!!isActiveProgram}
-                        currentWeeks={currentWeeks}
-                        selectedWeekId={selectedWeekId}
-                        onSelectWeek={setSelectedWeekId}
-                        visualizerData={visualizerData}
-                        displayedSessions={displayedSessions}
-                        totalAdherence={totalAdherence}
-                        weeklyAdherence={weeklyAdherence}
-                        programDiscomforts={programDiscomforts}
-                        adaptiveCache={adaptiveCache}
-                        exerciseList={exerciseList}
-                        setSettings={setSettings}
-                        onUpdateProgram={handleUpdateProgram}
-                        addToast={addToast}
-                        postSessionFeedback={postSessionFeedback}
-                    />
-                </div>
+                    {/* Analytics panel */}
+                    <div className={`sm:w-[40%] sm:max-w-[480px] sm:min-w-[320px] sm:border-l sm:border-[var(--md-sys-color-outline-variant)] ${activeTab !== 'analytics' ? 'hidden sm:block' : ''}`} style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
+                        <AnalyticsDashboard
+                            program={program}
+                            history={history}
+                            settings={settings}
+                            isOnline={isOnline}
+                            isActive={!!isActiveProgram}
+                            currentWeeks={currentWeeks}
+                            selectedWeekId={selectedWeekId}
+                            onSelectWeek={setSelectedWeekId}
+                            visualizerData={visualizerData}
+                            displayedSessions={displayedSessions}
+                            totalAdherence={totalAdherence}
+                            weeklyAdherence={weeklyAdherence}
+                            programDiscomforts={programDiscomforts}
+                            adaptiveCache={adaptiveCache}
+                            exerciseList={exerciseList}
+                            setSettings={setSettings}
+                            onUpdateProgram={handleUpdateProgram}
+                            addToast={addToast}
+                            postSessionFeedback={postSessionFeedback}
+                        />
+                    </div>
                 </div>
             </div>
 

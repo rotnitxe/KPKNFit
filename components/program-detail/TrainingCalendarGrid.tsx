@@ -84,7 +84,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
 
     const programLogs = useMemo(() =>
         history.filter((log: any) => log.programId === program.id),
-    [history, program.id]);
+        [history, program.id]);
 
     const startOn = program.startDay ?? settings?.startWeekOn ?? 1;
     const orderedDays = useMemo(() => {
@@ -215,15 +215,15 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
     };
 
     return (
-        <div className="flex flex-col h-full min-h-0">
+        <div className="flex flex-col h-full min-h-0" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
             {/* Modal: ¿Aplicar reorden a qué semanas? — se muestra al soltar, no como switch estático */}
             {pendingReorder && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="reorder-scope-title">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPendingReorder(null)} aria-hidden />
-                    <div className="relative z-10 w-full max-w-sm bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
-                        <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center">
-                            <h2 id="reorder-scope-title" className="text-sm font-bold text-white">¿Aplicar reorden a…?</h2>
-                            <button onClick={() => setPendingReorder(null)} aria-label="Cerrar" className="p-1.5 text-zinc-500 hover:text-white rounded-full hover:bg-white/5">
+                    <div className="relative z-10 w-full max-w-sm bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)] flex justify-between items-center">
+                            <h2 id="reorder-scope-title" className="text-label-lg font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>¿Aplicar reorden a…?</h2>
+                            <button onClick={() => setPendingReorder(null)} aria-label="Cerrar" className="p-1.5 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] rounded-full hover:bg-[var(--md-sys-color-surface-variant)]">
                                 <XIcon size={16} />
                             </button>
                         </div>
@@ -263,28 +263,27 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                 document.body
             )}
             {/* Dropdown: Bloques + Filtros - estilo Tú */}
-            <div className="relative w-full px-6 py-2.5 border-b border-white/10 shrink-0" ref={dropdownRef}>
+            <div className="relative w-full px-6 py-2.5 border-b border-[var(--md-sys-color-outline-variant)] shrink-0" ref={dropdownRef}>
                 <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-black/40 border border-white/5 text-left"
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] text-left"
                 >
-                    <span className="text-[11px] font-bold text-white truncate">
+                    <span className="text-label-sm font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                         {selectedBlock?.name || 'Bloque'}
-                        {isCyclic && ` · ${showCyclicHistory ? 'Historial' : 'Rutina'}`}
+                        {isCyclic && <span className="opacity-50"> · {showCyclicHistory ? 'Historial' : 'Rutina'}</span>}
                     </span>
                     <ChevronDownIcon size={16} className={`text-zinc-500 shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {dropdownOpen && (
-                    <div className="mt-2 absolute left-6 right-6 z-30 bg-black/60 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden py-1">
+                    <div className="mt-2 absolute left-6 right-6 z-30 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-2xl overflow-hidden py-1">
                         {!isCyclic && roadmapBlocks.length > 1 && (
                             <>
                                 {roadmapBlocks.map(block => (
                                     <button
                                         key={block.id}
                                         onClick={() => { onSelectBlock(block.id); setDropdownOpen(false); }}
-                                        className={`w-full px-4 py-2.5 text-left text-[11px] font-bold transition-colors ${
-                                            block.id === selectedBlockId ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'
-                                        }`}
+                                        className={`w-full px-4 py-2.5 text-left text-[11px] font-bold transition-colors ${block.id === selectedBlockId ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'
+                                            }`}
                                     >
                                         {block.name}
                                     </button>
@@ -308,12 +307,12 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
             </div>
 
             {/* Week nav - texto plano estilo Tú */}
-            <div className="px-6 py-3 border-b border-white/10 shrink-0">
+            <div className="px-6 py-3 border-b border-[var(--md-sys-color-outline-variant)] shrink-0">
                 <div className="flex items-center justify-center gap-4">
                     <button onClick={() => navigateWeek(-1)} disabled={selectedWeekIndex <= 0} className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-20 transition-colors shrink-0" aria-label="Semana anterior">
                         <ChevronDownIcon size={18} className="rotate-90" />
                     </button>
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-title-sm font-black uppercase tracking-[0.1em]" style={{ color: 'var(--md-sys-color-on-background)' }}>
                         {selectedWeekId && currentWeeks.find(w => w.id === selectedWeekId)
                             ? getWeekLabel(currentWeeks.findIndex(w => w.id === selectedWeekId))
                             : getWeekLabel(0)}
@@ -323,14 +322,15 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                     </button>
                 </div>
                 <div className="flex items-center justify-center gap-3 mt-1 flex-wrap">
-                    <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">
+                    <span className="text-label-sm font-black uppercase tracking-widest opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         {isCyclic && currentWeeks.length === 2 ? 'Alternancia A/B' : `${selectedWeekIndex + 1} de ${currentWeeks.length}`}
                     </span>
-                    <span className="text-zinc-700">·</span>
+                    <span className="opacity-20" style={{ color: 'var(--md-sys-color-outline)' }}>·</span>
                     <div className="relative" ref={startDayRef}>
                         <button
                             onClick={() => setStartDayDropdownOpen(!startDayDropdownOpen)}
-                            className="text-[10px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                            className="text-label-sm font-black uppercase tracking-widest transition-colors"
+                            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
                         >
                             Inicio: {DAY_NAMES_SHORT[startOn]}
                         </button>
@@ -358,7 +358,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
 
             {/* Event banner - estilo Tú */}
             {weekEvent && (
-                <div className="mx-6 mt-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2">
+                <div className="mx-6 mt-2 px-3 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] flex items-center gap-2" style={{ backgroundColor: 'var(--md-sys-color-surface-container-high)' }}>
                     <CalendarIcon size={14} className="text-zinc-400 shrink-0" />
                     <span className="text-xs font-bold text-white">{weekEvent.title}</span>
                 </div>
@@ -386,148 +386,151 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                 </div>
             ) : !showCyclicHistory ? (
                 <DragDropContext onDragEnd={handleSessionDragEnd}>
-                <div className="flex-1 min-h-0 overflow-y-auto px-6 py-3 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-6 custom-scrollbar">
-                    {currentWeeks.map((week, weekIdx) => {
-                        const weekSessionsByDay = getSessionsByDayForWeek(week);
-                        const isSelected = week.id === selectedWeekId;
-                        return (
-                            <div
-                                key={week.id}
-                                className={`w-full transition-all ${isSelected ? 'border-l-2 border-white/20 pl-2' : 'border-l-2 border-transparent pl-2'}`}
-                            >
-                                <div className="flex items-center justify-between gap-2 py-1.5 mb-1">
-                                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{getWeekLabel(weekIdx)}</span>
-                                    <div className="flex items-center gap-1">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onOpenSplitChanger(); }}
-                                            className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
-                                            title="Cambiar split"
-                                            aria-label="Cambiar split"
-                                        >
-                                            <GridIcon size={12} />
-                                        </button>
-                                        {week.id === selectedWeekId && (
-                                            <span className="text-[9px] font-bold text-zinc-500">Actual</span>
-                                        )}
-                                        {weekHasEvent(weekIdx) && (
-                                            <CalendarIcon size={12} className="text-zinc-500 shrink-0" />
-                                        )}
+                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-8 custom-scrollbar">
+                        {currentWeeks.map((week, weekIdx) => {
+                            const weekSessionsByDay = getSessionsByDayForWeek(week);
+                            const isSelected = week.id === selectedWeekId;
+                            return (
+                                <div
+                                    key={week.id}
+                                    className={`w-full transition-all ${isSelected ? 'border-l-2 border-[var(--md-sys-color-primary)]/40 pl-4' : 'border-l-2 border-transparent pl-4'}`}
+                                >
+                                    <div className="flex items-center justify-between gap-2 py-1.5 mb-2">
+                                        <span className="text-label-sm font-black uppercase tracking-[0.2em]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{getWeekLabel(weekIdx)}</span>
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onOpenSplitChanger(); }}
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--md-sys-color-surface-variant)]"
+                                                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                                                title="Cambiar split"
+                                                aria-label="Cambiar split"
+                                            >
+                                                <GridIcon size={14} />
+                                            </button>
+                                            {week.id === selectedWeekId && (
+                                                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">Actual</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="divide-y divide-[var(--md-sys-color-outline-variant)]/30">
+                                        {orderedDays.map(dayIdx => {
+                                            const sessions = weekSessionsByDay.get(dayIdx) || [];
+                                            const dropId = `${week.id}::${dayIdx}`;
+                                            return (
+                                                <Droppable key={dayIdx} droppableId={dropId}>
+                                                    {(provided: any, snapshot: any) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.droppableProps}
+                                                            className={`flex flex-col min-h-[52px] transition-colors ${snapshot.isDraggingOver ? 'bg-[var(--md-sys-color-surface-variant)]/50' : ''}`}
+                                                        >
+                                                            {sessions.length > 0 ? sessions.map((session, sIdx) => {
+                                                                const exerciseCount = (session.parts && session.parts.length > 0)
+                                                                    ? session.parts.reduce((a, p) => a + (p.exercises?.length || 0), 0)
+                                                                    : (session.exercises || []).length;
+                                                                const estimatedMin = exerciseCount * 8;
+                                                                const isCompleted = completedSessionIds.has(session.id);
+                                                                const block = roadmapBlocks.find(b => b.id === selectedBlockId);
+                                                                const weekData = currentWeeks.find(w => w.id === week.id);
+                                                                return (
+                                                                    <Draggable key={session.id} draggableId={`${week.id}::${session.id}`} index={sIdx}>
+                                                                        {(dragProvided: any, dragSnapshot: any) => (
+                                                                            <div
+                                                                                ref={dragProvided.innerRef}
+                                                                                {...dragProvided.draggableProps}
+                                                                                data-testid="calendar-session-row"
+                                                                                role="button"
+                                                                                tabIndex={0}
+                                                                                aria-label={`Editar sesión ${session.name}`}
+                                                                                className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all cursor-pointer ${dragSnapshot.isDragging ? 'shadow-2xl bg-[var(--md-sys-color-surface-container-highest)] ring-2 ring-[var(--md-sys-color-primary)]' : 'hover:bg-[var(--md-sys-color-surface-container)]'}`}
+                                                                                onClick={() => onEditSession(session)}
+                                                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEditSession(session); } }}
+                                                                            >
+                                                                                <div {...dragProvided.dragHandleProps} className="touch-none shrink-0 cursor-grab active:cursor-grabbing opacity-40 hover:opacity-100" style={{ color: 'var(--md-sys-color-on-surface-variant)' }} onClick={(e) => e.stopPropagation()}>
+                                                                                    <DragHandleIcon size={16} />
+                                                                                </div>
+                                                                                <span className="w-10 text-label-sm font-black uppercase tracking-widest shrink-0" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{DAY_NAMES_SHORT[dayIdx]}</span>
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <span className="text-title-sm font-black uppercase tracking-tight block truncate" style={{ color: isCompleted ? 'var(--md-sys-color-on-surface-variant)' : 'var(--md-sys-color-on-surface)' }}>
+                                                                                        {session.name}
+                                                                                    </span>
+                                                                                    <span className="text-label-sm flex items-center gap-1.5 mt-0.5 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                                                                                        <DumbbellIcon size={10} /> {exerciseCount} ej <span className="opacity-30">|</span> <ActivityIcon size={10} /> {estimatedMin}m
+                                                                                    </span>
+                                                                                </div>
+                                                                                <button
+                                                                                    data-testid="calendar-session-start"
+                                                                                    aria-label="Iniciar entrenamiento"
+                                                                                    onClick={(e) => { e.stopPropagation(); onStartWorkout(session, program); }}
+                                                                                    className="w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center shrink-0 text-[var(--md-sys-color-on-primary)] shadow-lg hover:brightness-110 active:scale-95 transition-all"
+                                                                                >
+                                                                                    <PlayIcon size={14} fill="currentColor" />
+                                                                                </button>
+                                                                                {week.id === selectedWeekId && block && weekData && (
+                                                                                    <>
+                                                                                        <button
+                                                                                            data-testid="calendar-session-edit"
+                                                                                            aria-label="Editar sesión"
+                                                                                            onClick={(e) => { e.stopPropagation(); onEditSession(session); }}
+                                                                                            className="w-10 h-10 rounded-xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center shrink-0 transition-all hover:bg-[var(--md-sys-color-surface-variant)]"
+                                                                                            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                                                                                        >
+                                                                                            <EditIcon size={14} />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id, program.id, block.macroIndex, weekData.mesoIndex, week.id); }}
+                                                                                            className="w-10 h-10 rounded-xl bg-[var(--md-sys-color-error-container)]/10 border border-[var(--md-sys-color-error-container)]/20 flex items-center justify-center shrink-0 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]/20 transition-all"
+                                                                                        >
+                                                                                            <TrashIcon size={14} />
+                                                                                        </button>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </Draggable>
+                                                                );
+                                                            }) : (
+                                                                week.id === selectedWeekId && onAddSession && selectedBlock && (
+                                                                    <button
+                                                                        onClick={() => onAddSession(program.id, selectedBlock.macroIndex, week.mesoIndex, week.id, dayIdx)}
+                                                                        className="flex items-center gap-4 px-4 py-3.5 rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]/60 hover:bg-[var(--md-sys-color-surface-container)] hover:border-[var(--md-sys-color-primary)]/40 transition-all group"
+                                                                    >
+                                                                        <span className="w-10 text-label-sm font-black uppercase tracking-widest shrink-0 opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{DAY_NAMES_SHORT[dayIdx]}</span>
+                                                                        <span className="flex-1 text-left text-label-sm font-black uppercase tracking-widest opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>+ Añadir sesión</span>
+                                                                        <PlusIcon size={14} className="opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                                    </button>
+                                                                )
+                                                            )}
+                                                            {provided.placeholder}
+                                                        </div>
+                                                    )}
+                                                </Droppable>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                                <div className="divide-y divide-white/5">
-                                    {orderedDays.map(dayIdx => {
-                                        const sessions = weekSessionsByDay.get(dayIdx) || [];
-                                        const dropId = `${week.id}::${dayIdx}`;
-                                        return (
-                                            <Droppable key={dayIdx} droppableId={dropId}>
-                                                {(provided: any, snapshot: any) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.droppableProps}
-                                                className={`flex flex-col min-h-[44px] ${snapshot.isDraggingOver ? 'bg-white/5' : ''}`}
-                                            >
-                                                {sessions.length > 0 ? sessions.map((session, sIdx) => {
-                                                    const exerciseCount = (session.parts && session.parts.length > 0)
-                                                        ? session.parts.reduce((a, p) => a + (p.exercises?.length || 0), 0)
-                                                        : (session.exercises || []).length;
-                                                    const estimatedMin = exerciseCount * 8;
-                                                    const isCompleted = completedSessionIds.has(session.id);
-                                                    const block = roadmapBlocks.find(b => b.id === selectedBlockId);
-                                                    const weekData = currentWeeks.find(w => w.id === week.id);
-                                                    return (
-                                                        <Draggable key={session.id} draggableId={`${week.id}::${session.id}`} index={sIdx}>
-                                                            {(dragProvided: any, dragSnapshot: any) => (
-                                                        <div
-                                                            ref={dragProvided.innerRef}
-                                                            {...dragProvided.draggableProps}
-                                                            data-testid="calendar-session-row"
-                                                            role="button"
-                                                            tabIndex={0}
-                                                            aria-label={`Editar sesión ${session.name}`}
-                                                            className={`flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors cursor-pointer ${dragSnapshot.isDragging ? 'opacity-80 shadow-lg bg-[#0a0a0a]' : ''}`}
-                                                            onClick={() => onEditSession(session)}
-                                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEditSession(session); } }}
-                                                        >
-                                                            <div {...dragProvided.dragHandleProps} className="touch-none shrink-0 cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-400" onClick={(e) => e.stopPropagation()}>
-                                                                <DragHandleIcon size={14} />
-                                                            </div>
-                                                            <span className="w-8 text-[10px] font-bold text-zinc-500 shrink-0">{DAY_NAMES_SHORT[dayIdx]}</span>
-                                                            <div className="flex-1 min-w-0">
-                                                                <span className={`text-xs font-bold block truncate ${isCompleted ? 'text-white/80' : 'text-white'}`}>
-                                                                    {session.name}
-                                                                </span>
-                                                                <span className="text-[10px] text-zinc-500">{exerciseCount} ej · {estimatedMin}m</span>
-                                                            </div>
-                                                            <button
-                                                                data-testid="calendar-session-start"
-                                                                aria-label="Iniciar entrenamiento"
-                                                                onClick={(e) => { e.stopPropagation(); onStartWorkout(session, program); }}
-                                                                className="w-8 h-8 rounded-lg bg-white/5 border border-white/20 flex items-center justify-center shrink-0 text-white hover:bg-white/10 transition-all"
-                                                            >
-                                                                <PlayIcon size={12} fill="currentColor" />
-                                                            </button>
-                                                            {week.id === selectedWeekId && block && weekData && (
-                                                                <>
-                                                                    <button
-                                                                        data-testid="calendar-session-edit"
-                                                                        aria-label="Editar sesión"
-                                                                        onClick={(e) => { e.stopPropagation(); onEditSession(session); }}
-                                                                        className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-zinc-500 hover:text-white">
-                                                                        <EditIcon size={12} />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id, program.id, block.macroIndex, weekData.mesoIndex, week.id); }}
-                                                                        className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-red-400 hover:bg-red-500/20">
-                                                                        <TrashIcon size={12} />
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                            )}
-                                                        </Draggable>
-                                                    );
-                                                }                                                ) : (
-                                                    week.id === selectedWeekId && onAddSession && selectedBlock && (
-                                                        <button
-                                                            onClick={() => onAddSession(program.id, selectedBlock.macroIndex, week.mesoIndex, week.id, dayIdx)}
-                                                            className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors text-zinc-500 hover:text-zinc-400"
-                                                        >
-                                                            <span className="w-10 text-[10px] font-bold shrink-0">{DAY_NAMES_SHORT[dayIdx]}</span>
-                                                            <span className="flex-1 text-left text-[10px]">+ Añadir sesión</span>
-                                                            <PlusIcon size={12} />
-                                                        </button>
-                                                    )
-                                                    )}
-                                                {provided.placeholder}
-                                            </div>
-                                                )}
-                                            </Droppable>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
                 </DragDropContext>
             ) : (
                 /* Cyclic history view - estilo Tú */
-                <div className="flex-1 min-h-0 overflow-y-auto px-6 py-3 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-2 custom-scrollbar">
+                <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-3 custom-scrollbar">
                     {programLogs.length > 0 ? programLogs.slice(0, 20).map((log: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#0a0a0a] border border-white/10">
-                            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-                                <DumbbellIcon size={14} className="text-zinc-400" />
+                        <div key={idx} className="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center shrink-0">
+                                <DumbbellIcon size={18} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xs font-bold text-white block truncate">{log.sessionName || 'Sesión'}</span>
-                                <span className="text-[10px] text-zinc-500">{new Date(log.date).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</span>
+                                <span className="text-title-sm font-black uppercase tracking-tight block truncate" style={{ color: 'var(--md-sys-color-on-surface)' }}>{log.sessionName || 'Sesión'}</span>
+                                <span className="text-label-sm mt-0.5 block opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{new Date(log.date).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</span>
                             </div>
-                            <span className="text-[10px] font-bold text-zinc-500">{log.exercises?.length || 0} ej.</span>
+                            <span className="text-label-sm font-black uppercase tracking-widest opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{log.exercises?.length || 0} ej.</span>
                         </div>
                     )) : (
-                        <div className="text-center py-12">
-                            <DumbbellIcon size={24} className="text-zinc-500 mx-auto mb-2" />
-                            <p className="text-xs text-zinc-500 font-bold">Sin historial aún</p>
+                        <div className="text-center py-20 opacity-30">
+                            <DumbbellIcon size={40} className="mx-auto mb-4" />
+                            <p className="text-label-lg font-black uppercase tracking-[0.2em]">Sin historial aún</p>
                         </div>
                     )}
                 </div>

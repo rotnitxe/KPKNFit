@@ -36,12 +36,12 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
     const modeLabel = program.mode === 'powerlifting' ? 'Powerlifting' : program.mode === 'powerbuilding' ? 'Powerbuilding' : 'Hipertrofia';
 
     return (
-        <div className="relative w-full shrink-0 min-h-[120px] sm:min-h-[128px]" style={{ backgroundColor: '#1a1a1a' }}>
+        <div className="relative w-full shrink-0 min-h-[120px] sm:min-h-[128px]" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
             {/* Background opcional: imagen difuminada */}
             {program.coverImage && (
                 <>
                     <img src={program.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" style={{ filter: 'blur(24px)' }} />
-                    <div className="absolute inset-0 bg-[#1a1a1a]/85" />
+                    <div className="absolute inset-0 bg-[var(--md-sys-color-surface-container)]/85" />
                 </>
             )}
 
@@ -49,27 +49,27 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
             <div className="relative z-10 h-full flex flex-col gap-2.5 px-4 sm:px-6 py-3" style={{ paddingTop: 'max(28px, env(safe-area-inset-top, 0px))' }}>
                 {/* Fila 1: Volver + Título + Chips */}
                 <div className="flex items-center gap-3 shrink-0">
-                    <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                    <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-lg bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
                         <ChevronDownIcon size={18} className="rotate-90" />
                     </button>
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-base sm:text-lg font-black text-white uppercase tracking-tight leading-tight truncate">
+                        <h1 className="text-title-lg font-black uppercase tracking-tight leading-tight truncate" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                             {program.name}
                         </h1>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                         {isActive && (
-                            <span className="bg-white/10 text-white/90 border border-white/20 text-[10px] font-bold px-2.5 py-0.5 rounded-md">
+                            <span className="bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border border-[var(--md-sys-color-outline-variant)] text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md">
                                 Activo
                             </span>
                         )}
                         {isPaused && (
-                            <span className="bg-white/10 text-amber-200/90 border border-white/20 text-[10px] font-bold px-2.5 py-0.5 rounded-md">
+                            <span className="bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] border border-[var(--md-sys-color-outline-variant)] text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md">
                                 Pausado
                             </span>
                         )}
                         {!isActive && !isPaused && (
-                            <span className="bg-white/5 border border-white/10 text-zinc-500 text-[10px] font-bold px-2.5 py-0.5 rounded-md">
+                            <span className="bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md">
                                 Borrador
                             </span>
                         )}
@@ -79,18 +79,18 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                 {/* Fila 2: KPIs - tipografía Tú */}
                 <div className="flex items-center gap-5 flex-wrap shrink-0">
                     <div className="flex items-center gap-1.5">
-                        <span className="text-lg font-black text-white leading-none">{currentWeekIndex + 1}</span>
-                        <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">/{totalWeeks > 0 ? totalWeeks : '∞'} sem</span>
+                        <span className="text-lg font-black leading-none" style={{ color: 'var(--md-sys-color-on-surface)' }}>{currentWeekIndex + 1}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>/{totalWeeks > 0 ? totalWeeks : '∞'} sem</span>
                     </div>
-                    <div className="w-px h-4 bg-white/10 hidden sm:block" />
+                    <div className="w-px h-4 hidden sm:block opacity-20" style={{ backgroundColor: 'var(--md-sys-color-outline-variant)' }} />
                     <div className="flex items-center gap-1.5">
-                        <span className="text-lg font-black leading-none" style={{ color: totalAdherence >= 80 ? 'rgba(255,255,255,0.9)' : totalAdherence >= 50 ? 'rgba(251,191,36,0.85)' : 'rgba(248,113,113,0.9)' }}>{totalAdherence}%</span>
-                        <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">adher.</span>
+                        <span className="text-lg font-black leading-none" style={{ color: totalAdherence >= 80 ? 'var(--md-sys-color-primary)' : totalAdherence >= 50 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-error)' }}>{totalAdherence}%</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>adher.</span>
                     </div>
-                    <div className="w-px h-4 bg-white/10 hidden sm:block" />
+                    <div className="w-px h-4 hidden sm:block opacity-20" style={{ backgroundColor: 'var(--md-sys-color-outline-variant)' }} />
                     <div className="flex items-center gap-1.5">
-                        <span className="text-lg font-black text-white leading-none">{trainingDaysCount}</span>
-                        <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">días/sem</span>
+                        <span className="text-lg font-black leading-none" style={{ color: 'var(--md-sys-color-on-surface)' }}>{trainingDaysCount}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>días/sem</span>
                     </div>
                 </div>
 
@@ -99,13 +99,13 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                     <div className="relative" ref={modeRef}>
                         <button
                             onClick={() => setModeDropdownOpen(!modeDropdownOpen)}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-400 hover:text-white hover:border-white/20 transition-colors"
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] text-[10px] font-black uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-outline)] transition-colors"
                         >
                             {modeLabel}
                             <ChevronDownIcon size={12} className={`transition-transform ${modeDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {modeDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-1 z-20 py-1 rounded-xl bg-[#0a0a0a] border border-white/10 shadow-xl min-w-[140px]">
+                            <div className="absolute top-full left-0 mt-1 z-20 py-1 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] shadow-2xl min-w-[140px]">
                                 {(['hypertrophy', 'powerlifting', 'powerbuilding'] as const).map(m => (
                                     <button
                                         key={m}
@@ -117,7 +117,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                                             }
                                             setModeDropdownOpen(false);
                                         }}
-                                        className={`w-full px-3 py-2 text-left text-xs font-bold transition-colors ${program.mode === m ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                                        className={`w-full px-3 py-2 text-left text-xs font-black uppercase tracking-widest transition-colors ${program.mode === m ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-variant)]'}`}
                                     >
                                         {m === 'hypertrophy' ? 'Hipertrofia' : m === 'powerlifting' ? 'Powerlifting' : 'Powerbuilding'}
                                     </button>
@@ -125,16 +125,16 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                             </div>
                         )}
                     </div>
-                    <button onClick={onEdit} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/10 transition-colors">
+                    <button onClick={onEdit} className="w-8 h-8 rounded-lg bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
                         <EditIcon size={16} />
                     </button>
                     {isActive ? (
-                        <button onClick={onPause} className="h-8 px-4 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center gap-1.5 text-amber-400 hover:bg-amber-500/20 transition-all">
-                            <div className="flex gap-0.5"><div className="w-1 h-3 bg-amber-400 rounded-sm" /><div className="w-1 h-3 bg-amber-400 rounded-sm" /></div>
+                        <button onClick={onPause} className="h-8 px-4 rounded-lg bg-[var(--md-sys-color-tertiary-container)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center gap-1.5 text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-all">
+                            <div className="flex gap-0.5"><div className="w-1 h-3 bg-current rounded-sm" /><div className="w-1 h-3 bg-current rounded-sm" /></div>
                             <span className="text-[10px] font-bold hidden sm:inline">Pausar</span>
                         </button>
                     ) : (
-                        <button onClick={onStart} className="h-8 px-4 rounded-lg bg-white/5 border border-white/20 flex items-center justify-center gap-1.5 text-white hover:bg-white/10 transition-all">
+                        <button onClick={onStart} className="h-8 px-4 rounded-lg bg-[var(--md-sys-color-primary)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center gap-1.5 text-[var(--md-sys-color-on-primary)] hover:brightness-110 transition-all shadow-[0_4px_12px_rgba(var(--md-sys-color-primary-rgb),0.3)]">
                             <PlayIcon size={14} fill="currentColor" />
                             <span className="text-[10px] font-bold hidden sm:inline">{isPaused ? 'Reanudar' : 'Iniciar'}</span>
                         </button>

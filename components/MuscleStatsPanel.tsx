@@ -36,11 +36,11 @@ export const MuscleStatsPanel: React.FC<MuscleStatsPanelProps> = ({
 }) => {
     if (!selectedMuscle) {
         return (
-            <div className="flex-1 min-w-0 flex flex-col justify-center items-center py-6 px-4 bg-black/40 rounded-xl border border-white/5 border-dashed">
-                <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest text-center">
+            <div className="flex-1 min-w-0 flex flex-col justify-center items-center py-6 px-4 bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">
+                <p className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest text-center opacity-40">
                     Selecciona un músculo
                 </p>
-                <p className="text-[9px] text-zinc-700 mt-1 text-center max-w-[140px]">
+                <p className="text-label-sm text-[var(--md-sys-color-on-surface-variant)] mt-1 text-center max-w-[140px] opacity-30">
                     Toca una zona del cuerpo para ver sus stats
                 </p>
             </div>
@@ -70,62 +70,62 @@ export const MuscleStatsPanel: React.FC<MuscleStatsPanelProps> = ({
     const indirectSets = item.indirectExercises?.reduce((s, e) => s + e.sets, 0) ?? 0;
 
     return (
-        <div className="flex-1 min-w-0 flex flex-col bg-black/60 rounded-xl border border-cyan-500/20 overflow-hidden shadow-[0_0_20px_rgba(0,241,255,0.08)]">
-            {/* Header estilo HUD */}
-            <div className="px-3 py-2 border-b border-cyan-500/20 bg-cyan-500/5 flex items-center justify-between">
-                <h4 className="text-xs font-black text-white uppercase tracking-wider truncate">
+        <div className="flex-1 min-w-0 flex flex-col bg-[var(--md-sys-color-surface-container-highest)] rounded-2xl border border-[var(--md-sys-color-outline-variant)] overflow-hidden shadow-2xl">
+            {/* Header estilo M3 */}
+            <div className="px-4 py-3 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-between">
+                <h4 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-wider truncate">
                     {item.muscleGroup}
                 </h4>
                 {onClose && (
                     <button
                         onClick={onClose}
-                        className="shrink-0 w-5 h-5 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-400 hover:text-white transition-colors text-[10px] font-bold"
+                        className="shrink-0 w-6 h-6 rounded-full bg-[var(--md-sys-color-surface-container-highest)] hover:bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] transition-all active:scale-90"
                     >
                         ×
                     </button>
                 )}
             </div>
 
-            {/* Stats estilo videojuego */}
-            <div className="p-3 space-y-2.5">
+            {/* Stats estilo M3 */}
+            <div className="p-4 space-y-4">
                 <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Volumen</span>
-                    <span className="text-lg font-black text-cyan-400 tabular-nums">{item.displayVolume}</span>
+                    <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-60">Volumen</span>
+                    <span className="text-2xl font-black tabular-nums" style={{ color: 'var(--md-sys-color-primary)' }}>{item.displayVolume}</span>
                 </div>
-                <div className="text-[8px] text-zinc-600 font-mono">sets semanales</div>
+                <div className="text-label-sm font-black uppercase tracking-widest opacity-40 -mt-3">sets semanales</div>
 
-                <div className="h-px bg-white/5" />
+                <div className="h-px bg-[var(--md-sys-color-outline-variant)]/30" />
 
                 <div className="flex items-center justify-between gap-2">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Estado</span>
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${status.color} ${status.border}`}>
+                    <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-60">Estado</span>
+                    <span className={`text-label-sm font-black uppercase px-2.5 py-1 rounded-lg border ${status.color.replace('text-', 'text-[var(--md-sys-color-on-surface)] bg-').split(' ')[0]} ${status.border}`} style={{ color: 'var(--md-sys-color-on-surface)' }}>
                         {status.label}
                     </span>
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Rango</span>
-                    <span className="text-[10px] font-mono text-zinc-400">{thresholds.rangeLabel}</span>
+                    <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-60">Rango</span>
+                    <span className="text-label-sm font-black opacity-50" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{thresholds.rangeLabel}</span>
                 </div>
 
                 {(directSets > 0 || indirectSets > 0) && (
                     <>
-                        <div className="h-px bg-white/5" />
-                        <div className="flex items-center justify-between gap-2 text-[9px]">
-                            <span className="font-bold text-zinc-500 uppercase">Directo</span>
-                            <span className="font-mono text-emerald-400">{directSets}</span>
+                        <div className="h-px bg-[var(--md-sys-color-outline-variant)]/30" />
+                        <div className="flex items-center justify-between gap-2 text-label-sm">
+                            <span className="font-black text-[var(--md-sys-color-on-surface-variant)] uppercase opacity-60">Directo</span>
+                            <span className="font-black" style={{ color: 'var(--md-sys-color-primary)' }}>{directSets}</span>
                         </div>
-                        <div className="flex items-center justify-between gap-2 text-[9px]">
-                            <span className="font-bold text-zinc-500 uppercase">Indirecto</span>
-                            <span className="font-mono text-blue-400">{indirectSets}</span>
+                        <div className="flex items-center justify-between gap-2 text-label-sm">
+                            <span className="font-black text-[var(--md-sys-color-on-surface-variant)] uppercase opacity-60">Indirecto</span>
+                            <span className="font-black" style={{ color: 'var(--md-sys-color-tertiary)' }}>{indirectSets}</span>
                         </div>
                     </>
                 )}
 
                 {dbInfo?.description && (
                     <>
-                        <div className="h-px bg-white/5" />
-                        <p className="text-[9px] text-zinc-500 leading-relaxed line-clamp-3">
+                        <div className="h-px bg-[var(--md-sys-color-outline-variant)]/30" />
+                        <p className="text-label-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed line-clamp-3 opacity-60">
                             {dbInfo.description}
                         </p>
                     </>

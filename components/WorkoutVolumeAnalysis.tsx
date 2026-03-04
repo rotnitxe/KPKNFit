@@ -18,8 +18,8 @@ interface WorkoutVolumeAnalysisProps {
     settings: Settings;
     analysisData?: DetailedMuscleVolumeAnalysis[] | null;
     title?: string;
-    onMuscleSelect?: (muscle: string | null) => void; 
-    selectedMuscleInfo?: {muscle: string, x: number, y: number} | null; // NUEVO
+    onMuscleSelect?: (muscle: string | null) => void;
+    selectedMuscleInfo?: { muscle: string, x: number, y: number } | null; // NUEVO
     onCloseMuscle?: () => void; // NUEVO
 }
 
@@ -69,19 +69,19 @@ const STATUS_LABELS = {
 // Helper para obtener estado según umbrales dinámicos (términos amigables)
 const getStatusFromThresholds = (sets: number, thresholds: MuscleVolumeThresholds, programMode?: string) => {
     const isPowerlifting = programMode === 'powerlifting' || programMode === 'powerbuilding' || programMode === 'strength';
-    const { min, optimal, max } = thresholds;
+    const { min, max } = thresholds;
 
     if (isPowerlifting) {
-        if (sets === 0) return { ...STATUS_LABELS.inactive, color: 'bg-zinc-700 text-zinc-400', label: 'Min' };
-        if (sets < 6) return { ...STATUS_LABELS.maintenance, color: 'bg-blue-900/50 text-blue-200', label: 'Bajo' };
-        if (sets <= 12) return { ...STATUS_LABELS.optimal, color: 'bg-emerald-600 text-white', label: 'Óptimo' };
-        return { ...STATUS_LABELS.overreach, color: 'bg-cyber-warning text-white', label: 'Alto' };
+        if (sets === 0) return { ...STATUS_LABELS.inactive, color: 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]', label: 'Min', barColor: 'var(--md-sys-color-surface-variant)' };
+        if (sets < 6) return { ...STATUS_LABELS.maintenance, color: 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]', label: 'Bajo', barColor: 'var(--md-sys-color-secondary)' };
+        if (sets <= 12) return { ...STATUS_LABELS.optimal, color: 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]', label: 'Óptimo', barColor: 'var(--md-sys-color-primary)' };
+        return { ...STATUS_LABELS.overreach, color: 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]', label: 'Alto', barColor: 'var(--md-sys-color-error)' };
     }
 
-    if (sets === 0) return { ...STATUS_LABELS.inactive, color: 'bg-zinc-800 text-zinc-500', label: '---' };
-    if (sets < min) return { ...STATUS_LABELS.maintenance, color: 'bg-blue-900/50 text-blue-200', label: 'Bajo' };
-    if (sets <= max) return { ...STATUS_LABELS.optimal, color: 'bg-emerald-600 text-white', label: 'Óptimo' };
-    return { ...STATUS_LABELS.overreach, color: 'bg-red-600 text-white', label: 'Alto' };
+    if (sets === 0) return { ...STATUS_LABELS.inactive, color: 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]', label: '---', barColor: 'var(--md-sys-color-surface-variant)' };
+    if (sets < min) return { ...STATUS_LABELS.maintenance, color: 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]', label: 'Bajo', barColor: 'var(--md-sys-color-secondary)' };
+    if (sets <= max) return { ...STATUS_LABELS.optimal, color: 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]', label: 'Óptimo', barColor: 'var(--md-sys-color-primary)' };
+    return { ...STATUS_LABELS.overreach, color: 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]', label: 'Alto', barColor: 'var(--md-sys-color-error)' };
 };
 
 export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ program, session, sessions, history, isOnline, settings, analysisData, title, onMuscleSelect, selectedMuscleInfo, onCloseMuscle }) => {
@@ -131,9 +131,9 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
         return items;
     }, [program]);
 
-    const activeItem = useMemo(() => 
+    const activeItem = useMemo(() =>
         hierarchyItems.find(i => i.id === selectedItemId) || hierarchyItems[0]
-    , [hierarchyItems, selectedItemId]);
+        , [hierarchyItems, selectedItemId]);
 
     // Lógica de Agregación (Fusionar vastos en Cuádriceps, etc.)
     const aggregateData = (rawAnalysis: DetailedMuscleVolumeAnalysis[]) => {
@@ -144,13 +144,13 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
         Object.entries(MUSCLE_AGGREGATION_MAP).forEach(([groupName, subMuscles]) => {
             // Buscar todos los datos raw que coincidan con los submúsculos
             const relevantData = rawAnalysis.filter(d => subMuscles.includes(d.muscleGroup));
-            
+
             if (relevantData.length > 0) {
                 // Fusionar ejercicios directos e indirectos sin duplicar sets
                 // (Si hago sentadilla, cuenta para vasto y recto, pero es 1 solo set para Cuádriceps)
                 const allDirectExercises = relevantData.flatMap(d => d.directExercises);
                 const uniqueDirectExercises = Array.from(new Map(allDirectExercises.map(ex => [ex.name, ex])).values());
-                
+
                 const allIndirectExercises = relevantData.flatMap(d => d.indirectExercises);
                 const uniqueIndirectExercises = Array.from(new Map(allIndirectExercises.map(ex => [ex.name, ex])).values());
 
@@ -164,7 +164,7 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                         directExercises: uniqueDirectExercises,
                         indirectExercises: uniqueIndirectExercises,
                         frequency: Math.max(...relevantData.map(d => d.frequency)),
-                        avgRestDays: null, 
+                        avgRestDays: null,
                         avgIFI: null,
                         recoveryStatus: 'N/A'
                     };
@@ -179,7 +179,7 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
             if (STANDALONE_MUSCLES.includes(item.muscleGroup) || !processedMuscles.has(item.muscleGroup)) {
                 // Si ya se procesó en un grupo, saltar (a menos que sea explícitamente standalone)
                 if (processedMuscles.has(item.muscleGroup) && !STANDALONE_MUSCLES.includes(item.muscleGroup)) return;
-                
+
                 // Corrección de nombres visuales
                 let displayName = item.muscleGroup;
                 if (displayName === 'deltoides-anterior') displayName = 'Deltoides Anterior';
@@ -207,7 +207,7 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                 } else if (activeItem) {
                     result = calculateAverageVolumeForWeeks(activeItem.weeks, exerciseList, muscleHierarchy, calculationMode);
                 }
-                
+
                 // Aplicar la agregación visual
                 const finalVisualData = aggregateData(result);
                 setDisplayAnalysis(finalVisualData);
@@ -222,9 +222,9 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
         if (analysisData === undefined) {
             handleCalculate();
         } else if (analysisData) {
-             setDisplayAnalysis(aggregateData(analysisData));
+            setDisplayAnalysis(aggregateData(analysisData));
         } else {
-             setDisplayAnalysis([]);
+            setDisplayAnalysis([]);
         }
     }, [analysisData, program, session, sessions, calculationMode, selectedItemId]);
 
@@ -235,17 +235,24 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
         <div className="relative" ref={containerRef}>
             {/* Lista de músculos con barras apiladas (Directo verde / Indirecto azul) */}
             {displayAnalysis && displayAnalysis.length > 0 && (
-                <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" title="Directo" />
-                        <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Directo</span>
-                        <span className="w-2 h-2 rounded-full bg-blue-500" title="Indirecto" />
-                        <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Indirecto</span>
-                        <span className="text-[8px] text-zinc-500">|</span>
-                        <span className="w-1 h-3 bg-amber-500/80" title="Umbral mínimo" />
-                        <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Mín.</span>
-                        <span className="w-1 h-3 bg-red-500/80" title="Umbral máximo" />
-                        <span className="text-[9px] font-bold text-[#8E8E93] uppercase">Máx.</span>
+                <div className="space-y-4 mb-8 p-6 bg-[var(--md-sys-color-surface-container-low)] rounded-3xl border border-[var(--md-sys-color-outline-variant)]/50">
+                    <div className="flex items-center gap-4 mb-4 flex-wrap pb-4 border-b border-[var(--md-sys-color-outline-variant)]/30">
+                        <div className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--md-sys-color-primary)' }} title="Directo" />
+                            <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-60">Directo</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--md-sys-color-secondary)' }} title="Indirecto" />
+                            <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-60">Indirecto</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 ml-auto">
+                            <span className="w-1.5 h-3.5 bg-amber-500/80 rounded-full" title="Umbral mínimo" />
+                            <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-60">Mín.</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-3.5 bg-red-500/80 rounded-full" title="Umbral máximo" />
+                            <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-60">Máx.</span>
+                        </div>
                     </div>
                     {displayAnalysis.map((item) => {
                         const directSets = item.directExercises?.reduce((s, e) => s + e.sets, 0) ?? 0;
@@ -258,24 +265,24 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                         const minPct = (thresholds.min / barMax) * 100;
                         const maxPct = (thresholds.max / barMax) * 100;
                         return (
-                            <div key={item.muscleGroup} className="flex items-center gap-2 group">
-                                <span className="w-24 text-[10px] font-bold text-[#8E8E93] truncate text-right shrink-0">{item.muscleGroup}</span>
-                                <div className="flex-1 h-4 relative min-w-0" title={`Directo: ${directSets} | Indirecto: ${indirectSets} | Recomendado: ${thresholds.rangeLabel} (min ${thresholds.min} / max ${thresholds.max})`}>
+                            <div key={item.muscleGroup} className="flex items-center gap-4 group">
+                                <span className="w-28 text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] truncate text-right shrink-0 opacity-70 group-hover:opacity-100 transition-opacity uppercase tracking-wider">{item.muscleGroup}</span>
+                                <div className="flex-1 h-5 relative min-w-0" title={`Directo: ${directSets} | Indirecto: ${indirectSets} | Recomendado: ${thresholds.rangeLabel} (min ${thresholds.min} / max ${thresholds.max})`}>
                                     {/* Fondo con zonas de umbral: subentreno | óptimo | sobreentreno */}
-                                    <div className="absolute inset-0 flex rounded-lg overflow-hidden bg-[#1a1a1a]">
-                                        <div className="h-full bg-zinc-600/50" style={{ width: `${minPct}%` }} title="Subentreno" />
-                                        <div className="h-full bg-emerald-600/30" style={{ width: `${maxPct - minPct}%` }} title="Zona óptima" />
-                                        <div className="h-full bg-red-600/20 flex-1" title="Riesgo sobreentreno" />
+                                    <div className="absolute inset-0 flex rounded-full overflow-hidden bg-[var(--md-sys-color-surface-container-high)]">
+                                        <div className="h-full bg-[var(--md-sys-color-outline-variant)]/20" style={{ width: `${minPct}%` }} title="Subentreno" />
+                                        <div className="h-full bg-[var(--md-sys-color-primary)]/10" style={{ width: `${maxPct - minPct}%` }} title="Zona óptima" />
+                                        <div className="h-full bg-[var(--md-sys-color-error)]/10 flex-1" title="Riesgo sobreentreno" />
                                     </div>
                                     {/* Barras de volumen (directo + indirecto) encima */}
-                                    <div className="absolute inset-0 flex rounded-lg overflow-hidden pointer-events-none">
+                                    <div className="absolute inset-0 flex rounded-full overflow-hidden pointer-events-none">
                                         <div
-                                            className="h-full bg-emerald-500 transition-all"
-                                            style={{ width: `${directWidthPct}%`, minWidth: directSets > 0 ? '2px' : 0 }}
+                                            className="h-full transition-all"
+                                            style={{ backgroundColor: 'var(--md-sys-color-primary)', width: `${directWidthPct}%`, minWidth: directSets > 0 ? '4px' : 0 }}
                                         />
                                         <div
-                                            className="h-full bg-blue-500 transition-all"
-                                            style={{ width: `${indirectWidthPct}%`, minWidth: indirectSets > 0 ? '2px' : 0 }}
+                                            className="h-full transition-all"
+                                            style={{ backgroundColor: 'var(--md-sys-color-secondary)', width: `${indirectWidthPct}%`, minWidth: indirectSets > 0 ? '4px' : 0 }}
                                         />
                                     </div>
                                     {/* Líneas umbral: min y max */}
@@ -294,9 +301,9 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                                         />
                                     )}
                                 </div>
-                                <span className="w-24 text-[10px] text-right shrink-0">
-                                    <span className="font-bold text-white tabular-nums">{directSets}|{indirectSets}</span>
-                                    <span className="text-[8px] text-zinc-500 font-mono ml-1">({thresholds.rangeLabel})</span>
+                                <span className="w-28 text-right shrink-0">
+                                    <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface)] tabular-nums">{directSets}|{indirectSets}</span>
+                                    <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] opacity-40 ml-1">({thresholds.rangeLabel})</span>
                                 </span>
                             </div>
                         );
@@ -313,23 +320,21 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                     )}
 
                     {/* Contenedor: En modo tooltip usa 'absolute' para pegarse al scroll */}
-                    <div 
+                    <div
                         className={`z-[120] transition-all duration-300 ease-out 
-                            ${isExpandedModal 
-                                ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] sm:max-w-md' 
+                            ${isExpandedModal
+                                ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] sm:max-w-md'
                                 : 'absolute'}`}
                         style={!isExpandedModal ? {
-                            // Sin bloqueos matemáticos: permitimos números negativos para que suba hasta Caupolicán
                             top: tooltipPos.top - 50,
-                            // Si tocas muy a la derecha, el globo se abre hacia la izquierda para no salirse de la pantalla
                             left: tooltipPos.left > 150 ? tooltipPos.left - 155 : tooltipPos.left + 15,
-                            width: '140px'
+                            width: '160px'
                         } : {}}
                     >
-                        <div className={`bg-zinc-950/95 backdrop-blur-md border border-white/10 shadow-2xl flex flex-col relative overflow-hidden ${isExpandedModal ? 'rounded-[1.5rem] p-5 gap-3' : 'rounded-2xl p-3'}`}>
-                            
-                            {/* Brillo de fondo estético (Solo en modo expandido para mayor impacto) */}
-                            {isExpandedModal && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500 opacity-50" />}
+                        <div className={`bg-[var(--md-sys-color-surface-container-highest)] backdrop-blur-2xl border border-[var(--md-sys-color-outline-variant)] shadow-2xl flex flex-col relative overflow-hidden ${isExpandedModal ? 'rounded-[2rem] p-6 gap-4' : 'rounded-2xl p-4'}`}>
+
+                            {/* Brillo de fondo estético */}
+                            {isExpandedModal && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] opacity-30" />}
 
                             {(() => {
                                 const item = displayAnalysis?.find(d => d.muscleGroup.toLowerCase().includes(selectedMuscleInfo.muscle.toLowerCase())) || {
@@ -351,89 +356,87 @@ export const WorkoutVolumeAnalysis: React.FC<WorkoutVolumeAnalysisProps> = ({ pr
                                         {/* CABECERA */}
                                         <div className="flex justify-between items-start">
                                             <div className="pr-4">
-                                                <h4 className={`font-black text-white uppercase tracking-tight leading-none ${isExpandedModal ? 'text-base' : 'text-[11px]'}`}>
+                                                <h4 className={`font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tight leading-none ${isExpandedModal ? 'text-lg' : 'text-label-sm'}`}>
                                                     {item.muscleGroup}
                                                 </h4>
-                                                {!isExpandedModal && <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mt-1 leading-none">{status.desc}</p>}
+                                                {!isExpandedModal && <p className="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-widest mt-1.5 leading-none opacity-50">{status.label}</p>}
                                             </div>
-                                            <button onClick={onCloseMuscle} className={`absolute text-zinc-500 hover:text-white transition-colors ${isExpandedModal ? 'top-4 right-4' : 'top-2 right-2'}`}>
-                                                <XIcon size={isExpandedModal ? 16 : 12} />
+                                            <button onClick={onCloseMuscle} className={`absolute text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-all active:scale-90 ${isExpandedModal ? 'top-5 right-5' : 'top-3 right-3'}`}>
+                                                <XIcon size={isExpandedModal ? 18 : 14} />
                                             </button>
                                         </div>
 
                                         {/* ÁREA CENTRAL: VOLUMEN Y BOTÓN EXPANDIR (Modo Tooltip) */}
                                         {!isExpandedModal ? (
-                                            <div className="flex items-end justify-between mt-2">
+                                            <div className="flex items-end justify-between mt-3">
                                                 <div className="flex items-baseline gap-1">
-                                                    <p className="text-lg font-black text-white leading-none">{item.displayVolume}</p>
-                                                    <p className="text-[8px] text-zinc-500 uppercase font-bold tracking-widest">sets</p>
-                                                    <span className="text-[8px] text-zinc-600 font-mono ml-1">({thresholds.rangeLabel})</span>
+                                                    <p className="text-xl font-black text-[var(--md-sys-color-on-surface)] leading-none">{item.displayVolume}</p>
+                                                    <p className="text-label-sm text-[var(--md-sys-color-on-surface-variant)] uppercase font-black tracking-widest opacity-40">sets</p>
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={() => setIsExpandedModal(true)}
-                                                    className="w-6 h-6 flex items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 transition-colors shadow-sm"
+                                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] hover:scale-110 active:scale-90 transition-all shadow-lg"
                                                     title="Ver anatomía y ejercicios"
                                                 >
-                                                    <MaximizeIcon size={10} />
+                                                    <MaximizeIcon size={12} />
                                                 </button>
                                             </div>
                                         ) : (
                                             /* MODO EXPANDIDO (Modal Completo) */
                                             <>
-                                                <div className="flex items-center gap-3 flex-wrap">
-                                                    <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase ${status.color}`}>
+                                                <div className="flex items-center gap-4 flex-wrap">
+                                                    <span className={`text-label-sm font-black px-3 py-1 rounded-lg uppercase ${status.color}`}>
                                                         {status.label}
                                                     </span>
-                                                    <div className="flex items-baseline gap-1">
-                                                        <p className="text-2xl font-black text-white leading-none">{item.displayVolume}</p>
-                                                        <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">sets</p>
-                                                        <span className="text-[9px] text-zinc-500 font-mono ml-1">objetivo {thresholds.rangeLabel}</span>
+                                                    <div className="flex items-baseline gap-1.5">
+                                                        <p className="text-3xl font-black text-[var(--md-sys-color-on-surface)] leading-none">{item.displayVolume}</p>
+                                                        <p className="text-label-sm text-[var(--md-sys-color-on-surface-variant)] uppercase font-black tracking-widest opacity-40">sets semanales</p>
                                                     </div>
                                                 </div>
 
                                                 {/* Barra de zonas (min → óptimo → max) */}
-                                                <div className="space-y-1">
-                                                    <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden flex relative">
-                                                        <div className="h-full bg-zinc-600" style={{ width: `${minPct}%` }} title="Mínimo para mantener" />
-                                                        <div className="h-full bg-emerald-600/60" style={{ width: `${optimalPct}%` }} title="Zona óptima" />
-                                                        <div className="h-full bg-red-600/40 flex-1" title="Riesgo de sobreentreno" />
+                                                <div className="space-y-2 py-2">
+                                                    <div className="h-3 bg-[var(--md-sys-color-surface-container-high)] rounded-full overflow-hidden flex relative">
+                                                        <div className="h-full bg-[var(--md-sys-color-outline-variant)]/30" style={{ width: `${minPct}%` }} title="Mínimo para mantener" />
+                                                        <div className="h-full bg-[var(--md-sys-color-primary)]/20" style={{ width: `${optimalPct}%` }} title="Zona óptima" />
+                                                        <div className="h-full bg-[var(--md-sys-color-error)]/20 flex-1" title="Riesgo de sobreentreno" />
                                                         <div
-                                                            className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg"
+                                                            className="absolute top-0 bottom-0 w-1 bg-[var(--md-sys-color-on-surface)] shadow-2xl z-20"
                                                             style={{ left: `${currentPct}%`, transform: 'translateX(-50%)' }}
                                                             title={`Actual: ${item.displayVolume} sets`}
                                                         />
                                                     </div>
-                                                    <div className="flex justify-between text-[8px] text-zinc-500 font-mono">
-                                                        <span>Mín. mantener</span>
-                                                        <span>Zona óptima</span>
-                                                        <span>Riesgo sobreentreno</span>
+                                                    <div className="flex justify-between text-label-sm text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-widest opacity-30">
+                                                        <span className="truncate">Mantenimiento</span>
+                                                        <span className="px-2 truncate">Óptimo</span>
+                                                        <span className="truncate text-right">Exceso</span>
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-3 space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2 animate-fade-in">
+                                                <div className="mt-4 space-y-5 max-h-[50vh] overflow-y-auto custom-scrollbar pr-3 animate-fade-in">
                                                     {/* Información Anatómica (Conectada a la BD) */}
                                                     {dbInfo && (
-                                                        <div className="space-y-3 bg-zinc-900/40 p-3 rounded-2xl border border-white/5">
+                                                        <div className="space-y-4 bg-[var(--md-sys-color-surface-container-high)] p-4 rounded-[1.5rem] border border-[var(--md-sys-color-outline-variant)]/30">
                                                             <div>
-                                                                <h5 className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Anatomía</h5>
-                                                                <p className="text-[11px] text-zinc-300 leading-relaxed">{dbInfo.description}</p>
+                                                                <h5 className="text-label-sm font-black text-[var(--md-sys-color-primary)] uppercase tracking-widest mb-1.5 opacity-60">Anatomía</h5>
+                                                                <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed italic opacity-80">{dbInfo.description}</p>
                                                             </div>
                                                             <div>
-                                                                <h5 className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Función Biomecánica</h5>
-                                                                <p className="text-[11px] text-zinc-300 leading-relaxed">{dbInfo.importance.movement}</p>
+                                                                <h5 className="text-label-sm font-black text-[var(--md-sys-color-tertiary)] uppercase tracking-widest mb-1.5 opacity-60">Biofísica & Función</h5>
+                                                                <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed opacity-80">{dbInfo.importance.movement}</p>
                                                             </div>
                                                         </div>
                                                     )}
 
                                                     {/* Ejercicios que aportan a este músculo */}
                                                     {item.displayVolume > 0 && (
-                                                        <div>
-                                                            <h5 className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">Ejercicios Activos</h5>
-                                                            <div className="space-y-2">
+                                                        <div className="pt-2">
+                                                            <h5 className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest mb-3 opacity-60">Distribución de Carga</h5>
+                                                            <div className="space-y-2.5">
                                                                 {item.directExercises?.map((ex: any, idx: number) => (
-                                                                    <div key={idx} className="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-white/5">
-                                                                        <span className="text-[11px] text-zinc-300 font-medium truncate pr-2">{ex.name}</span>
-                                                                        <span className="text-[10px] font-bold text-white whitespace-nowrap bg-zinc-800 px-2 py-1 rounded-md">{ex.sets} sets</span>
+                                                                    <div key={idx} className="flex justify-between items-center bg-[var(--md-sys-color-surface-container-highest)] px-4 py-3 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm transition-all hover:border-[var(--md-sys-color-primary)]/30">
+                                                                        <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface)] truncate pr-4">{ex.name}</span>
+                                                                        <span className="text-label-sm font-black text-[var(--md-sys-color-on-primary-container)] bg-[var(--md-sys-color-primary-container)] px-3 py-1 rounded-full whitespace-nowrap">{ex.sets} sets</span>
                                                                     </div>
                                                                 ))}
                                                             </div>

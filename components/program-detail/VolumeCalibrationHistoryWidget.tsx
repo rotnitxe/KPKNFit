@@ -11,53 +11,56 @@ const VolumeCalibrationHistoryWidget: React.FC<VolumeCalibrationHistoryWidgetPro
 
     if (entries.length === 0) {
         return (
-            <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5">
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="bg-cyan-500/20 p-2 rounded-lg text-cyan-400">
-                        <ActivityIcon size={14} />
+            <div className="bg-[var(--md-sys-color-surface-container-low)] rounded-3xl p-6 border border-[var(--md-sys-color-outline-variant)]/50">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-[var(--md-sys-color-primary-container)] p-3 rounded-2xl text-[var(--md-sys-color-on-primary-container)]">
+                        <ActivityIcon size={16} />
                     </div>
-                    <h4 className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wide">
+                    <h4 className="text-label-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-widest opacity-70">
                         Historial de calibración KPKN
                     </h4>
                 </div>
-                <p className="text-[11px] text-[#8E8E93]">Aún no hay recalibraciones.</p>
+                <p className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] opacity-40 uppercase tracking-widest py-4 text-center">Todavía no hay calibraciones.</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5">
-            <div className="flex items-center gap-2 mb-3">
-                <div className="bg-cyan-500/20 p-2 rounded-lg text-cyan-400">
-                    <ActivityIcon size={14} />
+        <div className="bg-[var(--md-sys-color-surface-container-low)] rounded-3xl p-6 border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm transition-all hover:bg-[var(--md-sys-color-surface-container)]">
+            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[var(--md-sys-color-outline-variant)]/30">
+                <div className="bg-[var(--md-sys-color-primary-container)] p-3 rounded-2xl text-[var(--md-sys-color-on-primary-container)] shadow-inner">
+                    <ActivityIcon size={16} />
                 </div>
-                <h4 className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wide">
+                <h4 className="text-label-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-widest opacity-70">
                     Historial de calibración KPKN
                 </h4>
             </div>
-            <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+            <div className="space-y-3 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
                 {entries.map((entry, idx) => (
                     <div
                         key={`${entry.date}-${idx}`}
-                        className="py-2 px-3 rounded-lg bg-black/30 border border-white/5"
+                        className="py-3 px-4 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm"
                     >
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-[11px] font-bold text-white">{entry.date}</span>
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                            <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface)] opacity-80 uppercase tracking-wider">{entry.date}</span>
                             <span
-                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                    entry.source === 'manual'
-                                        ? 'bg-amber-500/20 text-amber-400'
-                                        : 'bg-cyan-500/20 text-cyan-400'
-                                }`}
+                                className={`text-[9px] font-black px-2 py-1 rounded-full uppercase border ${entry.source === 'manual'
+                                        ? 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] border-[var(--md-sys-color-tertiary)]/20 shadow-sm'
+                                        : 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]/20 shadow-sm'
+                                    }`}
                             >
-                                {entry.source === 'manual' ? 'Manual' : 'Auto'}
+                                {entry.source === 'manual' ? 'Manual' : 'Automática'}
                             </span>
                         </div>
-                        <ul className="text-[10px] text-[#8E8E93] space-y-0.5">
+                        <ul className="space-y-1.5 pt-1">
                             {entry.changes.map((c, i) => (
-                                <li key={i}>
-                                    {c.muscle}: {c.prev.minEffectiveVolume}–{c.prev.maxRecoverableVolume} →{' '}
-                                    {c.next.minEffectiveVolume}–{c.next.maxRecoverableVolume}
+                                <li key={i} className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] opacity-50 flex items-center justify-between border-b border-[var(--md-sys-color-outline-variant)]/20 last:border-0 pb-1 last:pb-0">
+                                    <span className="truncate pr-2">{c.muscle}</span>
+                                    <span className="shrink-0 flex items-center gap-1">
+                                        <span className="opacity-40">{c.prev.minEffectiveVolume}-{c.prev.maxRecoverableVolume}</span>
+                                        <span className="text-[var(--md-sys-color-primary)]">→</span>
+                                        <span className="text-[var(--md-sys-color-on-surface)] opacity-80 font-bold">{c.next.minEffectiveVolume}-{c.next.maxRecoverableVolume}</span>
+                                    </span>
                                 </li>
                             ))}
                         </ul>

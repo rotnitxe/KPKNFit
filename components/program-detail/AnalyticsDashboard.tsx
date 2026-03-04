@@ -40,9 +40,9 @@ interface AnalyticsDashboardProps {
     programDiscomforts: { name: string; count: number }[];
     adaptiveCache: AugeAdaptiveCache;
     exerciseList: ExerciseMuscleInfo[];
-    setSettings?: (s: Settings | ((prev: Settings) => Settings)) => void;
+    setSettings?: (partial: Partial<Settings>) => void;
     onUpdateProgram?: (p: Program) => void;
-    addToast?: (msg: string, type?: 'success' | 'error' | 'info') => void;
+    addToast?: (msg: string, type?: 'success' | 'achievement' | 'suggestion' | 'danger', title?: string, duration?: number, why?: string) => void;
     postSessionFeedback?: PostSessionFeedback[] | null;
 }
 
@@ -78,7 +78,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
     const handleRecalibrateClick = async () => {
         if (program.volumeSystem !== 'kpnk' || !program.volumeRecommendations?.length) {
-            addToast?.('Selecciona KPKN Personalizado y completa el cuestionario abajo.', 'info');
+            addToast?.('Selecciona KPKN Personalizado y completa el cuestionario abajo.', 'suggestion');
             setShowCalibrationWizard(true);
             return;
         }
@@ -94,7 +94,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 setRecalibrationSuggestions(suggestions);
                 setShowRecalibrationModal(true);
             } else {
-                addToast?.('Necesitas más sesiones con feedback para recalibrar.', 'info');
+                addToast?.('Necesitas más sesiones con feedback para recalibrar.', 'suggestion');
             }
         } finally {
             setIsRecalibrating(false);
@@ -180,57 +180,57 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
     if (!isActive) {
         return (
-            <div className="h-full flex items-center justify-center p-8 bg-[#121212]">
+            <div className="h-full flex items-center justify-center p-8" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
                 <div className="text-center">
-                    <DumbbellIcon size={32} className="text-zinc-500 mx-auto mb-3" />
-                    <h3 className="text-sm font-bold text-white uppercase mb-1">Programa Inactivo</h3>
-                    <p className="text-xs text-zinc-500">Inicia el programa para ver analytics.</p>
+                    <DumbbellIcon size={32} className="mx-auto mb-4 opacity-30" style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+                    <h3 className="text-label-lg font-black uppercase tracking-[0.2em]" style={{ color: 'var(--md-sys-color-on-surface)' }}>Programa Inactivo</h3>
+                    <p className="text-label-sm mt-2 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Inicia el programa para ver analytics.</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-[#121212]">
-            <div className="px-4 sm:px-6 py-4 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-6">
-                <div className="text-[10px] font-black text-white uppercase tracking-widest text-zinc-500 mb-2">Analytics</div>
-                    {/* ── Body Map ── */}
-                    {activeWidgets.includes('bodymap') && (
-                        <section className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden p-4">
-                            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Mapa de Volumen</h3>
-                            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-start bg-black rounded-xl p-3">
-                                <div className="flex justify-center shrink-0">
-                                    <CaupolicanBody
-                                        data={visualizerData as any}
-                                        isPowerlifting={program.mode === 'powerlifting' || program.mode === 'powerbuilding'}
-                                        focusedMuscle={selectedMusclePos?.muscle ?? focusedMuscle}
-                                        discomforts={programDiscomforts}
-                                        onMuscleClick={(muscle, x, y) => {
-                                            setSelectedMusclePos(prev => prev?.muscle === muscle ? null : { muscle, x: x ?? 0, y: y ?? 0 });
-                                            setFocusedMuscle(muscle);
-                                        }}
-                                        onBodyBackgroundClick={() => {
-                                            setSelectedMusclePos(null);
-                                            setFocusedMuscle(null);
-                                        }}
-                                    />
-                                </div>
-                                <MuscleStatsPanel
-                                    selectedMuscle={selectedMusclePos?.muscle ?? null}
-                                    data={visualizerData ?? []}
-                                    program={program}
-                                    settings={settings}
-                                    onClose={() => {
+        <div style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
+            <div className="px-6 py-6 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-10">
+                <div className="text-label-sm font-black uppercase tracking-[0.2em] opacity-50" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perspectiva Global</div>
+                {/* ── Body Map ── */}
+                {activeWidgets.includes('bodymap') && (
+                    <section className="bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-3xl overflow-hidden p-6 shadow-sm">
+                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Mapa de Volumen</h3>
+                        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-start bg-black rounded-xl p-3">
+                            <div className="flex justify-center shrink-0">
+                                <CaupolicanBody
+                                    data={visualizerData as any}
+                                    isPowerlifting={program.mode === 'powerlifting' || program.mode === 'powerbuilding'}
+                                    focusedMuscle={selectedMusclePos?.muscle ?? focusedMuscle}
+                                    discomforts={programDiscomforts}
+                                    onMuscleClick={(muscle, x, y) => {
+                                        setSelectedMusclePos(prev => prev?.muscle === muscle ? null : { muscle, x: x ?? 0, y: y ?? 0 });
+                                        setFocusedMuscle(muscle);
+                                    }}
+                                    onBodyBackgroundClick={() => {
                                         setSelectedMusclePos(null);
                                         setFocusedMuscle(null);
                                     }}
                                 />
                             </div>
-                            {programDiscomforts.length > 0 && (
-                            <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                            <MuscleStatsPanel
+                                selectedMuscle={selectedMusclePos?.muscle ?? null}
+                                data={visualizerData ?? []}
+                                program={program}
+                                settings={settings}
+                                onClose={() => {
+                                    setSelectedMusclePos(null);
+                                    setFocusedMuscle(null);
+                                }}
+                            />
+                        </div>
+                        {programDiscomforts.length > 0 && (
+                            <div className="mt-4 flex flex-wrap justify-center gap-2">
                                 {programDiscomforts.slice(0, 5).map((disc, idx) => (
-                                    <span key={idx} className="text-[10px] font-bold text-red-300 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md">
-                                        {disc.name} <span className="text-red-400">{disc.count}x</span>
+                                    <span key={idx} className="text-[10px] font-black uppercase tracking-widest bg-[var(--md-sys-color-error-container)]/10 border border-[var(--md-sys-color-error-container)]/20 px-3 py-1 rounded-full" style={{ color: 'var(--md-sys-color-error)' }}>
+                                        {disc.name} <span className="opacity-60">{disc.count}x</span>
                                     </span>
                                 ))}
                             </div>
@@ -245,13 +245,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                             <button
                                 onClick={handleRecalibrateClick}
                                 disabled={isRecalibrating}
-                                className="w-full mb-3 py-2 px-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-[10px] font-bold flex items-center justify-center gap-2 hover:bg-amber-500/20 transition-colors"
+                                className="w-full mb-4 py-3 px-4 rounded-2xl border border-[var(--md-sys-color-tertiary)]/30 bg-[var(--md-sys-color-tertiary-container)]/20 text-[var(--md-sys-color-tertiary)] text-label-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--md-sys-color-tertiary-container)]/30 transition-all active:scale-[0.98]"
                             >
+                                <TargetIcon size={16} />
                                 {isRecalibrating ? 'Cargando…' : 'KPKN sugiere revisar tu volumen'}
                             </button>
                         )}
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Volumen Semanal</h3>
+                        <div className="flex items-center justify-between gap-2 mb-4">
+                            <h3 className="text-label-sm font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Volumen Semanal</h3>
                             <div className="flex items-center gap-2">
                                 <select
                                     value={program.volumeSystem ?? settings?.volumeSystem ?? 'kpnk'}
@@ -277,10 +278,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                         } else if (sys === 'kpnk') {
                                             setShowCalibrationWizard(true);
                                         } else if (!onUpdateProgram) {
-                                            setSettings?.({ volumeSystem: sys });
+                                            setSettings?.({ volumeSystem: sys as any });
                                         }
                                     }}
-                                    className="text-[9px] font-bold bg-[#1a1a1a] border border-white/10 rounded-lg px-2 py-1 text-white uppercase tracking-wider focus:ring-1 focus:ring-white/30"
+                                    className="text-label-sm font-black bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-xl px-3 py-1.5 text-[var(--md-sys-color-on-surface)] uppercase tracking-wider focus:ring-2 focus:ring-[var(--md-sys-color-primary)] outline-none"
                                 >
                                     <option value="israetel">Israetel</option>
                                     <option value="kpnk">KPKN Personalizado</option>
@@ -290,7 +291,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                     <button
                                         onClick={handleRecalibrateClick}
                                         disabled={isRecalibrating}
-                                        className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-zinc-500 hover:bg-white/10 text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] text-label-sm font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-sm active:scale-95"
                                     >
                                         Re-calibrar
                                     </button>
@@ -298,11 +299,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                 {program.volumeSystem === 'manual' && onUpdateProgram && (
                                     <button
                                         onClick={() => setShowManualEditor(prev => !prev)}
-                                        className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[9px] font-bold uppercase tracking-wider transition-colors ${
-                                            showManualEditor
-                                                ? 'border-white/30 bg-white/10 text-white'
-                                                : 'border-white/20 bg-white/5 text-zinc-400 hover:bg-white/10'
-                                        }`}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-label-sm font-black uppercase tracking-wider transition-all ${showManualEditor
+                                            ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
+                                            : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'
+                                            }`}
                                     >
                                         Editar valores
                                         <ChevronDownIcon size={10} className={`transition-transform ${showManualEditor ? 'rotate-180' : ''}`} />
@@ -312,12 +312,12 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         </div>
                         {/* Acordeón edición manual */}
                         {showManualEditor && program.volumeSystem === 'manual' && onUpdateProgram && (program.volumeRecommendations?.length ?? 0) > 0 && (
-                            <div className="mb-4 p-4 bg-zinc-900/40 rounded-xl border border-white/5 animate-fade-in space-y-3">
-                                <p className="text-[10px] text-zinc-500">Mínimo, objetivo y máximo (series/semana) por grupo muscular.</p>
+                            <div className="mb-6 p-6 bg-[var(--md-sys-color-surface-container-high)] rounded-[2rem] border border-[var(--md-sys-color-outline-variant)]/20 animate-fade-in space-y-4 shadow-inner">
+                                <p className="text-label-sm font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-40">Series semanales por grupo muscular</p>
                                 {(program.volumeRecommendations ?? []).map((rec) => (
-                                    <div key={rec.muscleGroup} className="flex flex-wrap items-center gap-2 p-2 bg-black/30 rounded-lg">
-                                        <span className="text-[10px] font-bold text-white w-24 shrink-0">{rec.muscleGroup}</span>
-                                        <div className="flex items-center gap-1">
+                                    <div key={rec.muscleGroup} className="flex flex-wrap items-center gap-3 p-3 bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-[var(--md-sys-color-outline-variant)]/10">
+                                        <span className="text-label-sm font-black text-[var(--md-sys-color-on-surface)] w-28 shrink-0 uppercase tracking-tight">{rec.muscleGroup}</span>
+                                        <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
                                                 min={0}
@@ -330,11 +330,11 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                                     );
                                                     onUpdateProgram({ ...program, volumeRecommendations: next });
                                                 }}
-                                                className="w-12 bg-black/50 border border-white/20 rounded px-1.5 py-0.5 text-[10px] text-white text-center"
+                                                className="w-14 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)]/30 rounded-xl px-2 py-1.5 text-label-sm font-black text-[var(--md-sys-color-on-surface)] text-center focus:ring-2 focus:ring-[var(--md-sys-color-primary)] outline-none"
                                             />
-                                            <span className="text-[9px] text-zinc-500">min</span>
+                                            <span className="text-[10px] font-black text-[var(--md-sys-color-on-surface-variant)] uppercase opacity-30">min</span>
                                         </div>
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
                                                 min={1}
@@ -349,11 +349,11 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                                     );
                                                     onUpdateProgram({ ...program, volumeRecommendations: next });
                                                 }}
-                                                className="w-12 bg-black/50 border border-white/20 rounded px-1.5 py-0.5 text-[10px] text-white text-center"
+                                                className="w-14 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)]/30 rounded-xl px-2 py-1.5 text-label-sm font-black text-[var(--md-sys-color-on-surface)] text-center focus:ring-2 focus:ring-[var(--md-sys-color-primary)] outline-none"
                                             />
-                                            <span className="text-[9px] text-zinc-500">obj</span>
+                                            <span className="text-[10px] font-black text-[var(--md-sys-color-on-surface-variant)] uppercase opacity-30">obj</span>
                                         </div>
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
                                                 min={1}
@@ -366,9 +366,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                                     );
                                                     onUpdateProgram({ ...program, volumeRecommendations: next });
                                                 }}
-                                                className="w-12 bg-black/50 border border-white/20 rounded px-1.5 py-0.5 text-[10px] text-white text-center"
+                                                className="w-14 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)]/30 rounded-xl px-2 py-1.5 text-label-sm font-black text-[var(--md-sys-color-on-surface)] text-center focus:ring-2 focus:ring-[var(--md-sys-color-primary)] outline-none"
                                             />
-                                            <span className="text-[9px] text-zinc-500">max</span>
+                                            <span className="text-[10px] font-black text-[var(--md-sys-color-on-surface-variant)] uppercase opacity-30">max</span>
                                         </div>
                                     </div>
                                 ))}
@@ -434,7 +434,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 {/* ── Strength ── */}
                 {activeWidgets.includes('strength') && (
                     <section>
-                        <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Fuerza Relativa</h3>
+                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Fuerza Relativa</h3>
                         <RelativeStrengthAndBasicsWidget displayedSessions={displayedSessions} />
                     </section>
                 )}
@@ -442,22 +442,22 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 {/* ── Progreso 1RM ejercicios estrella ── */}
                 {activeWidgets.includes('star1rm') && (
                     <section>
-                        <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                            <StarIcon size={14} filled className="text-amber-400" />
+                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                            <StarIcon size={16} filled style={{ color: 'var(--md-sys-color-tertiary)' }} />
                             Progreso 1RM — Ejercicios estrella
                         </h3>
-                        <p className="text-[10px] text-[#48484A] mb-3">
+                        <p className="text-label-sm mb-4 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                             Ejercicios marcados como estrella en Session Editor. 1RM estimado (Brzycki) por sesión.
                         </p>
                         {starExerciseNames.length === 0 ? (
-                            <div className="bg-[#0a0a0a] rounded-xl p-4 border border-white/10 text-center">
-                                <p className="text-xs text-zinc-500">No hay ejercicios estrella en este programa.</p>
-                                <p className="text-[10px] text-zinc-500 mt-1">Marca ejercicios con la estrella en el editor de sesión.</p>
+                            <div className="bg-[var(--md-sys-color-surface-container)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)] text-center">
+                                <p className="text-label-md font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>No hay ejercicios estrella</p>
+                                <p className="text-label-sm mt-1 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Márcalos con la estrella en el editor de sesión.</p>
                             </div>
                         ) : star1RMWithGoals.length === 0 ? (
-                            <div className="bg-[#0a0a0a] rounded-xl p-4 border border-white/10 text-center">
-                                <p className="text-xs text-zinc-500">Aún no hay datos de 1RM para los ejercicios estrella.</p>
-                                <p className="text-[10px] text-zinc-500 mt-1">Completa sesiones que los incluyan para ver el progreso.</p>
+                            <div className="bg-[var(--md-sys-color-surface-container)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)] text-center">
+                                <p className="text-label-md font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>Esperando datos</p>
+                                <p className="text-label-sm mt-1 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Completa sesiones que los incluyan para ver el progreso.</p>
                             </div>
                         ) : (
                             <div className="space-y-2">
@@ -466,22 +466,21 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                         ? Math.min(100, (lastE1rm / goal1RM) * 100)
                                         : null;
                                     return (
-                                        <div key={name} className="py-2.5 px-3 rounded-xl bg-[#0a0a0a] border border-white/10 space-y-1.5">
+                                        <div key={name} className="py-3.5 px-4 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] space-y-2.5">
                                             <div className="flex items-center justify-between gap-3">
-                                                <span className="text-xs font-bold text-white truncate flex-1">{name}</span>
-                                                <span className="text-sm font-black text-white shrink-0">{lastE1rm != null ? `${Math.round(lastE1rm)} kg` : '—'}</span>
-                                                {goal1RM != null && <span className="text-[10px] text-amber-400 shrink-0">meta {goal1RM} kg</span>}
-                                                {trend === 'up' && <span className="text-[10px] font-bold text-[#00F19F] shrink-0">↑</span>}
-                                                {trend === 'down' && <span className="text-[10px] font-bold text-[#FF3B30] shrink-0">↓</span>}
-                                                {trend === 'same' && prevE1rm != null && <span className="text-[10px] text-zinc-500 shrink-0">—</span>}
+                                                <span className="text-title-sm font-black uppercase tracking-tight truncate flex-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>{name}</span>
+                                                <span className="text-title-md font-black shrink-0" style={{ color: 'var(--md-sys-color-primary)' }}>{lastE1rm != null ? `${Math.round(lastE1rm)} kg` : '—'}</span>
+                                                {goal1RM != null && <span className="text-label-sm font-black uppercase tracking-widest shrink-0" style={{ color: 'var(--md-sys-color-tertiary)' }}>meta {goal1RM}</span>}
+                                                {trend === 'up' && <span className="text-title-sm font-black text-[var(--md-sys-color-primary)] shrink-0">↑</span>}
+                                                {trend === 'down' && <span className="text-title-sm font-black text-[var(--md-sys-color-error)] shrink-0">↓</span>}
                                             </div>
                                             {progress != null && (
-                                                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-2 bg-[var(--md-sys-color-surface-variant)] rounded-full overflow-hidden">
                                                     <div
                                                         className="h-full rounded-full transition-all"
                                                         style={{
                                                             width: `${progress}%`,
-                                                            backgroundColor: progress >= 100 ? '#22d3ee' : progress >= 70 ? '#22d3ee' : '#fbbf24',
+                                                            backgroundColor: progress >= 100 ? 'var(--md-sys-color-primary)' : progress >= 70 ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-tertiary)',
                                                         }}
                                                     />
                                                 </div>
@@ -497,11 +496,11 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 {/* ── AUGE Banister ── */}
                 {activeWidgets.includes('banister') && adaptiveCache.banister && (
                     <section>
-                        <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">AUGE — Fitness vs Fatiga</h3>
-                        <p className="text-[10px] text-zinc-500 mb-3">
+                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>AUGE — Fitness vs Fatiga</h3>
+                        <p className="text-label-sm mb-4 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                             {adaptiveCache.banister.verdict || 'Modelo Banister activo'}
                         </p>
-                        <div className="bg-[#1a1a1a] rounded-xl p-3">
+                        <div className="bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-4">
                             <BanisterTrend systemData={adaptiveCache.banister?.systems?.muscular || null} />
                         </div>
                     </section>
@@ -510,29 +509,30 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 {/* ── Recovery Map ── */}
                 {activeWidgets.includes('recovery') && recoveryData.length > 0 && (
                     <section>
-                        <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Recuperación</h3>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{
-                                backgroundColor: confidenceLabel === 'Alta' ? 'rgba(0,241,159,0.1)' : confidenceLabel === 'Media' ? 'rgba(255,214,10,0.1)' : 'rgba(255,59,48,0.1)',
-                                color: confidenceLabel === 'Alta' ? '#00F19F' : confidenceLabel === 'Media' ? '#FFD60A' : '#FF3B30',
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-label-sm font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Recuperación</h3>
+                            <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full" style={{
+                                backgroundColor: confidenceLabel === 'Alta' ? 'var(--md-sys-color-primary-container)' : confidenceLabel === 'Media' ? 'var(--md-sys-color-tertiary-container)' : 'var(--md-sys-color-error-container)',
+                                color: confidenceLabel === 'Alta' ? 'var(--md-sys-color-on-primary-container)' : confidenceLabel === 'Media' ? 'var(--md-sys-color-on-tertiary-container)' : 'var(--md-sys-color-on-error-container)',
+                                border: '1px solid var(--md-sys-color-outline-variant)'
                             }}>
-                                {confidenceLabel}
+                                Confianza {confidenceLabel}
                             </span>
                         </div>
                         <div className="space-y-1">
                             {recoveryData.map(([muscle, hours]) => (
                                 <div key={muscle} className="flex items-center gap-2">
-                                    <span className="w-20 text-[10px] font-bold text-zinc-500 truncate text-right">{muscle}</span>
-                                    <div className="flex-1 h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
+                                    <span className="w-24 text-label-sm font-black uppercase tracking-widest opacity-60 text-right" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{muscle}</span>
+                                    <div className="flex-1 h-3 bg-[var(--md-sys-color-surface-container-high)] rounded-full overflow-hidden">
                                         <div
-                                            className="h-full rounded-full"
+                                            className="h-full rounded-full shadow-sm"
                                             style={{
                                                 width: `${Math.min(100, (hours / 96) * 100)}%`,
-                                                backgroundColor: hours > 72 ? '#FF3B30' : hours > 48 ? '#FFD60A' : '#00F19F',
+                                                backgroundColor: hours > 72 ? 'var(--md-sys-color-error)' : hours > 48 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)',
                                             }}
                                         />
                                     </div>
-                                    <span className="w-8 text-[10px] font-bold text-white text-right">{Math.round(hours)}h</span>
+                                    <span className="w-10 text-label-sm font-black text-right" style={{ color: 'var(--md-sys-color-on-surface)' }}>{Math.round(hours)}h</span>
                                 </div>
                             ))}
                         </div>
@@ -551,11 +551,11 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 {/* ── Exercise History ── */}
                 {activeWidgets.includes('history') && (
                     <section>
-                        <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Historial de Ejercicios</h3>
+                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Historial de Ejercicios</h3>
                         <ExerciseHistoryWidget program={program} history={historyData} />
                     </section>
                 )}
-                </div>
+            </div>
         </div>
     );
 };
