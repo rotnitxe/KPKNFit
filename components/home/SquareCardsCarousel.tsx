@@ -62,7 +62,7 @@ export const SquareCardsCarousel: React.FC<SquareCardsCarouselProps> = ({
     return (
         <div className="w-full">
             {title && (
-                <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-[#79747E] mb-2">
                     {title}
                 </h2>
             )}
@@ -95,7 +95,7 @@ export const SquareCardsCarousel: React.FC<SquareCardsCarouselProps> = ({
                                 {pageChildren.map((child, idx) => (
                                     <div
                                         key={idx}
-                                        className="shrink-0 overflow-hidden rounded-xl"
+                                        className="shrink-0 overflow-hidden rounded-[20px]"
                                         style={{
                                             width: cardWidth,
                                             aspectRatio: '1 / 1.1',
@@ -122,9 +122,8 @@ export const SquareCardsCarousel: React.FC<SquareCardsCarouselProps> = ({
                                 });
                             }}
                             aria-label={`Página ${i + 1}`}
-                            className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                                i === pageIndex ? 'bg-cyan-500' : 'bg-zinc-600'
-                            }`}
+                            className={`w-1.5 h-1.5 rounded-full transition-colors ${i === pageIndex ? 'bg-[#1C1B1F]' : 'bg-[#E8E0DE]'
+                                }`}
                         />
                     ))}
                 </div>

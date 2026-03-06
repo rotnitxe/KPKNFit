@@ -50,18 +50,15 @@ const ElevatedCard: React.FC<{
 }> = ({ children, className = '', onClick }) => (
     <div
         className={`
-            bg-[var(--md-sys-color-surface-container)]
-            border border-[var(--md-sys-color-outline-variant)]
-            rounded-xl
-            shadow-[0_1px_3px_rgba(0,0,0,0.3),0_4px_8px_rgba(0,0,0,0.2)]
+            bg-white
+            rounded-[28px]
+            shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)]
             transition-all duration-200
-            ${onClick ? 'cursor-pointer hover:shadow-[0_2px_6px_rgba(0,0,0,0.4),0_8px_16px_rgba(0,0,0,0.25)] active:scale-[0.98]' : ''}
+            ${onClick ? 'cursor-pointer hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)] active:scale-[0.98]' : ''}
             ${className}
         `}
         onClick={onClick}
     >
-        {/* Glow sutil en el borde superior para heredar luz ambiental */}
-        <div className="absolute inset-0 rounded-xl pointer-events-none border-t border-white/10 opacity-40" />
         {children}
     </div>
 );
@@ -171,63 +168,82 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
     // ═══════════════════════════════════════════════════════════════════════════
     // renderWithProgram 
     // ═══════════════════════════════════════════════════════════════════════════
-    const renderWithProgram = () => (
-        <>
+    const renderWithProgram = () => {
+        const primaryProgram = (vm.sessionsWithOngoing.length > 0 && vm.ongoingWorkout && vm.sessionsWithOngoing.length === 1)
+            ? vm.programs.find(p => p.id === vm.ongoingWorkout!.programId) || vm.activeProgram!
+            : vm.activeProgram!;
+        const greeting = (() => {
+            const h = new Date().getHours();
+            if (h < 12) return '¡Buenos días';
+            if (h < 19) return '¡Buenas tardes';
+            return '¡Buenas noches';
+        })();
+        const userName = vm.settings?.username || '';
+
+        return (
             <div
-                className="w-full flex flex-col"
-                style={{
-                    backgroundColor: 'var(--md-sys-color-surface-container)',
-                    paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))',
-                }}
+                className="flex flex-col w-full max-w-md mx-auto pb-10"
+                style={{ paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}
             >
-                <div className="w-full max-w-md mx-auto px-4 sm:px-6 pt-2 pb-5">
-                    <p
-                        className="text-label-sm mb-3 opacity-70"
-                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                    >
-                        {dateHeaderStr}
-                    </p>
+                {/* ═══ Header: avatar + icons ═══ */}
+                <div className="flex items-center justify-between px-5 pt-2 pb-1">
+                    <div className="w-9 h-9 rounded-full bg-[#E8E0DE] flex items-center justify-center">
+                        <CaupolicanIcon size={20} className="text-[#49454F]" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1B1F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                        </button>
+                        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1B1F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                {/* ═══ Saludo bold Material 3 ═══ */}
+                <div className="px-5 pt-3 pb-2">
+                    <h1 className="text-[26px] font-black text-[#1C1B1F] tracking-tight leading-tight">
+                        {greeting}, {userName}!
+                    </h1>
+                </div>
+
+                {/* ═══ Tus RINGS ═══ */}
+                <div className="px-5 pt-4">
+                    <h2 className="text-[18px] font-bold text-[#1C1B1F] mb-3">Tus RINGS</h2>
                     <AugeTelemetryPanel variant="hero" shareable />
                 </div>
-            </div>
 
-            <div
-                className="relative z-10 flex flex-col w-full max-w-md mx-auto pb-10"
-                style={{ backgroundColor: 'var(--md-sys-color-background)' }}
-            >
-                <div className="flex flex-col px-6 pt-6 space-y-8">
-
-                    <div className="w-full">
-                        {(() => {
-                            const primaryProgram = (vm.sessionsWithOngoing.length > 0 && vm.ongoingWorkout && vm.sessionsWithOngoing.length === 1)
-                                ? vm.programs.find(p => p.id === vm.ongoingWorkout!.programId) || vm.activeProgram!
-                                : vm.activeProgram!;
-                            return (
-                                <SessionTodayCard
-                                    key="session"
-                                    variant="continuation"
-                                    programName={primaryProgram?.name ?? 'Entrenamiento'}
-                                    programId={primaryProgram?.id ?? ''}
-                                    todaySessions={vm.sessionsWithOngoing}
-                                    ongoingWorkout={vm.ongoingWorkout ? { session: vm.ongoingWorkout.session, programId: vm.ongoingWorkout.programId, isPaused: vm.ongoingWorkout.isPaused } : null}
-                                    onStartWorkout={vm.handleStartWorkout}
-                                    onResumeWorkout={onResumeWorkout}
-                                    onEditSession={(programId, macroIndex, mesoIndex, weekId, sessionId) =>
-                                        vm.navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, sessionId })
-                                    }
-                                    onViewProgram={(programId) => vm.navigateTo('program-detail', { programId })}
-                                    onOpenStartWorkoutModal={() => vm.setIsStartWorkoutModalOpen(true)}
-                                    onShareLog={handleShareLog}
-                                />
-                            );
-                        })()}
+                {/* ═══ Sesión de hoy ═══ */}
+                <div className="px-5 pt-8">
+                    <div className="flex items-center gap-2 mb-3">
+                        <h2 className="text-[18px] font-bold text-[#1C1B1F]">Sesión de hoy</h2>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1B1F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                     </div>
+                    <SessionTodayCard
+                        key="session"
+                        variant="continuation"
+                        programName={primaryProgram?.name ?? 'Entrenamiento'}
+                        programId={primaryProgram?.id ?? ''}
+                        todaySessions={vm.sessionsWithOngoing}
+                        ongoingWorkout={vm.ongoingWorkout ? { session: vm.ongoingWorkout.session, programId: vm.ongoingWorkout.programId, isPaused: vm.ongoingWorkout.isPaused } : null}
+                        onStartWorkout={vm.handleStartWorkout}
+                        onResumeWorkout={onResumeWorkout}
+                        onEditSession={(programId, macroIndex, mesoIndex, weekId, sessionId) =>
+                            vm.navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, sessionId })
+                        }
+                        onViewProgram={(programId) => vm.navigateTo('program-detail', { programId })}
+                        onOpenStartWorkoutModal={() => vm.setIsStartWorkoutModalOpen(true)}
+                        onShareLog={handleShareLog}
+                    />
+                </div>
 
+                {/* ═══ Progreso físico y alimentación + Ejercicios ═══ */}
+                <div className="px-5 pt-8">
                     <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
                 </div>
             </div>
-        </>
-    );
+        );
+    };
 
     // ═══════════════════════════════════════════════════════════════════════════
     // renderSelectProgram
@@ -398,19 +414,9 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
 
     return (
         <div
-            className="relative min-h-full w-full flex flex-col tab-bar-safe-area"
-            style={{ backgroundColor: 'var(--md-sys-color-background)' }}
+            className="relative min-h-full w-full flex flex-col tab-bar-safe-area overflow-y-auto"
+            style={{ backgroundColor: '#FDF8F6' }}
         >
-            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-                <div
-                    className="absolute -top-40 -right-20 w-80 h-80 rounded-full blur-[100px] opacity-[0.04]"
-                    style={{ backgroundColor: 'var(--md-sys-color-primary)' }}
-                />
-                <div
-                    className="absolute top-1/3 -left-20 w-60 h-60 rounded-full blur-[80px] opacity-[0.03]"
-                    style={{ backgroundColor: 'var(--md-sys-color-tertiary)' }}
-                />
-            </div>
 
             {vm.activeProgram ? renderWithProgram() : vm.programs.length > 0 ? renderSelectProgram() : renderNoPrograms()}
 

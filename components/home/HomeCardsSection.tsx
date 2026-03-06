@@ -1,5 +1,5 @@
 // components/home/HomeCardsSection.tsx
-// Sección de tarjetas cuadradas por categorías: Progreso e historial + Progreso físico
+// Material 3 — Secciones de tarjetas: Progreso físico y Progreso por ejercicio
 
 import React, { useMemo } from 'react';
 import { SquareCardsCarousel } from './SquareCardsCarousel';
@@ -20,9 +20,15 @@ import {
 } from './cards/ProgresoFisicoCards';
 
 interface HomeCardsSectionProps {
-    /** Navegar a vista. cardType se mapea a View + data */
     onNavigateToCard: (cardType: string) => void;
 }
+
+const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
+    <div className="flex items-center gap-2 mb-3">
+        <h2 className="text-[18px] font-bold text-[#1C1B1F]">{title}</h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1B1F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+    </div>
+);
 
 export const HomeCardsSection: React.FC<HomeCardsSectionProps> = ({ onNavigateToCard }) => {
     const ejercicioCards = useMemo(() => [
@@ -41,12 +47,10 @@ export const HomeCardsSection: React.FC<HomeCardsSectionProps> = ({ onNavigateTo
     ], [onNavigateToCard]);
 
     return (
-        <div className="space-y-6">
-            {/* Progreso físico: widget macros + grid 2x2 de tarjetas (todas visibles) */}
+        <div className="space-y-8">
+            {/* Progreso físico y alimentación */}
             <section>
-                <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
-                    Progreso físico
-                </h2>
+                <SectionHeader title="Progreso físico y alimentación" />
                 <div className="mb-3">
                     <MacrosWidgetCard onNavigate={() => onNavigateToCard('macros')} />
                 </div>
@@ -59,9 +63,10 @@ export const HomeCardsSection: React.FC<HomeCardsSectionProps> = ({ onNavigateTo
                 </div>
             </section>
 
-            {/* Progreso e historial por ejercicio */}
+            {/* Progreso en ejercicios */}
             <section>
-                <SquareCardsCarousel title="Progreso e historial por ejercicio" gap={14}>
+                <SectionHeader title="Progreso en ejercicios" />
+                <SquareCardsCarousel gap={14}>
                     {ejercicioCards}
                 </SquareCardsCarousel>
             </section>

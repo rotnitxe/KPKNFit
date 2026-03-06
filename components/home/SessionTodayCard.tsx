@@ -1,5 +1,8 @@
 // components/home/SessionTodayCard.tsx
-// Cockpit-style session card for Home Hub
+// Material 3 — Tarjeta de sesión siguiendo diseño Figma:
+//   · Área gris con shapes abstractas (ilustración placeholder)
+//   · Nombre de sesión + nombre de programa
+//   · Play button circular negro a la derecha
 
 import React from 'react';
 import { Program, Session, WorkoutLog } from '../../types';
@@ -28,7 +31,6 @@ interface SessionTodayCardProps {
     onViewProgram: (programId: string) => void;
     onOpenStartWorkoutModal: () => void;
     onShareLog?: (log: WorkoutLog) => void;
-    /** Variante "continuation": híbrido tarjeta/continuación visual, con demarcación clara vs hero */
     variant?: 'card' | 'continuation';
 }
 
@@ -48,147 +50,126 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
     const { exerciseList } = useAppState();
     const hasSessions = todaySessions.length > 0;
     const firstSession = todaySessions[0];
-    const hasPendingSession = hasSessions && todaySessions.some(ts => !ts.isCompleted && !(ongoingWorkout && ongoingWorkout.programId === ts.program.id && ongoingWorkout.session.id === ts.session.id));
 
     const dayLabel = hasSessions && firstSession
         ? getSessionDayLabel(firstSession.session, exerciseList ?? [])
         : 'DESCANSO';
 
-    const isContinuation = variant === 'continuation';
+    if (!hasSessions) {
+        return (
+            <div className="flex flex-col items-center py-8">
+                <CaupolicanIcon size={48} color="#9E9E9E" />
+                <p className="text-[14px] font-semibold text-[#49454F] mt-3">Día de Descanso</p>
+                <p className="text-[11px] text-[#79747E] mt-1">El músculo crece cuando descansas</p>
+                <button
+                    onClick={() => onViewProgram(programId)}
+                    className="mt-4 px-5 py-2 rounded-full text-[11px] font-bold text-[#1C1B1F] bg-[#E8E0DE] hover:bg-[#D9D1CE] transition-colors"
+                >
+                    Ver Programa
+                </button>
+            </div>
+        );
+    }
 
     return (
-        <div
-            className={`flex flex-col ${isContinuation
-                    ? 'bg-transparent'
-                    : 'min-h-[180px] overflow-hidden bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl'
-                }`}
-        >
-            {/* Header — demarcación: HERO = baterías, aquí = sesión */}
-            <div className={`flex justify-between items-center flex-wrap gap-2 ${isContinuation ? 'px-0 py-2' : 'px-5 py-3 border-b border-white/5'}`}>
-                <div className="flex items-center gap-2">
-                    {isContinuation && (
-                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">
-                            Sesión de hoy
-                        </span>
-                    )}
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em]">
-                        {programName}
-                    </span>
-                </div>
-                <div className="flex items-center gap-2">
-                    {hasPendingSession && (
-                        <span className="text-[8px] font-mono text-amber-400 bg-amber-950/30 border border-amber-500/20 rounded px-2 py-0.5">
-                            Sesión pendiente
-                        </span>
-                    )}
-                    <span className="text-[9px] font-mono text-zinc-600">
-                        {dayLabel}
-                    </span>
-                </div>
-            </div>
+        <div className="space-y-3">
+            {todaySessions.map((ts, idx) => {
+                const isOngoing = ongoingWorkout && ongoingWorkout.programId === ts.program.id && ongoingWorkout.session.id === ts.session.id;
+                const isPaused = isOngoing && ongoingWorkout?.isPaused;
 
-            {/* Content */}
-            <div className={`flex-1 flex flex-col ${isContinuation ? 'py-0' : 'p-5'}`}>
-                {hasSessions ? (
-                    <div className={isContinuation ? 'space-y-3' : 'space-y-4'}>
-                        {todaySessions.map((ts, idx) => {
-                            const isOngoing = ongoingWorkout && ongoingWorkout.programId === ts.program.id && ongoingWorkout.session.id === ts.session.id;
-                            const isPaused = isOngoing && ongoingWorkout?.isPaused;
-                            const sessionBlockClass = isContinuation
-                                ? 'py-4 transition-all ' + (ts.isCompleted ? 'text-zinc-500' : '')
-                                : `rounded-xl border p-5 transition-all ${ts.isCompleted ? 'bg-emerald-950/30 border-emerald-500/30' : isOngoing ? 'bg-amber-950/30 border-amber-500/30' : 'bg-white/5 border-white/10 hover:border-white/20'}`;
-                            return (
-                                <div key={idx} className={sessionBlockClass}>
-                                    {!ts.isCompleted && (
-                                        <SessionReadinessBlock session={ts.session} compact={isContinuation} />
-                                    )}
-                                    {ts.isCompleted && (
-                                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                                            <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded-full border border-emerald-500/30">
-                                                <CheckCircleIcon size={10} /> Completada
-                                            </div>
-                                            {ts.log && onShareLog && (
-                                                <button onClick={() => onShareLog(ts.log!)} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 text-white/90 text-[8px] font-black uppercase tracking-widest rounded-full border border-white/20 hover:bg-white/20 transition-colors">
-                                                    <LinkIcon size={10} /> Compartir
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                    {isOngoing && !ts.isCompleted && (
-                                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                                            <div className={`inline-flex items-center gap-2 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-full border ${isPaused ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'}`}>
-                                                {isPaused ? <PauseIcon size={10} /> : <PlayIcon size={10} />}
-                                                {isPaused ? 'Pausada' : 'En curso'}
-                                            </div>
-                                        </div>
-                                    )}
-                                    <h3 className={`font-black uppercase tracking-tight ${isContinuation ? 'text-lg mb-3' : 'text-xl mb-4'} ${ts.isCompleted ? 'text-zinc-500' : 'text-white'}`}>
-                                        {ts.session.name}
-                                    </h3>
-                                    {!ts.isCompleted && (
-                                        isOngoing && onResumeWorkout ? (
-                                            <button
-                                                onClick={onResumeWorkout}
-                                                className={`w-full bg-cyan-500 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:bg-cyan-400 active:scale-[0.98] transition-all flex justify-center items-center gap-2 border border-cyan-400/30 ${isContinuation ? 'py-3' : 'py-3.5'}`}
-                                            >
-                                                <PlayIcon size={14} fill="currentColor" /> Reanudar
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => onStartWorkout(ts.session, ts.program, undefined, ts.location)}
-                                                className={`w-full bg-white text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:bg-zinc-200 active:scale-[0.98] transition-all flex justify-center items-center gap-2 ${isContinuation ? 'py-3' : 'py-3.5'}`}
-                                            >
-                                                <PlayIcon size={14} fill="currentColor" /> Iniciar
-                                            </button>
-                                        )
-                                    )}
+                return (
+                    <div key={idx} className="flex flex-col">
+                        {/* ── Imagen/Ilustración abstracta (Figma: grey rounded area) ── */}
+                        <div className="w-full h-[140px] bg-[#E8E0DE] rounded-[24px] flex items-center justify-center overflow-hidden relative">
+                            {/* Abstract shapes como en el Figma */}
+                            <svg width="120" height="80" viewBox="0 0 120 80" fill="none" className="opacity-40">
+                                <path d="M60 10l20 35-20 35-20-35z" fill="#B0A8A4" />
+                                <circle cx="40" cy="55" r="18" fill="#A09892" />
+                                <rect x="65" y="40" width="30" height="30" rx="6" fill="#A09892" />
+                            </svg>
+                            {/* Status badges */}
+                            {ts.isCompleted && (
+                                <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/90 text-white text-[9px] font-bold uppercase tracking-wider rounded-full">
+                                    <CheckCircleIcon size={10} /> Completada
                                 </div>
-                            );
-                        })}
+                            )}
+                            {isOngoing && !ts.isCompleted && (
+                                <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 text-white text-[9px] font-bold uppercase tracking-wider rounded-full ${isPaused ? 'bg-amber-500/90' : 'bg-sky-500/90'}`}>
+                                    {isPaused ? <PauseIcon size={10} /> : <PlayIcon size={10} />}
+                                    {isPaused ? 'Pausada' : 'En curso'}
+                                </div>
+                            )}
+                        </div>
 
-                        {/* Quick actions */}
-                        <div className={`flex gap-2 ${isContinuation ? 'pt-3' : 'pt-2'}`}>
-                            {firstSession && (
+                        {/* ── Session info + Play Button ── */}
+                        <div className="flex items-center justify-between mt-2.5 px-0.5">
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-[16px] font-bold text-[#1C1B1F] truncate">
+                                    {ts.session.name}
+                                </h3>
+                                <p className="text-[13px] text-[#79747E]">{programName}</p>
+                            </div>
+                            {!ts.isCompleted && (
+                                isOngoing && onResumeWorkout ? (
+                                    <button
+                                        onClick={onResumeWorkout}
+                                        className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1C1B1F] text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:bg-[#333] active:scale-95 transition-all flex-shrink-0 ml-3"
+                                    >
+                                        <PlayIcon size={20} fill="currentColor" />
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => onStartWorkout(ts.session, ts.program, undefined, ts.location)}
+                                        className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1C1B1F] text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:bg-[#333] active:scale-95 transition-all flex-shrink-0 ml-3"
+                                    >
+                                        <PlayIcon size={20} fill="currentColor" />
+                                    </button>
+                                )
+                            )}
+                            {ts.isCompleted && ts.log && onShareLog && (
                                 <button
-                                    onClick={() => onEditSession(firstSession.program.id, firstSession.location.macroIndex, firstSession.location.mesoIndex, firstSession.location.weekId, firstSession.session.id)}
-                                    className={`flex-1 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${isContinuation ? 'text-zinc-500 hover:text-white' : 'text-zinc-400 border border-white/10 bg-black/50 hover:bg-white/10 hover:text-white'}`}
+                                    onClick={() => onShareLog(ts.log!)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-[#E8E0DE] text-[#49454F] hover:bg-[#D9D1CE] active:scale-95 transition-all flex-shrink-0 ml-3"
                                 >
-                                    <PencilIcon size={12} /> Editar
+                                    <LinkIcon size={16} />
                                 </button>
                             )}
-                            {firstSession && (
-                                <button
-                                    onClick={() => onViewProgram(firstSession.program.id)}
-                                    className={`flex-1 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${isContinuation ? 'text-zinc-500 hover:text-white' : 'text-zinc-400 border border-white/10 bg-black/50 hover:bg-white/10 hover:text-white'}`}
-                                >
-                                    <SettingsIcon size={12} /> Programa
-                                </button>
-                            )}
-                            <button
-                                onClick={onOpenStartWorkoutModal}
-                                className={`flex-1 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${isContinuation ? 'text-zinc-500 hover:text-white' : 'text-zinc-400 border border-white/10 bg-black/50 hover:bg-white/10 hover:text-white'}`}
-                            >
-                                <RefreshCwIcon size={12} /> Cambiar
-                            </button>
                         </div>
+
+                        {/* ── Readiness (if not completed) ── */}
+                        {!ts.isCompleted && (
+                            <div className="mt-3">
+                                <SessionReadinessBlock session={ts.session} compact />
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <div className={`flex flex-col items-center justify-center text-center ${isContinuation ? 'py-6' : 'flex-1 py-8'}`}>
-                        <CaupolicanIcon size={isContinuation ? 44 : 56} color="#333" />
-                        <p className={`font-bold text-zinc-400 ${isContinuation ? 'text-xs mt-3' : 'text-sm mt-4'}`}>Recuperación Activa</p>
-                        <p className="text-[9px] text-zinc-600 font-black uppercase tracking-widest mt-1">
-                            El músculo crece cuando descansas.
-                        </p>
-                        <div className="flex gap-2 mt-4">
-                            <button
-                                onClick={() => onViewProgram(programId)}
-                                className={`py-2 px-4 rounded-lg text-[9px] font-black text-zinc-500 uppercase tracking-widest hover:text-white transition-colors ${isContinuation ? '' : 'border border-white/10'}`}
-                            >
-                                Ver Programa
-                            </button>
-                        </div>
-                    </div>
+                );
+            })}
+
+            {/* Quick actions */}
+            <div className="flex gap-2 pt-1">
+                {firstSession && (
+                    <button
+                        onClick={() => onEditSession(firstSession.program.id, firstSession.location.macroIndex, firstSession.location.mesoIndex, firstSession.location.weekId, firstSession.session.id)}
+                        className="flex-1 py-2.5 rounded-full text-[10px] font-bold text-[#79747E] hover:text-[#1C1B1F] hover:bg-[#E8E0DE] transition-colors flex items-center justify-center gap-1.5"
+                    >
+                        <PencilIcon size={12} /> Editar
+                    </button>
                 )}
+                {firstSession && (
+                    <button
+                        onClick={() => onViewProgram(firstSession.program.id)}
+                        className="flex-1 py-2.5 rounded-full text-[10px] font-bold text-[#79747E] hover:text-[#1C1B1F] hover:bg-[#E8E0DE] transition-colors flex items-center justify-center gap-1.5"
+                    >
+                        <SettingsIcon size={12} /> Programa
+                    </button>
+                )}
+                <button
+                    onClick={onOpenStartWorkoutModal}
+                    className="flex-1 py-2.5 rounded-full text-[10px] font-bold text-[#79747E] hover:text-[#1C1B1F] hover:bg-[#E8E0DE] transition-colors flex items-center justify-center gap-1.5"
+                >
+                    <RefreshCwIcon size={12} /> Cambiar
+                </button>
             </div>
         </div>
     );
