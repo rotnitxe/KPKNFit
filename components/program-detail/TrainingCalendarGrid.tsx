@@ -340,26 +340,28 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                 </div>
             )}
 
-            {/* ── Sub-tabs: Semanas | Estructura ── */}
-            <div className="flex border-b border-[var(--md-sys-color-outline-variant)]/50 shrink-0 px-4" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
-                <button
-                    onClick={() => setMainTab('semanas')}
-                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-center transition-all ${mainTab === 'semanas'
-                        ? 'border-b-2 border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-primary)]'
-                        : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'
-                        }`}
-                >
-                    Semanas
-                </button>
-                <button
-                    onClick={() => setMainTab('estructura')}
-                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-center transition-all ${mainTab === 'estructura'
-                        ? 'border-b-2 border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-primary)]'
-                        : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'
-                        }`}
-                >
-                    Estructura
-                </button>
+            {/* ── Sub-tabs Header ── */}
+            <div className="px-4 py-3 bg-[var(--md-sys-color-surface-container)] shrink-0 flex justify-center border-b border-[var(--md-sys-color-outline-variant)]">
+                <div className="flex items-center p-1 bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-xl w-full max-w-[240px]">
+                    <button
+                        onClick={() => setMainTab('semanas')}
+                        className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-center rounded-lg transition-all ${mainTab === 'semanas'
+                            ? 'bg-white text-black shadow-sm'
+                            : 'text-[var(--md-sys-color-on-surface-variant)] hover:text-white'
+                            }`}
+                    >
+                        Semanas
+                    </button>
+                    <button
+                        onClick={() => setMainTab('estructura')}
+                        className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-center rounded-lg transition-all ${mainTab === 'estructura'
+                            ? 'bg-white text-black shadow-sm'
+                            : 'text-[var(--md-sys-color-on-surface-variant)] hover:text-white'
+                            }`}
+                    >
+                        Estructura
+                    </button>
+                </div>
             </div>
 
             {/* ── Week nav: stepper dots + arrows (only in Semanas tab) ── */}
@@ -526,10 +528,10 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                         inline
                     />
                 </div>
-            ) : mainTab === 'semanas' ? (
+            ) : mainTab === 'semanas' && selectedWeek ? (
                 <DragDropContext onDragEnd={handleSessionDragEnd}>
                     <div
-                        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-8 custom-scrollbar"
+                        className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden snap-x snap-mandatory flex gap-4 px-4 py-6 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] custom-scrollbar"
                         onTouchStart={e => {
                             touchStartX.current = e.touches[0].clientX;
                             touchStartY.current = e.touches[0].clientY;
@@ -538,7 +540,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                             if (touchStartX.current === null || touchStartY.current === null) return;
                             const dx = e.changedTouches[0].clientX - touchStartX.current;
                             const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
-                            if (Math.abs(dx) > 50 && dy < 40) {
+                            if (Math.abs(dx) > 60 && dy < 40) {
                                 if (dx < 0) navigateWeek(1);
                                 else navigateWeek(-1);
                             }
@@ -546,127 +548,96 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                             touchStartY.current = null;
                         }}
                     >
-                        {currentWeeks.map((week, weekIdx) => {
-                            const weekSessionsByDay = getSessionsByDayForWeek(week);
-                            const isSelected = week.id === selectedWeekId;
+                        {orderedDays.map(dayIdx => {
+                            const sessions = sessionsByDay.get(dayIdx) || [];
+                            const dropId = `${selectedWeek.id}::${dayIdx}`;
                             return (
-                                <div
-                                    key={week.id}
-                                    className={`w-full transition-all ${isSelected ? 'border-l-2 border-[var(--md-sys-color-primary)]/40 pl-4' : 'border-l-2 border-transparent pl-4'}`}
-                                >
-                                    <div className="flex items-center justify-between gap-2 py-1.5 mb-2">
-                                        <span className="text-label-sm font-black uppercase tracking-[0.2em]" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{getWeekLabel(weekIdx)}</span>
-                                        <div className="flex items-center gap-1">
+                                <div key={dayIdx} className="min-w-[280px] w-[85vw] max-w-[340px] shrink-0 snap-center flex flex-col gap-3">
+                                    <div className="flex items-center justify-between pb-2 border-b border-[var(--md-sys-color-outline-variant)]/30">
+                                        <span className="text-sm font-black uppercase tracking-[0.1em]" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                                            {DAY_NAMES_SHORT[dayIdx]}
+                                        </span>
+                                        {onAddSession && selectedBlock && (
                                             <button
-                                                onClick={(e) => { e.stopPropagation(); onOpenSplitChanger(); }}
-                                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--md-sys-color-surface-variant)]"
-                                                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                                                title="Cambiar split"
-                                                aria-label="Cambiar split"
+                                                onClick={() => onAddSession(program.id, selectedBlock.macroIndex, selectedWeek.mesoIndex, selectedWeek.id, dayIdx)}
+                                                className="w-8 h-8 rounded-lg bg-[var(--md-sys-color-primary-container)] flex items-center justify-center text-[var(--md-sys-color-on-primary-container)] hover:brightness-110 active:scale-95 transition-all"
+                                                aria-label={`Añadir sesión al ${DAY_NAMES_SHORT[dayIdx]}`}
                                             >
-                                                <GridIcon size={14} />
+                                                <PlusIcon size={16} />
                                             </button>
-                                            {week.id === selectedWeekId && (
-                                                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">Actual</span>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
-                                    <div className="divide-y divide-[var(--md-sys-color-outline-variant)]/30">
-                                        {orderedDays.map(dayIdx => {
-                                            const sessions = weekSessionsByDay.get(dayIdx) || [];
-                                            const dropId = `${week.id}::${dayIdx}`;
-                                            return (
-                                                <Droppable key={dayIdx} droppableId={dropId}>
-                                                    {(provided: any, snapshot: any) => (
-                                                        <div
-                                                            ref={provided.innerRef}
-                                                            {...provided.droppableProps}
-                                                            className={`flex flex-col min-h-[52px] transition-colors ${snapshot.isDraggingOver ? 'bg-[var(--md-sys-color-surface-variant)]/50' : ''}`}
-                                                        >
-                                                            {sessions.length > 0 ? sessions.map((session, sIdx) => {
-                                                                const exerciseCount = (session.parts && session.parts.length > 0)
-                                                                    ? session.parts.reduce((a, p) => a + (p.exercises?.length || 0), 0)
-                                                                    : (session.exercises || []).length;
-                                                                const estimatedMin = exerciseCount * 8;
-                                                                const isCompleted = completedSessionIds.has(session.id);
-                                                                const block = roadmapBlocks.find(b => b.id === selectedBlockId);
-                                                                const weekData = currentWeeks.find(w => w.id === week.id);
-                                                                return (
-                                                                    <Draggable key={session.id} draggableId={`${week.id}::${session.id}`} index={sIdx}>
-                                                                        {(dragProvided: any, dragSnapshot: any) => (
-                                                                            <div
-                                                                                ref={dragProvided.innerRef}
-                                                                                {...dragProvided.draggableProps}
-                                                                                data-testid="calendar-session-row"
-                                                                                role="button"
-                                                                                tabIndex={0}
-                                                                                aria-label={`Editar sesión ${session.name}`}
-                                                                                className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all cursor-pointer ${dragSnapshot.isDragging ? 'shadow-2xl bg-[var(--md-sys-color-surface-container-highest)] ring-2 ring-[var(--md-sys-color-primary)]' : 'hover:bg-[var(--md-sys-color-surface-container)]'}`}
-                                                                                onClick={() => onEditSession(session)}
-                                                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEditSession(session); } }}
-                                                                            >
-                                                                                <div {...dragProvided.dragHandleProps} className="touch-none shrink-0 cursor-grab active:cursor-grabbing opacity-40 hover:opacity-100" style={{ color: 'var(--md-sys-color-on-surface-variant)' }} onClick={(e) => e.stopPropagation()}>
-                                                                                    <DragHandleIcon size={16} />
-                                                                                </div>
-                                                                                <span className="w-10 text-label-sm font-black uppercase tracking-widest shrink-0" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{DAY_NAMES_SHORT[dayIdx]}</span>
-                                                                                <div className="flex-1 min-w-0">
-                                                                                    <span className="text-title-sm font-black uppercase tracking-tight block truncate" style={{ color: isCompleted ? 'var(--md-sys-color-on-surface-variant)' : 'var(--md-sys-color-on-surface)' }}>
-                                                                                        {session.name}
-                                                                                    </span>
-                                                                                    <span className="text-label-sm flex items-center gap-1.5 mt-0.5 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                                                                                        <DumbbellIcon size={10} /> {exerciseCount} ej <span className="opacity-30">|</span> <ActivityIcon size={10} /> {estimatedMin}m
-                                                                                    </span>
-                                                                                </div>
-                                                                                <button
-                                                                                    data-testid="calendar-session-start"
-                                                                                    aria-label="Iniciar entrenamiento"
-                                                                                    onClick={(e) => { e.stopPropagation(); onStartWorkout(session, program); }}
-                                                                                    className="w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center shrink-0 text-[var(--md-sys-color-on-primary)] shadow-lg hover:brightness-110 active:scale-95 transition-all"
-                                                                                >
-                                                                                    <PlayIcon size={14} fill="currentColor" />
-                                                                                </button>
-                                                                                {week.id === selectedWeekId && block && weekData && (
-                                                                                    <>
-                                                                                        <button
-                                                                                            data-testid="calendar-session-edit"
-                                                                                            aria-label="Editar sesión"
-                                                                                            onClick={(e) => { e.stopPropagation(); onEditSession(session); }}
-                                                                                            className="w-10 h-10 rounded-xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center shrink-0 transition-all hover:bg-[var(--md-sys-color-surface-variant)]"
-                                                                                            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                                                                                        >
-                                                                                            <EditIcon size={14} />
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id, program.id, block.macroIndex, weekData.mesoIndex, week.id); }}
-                                                                                            className="w-10 h-10 rounded-xl bg-[var(--md-sys-color-error-container)]/10 border border-[var(--md-sys-color-error-container)]/20 flex items-center justify-center shrink-0 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]/20 transition-all"
-                                                                                        >
-                                                                                            <TrashIcon size={14} />
-                                                                                        </button>
-                                                                                    </>
-                                                                                )}
-                                                                            </div>
-                                                                        )}
-                                                                    </Draggable>
-                                                                );
-                                                            }) : (
-                                                                week.id === selectedWeekId && onAddSession && selectedBlock && (
-                                                                    <button
-                                                                        onClick={() => onAddSession(program.id, selectedBlock.macroIndex, week.mesoIndex, week.id, dayIdx)}
-                                                                        className="flex items-center gap-4 px-4 py-3.5 rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]/60 hover:bg-[var(--md-sys-color-surface-container)] hover:border-[var(--md-sys-color-primary)]/40 transition-all group"
-                                                                    >
-                                                                        <span className="w-10 text-label-sm font-black uppercase tracking-widest shrink-0 opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{DAY_NAMES_SHORT[dayIdx]}</span>
-                                                                        <span className="flex-1 text-left text-label-sm font-black uppercase tracking-widest opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>+ Añadir sesión</span>
-                                                                        <PlusIcon size={14} className="opacity-40 group-hover:opacity-100 transition-opacity" />
-                                                                    </button>
-                                                                )
+                                    <Droppable droppableId={dropId}>
+                                        {(provided: any, snapshot: any) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.droppableProps}
+                                                className={`flex-1 flex flex-col gap-3 min-h-[120px] rounded-2xl p-2 transition-colors ${snapshot.isDraggingOver ? 'bg-[var(--md-sys-color-surface-variant)]/40' : 'bg-[var(--md-sys-color-surface-container)]'}`}
+                                            >
+                                                {sessions.length > 0 ? sessions.map((session, sIdx) => {
+                                                    const exerciseCount = (session.parts && session.parts.length > 0)
+                                                        ? session.parts.reduce((a, p) => a + (p.exercises?.length || 0), 0)
+                                                        : (session.exercises || []).length;
+                                                    const estimatedMin = exerciseCount * 8;
+                                                    const isCompleted = completedSessionIds.has(session.id);
+                                                    const block = roadmapBlocks.find(b => b.id === selectedBlockId);
+                                                    return (
+                                                        <Draggable key={session.id} draggableId={`${selectedWeek.id}::${session.id}`} index={sIdx}>
+                                                            {(dragProvided: any, dragSnapshot: any) => (
+                                                                <div
+                                                                    ref={dragProvided.innerRef}
+                                                                    {...dragProvided.draggableProps}
+                                                                    className={`flex flex-col gap-3 p-3.5 rounded-xl border transition-all ${dragSnapshot.isDragging ? 'shadow-2xl border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface-container-highest)] ring-4 ring-[var(--md-sys-color-primary)]/20 z-50' : 'border-[var(--md-sys-color-outline-variant)]/50 bg-[#0d0d0d] hover:border-[var(--md-sys-color-outline)]/50'}`}
+                                                                >
+                                                                    <div className="flex items-start gap-3">
+                                                                        <div {...dragProvided.dragHandleProps} className="mt-1 touch-none shrink-0 cursor-grab active:cursor-grabbing opacity-40 hover:opacity-100 transition-opacity" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                                                                            <DragHandleIcon size={16} />
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0" role="button" onClick={() => onEditSession(session)}>
+                                                                            <span className="text-sm font-black uppercase tracking-tight block truncate" style={{ color: isCompleted ? 'var(--md-sys-color-on-surface-variant)' : 'var(--md-sys-color-on-surface)' }}>
+                                                                                {session.name}
+                                                                            </span>
+                                                                            <span className="text-xs flex items-center gap-2 mt-1 opacity-70" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                                                                                <DumbbellIcon size={12} /> {exerciseCount} ej <span className="opacity-30">|</span> <ActivityIcon size={12} /> {estimatedMin}m
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); onStartWorkout(session, program); }}
+                                                                            className="flex-1 h-9 rounded-lg bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] flex items-center justify-center font-black uppercase tracking-widest text-[10px] hover:brightness-110 active:scale-95 transition-all shadow-[0_4px_12px_rgba(var(--md-sys-color-primary-rgb),0.2)]"
+                                                                        >
+                                                                            <PlayIcon size={12} fill="currentColor" className="mr-1.5" /> Iniciar
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); onEditSession(session); }}
+                                                                            className="w-10 h-9 rounded-lg bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center hover:bg-[var(--md-sys-color-surface-variant)] transition-all"
+                                                                            style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                                                                        >
+                                                                            <EditIcon size={14} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id, program.id, block!.macroIndex, selectedWeek.mesoIndex, selectedWeek.id); }}
+                                                                            className="w-10 h-9 rounded-lg bg-[var(--md-sys-color-error-container)]/10 text-[var(--md-sys-color-error)] flex items-center justify-center hover:bg-[var(--md-sys-color-error-container)]/20 transition-all border border-[var(--md-sys-color-error-container)]/20"
+                                                                        >
+                                                                            <TrashIcon size={14} />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
                                                             )}
-                                                            {provided.placeholder}
-                                                        </div>
-                                                    )}
-                                                </Droppable>
-                                            );
-                                        })}
-                                    </div>
+                                                        </Draggable>
+                                                    );
+                                                }) : (
+                                                    <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-8 opacity-40">
+                                                        <DumbbellIcon size={24} className="mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+                                                        <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Descanso</p>
+                                                    </div>
+                                                )}
+                                                {provided.placeholder}
+                                            </div>
+                                        )}
+                                    </Droppable>
                                 </div>
                             );
                         })}

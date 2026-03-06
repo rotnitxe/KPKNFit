@@ -340,6 +340,7 @@ export interface Program {
     coverImage?: string;
     mode: 'powerlifting' | 'hypertrophy' | 'powerbuilding';
     structure: 'simple' | 'complex';
+    blockLabel?: 'bloque' | 'mesociclo';
     macrocycles: Macrocycle[];
     author?: string;
     isPublic?: boolean;
@@ -550,16 +551,23 @@ export interface DailyWellnessLog {
     hydration: 'good' | 'poor';
 }
 
+// Músculos canónicos para conteo de volumen
+export type CanonicalMuscle =
+    | 'Pectorales' | 'Dorsales' | 'Trapecio' | 'Deltoides'
+    | 'Tríceps' | 'Bíceps' | 'Antebrazo' | 'Abdomen'
+    | 'Cuádriceps' | 'Isquiosurales' | 'Glúteos' | 'Aductores' | 'Pantorrillas'
+    | 'Core' | 'Erectores Espinales';
+
 export interface ExerciseMuscleInfo {
     id: string;
     name: string;
     alias?: string;
     description: string;
-    // AQUÍ ESTÁ EL CAMBIO CLAVE:
     involvedMuscles: {
-        muscle: string;
+        muscle: CanonicalMuscle | string; // Canonical preferred, string for backwards compat
         role: MuscleRole;
         activation?: number; // K_rol: Coeficiente de Participación Sinérgica (AUGE)
+        emphasis?: string;   // Porción/cabeza enfatizada (e.g. 'anterior', 'superior', 'recto femoral')
     }[];
     subMuscleGroup?: string;
     category: 'Fuerza' | 'Hipertrofia' | 'Resistencia' | 'Potencia' | 'Movilidad' | 'Pliometría' | 'Estabilidad' | 'Calistenia';
