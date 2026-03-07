@@ -18,7 +18,7 @@
 import React, { useMemo, useState } from 'react';
 import type { Program, Session, View, WorkoutLog, SleepLog, ProgramWeek } from '../types';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { AugeTelemetryPanel } from './home/AugeTelemetryPanel';
+import { AugeTelemetryPanel, RingsViewMode } from './home/AugeTelemetryPanel';
 import { SessionTodayCard } from './home/SessionTodayCard';
 import { HomeCardsSection } from './home/HomeCardsSection';
 import { CaupolicanIcon } from './CaupolicanIcon';
@@ -156,6 +156,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
     const [exerciseHistoryModal, setExerciseHistoryModal] = useState<string | null>(null);
     const [shareLog, setShareLog] = useState<WorkoutLog | null>(null);
     const [isSharing, setIsSharing] = useState(false);
+    const [ringsView, setRingsView] = useState<RingsViewMode>('rings');
 
     const dateHeaderStr = useMemo(() => new Date().toLocaleDateString('es-ES', {
         weekday: 'long',
@@ -200,24 +201,44 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                     </div>
                 </div>
 
-                {/* ═══ Saludo bold Material 3 ═══ */}
-                <div className="px-5 pt-3 pb-2">
-                    <h1 className="text-[26px] font-black text-[#1C1B1F] tracking-tight leading-tight">
+                {/* ═══ Greeting ═══ */}
+                <div className="px-4 pt-2 pb-3">
+                    <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-3xl font-medium font-['Roboto'] leading-9">
                         {greeting}, {userName}!
-                    </h1>
+                    </div>
                 </div>
 
-                {/* ═══ Tus RINGS ═══ */}
-                <div className="px-5 pt-4">
-                    <h2 className="text-[18px] font-bold text-[#1C1B1F] mb-3">Tus RINGS</h2>
-                    <AugeTelemetryPanel variant="hero" shareable />
+                {/* ═══ Tus RINGS + tiny toolbar ═══ */}
+                <div className="bg-[var(--md-sys-color-background,#FDF8F6)] pb-3 overflow-hidden">
+                    <div className="w-40 h-20 px-4 bg-[var(--md-sys-color-surface,#fff)] inline-flex justify-start items-center">
+                        <div className="text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7">Tus RINGS</div>
+                        <div className="flex items-center gap-0.5 bg-[#F0EBE9] rounded-lg p-0.5">
+                            {([
+                                { mode: 'rings' as const, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" /><circle cx="17" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" /></svg> },
+                                { mode: 'muscular' as const, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 6C4 8.5 3 14 5 18c1 2 3 2.5 4 2s2-2 3-2 2 1.5 3 2 3 0 4-2c2-4 1-9.5-1.5-12" /></svg> },
+                                { mode: 'snc' as const, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M12 3c-1.5 0-3 .8-3.5 2-.8-.3-2 0-2.5 1-.7 1.2-.2 2.5.5 3.2-.5.8-.5 2 .2 2.8.5.6 1.3 1 2.3 1h.5" /><path d="M12 3c1.5 0 3 .8 3.5 2 .8-.3 2 0 2.5 1 .7 1.2.2 2.5-.5 3.2.5.8.5 2-.2 2.8-.5.6-1.3 1-2.3 1h-.5" /><line x1="12" y1="13" x2="12" y2="21" /></svg> },
+                            ]).map(({ mode, icon }) => (
+                                <button key={mode}
+                                    onClick={() => setRingsView(mode)}
+                                    className={`w-7 h-7 flex items-center justify-center rounded-md transition-all duration-200 ${ringsView === mode ? 'bg-white text-[#1C1B1F] shadow-sm' : 'text-[#9E9E9E] hover:text-[#79747E]'}`}
+                                >
+                                    {icon}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <AugeTelemetryPanel variant="hero" shareable viewMode={ringsView} />
                 </div>
 
                 {/* ═══ Sesión de hoy ═══ */}
-                <div className="px-5 pt-8">
-                    <div className="flex items-center gap-2 mb-3">
-                        <h2 className="text-[18px] font-bold text-[#1C1B1F]">Sesión de hoy</h2>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1B1F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                <div className="bg-[var(--md-sys-color-surface,#fff)]">
+                    <div className="self-stretch h-12 px-4 inline-flex justify-start items-center">
+                        <div className="text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7">Sesión de hoy</div>
+                        <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
+                            <div className="self-stretch h-10 inline-flex justify-center items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            </div>
+                        </div>
                     </div>
                     <SessionTodayCard
                         key="session"
@@ -238,8 +259,83 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                 </div>
 
                 {/* ═══ Progreso físico y alimentación + Ejercicios ═══ */}
-                <div className="px-5 pt-8">
+                <div className="px-5 pt-6">
                     <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
+                </div>
+
+                {/* ═══ Rincones ═══ */}
+                <div className="self-stretch px-4 pb-2 bg-[var(--md-sys-color-surface,#fff)]">
+                    <div className="self-stretch h-12 inline-flex justify-start items-center">
+                        <div className="text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7">Rincones</div>
+                        <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
+                            <div className="self-stretch h-10 inline-flex justify-center items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="self-stretch inline-flex justify-start items-start gap-4">
+                        <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
+                            {/* Rincón Powerlifter */}
+                            <button onClick={() => vm.navigateTo('powerlifter-corner' as any)} className="self-stretch h-28 rounded-xl flex flex-col justify-start items-start gap-1">
+                                <div className="self-stretch inline-flex justify-start items-start gap-4">
+                                    <div className="w-28 h-28 relative bg-blend-luminosity rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] flex-shrink-0">
+                                        <CaupolicanIcon size={48} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[var(--md-sys-color-on-surface-variant)]" />
+                                    </div>
+                                    <div className="flex-1 self-stretch inline-flex flex-col justify-between items-start">
+                                        <div className="self-stretch flex flex-col justify-start items-start gap-1">
+                                            <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7 text-left">Rincón Powerlifter</div>
+                                            <div className="w-60 max-h-12 text-[var(--md-sys-color-on-surface-variant)] text-sm font-normal font-['Roboto'] leading-5 tracking-tight text-left">Conoce tus puntos en la federación que compites, historial y calendarios de competición y más.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                            {/* WikiLab */}
+                            <button onClick={() => vm.navigateTo('wiki-lab' as any)} className="self-stretch h-28 rounded-xl flex flex-col justify-start items-start gap-1">
+                                <div className="self-stretch inline-flex justify-start items-start gap-4">
+                                    <div className="w-28 h-28 relative bg-blend-luminosity rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] flex-shrink-0">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
+                                    </div>
+                                    <div className="flex-1 self-stretch inline-flex flex-col justify-between items-start">
+                                        <div className="self-stretch flex flex-col justify-start items-start gap-1">
+                                            <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7 text-left">WikiLab</div>
+                                            <div className="self-stretch max-h-12 text-[var(--md-sys-color-on-surface-variant)] text-sm font-normal font-['Roboto'] leading-5 tracking-tight text-left">Conoce a fondo ejercicios, músculos, articulaciones para mejorar tus programas.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ═══ Tus programas ═══ */}
+                <div className="self-stretch pt-3.5 pb-4 bg-[var(--md-sys-color-surface,#fff)]">
+                    <div className="self-stretch h-12 px-4 inline-flex justify-between items-center">
+                        <div className="flex-1 flex justify-start items-center gap-3">
+                            <div className="w-10 h-10 relative bg-blend-luminosity rounded-[20px] bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] flex items-center justify-center">
+                                <CaupolicanIcon size={20} className="text-[var(--md-sys-color-on-surface)]" />
+                            </div>
+                            <div className="flex-1 inline-flex flex-col justify-start items-start">
+                                <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-base font-medium font-['Roboto'] leading-6 tracking-tight">Tus programas</div>
+                            </div>
+                        </div>
+                        <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
+                            <div className="self-stretch h-10 inline-flex justify-center items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="self-stretch h-24 relative overflow-hidden">
+                        <div className="w-full pl-4 inline-flex justify-start items-start gap-2 overflow-x-auto">
+                            {vm.programs.map(prog => (
+                                <button key={prog.id} onClick={() => vm.navigateTo('program-detail', { programId: prog.id })} className="inline-flex flex-col justify-start items-start gap-1 flex-shrink-0">
+                                    <div className="w-28 h-16 relative rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] flex items-center justify-center">
+                                        <CaupolicanIcon size={24} className="text-[var(--md-sys-color-on-surface-variant)]" />
+                                    </div>
+                                    <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-sm font-medium font-['Roboto'] leading-5 tracking-tight">{prog.name}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         );

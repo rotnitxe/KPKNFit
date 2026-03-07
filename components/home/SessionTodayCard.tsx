@@ -59,11 +59,11 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
         return (
             <div className="flex flex-col items-center py-8">
                 <CaupolicanIcon size={48} color="#9E9E9E" />
-                <p className="text-[14px] font-semibold text-[#49454F] mt-3">Día de Descanso</p>
-                <p className="text-[11px] text-[#79747E] mt-1">El músculo crece cuando descansas</p>
+                <p className="text-base font-normal text-[var(--md-sys-color-on-surface)] mt-3 font-['Roboto'] leading-6 tracking-wide">Día de Descanso</p>
+                <p className="text-sm font-normal text-[var(--md-sys-color-on-surface-variant)] mt-1 font-['Roboto'] leading-5 tracking-tight">El músculo crece cuando descansas</p>
                 <button
                     onClick={() => onViewProgram(programId)}
-                    className="mt-4 px-5 py-2 rounded-full text-[11px] font-bold text-[#1C1B1F] bg-[#E8E0DE] hover:bg-[#D9D1CE] transition-colors"
+                    className="mt-4 px-5 py-2 rounded-full text-sm font-medium text-[var(--md-sys-color-on-surface)] bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] hover:bg-[#D9D1CE] transition-colors font-['Roboto'] tracking-tight"
                 >
                     Ver Programa
                 </button>
@@ -79,8 +79,8 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
 
                 return (
                     <div key={idx} className="flex flex-col">
-                        {/* ── Imagen/Ilustración abstracta (Figma: grey rounded area) ── */}
-                        <div className="w-full h-[140px] bg-[#E8E0DE] rounded-[24px] flex items-center justify-center overflow-hidden relative">
+                        {/* ── Imagen/Ilustración abstracta (Figma: bg-blend-luminosity rounded-3xl) ── */}
+                        <div className="w-full h-28 bg-blend-luminosity rounded-3xl flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: 'var(--md-sys-color-surface-container-high, #E8E0DE)' }}>
                             {/* Abstract shapes como en el Figma */}
                             <svg width="120" height="80" viewBox="0 0 120 80" fill="none" className="opacity-40">
                                 <path d="M60 10l20 35-20 35-20-35z" fill="#B0A8A4" />
@@ -89,25 +89,29 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
                             </svg>
                             {/* Status badges */}
                             {ts.isCompleted && (
-                                <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/90 text-white text-[9px] font-bold uppercase tracking-wider rounded-full">
+                                <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/90 text-white text-xs font-medium uppercase tracking-wider rounded-full font-['Roboto']">
                                     <CheckCircleIcon size={10} /> Completada
                                 </div>
                             )}
                             {isOngoing && !ts.isCompleted && (
-                                <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 text-white text-[9px] font-bold uppercase tracking-wider rounded-full ${isPaused ? 'bg-amber-500/90' : 'bg-sky-500/90'}`}>
+                                <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 text-white text-xs font-medium uppercase tracking-wider rounded-full font-['Roboto'] ${isPaused ? 'bg-amber-500/90' : 'bg-sky-500/90'}`}>
                                     {isPaused ? <PauseIcon size={10} /> : <PlayIcon size={10} />}
                                     {isPaused ? 'Pausada' : 'En curso'}
                                 </div>
                             )}
                         </div>
 
-                        {/* ── Session info + Play Button ── */}
-                        <div className="flex items-center justify-between mt-2.5 px-0.5">
-                            <div className="flex-1 min-w-0">
-                                <h3 className="text-[16px] font-bold text-[#1C1B1F] truncate">
-                                    {ts.session.name}
-                                </h3>
-                                <p className="text-[13px] text-[#79747E]">{programName}</p>
+                        {/* ── Session info + Play Button (Figma: text-base font-normal + text-sm) ── */}
+                        <div className="self-stretch px-4 inline-flex justify-start items-start gap-2">
+                            <div className="w-80 flex justify-start items-start">
+                                <div className="w-80 inline-flex flex-col justify-start items-start">
+                                    <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-base font-normal font-['Roboto'] leading-6 tracking-wide truncate">
+                                        {ts.session.name}
+                                    </div>
+                                    <div className="self-stretch text-[var(--md-sys-color-on-surface-variant)] text-sm font-normal font-['Roboto'] leading-5 tracking-tight line-clamp-2">
+                                        {programName}
+                                    </div>
+                                </div>
                             </div>
                             {!ts.isCompleted && (
                                 isOngoing && onResumeWorkout ? (

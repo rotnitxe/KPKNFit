@@ -58,12 +58,12 @@ export const ExerciseHistoryCard: React.FC<{ onNavigate: () => void }> = ({ onNa
 
     return (
         <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Sin historial reciente">
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider mb-1">Historial ejercicios</span>
-            <span className="text-[10px] text-zinc-400 text-center line-clamp-2">
+            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider mb-1">Historial ejercicios</span>
+            <span className="text-[10px] text-[#49454F] text-center line-clamp-2">
                 {exercisesFromRecentSessions.slice(0, 2).map(e => e.name).join(' · ')}
             </span>
             {exercisesFromRecentSessions.length > 2 && (
-                <span className="text-[8px] text-zinc-500 mt-0.5">+{exercisesFromRecentSessions.length - 2} más</span>
+                <span className="text-[8px] text-[#79747E] mt-0.5">+{exercisesFromRecentSessions.length - 2} más</span>
             )}
         </SquareCard>
     );
@@ -100,10 +100,10 @@ export const Star1RMCard: React.FC<{ onNavigate: () => void }> = ({ onNavigate }
 
     return (
         <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Marca ejercicios estrella en el editor">
-            <StarIcon size={14} filled className="text-amber-400 mb-1" />
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">1RM Estrella</span>
-            <span className="text-xs font-bold text-white mt-0.5">{count} ejercicios</span>
-            {withGoal > 0 && <span className="text-[8px] text-amber-400">{withGoal} con meta</span>}
+            <StarIcon size={14} filled className="text-amber-500 mb-1" />
+            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider">1RM Estrella</span>
+            <span className="text-xs font-bold text-[#1C1B1F] mt-0.5">{count} ejercicios</span>
+            {withGoal > 0 && <span className="text-[8px] text-amber-600">{withGoal} con meta</span>}
         </SquareCard>
     );
 };
@@ -123,9 +123,9 @@ export const RelativeStrengthCard: React.FC<{ onNavigate: () => void }> = ({ onN
 
     return (
         <SquareCard onClick={onNavigate} isEmpty={!hasData} emptyLabel="Registra básicos para ver fuerza relativa">
-            <ActivityIcon size={14} className="text-emerald-400 mb-1" />
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Fuerza relativa</span>
-            <span className="text-[10px] text-zinc-400 mt-0.5">
+            <ActivityIcon size={14} className="text-emerald-500 mb-1" />
+            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider">Fuerza relativa</span>
+            <span className="text-[10px] text-[#49454F] mt-0.5">
                 S/B/P · {bodyWeight ? `${Math.round((data.squat + data.bench + data.deadlift) / bodyWeight * 10) / 10}x BW` : '--'}
             </span>
         </SquareCard>
@@ -146,9 +146,9 @@ export const EventMarksCard: React.FC<{ onNavigate: () => void }> = ({ onNavigat
 
     return (
         <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Añade eventos o fechas clave en tu programa">
-            <CalendarIcon size={14} className="text-cyan-400 mb-1" />
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Marcas por evento</span>
-            <span className="text-xs font-bold text-white mt-0.5">{eventCount} eventos</span>
+            <CalendarIcon size={14} className="text-sky-500 mb-1" />
+            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider">Marcas por evento</span>
+            <span className="text-xs font-bold text-[#1C1B1F] mt-0.5">{eventCount} eventos</span>
         </SquareCard>
     );
 };
@@ -183,9 +183,9 @@ export const IPFGLCard: React.FC<{ onNavigate: () => void }> = ({ onNavigate }) 
             isEmpty={!hasData}
             emptyLabel="Añade básicos para ver IPF GL"
         >
-            <TrophyIcon size={14} className="text-amber-400 mb-1" />
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">IPF GL</span>
-            <span className="text-sm font-black text-white mt-0.5">{Math.round(points)}</span>
+            <TrophyIcon size={14} className="text-amber-500 mb-1" />
+            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider">IPF GL</span>
+            <span className="text-sm font-black text-[#1C1B1F] mt-0.5">{Math.round(points)}</span>
         </SquareCard>
     );
 };

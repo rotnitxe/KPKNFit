@@ -1,12 +1,11 @@
 // components/home/SquareCard.tsx
-// Base para tarjetas cuadradas del Home
+// Material 3 — Base card for grid layout (light theme)
 
 import React from 'react';
 
 interface SquareCardProps {
     children: React.ReactNode;
     onClick?: () => void;
-    /** CTA cuando no hay datos */
     emptyLabel?: string;
     isEmpty?: boolean;
 }
@@ -21,10 +20,10 @@ export const SquareCard: React.FC<SquareCardProps> = ({
         <button
             type="button"
             onClick={onClick}
-            className="w-full h-full min-h-0 flex flex-col items-center justify-center p-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-xl hover:border-white/20 active:bg-white/[0.02] transition-colors text-left overflow-hidden"
+            className="w-full h-full min-h-0 flex flex-col items-center justify-center p-3 bg-white rounded-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] active:scale-[0.98] transition-all text-center overflow-hidden"
         >
             {isEmpty && emptyLabel ? (
-                <span className="text-[9px] text-zinc-500 text-center">{emptyLabel}</span>
+                <span className="text-[10px] text-[#79747E] text-center leading-relaxed">{emptyLabel}</span>
             ) : (
                 children
             )}
