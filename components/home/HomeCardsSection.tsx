@@ -1,11 +1,5 @@
 // components/home/HomeCardsSection.tsx
-// Material 3 — Home card sections matching Figma dev export exactly:
-//   · Section headers: text-xl font-normal + chevron icon in rounded container
-//   · Grid cards: w-24 h-24 with label below (text-sm font-medium)
-//   · Exercise cards: horizontal scroll with w-24 h-24 images
-
 import React, { useMemo } from 'react';
-import { SquareCardsCarousel } from './SquareCardsCarousel';
 import {
     ExerciseHistoryCard,
     Star1RMCard,
@@ -20,19 +14,17 @@ import {
     BodyMeasuresCard,
     FFMIBMICard,
 } from './cards/ProgresoFisicoCards';
+import { ChevronRightIcon } from 'lucide-react';
 
 interface HomeCardsSectionProps {
     onNavigateToCard: (cardType: string) => void;
 }
 
-// Figma M3 section header: text-xl font-normal + chevron in rounded circular button
-const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
-    <div className="self-stretch h-12 px-4 inline-flex justify-start items-center">
-        <div className="text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7">{title}</div>
-        <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
-            <div className="self-stretch h-10 inline-flex justify-center items-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </div>
+export const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
+    <div className="w-full h-12 px-4 inline-flex justify-between items-center bg-[#FEF7FF]">
+        <div className="text-[#1D1B20] text-[22px] font-normal font-['Roboto'] leading-tight">{title}</div>
+        <div className="w-12 h-12 flex justify-center items-center text-[#49454F]">
+            <ChevronRightIcon size={24} />
         </div>
     </div>
 );
@@ -54,43 +46,36 @@ export const HomeCardsSection: React.FC<HomeCardsSectionProps> = ({ onNavigateTo
     ], [onNavigateToCard]);
 
     return (
-        <div className="bg-[var(--md-sys-color-surface,#fff)]">
-            {/* ═══ Progreso físico y alimentación ═══ */}
-            <section>
+        <div className="w-full bg-[#FEF7FF] flex flex-col justify-start items-start">
+
+            {/* Progreso Físico */}
+            <div className="w-full bg-[#FEF7FF] flex flex-col justify-start items-start">
                 <SectionHeader title="Progreso físico y alimentación" />
-                {/* Nutrition rows (Calorías + Macros) */}
-                <div className="px-4 pb-2">
+
+                {/* Calorías y Macros */}
+                <div className="w-full px-4 pt-2 pb-4 flex flex-col gap-3">
                     <MacrosWidgetCard onNavigate={() => onNavigateToCard('macros')} />
                 </div>
-                {/* Figma: 4 cards w-24 h-24 horizontal with text-sm labels below */}
-                <div className="self-stretch px-4 py-2 inline-flex justify-start items-start gap-1.5 overflow-x-auto">
+
+                {/* Grid Cards Scroll */}
+                <div className="w-full px-4 py-2 flex justify-start items-start gap-1.5 overflow-x-auto snap-x pb-4 border-none outline-none ring-0">
                     {fisicoCards.map((card, i) => (
-                        <div key={i} className="inline-flex flex-col justify-start items-start gap-1">
-                            <div className="w-24 h-24 relative rounded-2xl overflow-hidden">
-                                {card}
-                            </div>
-                        </div>
+                        card
                     ))}
                 </div>
-            </section>
+            </div>
 
-            {/* ═══ Progreso en ejercicios ═══ */}
-            <section className="pb-4">
+            {/* Progreso en ejercicios */}
+            <div className="w-full bg-[#FEF7FF] flex flex-col justify-start items-start mt-2">
                 <SectionHeader title="Progreso en ejercicios" />
-                <div className="self-stretch relative">
-                    <div className="w-full pl-4 pb-4 inline-flex justify-start items-start gap-2 overflow-x-auto">
-                        {ejercicioCards.map((card, i) => (
-                            <div key={i} className="p-2 rounded-xl inline-flex flex-col justify-start items-start gap-2 overflow-hidden">
-                                <div className="w-24 h-32 flex flex-col justify-start items-start gap-1">
-                                    <div className="w-24 h-24 relative rounded-2xl overflow-hidden">
-                                        {card}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+
+                <div className="w-full px-4 pt-2 flex justify-start items-start gap-1.5 overflow-x-auto snap-x pb-6 border-none outline-none ring-0">
+                    {ejercicioCards.map((card, i) => (
+                        card
+                    ))}
                 </div>
-            </section>
+            </div>
+
         </div>
     );
 };

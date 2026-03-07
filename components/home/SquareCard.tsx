@@ -1,32 +1,29 @@
 // components/home/SquareCard.tsx
-// Material 3 — Base card for grid layout (light theme)
-
 import React from 'react';
 
 interface SquareCardProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     onClick?: () => void;
-    emptyLabel?: string;
-    isEmpty?: boolean;
+    label: string;
+    emptyMessage?: string;
 }
 
 export const SquareCard: React.FC<SquareCardProps> = ({
     children,
     onClick,
-    emptyLabel,
-    isEmpty,
+    label,
+    emptyMessage,
 }) => {
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="w-full h-full min-h-0 flex flex-col items-center justify-center p-3 bg-white rounded-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] active:scale-[0.98] transition-all text-center overflow-hidden"
-        >
-            {isEmpty && emptyLabel ? (
-                <span className="text-[10px] text-[#79747E] text-center leading-relaxed">{emptyLabel}</span>
-            ) : (
-                children
-            )}
-        </button>
+        <div className="inline-flex flex-col justify-start items-start gap-1" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+            <div className="w-24 h-24 relative rounded-2xl overflow-hidden bg-[#ECE6F0] flex flex-col justify-center items-center p-2 hover:bg-black/5 transition-colors">
+                {emptyMessage ? (
+                    <span className="text-xs text-[#49454F] text-center leading-tight">{emptyMessage}</span>
+                ) : children}
+            </div>
+            <div className="self-stretch justify-start text-[#1D1B20] text-sm font-medium font-['Roboto'] leading-5 tracking-tight line-clamp-2">
+                {label}
+            </div>
+        </div>
     );
 };

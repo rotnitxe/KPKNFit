@@ -129,9 +129,8 @@ export const EvolutionCard: React.FC<{ onNavigate: () => void }> = ({ onNavigate
     }, [activePlan, bodyProgress, settings.userVitals]);
 
     return (
-        <SquareCard onClick={onNavigate} isEmpty={!activePlan || progressPct == null} emptyLabel="Configura plan para ver evolución">
-            <TargetIcon size={14} className="text-sky-500 mb-1" />
-            <span className="text-[var(--md-sys-color-on-surface)] text-sm font-medium font-['Roboto'] leading-5 tracking-tight line-clamp-2">Peso (kg)</span>
+        <SquareCard onClick={onNavigate} emptyMessage={(!activePlan || progressPct == null) ? "Configura plan para ver evolución" : undefined} label="Peso (kg)">
+            <TargetIcon size={24} className="text-[#49454F]" />
         </SquareCard>
     );
 };
@@ -144,9 +143,8 @@ export const BodyMeasuresCard: React.FC<{ onNavigate: () => void }> = ({ onNavig
     }, [bodyProgress]);
     const isEmpty = count < 2 && !hasMeasurements;
     return (
-        <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Registra peso y medidas para ver evolución">
-            <RulerIcon size={14} className="text-violet-500 mb-1" />
-            <span className="text-[var(--md-sys-color-on-surface)] text-sm font-medium font-['Roboto'] leading-5 tracking-tight line-clamp-2">Medidas</span>
+        <SquareCard onClick={onNavigate} emptyMessage={isEmpty ? "Registra peso y medidas para ver evolución" : undefined} label="Medidas">
+            <RulerIcon size={24} className="text-[#49454F]" />
         </SquareCard>
     );
 };
@@ -159,9 +157,8 @@ export const FFMIBMICard: React.FC<{ onNavigate: () => void }> = ({ onNavigate }
     }, [bodyProgress, settings.userVitals?.height]);
     const isEmpty = count < 2;
     return (
-        <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Configura estatura y registra peso + % grasa">
-            <BarChartIcon size={14} className="text-emerald-500 mb-1" />
-            <span className="text-[var(--md-sys-color-on-surface)] text-sm font-medium font-['Roboto'] leading-5 tracking-tight line-clamp-2">FFMI</span>
+        <SquareCard onClick={onNavigate} emptyMessage={isEmpty ? "Configura estatura y registra peso + % grasa" : undefined} label="FFMI">
+            <BarChartIcon size={24} className="text-[#49454F]" />
         </SquareCard>
     );
 };
@@ -177,9 +174,8 @@ export const CaloriesHistoryCard: React.FC<{ onNavigate: () => void }> = ({ onNa
     }, [nutritionLogs]);
     const isEmpty = daysCount === 0;
     return (
-        <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Registra comidas para ver historial">
-            <UtensilsIcon size={14} className="text-amber-500 mb-1" />
-            <span className="text-[var(--md-sys-color-on-surface)] text-sm font-medium font-['Roboto'] leading-5 tracking-tight line-clamp-2">% Grasa</span>
+        <SquareCard onClick={onNavigate} emptyMessage={isEmpty ? "Registra comidas para ver historial" : undefined} label="% Grasa">
+            <UtensilsIcon size={24} className="text-[#49454F]" />
         </SquareCard>
     );
 };

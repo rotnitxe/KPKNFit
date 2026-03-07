@@ -57,8 +57,7 @@ export const ExerciseHistoryCard: React.FC<{ onNavigate: () => void }> = ({ onNa
     const isEmpty = exercisesFromRecentSessions.length === 0;
 
     return (
-        <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Sin historial reciente">
-            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider mb-1">Historial ejercicios</span>
+        <SquareCard onClick={onNavigate} emptyMessage={isEmpty ? "Sin historial reciente" : undefined} label="Historial de ejercicios">
             <span className="text-[10px] text-[#49454F] text-center line-clamp-2">
                 {exercisesFromRecentSessions.slice(0, 2).map(e => e.name).join(' · ')}
             </span>
@@ -99,10 +98,9 @@ export const Star1RMCard: React.FC<{ onNavigate: () => void }> = ({ onNavigate }
     const isEmpty = count === 0;
 
     return (
-        <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Marca ejercicios estrella en el editor">
-            <StarIcon size={14} filled className="text-amber-500 mb-1" />
-            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider">1RM Estrella</span>
-            <span className="text-xs font-bold text-[#1C1B1F] mt-0.5">{count} ejercicios</span>
+        <SquareCard onClick={onNavigate} emptyMessage={isEmpty ? "Marca ejercicios estrella en el editor" : undefined} label="Metas 1RM">
+            <StarIcon size={24} className={isEmpty ? "text-[#49454F]" : "text-amber-500 mb-1"} filled={!isEmpty} />
+            {!isEmpty && <span className="text-xs font-bold text-[#1C1B1F] mt-0.5">{count} ejercicios</span>}
             {withGoal > 0 && <span className="text-[8px] text-amber-600">{withGoal} con meta</span>}
         </SquareCard>
     );
@@ -122,12 +120,13 @@ export const RelativeStrengthCard: React.FC<{ onNavigate: () => void }> = ({ onN
     const hasData = data.squat > 0 || data.bench > 0 || data.deadlift > 0;
 
     return (
-        <SquareCard onClick={onNavigate} isEmpty={!hasData} emptyLabel="Registra básicos para ver fuerza relativa">
-            <ActivityIcon size={14} className="text-emerald-500 mb-1" />
-            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider">Fuerza relativa</span>
-            <span className="text-[10px] text-[#49454F] mt-0.5">
-                S/B/P · {bodyWeight ? `${Math.round((data.squat + data.bench + data.deadlift) / bodyWeight * 10) / 10}x BW` : '--'}
-            </span>
+        <SquareCard onClick={onNavigate} emptyMessage={!hasData ? "Registra básicos para ver fuerza relativa" : undefined} label="Fuerza relativa">
+            <ActivityIcon size={24} className={!hasData ? "text-[#49454F]" : "text-emerald-500 mb-1"} />
+            {hasData && (
+                <span className="text-[10px] text-[#49454F] mt-0.5 font-bold">
+                    {bodyWeight ? `${Math.round((data.squat + data.bench + data.deadlift) / bodyWeight * 10) / 10}x BW` : '--'}
+                </span>
+            )}
         </SquareCard>
     );
 };
@@ -145,10 +144,9 @@ export const EventMarksCard: React.FC<{ onNavigate: () => void }> = ({ onNavigat
     const isEmpty = eventCount === 0;
 
     return (
-        <SquareCard onClick={onNavigate} isEmpty={isEmpty} emptyLabel="Añade eventos o fechas clave en tu programa">
-            <CalendarIcon size={14} className="text-sky-500 mb-1" />
-            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider">Marcas por evento</span>
-            <span className="text-xs font-bold text-[#1C1B1F] mt-0.5">{eventCount} eventos</span>
+        <SquareCard onClick={onNavigate} emptyMessage={isEmpty ? "Añade eventos o fechas clave" : undefined} label="Eventos">
+            <CalendarIcon size={24} className={isEmpty ? "text-[#49454F]" : "text-sky-500 mb-1"} />
+            {!isEmpty && <span className="text-xs font-bold text-[#1C1B1F] mt-0.5">{eventCount} eventos</span>}
         </SquareCard>
     );
 };
@@ -180,12 +178,11 @@ export const IPFGLCard: React.FC<{ onNavigate: () => void }> = ({ onNavigate }) 
     return (
         <SquareCard
             onClick={onNavigate}
-            isEmpty={!hasData}
-            emptyLabel="Añade básicos para ver IPF GL"
+            emptyMessage={!hasData ? "Añade básicos para ver IPF GL" : undefined}
+            label="IPF GL"
         >
-            <TrophyIcon size={14} className="text-amber-500 mb-1" />
-            <span className="text-[9px] font-bold text-[#79747E] uppercase tracking-wider">IPF GL</span>
-            <span className="text-sm font-black text-[#1C1B1F] mt-0.5">{Math.round(points)}</span>
+            <TrophyIcon size={24} className={!hasData ? "text-[#49454F]" : "text-amber-500 mb-1"} />
+            {hasData && <span className="text-sm font-black text-[#1C1B1F] mt-0.5">{Math.round(points)}</span>}
         </SquareCard>
     );
 };

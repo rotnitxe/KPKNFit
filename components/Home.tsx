@@ -183,60 +183,51 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
 
         return (
             <div
-                className="flex flex-col w-full max-w-md mx-auto pb-10"
+                className="flex flex-col w-full max-w-md mx-auto pb-10 bg-[#FEF7FF]"
                 style={{ paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}
             >
                 {/* ═══ Header: avatar + icons ═══ */}
-                <div className="flex items-center justify-between px-5 pt-2 pb-1">
-                    <div className="w-9 h-9 rounded-full bg-[#E8E0DE] flex items-center justify-center">
-                        <CaupolicanIcon size={20} className="text-[#49454F]" />
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1B1F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                        </button>
-                        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1B1F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-                        </button>
-                    </div>
-                </div>
-
-                {/* ═══ Greeting ═══ */}
-                <div className="px-4 pt-2 pb-3">
-                    <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-3xl font-medium font-['Roboto'] leading-9">
-                        {greeting}, {userName}!
-                    </div>
-                </div>
-
-                {/* ═══ Tus RINGS + tiny toolbar ═══ */}
-                <div className="bg-[var(--md-sys-color-background,#FDF8F6)] pb-3 overflow-hidden">
-                    <div className="w-40 h-20 px-4 bg-[var(--md-sys-color-surface,#fff)] inline-flex justify-start items-center">
-                        <div className="text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7">Tus RINGS</div>
-                        <div className="flex items-center gap-0.5 bg-[#F0EBE9] rounded-lg p-0.5">
-                            {([
-                                { mode: 'rings' as const, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" /><circle cx="17" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" /></svg> },
-                                { mode: 'muscular' as const, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 6C4 8.5 3 14 5 18c1 2 3 2.5 4 2s2-2 3-2 2 1.5 3 2 3 0 4-2c2-4 1-9.5-1.5-12" /></svg> },
-                                { mode: 'snc' as const, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M12 3c-1.5 0-3 .8-3.5 2-.8-.3-2 0-2.5 1-.7 1.2-.2 2.5.5 3.2-.5.8-.5 2 .2 2.8.5.6 1.3 1 2.3 1h.5" /><path d="M12 3c1.5 0 3 .8 3.5 2 .8-.3 2 0 2.5 1 .7 1.2.2 2.5-.5 3.2.5.8.5 2-.2 2.8-.5.6-1.3 1-2.3 1h-.5" /><line x1="12" y1="13" x2="12" y2="21" /></svg> },
-                            ]).map(({ mode, icon }) => (
-                                <button key={mode}
-                                    onClick={() => setRingsView(mode)}
-                                    className={`w-7 h-7 flex items-center justify-center rounded-md transition-all duration-200 ${ringsView === mode ? 'bg-white text-[#1C1B1F] shadow-sm' : 'text-[#9E9E9E] hover:text-[#79747E]'}`}
-                                >
-                                    {icon}
-                                </button>
-                            ))}
+                <div className="w-full h-28 pb-3 inline-flex flex-col justify-start items-start gap-2">
+                    <div className="self-stretch h-14 px-1 pt-2 inline-flex justify-between items-start">
+                        <div className="w-12 h-12 flex justify-center items-center">
+                            <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden bg-[#ECE6F0]">
+                                <CaupolicanIcon size={20} className="text-[#49454F]" />
+                            </div>
+                        </div>
+                        <div className="flex justify-start items-center overflow-hidden gap-1 pr-1">
+                            <button className="w-12 h-12 flex justify-center items-center rounded-full hover:bg-black/5 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#49454F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                            </button>
+                            <button className="w-12 h-12 flex justify-center items-center rounded-full hover:bg-black/5 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#49454F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                            </button>
                         </div>
                     </div>
-                    <AugeTelemetryPanel variant="hero" shareable viewMode={ringsView} />
+
+                    {/* ═══ Greeting ═══ */}
+                    <div className="self-stretch px-4 flex flex-col justify-center items-start gap-1">
+                        <div className="self-stretch justify-start text-[#1D1B20] text-3xl font-medium font-['Roboto'] leading-9">
+                            {greeting}, {userName}!
+                        </div>
+                    </div>
+                </div>
+
+                {/* ═══ Tus RINGS sin Toolbar ═══ */}
+                <div className="self-stretch pb-3 bg-[#FEF7FF] inline-flex flex-col justify-start items-start overflow-hidden">
+                    <div className="w-40 h-20 px-4 inline-flex justify-start items-center">
+                        <div className="justify-center text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7">Tus RINGS</div>
+                    </div>
+                    {/* Ring container managed naturally by the AugeTelemetryPanel component matching exactly to Figma's `w-36 h-36` */}
+                    <AugeTelemetryPanel variant="hero" shareable viewMode="rings" />
                 </div>
 
                 {/* ═══ Sesión de hoy ═══ */}
-                <div className="bg-[var(--md-sys-color-surface,#fff)]">
+                <div className="self-stretch bg-[#FEF7FF] inline-flex flex-col justify-start items-start">
                     <div className="self-stretch h-12 px-4 inline-flex justify-start items-center">
-                        <div className="text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7">Sesión de hoy</div>
+                        <div className="justify-center text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7">Sesión de hoy</div>
                         <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
                             <div className="self-stretch h-10 inline-flex justify-center items-center">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="#49454F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </div>
                         </div>
                     </div>
@@ -259,17 +250,17 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                 </div>
 
                 {/* ═══ Progreso físico y alimentación + Ejercicios ═══ */}
-                <div className="px-5 pt-6">
+                <div className="self-stretch">
                     <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
                 </div>
 
                 {/* ═══ Rincones ═══ */}
-                <div className="self-stretch px-4 pb-2 bg-[var(--md-sys-color-surface,#fff)]">
+                <div className="self-stretch h-80 px-4 pb-2 bg-[#FEF7FF] inline-flex flex-col justify-start items-start overflow-hidden">
                     <div className="self-stretch h-12 inline-flex justify-start items-center">
-                        <div className="text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7">Rincones</div>
+                        <div className="justify-center text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7">Rincones</div>
                         <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
                             <div className="self-stretch h-10 inline-flex justify-center items-center">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="#49454F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </div>
                         </div>
                     </div>
@@ -278,13 +269,13 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                             {/* Rincón Powerlifter */}
                             <button onClick={() => vm.navigateTo('powerlifter-corner' as any)} className="self-stretch h-28 rounded-xl flex flex-col justify-start items-start gap-1">
                                 <div className="self-stretch inline-flex justify-start items-start gap-4">
-                                    <div className="w-28 h-28 relative bg-blend-luminosity rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] flex-shrink-0">
-                                        <CaupolicanIcon size={48} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[var(--md-sys-color-on-surface-variant)]" />
+                                    <div className="w-28 h-28 relative bg-blend-luminosity rounded-2xl overflow-hidden bg-[#ECE6F0] flex-shrink-0">
+                                        <CaupolicanIcon size={48} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[#49454F]" />
                                     </div>
-                                    <div className="flex-1 self-stretch inline-flex flex-col justify-between items-start">
+                                    <div className="flex-1 self-stretch inline-flex flex-col justify-between items-start pt-1">
                                         <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                                            <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7 text-left">Rincón Powerlifter</div>
-                                            <div className="w-60 max-h-12 text-[var(--md-sys-color-on-surface-variant)] text-sm font-normal font-['Roboto'] leading-5 tracking-tight text-left">Conoce tus puntos en la federación que compites, historial y calendarios de competición y más.</div>
+                                            <div className="self-stretch justify-start text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7 text-left">Rincón Powerlifter</div>
+                                            <div className="w-60 max-h-12 justify-start text-[#49454F] text-sm font-normal font-['Roboto'] leading-5 tracking-tight text-left">Conoce tus puntos en la federación que compites, historial y calendarios de competición y más.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -292,13 +283,13 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                             {/* WikiLab */}
                             <button onClick={() => vm.navigateTo('wiki-lab' as any)} className="self-stretch h-28 rounded-xl flex flex-col justify-start items-start gap-1">
                                 <div className="self-stretch inline-flex justify-start items-start gap-4">
-                                    <div className="w-28 h-28 relative bg-blend-luminosity rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] flex-shrink-0">
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
+                                    <div className="w-28 h-28 relative bg-blend-luminosity rounded-2xl overflow-hidden bg-[#ECE6F0] flex-shrink-0">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#49454F" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
                                     </div>
-                                    <div className="flex-1 self-stretch inline-flex flex-col justify-between items-start">
+                                    <div className="flex-1 self-stretch inline-flex flex-col justify-between items-start pt-1">
                                         <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                                            <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-xl font-normal font-['Roboto'] leading-7 text-left">WikiLab</div>
-                                            <div className="self-stretch max-h-12 text-[var(--md-sys-color-on-surface-variant)] text-sm font-normal font-['Roboto'] leading-5 tracking-tight text-left">Conoce a fondo ejercicios, músculos, articulaciones para mejorar tus programas.</div>
+                                            <div className="self-stretch justify-start text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7 text-left">WikiLab</div>
+                                            <div className="self-stretch max-h-12 justify-start text-[#49454F] text-sm font-normal font-['Roboto'] leading-5 tracking-tight text-left">Conoce a fondo ejercicios, músculos, articulaciones para mejorar tus programas.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -308,19 +299,19 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                 </div>
 
                 {/* ═══ Tus programas ═══ */}
-                <div className="self-stretch pt-3.5 pb-4 bg-[var(--md-sys-color-surface,#fff)]">
+                <div className="self-stretch pt-3.5 pb-4 bg-[#FEF7FF] inline-flex flex-col justify-start items-start gap-4 overflow-hidden">
                     <div className="self-stretch h-12 px-4 inline-flex justify-between items-center">
                         <div className="flex-1 flex justify-start items-center gap-3">
-                            <div className="w-10 h-10 relative bg-blend-luminosity rounded-[20px] bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] flex items-center justify-center">
-                                <CaupolicanIcon size={20} className="text-[var(--md-sys-color-on-surface)]" />
+                            <div className="w-10 h-10 relative bg-blend-luminosity rounded-[20px] bg-[#ECE6F0] flex items-center justify-center">
+                                <CaupolicanIcon size={20} className="text-[#1D1B20]" />
                             </div>
                             <div className="flex-1 inline-flex flex-col justify-start items-start">
-                                <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-base font-medium font-['Roboto'] leading-6 tracking-tight">Tus programas</div>
+                                <div className="self-stretch justify-start text-[#1D1B20] text-base font-medium font-['Roboto'] leading-6 tracking-tight">Tus programas</div>
                             </div>
                         </div>
                         <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
                             <div className="self-stretch h-10 inline-flex justify-center items-center">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="var(--md-sys-color-on-surface-variant)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="#49454F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </div>
                         </div>
                     </div>
@@ -328,10 +319,10 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                         <div className="w-full pl-4 inline-flex justify-start items-start gap-2 overflow-x-auto">
                             {vm.programs.map(prog => (
                                 <button key={prog.id} onClick={() => vm.navigateTo('program-detail', { programId: prog.id })} className="inline-flex flex-col justify-start items-start gap-1 flex-shrink-0">
-                                    <div className="w-28 h-16 relative rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] flex items-center justify-center">
-                                        <CaupolicanIcon size={24} className="text-[var(--md-sys-color-on-surface-variant)]" />
+                                    <div className="w-28 h-16 relative rounded-2xl overflow-hidden bg-[#ECE6F0] flex items-center justify-center">
+                                        <CaupolicanIcon size={24} className="text-[#49454F]" />
                                     </div>
-                                    <div className="self-stretch text-[var(--md-sys-color-on-surface)] text-sm font-medium font-['Roboto'] leading-5 tracking-tight">{prog.name}</div>
+                                    <div className="self-stretch justify-start text-[#1D1B20] text-sm font-medium font-['Roboto'] leading-5 tracking-tight">{prog.name}</div>
                                 </button>
                             ))}
                         </div>
@@ -510,8 +501,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
 
     return (
         <div
-            className="relative min-h-full w-full flex flex-col tab-bar-safe-area overflow-y-auto"
-            style={{ backgroundColor: '#FDF8F6' }}
+            className="relative min-h-full w-full flex flex-col tab-bar-safe-area overflow-y-auto bg-[#FEF7FF]"
         >
 
             {vm.activeProgram ? renderWithProgram() : vm.programs.length > 0 ? renderSelectProgram() : renderNoPrograms()}
