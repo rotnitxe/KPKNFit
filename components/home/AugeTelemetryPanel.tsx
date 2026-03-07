@@ -15,9 +15,9 @@ type RingId = 'cns' | 'muscular' | 'spinal';
 export type RingsViewMode = 'rings' | 'muscular' | 'snc';
 
 const RING_COLORS = {
-    cns: '#38bdf8',
-    muscular: '#f472b6',
-    spinal: '#fb923c',
+    cns: '#006876',
+    muscular: '#343DFF',
+    spinal: '#BA1A1A',
 } as const;
 
 const RING_DESCRIPTIONS: Record<string, string> = {

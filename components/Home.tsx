@@ -190,23 +190,23 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                 <div className="w-full h-28 pb-3 inline-flex flex-col justify-start items-start gap-2">
                     <div className="self-stretch h-14 px-1 pt-2 inline-flex justify-between items-start">
                         <div className="w-12 h-12 flex justify-center items-center">
-                            <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden bg-[#ECE6F0]">
-                                <CaupolicanIcon size={20} className="text-[#49454F]" />
+                            <div className="w-8 h-8 rounded-full border border-black inline-flex flex-col justify-center items-center overflow-hidden bg-white">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-black"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                             </div>
                         </div>
                         <div className="flex justify-start items-center overflow-hidden gap-1 pr-1">
-                            <button className="w-12 h-12 flex justify-center items-center rounded-full hover:bg-black/5 transition-colors">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#49454F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                            <button className="w-12 h-12 flex justify-center items-center rounded-full hover:bg-black/5 transition-colors text-[#49454F]">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                             </button>
-                            <button className="w-12 h-12 flex justify-center items-center rounded-full hover:bg-black/5 transition-colors">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#49454F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                            <button className="w-12 h-12 flex justify-center items-center rounded-full hover:bg-black/5 transition-colors text-[#49454F]">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
                             </button>
                         </div>
                     </div>
 
                     {/* ═══ Greeting ═══ */}
                     <div className="self-stretch px-4 flex flex-col justify-center items-start gap-1">
-                        <div className="self-stretch justify-start text-[#1D1B20] text-3xl font-medium font-['Roboto'] leading-9">
+                        <div className="self-stretch justify-start text-[#1D1B20] text-[26px] font-medium font-['Roboto'] leading-9 tracking-normal text-wrap line-clamp-2">
                             {greeting}, {userName}!
                         </div>
                     </div>
@@ -223,10 +223,10 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
 
                 {/* ═══ Sesión de hoy ═══ */}
                 <div className="self-stretch bg-[#FEF7FF] inline-flex flex-col justify-start items-start">
-                    <div className="self-stretch h-12 px-4 inline-flex justify-start items-center">
-                        <div className="justify-center text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7">Sesión de hoy</div>
-                        <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
-                            <div className="self-stretch h-10 inline-flex justify-center items-center">
+                    <div className="self-stretch h-12 px-4 inline-flex justify-between items-center">
+                        <div className="justify-center text-[#1D1B20] text-[22px] font-normal font-['Roboto'] leading-[28px]">Sesión de hoy</div>
+                        <div className="w-12 h-12 rounded-full inline-flex flex-col justify-center items-center overflow-hidden hover:bg-black/5 transition-colors cursor-pointer">
+                            <div className="self-stretch h-10 inline-flex justify-center items-center text-[#49454F]">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="#49454F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </div>
                         </div>
@@ -238,7 +238,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                         programId={primaryProgram?.id ?? ''}
                         todaySessions={vm.sessionsWithOngoing}
                         ongoingWorkout={vm.ongoingWorkout ? { session: vm.ongoingWorkout.session, programId: vm.ongoingWorkout.programId, isPaused: vm.ongoingWorkout.isPaused } : null}
-                        onStartWorkout={vm.handleStartWorkout}
+                        onStartWorkout={vm.handleStartWorkout as any}
                         onResumeWorkout={onResumeWorkout}
                         onEditSession={(programId, macroIndex, mesoIndex, weekId, sessionId) =>
                             vm.navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, sessionId })
