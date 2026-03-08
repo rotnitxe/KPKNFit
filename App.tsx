@@ -248,7 +248,7 @@ export const App: React.FC = () => {
     const [isLogFinishModalOpen, setIsLogFinishModalOpen] = useState(false);
     const [isVideoAnalysisModalOpen, setIsVideoAnalysisModalOpen] = useState(false);
     const [editingSleepLog, setEditingSleepLog] = useState<any | null>(null);
-    const [isFoodAppendixOpen, setIsFoodAppendixOpen] = useState(false);
+    const [foodRegistrationMode, setFoodRegistrationMode] = useState<'drawer' | 'appendix'>('drawer');
 
     // ── Material You Dynamic Color (KPKN Theme Engine) ───────────────────────
     // Genera y aplica tokens de color en CSS variables, siguiendo el dark/light
@@ -262,6 +262,12 @@ export const App: React.FC = () => {
 
     // --- LÓGICA DE PANTALLA SIEMPRE ENCENDIDA (WAKE LOCK) ---
     const wakeLockRef = useRef<any>(null);
+
+    useEffect(() => {
+        if (!isNutritionLogModalOpen) {
+            setFoodRegistrationMode('drawer');
+        }
+    }, [isNutritionLogModalOpen]);
 
     const requestWakeLock = useCallback(async () => {
         if ('wakeLock' in navigator) {
@@ -683,14 +689,14 @@ export const App: React.FC = () => {
                         {/* Food Appendix */}
                         <div
                             className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                                        ${isFoodAppendixOpen ? 'max-h-[85vh] opacity-100 pt-2' : 'max-h-0 opacity-0 pt-0'}`}
+                                        ${isNutritionLogModalOpen && foodRegistrationMode === 'appendix' ? 'max-h-[85vh] opacity-100 pt-2' : 'max-h-0 opacity-0 pt-0'}`}
                         >
                             <RegisterFoodDrawer
-                                isOpen={isFoodAppendixOpen}
-                                onClose={() => setIsFoodAppendixOpen(false)}
+                                isOpen={isNutritionLogModalOpen && foodRegistrationMode === 'appendix'}
+                                onClose={() => setIsNutritionLogModalOpen(false)}
                                 onSave={(log) => {
                                     handleSaveNutritionLog(log);
-                                    setIsFoodAppendixOpen(false);
+                                    setIsNutritionLogModalOpen(false);
                                 }}
                                 settings={settings}
                                 displayMode="appendix"
@@ -700,13 +706,22 @@ export const App: React.FC = () => {
                         {/* SubTabBar extension */}
                         <div
                             className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                                        ${subTabBarContext && !isFoodAppendixOpen ? 'max-h-24 opacity-100 pt-3' : 'max-h-0 opacity-0 pt-0'}`}
+                                        ${subTabBarContext && !(isNutritionLogModalOpen && foodRegistrationMode === 'appendix') ? 'max-h-24 opacity-100 pt-3' : 'max-h-0 opacity-0 pt-0'}`}
                         >
-                            <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext && !isFoodAppendixOpen} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} onFoodAppendixPress={() => setIsFoodAppendixOpen(true)} />
+                            <SubTabBar
+                                context={subTabBarContext}
+                                isActive={!!subTabBarContext}
+                                viewingExerciseId={viewingExerciseId}
+                                onEditExercisePress={tabBarActions.onEditExercisePress}
+                                onFoodAppendixPress={() => {
+                                    setFoodRegistrationMode('appendix');
+                                    setIsNutritionLogModalOpen(true);
+                                }}
+                            />
                         </div>
                         {/* Main TabBar base */}
                         <div className="h-[68px] shrink-0 w-full">
-                            <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext || isFoodAppendixOpen} workoutViewMode="carousel" />
+                            <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext || (isNutritionLogModalOpen && foodRegistrationMode === 'appendix')} workoutViewMode="carousel" />
                         </div>
                     </div>
                 </div>
@@ -738,10 +753,11 @@ export const App: React.FC = () => {
             {state.isAddToPlaylistSheetOpen && <AddToPlaylistSheet />}
             <StartWorkoutDrawer isOpen={isStartWorkoutModalOpen} onClose={() => setIsStartWorkoutModalOpen(false)} />
             <RegisterFoodDrawer
-                isOpen={isNutritionLogModalOpen}
+                isOpen={isNutritionLogModalOpen && foodRegistrationMode === 'drawer'}
                 onClose={() => setIsNutritionLogModalOpen(false)}
                 onSave={handleSaveNutritionLog}
                 settings={settings}
+                displayMode="drawer"
             />
             {pendingCoachBriefing && <CoachBriefingDrawer isOpen={!!pendingCoachBriefing} onClose={handleContinueWorkoutAfterBriefing} briefing={pendingCoachBriefing} />}
             {/* {state.isLogActionSheetOpen && <LogActionSheet />} Replaced by SubTabBar */}

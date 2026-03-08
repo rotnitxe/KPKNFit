@@ -526,8 +526,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         {displayMode === 'drawer' && (
                             <div className="px-6 pt-8 pb-4 flex justify-between items-center">
                                 <div>
-                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Registro rapido</h3>
-                                    <h2 className="text-[28px] font-black text-[#1C1B1F] tracking-tighter leading-none">Registra tu comida</h2>
+                                    <h3 className="text-[10px] font-black text-[#49454F]/40 uppercase tracking-[0.2em] mb-1 font-['Roboto']">Registro rapido</h3>
+                                    <h2 className="text-[28px] font-black text-[#1C1B1F] tracking-tighter leading-none font-['Roboto']">Registra tu comida</h2>
                                 </div>
                                 <button onClick={onClose} className="w-10 h-10 bg-black/5 rounded-full hover:bg-black/10 transition-colors flex items-center justify-center">
                                     <XIcon size={20} className="text-[#49454F]" />
@@ -536,10 +536,11 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         )}
 
                         <div className={`flex-1 overflow-y-auto px-6 space-y-6 custom-scrollbar ${displayMode === 'appendix' ? 'max-h-[70vh] pb-40' : 'pb-48 pt-4'}`}>
-                            <motion.div layout className="bg-white rounded-[32px] p-6 shadow-sm border border-black/[0.03] flex items-center justify-between">
+                            {/* Macros Summary Panel */}
+                            <motion.div layout className="bg-white rounded-[32px] p-6 shadow-sm border border-black/[0.03] flex items-center justify-between mt-2">
                                 <div className="flex flex-col">
-                                    <span className="text-4xl font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter leading-none">{Math.round(totalMacros.calories)}</span>
-                                    <span className="text-[10px] uppercase font-black text-[#49454F]/40 tracking-widest mt-1">Calorias totales</span>
+                                    <span className="text-[42px] font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter leading-none">{Math.round(totalMacros.calories)}</span>
+                                    <span className="text-[10px] uppercase font-black text-[#49454F]/30 tracking-[0.2em] mt-1">Calorias totales</span>
                                 </div>
                                 <div className="flex gap-4">
                                     <MacroBadge label="PROT" val={totalMacros.protein} color="bg-rose-500" />
@@ -548,22 +549,23 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 </div>
                             </motion.div>
 
+                            {/* Selectors Row */}
                             <div className="flex gap-3">
-                                <div className="flex-1 bg-white rounded-3xl p-4 flex gap-3 shadow-sm border border-black/[0.03] items-center">
-                                    <SearchIcon size={16} className="text-[#49454F]/30" />
+                                <div className="flex-1 bg-white rounded-[32px] p-4 flex gap-3 shadow-sm border border-black/[0.03] items-center">
+                                    <SearchIcon size={16} className="text-[#49454F]/20" />
                                     <input
                                         type="date"
                                         value={logDate}
                                         onChange={event => setLogDate(event.target.value)}
-                                        className="w-full bg-transparent text-[11px] font-black text-[#1C1B1F] outline-none uppercase tracking-widest"
+                                        className="w-full bg-transparent text-[11px] font-black text-[#1C1B1F] outline-none uppercase tracking-widest font-['Roboto']"
                                     />
                                 </div>
-                                <div className="flex-[1.5] bg-white rounded-3xl p-1.5 flex shadow-sm border border-black/[0.03]">
+                                <div className="flex-[1.5] bg-white rounded-[32px] p-1.5 flex shadow-sm border border-black/[0.03]">
                                     {mealOptions.map(option => (
                                         <button
                                             key={option.id}
                                             onClick={() => setMealType(option.id)}
-                                            className={`flex-1 flex flex-col items-center justify-center p-2 rounded-2xl transition-all ${mealType === option.id ? 'bg-primary text-white shadow-md' : 'text-[#49454F]/40 hover:bg-black/5'}`}
+                                            className={`flex-1 flex flex-col items-center justify-center p-2 rounded-[24px] transition-all ${mealType === option.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-[#49454F]/40 hover:bg-black/5'}`}
                                         >
                                             <option.icon size={16} />
                                             <span className="text-[8px] font-black uppercase mt-1 tracking-tighter">{option.label}</span>
@@ -572,83 +574,75 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex bg-black/[0.03] p-1.5 rounded-3xl overflow-x-auto hide-scrollbar border border-black/[0.02]">
+                            {/* Tabs */}
+                            <div className="flex bg-black/[0.03] p-1.5 rounded-[32px] overflow-x-auto hide-scrollbar border border-black/[0.02]">
                                 <TabBtn active={activeTab === 'description'} onClick={() => setActiveTab('description')}>Descriptivo</TabBtn>
                                 <TabBtn active={activeTab === 'search'} onClick={() => setActiveTab('search')}>Buscador</TabBtn>
                                 <TabBtn active={activeTab === 'templates'} onClick={() => setActiveTab('templates')}>Plantillas</TabBtn>
                             </div>
 
                             {blockingCount > 0 && (
-                                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="rounded-[28px] border border-amber-200/50 bg-amber-50/50 px-6 py-4 text-[13px] font-medium text-amber-900 shadow-sm backdrop-blur-sm">
-                                    Hay {blockingCount} etiqueta{blockingCount > 1 ? 's' : ''} que requieren revision antes de guardar.
+                                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="rounded-[28px] border border-rose-200/50 bg-rose-50/50 px-6 py-4 text-[12px] font-black uppercase tracking-wider text-rose-600 shadow-sm backdrop-blur-sm text-center">
+                                    Revisar {blockingCount} alimento{blockingCount > 1 ? 's' : ''}
                                 </motion.div>
                             )}
 
+                            {/* Content Area */}
                             <AnimatePresence mode="wait">
                                 {activeTab === 'description' && (
                                     <motion.div key="desc" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
                                         <div className="relative group">
                                             <textarea
-                                                className="w-full h-32 bg-white rounded-[32px] p-6 text-base font-medium text-[#1C1B1F] border border-black/[0.05] focus:border-primary/30 shadow-sm outline-none transition-all placeholder-[#49454F]/30 resize-none font-['Roboto']"
-                                                placeholder="Describe tu comida... ej: 200g arroz cocido, 150g pechuga a la plancha"
+                                                className="w-full h-36 bg-white rounded-[32px] p-8 text-base font-medium text-[#1C1B1F] border border-black/[0.03] focus:border-primary/30 shadow-sm outline-none transition-all placeholder-[#49454F]/20 resize-none font-['Roboto'] leading-relaxed"
+                                                placeholder="Describe tu comida... ej: 200g arroz, 150g pollo"
                                                 value={description}
                                                 onChange={event => setDescription(event.target.value)}
                                             />
-                                            <div className="absolute top-4 right-6 flex gap-2">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-primary/20 animate-pulse" />
+                                            <div className="absolute top-6 right-8 flex gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-primary/20 animate-pulse" />
                                             </div>
                                         </div>
                                     </motion.div>
                                 )}
 
                                 {activeTab === 'search' && (
-                                    <motion.div key="search" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                                        {manualResolveTagKey && (
-                                            <div className="mb-4 rounded-[24px] border border-primary/20 bg-primary/5 px-5 py-3 text-[10px] font-black uppercase tracking-wider text-primary">
-                                                Resolviendo etiqueta manualmente...
-                                            </div>
-                                        )}
-                                        <div className="relative mb-4">
-                                            <SearchIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#49454F]/30" />
+                                    <motion.div key="search" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+                                        <div className="relative">
+                                            <SearchIcon size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-[#49454F]/20" />
                                             <input
-                                                className="w-full bg-white rounded-2xl pl-12 pr-4 py-4 text-base font-medium border border-black/[0.05] shadow-sm outline-none focus:ring-1 ring-primary/20 transition-all font-['Roboto']"
-                                                placeholder="Buscar en la base de datos de KPKN..."
+                                                className="w-full bg-white rounded-[28px] pl-14 pr-6 py-4 text-base font-medium border border-black/[0.03] shadow-sm outline-none focus:ring-1 ring-primary/20 transition-all font-['Roboto']"
+                                                placeholder="Buscar alimento..."
                                                 value={searchQuery}
                                                 onChange={event => setSearchQuery(event.target.value)}
                                             />
                                         </div>
-                                        {searchLoading && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Buscando...</p>}
-                                        <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+
+                                        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                                            {searchLoading && <div className="py-8 text-center text-[10px] font-black uppercase tracking-widest text-[#49454F]/20">Buscando...</div>}
                                             {searchResults.map(food => (
                                                 <button
                                                     key={food.id}
                                                     onClick={() => handleSearchFoodSelect(food)}
-                                                    className="w-full bg-white p-4 rounded-3xl border border-black/[0.03] flex items-center gap-4 hover:translate-x-1 transition-all shadow-sm group"
+                                                    className="w-full bg-white p-4 rounded-[28px] border border-black/[0.03] flex items-center gap-4 hover:translate-x-1 transition-all shadow-sm group"
                                                 >
-                                                    <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
+                                                    <div className="w-12 h-12 bg-black/5 rounded-[22px] flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
                                                         <UtensilsIcon size={20} className="text-primary" />
                                                     </div>
                                                     <div className="text-left min-w-0 flex-1">
-                                                        <p className="text-sm font-black text-[#1C1B1F] truncate font-['Roboto']">{food.name}</p>
-                                                        <p className="text-[10px] font-bold text-[#49454F]/40 uppercase tracking-tight mt-1">{food.calories} kcal · p:{food.protein} c:{food.carbs} f:{food.fats}</p>
+                                                        <p className="text-[15px] font-black text-[#1C1B1F] truncate font-['Roboto'] tracking-tight">{food.name}</p>
+                                                        <p className="text-[10px] font-bold text-[#49454F]/30 uppercase tracking-tight mt-1">{food.calories} kcal · p:{food.protein} c:{food.carbs} f:{food.fats}</p>
                                                     </div>
                                                     <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
                                                         <PlusIcon size={16} className="text-[#1C1B1F]" />
                                                     </div>
                                                 </button>
                                             ))}
-                                            {!searchLoading && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
-                                                <div className="py-12 text-center space-y-2">
-                                                    <p className="text-sm font-black text-[#1C1B1F]">Sin resultados</p>
-                                                    <p className="text-[10px] font-bold text-[#49454F]/40 uppercase">Prueba con otra descripción o búsqueda manual</p>
-                                                </div>
-                                            )}
                                         </div>
                                     </motion.div>
                                 )}
 
                                 {activeTab === 'templates' && (
-                                    <motion.div key="templates" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+                                    <motion.div key="templates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-[32px] overflow-hidden bg-white border border-black/[0.03] p-6 shadow-sm">
                                         <MealTemplateSelector
                                             onSelect={foods => {
                                                 const templateTags = foods.map(food => ({
@@ -673,11 +667,12 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 )}
                             </AnimatePresence>
 
+                            {/* Food List Section */}
                             {tagItems.length > 0 && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between px-1">
-                                        <h4 className="text-[10px] font-black text-[#49454F]/30 uppercase tracking-[0.2em]">Alimentos detectados</h4>
-                                        <span className="text-[10px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded-full">{tagItems.length}</span>
+                                        <h4 className="text-[10px] font-black text-[#49454F]/30 uppercase tracking-[0.2em]">Detectados</h4>
+                                        <span className="text-[10px] font-black text-primary px-3 py-1 bg-primary/10 rounded-full">{tagItems.length}</span>
                                     </div>
                                     <div className="space-y-3">
                                         {tagItems.map(tag => {
@@ -694,8 +689,8 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                             }}
                                                             className="flex items-start gap-4 flex-1 text-left group"
                                                         >
-                                                            <div className={`w-12 h-12 rounded-[20px] flex items-center justify-center shrink-0 transition-colors ${tag.resolutionStatus === 'resolved' ? 'bg-primary/10' : tag.resolutionStatus === 'pending' ? 'bg-black/5' : 'bg-rose-50'}`}>
-                                                                <UtensilsIcon size={20} className={tag.resolutionStatus === 'resolved' ? 'text-primary' : tag.resolutionStatus === 'pending' ? 'text-black/20' : 'text-rose-500'} />
+                                                            <div className={`w-12 h-12 rounded-[22px] flex items-center justify-center shrink-0 transition-colors ${tag.resolutionStatus === 'resolved' ? 'bg-primary/10' : tag.resolutionStatus === 'pending' ? 'bg-black/5' : 'bg-rose-50'}`}>
+                                                                <UtensilsIcon size={20} className={tag.resolutionStatus === 'resolved' ? 'text-primary' : tag.resolutionStatus === 'pending' ? 'text-black/10' : 'text-rose-500'} />
                                                             </div>
                                                             <div className="flex-1 min-w-0 pt-1">
                                                                 <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -722,7 +717,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                             )}
                                                             <button
                                                                 onClick={() => setTagItems(prev => prev.filter(item => item.key !== tag.key))}
-                                                                className="w-10 h-10 flex items-center justify-center text-[#49454F]/20 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
+                                                                className="w-10 h-10 flex items-center justify-center text-[#49454F]/10 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
                                                             >
                                                                 <TrashIcon size={18} />
                                                             </button>
@@ -739,14 +734,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                             >
                                                                 <div className="mt-5 pt-5 border-t border-black/[0.03] space-y-4">
                                                                     {tag.subItems?.length ? (
-                                                                        <div className="rounded-2xl bg-black/5 px-4 py-3 text-[11px] font-medium text-[#49454F]/60">
+                                                                        <div className="rounded-[20px] bg-black/[0.02] px-4 py-3 text-[11px] font-medium text-[#49454F]/60">
                                                                             Ingredientes: {tag.subItems.map(item => item.tag).join(', ')}
                                                                         </div>
                                                                     ) : null}
 
                                                                     {tag.candidateFoods.length > 0 && (
                                                                         <div className="space-y-3">
-                                                                            <p className="text-[9px] font-black text-[#49454F]/30 uppercase tracking-[0.2em] px-1">Sugerencias inteligentes</p>
+                                                                            <p className="text-[9px] font-black text-[#49454F]/20 uppercase tracking-[0.2em] px-1">Mejores coincidencias</p>
                                                                             <div className="grid gap-2">
                                                                                 {tag.candidateFoods.map(candidate => (
                                                                                     <button
@@ -761,7 +756,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                                                                     {candidate.food.calories} kcal · {confidenceLabel(candidate.confidence)}
                                                                                                 </p>
                                                                                             </div>
-                                                                                            <div className="text-[9px] font-black uppercase tracking-widest text-[#1C1B1F]/20 group-hover:text-primary transition-colors">Elegir</div>
+                                                                                            <div className="text-[9px] font-black uppercase tracking-widest text-[#1C1B1F]/20 group-hover:text-primary transition-colors">Select</div>
                                                                                         </div>
                                                                                     </button>
                                                                                 ))}
@@ -774,7 +769,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                                             onClick={() => handleOpenManualSearch(tag)}
                                                                             className="w-full rounded-[24px] border border-black/[0.05] bg-white py-4 text-[10px] font-black uppercase tracking-widest text-[#1C1B1F] hover:bg-black/5 transition-all shadow-sm"
                                                                         >
-                                                                            Seleccionar manualmente
+                                                                            Búsqueda Manual
                                                                         </button>
                                                                     )}
                                                                 </div>
@@ -789,90 +784,46 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             )}
                         </div>
 
-                        <div className={`absolute bottom-0 inset-x-0 px-6 pt-10 ${displayMode === 'appendix' ? 'pb-24' : 'pb-28'} bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] 80% to-transparent pointer-events-none`}>
-                            <div className="pointer-events-auto flex gap-3">
+                        {/* Footer - Actions */}
+                        <div className={`absolute bottom-0 inset-x-0 px-8 pt-12 ${displayMode === 'appendix' ? 'pb-24' : 'pb-28'} bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] 70% to-transparent pointer-events-none`}>
+                            <div className="pointer-events-auto flex gap-4">
                                 {displayMode === 'drawer' && (
                                     <button
                                         onClick={onClose}
-                                        className="flex-1 py-5 bg-white border border-black/[0.05] rounded-3xl text-[#49454F] text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-sm"
+                                        className="flex-1 py-5 bg-white border border-black/[0.05] rounded-[32px] text-[#49454F] text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-sm font-['Roboto']"
                                     >
                                         Cancelar
                                     </button>
                                 )}
                                 <button
                                     onClick={handleSave}
-                                    className="flex-[2] py-5 bg-[#1C1B1F] text-white rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-black/10 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                    className="flex-[2] py-5 bg-[#1C1B1F] text-white rounded-[32px] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-black/10 active:scale-95 transition-all flex items-center justify-center gap-3 font-['Roboto']"
                                 >
-                                    Confirmar registro
+                                    Confirmar Registro
                                     <PlusIcon size={16} />
                                 </button>
                             </div>
                         </div>
 
+                        {/* Success Overlay */}
                         <AnimatePresence>
                             {saveState === 'success' && (
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, y: 20 }}
-                                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                                    className="absolute inset-0 z-[2500] bg-[#F7F7F7]/95 backdrop-blur-md px-6 py-12 flex flex-col items-center justify-center pointer-events-auto"
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="absolute inset-0 z-[2002] bg-[#F7F7F7] flex flex-col items-center justify-center p-8 text-center"
                                 >
-                                    <div className="w-20 h-20 bg-emerald-500 rounded-[32px] flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-8 animate-bounce">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
+                                    <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-primary/30">
+                                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }}>
+                                            <UtensilsIcon size={40} className="text-white" />
+                                        </motion.div>
                                     </div>
-                                    <h2 className="text-3xl font-black text-slate-900 mb-2">Listo</h2>
-                                    <p className="text-sm font-bold text-slate-500 mb-8 text-center bg-slate-200/50 px-4 py-2 rounded-full">
-                                        Has sumado <span className="text-slate-900 font-black">{Math.round(totalMacros.calories)} kcal</span> a tu plan.
-                                    </p>
-
-                                    <div className="w-full bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl space-y-4">
-                                        {tagItems.filter(tag => tag.loggedFood).map(tag => (
-                                            <div key={tag.key} className="flex justify-between items-center bg-slate-50 p-3 rounded-2xl">
-                                                <span className="text-sm font-black text-slate-900 truncate pr-4">{tag.loggedFood?.foodName}</span>
-                                                <span className="text-xs font-bold text-slate-400 shrink-0">{tag.loggedFood?.amount}{tag.loggedFood?.unit}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <h2 className="text-3xl font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter uppercase mb-2">¡Registrado!</h2>
+                                    <p className="text-[#49454F]/60 font-medium">Tu progreso ha sido actualizado.</p>
                                 </motion.div>
                             )}
                         </AnimatePresence>
-
-                        {selectedFoodForPortion && (
-                            <div className="fixed inset-0 z-[3000] bg-white rounded-t-[40px] shadow-2xl overflow-hidden p-6 animate-slide-up">
-                                <PortionSelector
-                                    food={selectedFoodForPortion.food}
-                                    onConfirm={(portion, grams) => {
-                                        const logged = foodToLoggedFood(selectedFoodForPortion.food, grams, portion);
-                                        if (selectedFoodForPortion.query) {
-                                            rememberFoodResolution(selectedFoodForPortion.query, selectedFoodForPortion.food);
-                                        }
-                                        setTagItems(prev => [
-                                            ...prev,
-                                            {
-                                                key: crypto.randomUUID(),
-                                                origin: 'manual',
-                                                tag: selectedFoodForPortion.food.name,
-                                                portion: 'medium',
-                                                quantity: 1,
-                                                foodItem: selectedFoodForPortion.food,
-                                                loggedFood: logged,
-                                                resolutionStatus: 'resolved',
-                                                resolutionConfidence: 'high',
-                                                resolutionReason: 'Agregado manualmente.',
-                                                candidateFoods: [],
-                                            },
-                                        ]);
-                                        setSelectedFoodForPortion(null);
-                                        setSearchQuery('');
-                                        setSearchResults([]);
-                                    }}
-                                    onCancel={() => setSelectedFoodForPortion(null)}
-                                />
-                            </div>
-                        )}
                     </motion.div>
                 </>
             )}
@@ -880,35 +831,37 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     );
 };
 
+// --- Helper Components ---
+
+const MacroBadge: React.FC<{ label: string; val: number; color: string }> = ({ label, val, color }) => (
+    <div className="flex flex-col items-center gap-1.5 min-w-[50px]">
+        <div className={`w-1.5 h-1.5 rounded-full ${color} shadow-[0_0_8px] ${color.replace('bg-', 'shadow-')}/40`} />
+        <span className="text-[14px] font-black text-[#1C1B1F] tracking-tighter font-['Roboto'] leading-none">{Math.round(val)}</span>
+        <span className="text-[8px] font-black text-[#49454F]/20 uppercase tracking-widest">{label}</span>
+    </div>
+);
+
 const TabBtn: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
     <button
         onClick={onClick}
-        className={`flex-1 py-2.5 text-[9px] font-black uppercase transition-all rounded-2xl ${active ? 'bg-white text-[#1C1B1F] shadow-sm' : 'text-[#49454F]/40'}`}
+        className={`flex-1 py-3 px-4 rounded-[24px] text-[9px] font-black uppercase tracking-widest transition-all ${active ? 'bg-white text-[#1C1B1F] shadow-sm' : 'text-[#49454F]/40 hover:text-[#49454F]'}`}
     >
         {children}
     </button>
 );
 
-const MacroBadge: React.FC<{ label: string; val: number; color: string }> = ({ label, val, color }) => (
-    <div className="flex flex-col items-center">
-        <div className={`w-8 h-1.5 rounded-full ${color} mb-1.5 opacity-40`} />
-        <span className="text-xl font-black text-[#1C1B1F] font-['Roboto'] leading-none tracking-tighter">{Math.round(val)}</span>
-        <span className="text-[9px] font-black text-[#49454F]/30 uppercase tracking-tighter mt-1">{label}</span>
-    </div>
-);
-
 const StatusBadge: React.FC<{ status: TagResolutionStatus; confidence: SearchConfidence }> = ({ status, confidence }) => {
     if (status === 'resolved') {
-        return <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-primary">OK</span>;
+        return <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-primary">Confirmado</span>;
     }
 
     if (status === 'pending') {
-        return <span className="inline-flex items-center rounded-full bg-black/5 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-black/20">...</span>;
+        return <span className="inline-flex items-center rounded-full bg-black/5 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-black/20 animate-pulse">Analizando</span>;
     }
 
     return (
-        <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-rose-500">
-            Revisar · {confidenceLabel(confidence)}
+        <span className="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-rose-500">
+            Revisión necesaria
         </span>
     );
 };
