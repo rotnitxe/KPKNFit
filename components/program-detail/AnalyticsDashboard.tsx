@@ -196,9 +196,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 <div className="text-label-sm font-black uppercase tracking-[0.2em] opacity-50" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perspectiva Global</div>
                 {/* ── Body Map ── */}
                 {activeWidgets.includes('bodymap') && (
-                    <section className="bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-3xl overflow-hidden p-6 shadow-sm">
-                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Mapa de Volumen</h3>
-                        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-start bg-black rounded-xl p-3">
+                    <section className="bg-[var(--md-sys-color-surface-container)] rounded-[24px] p-6 shadow-sm">
+                        <h3 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)] mb-4">Mapa de Volumen</h3>
+                        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-start bg-[var(--md-sys-color-surface-container-low)] rounded-[20px] p-4 border border-[var(--md-sys-color-outline-variant)]">
                             <div className="flex justify-center shrink-0">
                                 <CaupolicanBody
                                     data={visualizerData as any}
@@ -227,10 +227,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                             />
                         </div>
                         {programDiscomforts.length > 0 && (
-                            <div className="mt-4 flex flex-wrap justify-center gap-2">
+                            <div className="mt-5 flex flex-wrap justify-center gap-2">
                                 {programDiscomforts.slice(0, 5).map((disc, idx) => (
-                                    <span key={idx} className="text-[10px] font-black uppercase tracking-widest bg-[var(--md-sys-color-error-container)]/10 border border-[var(--md-sys-color-error-container)]/20 px-3 py-1 rounded-full" style={{ color: 'var(--md-sys-color-error)' }}>
-                                        {disc.name} <span className="opacity-60">{disc.count}x</span>
+                                    <span key={idx} className="text-label-sm font-bold bg-[var(--md-sys-color-error-container)] border border-[var(--md-sys-color-error-container)]/50 px-3 py-1.5 rounded-full text-[var(--md-sys-color-on-error-container)]">
+                                        {disc.name} <span className="opacity-70 ml-1">{disc.count}x</span>
                                     </span>
                                 ))}
                             </div>
@@ -240,20 +240,20 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
                 {/* ── Volume Analysis ── */}
                 {activeWidgets.includes('volume') && (
-                    <section>
+                    <section className="bg-[var(--md-sys-color-surface-container)] rounded-[24px] p-6 shadow-sm">
                         {suggestRecalibration && program.volumeSystem === 'kpnk' && (
                             <button
                                 onClick={handleRecalibrateClick}
                                 disabled={isRecalibrating}
-                                className="w-full mb-4 py-3 px-4 rounded-2xl border border-[var(--md-sys-color-tertiary)]/30 bg-[var(--md-sys-color-tertiary-container)]/20 text-[var(--md-sys-color-tertiary)] text-label-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--md-sys-color-tertiary-container)]/30 transition-all active:scale-[0.98]"
+                                className="w-full mb-6 py-4 px-5 rounded-[20px] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] text-label-large font-bold flex items-center justify-center gap-3 hover:brightness-95 transition-all shadow-sm active:scale-[0.98]"
                             >
-                                <TargetIcon size={16} />
-                                {isRecalibrating ? 'Cargando…' : 'KPKN sugiere revisar tu volumen'}
+                                <TargetIcon size={20} />
+                                {isRecalibrating ? 'Calculando sugerencias…' : 'KPKN sugiere revisar tu volumen'}
                             </button>
                         )}
-                        <div className="flex items-center justify-between gap-2 mb-4">
-                            <h3 className="text-label-sm font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Volumen Semanal</h3>
-                            <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                            <h3 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)]">Volumen Semanal</h3>
+                            <div className="flex flex-wrap items-center gap-2">
                                 <select
                                     value={program.volumeSystem ?? settings?.volumeSystem ?? 'kpnk'}
                                     onChange={(e) => {
@@ -281,7 +281,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                             setSettings?.({ volumeSystem: sys as any });
                                         }
                                     }}
-                                    className="text-label-sm font-black bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-xl px-3 py-1.5 text-[var(--md-sys-color-on-surface)] uppercase tracking-wider focus:ring-2 focus:ring-[var(--md-sys-color-primary)] outline-none"
+                                    className="text-label-large font-bold bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline)] rounded-lg px-4 py-2.5 text-[var(--md-sys-color-on-surface)] focus:ring-2 focus:ring-[var(--md-sys-color-primary)] outline-none"
                                 >
                                     <option value="israetel">Israetel</option>
                                     <option value="kpnk">KPKN Personalizado</option>
@@ -291,7 +291,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                     <button
                                         onClick={handleRecalibrateClick}
                                         disabled={isRecalibrating}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] text-label-sm font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-sm active:scale-95"
+                                        className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)] text-label-large font-bold transition-colors disabled:opacity-50"
                                     >
                                         Re-calibrar
                                     </button>
@@ -299,13 +299,13 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                 {program.volumeSystem === 'manual' && onUpdateProgram && (
                                     <button
                                         onClick={() => setShowManualEditor(prev => !prev)}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-label-sm font-black uppercase tracking-wider transition-all ${showManualEditor
-                                            ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
-                                            : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-full border text-label-large font-bold transition-all ${showManualEditor
+                                            ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
+                                            : 'border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)]'
                                             }`}
                                     >
                                         Editar valores
-                                        <ChevronDownIcon size={10} className={`transition-transform ${showManualEditor ? 'rotate-180' : ''}`} />
+                                        <ChevronDownIcon size={16} className={`transition-transform ${showManualEditor ? 'rotate-180' : ''}`} />
                                     </button>
                                 )}
                             </div>
@@ -433,49 +433,53 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
                 {/* ── Strength ── */}
                 {activeWidgets.includes('strength') && (
-                    <section>
-                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Fuerza Relativa</h3>
+                    <section className="bg-[var(--md-sys-color-surface-container)] rounded-[24px] p-6 shadow-sm">
+                        <h3 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)] mb-4">Fuerza Relativa</h3>
                         <RelativeStrengthAndBasicsWidget displayedSessions={displayedSessions} />
                     </section>
                 )}
 
                 {/* ── Progreso 1RM ejercicios estrella ── */}
                 {activeWidgets.includes('star1rm') && (
-                    <section>
-                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                            <StarIcon size={16} filled style={{ color: 'var(--md-sys-color-tertiary)' }} />
-                            Progreso 1RM — Ejercicios estrella
-                        </h3>
-                        <p className="text-label-sm mb-4 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                            Ejercicios marcados como estrella en Session Editor. 1RM estimado (Brzycki) por sesión.
+                    <section className="bg-[var(--md-sys-color-surface-container)] rounded-[24px] p-6 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                            <StarIcon size={20} filled className="text-[var(--md-sys-color-tertiary)]" />
+                            <h3 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)]">
+                                Progreso 1RM — Estrellas
+                            </h3>
+                        </div>
+                        <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] mb-6 leading-relaxed">
+                            Ejercicios marcados como estrella en Editar Sesión. 1RM estimado (Brzycki).
                         </p>
                         {starExerciseNames.length === 0 ? (
-                            <div className="bg-[var(--md-sys-color-surface-container)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)] text-center">
-                                <p className="text-label-md font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>No hay ejercicios estrella</p>
-                                <p className="text-label-sm mt-1 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Márcalos con la estrella en el editor de sesión.</p>
+                            <div className="bg-[var(--md-sys-color-surface-container-highest)] rounded-[20px] p-8 border border-[var(--md-sys-color-outline-variant)] text-center">
+                                <p className="text-label-large font-bold text-[var(--md-sys-color-on-surface)]">No hay ejercicios estrella</p>
+                                <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] mt-2">Márcalos en el editor de sesión.</p>
                             </div>
                         ) : star1RMWithGoals.length === 0 ? (
-                            <div className="bg-[var(--md-sys-color-surface-container)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)] text-center">
-                                <p className="text-label-md font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>Esperando datos</p>
-                                <p className="text-label-sm mt-1 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Completa sesiones que los incluyan para ver el progreso.</p>
+                            <div className="bg-[var(--md-sys-color-surface-container-highest)] rounded-[20px] p-8 border border-[var(--md-sys-color-outline-variant)] text-center">
+                                <p className="text-label-large font-bold text-[var(--md-sys-color-on-surface)]">Esperando datos</p>
+                                <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] mt-2">Completa sesiones que los incluyan.</p>
                             </div>
                         ) : (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 {star1RMWithGoals.map(({ name, lastE1rm, prevE1rm, trend, goal1RM }) => {
                                     const progress = goal1RM != null && goal1RM > 0 && lastE1rm != null
                                         ? Math.min(100, (lastE1rm / goal1RM) * 100)
                                         : null;
                                     return (
-                                        <div key={name} className="py-3.5 px-4 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] space-y-2.5">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <span className="text-title-sm font-black uppercase tracking-tight truncate flex-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>{name}</span>
-                                                <span className="text-title-md font-black shrink-0" style={{ color: 'var(--md-sys-color-primary)' }}>{lastE1rm != null ? `${Math.round(lastE1rm)} kg` : '—'}</span>
-                                                {goal1RM != null && <span className="text-label-sm font-black uppercase tracking-widest shrink-0" style={{ color: 'var(--md-sys-color-tertiary)' }}>meta {goal1RM}</span>}
-                                                {trend === 'up' && <span className="text-title-sm font-black text-[var(--md-sys-color-primary)] shrink-0">↑</span>}
-                                                {trend === 'down' && <span className="text-title-sm font-black text-[var(--md-sys-color-error)] shrink-0">↓</span>}
+                                        <div key={name} className="p-4 rounded-[20px] bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)]">
+                                            <div className="flex items-center justify-between gap-4 mb-2">
+                                                <span className="text-title-sm font-bold text-[var(--md-sys-color-on-surface)] truncate flex-1">{name}</span>
+                                                <div className="flex items-center gap-3 shrink-0">
+                                                    <span className="text-title-md font-bold text-[var(--md-sys-color-primary)]">{lastE1rm != null ? `${Math.round(lastE1rm)} kg` : '—'}</span>
+                                                    {goal1RM != null && <span className="text-label-sm font-bold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] px-2 py-1 rounded-md">META {goal1RM}</span>}
+                                                    {trend === 'up' && <span className="text-title-sm font-bold text-[var(--md-sys-color-primary)]">↑</span>}
+                                                    {trend === 'down' && <span className="text-title-sm font-bold text-[var(--md-sys-color-error)]">↓</span>}
+                                                </div>
                                             </div>
                                             {progress != null && (
-                                                <div className="h-2 bg-[var(--md-sys-color-surface-variant)] rounded-full overflow-hidden">
+                                                <div className="h-2.5 bg-[var(--md-sys-color-surface-container-highest)] rounded-full overflow-hidden">
                                                     <div
                                                         className="h-full rounded-full transition-all"
                                                         style={{
@@ -495,12 +499,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
                 {/* ── AUGE Banister ── */}
                 {activeWidgets.includes('banister') && adaptiveCache.banister && (
-                    <section>
-                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-1" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>AUGE — Fitness vs Fatiga</h3>
-                        <p className="text-label-sm mb-4 opacity-60" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                    <section className="bg-[var(--md-sys-color-surface-container)] rounded-[24px] p-6 shadow-sm">
+                        <h3 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)] mb-1">
+                            AUGE — Fitness vs Fatiga
+                        </h3>
+                        <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] mb-4 opacity-80">
                             {adaptiveCache.banister.verdict || 'Modelo Banister activo'}
                         </p>
-                        <div className="bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-4">
+                        <div className="bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-[20px] p-4">
                             <BanisterTrend systemData={adaptiveCache.banister?.systems?.muscular || null} />
                         </div>
                     </section>
@@ -508,36 +514,36 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
                 {/* ── Recovery Map ── */}
                 {activeWidgets.includes('recovery') && recoveryData.length > 0 && (
-                    <section>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-label-sm font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Recuperación</h3>
-                            <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full" style={{
+                    <section className="bg-[var(--md-sys-color-surface-container)] rounded-[24px] p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)]">Recuperación</h3>
+                            <span className="text-label-sm font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border" style={{
                                 backgroundColor: confidenceLabel === 'Alta' ? 'var(--md-sys-color-primary-container)' : confidenceLabel === 'Media' ? 'var(--md-sys-color-tertiary-container)' : 'var(--md-sys-color-error-container)',
                                 color: confidenceLabel === 'Alta' ? 'var(--md-sys-color-on-primary-container)' : confidenceLabel === 'Media' ? 'var(--md-sys-color-on-tertiary-container)' : 'var(--md-sys-color-on-error-container)',
-                                border: '1px solid var(--md-sys-color-outline-variant)'
+                                borderColor: 'var(--md-sys-color-outline-variant)'
                             }}>
                                 Confianza {confidenceLabel}
                             </span>
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-3">
                             {recoveryData.map(([muscle, hours]) => (
-                                <div key={muscle} className="flex items-center gap-2">
-                                    <span className="w-24 text-label-sm font-black uppercase tracking-widest opacity-60 text-right" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>{muscle}</span>
-                                    <div className="flex-1 h-3 bg-[var(--md-sys-color-surface-container-high)] rounded-full overflow-hidden">
+                                <div key={muscle} className="flex items-center gap-4">
+                                    <span className="w-24 text-label-large font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-tight text-right">{muscle}</span>
+                                    <div className="flex-1 h-3 bg-[var(--md-sys-color-surface-container-highest)] rounded-full overflow-hidden">
                                         <div
-                                            className="h-full rounded-full shadow-sm"
+                                            className="h-full rounded-full transition-all"
                                             style={{
                                                 width: `${Math.min(100, (hours / 96) * 100)}%`,
                                                 backgroundColor: hours > 72 ? 'var(--md-sys-color-error)' : hours > 48 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)',
                                             }}
                                         />
                                     </div>
-                                    <span className="w-10 text-label-sm font-black text-right" style={{ color: 'var(--md-sys-color-on-surface)' }}>{Math.round(hours)}h</span>
+                                    <span className="w-12 text-label-large font-bold text-[var(--md-sys-color-on-surface)] text-right">{Math.round(hours)}h</span>
                                 </div>
                             ))}
                         </div>
                         {adaptiveCache.selfImprovement && (
-                            <div className="mt-4 bg-[#1a1a1a] rounded-xl p-3">
+                            <div className="mt-6 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-[20px] p-4">
                                 <SelfImprovementScore
                                     score={adaptiveCache.selfImprovement.overall_prediction_score}
                                     trend={adaptiveCache.selfImprovement.improvement_trend}
@@ -550,8 +556,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
                 {/* ── Exercise History ── */}
                 {activeWidgets.includes('history') && (
-                    <section>
-                        <h3 className="text-label-sm font-black uppercase tracking-widest mb-4" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Historial de Ejercicios</h3>
+                    <section className="bg-[var(--md-sys-color-surface-container)] rounded-[24px] p-6 shadow-sm">
+                        <h3 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)] mb-4">Historial de Ejercicios</h3>
                         <ExerciseHistoryWidget program={program} history={historyData} />
                     </section>
                 )}

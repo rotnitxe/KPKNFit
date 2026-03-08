@@ -7,7 +7,12 @@ import { getAbsoluteWeekIndex, checkWeekHasEvent } from '../../utils/programHelp
 import { StructureTemplate } from '../../data/structureTemplates';
 
 const GOAL_OPTIONS = ['Acumulación', 'Intensificación', 'Realización', 'Descarga', 'Custom'] as const;
-const BLOCK_COLORS = ['#3B82F6', '#A855F7', '#EAB308', '#10B981', '#F43F5E', '#06B6D4', '#EC4899'];
+const BLOCK_COLORS = [
+    'var(--md-sys-color-primary)',
+    'var(--md-sys-color-secondary)',
+    'var(--md-sys-color-tertiary)',
+    'var(--md-sys-color-error)'
+];
 
 type NamingMode = 'bloque' | 'mesociclo';
 
@@ -154,47 +159,35 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
         ), [program.macrocycles]);
 
     return (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
-
-            {/* ── Top toolbar ── */}
-            <div className="shrink-0 px-4 pt-4 pb-3 flex items-center justify-between gap-2">
-                {/* Naming mode toggle */}
-                <div
-                    className="flex items-center rounded-full p-0.5 border gap-0.5"
-                    style={{
-                        backgroundColor: 'var(--md-sys-color-surface-container)',
-                        borderColor: 'var(--md-sys-color-outline-variant)',
-                    }}
-                >
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[var(--md-sys-color-background)]">
+            {/* ── Top toolbar M3 ── */}
+            <div className="shrink-0 px-4 pt-4 pb-3 flex items-center justify-between gap-4">
+                {/* Naming mode toggle (M3 Segmented Button) */}
+                <div className="flex bg-[var(--md-sys-color-surface-container)] rounded-full p-1 border border-[var(--md-sys-color-outline-variant)]">
                     <button
                         onClick={() => setNamingMode('bloque')}
-                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${namingMode === 'bloque'
-                                ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]'
-                                : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'
+                        className={`flex-1 px-4 py-2 rounded-full text-label-sm font-bold transition-all whitespace-nowrap ${namingMode === 'bloque'
+                            ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-sm'
+                            : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]'
                             }`}
                     >
                         Bloques
                     </button>
                     <button
                         onClick={() => setNamingMode('mesociclo')}
-                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${namingMode === 'mesociclo'
-                                ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]'
-                                : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'
+                        className={`flex-1 px-4 py-2 rounded-full text-label-sm font-bold transition-all whitespace-nowrap ${namingMode === 'mesociclo'
+                            ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-sm'
+                            : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]'
                             }`}
                     >
                         Mesociclos
                     </button>
                 </div>
-                {/* Plantillas button */}
+                {/* Plantillas button (M3 Tonal Button) */}
                 {onUpdateProgram && (
                     <button
                         onClick={() => setShowGallery(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all"
-                        style={{
-                            borderColor: 'var(--md-sys-color-outline-variant)',
-                            color: 'var(--md-sys-color-on-surface-variant)',
-                            backgroundColor: 'var(--md-sys-color-surface-container)',
-                        }}
+                        className="flex items-center justify-center gap-2 px-6 py-2 rounded-full bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-label-large font-bold hover:brightness-95 transition-all shrink-0"
                     >
                         <span>📋</span> Plantillas
                     </button>
@@ -254,14 +247,14 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                 </div>
             )}
 
-            {/* ── Scroll area ── */}
-            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 pb-[max(100px,calc(80px+env(safe-area-inset-bottom)))] space-y-3">
+            {/* ── Scroll area M3 ── */}
+            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 pb-[max(100px,calc(80px+env(safe-area-inset-bottom)))] space-y-4 pt-2">
 
                 {program.macrocycles.map((macro, macroIdx) => (
-                    <div key={macro.id}>
-                        {/* Macrocycle name (editable) */}
+                    <div key={macro.id} className="space-y-4">
+                        {/* Macrocycle name (editable) M3 */}
                         {program.macrocycles.length > 1 && (
-                            <div className="flex items-center gap-2 mb-2 px-1">
+                            <div className="flex items-center gap-2 px-1">
                                 {renamingId === macro.id ? (
                                     <input
                                         autoFocus
@@ -269,18 +262,17 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                         onChange={e => setRenameValue(e.target.value)}
                                         onBlur={() => commitRename((p, v) => { const m = p.macrocycles[macroIdx]; if (m) m.name = v; })}
                                         onKeyDown={e => { if (e.key === 'Enter') commitRename((p, v) => { const m = p.macrocycles[macroIdx]; if (m) m.name = v; }); if (e.key === 'Escape') setRenamingId(null); }}
-                                        className="flex-1 bg-transparent text-[11px] font-black uppercase tracking-widest border-b border-[var(--md-sys-color-primary)] outline-none"
-                                        style={{ color: 'var(--md-sys-color-on-surface)' }}
+                                        className="flex-1 bg-transparent text-title-sm font-bold uppercase tracking-widest border-b-2 border-[var(--md-sys-color-primary)] outline-none text-[var(--md-sys-color-on-background)]"
                                     />
                                 ) : (
-                                    <button onClick={() => startRename(macro.id, macro.name)} className="text-[11px] font-black uppercase tracking-widest opacity-40 hover:opacity-80 transition-opacity" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                                    <button onClick={() => startRename(macro.id, macro.name)} className="text-title-sm font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
                                         {macro.name}
                                     </button>
                                 )}
                             </div>
                         )}
 
-                        {/* Blocks / Mesocycles */}
+                        {/* Blocks / Mesocycles M3 */}
                         {(macro.blocks || []).map((block, blockIdx) => {
                             const colorIdx = (macroIdx * 10 + blockIdx) % BLOCK_COLORS.length;
                             const color = BLOCK_COLORS[colorIdx];
@@ -301,22 +293,20 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                             return (
                                 <div
                                     key={block.id}
-                                    className="rounded-2xl border overflow-hidden transition-all"
-                                    style={{
-                                        borderColor: isBlockSelected ? color : 'var(--md-sys-color-outline-variant)',
-                                        backgroundColor: 'var(--md-sys-color-surface-container)',
-                                    }}
+                                    className={`rounded-[24px] overflow-hidden transition-all border ${isBlockSelected
+                                        ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/10'
+                                        : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)]'
+                                        }`}
                                 >
-                                    {/* Block header */}
+                                    {/* Block header M3 */}
                                     <div
-                                        className="flex items-center gap-3 px-4 py-3 border-b"
-                                        style={{ borderColor: 'var(--md-sys-color-outline-variant)', borderLeftWidth: '3px', borderLeftColor: color }}
+                                        className="flex items-center gap-3 px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]"
                                     >
                                         <button
                                             onClick={() => onSelectBlock(block.id)}
-                                            className="flex-1 text-left flex items-center gap-2 min-w-0"
+                                            className="flex-1 text-left flex items-center gap-3 min-w-0"
                                         >
-                                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                                            <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: color }} />
                                             {renamingId === block.id ? (
                                                 <input
                                                     autoFocus
@@ -327,48 +317,47 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                         if (e.key === 'Enter') commitRename((p, v) => { const b = p.macrocycles[macroIdx]?.blocks?.[blockIdx]; if (b) b.name = v; });
                                                         if (e.key === 'Escape') setRenamingId(null);
                                                     }}
-                                                    className="flex-1 bg-transparent text-label-sm font-black uppercase tracking-tight border-b border-[var(--md-sys-color-primary)] outline-none"
-                                                    style={{ color: 'var(--md-sys-color-on-surface)' }}
+                                                    className="flex-1 bg-transparent text-title-md font-bold text-[var(--md-sys-color-on-surface)] border-b-2 border-[var(--md-sys-color-primary)] outline-none"
                                                     onClick={e => e.stopPropagation()}
                                                 />
                                             ) : (
-                                                <span className="text-label-sm font-black uppercase tracking-tight truncate" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                                                <span className={`text-title-md font-bold truncate ${isBlockSelected ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface)]'}`}>
                                                     {block.name}
                                                 </span>
                                             )}
                                         </button>
-                                        <span className="text-[10px] font-black opacity-40 shrink-0" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                                            {blockWeeks}s
+                                        <span className="text-label-md font-bold text-[var(--md-sys-color-on-surface-variant)] shrink-0">
+                                            {blockWeeks} sem
                                         </span>
                                         {onUpdateProgram && (
-                                            <button
-                                                onClick={() => startRename(block.id, block.name)}
-                                                className="p-1 opacity-40 hover:opacity-100 transition-opacity shrink-0"
-                                                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                                            >
-                                                <EditIcon size={12} />
-                                            </button>
-                                        )}
-                                        {onUpdateProgram && !isCyclic && blockCount > 1 && (
-                                            <button
-                                                onClick={() => {
-                                                    if (window.confirm(`¿Eliminar "${block.name}"? Se perderán todas sus semanas y sesiones.`)) {
-                                                        update(p => {
-                                                            const m = p.macrocycles[macroIdx];
-                                                            if (m?.blocks) m.blocks.splice(blockIdx, 1);
-                                                        });
-                                                    }
-                                                }}
-                                                className="p-1 opacity-30 hover:opacity-80 transition-opacity shrink-0"
-                                                style={{ color: 'var(--md-sys-color-error)' }}
-                                            >
-                                                <TrashIcon size={12} />
-                                            </button>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <button
+                                                    onClick={() => startRename(block.id, block.name)}
+                                                    className="p-2 rounded-full text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-colors"
+                                                >
+                                                    <EditIcon size={16} />
+                                                </button>
+                                                {!isCyclic && blockCount > 1 && (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (window.confirm(`¿Eliminar "${block.name}"? Se perderán todas sus semanas y sesiones.`)) {
+                                                                update(p => {
+                                                                    const m = p.macrocycles[macroIdx];
+                                                                    if (m?.blocks) m.blocks.splice(blockIdx, 1);
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="p-2 rounded-full text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-colors"
+                                                    >
+                                                        <TrashIcon size={16} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
 
                                     {/* Block content: mesocycles */}
-                                    <div className="p-3 space-y-2">
+                                    <div className="p-4 space-y-3">
                                         {block.mesocycles.map((meso, mesoIdx) => {
                                             const mesoKey = meso.id;
                                             const mesoExpanded = expandedMesoIds.has(mesoKey);
@@ -386,14 +375,10 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                             return (
                                                 <div
                                                     key={meso.id}
-                                                    className="rounded-xl border overflow-hidden"
-                                                    style={{
-                                                        borderColor: 'var(--md-sys-color-outline-variant)',
-                                                        backgroundColor: 'var(--md-sys-color-surface-container-high)',
-                                                    }}
+                                                    className="rounded-[16px] border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] overflow-hidden transition-all"
                                                 >
-                                                    {/* Meso header */}
-                                                    <div className="flex items-center gap-2 px-3 py-2.5">
+                                                    {/* Meso header M3 */}
+                                                    <div className="flex items-center gap-2 px-4 py-3">
                                                         <button
                                                             onClick={() => setExpandedMesoIds(prev => {
                                                                 const next = new Set(prev);
@@ -403,9 +388,8 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                             className="flex items-center gap-2 flex-1 min-w-0 text-left"
                                                         >
                                                             <ChevronDownIcon
-                                                                size={12}
-                                                                className={`shrink-0 transition-transform ${mesoExpanded ? 'rotate-0' : '-rotate-90'}`}
-                                                                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
+                                                                size={16}
+                                                                className={`shrink-0 transition-transform text-[var(--md-sys-color-on-surface-variant)] ${mesoExpanded ? 'rotate-0' : '-rotate-90'}`}
                                                             />
                                                             {renamingId === meso.id ? (
                                                                 <input
@@ -420,12 +404,11 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                         if (e.key === 'Enter') commitRename((p, v) => { const t = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx]; if (t) t.name = v; });
                                                                         if (e.key === 'Escape') setRenamingId(null);
                                                                     }}
-                                                                    className="flex-1 bg-transparent text-[11px] font-black border-b border-[var(--md-sys-color-primary)] outline-none"
-                                                                    style={{ color: 'var(--md-sys-color-on-surface)' }}
+                                                                    className="flex-1 bg-transparent text-label-large font-bold border-b-2 border-[var(--md-sys-color-primary)] outline-none text-[var(--md-sys-color-on-surface)]"
                                                                     onClick={e => e.stopPropagation()}
                                                                 />
                                                             ) : (
-                                                                <span className="text-[11px] font-black truncate" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                                                                <span className="text-label-large font-bold truncate text-[var(--md-sys-color-on-surface)]">
                                                                     {meso.name}
                                                                 </span>
                                                             )}
@@ -436,44 +419,44 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                 const t = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx];
                                                                 if (t) t.goal = e.target.value as any;
                                                             })}
-                                                            className="bg-transparent text-[10px] font-black border-none p-0 focus:ring-0 cursor-pointer"
-                                                            style={{ color: `${color}cc` }}
+                                                            className="bg-transparent text-label-sm font-bold border-none p-0 focus:ring-0 cursor-pointer"
+                                                            style={{ color: `${color}` }}
                                                             onClick={e => e.stopPropagation()}
                                                         >
                                                             {GOAL_OPTIONS.map(g => (
-                                                                <option key={g} value={g} className="bg-black text-white">{g}</option>
+                                                                <option key={g} value={g} className="bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)]">{g}</option>
                                                             ))}
                                                         </select>
                                                         {onUpdateProgram && (
-                                                            <button
-                                                                onClick={() => startRename(meso.id, meso.name)}
-                                                                className="p-1 opacity-30 hover:opacity-80 transition-opacity shrink-0"
-                                                                style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                                                            >
-                                                                <EditIcon size={10} />
-                                                            </button>
-                                                        )}
-                                                        {onUpdateProgram && block.mesocycles.length > 1 && (
-                                                            <button
-                                                                onClick={() => update(p => {
-                                                                    const b = p.macrocycles[macroIdx]?.blocks?.[blockIdx];
-                                                                    if (b) b.mesocycles.splice(mesoIdx, 1);
-                                                                })}
-                                                                className="p-1 opacity-20 hover:opacity-60 transition-opacity shrink-0"
-                                                                style={{ color: 'var(--md-sys-color-error)' }}
-                                                            >
-                                                                <TrashIcon size={10} />
-                                                            </button>
+                                                            <div className="flex items-center gap-1 shrink-0">
+                                                                <button
+                                                                    onClick={() => startRename(meso.id, meso.name)}
+                                                                    className="p-1.5 rounded-full text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-colors"
+                                                                >
+                                                                    <EditIcon size={14} />
+                                                                </button>
+                                                                {block.mesocycles.length > 1 && (
+                                                                    <button
+                                                                        onClick={() => update(p => {
+                                                                            const b = p.macrocycles[macroIdx]?.blocks?.[blockIdx];
+                                                                            if (b) b.mesocycles.splice(mesoIdx, 1);
+                                                                        })}
+                                                                        className="p-1.5 rounded-full text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-colors"
+                                                                    >
+                                                                        <TrashIcon size={14} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         )}
                                                     </div>
 
                                                     {/* Mini progress bar for this meso */}
                                                     {meso.weeks.length > 0 && (
-                                                        <div className="px-3 pb-2">
-                                                            <div className="relative h-1.5 rounded-full overflow-visible" style={{ backgroundColor: 'var(--md-sys-color-surface-variant)' }}>
+                                                        <div className="px-4 pb-3">
+                                                            <div className="relative h-2 rounded-full overflow-visible bg-[var(--md-sys-color-surface-variant)]">
                                                                 <div
-                                                                    className="absolute left-0 top-0 h-full rounded-full"
-                                                                    style={{ width: '100%', backgroundColor: color, opacity: 0.25 }}
+                                                                    className="absolute left-0 top-0 h-full rounded-full transition-all"
+                                                                    style={{ width: '100%', backgroundColor: color, opacity: 0.3 }}
                                                                 />
                                                                 {/* Event markers */}
                                                                 {events.map(ev => {
@@ -484,10 +467,9 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                     return (
                                                                         <div
                                                                             key={ev.id}
-                                                                            className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-[var(--md-sys-color-background)] cursor-pointer"
+                                                                            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-[var(--md-sys-color-surface-container-high)] cursor-pointer shadow-sm hover:scale-110 transition-transform bg-[var(--md-sys-color-tertiary)]"
                                                                             style={{
                                                                                 left: `${Math.min(pct, 96)}%`,
-                                                                                backgroundColor: 'var(--md-sys-color-tertiary)',
                                                                             }}
                                                                             title={`Evento: ${ev.title}`}
                                                                             onClick={() => onOpenEventModal(ev)}
@@ -498,9 +480,9 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                         </div>
                                                     )}
 
-                                                    {/* Weeks chips */}
+                                                    {/* Weeks chips M3 */}
                                                     {mesoExpanded && (
-                                                        <div className="px-3 pb-3 flex flex-wrap gap-1.5">
+                                                        <div className="px-4 pb-4 flex flex-wrap gap-2">
                                                             {meso.weeks.map((week, weekIdx) => {
                                                                 const absIdx = getAbsoluteWeekIndex(program, block.id, week.id);
                                                                 const hasEvent = getWeekHasEvent(block.id, week.id);
@@ -517,11 +499,11 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                     <button
                                                                         key={week.id}
                                                                         onClick={() => { onSelectBlock(block.id); onSelectWeek(week.id); }}
-                                                                        className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${isCyclicEventWeek
-                                                                                ? 'border-dashed'
-                                                                                : hasEvent
-                                                                                    ? ''
-                                                                                    : ''
+                                                                        className={`relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-label-sm font-bold uppercase tracking-widest border transition-all ${isCyclicEventWeek
+                                                                            ? 'border-dashed'
+                                                                            : hasEvent
+                                                                                ? ''
+                                                                                : ''
                                                                             }`}
                                                                         style={{
                                                                             backgroundColor: isWeekSelected
@@ -550,10 +532,10 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                     >
                                                                         {isCyclicEventWeek ? '★' : `S${weekIdx + 1}`}
                                                                         {(hasEvent || isCyclicEventWeek) && (
-                                                                            <CalendarIcon size={8} className="shrink-0" />
+                                                                            <CalendarIcon size={12} className="shrink-0" />
                                                                         )}
                                                                         {week.sessions.length > 0 && (
-                                                                            <span className="opacity-60">·{week.sessions.length}</span>
+                                                                            <span className="opacity-70 text-[10px]">· {week.sessions.length}</span>
                                                                         )}
                                                                     </button>
                                                                 );
@@ -563,18 +545,13 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                             {isCyclic && onUpdateProgram && (
                                                                 <button
                                                                     onClick={() => onOpenEventModal()}
-                                                                    className="px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-dashed transition-all"
-                                                                    style={{
-                                                                        borderColor: 'var(--md-sys-color-tertiary)',
-                                                                        color: 'var(--md-sys-color-tertiary)',
-                                                                        backgroundColor: 'transparent',
-                                                                    }}
+                                                                    className="px-3 py-1.5 rounded-lg text-label-sm font-bold uppercase tracking-widest border border-dashed border-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-tertiary)] hover:bg-[var(--md-sys-color-tertiary-container)] hover:text-[var(--md-sys-color-on-tertiary-container)] transition-colors"
                                                                 >
                                                                     + Evento
                                                                 </button>
                                                             )}
 
-                                                            {/* Add week button */}
+                                                            {/* Add week button M3 */}
                                                             {onUpdateProgram && (
                                                                 <button
                                                                     onClick={() => update(p => {
@@ -585,14 +562,9 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                             sessions: [],
                                                                         });
                                                                     })}
-                                                                    className="px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-dashed transition-all"
-                                                                    style={{
-                                                                        borderColor: 'var(--md-sys-color-outline-variant)',
-                                                                        color: 'var(--md-sys-color-on-surface-variant)',
-                                                                        backgroundColor: 'transparent',
-                                                                    }}
+                                                                    className="px-3 py-1.5 rounded-lg text-label-sm font-bold uppercase tracking-widest border border-dashed border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-colors flex items-center justify-center gap-1"
                                                                 >
-                                                                    <PlusIcon size={10} className="inline" /> Sem
+                                                                    <PlusIcon size={12} className="inline" /> Sem
                                                                 </button>
                                                             )}
 
@@ -603,15 +575,10 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                         const target = p.macrocycles[macroIdx]?.blocks?.[blockIdx]?.mesocycles?.[mesoIdx];
                                                                         if (target && target.weeks.length > 1) target.weeks.pop();
                                                                     })}
-                                                                    className="px-2 py-1.5 rounded-lg text-[10px] font-black border border-dashed transition-all opacity-40 hover:opacity-80"
-                                                                    style={{
-                                                                        borderColor: 'var(--md-sys-color-error)',
-                                                                        color: 'var(--md-sys-color-error)',
-                                                                        backgroundColor: 'transparent',
-                                                                    }}
+                                                                    className="px-2.5 py-1.5 rounded-lg border border-dashed border-[var(--md-sys-color-error)] text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-colors flex items-center justify-center"
                                                                     title="Eliminar última semana"
                                                                 >
-                                                                    <TrashIcon size={10} className="inline" />
+                                                                    <TrashIcon size={12} className="inline" />
                                                                 </button>
                                                             )}
                                                         </div>
@@ -620,7 +587,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                             );
                                         })}
 
-                                        {/* Add meso/fase button */}
+                                        {/* Add meso/fase button M3 */}
                                         {onUpdateProgram && (
                                             <button
                                                 onClick={() => update(p => {
@@ -633,13 +600,9 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                         weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }],
                                                     });
                                                 })}
-                                                className="w-full flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed text-[10px] font-black uppercase tracking-widest transition-all"
-                                                style={{
-                                                    borderColor: 'var(--md-sys-color-outline-variant)',
-                                                    color: 'var(--md-sys-color-on-surface-variant)',
-                                                }}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-[16px] border border-dashed border-[var(--md-sys-color-outline-variant)] text-label-large font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-colors"
                                             >
-                                                <PlusIcon size={12} /> {mesoLabel}
+                                                <PlusIcon size={16} /> {mesoLabel}
                                             </button>
                                         )}
                                     </div>
@@ -671,58 +634,43 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                     </div>
                 )}
 
-                {/* ── Footer: Transition + Events ── */}
-                <div className="mt-4 pt-4 border-t space-y-3" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
+                {/* ── Footer: Transition + Events M3 ── */}
+                <div className="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)] space-y-4">
                     {/* Cyclic events (simple only) */}
                     {isCyclic && events.length > 0 && (
                         <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest opacity-50" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Eventos cíclicos</span>
-                                <button onClick={() => onOpenEventModal()} className="text-[10px] font-black" style={{ color: 'var(--md-sys-color-tertiary)' }}>+ Nuevo</button>
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-label-sm font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)]">Eventos cíclicos</span>
+                                <button onClick={() => onOpenEventModal()} className="text-label-sm font-bold text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary-container)] transition-colors">+ Nuevo</button>
                             </div>
-                            <div className="flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-2">
                                 {events.map((ev: any) => (
                                     <button
                                         key={ev.id}
                                         onClick={() => onOpenEventModal(ev)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-black transition-all"
-                                        style={{
-                                            backgroundColor: 'var(--md-sys-color-tertiary-container)',
-                                            borderColor: 'var(--md-sys-color-tertiary)',
-                                            color: 'var(--md-sys-color-on-tertiary-container)',
-                                        }}
+                                        className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[var(--md-sys-color-tertiary)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] text-label-sm font-bold transition-all hover:brightness-95"
                                     >
-                                        <CalendarIcon size={10} />
+                                        <CalendarIcon size={14} />
                                         {ev.title}
-                                        <span className="opacity-60">c/{ev.repeatEveryXCycles}</span>
+                                        <span className="opacity-70 text-[10px]">c/{ev.repeatEveryXCycles}</span>
                                     </button>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Transition button */}
+                    {/* Transition button M3 */}
                     {isCyclic ? (
                         <button
                             onClick={onShowAdvancedTransition}
-                            className="w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all"
-                            style={{
-                                backgroundColor: 'var(--md-sys-color-surface-container-high)',
-                                borderColor: 'var(--md-sys-color-outline-variant)',
-                                color: 'var(--md-sys-color-on-surface-variant)',
-                            }}
+                            className="w-full py-3 rounded-full text-label-large font-bold uppercase tracking-widest border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-all"
                         >
                             Convertir a Avanzado
                         </button>
                     ) : (
                         <button
                             onClick={onShowSimpleTransition}
-                            className="w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all"
-                            style={{
-                                backgroundColor: 'var(--md-sys-color-surface-container-high)',
-                                borderColor: 'var(--md-sys-color-outline-variant)',
-                                color: 'var(--md-sys-color-on-surface-variant)',
-                            }}
+                            className="w-full py-3 rounded-full text-label-large font-bold uppercase tracking-widest border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-all"
                         >
                             Simplificar Programa
                         </button>
@@ -730,49 +678,36 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                 </div>
             </div>
 
-            {/* ── Add block confirm modal ── */}
+            {/* ── Add block confirm modal M3 ── */}
             {showAddBlockConfirm && (
                 <>
-                    <div className="fixed inset-0 z-[200] bg-black/60" onClick={() => { setShowAddBlockConfirm(false); setPendingAddBlockMacroIdx(null); }} />
+                    <div className="fixed inset-0 z-[200] bg-[var(--md-sys-color-scrim)] opacity-50 transition-opacity" onClick={() => { setShowAddBlockConfirm(false); setPendingAddBlockMacroIdx(null); }} />
                     <div className="fixed inset-0 z-[201] flex items-center justify-center p-4">
                         <div
-                            className="rounded-2xl p-5 max-w-sm w-full shadow-xl border"
-                            style={{
-                                backgroundColor: 'var(--md-sys-color-surface-container-highest)',
-                                borderColor: 'var(--md-sys-color-outline-variant)',
-                            }}
+                            className="rounded-[28px] p-6 max-w-sm w-full shadow-lg border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)]"
                             onClick={e => e.stopPropagation()}
                         >
-                            <div className="flex items-start gap-3 mb-4">
-                                <AlertTriangleIcon size={24} className="text-amber-400 shrink-0" />
+                            <div className="flex items-start gap-4 mb-6">
+                                <AlertTriangleIcon size={24} className="text-[var(--md-sys-color-error)] shrink-0" />
                                 <div>
-                                    <h3 className="text-sm font-black" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                                    <h3 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)] mb-2">
                                         Convertir a programa avanzado
                                     </h3>
-                                    <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                                        Al añadir un {blockLabel.toLowerCase()}, el programa se convierte en <span className="font-black" style={{ color: 'var(--md-sys-color-on-surface)' }}>avanzado</span> y los eventos cíclicos se eliminarán. ¿Continuar?
+                                    <p className="text-body-md leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">
+                                        Al añadir un {blockLabel.toLowerCase()}, el programa se convierte en <span className="font-bold text-[var(--md-sys-color-on-surface)]">avanzado</span> y los eventos cíclicos se eliminarán. ¿Continuar?
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex justify-end gap-2">
                                 <button
                                     onClick={() => { setShowAddBlockConfirm(false); setPendingAddBlockMacroIdx(null); }}
-                                    className="flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all"
-                                    style={{
-                                        backgroundColor: 'var(--md-sys-color-surface-container-high)',
-                                        borderColor: 'var(--md-sys-color-outline-variant)',
-                                        color: 'var(--md-sys-color-on-surface-variant)',
-                                    }}
+                                    className="px-6 py-2 rounded-full text-label-large font-bold transition-all text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)]/10"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={() => pendingAddBlockMacroIdx !== null && doAddBlock(pendingAddBlockMacroIdx)}
-                                    className="flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                                    style={{
-                                        backgroundColor: 'var(--md-sys-color-primary)',
-                                        color: 'var(--md-sys-color-on-primary)',
-                                    }}
+                                    className="px-6 py-2 rounded-full text-label-large font-bold transition-all bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] hover:brightness-110 shadow-sm"
                                 >
                                     Continuar
                                 </button>

@@ -42,78 +42,75 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
 
     if (!isOpen) return null;
 
-    const BLOCK_COLORS = ['#3B82F6', '#A855F7', '#EAB308', '#10B981', '#F43F5E', '#06B6D4', '#EC4899'];
+    const BLOCK_COLORS = [
+        'var(--md-sys-color-primary)',
+        'var(--md-sys-color-secondary)',
+        'var(--md-sys-color-tertiary)',
+        'var(--md-sys-color-error)'
+    ];
 
     return (
         <>
-            {/* Backdrop */}
+            {/* Backdrop M3 */}
             <div
-                className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm"
+                className="fixed inset-0 z-[150] bg-[var(--md-sys-color-scrim)] opacity-50 transition-opacity"
                 onClick={onClose}
             />
 
-            {/* Drawer — full-height right panel */}
+            {/* Drawer — full-height right panel M3 */}
             <div
-                className="fixed top-0 right-0 bottom-0 z-[151] w-full max-w-sm flex flex-col shadow-2xl"
-                style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}
+                className="fixed top-0 right-0 bottom-0 z-[151] w-full max-w-sm flex flex-col shadow-2xl bg-[var(--md-sys-color-surface-container)]"
                 onClick={e => e.stopPropagation()}
             >
-                {/* Header */}
+                {/* Header M3 */}
                 <div
-                    className="flex items-center justify-between px-5 py-4 border-b shrink-0"
-                    style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}
+                    className="flex items-center justify-between px-6 py-5 border-b shrink-0 border-[var(--md-sys-color-outline-variant)]"
                 >
                     <div>
-                        <h2 className="text-label-lg font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                            Plantillas de Estructura
+                        <h2 className="text-title-md font-bold text-[var(--md-sys-color-on-surface)]">
+                            Plantillas
                         </h2>
-                        <p className="text-label-sm opacity-50 mt-0.5" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                            {STRUCTURE_TEMPLATES.length} plantillas disponibles
+                        <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] mt-1">
+                            {STRUCTURE_TEMPLATES.length} disponibles
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
-                        style={{ color: 'var(--md-sys-color-on-surface-variant)', backgroundColor: 'var(--md-sys-color-surface-container-high)' }}
+                        className="w-10 h-10 rounded-full flex items-center justify-center transition-colors text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)]"
                     >
-                        <XIcon size={16} />
+                        <XIcon size={20} />
                     </button>
                 </div>
 
-                {/* Search */}
-                <div className="px-4 pt-3 pb-2 shrink-0">
+                {/* Search M3 */}
+                <div className="px-5 pt-4 pb-3 shrink-0">
                     <div
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl border"
-                        style={{
-                            backgroundColor: 'var(--md-sys-color-surface-container-high)',
-                            borderColor: 'var(--md-sys-color-outline-variant)',
-                        }}
+                        className="flex items-center gap-3 px-4 py-3 rounded-full border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]"
                     >
-                        <SearchIcon size={14} style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+                        <SearchIcon size={18} className="text-[var(--md-sys-color-on-surface-variant)]" />
                         <input
                             type="text"
                             placeholder="Buscar plantilla..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="flex-1 bg-transparent text-xs font-medium outline-none placeholder:opacity-40"
-                            style={{ color: 'var(--md-sys-color-on-surface)' }}
+                            className="flex-1 bg-transparent text-body-md outline-none placeholder:text-[var(--md-sys-color-on-surface-variant)] placeholder:opacity-70"
                         />
                         {search && (
-                            <button onClick={() => setSearch('')} style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                                <XIcon size={12} />
+                            <button onClick={() => setSearch('')} className="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]">
+                                <XIcon size={16} />
                             </button>
                         )}
                     </div>
                 </div>
 
-                {/* Tag filters */}
-                <div className="px-4 pb-2 shrink-0 overflow-x-auto no-scrollbar">
-                    <div className="flex gap-1.5">
+                {/* Tag filters M3 */}
+                <div className="px-5 pb-3 shrink-0 overflow-x-auto no-scrollbar">
+                    <div className="flex gap-2">
                         <button
                             onClick={() => setActiveTag(null)}
-                            className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${!activeTag
-                                    ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent'
-                                    : 'bg-transparent text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/60'
+                            className={`shrink-0 px-4 py-2 rounded-full text-label-md font-bold transition-all ${!activeTag
+                                ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
+                                : 'border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]'
                                 }`}
                         >
                             Todos
@@ -122,9 +119,9 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
                             <button
                                 key={tag}
                                 onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-                                className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${activeTag === tag
-                                        ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent'
-                                        : 'bg-transparent text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/60'
+                                className={`shrink-0 px-4 py-2 rounded-full text-label-md font-bold transition-all ${activeTag === tag
+                                    ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
+                                    : 'border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]'
                                     }`}
                             >
                                 {tag}
@@ -133,11 +130,11 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
                     </div>
                 </div>
 
-                {/* Template list */}
-                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 pb-[max(100px,calc(80px+env(safe-area-inset-bottom)))] space-y-2 pt-1">
+                {/* Template list M3 */}
+                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-5 pb-[max(100px,calc(80px+env(safe-area-inset-bottom)))] space-y-3 pt-2">
                     {filtered.length === 0 && (
-                        <div className="text-center py-12 opacity-30">
-                            <p className="text-label-lg font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>Sin resultados</p>
+                        <div className="text-center py-12 opacity-50">
+                            <p className="text-body-lg text-[var(--md-sys-color-on-surface)]">No se encontraron resultados</p>
                         </div>
                     )}
                     {filtered.map(template => {
@@ -149,43 +146,31 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
                         return (
                             <div
                                 key={template.id}
-                                className="rounded-2xl border overflow-hidden transition-all"
-                                style={{
-                                    backgroundColor: isPreview
-                                        ? 'var(--md-sys-color-surface-container-highest)'
-                                        : 'var(--md-sys-color-surface-container-high)',
-                                    borderColor: isPreview
-                                        ? 'var(--md-sys-color-primary)'
-                                        : 'var(--md-sys-color-outline-variant)',
-                                }}
+                                className={`rounded-[24px] overflow-hidden transition-all ${isPreview ? 'bg-[var(--md-sys-color-surface-container-highest)] border-2 border-[var(--md-sys-color-primary)]' : 'bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-surface-container)]'}`}
                             >
-                                {/* Card header */}
+                                {/* Card header M3 */}
                                 <button
-                                    className="w-full px-4 py-3.5 text-left flex items-start gap-3"
+                                    className="w-full px-5 py-4 text-left flex items-start gap-4"
                                     onClick={() => setPreviewId(isPreview ? null : template.id)}
                                 >
-                                    <span className="text-2xl shrink-0 mt-0.5">{template.emoji}</span>
+                                    <span className="text-3xl shrink-0 mt-1">{template.emoji}</span>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span className="text-label-md font-black uppercase tracking-tight" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                                        <div className="flex items-center justify-between gap-3 mb-1">
+                                            <span className="text-title-sm font-bold text-[var(--md-sys-color-on-surface)]">
                                                 {template.name}
                                             </span>
-                                            <span className="text-[10px] font-black opacity-40 shrink-0" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                                                {totalWeeks}s
+                                            <span className="text-label-sm font-bold text-[var(--md-sys-color-secondary)] bg-[var(--md-sys-color-secondary-container)] px-2 py-0.5 rounded-full shrink-0">
+                                                {totalWeeks} sem
                                             </span>
                                         </div>
-                                        <p className="text-[11px] mt-0.5 opacity-60 leading-snug line-clamp-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                                        <p className="text-body-sm text-[var(--md-sys-color-on-surface-variant)] leading-snug line-clamp-2">
                                             {template.description}
                                         </p>
-                                        <div className="flex flex-wrap gap-1 mt-1.5">
+                                        <div className="flex flex-wrap gap-2 mt-3">
                                             {template.tags.slice(0, 3).map(tag => (
                                                 <span
                                                     key={tag}
-                                                    className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded"
-                                                    style={{
-                                                        backgroundColor: 'var(--md-sys-color-surface-variant)',
-                                                        color: 'var(--md-sys-color-on-surface-variant)',
-                                                    }}
+                                                    className="text-label-sm px-2 py-1 rounded-md bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]"
                                                 >
                                                     {tag}
                                                 </span>
@@ -194,12 +179,12 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
                                     </div>
                                 </button>
 
-                                {/* Expanded: visual timeline */}
+                                {/* Expanded: visual timeline M3 */}
                                 {isPreview && (
-                                    <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
-                                        <div className="pt-3 space-y-2">
+                                    <div className="px-5 pb-5 border-t border-[var(--md-sys-color-outline-variant)]">
+                                        <div className="pt-4 space-y-3">
                                             {/* Mini progress bar */}
-                                            <div className="flex h-2 rounded-full overflow-hidden gap-0.5 mb-3">
+                                            <div className="flex h-2.5 rounded-full overflow-hidden gap-1 mb-4">
                                                 {template.blocks.map((blk, bi) =>
                                                     blk.mesocycles.map((meso, mi) => {
                                                         const pct = (meso.weeksCount / totalWeeks) * 100;
@@ -207,7 +192,7 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
                                                         return (
                                                             <div
                                                                 key={`${bi}-${mi}`}
-                                                                style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.5 + (mi / blk.mesocycles.length) * 0.5 }}
+                                                                style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.6 + (mi / blk.mesocycles.length) * 0.4 }}
                                                                 className="h-full first:rounded-l-full last:rounded-r-full"
                                                                 title={`${meso.name} (${meso.weeksCount} sem)`}
                                                             />
@@ -217,19 +202,20 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
                                             </div>
                                             {template.blocks.map((blk, bi) => (
                                                 <div key={bi}>
-                                                    <div className="flex items-center gap-1.5 mb-1">
-                                                        <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: BLOCK_COLORS[bi % BLOCK_COLORS.length] }} />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: BLOCK_COLORS[bi % BLOCK_COLORS.length] }} />
+                                                        <span className="text-label-md font-bold uppercase tracking-wide text-[var(--md-sys-color-on-surface)]">
                                                             {blk.name}
                                                         </span>
                                                     </div>
-                                                    <div className="pl-4 space-y-0.5">
+                                                    <div className="pl-5 space-y-2 relative before:absolute before:inset-y-1 before:left-1 before:w-[2px] before:bg-[var(--md-sys-color-surface-container-highest)]">
                                                         {blk.mesocycles.map((meso, mi) => (
-                                                            <div key={mi} className="flex items-center justify-between">
-                                                                <span className="text-[10px] opacity-70" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                                                            <div key={mi} className="flex items-center justify-between relative">
+                                                                <div className="absolute -left-5 top-1/2 -translate-y-1/2 w-2 h-[2px]" style={{ backgroundColor: BLOCK_COLORS[bi % BLOCK_COLORS.length] }} />
+                                                                <span className="text-body-sm text-[var(--md-sys-color-on-surface-variant)]">
                                                                     {meso.name}
                                                                 </span>
-                                                                <span className="text-[9px] font-black opacity-50" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                                                                <span className="text-label-sm font-bold text-[var(--md-sys-color-on-surface-variant)]">
                                                                     {meso.weeksCount}s · {meso.goal}
                                                                 </span>
                                                             </div>
@@ -240,11 +226,7 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
                                         </div>
                                         <button
                                             onClick={() => setConfirmId(template.id)}
-                                            className="mt-3 w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all"
-                                            style={{
-                                                backgroundColor: 'var(--md-sys-color-primary)',
-                                                color: 'var(--md-sys-color-on-primary)',
-                                            }}
+                                            className="mt-6 w-full py-3 rounded-full text-label-large font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110 shadow-sm transition-all"
                                         >
                                             Aplicar plantilla
                                         </button>
@@ -256,43 +238,31 @@ const StructureGalleryDrawer: React.FC<StructureGalleryDrawerProps> = ({
                 </div>
             </div>
 
-            {/* Confirm modal */}
+            {/* Confirm modal M3 */}
             {confirmTemplate && (
-                <div className="fixed inset-0 z-[160] flex items-center justify-center p-4" onClick={() => setConfirmId(null)}>
+                <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-[var(--md-sys-color-scrim)] opacity-95 transition-opacity" onClick={() => setConfirmId(null)}>
                     <div
-                        className="w-full max-w-sm rounded-2xl p-5 shadow-2xl border"
-                        style={{
-                            backgroundColor: 'var(--md-sys-color-surface-container-highest)',
-                            borderColor: 'var(--md-sys-color-outline-variant)',
-                        }}
+                        className="w-full max-w-sm rounded-[28px] p-6 shadow-xl bg-[var(--md-sys-color-surface-container-highest)]"
                         onClick={e => e.stopPropagation()}
                     >
-                        <div className="text-3xl text-center mb-3">{confirmTemplate.emoji}</div>
-                        <h3 className="text-sm font-black text-center uppercase tracking-widest mb-1" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                        <div className="text-5xl text-center mb-4">{confirmTemplate.emoji}</div>
+                        <h3 className="text-title-md font-bold text-center text-[var(--md-sys-color-on-surface)] mb-2">
                             {confirmTemplate.name}
                         </h3>
-                        <p className="text-xs text-center opacity-60 mb-4 leading-relaxed" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                            Se reemplazará la estructura actual de <span className="font-black" style={{ color: 'var(--md-sys-color-on-surface)' }}>{program.name}</span>.{' '}
+                        <p className="text-body-md text-center text-[var(--md-sys-color-on-surface-variant)] mb-8 leading-relaxed">
+                            Se reemplazará la estructura actual de <span className="font-bold text-[var(--md-sys-color-on-surface)]">{program.name}</span>.{' '}
                             Las sesiones existentes se perderán.
                         </p>
-                        <div className="flex gap-2">
+                        <div className="flex justify-end gap-2">
                             <button
                                 onClick={() => setConfirmId(null)}
-                                className="flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-                                style={{
-                                    backgroundColor: 'var(--md-sys-color-surface-container-high)',
-                                    color: 'var(--md-sys-color-on-surface-variant)',
-                                }}
+                                className="px-6 py-2.5 rounded-full text-label-large font-bold transition-all text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)]/10"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => { onApply(confirmTemplate); setConfirmId(null); onClose(); }}
-                                className="flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-                                style={{
-                                    backgroundColor: 'var(--md-sys-color-primary)',
-                                    color: 'var(--md-sys-color-on-primary)',
-                                }}
+                                className="px-6 py-2.5 rounded-full text-label-large font-bold transition-all bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110 shadow-sm"
                             >
                                 Confirmar
                             </button>

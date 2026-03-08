@@ -8,6 +8,7 @@ import SplitChangerDrawer from './program-detail/SplitChangerDrawer';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 
 import CompactHeroBanner from './program-detail/CompactHeroBanner';
+import ProgramStructureTab from './program-detail/ProgramStructureTab';
 import TrainingCalendarGrid from './program-detail/TrainingCalendarGrid';
 import AnalyticsDashboard from './program-detail/AnalyticsDashboard';
 
@@ -218,57 +219,51 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     trainingDaysCount={trainingDaysCount}
                 />
 
-                {/* Tabs: Entrenamiento | Analytics */}
-                <div className="flex border-b border-[var(--md-sys-color-outline-variant)]" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
-                    <button
-                        onClick={() => setActiveTab('training')}
-                        className={`flex-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-center transition-all ${activeTab === 'training' ? 'border-b-2 border-[var(--md-sys-color-primary)]' : 'opacity-40'}`}
-                        style={{ color: activeTab === 'training' ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)' }}
-                    >
-                        Entrenar
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('analytics')}
-                        className={`flex-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-center transition-all ${activeTab === 'analytics' ? 'border-b-2 border-[var(--md-sys-color-primary)]' : 'opacity-40'}`}
-                        style={{ color: activeTab === 'analytics' ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)' }}
-                    >
-                        Analytics
-                    </button>
+                {/* Tabs: Estructura | Analíticas (M3 Segmented Button) */}
+                <div className="flex justify-center py-4 border-b border-[var(--md-sys-color-outline-variant)]" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
+                    <div className="flex rounded-full border border-[var(--md-sys-color-outline)] overflow-hidden" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
+                        <button
+                            onClick={() => setActiveTab('training')}
+                            className={`px-6 py-2 text-label-large transition-colors ${activeTab === 'training'
+                                ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-bold'
+                                : 'text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)] font-medium'
+                                }`}
+                        >
+                            <span className="flex items-center gap-2">
+                                {activeTab === 'training' && <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                                Estructura
+                            </span>
+                        </button>
+                        <div className="w-[1px] bg-[var(--md-sys-color-outline)]" />
+                        <button
+                            onClick={() => setActiveTab('analytics')}
+                            className={`px-6 py-2 text-label-large transition-colors ${activeTab === 'analytics'
+                                ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] font-bold'
+                                : 'text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)] font-medium'
+                                }`}
+                        >
+                            <span className="flex items-center gap-2">
+                                {activeTab === 'analytics' && <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                                Analíticas
+                            </span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Contenido: Training y/o Analytics */}
                 <div className="flex flex-col sm:flex-row sm:items-start min-h-0" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
                     {/* Training panel */}
                     <div className={`flex-1 w-full max-w-md mx-auto ${activeTab !== 'training' ? 'hidden sm:block' : ''}`} style={{ minWidth: 0 }}>
-                        <TrainingCalendarGrid
+                        <ProgramStructureTab
                             program={program}
-                            isCyclic={isCyclic}
-                            roadmapBlocks={roadmapBlocks}
-                            currentWeeks={currentWeeks}
-                            selectedBlockId={selectedBlockId}
-                            selectedWeekId={selectedWeekId}
-                            activeBlockId={activeBlockId}
-                            settings={settings}
-                            exerciseList={exerciseList}
                             history={history}
-                            onSelectBlock={setSelectedBlockId}
-                            onSelectWeek={setSelectedWeekId}
-                            onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
-                            onUpdateProgram={handleUpdateProgram}
-                            onEditWeek={setEditingWeekInfo}
-                            onShowAdvancedTransition={() => setShowAdvancedTransition(true)}
-                            onShowSimpleTransition={() => setShowSimpleTransition(true)}
-                            onOpenEventModal={(data) => {
-                                if (data) setNewEventData(data);
-                                else setNewEventData({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' });
-                                setIsEventModalOpen(true);
+                            currentWeekId={selectedWeekId || undefined}
+                            onEditSession={(sessionId) => {
+                                const dummySession = { id: sessionId } as any;
+                                onEditSessionClick(dummySession);
                             }}
-                            onStartWorkout={handleStartWorkout}
-                            onEditSession={onEditSessionClick}
+                            onAddSession={() => handleAddSession(program.id, 0, 0, selectedWeekId || '')}
                             onDeleteSession={onDeleteSessionHandler}
-                            onReorderSessions={handleReorderSessions}
-                            onAddSession={handleAddSession}
-                            addToast={addToast}
                         />
                     </div>
 
