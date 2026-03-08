@@ -7,6 +7,7 @@ import { PORTION_MULTIPLIERS } from '../../types';
 import { PORTION_REFERENCES, getGramsForReference, getFoodTypeForPortion } from '../../data/portionReferences';
 import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
 import { getCookingFactor, getEffectiveAmountForMacros } from '../../data/cookingMethodFactors';
+import { AlchemyEngine } from '../../services/alchemyEngine';
 import { searchFoods } from '../../services/foodSearchService';
 import { useAppState, useAppDispatch } from '../../contexts/AppContext';
 import { XIcon, TrashIcon, InfoIcon, UtensilsIcon, SearchIcon, ChevronDownIcon, FlameIcon, ZapIcon, DropletsIcon, TargetIcon, PlusIcon } from '../icons';
@@ -42,7 +43,7 @@ const mealOptions: { id: NutritionLog['mealType']; label: string; icon: any }[] 
 
 const DEBOUNCE_MS = 250;
 
-interface TagWithFood {
+export interface TagWithFood {
     tag: string;
     portion: PortionPreset;
     quantity: number;
@@ -52,6 +53,9 @@ interface TagWithFood {
     macroOverrides?: { calories?: number; protein?: number; carbs?: number; fats?: number };
     anatomicalModifiers?: ('sin_miga' | 'sin_yema' | 'solo_claras' | 'sin_piel')[];
     heuristicModifiers?: ('descremado' | 'light' | 'integral')[];
+    preparationModifiers?: ('pelado' | 'picado' | 'deshuesado' | 'con_hueso' | 'rayado')[];
+    stateModifiers?: ('en_almibar' | 'al_agua' | 'en_polvo' | 'concentrado' | 'deshidratado')[];
+    compositionModifiers?: ('extra_tierno' | 'con_grasa' | 'sin_grasa' | 'bajo_sodio')[];
     dimensionalMultiplier?: number;
     subItems?: ParsedMealItem[];
     isGroup?: boolean;
@@ -95,54 +99,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const parsed = useMemo(() => parseMealDescription(description), [description]);
 
     const buildLoggedFromItem = useCallback((item: FoodItem, tag: TagWithFood): LoggedFood => {
-        const amount = tag.amountGrams != null ? tag.amountGrams * tag.quantity : item.servingSize * PORTION_MULTIPLIERS[tag.portion] * tag.quantity;
-        const effectiveAmount = getEffectiveAmountForMacros(amount, item, tag.cookingMethod);
-        const factor = tag.cookingMethod ? getCookingFactor(tag.cookingMethod) : { caloriesFactor: 1, fatsFactor: 1 };
-
-        let calories = Math.round((item.calories / item.servingSize) * effectiveAmount * factor.caloriesFactor);
-        let protein = Math.round((item.protein / item.servingSize) * effectiveAmount * 10) / 10;
-        let carbs = Math.round((item.carbs / item.servingSize) * effectiveAmount * 10) / 10;
-        let fats = Math.round((item.fats / item.servingSize) * effectiveAmount * factor.fatsFactor * 10) / 10;
-        let finalAmount = Math.round(amount * 10) / 10;
-
-        // --- ALCHEMY ENGINE: ANATOMICAL MODIFIERS ---
-        if (tag.anatomicalModifiers?.includes('sin_miga')) {
-            carbs *= 0.6;
-            finalAmount *= 0.6;
-            calories = (protein * 4) + (carbs * 4) + (fats * 9);
-        }
-        if (tag.anatomicalModifiers?.includes('sin_yema') || tag.anatomicalModifiers?.includes('solo_claras')) {
-            fats *= 0.05;
-            calories = (protein * 4) + (fats * 9) + (carbs * 4);
-        }
-        if (tag.anatomicalModifiers?.includes('sin_piel')) {
-            fats *= 0.2;
-            calories = (protein * 4) + (fats * 9) + (carbs * 4);
-        }
-
-        // --- ALCHEMY ENGINE: HEURISTIC MODIFIERS ---
-        if (tag.heuristicModifiers?.includes('descremado')) {
-            fats = 0;
-            calories = (protein * 4) + (carbs * 4);
-        }
-        if (tag.heuristicModifiers?.includes('light')) {
-            calories *= 0.7;
-            fats *= 0.7;
-        }
-
-        return {
-            id: crypto.randomUUID(),
-            foodName: item.name,
-            amount: finalAmount,
-            unit: item.unit,
-            calories: Math.round(tag.macroOverrides?.calories ?? calories),
-            protein: Math.round((tag.macroOverrides?.protein ?? protein) * 10) / 10,
-            carbs: Math.round((tag.macroOverrides?.carbs ?? carbs) * 10) / 10,
-            fats: Math.round((tag.macroOverrides?.fats ?? fats) * 10) / 10,
-            portionPreset: tag.portion,
-            quantity: tag.quantity,
-            cookingMethod: tag.cookingMethod,
-        };
+        return AlchemyEngine.calculateLoggedFood(item, tag);
     }, []);
 
     const parseAndSetTags = useCallback(() => {
@@ -159,6 +116,9 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                 macroOverrides: i.macroOverrides,
                 anatomicalModifiers: i.anatomicalModifiers,
                 heuristicModifiers: i.heuristicModifiers,
+                preparationModifiers: i.preparationModifiers,
+                stateModifiers: i.stateModifiers,
+                compositionModifiers: i.compositionModifiers,
                 isGroup: i.isGroup,
                 subItems: i.subItems,
                 foodItem: null,
@@ -181,6 +141,9 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         macroOverrides: si.macroOverrides,
                         anatomicalModifiers: si.anatomicalModifiers,
                         heuristicModifiers: si.heuristicModifiers,
+                        preparationModifiers: si.preparationModifiers,
+                        stateModifiers: si.stateModifiers,
+                        compositionModifiers: si.compositionModifiers,
                         foodItem: null,
                         loggedFood: null
                     };

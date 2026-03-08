@@ -854,6 +854,9 @@ export interface ParsedMealItem {
     macroOverrides?: { calories?: number; protein?: number; carbs?: number; fats?: number };
     anatomicalModifiers?: ('sin_miga' | 'sin_yema' | 'solo_claras' | 'sin_piel')[];
     heuristicModifiers?: ('descremado' | 'light' | 'integral')[];
+    preparationModifiers?: ('pelado' | 'picado' | 'deshuesado' | 'con_hueso' | 'rayado')[];
+    stateModifiers?: ('en_almibar' | 'al_agua' | 'en_polvo' | 'concentrado' | 'deshidratado')[];
+    compositionModifiers?: ('extra_tierno' | 'con_grasa' | 'sin_grasa' | 'bajo_sodio')[];
     dimensionalMultiplier?: number;
     subItems?: ParsedMealItem[];
     isGroup?: boolean;

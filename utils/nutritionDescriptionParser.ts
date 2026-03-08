@@ -53,6 +53,29 @@ const HEURISTIC_PATTERNS: { pattern: RegExp; id: 'descremado' | 'light' | 'integ
     { pattern: /\bintegral(es)?\b/i, id: 'integral' },
 ];
 
+const PREPARATION_PATTERNS: { pattern: RegExp; id: 'pelado' | 'picado' | 'deshuesado' | 'con_hueso' | 'rayado' }[] = [
+    { pattern: /\bpelad[oa]s?\b/i, id: 'pelado' },
+    { pattern: /\bpicad[oa]s?\b/i, id: 'picado' },
+    { pattern: /\bdeshuesad[oa]s?\b|\bsin\s+hueso\b/i, id: 'deshuesado' },
+    { pattern: /\bcon\s+hueso\b/i, id: 'con_hueso' },
+    { pattern: /\brayad[oa]s?\b|\brallad[oa]s?\b/i, id: 'rayado' },
+];
+
+const STATE_PATTERNS: { pattern: RegExp; id: 'en_almibar' | 'al_agua' | 'en_polvo' | 'concentrado' | 'deshidratado' }[] = [
+    { pattern: /\ben\s+alm[ií]bar\b/i, id: 'en_almibar' },
+    { pattern: /\bal\s+agua\b/i, id: 'al_agua' },
+    { pattern: /\ben\s+polvo\b/i, id: 'en_polvo' },
+    { pattern: /\bconcentrad[oa]s?\b/i, id: 'concentrado' },
+    { pattern: /\bdeshidratad[oa]s?\b/i, id: 'deshidratado' },
+];
+
+const COMPOSITION_PATTERNS: { pattern: RegExp; id: 'extra_tierno' | 'con_grasa' | 'sin_grasa' | 'bajo_sodio' }[] = [
+    { pattern: /\bextra\s+tierno\b/i, id: 'extra_tierno' },
+    { pattern: /\bcon\s+grasa\b/i, id: 'con_grasa' },
+    { pattern: /\bsin\s+grasa\b/i, id: 'sin_grasa' },
+    { pattern: /\bbajo\s+en\s+sodio\b/i, id: 'bajo_sodio' },
+];
+
 /** Referencias de porción: "1 cucharada de X", "una taza de arroz", "un toque de sal" */
 const REFERENCE_PATTERNS: { pattern: RegExp; ref: PortionReference; getQty?: (m: RegExpMatchArray) => number }[] = [
     { pattern: /\b(un|una|1)\s+(toque|pellizco)s?\s+de\s+(.+)/i, ref: 'pinch', getQty: () => 1 },
@@ -197,6 +220,42 @@ function extractHeuristicModifiers(text: string): { modifiers?: ParsedMealItem['
         }
     }
 
+    return { modifiers: modifiers.length > 0 ? modifiers : undefined, cleaned: cleaned.replace(/\s{2,}/g, ' ').trim() };
+}
+
+function extractPreparationModifiers(text: string): { modifiers?: ParsedMealItem['preparationModifiers']; cleaned: string } {
+    const modifiers: ParsedMealItem['preparationModifiers'] = [];
+    let cleaned = text;
+    for (const { pattern, id } of PREPARATION_PATTERNS) {
+        if (pattern.test(cleaned)) {
+            modifiers.push(id);
+            cleaned = cleaned.replace(pattern, ' ');
+        }
+    }
+    return { modifiers: modifiers.length > 0 ? modifiers : undefined, cleaned: cleaned.replace(/\s{2,}/g, ' ').trim() };
+}
+
+function extractStateModifiers(text: string): { modifiers?: ParsedMealItem['stateModifiers']; cleaned: string } {
+    const modifiers: ParsedMealItem['stateModifiers'] = [];
+    let cleaned = text;
+    for (const { pattern, id } of STATE_PATTERNS) {
+        if (pattern.test(cleaned)) {
+            modifiers.push(id);
+            cleaned = cleaned.replace(pattern, ' ');
+        }
+    }
+    return { modifiers: modifiers.length > 0 ? modifiers : undefined, cleaned: cleaned.replace(/\s{2,}/g, ' ').trim() };
+}
+
+function extractCompositionModifiers(text: string): { modifiers?: ParsedMealItem['compositionModifiers']; cleaned: string } {
+    const modifiers: ParsedMealItem['compositionModifiers'] = [];
+    let cleaned = text;
+    for (const { pattern, id } of COMPOSITION_PATTERNS) {
+        if (pattern.test(cleaned)) {
+            modifiers.push(id);
+            cleaned = cleaned.replace(pattern, ' ');
+        }
+    }
     return { modifiers: modifiers.length > 0 ? modifiers : undefined, cleaned: cleaned.replace(/\s{2,}/g, ' ').trim() };
 }
 
@@ -364,6 +423,15 @@ function parseFragment(frag: string): ParsedMealItem | null {
     const { modifiers: heuristic, cleaned: afterHeuristic } = extractHeuristicModifiers(working);
     working = afterHeuristic;
 
+    const { modifiers: prep, cleaned: afterPrep } = extractPreparationModifiers(working);
+    working = afterPrep;
+
+    const { modifiers: state, cleaned: afterState } = extractStateModifiers(working);
+    working = afterState;
+
+    const { modifiers: comp, cleaned: afterComp } = extractCompositionModifiers(working);
+    working = afterComp;
+
     working = working.replace(/^\s*de\s+/i, '').replace(/\s+de\s+$/i, '').replace(/\s{2,}/g, ' ').trim();
     if (!working) return null;
 
@@ -386,6 +454,9 @@ function parseFragment(frag: string): ParsedMealItem | null {
         macroOverrides: overrides,
         anatomicalModifiers: anatomical,
         heuristicModifiers: heuristic,
+        preparationModifiers: prep,
+        stateModifiers: state,
+        compositionModifiers: comp,
         dimensionalMultiplier: dimMultiplier !== 1 ? dimMultiplier : undefined
     };
 }
@@ -444,10 +515,19 @@ function splitByListConnectors(description: string): string[] {
         }
 
         // Remove everything after "sin", "menos", "no" in this part
+        // BUT ONLY IF it's not a recognized modifier keyword
         // Example: "cafe sin azucar" -> "cafe "
+        // Example: "pan sin miga" -> Preserve "sin miga" if it matches ANATOMICAL_PATTERNS
         const negMatch = unmasked.match(/\b(?:sin|menos|no)\b/i);
         if (negMatch && negMatch.index !== undefined) {
-            unmasked = unmasked.substring(0, negMatch.index);
+            const afterNeg = unmasked.substring(negMatch.index).toLowerCase();
+            const isModifier = ANATOMICAL_PATTERNS.some(p => p.pattern.test(afterNeg)) ||
+                COMPOSITION_PATTERNS.some(p => p.pattern.test(afterNeg)) ||
+                PREPARATION_PATTERNS.some(p => p.pattern.test(afterNeg));
+
+            if (!isModifier) {
+                unmasked = unmasked.substring(0, negMatch.index);
+            }
         }
 
         return unmasked.trim();
