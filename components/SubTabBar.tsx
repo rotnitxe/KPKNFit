@@ -12,9 +12,10 @@ interface SubTabBarProps {
     isActive: boolean;
     viewingExerciseId?: string | null;
     onEditExercisePress?: () => void;
+    onFoodAppendixPress?: () => void;
 }
 
-const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExerciseId, onEditExercisePress }) => {
+const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExerciseId, onEditExercisePress, onFoodAppendixPress }) => {
     const { navigateTo, openCustomExerciseEditor, view, setIsStartWorkoutModalOpen, setIsNutritionLogModalOpen } = useAppContext();
     const { setExerciseToAddId } = useAppDispatch();
     const { searchQuery, activeSubTabs, isLogActionSheetOpen } = useUIState();
@@ -33,7 +34,8 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
         <div className="flex items-center justify-center w-full h-full px-6 gap-8 overflow-hidden">
             <button
                 onClick={() => handleAction(() => {
-                    setIsNutritionLogModalOpen(true);
+                    if (onFoodAppendixPress) onFoodAppendixPress();
+                    else setIsNutritionLogModalOpen(true);
                 })}
                 className="flex items-center justify-center active:scale-95 transition-all group py-2"
             >

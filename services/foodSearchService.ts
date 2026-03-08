@@ -680,12 +680,19 @@ function scoreFoodCandidate(
 ): SearchFoodCandidate {
     const queryNormalized = normalizeFoodName(normalizeQueryForSearch(query));
     const canonicalId = getCanonicalFoodId(food);
-    const foodTokens = getTokens(canonicalId);
+    const matchSurface = normalizeFoodName(`${food.name} ${food.brand || ''}`.trim());
+    const foodTokens = getTokens(matchSurface);
     const queryTokens = [...getTokens(queryNormalized)];
-    const overlap = queryTokens.filter(token => foodTokens.has(token) || canonicalId.includes(token));
+    const overlap = queryTokens.filter(token => foodTokens.has(token) || matchSurface.includes(token));
     const uniqueOverlap = [...new Set(overlap)];
     const exactNormalized = queryNormalized.length > 0 && canonicalId === queryNormalized;
-    const directPhraseMatch = !exactNormalized && queryNormalized.length > 0 && (canonicalId.includes(queryNormalized) || queryNormalized.includes(canonicalId));
+    const directPhraseMatch = !exactNormalized
+        && queryNormalized.length > 0
+        && (
+            canonicalId.includes(queryNormalized)
+            || queryNormalized.includes(canonicalId)
+            || matchSurface.includes(queryNormalized)
+        );
     const queryCoverage = queryTokens.length > 0 ? uniqueOverlap.length / queryTokens.length : (directPhraseMatch ? 1 : 0);
     const tokenPrecision = foodTokens.size > 0 ? uniqueOverlap.length / foodTokens.size : 0;
     const source = getSourceKind(food.id);
@@ -737,6 +744,11 @@ function scoreFoodCandidate(
         brandMatched = true;
         score += 0.08;
         trace.push('brand_in_query');
+    }
+
+    if (queryTokens.length > 1 && uniqueOverlap.length === queryTokens.length && brandMatched) {
+        score += 0.18;
+        trace.push('brand_supported_full_coverage');
     }
 
     const learned = Boolean(

@@ -1,25 +1,24 @@
 // components/nutrition/RegisterFoodDrawer.tsx
-// Drawer lateral para registrar comida — Rediseño Premium
+// Drawer lateral para registrar comida con resolucion guiada.
+
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionInput, CookingMethod, PortionPreset, PortionReference, ParsedMealItem } from '../../types';
-import { useMealTemplateStore } from '../../stores/mealTemplateStore';
-import { PORTION_MULTIPLIERS } from '../../types';
-import { PORTION_REFERENCES, getGramsForReference, getFoodTypeForPortion } from '../../data/portionReferences';
+import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionInput, CookingMethod, PortionPreset, ParsedMealItem } from '../../types';
 import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
-import { getCookingFactor, getEffectiveAmountForMacros } from '../../data/cookingMethodFactors';
 import { AlchemyEngine } from '../../services/alchemyEngine';
-import { searchFoods } from '../../services/foodSearchService';
-import { useAppState, useAppDispatch } from '../../contexts/AppContext';
-import { XIcon, TrashIcon, InfoIcon, UtensilsIcon, SearchIcon, ChevronDownIcon, FlameIcon, ZapIcon, DropletsIcon, TargetIcon, PlusIcon } from '../icons';
+import {
+    searchFoods,
+    rememberFoodResolution,
+    type SearchConfidence,
+    type SearchFoodCandidate,
+} from '../../services/foodSearchService';
+import { useAppDispatch } from '../../contexts/AppContext';
+import { XIcon, TrashIcon, UtensilsIcon, SearchIcon, ChevronDownIcon, FlameIcon, ZapIcon, DropletsIcon, PlusIcon } from '../icons';
 import { MealTemplateSelector } from './MealTemplateSelector';
 import { PortionSelector } from '../PortionSelector';
 import { getLocalDateString, dateStringToISOString } from '../../utils/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 function foodToLoggedFood(food: FoodItem, amountGrams: number, portionInput?: PortionInput): LoggedFood {
-    const ratio = amountGrams / food.servingSize;
     const logged: LoggedFood = {
         id: crypto.randomUUID(),
         foodName: food.name,
@@ -34,7 +33,7 @@ function foodToLoggedFood(food: FoodItem, amountGrams: number, portionInput?: Po
     return logged;
 }
 
-const mealOptions: { id: NutritionLog['mealType']; label: string; icon: any }[] = [
+const mealOptions: { id: NutritionLog['mealType']; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
     { id: 'breakfast', label: 'Desayuno', icon: ZapIcon },
     { id: 'lunch', label: 'Almuerzo', icon: UtensilsIcon },
     { id: 'dinner', label: 'Cena', icon: FlameIcon },
@@ -42,8 +41,14 @@ const mealOptions: { id: NutritionLog['mealType']; label: string; icon: any }[] 
 ];
 
 const DEBOUNCE_MS = 250;
+const SEARCH_DEBOUNCE_MS = 350;
+
+type TagOrigin = 'description' | 'manual' | 'template';
+type TagResolutionStatus = 'pending' | 'resolved' | 'needs_review' | 'unresolved';
 
 export interface TagWithFood {
+    key: string;
+    origin: TagOrigin;
     tag: string;
     portion: PortionPreset;
     quantity: number;
@@ -62,6 +67,12 @@ export interface TagWithFood {
     foodItem: FoodItem | null;
     loggedFood: LoggedFood | null;
     isFuzzyMatch?: boolean;
+    resolutionStatus: TagResolutionStatus;
+    resolutionConfidence: SearchConfidence;
+    resolutionScore?: number;
+    resolutionReason?: string;
+    candidateFoods: SearchFoodCandidate[];
+    sourceTrace?: string[];
 }
 
 interface RegisterFoodDrawerProps {
@@ -71,6 +82,84 @@ interface RegisterFoodDrawerProps {
     settings: Settings;
     initialDate?: string;
     mealType?: NutritionLog['mealType'];
+    displayMode?: 'drawer' | 'appendix';
+}
+
+interface SelectedFoodForPortionState {
+    food: FoodItem;
+    query: string;
+}
+
+function createCustomFoodFromOverrides(tag: TagWithFood): FoodItem {
+    return {
+        id: crypto.randomUUID(),
+        name: tag.tag,
+        servingSize: 100,
+        unit: 'g',
+        calories: tag.macroOverrides?.calories || 0,
+        protein: tag.macroOverrides?.protein || 0,
+        carbs: tag.macroOverrides?.carbs || 0,
+        fats: tag.macroOverrides?.fats || 0,
+        isCustom: true,
+    };
+}
+
+function isBlockingResolution(tag: TagWithFood): boolean {
+    return tag.origin === 'description' && tag.resolutionStatus !== 'resolved';
+}
+
+function confidenceLabel(confidence: SearchConfidence): string {
+    if (confidence === 'high') return 'Alta';
+    if (confidence === 'medium') return 'Media';
+    return 'Baja';
+}
+
+function currentLikeTag(item: ParsedMealItem): Partial<TagWithFood> {
+    return {
+        tag: item.tag,
+        portion: (typeof item.portion === 'string' ? item.portion : 'medium') as PortionPreset,
+        quantity: item.quantity,
+        amountGrams: item.amountGrams,
+        cookingMethod: item.cookingMethod,
+        brandHint: item.brandHint,
+        macroOverrides: item.macroOverrides,
+        anatomicalModifiers: item.anatomicalModifiers,
+        heuristicModifiers: item.heuristicModifiers,
+        preparationModifiers: item.preparationModifiers,
+        stateModifiers: item.stateModifiers,
+        compositionModifiers: item.compositionModifiers,
+        dimensionalMultiplier: item.dimensionalMultiplier,
+        subItems: item.subItems,
+        isGroup: item.isGroup,
+    };
+}
+
+function makeDescriptionTag(item: ParsedMealItem | null, fallbackText?: string): TagWithFood {
+    return {
+        key: crypto.randomUUID(),
+        origin: 'description',
+        tag: item?.tag || fallbackText || '',
+        portion: (typeof item?.portion === 'string' ? item.portion : 'medium') as PortionPreset,
+        quantity: item?.quantity ?? 1,
+        amountGrams: item?.amountGrams,
+        cookingMethod: item?.cookingMethod,
+        brandHint: item?.brandHint,
+        macroOverrides: item?.macroOverrides,
+        anatomicalModifiers: item?.anatomicalModifiers,
+        heuristicModifiers: item?.heuristicModifiers,
+        preparationModifiers: item?.preparationModifiers,
+        stateModifiers: item?.stateModifiers,
+        compositionModifiers: item?.compositionModifiers,
+        dimensionalMultiplier: item?.dimensionalMultiplier,
+        subItems: item?.subItems,
+        isGroup: item?.isGroup,
+        foodItem: null,
+        loggedFood: null,
+        isFuzzyMatch: item?.isFuzzyMatch,
+        resolutionStatus: 'pending',
+        resolutionConfidence: 'low',
+        candidateFoods: [],
+    };
 }
 
 export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
@@ -80,176 +169,345 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     settings,
     initialDate,
     mealType: initialMealType = 'lunch',
+    displayMode = 'drawer',
 }) => {
     const { addToast } = useAppDispatch();
-    const { addMealTemplate } = useMealTemplateStore();
     const [description, setDescription] = useState('');
     const [mealType, setMealType] = useState<NutritionLog['mealType']>(initialMealType);
     const [logDate, setLogDate] = useState(initialDate || getLocalDateString());
     const [tagItems, setTagItems] = useState<TagWithFood[]>([]);
-    const [expandedTagIdx, setExpandedTagIdx] = useState<number | null>(null);
+    const [expandedTagKey, setExpandedTagKey] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'description' | 'search' | 'templates'>('description');
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
     const [searchLoading, setSearchLoading] = useState(false);
-    const [selectedFoodForPortion, setSelectedFoodForPortion] = useState<FoodItem | null>(null);
+    const [selectedFoodForPortion, setSelectedFoodForPortion] = useState<SelectedFoodForPortionState | null>(null);
     const [saveState, setSaveState] = useState<'idle' | 'success'>('idle');
-    const skipParseRef = useRef(false);
+    const [manualResolveTagKey, setManualResolveTagKey] = useState<string | null>(null);
+
+    const resolutionRequestRef = useRef(0);
+    const searchRequestRef = useRef(0);
 
     const parsed = useMemo(() => parseMealDescription(description), [description]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        resolutionRequestRef.current += 1;
+        searchRequestRef.current += 1;
+        setDescription('');
+        setMealType(initialMealType);
+        setLogDate(initialDate || getLocalDateString());
+        setTagItems([]);
+        setExpandedTagKey(null);
+        setActiveTab('description');
+        setSearchQuery('');
+        setSearchResults([]);
+        setSearchLoading(false);
+        setSelectedFoodForPortion(null);
+        setSaveState('idle');
+        setManualResolveTagKey(null);
+    }, [isOpen, initialDate, initialMealType]);
 
     const buildLoggedFromItem = useCallback((item: FoodItem, tag: TagWithFood): LoggedFood => {
         return AlchemyEngine.calculateLoggedFood(item, tag);
     }, []);
 
-    const parseAndSetTags = useCallback(() => {
-        if (skipParseRef.current || !description.trim()) return;
-        const { items } = parsed;
-        const newItems: TagWithFood[] = items.length === 0 ? [{ tag: description.trim(), portion: 'medium', quantity: 1, foodItem: null, loggedFood: null }] :
-            items.map(i => ({
-                tag: i.tag,
-                portion: (typeof i.portion === 'string' ? i.portion : 'medium') as PortionPreset,
-                quantity: i.quantity,
-                amountGrams: i.amountGrams,
-                cookingMethod: i.cookingMethod,
-                brandHint: i.brandHint,
-                macroOverrides: i.macroOverrides,
-                anatomicalModifiers: i.anatomicalModifiers,
-                heuristicModifiers: i.heuristicModifiers,
-                preparationModifiers: i.preparationModifiers,
-                stateModifiers: i.stateModifiers,
-                compositionModifiers: i.compositionModifiers,
-                isGroup: i.isGroup,
-                subItems: i.subItems,
-                foodItem: null,
-                loggedFood: null,
-                isFuzzyMatch: i.isFuzzyMatch
-            }));
+    const updateTagItem = useCallback((tagKey: string, updater: (current: TagWithFood) => TagWithFood) => {
+        setTagItems(prev => prev.map(tag => tag.key === tagKey ? updater(tag) : tag));
+    }, []);
 
-        setTagItems(newItems);
-        newItems.forEach((tag, idx) => {
-            if (tag.isGroup && tag.subItems) {
-                // Additive Grouping: Recursive result resolution
-                const subPromises = tag.subItems.map(si => {
-                    const siTag: TagWithFood = {
-                        tag: si.tag,
-                        portion: (typeof si.portion === 'string' ? si.portion : 'medium') as PortionPreset,
-                        quantity: si.quantity,
-                        amountGrams: si.amountGrams,
-                        cookingMethod: si.cookingMethod,
-                        brandHint: si.brandHint,
-                        macroOverrides: si.macroOverrides,
-                        anatomicalModifiers: si.anatomicalModifiers,
-                        heuristicModifiers: si.heuristicModifiers,
-                        preparationModifiers: si.preparationModifiers,
-                        stateModifiers: si.stateModifiers,
-                        compositionModifiers: si.compositionModifiers,
-                        foodItem: null,
-                        loggedFood: null
-                    };
-                    return searchFoods(si.tag, settings, si.brandHint).then(({ results }) => {
-                        const food = results[0];
-                        return food ? buildLoggedFromItem(food, siTag) : null;
-                    });
-                });
+    const resolveDescriptionTag = useCallback(async (tag: TagWithFood, requestId: number) => {
+        if (tag.isGroup && tag.subItems?.length) {
+            const subResults = await Promise.all(tag.subItems.map(subItem => searchFoods(subItem.tag, settings, subItem.brandHint)));
+            if (requestId !== resolutionRequestRef.current) return;
 
-                Promise.all(subPromises).then(subLoggeds => {
-                    const valid = subLoggeds.filter((l): l is LoggedFood => l !== null);
-                    if (valid.length > 0) {
-                        const sumMacros = valid.reduce((acc, l) => {
-                            acc.calories += l.calories;
-                            acc.protein += l.protein;
-                            acc.carbs += l.carbs;
-                            acc.fats += l.fats;
-                            acc.amount += l.amount;
-                            return acc;
-                        }, { calories: 0, protein: 0, carbs: 0, fats: 0, amount: 0 });
-
-                        setTagItems(prev => {
-                            const next = [...prev];
-                            if (next[idx]) {
-                                next[idx].loggedFood = {
-                                    id: crypto.randomUUID(),
-                                    foodName: tag.tag,
-                                    amount: Math.round(sumMacros.amount * 10) / 10,
-                                    unit: 'g',
-                                    calories: Math.round(sumMacros.calories),
-                                    protein: Math.round(sumMacros.protein * 10) / 10,
-                                    carbs: Math.round(sumMacros.carbs * 10) / 10,
-                                    fats: Math.round(sumMacros.fats * 10) / 10,
-                                    portionPreset: 'medium',
-                                    quantity: 1,
-                                };
-                            }
-                            return next;
-                        });
-                    }
-                });
+            const canResolveGroup = subResults.every(result => result.canAutoSelect && result.results[0]);
+            if (!canResolveGroup) {
+                updateTagItem(tag.key, current => ({
+                    ...current,
+                    resolutionStatus: 'needs_review',
+                    resolutionConfidence: 'low',
+                    resolutionReason: 'La receta compuesta requiere confirmar sus ingredientes.',
+                    candidateFoods: [],
+                }));
+                setExpandedTagKey(prev => prev ?? tag.key);
                 return;
             }
 
-            if (tag.tag.length >= 2) {
-                // @ts-ignore - Adding 3rd param later
-                searchFoods(tag.tag, settings, tag.brandHint).then(({ results, matchType }) => {
-                    let foodItem = results[0];
-                    if (!foodItem && tag.macroOverrides) {
-                        foodItem = {
-                            id: crypto.randomUUID(),
-                            name: tag.tag,
-                            servingSize: 100,
-                            unit: 'g',
-                            calories: tag.macroOverrides.calories || 0,
-                            protein: tag.macroOverrides.protein || 0,
-                            carbs: tag.macroOverrides.carbs || 0,
-                            fats: tag.macroOverrides.fats || 0,
-                            isCustom: true
-                        };
-                    }
-                    if (foodItem) {
-                        setTagItems(prev => {
-                            const next = [...prev];
-                            if (next[idx]?.tag === tag.tag) {
-                                next[idx] = { ...next[idx], foodItem, loggedFood: buildLoggedFromItem(foodItem, next[idx]), isFuzzyMatch: tag.isFuzzyMatch || matchType === 'fuzzy' };
-                            }
-                            return next;
-                        });
-                    }
-                });
-            }
-        });
-    }, [description, parsed, settings, buildLoggedFromItem]);
+            const subLoggedFoods = tag.subItems.map((subItem, index) => {
+                const food = subResults[index].results[0]!;
+                const subTag: TagWithFood = {
+                    ...(currentLikeTag(subItem) as TagWithFood),
+                    key: crypto.randomUUID(),
+                    origin: 'description',
+                    foodItem: food,
+                    loggedFood: null,
+                    resolutionStatus: 'resolved',
+                    resolutionConfidence: subResults[index].bestConfidence,
+                    candidateFoods: subResults[index].candidates,
+                };
+                return buildLoggedFromItem(food, subTag);
+            });
+
+            const aggregate = subLoggedFoods.reduce((acc, logged) => {
+                acc.amount += logged.amount;
+                acc.calories += logged.calories;
+                acc.protein += logged.protein;
+                acc.carbs += logged.carbs;
+                acc.fats += logged.fats;
+                return acc;
+            }, { amount: 0, calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+            updateTagItem(tag.key, current => ({
+                ...current,
+                loggedFood: {
+                    id: crypto.randomUUID(),
+                    foodName: current.tag,
+                    amount: Math.round(aggregate.amount * 10) / 10,
+                    unit: 'g',
+                    calories: Math.round(aggregate.calories),
+                    protein: Math.round(aggregate.protein * 10) / 10,
+                    carbs: Math.round(aggregate.carbs * 10) / 10,
+                    fats: Math.round(aggregate.fats * 10) / 10,
+                    portionPreset: 'medium',
+                    quantity: 1,
+                },
+                resolutionStatus: 'resolved',
+                resolutionConfidence: 'high',
+                resolutionReason: 'Receta compuesta resuelta por ingredientes.',
+                candidateFoods: [],
+            }));
+            return;
+        }
+
+        const result = await searchFoods(tag.tag, settings, tag.brandHint);
+        if (requestId !== resolutionRequestRef.current) return;
+
+        if (!result.results[0] && tag.macroOverrides) {
+            const customFood = createCustomFoodFromOverrides(tag);
+            updateTagItem(tag.key, current => ({
+                ...current,
+                foodItem: customFood,
+                loggedFood: buildLoggedFromItem(customFood, current),
+                resolutionStatus: 'resolved',
+                resolutionConfidence: 'high',
+                resolutionScore: 1,
+                resolutionReason: 'Macros manuales aplicados como alimento personalizado.',
+                candidateFoods: [],
+                sourceTrace: ['macro_override'],
+            }));
+            return;
+        }
+
+        if (!result.results[0]) {
+            updateTagItem(tag.key, current => ({
+                ...current,
+                foodItem: null,
+                loggedFood: null,
+                resolutionStatus: 'unresolved',
+                resolutionConfidence: result.bestConfidence,
+                resolutionScore: result.bestScore,
+                resolutionReason: result.decisionReason || 'No se encontraron coincidencias.',
+                candidateFoods: result.candidates.slice(0, 4),
+                sourceTrace: result.candidates[0]?.trace,
+                isFuzzyMatch: true,
+            }));
+            setExpandedTagKey(prev => prev ?? tag.key);
+            return;
+        }
+
+        if (result.canAutoSelect) {
+            const bestCandidate = result.candidates[0];
+            updateTagItem(tag.key, current => ({
+                ...current,
+                foodItem: bestCandidate.food,
+                loggedFood: buildLoggedFromItem(bestCandidate.food, current),
+                resolutionStatus: 'resolved',
+                resolutionConfidence: result.bestConfidence,
+                resolutionScore: bestCandidate.score,
+                resolutionReason: result.decisionReason,
+                candidateFoods: result.candidates.slice(0, 4),
+                sourceTrace: bestCandidate.trace,
+                isFuzzyMatch: result.matchType === 'fuzzy',
+            }));
+            return;
+        }
+
+        updateTagItem(tag.key, current => ({
+            ...current,
+            foodItem: null,
+            loggedFood: null,
+            resolutionStatus: result.candidates.length > 0 ? 'needs_review' : 'unresolved',
+            resolutionConfidence: result.bestConfidence,
+            resolutionScore: result.bestScore,
+            resolutionReason: result.decisionReason,
+            candidateFoods: result.candidates.slice(0, 4),
+            sourceTrace: result.candidates[0]?.trace,
+            isFuzzyMatch: true,
+        }));
+        setExpandedTagKey(prev => prev ?? tag.key);
+    }, [buildLoggedFromItem, settings, updateTagItem]);
+
+    const parseAndSetTags = useCallback(async () => {
+        const requestId = ++resolutionRequestRef.current;
+        const preserved = tagItems.filter(tag => tag.origin !== 'description');
+
+        if (!description.trim()) {
+            setTagItems(preserved);
+            return;
+        }
+
+        const descriptionTags = parsed.items.length > 0
+            ? parsed.items.map(item => makeDescriptionTag(item))
+            : [makeDescriptionTag(null, description.trim())];
+
+        setExpandedTagKey(null);
+        setTagItems([...descriptionTags, ...preserved]);
+
+        await Promise.all(descriptionTags.map(tag => resolveDescriptionTag(tag, requestId)));
+    }, [description, parsed, resolveDescriptionTag, tagItems]);
 
     useEffect(() => {
-        if (activeTab === 'templates') return;
-        const t = setTimeout(() => parseAndSetTags(), DEBOUNCE_MS);
-        return () => clearTimeout(t);
-    }, [description, parseAndSetTags, activeTab]);
+        if (!isOpen || activeTab === 'templates') return;
+        const timeout = setTimeout(() => {
+            parseAndSetTags().catch(() => {
+                addToast('No se pudo procesar la descripcion.', 'danger');
+            });
+        }, DEBOUNCE_MS);
 
-    const handleSave = () => {
-        const foods = tagItems.filter(t => t.loggedFood).map(t => t.loggedFood!);
-        if (foods.length === 0) return addToast('Añade comida para registrar.', 'danger');
+        return () => clearTimeout(timeout);
+    }, [activeTab, addToast, isOpen, parseAndSetTags]);
 
-        onSave({ id: crypto.randomUUID(), date: dateStringToISOString(logDate), mealType, foods, description: description.trim() || undefined, status: 'consumed' });
+    useEffect(() => {
+        if (!isOpen || activeTab !== 'search') return;
+
+        const trimmed = searchQuery.trim();
+        if (trimmed.length < 2) {
+            setSearchResults([]);
+            setSearchLoading(false);
+            return;
+        }
+
+        const requestId = ++searchRequestRef.current;
+        setSearchLoading(true);
+
+        const timeout = setTimeout(() => {
+            searchFoods(trimmed, settings)
+                .then(result => {
+                    if (requestId !== searchRequestRef.current) return;
+                    setSearchResults(result.results);
+                    setSearchLoading(false);
+                })
+                .catch(() => {
+                    if (requestId !== searchRequestRef.current) return;
+                    setSearchResults([]);
+                    setSearchLoading(false);
+                });
+        }, SEARCH_DEBOUNCE_MS);
+
+        return () => clearTimeout(timeout);
+    }, [activeTab, isOpen, searchQuery, settings]);
+
+    const handleCandidateSelect = useCallback((tagKey: string, candidate: SearchFoodCandidate, rememberQuery = true) => {
+        setTagItems(prev => prev.map(tag => {
+            if (tag.key !== tagKey) return tag;
+            if (rememberQuery) rememberFoodResolution(tag.tag, candidate.food, tag.brandHint);
+
+            return {
+                ...tag,
+                foodItem: candidate.food,
+                loggedFood: buildLoggedFromItem(candidate.food, tag),
+                resolutionStatus: 'resolved',
+                resolutionConfidence: candidate.confidence,
+                resolutionScore: candidate.score,
+                resolutionReason: 'Confirmado manualmente.',
+                sourceTrace: candidate.trace,
+                isFuzzyMatch: candidate.confidence !== 'high',
+            };
+        }));
+        setManualResolveTagKey(null);
+        addToast('Etiqueta resuelta manualmente.', 'success');
+    }, [addToast, buildLoggedFromItem]);
+
+    const handleOpenManualSearch = useCallback((tag: TagWithFood) => {
+        setActiveTab('search');
+        setSearchQuery(tag.tag);
+        setManualResolveTagKey(tag.key);
+        setExpandedTagKey(tag.key);
+        addToast('Selecciona el alimento correcto para resolver la etiqueta.', 'suggestion');
+    }, [addToast]);
+
+    const handleSearchFoodSelect = useCallback((food: FoodItem) => {
+        if (manualResolveTagKey) {
+            handleCandidateSelect(manualResolveTagKey, {
+                food,
+                score: 1,
+                confidence: 'high',
+                canonicalId: food.name,
+                source: 'local',
+                trace: ['manual_search_resolution'],
+                queryCoverage: 1,
+                tokenPrecision: 1,
+                brandMatched: false,
+                learned: false,
+            });
+            setSearchQuery('');
+            setSearchResults([]);
+            setActiveTab('description');
+            return;
+        }
+
+        setSelectedFoodForPortion({
+            food,
+            query: searchQuery.trim(),
+        });
+    }, [handleCandidateSelect, manualResolveTagKey, searchQuery]);
+
+    const handleSave = useCallback(() => {
+        const blockingTag = tagItems.find(isBlockingResolution);
+        if (blockingTag) {
+            setExpandedTagKey(blockingTag.key);
+            addToast('Revisa los alimentos ambiguos antes de guardar.', 'danger');
+            return;
+        }
+
+        const foods = tagItems.filter(tag => tag.loggedFood).map(tag => tag.loggedFood!);
+        if (foods.length === 0) {
+            addToast('Anade comida para registrar.', 'danger');
+            return;
+        }
+
+        onSave({
+            id: crypto.randomUUID(),
+            date: dateStringToISOString(logDate),
+            mealType,
+            foods,
+            description: description.trim() || undefined,
+            status: 'consumed',
+        });
 
         setSaveState('success');
-
         setTimeout(() => {
             onClose();
             setTimeout(() => {
-                setDescription(''); setTagItems([]); setSaveState('idle');
+                setDescription('');
+                setTagItems([]);
+                setSaveState('idle');
+                setManualResolveTagKey(null);
             }, 400);
-        }, 2000);
-    };
+        }, 1800);
+    }, [addToast, description, logDate, mealType, onClose, onSave, tagItems]);
 
-    const totalMacros = useMemo(() => tagItems.reduce((acc, t) => {
-        if (t.loggedFood) {
-            acc.calories += t.loggedFood.calories;
-            acc.protein += t.loggedFood.protein;
-            acc.carbs += t.loggedFood.carbs;
-            acc.fats += t.loggedFood.fats;
-        }
+    const totalMacros = useMemo(() => tagItems.reduce((acc, tag) => {
+        if (!tag.loggedFood) return acc;
+        acc.calories += tag.loggedFood.calories;
+        acc.protein += tag.loggedFood.protein;
+        acc.carbs += tag.loggedFood.carbs;
+        acc.fats += tag.loggedFood.fats;
         return acc;
     }, { calories: 0, protein: 0, carbs: 0, fats: 0 }), [tagItems]);
+
+    const blockingCount = tagItems.filter(isBlockingResolution).length;
 
     if (!isOpen) return null;
 
@@ -257,33 +515,31 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[2000] bg-black/40 backdrop-blur-sm" onClick={onClose} />
+                    {displayMode === 'drawer' && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[2000] bg-black/40 backdrop-blur-sm" onClick={onClose} />}
                     <motion.div
-                        initial={{ y: "100%" }}
-                        animate={{ y: 0 }}
-                        exit={{ y: "100%" }}
-                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed inset-x-0 bottom-0 z-[2001] bg-[#F7F7F7] rounded-t-[40px] shadow-2xl overflow-hidden flex flex-col h-[90vh]"
+                        initial={displayMode === 'appendix' ? { opacity: 0, y: 30 } : { y: '100%' }}
+                        animate={displayMode === 'appendix' ? { opacity: 1, y: 0 } : { y: 0 }}
+                        exit={displayMode === 'appendix' ? { opacity: 0, y: 30 } : { y: '100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        className={`${displayMode === 'appendix' ? 'relative w-full' : 'fixed inset-x-0 bottom-0 z-[2001] bg-[#F7F7F7] rounded-t-[40px] shadow-2xl h-[90vh]'} overflow-hidden flex flex-col`}
                     >
-                        {/* ─── HEADER ─── */}
-                        <div className="px-6 pt-8 pb-4 flex justify-between items-center">
-                            <div>
-                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Registro Rápido</h3>
-                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Registra tus comidas</h2>
+                        {displayMode === 'drawer' && (
+                            <div className="px-6 pt-8 pb-4 flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Registro rapido</h3>
+                                    <h2 className="text-[28px] font-black text-[#1C1B1F] tracking-tighter leading-none">Registra tu comida</h2>
+                                </div>
+                                <button onClick={onClose} className="w-10 h-10 bg-black/5 rounded-full hover:bg-black/10 transition-colors flex items-center justify-center">
+                                    <XIcon size={20} className="text-[#49454F]" />
+                                </button>
                             </div>
-                            <button onClick={onClose} className="p-2 bg-slate-200/50 rounded-full hover:bg-slate-300 transition-colors">
-                                <XIcon size={20} className="text-slate-600" />
-                            </button>
-                        </div>
+                        )}
 
-                        {/* ─── MAIN CONTENT ─── */}
-                        <div className="flex-1 overflow-y-auto px-6 space-y-6 pb-48 custom-scrollbar">
-
-                            {/* Summary Card */}
-                            <motion.div layout className="bg-white rounded-[32px] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 flex items-center justify-between">
+                        <div className={`flex-1 overflow-y-auto px-6 space-y-6 custom-scrollbar ${displayMode === 'appendix' ? 'max-h-[70vh] pb-40' : 'pb-48 pt-4'}`}>
+                            <motion.div layout className="bg-white rounded-[32px] p-6 shadow-sm border border-black/[0.03] flex items-center justify-between">
                                 <div className="flex flex-col">
-                                    <span className="text-4xl font-black text-slate-900 font-mono tracking-tighter">{Math.round(totalMacros.calories)}</span>
-                                    <span className="text-[10px] uppercase font-black text-slate-400 tracking-widest -mt-1">Calorías Totales</span>
+                                    <span className="text-4xl font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter leading-none">{Math.round(totalMacros.calories)}</span>
+                                    <span className="text-[10px] uppercase font-black text-[#49454F]/40 tracking-widest mt-1">Calorias totales</span>
                                 </div>
                                 <div className="flex gap-4">
                                     <MacroBadge label="PROT" val={totalMacros.protein} color="bg-rose-500" />
@@ -292,146 +548,258 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 </div>
                             </motion.div>
 
-                            {/* Meal Type & Date Selector */}
-                            <div className="flex gap-2">
-                                <div className="flex-1 bg-white rounded-2xl p-2 flex gap-1 shadow-sm border border-slate-100 items-center">
-                                    <SearchIcon size={16} className="text-slate-400 ml-2" />
+                            <div className="flex gap-3">
+                                <div className="flex-1 bg-white rounded-3xl p-4 flex gap-3 shadow-sm border border-black/[0.03] items-center">
+                                    <SearchIcon size={16} className="text-[#49454F]/30" />
                                     <input
                                         type="date"
                                         value={logDate}
-                                        onChange={e => setLogDate(e.target.value)}
-                                        className="w-full bg-transparent text-xs font-black text-slate-700 outline-none uppercase"
+                                        onChange={event => setLogDate(event.target.value)}
+                                        className="w-full bg-transparent text-[11px] font-black text-[#1C1B1F] outline-none uppercase tracking-widest"
                                     />
                                 </div>
-                                <div className="flex-[1.5] bg-white rounded-2xl p-1 flex shadow-sm border border-slate-100">
-                                    {mealOptions.map(opt => (
+                                <div className="flex-[1.5] bg-white rounded-3xl p-1.5 flex shadow-sm border border-black/[0.03]">
+                                    {mealOptions.map(option => (
                                         <button
-                                            key={opt.id}
-                                            onClick={() => setMealType(opt.id)}
-                                            className={`flex-1 flex flex-col items-center justify-center p-2 rounded-xl transition-all ${mealType === opt.id ? 'bg-amber-500 text-white shadow-md' : 'text-slate-400'}`}
+                                            key={option.id}
+                                            onClick={() => setMealType(option.id)}
+                                            className={`flex-1 flex flex-col items-center justify-center p-2 rounded-2xl transition-all ${mealType === option.id ? 'bg-primary text-white shadow-md' : 'text-[#49454F]/40 hover:bg-black/5'}`}
                                         >
-                                            <opt.icon size={16} />
-                                            <span className="text-[8px] font-black uppercase mt-1">{opt.label}</span>
+                                            <option.icon size={16} />
+                                            <span className="text-[8px] font-black uppercase mt-1 tracking-tighter">{option.label}</span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Input Tabs */}
-                            <div className="flex bg-slate-200/50 p-1 rounded-2xl overflow-x-auto hide-scrollbar">
-                                <TabBtn active={activeTab === 'description'} onClick={() => setActiveTab('description')}>Búsqueda descriptiva</TabBtn>
+                            <div className="flex bg-black/[0.03] p-1.5 rounded-3xl overflow-x-auto hide-scrollbar border border-black/[0.02]">
+                                <TabBtn active={activeTab === 'description'} onClick={() => setActiveTab('description')}>Descriptivo</TabBtn>
                                 <TabBtn active={activeTab === 'search'} onClick={() => setActiveTab('search')}>Buscador</TabBtn>
                                 <TabBtn active={activeTab === 'templates'} onClick={() => setActiveTab('templates')}>Plantillas</TabBtn>
                             </div>
 
+                            {blockingCount > 0 && (
+                                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="rounded-[28px] border border-amber-200/50 bg-amber-50/50 px-6 py-4 text-[13px] font-medium text-amber-900 shadow-sm backdrop-blur-sm">
+                                    Hay {blockingCount} etiqueta{blockingCount > 1 ? 's' : ''} que requieren revision antes de guardar.
+                                </motion.div>
+                            )}
+
                             <AnimatePresence mode="wait">
                                 {activeTab === 'description' && (
-                                    <motion.div key="desc" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
+                                    <motion.div key="desc" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
                                         <div className="relative group">
                                             <textarea
-                                                className="w-full h-32 bg-white rounded-[32px] p-6 text-sm font-medium text-slate-800 border-2 border-transparent focus:border-amber-400 shadow-lg outline-none transition-all placeholder-slate-300 resize-none"
+                                                className="w-full h-32 bg-white rounded-[32px] p-6 text-base font-medium text-[#1C1B1F] border border-black/[0.05] focus:border-primary/30 shadow-sm outline-none transition-all placeholder-[#49454F]/30 resize-none font-['Roboto']"
                                                 placeholder="Describe tu comida... ej: 200g arroz cocido, 150g pechuga a la plancha"
                                                 value={description}
-                                                onChange={e => setDescription(e.target.value)}
+                                                onChange={event => setDescription(event.target.value)}
                                             />
                                             <div className="absolute top-4 right-6 flex gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                                                <div className="w-2.5 h-2.5 rounded-full bg-primary/20 animate-pulse" />
                                             </div>
                                         </div>
                                     </motion.div>
                                 )}
+
                                 {activeTab === 'search' && (
                                     <motion.div key="search" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+                                        {manualResolveTagKey && (
+                                            <div className="mb-4 rounded-[24px] border border-primary/20 bg-primary/5 px-5 py-3 text-[10px] font-black uppercase tracking-wider text-primary">
+                                                Resolviendo etiqueta manualmente...
+                                            </div>
+                                        )}
                                         <div className="relative mb-4">
-                                            <SearchIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <SearchIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#49454F]/30" />
                                             <input
-                                                className="w-full bg-white rounded-2xl pl-12 pr-4 py-4 text-sm font-medium border border-slate-100 shadow-sm outline-none focus:ring-2 ring-amber-400 transition-all"
+                                                className="w-full bg-white rounded-2xl pl-12 pr-4 py-4 text-base font-medium border border-black/[0.05] shadow-sm outline-none focus:ring-1 ring-primary/20 transition-all font-['Roboto']"
                                                 placeholder="Buscar en la base de datos de KPKN..."
                                                 value={searchQuery}
-                                                onChange={e => { setSearchQuery(e.target.value); if (e.target.value.length > 2) searchFoods(e.target.value, settings).then(r => setSearchResults(r.results)); }}
+                                                onChange={event => setSearchQuery(event.target.value)}
                                             />
                                         </div>
+                                        {searchLoading && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Buscando...</p>}
                                         <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                                             {searchResults.map(food => (
-                                                <button key={food.id} onClick={() => { setSelectedFoodForPortion(food); }} className="w-full bg-white p-3 rounded-2xl border border-slate-100 flex items-center gap-3 hover:translate-x-1 transition-transform">
+                                                <button
+                                                    key={food.id}
+                                                    onClick={() => handleSearchFoodSelect(food)}
+                                                    className="w-full bg-white p-3 rounded-2xl border border-slate-100 flex items-center gap-3 hover:translate-x-1 transition-transform"
+                                                >
                                                     <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
                                                         <UtensilsIcon size={18} className="text-amber-500" />
                                                     </div>
-                                                    <div className="text-left">
-                                                        <p className="text-sm font-black text-slate-900">{food.name}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{food.calories} kcal · p:{food.protein} c:{food.carbs} f:{food.fats}</p>
+                                                    <div className="text-left min-w-0 flex-1">
+                                                        <p className="text-sm font-black text-[#1C1B1F] truncate">{food.name}</p>
+                                                        <p className="text-[10px] font-bold text-[#49454F]/40 uppercase tracking-tight mt-0.5">{food.calories} kcal · p:{food.protein} c:{food.carbs} f:{food.fats}</p>
                                                     </div>
+                                                    <PlusIcon size={16} className="text-[#1C1B1F]/20" />
                                                 </button>
                                             ))}
+                                            {!searchLoading && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
+                                                <p className="text-sm text-slate-500 text-center py-6">No se encontraron resultados.</p>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )}
+
                                 {activeTab === 'templates' && (
                                     <motion.div key="templates" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                                        <MealTemplateSelector onSelect={foods => {
-                                            setTagItems(foods.map(f => ({ tag: f.foodName, portion: 'medium', quantity: 1, foodItem: null, loggedFood: f })));
-                                            setActiveTab('description');
-                                        }} onClose={() => { }} />
+                                        <MealTemplateSelector
+                                            onSelect={foods => {
+                                                const templateTags = foods.map(food => ({
+                                                    key: crypto.randomUUID(),
+                                                    origin: 'template' as const,
+                                                    tag: food.foodName,
+                                                    portion: 'medium' as PortionPreset,
+                                                    quantity: 1,
+                                                    foodItem: null,
+                                                    loggedFood: food,
+                                                    resolutionStatus: 'resolved' as TagResolutionStatus,
+                                                    resolutionConfidence: 'high' as SearchConfidence,
+                                                    resolutionReason: 'Agregado desde plantilla.',
+                                                    candidateFoods: [],
+                                                }));
+                                                setTagItems(prev => [...prev.filter(tag => tag.origin !== 'template'), ...templateTags]);
+                                                setActiveTab('description');
+                                            }}
+                                            onClose={() => { /* noop */ }}
+                                        />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
-                            {/* Added Foods List */}
                             {tagItems.length > 0 && (
                                 <div className="space-y-3">
-                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Lista de Alimentos</h4>
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Lista de alimentos</h4>
                                     <div className="space-y-2">
-                                        {tagItems.map((tag, idx) => (
-                                            <div key={idx} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center gap-4">
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${tag.loggedFood ? 'bg-amber-100' : 'bg-slate-100'}`}>
-                                                    <UtensilsIcon size={14} className={tag.loggedFood ? 'text-amber-600' : 'text-slate-400'} />
+                                        {tagItems.map(tag => {
+                                            const isExpanded = expandedTagKey === tag.key;
+                                            const canExpand = tag.candidateFoods.length > 0 || Boolean(tag.subItems?.length) || tag.resolutionStatus !== 'resolved';
+                                            return (
+                                                <div key={tag.key} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                                                    <div className="flex items-start gap-4">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (!canExpand) return;
+                                                                setExpandedTagKey(prev => prev === tag.key ? null : tag.key);
+                                                            }}
+                                                            className="flex items-start gap-4 flex-1 text-left"
+                                                        >
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${tag.resolutionStatus === 'resolved' ? 'bg-emerald-100' : tag.resolutionStatus === 'pending' ? 'bg-slate-100' : 'bg-amber-100'}`}>
+                                                                <UtensilsIcon size={16} className={tag.resolutionStatus === 'resolved' ? 'text-emerald-600' : tag.resolutionStatus === 'pending' ? 'text-slate-400' : 'text-amber-700'} />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <p className="text-sm font-black text-slate-900 truncate leading-tight">{tag.tag}</p>
+                                                                    <StatusBadge status={tag.resolutionStatus} confidence={tag.resolutionConfidence} />
+                                                                </div>
+                                                                <p className="text-[10px] font-bold text-slate-400 tracking-tight mt-1">
+                                                                    {tag.loggedFood
+                                                                        ? `${Math.round(tag.loggedFood.calories)} kcal · ${tag.loggedFood.amount}${tag.loggedFood.unit}`
+                                                                        : tag.resolutionStatus === 'pending'
+                                                                            ? 'Buscando coincidencia...'
+                                                                            : tag.resolutionReason || 'Sin resolver'}
+                                                                </p>
+                                                                {tag.resolutionReason && tag.resolutionStatus !== 'resolved' && (
+                                                                    <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">{tag.resolutionReason}</p>
+                                                                )}
+                                                            </div>
+                                                        </button>
+                                                        <div className="flex items-center gap-1 shrink-0">
+                                                            {canExpand && (
+                                                                <button
+                                                                    onClick={() => setExpandedTagKey(prev => prev === tag.key ? null : tag.key)}
+                                                                    className="p-2 text-slate-300 hover:text-slate-500 transition-colors"
+                                                                >
+                                                                    <ChevronDownIcon size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                onClick={() => setTagItems(prev => prev.filter(item => item.key !== tag.key))}
+                                                                className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
+                                                            >
+                                                                <TrashIcon size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {isExpanded && (
+                                                        <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+                                                            {tag.subItems?.length ? (
+                                                                <div className="rounded-2xl bg-slate-50 px-4 py-3 text-xs text-slate-600">
+                                                                    Ingredientes detectados: {tag.subItems.map(item => item.tag).join(', ')}
+                                                                </div>
+                                                            ) : null}
+
+                                                            {tag.candidateFoods.length > 0 && (
+                                                                <div className="space-y-2">
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidatos</p>
+                                                                    {tag.candidateFoods.map(candidate => (
+                                                                        <button
+                                                                            key={`${tag.key}-${candidate.food.id}`}
+                                                                            onClick={() => handleCandidateSelect(tag.key, candidate)}
+                                                                            className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-left hover:border-amber-300 hover:bg-amber-50 transition-colors"
+                                                                        >
+                                                                            <div className="flex items-start justify-between gap-4">
+                                                                                <div className="min-w-0">
+                                                                                    <p className="text-sm font-black text-slate-900 truncate">{candidate.food.name}</p>
+                                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">
+                                                                                        {candidate.food.calories} kcal · score {candidate.score.toFixed(2)} · confianza {confidenceLabel(candidate.confidence)}
+                                                                                    </p>
+                                                                                </div>
+                                                                                <div className="text-[10px] font-black uppercase tracking-widest text-amber-700 shrink-0">Usar</div>
+                                                                            </div>
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+
+                                                            {tag.resolutionStatus !== 'resolved' && (
+                                                                <button
+                                                                    onClick={() => handleOpenManualSearch(tag)}
+                                                                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-700 hover:border-slate-300 transition-colors"
+                                                                >
+                                                                    Buscar manualmente
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-black text-slate-900 truncate leading-tight">{tag.tag}</p>
-                                                    <p className="text-[10px] font-bold text-slate-400 tracking-tight">
-                                                        {tag.loggedFood ? `${Math.round(tag.loggedFood.calories)} kcal · ${tag.loggedFood.amount}${tag.loggedFood.unit}` : 'Buscando coincidencia...'}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => setTagItems(prev => prev.filter((_, i) => i !== idx))}
-                                                    className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
-                                                >
-                                                    <TrashIcon size={16} />
-                                                </button>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* ─── FOOTER ─── */}
-                        <div className="absolute bottom-0 inset-x-0 px-6 pt-6 pb-28 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] 80% to-transparent pointer-events-none">
-                            <div className="pointer-events-auto flex gap-3 shadow-2xl rounded-2xl">
-                                <button
-                                    onClick={onClose}
-                                    className="flex-1 py-4 bg-white border border-slate-200 rounded-2xl text-slate-500 text-xs font-black uppercase tracking-widest active:scale-95 transition-all"
-                                >
-                                    Cancelar
-                                </button>
+                        <div className={`absolute bottom-0 inset-x-0 px-6 pt-10 ${displayMode === 'appendix' ? 'pb-24' : 'pb-28'} bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] 80% to-transparent pointer-events-none`}>
+                            <div className="pointer-events-auto flex gap-3">
+                                {displayMode === 'drawer' && (
+                                    <button
+                                        onClick={onClose}
+                                        className="flex-1 py-5 bg-white border border-black/[0.05] rounded-3xl text-[#49454F] text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-sm"
+                                    >
+                                        Cancelar
+                                    </button>
+                                )}
                                 <button
                                     onClick={handleSave}
-                                    className="flex-[2] py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-900/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                    className="flex-[2] py-5 bg-[#1C1B1F] text-white rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-black/10 active:scale-95 transition-all flex items-center justify-center gap-2"
                                 >
-                                    Confirmar Registro
+                                    Confirmar registro
                                     <PlusIcon size={16} />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Success Animation Overlay */}
                         <AnimatePresence>
                             {saveState === 'success' && (
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, y: 20 }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                                     className="absolute inset-0 z-[2500] bg-[#F7F7F7]/95 backdrop-blur-md px-6 py-12 flex flex-col items-center justify-center pointer-events-auto"
                                 >
                                     <div className="w-20 h-20 bg-emerald-500 rounded-[32px] flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-8 animate-bounce">
@@ -439,16 +807,16 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
                                     </div>
-                                    <h2 className="text-3xl font-black text-slate-900 mb-2">¡Listo!</h2>
+                                    <h2 className="text-3xl font-black text-slate-900 mb-2">Listo</h2>
                                     <p className="text-sm font-bold text-slate-500 mb-8 text-center bg-slate-200/50 px-4 py-2 rounded-full">
                                         Has sumado <span className="text-slate-900 font-black">{Math.round(totalMacros.calories)} kcal</span> a tu plan.
                                     </p>
 
                                     <div className="w-full bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl space-y-4">
-                                        {tagItems.filter(t => t.loggedFood).map((t, i) => (
-                                            <div key={i} className="flex justify-between items-center bg-slate-50 p-3 rounded-2xl">
-                                                <span className="text-sm font-black text-slate-900 truncate pr-4">{t.loggedFood?.foodName}</span>
-                                                <span className="text-xs font-bold text-slate-400 shrink-0">{t.loggedFood?.amount}{t.loggedFood?.unit}</span>
+                                        {tagItems.filter(tag => tag.loggedFood).map(tag => (
+                                            <div key={tag.key} className="flex justify-between items-center bg-slate-50 p-3 rounded-2xl">
+                                                <span className="text-sm font-black text-slate-900 truncate pr-4">{tag.loggedFood?.foodName}</span>
+                                                <span className="text-xs font-bold text-slate-400 shrink-0">{tag.loggedFood?.amount}{tag.loggedFood?.unit}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -456,16 +824,34 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             )}
                         </AnimatePresence>
 
-                        {/* Search Modal Bridge */}
                         {selectedFoodForPortion && (
                             <div className="fixed inset-0 z-[3000] bg-white rounded-t-[40px] shadow-2xl overflow-hidden p-6 animate-slide-up">
                                 <PortionSelector
-                                    food={selectedFoodForPortion}
+                                    food={selectedFoodForPortion.food}
                                     onConfirm={(portion, grams) => {
-                                        const logged = foodToLoggedFood(selectedFoodForPortion, grams, portion);
-                                        setTagItems(prev => [...prev, { tag: selectedFoodForPortion.name, portion: 'medium', quantity: 1, foodItem: selectedFoodForPortion, loggedFood: logged }]);
+                                        const logged = foodToLoggedFood(selectedFoodForPortion.food, grams, portion);
+                                        if (selectedFoodForPortion.query) {
+                                            rememberFoodResolution(selectedFoodForPortion.query, selectedFoodForPortion.food);
+                                        }
+                                        setTagItems(prev => [
+                                            ...prev,
+                                            {
+                                                key: crypto.randomUUID(),
+                                                origin: 'manual',
+                                                tag: selectedFoodForPortion.food.name,
+                                                portion: 'medium',
+                                                quantity: 1,
+                                                foodItem: selectedFoodForPortion.food,
+                                                loggedFood: logged,
+                                                resolutionStatus: 'resolved',
+                                                resolutionConfidence: 'high',
+                                                resolutionReason: 'Agregado manualmente.',
+                                                candidateFoods: [],
+                                            },
+                                        ]);
                                         setSelectedFoodForPortion(null);
                                         setSearchQuery('');
+                                        setSearchResults([]);
                                     }}
                                     onCancel={() => setSelectedFoodForPortion(null)}
                                 />
@@ -481,7 +867,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 const TabBtn: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
     <button
         onClick={onClick}
-        className={`flex-1 py-2 text-[10px] font-black uppercase transition-all rounded-xl ${active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+        className={`flex-1 py-2.5 text-[9px] font-black uppercase transition-all rounded-2xl ${active ? 'bg-white text-[#1C1B1F] shadow-sm' : 'text-[#49454F]/40'}`}
     >
         {children}
     </button>
@@ -489,8 +875,24 @@ const TabBtn: React.FC<{ active: boolean; onClick: () => void; children: React.R
 
 const MacroBadge: React.FC<{ label: string; val: number; color: string }> = ({ label, val, color }) => (
     <div className="flex flex-col items-center">
-        <div className={`w-8 h-1 rounded-full ${color} mb-1 opacity-60`} />
-        <span className="text-[14px] font-black text-slate-900 font-mono leading-none">{Math.round(val)}</span>
-        <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">{label}</span>
+        <div className={`w-8 h-1.5 rounded-full ${color} mb-1.5 opacity-40`} />
+        <span className="text-xl font-black text-[#1C1B1F] font-['Roboto'] leading-none tracking-tighter">{Math.round(val)}</span>
+        <span className="text-[9px] font-black text-[#49454F]/30 uppercase tracking-tighter mt-1">{label}</span>
     </div>
 );
+
+const StatusBadge: React.FC<{ status: TagResolutionStatus; confidence: SearchConfidence }> = ({ status, confidence }) => {
+    if (status === 'resolved') {
+        return <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">OK</span>;
+    }
+
+    if (status === 'pending') {
+        return <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-slate-500">...</span>;
+    }
+
+    return (
+        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-700">
+            Revisar · {confidenceLabel(confidence)}
+        </span>
+    );
+};
