@@ -537,7 +537,12 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
                         <div className={`flex-1 overflow-y-auto px-6 space-y-6 custom-scrollbar ${displayMode === 'appendix' ? 'max-h-[70vh] pb-40' : 'pb-48 pt-4'}`}>
                             {/* Macros Summary Panel */}
-                            <motion.div layout className="bg-white rounded-[32px] p-6 shadow-sm border border-black/[0.03] flex items-center justify-between mt-2">
+                            <motion.div layout className="bg-white rounded-[32px] p-6 shadow-sm border border-black/[0.03] flex items-center justify-between mt-2 relative overflow-hidden">
+                                {displayMode === 'appendix' && (
+                                    <div className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black px-2 py-1 rounded-bl-xl z-10 animate-pulse">
+                                        v2.5 APÉNDICE
+                                    </div>
+                                )}
                                 <div className="flex flex-col">
                                     <span className="text-[42px] font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter leading-none">{Math.round(totalMacros.calories)}</span>
                                     <span className="text-[10px] uppercase font-black text-[#49454F]/30 tracking-[0.2em] mt-1">Calorias totales</span>

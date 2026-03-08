@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yourprime-v22';
+const CACHE_NAME = 'yourprime-v25';
 const urlsToCache = [
     '/',
     '/index.html',
