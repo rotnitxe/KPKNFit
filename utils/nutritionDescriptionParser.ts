@@ -259,6 +259,40 @@ function extractCompositionModifiers(text: string): { modifiers?: ParsedMealItem
     return { modifiers: modifiers.length > 0 ? modifiers : undefined, cleaned: cleaned.replace(/\s{2,}/g, ' ').trim() };
 }
 
+function matchesKnownFoodName(term: string): boolean {
+    const normalizedTerm = term
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    return FOOD_DATABASE.some(food => {
+        const normalizedName = food.name
+            .normalize('NFD')
+            .replace(/\p{Diacritic}/gu, '')
+            .toLowerCase()
+            .replace(/\s*\([^)]*\)\s*/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        return normalizedName === normalizedTerm;
+    });
+}
+
+function resolveCanonicalFoodName(rawCandidate: string, cleanedCandidate: string): string {
+    const candidates = [rawCandidate, cleanedCandidate]
+        .map(value => value.trim())
+        .filter(Boolean);
+
+    for (const candidate of candidates) {
+        const resolved = resolveToCanonical(candidate);
+        if (resolved !== candidate.trim()) return resolved;
+        if (matchesKnownFoodName(candidate)) return candidate.trim();
+    }
+
+    return resolveToCanonical(cleanedCandidate.trim());
+}
+
 function parseStructuralFractions(text: string): string {
     return text
         .replace(/\b1\/2\b/g, '0.5')
@@ -417,6 +451,8 @@ function parseFragment(frag: string): ParsedMealItem | null {
     const { overrides, cleaned: afterOverrides } = extractInlineOverrides(working);
     working = afterOverrides;
 
+    const canonicalContext = working;
+
     const { modifiers: anatomical, cleaned: afterAnatomical } = extractAnatomicalModifiers(working);
     working = afterAnatomical;
 
@@ -439,7 +475,7 @@ function parseFragment(frag: string): ParsedMealItem | null {
     const foodName = foodPart || working;
     if (!foodName || foodName.length < 2) return null;
 
-    const canonical = resolveToCanonical(foodName);
+    const canonical = resolveCanonicalFoodName(canonicalContext, foodName);
     const tag = canonical;
     if (tag.length < 2) return null;
 
