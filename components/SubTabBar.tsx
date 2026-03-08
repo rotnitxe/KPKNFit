@@ -39,7 +39,7 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
                 })}
                 className="flex items-center justify-center active:scale-95 transition-all group py-2"
             >
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-amber-500 transition-colors">Comida</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]/40 group-hover:text-primary transition-all font-['Roboto']">Comida</span>
             </button>
 
             <div className="w-[1px] h-3 bg-slate-400/20" />
@@ -48,7 +48,7 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
                 onClick={() => handleAction(() => navigateTo('settings'))}
                 className="flex items-center justify-center active:scale-95 transition-all group py-2"
             >
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-900 transition-colors">Ajustes</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]/40 group-hover:text-primary transition-all font-['Roboto']">Ajustes</span>
             </button>
 
             <div className="w-[1px] h-3 bg-slate-400/20" />
@@ -57,7 +57,7 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
                 onClick={() => handleAction(() => setIsStartWorkoutModalOpen(true))}
                 className="flex items-center justify-center active:scale-95 transition-all group py-2"
             >
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-emerald-500 transition-colors">Sesión</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]/40 group-hover:text-primary transition-all font-['Roboto']">Sesión</span>
             </button>
         </div>
     );

@@ -618,25 +618,30 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                             />
                                         </div>
                                         {searchLoading && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Buscando...</p>}
-                                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                                        <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                                             {searchResults.map(food => (
                                                 <button
                                                     key={food.id}
                                                     onClick={() => handleSearchFoodSelect(food)}
-                                                    className="w-full bg-white p-3 rounded-2xl border border-slate-100 flex items-center gap-3 hover:translate-x-1 transition-transform"
+                                                    className="w-full bg-white p-4 rounded-3xl border border-black/[0.03] flex items-center gap-4 hover:translate-x-1 transition-all shadow-sm group"
                                                 >
-                                                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
-                                                        <UtensilsIcon size={18} className="text-amber-500" />
+                                                    <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
+                                                        <UtensilsIcon size={20} className="text-primary" />
                                                     </div>
                                                     <div className="text-left min-w-0 flex-1">
-                                                        <p className="text-sm font-black text-[#1C1B1F] truncate">{food.name}</p>
-                                                        <p className="text-[10px] font-bold text-[#49454F]/40 uppercase tracking-tight mt-0.5">{food.calories} kcal · p:{food.protein} c:{food.carbs} f:{food.fats}</p>
+                                                        <p className="text-sm font-black text-[#1C1B1F] truncate font-['Roboto']">{food.name}</p>
+                                                        <p className="text-[10px] font-bold text-[#49454F]/40 uppercase tracking-tight mt-1">{food.calories} kcal · p:{food.protein} c:{food.carbs} f:{food.fats}</p>
                                                     </div>
-                                                    <PlusIcon size={16} className="text-[#1C1B1F]/20" />
+                                                    <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                                        <PlusIcon size={16} className="text-[#1C1B1F]" />
+                                                    </div>
                                                 </button>
                                             ))}
                                             {!searchLoading && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
-                                                <p className="text-sm text-slate-500 text-center py-6">No se encontraron resultados.</p>
+                                                <div className="py-12 text-center space-y-2">
+                                                    <p className="text-sm font-black text-[#1C1B1F]">Sin resultados</p>
+                                                    <p className="text-[10px] font-bold text-[#49454F]/40 uppercase">Prueba con otra descripción o búsqueda manual</p>
+                                                </div>
                                             )}
                                         </div>
                                     </motion.div>
@@ -669,14 +674,17 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             </AnimatePresence>
 
                             {tagItems.length > 0 && (
-                                <div className="space-y-3">
-                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Lista de alimentos</h4>
-                                    <div className="space-y-2">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between px-1">
+                                        <h4 className="text-[10px] font-black text-[#49454F]/30 uppercase tracking-[0.2em]">Alimentos detectados</h4>
+                                        <span className="text-[10px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded-full">{tagItems.length}</span>
+                                    </div>
+                                    <div className="space-y-3">
                                         {tagItems.map(tag => {
                                             const isExpanded = expandedTagKey === tag.key;
                                             const canExpand = tag.candidateFoods.length > 0 || Boolean(tag.subItems?.length) || tag.resolutionStatus !== 'resolved';
                                             return (
-                                                <div key={tag.key} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                                                <div key={tag.key} className="bg-white rounded-[32px] p-5 shadow-sm border border-black/[0.03] transition-all">
                                                     <div className="flex items-start gap-4">
                                                         <button
                                                             type="button"
@@ -684,87 +692,95 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                                 if (!canExpand) return;
                                                                 setExpandedTagKey(prev => prev === tag.key ? null : tag.key);
                                                             }}
-                                                            className="flex items-start gap-4 flex-1 text-left"
+                                                            className="flex items-start gap-4 flex-1 text-left group"
                                                         >
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${tag.resolutionStatus === 'resolved' ? 'bg-emerald-100' : tag.resolutionStatus === 'pending' ? 'bg-slate-100' : 'bg-amber-100'}`}>
-                                                                <UtensilsIcon size={16} className={tag.resolutionStatus === 'resolved' ? 'text-emerald-600' : tag.resolutionStatus === 'pending' ? 'text-slate-400' : 'text-amber-700'} />
+                                                            <div className={`w-12 h-12 rounded-[20px] flex items-center justify-center shrink-0 transition-colors ${tag.resolutionStatus === 'resolved' ? 'bg-primary/10' : tag.resolutionStatus === 'pending' ? 'bg-black/5' : 'bg-rose-50'}`}>
+                                                                <UtensilsIcon size={20} className={tag.resolutionStatus === 'resolved' ? 'text-primary' : tag.resolutionStatus === 'pending' ? 'text-black/20' : 'text-rose-500'} />
                                                             </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2 flex-wrap">
-                                                                    <p className="text-sm font-black text-slate-900 truncate leading-tight">{tag.tag}</p>
+                                                            <div className="flex-1 min-w-0 pt-1">
+                                                                <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                                    <p className="text-[15px] font-black text-[#1C1B1F] truncate leading-none font-['Roboto'] tracking-tight group-hover:text-primary transition-colors">{tag.tag}</p>
                                                                     <StatusBadge status={tag.resolutionStatus} confidence={tag.resolutionConfidence} />
                                                                 </div>
-                                                                <p className="text-[10px] font-bold text-slate-400 tracking-tight mt-1">
+                                                                <p className="text-[11px] font-bold text-[#49454F]/40 tracking-tight">
                                                                     {tag.loggedFood
                                                                         ? `${Math.round(tag.loggedFood.calories)} kcal · ${tag.loggedFood.amount}${tag.loggedFood.unit}`
                                                                         : tag.resolutionStatus === 'pending'
                                                                             ? 'Buscando coincidencia...'
                                                                             : tag.resolutionReason || 'Sin resolver'}
                                                                 </p>
-                                                                {tag.resolutionReason && tag.resolutionStatus !== 'resolved' && (
-                                                                    <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">{tag.resolutionReason}</p>
-                                                                )}
                                                             </div>
                                                         </button>
-                                                        <div className="flex items-center gap-1 shrink-0">
+                                                        <div className="flex items-center gap-1 shrink-0 pt-1">
                                                             {canExpand && (
                                                                 <button
                                                                     onClick={() => setExpandedTagKey(prev => prev === tag.key ? null : tag.key)}
-                                                                    className="p-2 text-slate-300 hover:text-slate-500 transition-colors"
+                                                                    className="w-10 h-10 flex items-center justify-center text-[#49454F]/20 hover:text-[#1C1B1F] transition-colors"
                                                                 >
-                                                                    <ChevronDownIcon size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                                    <ChevronDownIcon size={18} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                                                                 </button>
                                                             )}
                                                             <button
                                                                 onClick={() => setTagItems(prev => prev.filter(item => item.key !== tag.key))}
-                                                                className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
+                                                                className="w-10 h-10 flex items-center justify-center text-[#49454F]/20 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
                                                             >
-                                                                <TrashIcon size={16} />
+                                                                <TrashIcon size={18} />
                                                             </button>
                                                         </div>
                                                     </div>
 
-                                                    {isExpanded && (
-                                                        <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
-                                                            {tag.subItems?.length ? (
-                                                                <div className="rounded-2xl bg-slate-50 px-4 py-3 text-xs text-slate-600">
-                                                                    Ingredientes detectados: {tag.subItems.map(item => item.tag).join(', ')}
-                                                                </div>
-                                                            ) : null}
+                                                    <AnimatePresence>
+                                                        {isExpanded && (
+                                                            <motion.div
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                className="overflow-hidden"
+                                                            >
+                                                                <div className="mt-5 pt-5 border-t border-black/[0.03] space-y-4">
+                                                                    {tag.subItems?.length ? (
+                                                                        <div className="rounded-2xl bg-black/5 px-4 py-3 text-[11px] font-medium text-[#49454F]/60">
+                                                                            Ingredientes: {tag.subItems.map(item => item.tag).join(', ')}
+                                                                        </div>
+                                                                    ) : null}
 
-                                                            {tag.candidateFoods.length > 0 && (
-                                                                <div className="space-y-2">
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidatos</p>
-                                                                    {tag.candidateFoods.map(candidate => (
-                                                                        <button
-                                                                            key={`${tag.key}-${candidate.food.id}`}
-                                                                            onClick={() => handleCandidateSelect(tag.key, candidate)}
-                                                                            className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-left hover:border-amber-300 hover:bg-amber-50 transition-colors"
-                                                                        >
-                                                                            <div className="flex items-start justify-between gap-4">
-                                                                                <div className="min-w-0">
-                                                                                    <p className="text-sm font-black text-slate-900 truncate">{candidate.food.name}</p>
-                                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">
-                                                                                        {candidate.food.calories} kcal · score {candidate.score.toFixed(2)} · confianza {confidenceLabel(candidate.confidence)}
-                                                                                    </p>
-                                                                                </div>
-                                                                                <div className="text-[10px] font-black uppercase tracking-widest text-amber-700 shrink-0">Usar</div>
+                                                                    {tag.candidateFoods.length > 0 && (
+                                                                        <div className="space-y-3">
+                                                                            <p className="text-[9px] font-black text-[#49454F]/30 uppercase tracking-[0.2em] px-1">Sugerencias inteligentes</p>
+                                                                            <div className="grid gap-2">
+                                                                                {tag.candidateFoods.map(candidate => (
+                                                                                    <button
+                                                                                        key={`${tag.key}-${candidate.food.id}`}
+                                                                                        onClick={() => handleCandidateSelect(tag.key, candidate)}
+                                                                                        className="w-full rounded-[24px] border border-black/[0.03] bg-black/[0.01] px-4 py-3 text-left hover:border-primary/30 hover:bg-primary/5 transition-all group"
+                                                                                    >
+                                                                                        <div className="flex items-center justify-between gap-4">
+                                                                                            <div className="min-w-0">
+                                                                                                <p className="text-[13px] font-black text-[#1C1B1F] truncate font-['Roboto']">{candidate.food.name}</p>
+                                                                                                <p className="text-[9px] font-bold text-[#49454F]/30 uppercase mt-0.5">
+                                                                                                    {candidate.food.calories} kcal · {confidenceLabel(candidate.confidence)}
+                                                                                                </p>
+                                                                                            </div>
+                                                                                            <div className="text-[9px] font-black uppercase tracking-widest text-[#1C1B1F]/20 group-hover:text-primary transition-colors">Elegir</div>
+                                                                                        </div>
+                                                                                    </button>
+                                                                                ))}
                                                                             </div>
-                                                                        </button>
-                                                                    ))}
-                                                                </div>
-                                                            )}
+                                                                        </div>
+                                                                    )}
 
-                                                            {tag.resolutionStatus !== 'resolved' && (
-                                                                <button
-                                                                    onClick={() => handleOpenManualSearch(tag)}
-                                                                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-700 hover:border-slate-300 transition-colors"
-                                                                >
-                                                                    Buscar manualmente
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                                    {tag.resolutionStatus !== 'resolved' && (
+                                                                        <button
+                                                                            onClick={() => handleOpenManualSearch(tag)}
+                                                                            className="w-full rounded-[24px] border border-black/[0.05] bg-white py-4 text-[10px] font-black uppercase tracking-widest text-[#1C1B1F] hover:bg-black/5 transition-all shadow-sm"
+                                                                        >
+                                                                            Seleccionar manualmente
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </div>
                                             );
                                         })}
@@ -883,15 +899,15 @@ const MacroBadge: React.FC<{ label: string; val: number; color: string }> = ({ l
 
 const StatusBadge: React.FC<{ status: TagResolutionStatus; confidence: SearchConfidence }> = ({ status, confidence }) => {
     if (status === 'resolved') {
-        return <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">OK</span>;
+        return <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-primary">OK</span>;
     }
 
     if (status === 'pending') {
-        return <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-slate-500">...</span>;
+        return <span className="inline-flex items-center rounded-full bg-black/5 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-black/20">...</span>;
     }
 
     return (
-        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-700">
+        <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-rose-500">
             Revisar · {confidenceLabel(confidence)}
         </span>
     );
