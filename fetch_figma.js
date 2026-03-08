@@ -6,7 +6,7 @@ const options = {
     path: '/v1/files/u7JsO9AT52NPXVLhmYiMeq/nodes?ids=1-2645',
     method: 'GET',
     headers: {
-        'X-Figma-Token': 'figd_mrYkFgprzoHqxPyJpJCKH03huvGyDjTPyBz8RMjj'
+        'X-Figma-Token': process.env.FIGMA_TOKEN
     }
 };
 

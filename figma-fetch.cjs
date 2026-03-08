@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 async function fetchFigma() {
-    const token = 'figd_mrYkFgprzoHqxPyJpJCKH03huvGyDjTPyBz8RMjj';
+    const token = process.env.FIGMA_TOKEN;
     const fileKey = 'vlc7QqOtOumcCRMq6DxJgN';
     const nodeId = '1:2840';
 
