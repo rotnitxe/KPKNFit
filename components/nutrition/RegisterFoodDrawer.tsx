@@ -12,7 +12,7 @@ import {
     type SearchFoodCandidate,
 } from '../../services/foodSearchService';
 import { useAppDispatch } from '../../contexts/AppContext';
-import { XIcon, TrashIcon, UtensilsIcon, SearchIcon, ChevronDownIcon, FlameIcon, ZapIcon, DropletsIcon, PlusIcon } from '../icons';
+import { XIcon, TrashIcon, UtensilsIcon, SearchIcon, ChevronDownIcon, PlusIcon } from '../icons';
 import { MealTemplateSelector } from './MealTemplateSelector';
 import { PortionSelector } from '../PortionSelector';
 import { getLocalDateString, dateStringToISOString } from '../../utils/dateUtils';
@@ -33,11 +33,20 @@ function foodToLoggedFood(food: FoodItem, amountGrams: number, portionInput?: Po
     return logged;
 }
 
-const mealOptions: { id: NutritionLog['mealType']; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
-    { id: 'breakfast', label: 'Desayuno', icon: ZapIcon },
-    { id: 'lunch', label: 'Almuerzo', icon: UtensilsIcon },
-    { id: 'dinner', label: 'Cena', icon: FlameIcon },
-    { id: 'snack', label: 'Snack', icon: DropletsIcon },
+type MacroKey = 'protein' | 'carbs' | 'fats';
+
+const mealOptions: { id: NutritionLog['mealType']; label: string; }[] = [
+    { id: 'breakfast', label: 'Desayuno' },
+    { id: 'lunch', label: 'Almuerzo' },
+    { id: 'dinner', label: 'Cena' },
+    { id: 'snack', label: 'Snack' },
+];
+
+const CALORIES_VISUAL_TARGET = 700;
+const MACRO_GOALS: { key: MacroKey; label: string; color: string; target: number }[] = [
+    { key: 'protein', label: 'PROT', color: 'bg-rose-500', target: 60 },
+    { key: 'carbs', label: 'CARB', color: 'bg-emerald-500', target: 180 },
+    { key: 'fats', label: 'FATS', color: 'bg-amber-500', target: 70 },
 ];
 
 const DEBOUNCE_MS = 250;
@@ -189,6 +198,11 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const searchRequestRef = useRef(0);
 
     const parsed = useMemo(() => parseMealDescription(description), [description]);
+    const isAppendixMode = displayMode === 'appendix';
+    const sheetContainerClass = isAppendixMode
+        ? 'relative w-full max-h-[72vh] rounded-[32px] border border-white/30 bg-white/90 shadow-2xl'
+        : 'fixed inset-x-0 bottom-0 z-[2001] bg-[#F7F7F7] rounded-t-[40px] shadow-2xl h-[90vh]';
+    const scrollAreaClass = `flex-1 overflow-y-auto px-6 space-y-6 custom-scrollbar ${isAppendixMode ? 'max-h-[65vh] pb-32' : 'pb-48 pt-4'}`;
 
     useEffect(() => {
         if (!isOpen) return;
@@ -508,6 +522,17 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     }, { calories: 0, protein: 0, carbs: 0, fats: 0 }), [tagItems]);
 
     const blockingCount = tagItems.filter(isBlockingResolution).length;
+    const macroCaloriesFill = Math.min(100, (totalMacros.calories / CALORIES_VISUAL_TARGET) * 100);
+    const macroBarSegments = MACRO_GOALS.map(goal => {
+        const value = totalMacros[goal.key];
+        const fill = goal.target > 0 ? Math.min(100, (value / goal.target) * 100) : 0;
+        return {
+            label: goal.label,
+            value,
+            fill,
+            color: goal.color,
+        };
+    });
 
     if (!isOpen) return null;
 
@@ -521,7 +546,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         animate={displayMode === 'appendix' ? { opacity: 1, scale: 1 } : { y: 0 }}
                         exit={displayMode === 'appendix' ? { opacity: 0, scale: 0.95 } : { y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className={`${displayMode === 'appendix' ? 'relative w-full bg-transparent' : 'fixed inset-x-0 bottom-0 z-[2001] bg-[#F7F7F7] rounded-t-[40px] shadow-2xl h-[90vh]'} overflow-hidden flex flex-col`}
+                        className={`${sheetContainerClass} overflow-hidden flex flex-col`}
                     >
                         {displayMode === 'drawer' && (
                             <div className="px-6 pt-8 pb-4 flex justify-between items-center">
@@ -535,12 +560,28 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             </div>
                         )}
 
-                        <div className={`flex-1 overflow-y-auto px-6 space-y-6 custom-scrollbar ${displayMode === 'appendix' ? 'max-h-[70vh] pb-40' : 'pb-48 pt-4'}`}>
+                        <div className={scrollAreaClass}>
                             {/* Macros Summary Panel */}
-                            <motion.div layout className={`${displayMode === 'appendix' ? 'bg-white/60 backdrop-blur-xl border-white/40' : 'bg-white border-black/[0.03]'} rounded-[32px] p-6 shadow-sm border flex items-center justify-between mt-2 relative overflow-hidden`}>
-                                <div className="flex flex-col">
-                                    <span className="text-[48px] font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter leading-none">{Math.round(totalMacros.calories)}</span>
-                                    <span className="text-[10px] uppercase font-black text-[#49454F]/40 tracking-[0.2em] mt-1">Calorias totales</span>
+                            <motion.div layout className={`${displayMode === 'appendix' ? 'bg-white/60 backdrop-blur-xl border-white/40' : 'bg-white border-black/[0.03]'} rounded-[32px] p-6 shadow-sm border flex flex-col gap-4 mt-2 relative overflow-hidden`}>
+                                <div className="flex flex-col gap-2">
+                                    <div>
+                                        <div className="text-[48px] font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter leading-none">{Math.round(totalMacros.calories)}</div>
+                                        <div className="text-[10px] uppercase font-black text-[#49454F]/40 tracking-[0.25em]">Calorias totales</div>
+                                    </div>
+                                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                                        <div className="h-full rounded-full bg-gradient-to-r from-[#FF8A00] to-[#FF3F5A]" style={{ width: `${macroCaloriesFill}%` }} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {macroBarSegments.map(segment => (
+                                        <div key={segment.label} className="flex flex-col gap-1">
+                                            <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                                <div className={`h-full rounded-full ${segment.color}`} style={{ width: `${segment.fill}%` }} />
+                                            </div>
+                                            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[#49454F]/50">{segment.label}</div>
+                                            <div className="text-[10px] font-black text-[#1C1B1F]">{Math.round(segment.value)}</div>
+                                        </div>
+                                    ))}
                                 </div>
                                 <div className="flex gap-4">
                                     <MacroBadge label="PROT" val={totalMacros.protein} color="bg-rose-500" />
@@ -550,25 +591,27 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                             </motion.div>
 
                             {/* Selectors Row */}
-                            <div className="flex gap-3">
-                                <div className={`flex-1 rounded-[32px] p-4 flex gap-3 shadow-sm border items-center ${displayMode === 'appendix' ? 'bg-white/60 backdrop-blur-xl border-white/40' : 'bg-white border-black/[0.03]'}`}>
-                                    <SearchIcon size={16} className="text-[#49454F]/20" />
-                                    <input
-                                        type="date"
-                                        value={logDate}
-                                        onChange={event => setLogDate(event.target.value)}
-                                        className="w-full bg-transparent text-[11px] font-black text-[#1C1B1F] outline-none uppercase tracking-widest font-['Roboto']"
-                                    />
+                            <div className="space-y-3">
+                                <div className={`rounded-[32px] border p-4 flex flex-col gap-2 ${displayMode === 'appendix' ? 'bg-white/70 border-white/50 backdrop-blur-xl' : 'bg-white border-black/[0.03]'}`}>
+                                    <label className="text-[8px] uppercase tracking-[0.5em] text-[#49454F]/50">Fecha del registro</label>
+                                    <div className="flex items-center gap-2">
+                                        <SearchIcon size={16} className="text-[#49454F]/30" />
+                                        <input
+                                            type="date"
+                                            value={logDate}
+                                            onChange={event => setLogDate(event.target.value)}
+                                            className="w-full bg-transparent text-[11px] font-black text-[#1C1B1F] outline-none uppercase tracking-[0.3em] font-['Roboto']"
+                                        />
+                                    </div>
                                 </div>
-                                <div className={`flex-[1.5] rounded-[32px] p-1.5 flex shadow-sm border ${displayMode === 'appendix' ? 'bg-white/60 backdrop-blur-xl border-white/40' : 'bg-white border-black/[0.03]'}`}>
+                                <div className={`grid grid-cols-2 gap-2 rounded-[28px] border p-2 ${displayMode === 'appendix' ? 'bg-white/60 border-white/40 backdrop-blur-xl' : 'bg-black/[0.03] border-black/[0.03]'}`}>
                                     {mealOptions.map(option => (
                                         <button
                                             key={option.id}
                                             onClick={() => setMealType(option.id)}
-                                            className={`flex-1 flex flex-col items-center justify-center p-2 rounded-[24px] transition-all ${mealType === option.id ? 'bg-[#1C1B1F] text-white shadow-lg shadow-black/20' : 'text-[#49454F]/40 hover:bg-black/5'}`}
+                                            className={`rounded-[20px] px-4 py-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all ${mealType === option.id ? 'bg-[#1C1B1F] text-white shadow-lg shadow-black/20' : 'bg-white text-[#49454F]/60 hover:bg-black/5'}`}
                                         >
-                                            <option.icon size={16} />
-                                            <span className="text-[8px] font-black uppercase mt-1 tracking-tighter">{option.label}</span>
+                                            {option.label}
                                         </button>
                                     ))}
                                 </div>
@@ -580,6 +623,18 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 <TabBtn active={activeTab === 'search'} displayMode={displayMode} onClick={() => setActiveTab('search')}>Buscador</TabBtn>
                                 <TabBtn active={activeTab === 'templates'} displayMode={displayMode} onClick={() => setActiveTab('templates')}>Plantillas</TabBtn>
                             </div>
+
+                            {displayMode === 'appendix' && (
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={blockingCount > 0}
+                                        className={`py-2 px-5 text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl transition-all ${blockingCount > 0 ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-[#1C1B1F] text-white shadow-lg shadow-black/20'}`}
+                                    >
+                                        Confirmar
+                                    </button>
+                                </div>
+                            )}
 
                             {blockingCount > 0 && (
                                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="rounded-[28px] border border-rose-200/50 bg-rose-50/50 px-6 py-4 text-[12px] font-black uppercase tracking-wider text-rose-600 shadow-sm backdrop-blur-sm text-center">
@@ -785,25 +840,25 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         </div>
 
                         {/* Footer - Actions */}
-                        <div className={`absolute bottom-0 inset-x-0 px-8 pt-12 ${displayMode === 'appendix' ? 'pb-24' : 'pb-28'} ${displayMode === 'appendix' ? '' : 'bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] 70% to-transparent'} pointer-events-none`}>
-                            <div className="pointer-events-auto flex gap-4">
-                                {displayMode === 'drawer' && (
+                        {displayMode === 'drawer' && (
+                            <div className="absolute bottom-0 inset-x-0 px-8 pt-12 pb-28 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] 70% to-transparent pointer-events-none">
+                                <div className="pointer-events-auto flex gap-4">
                                     <button
                                         onClick={onClose}
                                         className="flex-1 py-5 bg-white border border-black/[0.05] rounded-[32px] text-[#49454F] text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-sm font-['Roboto']"
                                     >
                                         Cancelar
                                     </button>
-                                )}
-                                <button
-                                    onClick={handleSave}
-                                    className={`flex-[2] py-5 bg-[#1C1B1F] text-white rounded-[32px] text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 font-['Roboto'] ${displayMode === 'appendix' ? 'shadow-black/40' : 'shadow-black/10'}`}
-                                >
-                                    Confirmar Registro
-                                    <PlusIcon size={16} />
-                                </button>
+                                    <button
+                                        onClick={handleSave}
+                                        className="flex-[2] py-5 bg-[#1C1B1F] text-white rounded-[32px] text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 font-['Roboto']"
+                                    >
+                                        Confirmar Registro
+                                        <PlusIcon size={16} />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Success Overlay */}
                         <AnimatePresence>
@@ -841,14 +896,23 @@ const MacroBadge: React.FC<{ label: string; val: number; color: string }> = ({ l
     </div>
 );
 
-const TabBtn: React.FC<{ active: boolean; displayMode?: 'drawer' | 'appendix'; onClick: () => void; children: React.ReactNode }> = ({ active, displayMode, onClick, children }) => (
-    <button
-        onClick={onClick}
-        className={`flex-1 py-3 px-4 rounded-[24px] text-[9px] font-black uppercase tracking-widest transition-all ${active ? (displayMode === 'appendix' ? 'bg-white text-[#1C1B1F] shadow-sm' : 'bg-white text-[#1C1B1F] shadow-sm') : 'text-[#49454F]/40 hover:text-[#49454F]'}`}
-    >
-        {children}
-    </button>
-);
+const TabBtn: React.FC<{ active: boolean; displayMode?: 'drawer' | 'appendix'; onClick: () => void; children: React.ReactNode }> = ({ active, displayMode, onClick, children }) => {
+    const activeClass = displayMode === 'appendix'
+        ? 'bg-[#1C1B1F] text-white shadow-lg shadow-black/30'
+        : 'bg-[#1C1B1F] text-white shadow-xl shadow-black/20';
+    const inactiveClass = displayMode === 'appendix'
+        ? 'bg-white/80 text-[#49454F]/70 border border-white/40 hover:bg-white'
+        : 'bg-white/90 text-[#49454F]/70 border border-black/[0.05] hover:bg-white';
+
+    return (
+        <button
+            onClick={onClick}
+            className={`flex-1 py-3 px-4 rounded-[28px] text-[11px] font-black uppercase tracking-[0.35em] transition-all duration-200 ${active ? activeClass : inactiveClass}`}
+        >
+            {children}
+        </button>
+    );
+};
 
 const StatusBadge: React.FC<{ status: TagResolutionStatus; confidence: SearchConfidence }> = ({ status, confidence }) => {
     if (status === 'resolved') {

@@ -1,5 +1,5 @@
 // components/SubTabBar.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext, useAppDispatch, useUIState, useUIDispatch } from '../contexts/AppContext';
 import {
     SearchIcon, DumbbellIcon, ClipboardListIcon, PlusIcon,
@@ -13,15 +13,29 @@ interface SubTabBarProps {
     viewingExerciseId?: string | null;
     onEditExercisePress?: () => void;
     onFoodAppendixPress?: () => void;
+    isFoodAppendixOpen?: boolean;
 }
 
-const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExerciseId, onEditExercisePress, onFoodAppendixPress }) => {
+const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExerciseId, onEditExercisePress, onFoodAppendixPress, isFoodAppendixOpen }) => {
     const { navigateTo, openCustomExerciseEditor, view, setIsStartWorkoutModalOpen, setIsNutritionLogModalOpen } = useAppContext();
     const { setExerciseToAddId } = useAppDispatch();
     const { searchQuery, activeSubTabs, isLogActionSheetOpen } = useUIState();
     const { setSearchQuery, setActiveSubTabs, setIsLogActionSheetOpen } = useUIDispatch();
+    const [selectedAction, setSelectedAction] = useState<'food' | 'settings' | 'session' | null>(null);
 
     const activeSubTab = context ? (activeSubTabs[context] || (context === 'progress' ? 'cuerpo' : context === 'athlete-profile' ? 'vitals' : 'Explorar')) : null;
+
+    useEffect(() => {
+        if (context !== 'kpkn') {
+            setSelectedAction(null);
+            return;
+        }
+        if (isFoodAppendixOpen) {
+            setSelectedAction('food');
+            return;
+        }
+        setSelectedAction(prev => prev === 'food' ? null : prev);
+    }, [context, isFoodAppendixOpen]);
 
     if (!context) return null;
 
@@ -30,37 +44,53 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
         setIsLogActionSheetOpen(false);
     };
 
-    const renderKpknButtons = () => (
-        <div className="flex items-center justify-center w-full h-full px-6 gap-8 overflow-hidden">
-            <button
-                onClick={() => handleAction(() => {
-                    if (onFoodAppendixPress) onFoodAppendixPress();
-                    else setIsNutritionLogModalOpen(true);
-                })}
-                className="flex items-center justify-center active:scale-95 transition-all group py-2"
-            >
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]/40 group-hover:text-primary transition-all font-['Roboto']">Comida</span>
-            </button>
+    const handleFoodAction = () => {
+        setSelectedAction(prev => prev === 'food' ? null : 'food');
+        if (onFoodAppendixPress) {
+            onFoodAppendixPress();
+            return;
+        }
+        setIsNutritionLogModalOpen(prev => !prev);
+    };
 
-            <div className="w-[1px] h-3 bg-slate-400/20" />
+    const renderKpknButtons = () => {
+        const buttons = [
+            { id: 'food', label: 'Comida', onClick: () => handleAction(handleFoodAction) },
+            { id: 'settings', label: 'Ajustes', onClick: () => handleAction(() => navigateTo('settings')) },
+            { id: 'session', label: 'Sesión', onClick: () => handleAction(() => setIsStartWorkoutModalOpen(true)) },
+        ];
 
-            <button
-                onClick={() => handleAction(() => navigateTo('settings'))}
-                className="flex items-center justify-center active:scale-95 transition-all group py-2"
-            >
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]/40 group-hover:text-primary transition-all font-['Roboto']">Ajustes</span>
-            </button>
+        const activeIndex = selectedAction ? buttons.findIndex(btn => btn.id === selectedAction) : -1;
+        const widthPercent = 100 / buttons.length;
 
-            <div className="w-[1px] h-3 bg-slate-400/20" />
-
-            <button
-                onClick={() => handleAction(() => setIsStartWorkoutModalOpen(true))}
-                className="flex items-center justify-center active:scale-95 transition-all group py-2"
-            >
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]/40 group-hover:text-primary transition-all font-['Roboto']">Sesión</span>
-            </button>
-        </div>
-    );
+        return (
+            <div className="relative w-full h-full px-3">
+                {activeIndex >= 0 && (
+                    <div
+                        className="absolute inset-y-0 h-10 rounded-[28px] bg-slate-900/90 shadow-lg transition-all duration-300"
+                        style={{
+                            left: 0,
+                            width: `${widthPercent}%`,
+                            transform: `translateX(${activeIndex * 100}%)`,
+                        }}
+                    />
+                )}
+                <div className="grid grid-cols-3 gap-4 text-[10px] font-black uppercase tracking-[0.2em] relative">
+                    {buttons.map(button => (
+                        <button
+                            key={button.id}
+                            onClick={button.onClick}
+                            className="relative px-2 py-2 rounded-[32px] transition-all duration-300"
+                        >
+                            <span className={selectedAction === button.id ? 'text-white' : 'text-[#49454F]/70'}>
+                                {button.label}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     const renderDatabaseControls = () => (
         <div className="flex items-center gap-1.5 w-full px-2 py-1">
@@ -144,8 +174,8 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
     return (
         <div className="w-full flex flex-col justify-center items-center">
             <div className={`w-full px-1 transition-all duration-500 delay-100 ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-                {context === 'kpkn' && (view !== 'kpkn' || isLogActionSheetOpen) ? renderKpknButtons() :
-                    (context === 'kpkn' || context === 'food-database') ? renderDatabaseControls() :
+                {context === 'kpkn' ? renderKpknButtons() :
+                    context === 'food-database' ? renderDatabaseControls() :
                         context === 'progress' ? renderProgressButtons() :
                             renderDefaultButtons()}
             </div>

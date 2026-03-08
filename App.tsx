@@ -632,6 +632,39 @@ export const App: React.FC = () => {
 
     const tabBarContainerHeight = 'h-[88px]'; // Barra más ancha, diseño plano
 
+    const isFoodAppendixOpen = isNutritionLogModalOpen && foodRegistrationMode === 'appendix';
+    const toggleFoodAppendix = useCallback(() => {
+        if (isFoodAppendixOpen) {
+            setIsNutritionLogModalOpen(false);
+            setFoodRegistrationMode('drawer');
+            return;
+        }
+        setFoodRegistrationMode('appendix');
+        setIsNutritionLogModalOpen(true);
+    }, [isFoodAppendixOpen, setIsNutritionLogModalOpen, setFoodRegistrationMode]);
+
+    if (isAppLoading) {
+        return (
+            <div className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#FDFCFE]">
+                <div className="w-16 h-16 relative mb-8">
+                    <div className="absolute inset-0 border-[3px] border-zinc-100 rounded-2xl rotate-45" />
+                    <div className="absolute inset-0 border-[3px] border-black border-t-transparent rounded-2xl rotate-45 animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-2 h-2 bg-black rounded-full animate-ping" />
+                    </div>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                    <h1 className="text-xl font-black uppercase tracking-[0.3em] text-black animate-pulse">KPKN</h1>
+                    <div className="flex items-center gap-2">
+                        <span className="w-6 h-[1px] bg-zinc-200" />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Iniciando sistema</p>
+                        <span className="w-6 h-[1px] bg-zinc-200" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div
             className="app-container fixed inset-0 w-full h-[100dvh] flex flex-col overflow-hidden bg-[#FDFCFE]"
@@ -691,34 +724,36 @@ export const App: React.FC = () => {
                             className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                                         ${isNutritionLogModalOpen && foodRegistrationMode === 'appendix' ? 'max-h-[85vh] opacity-100 pt-2' : 'max-h-0 opacity-0 pt-0'}`}
                         >
-                            <RegisterFoodDrawer
-                                isOpen={isNutritionLogModalOpen && foodRegistrationMode === 'appendix'}
-                                onClose={() => setIsNutritionLogModalOpen(false)}
-                                onSave={(log) => {
-                                    handleSaveNutritionLog(log);
-                                    setIsNutritionLogModalOpen(false);
-                                }}
-                                settings={settings}
-                                displayMode="appendix"
-                            />
-                        </div>
+                                    <RegisterFoodDrawer
+                                        isOpen={isFoodAppendixOpen}
+                                        onClose={() => {
+                                            setIsNutritionLogModalOpen(false);
+                                            setFoodRegistrationMode('drawer');
+                                        }}
+                                        onSave={(log) => {
+                                            handleSaveNutritionLog(log);
+                                            setIsNutritionLogModalOpen(false);
+                                            setFoodRegistrationMode('drawer');
+                                        }}
+                                        settings={settings}
+                                        displayMode="appendix"
+                                    />
+                                </div>
 
-                        {/* SubTabBar extension */}
-                        <div
-                            className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                                        ${subTabBarContext && !(isNutritionLogModalOpen && foodRegistrationMode === 'appendix') ? 'max-h-24 opacity-100 pt-3' : 'max-h-0 opacity-0 pt-0'}`}
-                        >
-                            <SubTabBar
-                                context={subTabBarContext}
-                                isActive={!!subTabBarContext}
-                                viewingExerciseId={viewingExerciseId}
-                                onEditExercisePress={tabBarActions.onEditExercisePress}
-                                onFoodAppendixPress={() => {
-                                    setFoodRegistrationMode('appendix');
-                                    setIsNutritionLogModalOpen(true);
-                                }}
-                            />
-                        </div>
+                                {/* SubTabBar extension */}
+                                <div
+                                    className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                                        ${subTabBarContext ? 'max-h-24 opacity-100 pt-3' : 'max-h-0 opacity-0 pt-0'}`}
+                                >
+                                    <SubTabBar
+                                        context={subTabBarContext}
+                                        isActive={!!subTabBarContext}
+                                        viewingExerciseId={viewingExerciseId}
+                                        onEditExercisePress={tabBarActions.onEditExercisePress}
+                                        onFoodAppendixPress={toggleFoodAppendix}
+                                        isFoodAppendixOpen={isFoodAppendixOpen}
+                                    />
+                                </div>
                         {/* Main TabBar base */}
                         <div className="h-[68px] shrink-0 w-full">
                             <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext || (isNutritionLogModalOpen && foodRegistrationMode === 'appendix')} workoutViewMode="carousel" />
