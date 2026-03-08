@@ -32,20 +32,20 @@ const SplitGallery: React.FC<SplitGalleryProps> = ({
 
     return (
         <div className="flex flex-col flex-1 overflow-hidden">
-            <div className={`${compact ? 'px-3 py-2' : 'px-5 py-3'} border-b border-white/5`}>
+            <div className={`${compact ? 'px-3 py-2' : 'px-5 py-3'} border-b border-[#E6E0E9]`}>
                 <div className="relative">
-                    <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                    <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#49454F]" />
                     <input
                         type="text"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         placeholder="Buscar split..."
-                        className="w-full bg-zinc-900 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30 focus:border-white/30"
+                        className="w-full bg-zinc-900 border border-[#E6E0E9] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30 focus:border-white/30"
                     />
                 </div>
             </div>
 
-            <div className={`${compact ? 'px-3 py-1.5' : 'px-5 py-2'} flex gap-2 overflow-x-auto hide-scrollbar border-b border-white/5`}>
+            <div className={`${compact ? 'px-3 py-1.5' : 'px-5 py-2'} flex gap-2 overflow-x-auto hide-scrollbar border-b border-[#E6E0E9]`}>
                 {FILTER_TAGS.map(tag => (
                     <button
                         key={tag}
@@ -53,7 +53,7 @@ const SplitGallery: React.FC<SplitGalleryProps> = ({
                         className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all border ${
                             filter === tag
                                 ? 'bg-white text-black border-white'
-                                : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500'
+                                : 'bg-transparent text-[#49454F] border-zinc-800 hover:border-zinc-500'
                         }`}
                     >
                         {tag}
@@ -72,7 +72,7 @@ const SplitGallery: React.FC<SplitGalleryProps> = ({
                             className={`w-full text-left p-4 rounded-2xl border transition-all group ${
                                 isCurrent
                                     ? 'bg-white/5 border-white/20'
-                                    : 'bg-zinc-900/50 border-white/5 hover:border-white/20 hover:bg-zinc-900'
+                                    : 'bg-zinc-900/50 border-[#E6E0E9] hover:border-white/20 hover:bg-zinc-900'
                             }`}
                         >
                             <div className="flex items-start justify-between mb-2">
@@ -85,9 +85,9 @@ const SplitGallery: React.FC<SplitGalleryProps> = ({
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-[10px] text-zinc-500 mt-0.5">{split.description}</p>
+                                    <p className="text-[10px] text-[#49454F] mt-0.5">{split.description}</p>
                                 </div>
-                                <span className="text-[10px] font-black text-zinc-500">{trainingDays}d</span>
+                                <span className="text-[10px] font-black text-[#49454F]">{trainingDays}d</span>
                             </div>
                             <div className="flex gap-1 mt-2">
                                 {split.pattern.map((day, i) => (

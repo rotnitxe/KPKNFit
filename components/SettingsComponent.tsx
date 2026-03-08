@@ -35,9 +35,9 @@ interface SettingsProps {
 }
 
 // Mapeo tema legacy -> NERDIUM (solo Oscuro/Claro)
-const toNerdiumTheme = (t: string): 'dark' | 'light' => 
+const toNerdiumTheme = (t: string): 'dark' | 'light' =>
     t === 'light' ? 'light' : 'dark';
-const fromNerdiumTheme = (t: 'dark' | 'light'): Settings['appTheme'] => 
+const fromNerdiumTheme = (t: 'dark' | 'light'): Settings['appTheme'] =>
     t === 'light' ? 'light' : 'default';
 
 // --- NERDIUM Components ---
@@ -279,7 +279,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({
     const matchesFilter = (label: string, desc?: string) => !filterItems || filterItems(label, desc);
 
     return (
-        <div data-testid="settings-page" className="nerdium-settings min-h-full bg-[var(--nerdium-bg)] text-[var(--nerdium-text)] animate-fade-in tab-bar-safe-area">
+        <div data-testid="settings-page" className="nerdium-settings h-full flex flex-col bg-[var(--nerdium-bg)] text-[var(--nerdium-text)] animate-fade-in">
             {isBgModalOpen && (
                 <BackgroundEditorModal
                     isOpen={isBgModalOpen}
@@ -348,7 +348,7 @@ export const SettingsComponent: React.FC<SettingsProps> = ({
                 </div>
             </div>
 
-            <div role="tabpanel" aria-labelledby={`tab-${activeTab}`} id={`panel-${activeTab}`} className="p-4 pb-24 overflow-y-auto custom-scrollbar space-y-4">
+            <div role="tabpanel" aria-labelledby={`tab-${activeTab}`} id={`panel-${activeTab}`} className="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-4">
                 {activeTab === 'general' && (
                     <>
                         {matchesFilter('Tema', 'Oscuro Claro') && (
@@ -718,11 +718,11 @@ export const SettingsComponent: React.FC<SettingsProps> = ({
                 )}
             </div>
 
-            <footer className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--nerdium-bg)] border-t border-[var(--nerdium-border)] pb-[max(1rem,env(safe-area-inset-bottom))]">
-                <div onClick={handleDevTap} className="text-center cursor-default" role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && handleDevTap()} aria-label="Área de versión">
+            <div className="pt-8 pb-4 text-center">
+                <div onClick={handleDevTap} className="inline-block cursor-default" role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && handleDevTap()} aria-label="Área de versión">
                     {devMode ? <span className="text-[9px] text-[var(--nerdium-text-muted)]">v{APP_VERSION}</span> : <span className="inline-block w-8 h-2" />}
                 </div>
-            </footer>
+            </div>
         </div>
     );
 };

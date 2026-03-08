@@ -221,7 +221,7 @@ export const RelativeStrengthAndBasicsWidget: React.FC<Props> = ({ displayedSess
     };
 
     return (
-        <div className="mt-8 mb-8 bg-black p-8 rounded-[3rem] border border-white/10 shadow-2xl">
+        <div className="mt-8 mb-8 bg-black p-8 rounded-[3rem] border border-[#E6E0E9] shadow-2xl">
             <div className="flex justify-between items-center mb-10">
                 <h3 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-widest flex items-center gap-3">
                     <ActivityIcon size={18} className="text-[var(--md-sys-color-primary)]" /> Fuerza Relativa

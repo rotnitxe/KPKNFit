@@ -21,9 +21,15 @@ export const RecentWorkoutsStep: React.FC<RecentWorkoutsStepProps> = ({ exercise
   const [searchOpen, setSearchOpen] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredExercises = searchQuery.trim()
-    ? exerciseList.filter((ex) => ex.name.toLowerCase().includes(searchQuery.toLowerCase()) || (ex.id && String(ex.id).toLowerCase().includes(searchQuery.toLowerCase()))).slice(0, 12)
-    : [];
+  const filteredExercises = (() => {
+    if (!searchQuery.trim()) return [];
+    const normalizeText = (text: string) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const searchTerms = normalizeText(searchQuery).split(' ').filter(t => t.length > 0 && !['de', 'con', 'en', 'el', 'la', 'los', 'las', 'y', 'a'].includes(t));
+    return exerciseList.filter(e => {
+      const searchTarget = normalizeText(`${e.name} ${e.id || ''}`);
+      return searchTerms.every(term => searchTarget.includes(term));
+    }).slice(0, 12);
+  })();
 
   const handleSelectExercise = (idx: number, name: string, dbId?: string) => {
     setExercises((prev) => {

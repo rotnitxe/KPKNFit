@@ -40,7 +40,7 @@ export const NutritionPlanLanding: React.FC<NutritionPlanLandingProps> = ({ onSt
                     <h2 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-4">Cómo funciona</h2>
                     <div className="space-y-4">
                         {HOW_IT_WORKS.map(({ step, title, desc }) => (
-                            <div key={step} className="flex gap-4 p-4 rounded-xl bg-slate-900/50 border border-white/5">
+                            <div key={step} className="flex gap-4 p-4 rounded-xl bg-slate-900/50 border border-[#E6E0E9]">
                                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm font-black">
                                     {step}
                                 </span>

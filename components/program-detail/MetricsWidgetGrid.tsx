@@ -61,7 +61,7 @@ const MetricsWidgetGrid: React.FC<MetricsWidgetGridProps> = ({
                 <button
                     key={id}
                     onClick={() => handleWidgetClick(id)}
-                    className="flex flex-col items-start p-3 rounded-xl bg-[#1a1a1a] border border-white/5 hover:border-white/15 hover:bg-[#222] transition-all text-left group"
+                    className="flex flex-col items-start p-3 rounded-xl bg-[#1a1a1a] border border-[#E6E0E9] hover:border-white/15 hover:bg-[#222] transition-all text-left group"
                 >
                     <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center mb-2`}>
                         <Icon size={14} className="text-white" />

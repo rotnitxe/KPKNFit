@@ -25,27 +25,27 @@ const ProgramConfigCard: React.FC<ProgramConfigCardProps> = ({
     const startDay = program.startDay ?? 1;
 
     return (
-        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
+        <div className="bg-zinc-900/50 border border-[#E6E0E9] rounded-2xl overflow-hidden transition-all duration-300">
             <button onClick={onToggleCollapse} className="w-full flex items-center justify-between p-4 text-left">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-zinc-500/10 border border-zinc-500/20 flex items-center justify-center">
-                        <SettingsIcon size={16} className="text-zinc-400" />
+                    <div className="w-8 h-8 rounded-lg bg-[#ECE6F0]0/10 border border-zinc-500/20 flex items-center justify-center">
+                        <SettingsIcon size={16} className="text-[#49454F]" />
                     </div>
                     <div>
                         <h3 className="text-xs font-black text-white uppercase tracking-widest">Configuración</h3>
-                        <p className="text-[9px] text-zinc-500 font-bold">
+                        <p className="text-[9px] text-[#49454F] font-bold">
                             {program.mode === 'powerlifting' ? 'Powerlifting' : program.mode === 'powerbuilding' ? 'Powerbuilding' : 'Hipertrofia'} • {DAYS_OF_WEEK.find(d => d.value === startDay)?.label || 'Lunes'}
                         </p>
                     </div>
                 </div>
-                <ChevronDownIcon size={16} className={`text-zinc-500 transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
+                <ChevronDownIcon size={16} className={`text-[#49454F] transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
             </button>
 
             {!collapsed && (
                 <div className="px-4 pb-4 space-y-3 animate-fade-in">
                     {/* Training mode */}
-                    <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-white/5">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Modo</span>
+                    <div className="flex items-center justify-between bg-[#FEF7FF] p-3 rounded-xl border border-[#E6E0E9]">
+                        <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest">Modo</span>
                         <select
                             value={program.mode || 'hypertrophy'}
                             onChange={e => {
@@ -53,7 +53,7 @@ const ProgramConfigCard: React.FC<ProgramConfigCardProps> = ({
                                 updated.mode = e.target.value;
                                 onUpdateProgram?.(updated);
                             }}
-                            className="bg-black border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white appearance-none"
+                            className="bg-black border border-[#E6E0E9] rounded-lg px-2 py-1 text-[10px] font-bold text-white appearance-none"
                         >
                             <option value="hypertrophy">Hipertrofia</option>
                             <option value="powerlifting">Powerlifting</option>
@@ -62,8 +62,8 @@ const ProgramConfigCard: React.FC<ProgramConfigCardProps> = ({
                     </div>
 
                     {/* Start day */}
-                    <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-white/5">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Inicio Semana</span>
+                    <div className="flex items-center justify-between bg-[#FEF7FF] p-3 rounded-xl border border-[#E6E0E9]">
+                        <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest">Inicio Semana</span>
                         <select
                             value={startDay}
                             onChange={e => {
@@ -71,7 +71,7 @@ const ProgramConfigCard: React.FC<ProgramConfigCardProps> = ({
                                 updated.startDay = parseInt(e.target.value);
                                 onUpdateProgram?.(updated);
                             }}
-                            className="bg-black border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white appearance-none"
+                            className="bg-black border border-[#E6E0E9] rounded-lg px-2 py-1 text-[10px] font-bold text-white appearance-none"
                         >
                             {DAYS_OF_WEEK.map(d => (
                                 <option key={d.value} value={d.value}>{d.label}</option>
@@ -80,9 +80,9 @@ const ProgramConfigCard: React.FC<ProgramConfigCardProps> = ({
                     </div>
 
                     {/* Current split */}
-                    <div className="bg-zinc-950 p-3 rounded-xl border border-white/5">
+                    <div className="bg-[#FEF7FF] p-3 rounded-xl border border-[#E6E0E9]">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Split Actual</span>
+                            <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest">Split Actual</span>
                             <button
                                 onClick={onOpenSplitChanger}
                                 className="text-[9px] font-bold text-blue-400 hover:text-blue-300 transition-colors"
@@ -103,13 +103,13 @@ const ProgramConfigCard: React.FC<ProgramConfigCardProps> = ({
                                 </div>
                             </div>
                         ) : (
-                            <span className="text-[10px] text-zinc-500">No definido</span>
+                            <span className="text-[10px] text-[#49454F]">No definido</span>
                         )}
                     </div>
 
                     {/* Description */}
-                    <div className="bg-zinc-950 p-3 rounded-xl border border-white/5">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-1.5">Descripción</span>
+                    <div className="bg-[#FEF7FF] p-3 rounded-xl border border-[#E6E0E9]">
+                        <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest block mb-1.5">Descripción</span>
                         <textarea
                             className="w-full bg-transparent border-none text-[10px] text-zinc-300 resize-none focus:ring-0 p-0 placeholder-zinc-600"
                             rows={2}

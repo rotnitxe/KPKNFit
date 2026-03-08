@@ -54,7 +54,7 @@ const EventSessionsManager: React.FC<EventSessionsManagerProps> = ({ program, is
 
     if (events.length === 0) {
         return (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center">
+            <div className="rounded-xl border border-dashed border-[#E6E0E9] bg-white/[0.02] p-6 text-center">
                 <CalendarIcon size={24} className="text-[#48484A] mx-auto mb-2" />
                 <p className="text-xs text-[#8E8E93] font-bold">Sin eventos programados</p>
                 <p className="text-[10px] text-[#48484A] mt-1">Crea eventos en la sección de Estructura para asignar sesiones especiales.</p>
@@ -71,7 +71,7 @@ const EventSessionsManager: React.FC<EventSessionsManagerProps> = ({ program, is
                 const sessions = ev.sessions || [];
                 const isExpanded = expandedEventId === evId;
                 return (
-                    <div key={evId} className="rounded-xl border border-white/5 bg-[#111] overflow-hidden">
+                    <div key={evId} className="rounded-xl border border-[#E6E0E9] bg-[#ECE6F0] overflow-hidden">
                         <button
                             onClick={() => setExpandedEventId(isExpanded ? null : evId)}
                             className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/5 transition-colors"
@@ -86,8 +86,8 @@ const EventSessionsManager: React.FC<EventSessionsManagerProps> = ({ program, is
                             <span className="text-[10px] text-[#48484A]">{sessions.length} sesión(es)</span>
                         </button>
                         {isExpanded && (
-                            <div className="border-t border-white/5 px-4 py-3 space-y-2">
-                                {sessions.map(s => (
+                            <div className="border-t border-[#E6E0E9] px-4 py-3 space-y-2">
+                                {sessions.map((s: any) => (
                                     <div key={s.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
                                         <span className="text-xs font-bold text-white flex-1 truncate">{s.name}</span>
                                         <button

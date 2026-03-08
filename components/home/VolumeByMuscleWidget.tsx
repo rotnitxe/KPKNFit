@@ -23,21 +23,21 @@ export const VolumeByMuscleWidget: React.FC<{
 
     if (volumeData.length === 0) {
         return (
-            <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4">
+            <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4">
                 <div className="flex justify-between items-center mb-3">
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                         <LayersIcon size={10} className="text-cyan-400" /> Volumen por Músculo
                     </span>
                 </div>
-                <p className="text-[10px] text-zinc-500 font-mono">Sin datos en últimas {WEEKS_LOOKBACK} semanas</p>
+                <p className="text-[10px] text-[#49454F] font-mono">Sin datos en últimas {WEEKS_LOOKBACK} semanas</p>
             </div>
         );
     }
 
     return (
-        <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
+        <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl overflow-hidden">
             <div className="flex justify-between items-center p-4 pb-2">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                     <LayersIcon size={10} className="text-cyan-400" /> Volumen por Músculo
                 </span>
                 <span className="text-[8px] text-zinc-600 font-mono">últ. {WEEKS_LOOKBACK} sem.</span>

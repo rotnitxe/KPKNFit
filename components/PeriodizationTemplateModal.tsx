@@ -83,8 +83,8 @@ const PeriodizationTemplateModal: React.FC<{
     return (
         <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in font-sans">
             <div className="absolute inset-0" onClick={onClose} />
-            <div className="bg-zinc-950 border border-white/10 rounded-3xl w-full max-w-4xl flex flex-col shadow-2xl relative overflow-hidden z-10">
-                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-black">
+            <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-3xl w-full max-w-4xl flex flex-col shadow-2xl relative overflow-hidden z-10">
+                <div className="p-6 border-b border-[#E6E0E9] flex justify-between items-center bg-black">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black">
                             <LayersIcon size={20} />

@@ -15,8 +15,8 @@ interface ActionItem {
 }
 
 const LogActionSheet: React.FC = () => {
-    const { 
-        isLogActionSheetOpen, 
+    const {
+        isLogActionSheetOpen,
         setIsLogActionSheetOpen,
         setIsStartWorkoutModalOpen,
         setIsBodyLogModalOpen,
@@ -31,7 +31,7 @@ const LogActionSheet: React.FC = () => {
         isGlobalVoiceActive,
         setIsGlobalVoiceActive
     } = useAppContext();
-    
+
     const { addToast } = useAppDispatch();
 
     const [isVisible, setIsVisible] = useState(false);
@@ -49,7 +49,7 @@ const LogActionSheet: React.FC = () => {
         item.action();
         setIsLogActionSheetOpen(false);
     };
-    
+
     const handleCreateSession = () => {
         if (!programs || programs.length === 0) {
             addToast("Debes crear un Programa antes de añadir una sesión.", "suggestion");
@@ -64,7 +64,7 @@ const LogActionSheet: React.FC = () => {
             addToast("Selecciona un programa para añadir la sesión.", "suggestion");
         }
     };
-    
+
     const toggleVoice = () => {
         setIsGlobalVoiceActive(!isGlobalVoiceActive);
     }
@@ -75,26 +75,26 @@ const LogActionSheet: React.FC = () => {
 
     const actions: ActionItem[] = [
         // Fila 1: Acciones Principales
-        { 
-            icon: PlayIcon, 
-            label: "Entrenar", 
+        {
+            icon: PlayIcon,
+            label: "Entrenar",
             action: () => setIsStartWorkoutModalOpen(true),
             color: "bg-emerald-500",
             delay: 0,
             testId: "log-entrenar"
         },
-        { 
-            icon: isGlobalVoiceActive ? MicOffIcon : MicIcon, 
-            label: "Voz (IA)", 
+        {
+            icon: isGlobalVoiceActive ? MicOffIcon : MicIcon,
+            label: "Voz (IA)",
             action: toggleVoice,
             color: isGlobalVoiceActive ? "bg-red-500 animate-pulse" : "bg-cyan-500",
             delay: 50,
             condition: hasApiKey,
             testId: "log-voz"
         },
-        { 
-            icon: PlusCircleIcon, 
-            label: "Programa", 
+        {
+            icon: PlusCircleIcon,
+            label: "Programa",
             action: () => navigateTo('program-editor'),
             color: "bg-indigo-600",
             delay: 100,
@@ -102,25 +102,25 @@ const LogActionSheet: React.FC = () => {
         },
 
         // Fila 2: Creación
-        { 
-            icon: DumbbellIcon, 
-            label: "Ejercicio", 
+        {
+            icon: DumbbellIcon,
+            label: "Ejercicio",
             action: () => openCustomExerciseEditor(),
             color: "bg-blue-600",
             delay: 150,
             testId: "log-ejercicio"
         },
-        { 
-            icon: UtensilsIcon, 
-            label: "Alimento", 
+        {
+            icon: UtensilsIcon,
+            label: "Alimento",
             action: () => openFoodEditor(),
             color: "bg-cyber-cyan",
             delay: 200,
             testId: "log-alimento"
         },
-        { 
-            icon: UtensilsIcon, 
-            label: "Registrar comida", 
+        {
+            icon: UtensilsIcon,
+            label: "Registrar comida",
             action: () => {
                 navigateTo('nutrition');
                 setIsNutritionLogModalOpen(true); // NutritionView will open RegisterFoodDrawer on mount
@@ -129,9 +129,9 @@ const LogActionSheet: React.FC = () => {
             delay: 210,
             testId: "log-registrar-comida"
         },
-         { 
-            icon: BodyIcon, 
-            label: "Actualizar datos", 
+        {
+            icon: BodyIcon,
+            label: "Actualizar datos",
             action: () => setIsBodyLogModalOpen(true),
             color: "bg-pink-500",
             delay: 250,
@@ -139,25 +139,25 @@ const LogActionSheet: React.FC = () => {
         },
 
         // Fila 3: Navegación
-        { 
-            icon: ClipboardListIcon, 
-            label: "KPKN", 
+        {
+            icon: ClipboardListIcon,
+            label: "KPKN",
             action: () => navigateTo('kpkn'),
             color: "bg-slate-700",
             delay: 300,
             testId: "log-kpkn"
         },
-        { 
-            icon: IdCardIcon, 
-            label: "Atleta ID", 
+        {
+            icon: IdCardIcon,
+            label: "Atleta ID",
             action: () => setIsMenuOpen(true),
             color: "bg-slate-700",
             delay: 350,
             testId: "log-atleta-id"
         },
-         { 
-            icon: SettingsIcon, 
-            label: "Ajustes", 
+        {
+            icon: SettingsIcon,
+            label: "Ajustes",
             action: () => navigateTo('settings'),
             color: "bg-slate-700",
             delay: 400,
@@ -165,20 +165,20 @@ const LogActionSheet: React.FC = () => {
             testId: "log-ajustes"
         }
     ];
-    
+
     // Filter out items with condition: false (undefined implies true)
     const validActions = actions.filter(item => item.condition !== false);
 
     return (
-        <div 
+        <div
             className={`fixed inset-0 z-[100] flex flex-col justify-end items-center transition-all duration-300 ease-out
-                        ${isLogActionSheetOpen ? 'bg-black/85 backdrop-blur-2xl opacity-100' : 'bg-transparent backdrop-blur-none opacity-0 pointer-events-none'}`}
+                        ${isLogActionSheetOpen ? 'bg-[var(--md-sys-color-surface-container)]/95 backdrop-blur-3xl opacity-100' : 'bg-transparent backdrop-blur-none opacity-0 pointer-events-none'}`}
             onClick={() => setIsLogActionSheetOpen(false)}
         >
             <div className="w-full max-w-md px-6 pb-32" onClick={e => e.stopPropagation()}>
                 <div className="grid grid-cols-3 gap-y-8 gap-x-4">
                     {validActions.map((item, index) => (
-                        <div 
+                        <div
                             key={index}
                             data-testid={item.testId}
                             onClick={() => handleAction(item)}
@@ -187,20 +187,20 @@ const LogActionSheet: React.FC = () => {
                             className={`flex flex-col items-center gap-3 cursor-pointer group animate-emerge-up`}
                             style={{ animationDelay: `${item.delay}ms`, opacity: 0, animationFillMode: 'forwards' }}
                         >
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${item.color} transition-transform duration-300 group-hover:scale-110 active:scale-95 border border-white/10`}>
-                                <item.icon size={24} className="text-white" strokeWidth={2.5} />
+                            <div className={`w-14 h-14 rounded-3xl flex items-center justify-center shadow-md ${item.color} transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white ring-4 ring-black/5`}>
+                                <item.icon size={26} className="text-white" strokeWidth={2.5} />
                             </div>
-                            <span className="text-[10px] font-bold text-white/80 tracking-wide text-center uppercase group-hover:text-white transition-colors leading-tight">{item.label}{item.ariaLabel && item.ariaLabel !== item.label ? <span className="sr-only"> {item.ariaLabel}</span> : null}</span>
+                            <span className="text-[10px] font-black text-[var(--md-sys-color-on-surface)] tracking-widest text-center uppercase group-hover:text-[var(--md-sys-color-primary)] transition-colors leading-tight">{item.label}{item.ariaLabel && item.ariaLabel !== item.label ? <span className="sr-only"> {item.ariaLabel}</span> : null}</span>
                         </div>
                     ))}
                 </div>
             </div>
 
-            <button 
+            <button
                 onClick={() => setIsLogActionSheetOpen(false)}
-                className={`absolute bottom-8 w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all duration-500 active:scale-90 ${isLogActionSheetOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-90 scale-0'}`}
+                className={`absolute bottom-8 w-16 h-16 rounded-full bg-white flex items-center justify-center text-[var(--md-sys-color-on-surface)] shadow-2xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] transition-all duration-500 active:scale-90 ${isLogActionSheetOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-90 scale-0'}`}
             >
-                <XIcon size={28} />
+                <XIcon size={32} />
             </button>
         </div>
     );

@@ -80,25 +80,25 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
     if (!isOpen) return null;
 
     const containerStyle = inline
-        ? "flex-1 flex flex-col p-4 pt-2"
-        : "fixed inset-0 z-[110] bg-black/95 overflow-y-auto p-6";
+        ? "flex-1 flex flex-col p-4 pt-2 bg-transparent"
+        : "fixed inset-0 z-[110] bg-[var(--md-sys-color-surface)] overflow-y-auto p-6 animate-fade-in";
 
     return (
         <div className={containerStyle}>
             {/* ── Toolbar Superior ── */}
             <div className="flex items-center justify-between mb-8 gap-4 px-2">
                 <div className="flex flex-col gap-1">
-                    <h2 className="text-sm font-black uppercase tracking-widest text-[#555] opacity-50">Estructura</h2>
-                    <div className="flex items-center p-1 bg-white/5 border border-white/10 rounded-xl">
+                    <h2 className="text-[10px] font-black uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] opacity-60">Estructura</h2>
+                    <div className="flex items-center p-1 bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl shadow-sm">
                         <button
                             onClick={() => update(p => { p.blockLabel = 'bloque'; })}
-                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${blockLabel === 'bloque' ? 'bg-white text-black shadow-lg' : 'text-zinc-500'}`}
+                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${blockLabel === 'bloque' ? 'bg-white text-[var(--md-sys-color-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}
                         >
                             Bloques
                         </button>
                         <button
                             onClick={() => update(p => { p.blockLabel = 'mesociclo'; })}
-                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${blockLabel === 'mesociclo' ? 'bg-white text-black shadow-lg' : 'text-zinc-500'}`}
+                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${blockLabel === 'mesociclo' ? 'bg-white text-[var(--md-sys-color-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}
                         >
                             Mesociclos
                         </button>
@@ -113,8 +113,8 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                         <GridIcon size={14} /> Plantillas
                     </button>
                     {!inline && (
-                        <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white">
-                            <XIcon size={20} />
+                        <button onClick={onClose} className="w-12 h-12 rounded-full bg-white border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface)] shadow-lg active:scale-90 transition-transform">
+                            <XIcon size={24} />
                         </button>
                     )}
                 </div>
@@ -126,9 +126,9 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                     <div key={macro.id} className="flex flex-col gap-4">
                         {/* Macrocycle Header */}
                         <div className="flex items-center gap-3 px-4 py-1">
-                            <h3 className="text-title-sm font-black uppercase tracking-[0.2em] text-cyan-400">{macro.name}</h3>
-                            <div className="h-px flex-1 bg-gradient-to-r from-cyan-400/30 to-transparent" />
-                            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{totalWeeks} Semanas totales</span>
+                            <h3 className="text-title-sm font-black uppercase tracking-[0.2em] text-[var(--md-sys-color-primary)]">{macro.name}</h3>
+                            <div className="h-px flex-1 bg-gradient-to-r from-[var(--md-sys-color-primary)]/30 to-transparent" />
+                            <span className="text-[10px] font-black text-[var(--md-sys-color-on-surface-variant)] opacity-60 uppercase tracking-widest">{totalWeeks} Semanas totales</span>
                         </div>
 
                         {/* Blocks as Cards */}
@@ -141,24 +141,24 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                 return (
                                     <div
                                         key={block.id}
-                                        className={`group relative flex flex-col rounded-3xl border transition-all duration-300 shadow-xl overflow-hidden ${isSelected ? 'border-[var(--md-sys-color-primary)]/50 bg-[var(--md-sys-color-surface-container-high)] ring-4 ring-[var(--md-sys-color-primary)]/10' : 'border-white/10 bg-[var(--md-sys-color-surface-container)] hover:border-white/20'}`}
+                                        className={`group relative flex flex-col rounded-[2.5rem] border transition-all duration-300 shadow-xl overflow-hidden ${isSelected ? 'border-[var(--md-sys-color-primary)]/50 bg-[var(--md-sys-color-surface-container-high)] ring-4 ring-[var(--md-sys-color-primary)]/5' : 'border-[var(--md-sys-color-outline-variant)] bg-white hover:border-[var(--md-sys-color-primary)]/30'}`}
                                     >
                                         {/* Left color bar */}
-                                        <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color }} />
+                                        <div className="absolute left-0 top-0 bottom-0 w-2.5" style={{ backgroundColor: color }} />
 
                                         {/* Block Card Header */}
-                                        <div className="p-5 pb-3 flex items-start justify-between gap-4">
+                                        <div className="p-6 pb-3 flex items-start justify-between gap-4 ml-2">
                                             <div className="flex-1 min-w-0">
                                                 <input
                                                     type="text"
                                                     value={block.name}
                                                     onChange={(e) => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].name = e.target.value; })}
-                                                    className="bg-transparent text-xl font-black uppercase tracking-tight text-white w-full border-none p-0 focus:ring-0 outline-none placeholder:opacity-20"
+                                                    className="bg-transparent text-xl font-black uppercase tracking-tight text-[var(--md-sys-color-on-surface)] w-full border-none p-0 focus:ring-0 outline-none placeholder:opacity-20"
                                                     placeholder="Sin nombre"
                                                 />
-                                                <div className="flex items-center gap-3 mt-1.5">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{blockWeeks} SEMANAS</span>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#555] select-none">ID: {block.id.slice(0, 4)}</span>
+                                                <div className="flex items-center gap-3 mt-2">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)]">{blockWeeks} SEMANAS</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] opacity-30 select-none">ID: {block.id.slice(0, 4)}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
@@ -170,42 +170,42 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                             target.splice(idx, 1);
                                                         }
                                                     })}
-                                                    className="w-9 h-9 rounded-xl flex items-center justify-center text-error hover:bg-error/10 transition-colors"
+                                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]/50 transition-colors"
                                                 >
-                                                    <TrashIcon size={16} />
+                                                    <TrashIcon size={18} />
                                                 </button>
                                             </div>
                                         </div>
 
                                         {/* Mesocycles / Phases List */}
-                                        <div className="px-5 pb-6 flex flex-col gap-4 mt-2">
+                                        <div className="px-6 pb-6 flex flex-col gap-5 mt-2 ml-2">
                                             {block.mesocycles.map((meso, mesoIdx) => {
                                                 const filledWeeks = meso.weeks.filter(w => w.sessions.length > 0).length;
                                                 const pctFilled = (filledWeeks / meso.weeks.length) * 100;
 
                                                 return (
-                                                    <div key={meso.id} className="relative pl-6 border-l-2 border-white/5 py-1">
-                                                        <div className="flex items-center justify-between gap-4 mb-2">
+                                                    <div key={meso.id} className="relative pl-6 border-l-2 border-[var(--md-sys-color-outline-variant)] py-1">
+                                                        <div className="flex items-center justify-between gap-4 mb-3">
                                                             <div className="flex-1 min-w-0 flex items-center gap-3">
                                                                 <input
                                                                     type="text"
                                                                     value={meso.name}
                                                                     onChange={(e) => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx].name = e.target.value; })}
-                                                                    className="bg-transparent text-xs font-black uppercase tracking-wider text-zinc-300 w-full border-none p-0 focus:ring-0 outline-none"
+                                                                    className="bg-transparent text-xs font-black uppercase tracking-wider text-[var(--md-sys-color-on-surface)] w-full border-none p-0 focus:ring-0 outline-none"
                                                                 />
                                                                 <select
                                                                     value={meso.goal}
                                                                     onChange={(e) => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx].goal = e.target.value as any; })}
-                                                                    className="bg-white/5 border-none text-[9px] font-black uppercase tracking-widest text-cyan-400 rounded-lg px-2 py-1 focus:ring-0 outline-none ring-1 ring-white/10"
+                                                                    className="bg-[var(--md-sys-color-surface-container-high)] border-none text-[9px] font-black uppercase tracking-widest text-[var(--md-sys-color-primary)] rounded-lg px-2 py-1.5 focus:ring-0 outline-none ring-1 ring-[var(--md-sys-color-outline-variant)]"
                                                                 >
-                                                                    {GOAL_OPTIONS.map(g => <option key={g} value={g} className="bg-zinc-900">{g}</option>)}
+                                                                    {GOAL_OPTIONS.map(g => <option key={g} value={g} className="bg-white text-black font-bold uppercase">{g}</option>)}
                                                                 </select>
                                                             </div>
                                                             <button
                                                                 onClick={() => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].mesocycles.splice(mesoIdx, 1); })}
-                                                                className="text-zinc-700 hover:text-error transition-colors p-1"
+                                                                className="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-error)] transition-colors p-1.5"
                                                             >
-                                                                <TrashIcon size={12} />
+                                                                <TrashIcon size={14} />
                                                             </button>
                                                         </div>
 
@@ -220,18 +220,18 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                     <div key={week.id} className="relative group/week">
                                                                         <button
                                                                             onClick={() => { onSelectBlock(block.id); onSelectWeek(week.id); }}
-                                                                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${isSelectedWeek ? 'bg-white text-black border-transparent shadow-lg' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white hover:bg-white/10'}`}
+                                                                            className={`px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${isSelectedWeek ? 'bg-[var(--md-sys-color-primary)] text-white border-transparent shadow-lg scale-105' : 'bg-white border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-black hover:border-[var(--md-sys-color-primary)]/30'}`}
                                                                         >
                                                                             W{weekIdx + 1}
-                                                                            {hasEvent && <CalendarIcon size={10} className="inline ml-1 text-cyan-400" />}
+                                                                            {hasEvent && <CalendarIcon size={10} className="inline ml-1 text-inherit" />}
                                                                         </button>
                                                                         {/* Remove week button on hover */}
                                                                         {meso.weeks.length > 1 && (
                                                                             <button
                                                                                 onClick={(e) => { e.stopPropagation(); update(p => { p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx].weeks.splice(weekIdx, 1); }); }}
-                                                                                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-error text-white opacity-0 group-hover/week:opacity-100 flex items-center justify-center transition-all scale-75 hover:scale-100"
+                                                                                className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-[var(--md-sys-color-error)] text-white opacity-0 group-hover/week:opacity-100 flex items-center justify-center transition-all scale-75 hover:scale-100 shadow-md"
                                                                             >
-                                                                                <XIcon size={8} />
+                                                                                <XIcon size={10} />
                                                                             </button>
                                                                         )}
                                                                     </div>
@@ -242,16 +242,16 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                                     const m = p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx];
                                                                     m.weeks.push({ id: crypto.randomUUID(), name: `Semana ${m.weeks.length + 1}`, sessions: [] });
                                                                 })}
-                                                                className="w-10 h-8 rounded-lg border border-dashed border-white/20 flex items-center justify-center text-zinc-600 hover:text-white hover:border-white/50 transition-all"
+                                                                className="w-10 h-8 rounded-xl border border-dashed border-[var(--md-sys-color-outline-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary)] hover:text-white hover:border-transparent transition-all shadow-sm"
                                                             >
-                                                                <PlusIcon size={12} />
+                                                                <PlusIcon size={14} />
                                                             </button>
                                                         </div>
 
                                                         {/* Phase Progress Bar */}
-                                                        <div className="mt-4 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                                        <div className="mt-5 h-1.5 w-full bg-[var(--md-sys-color-surface-container)] rounded-full overflow-hidden">
                                                             <div
-                                                                className="h-full bg-cyan-400 transition-all duration-500 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.3)]"
+                                                                className="h-full bg-[var(--md-sys-color-primary)] transition-all duration-700 rounded-full shadow-[0_0_8px_rgba(var(--md-sys-color-primary-rgb),0.4)]"
                                                                 style={{ width: `${pctFilled}%` }}
                                                             />
                                                         </div>
@@ -268,9 +268,9 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                         weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }]
                                                     });
                                                 })}
-                                                className="w-full py-3 rounded-2xl border-2 border-dashed border-white/10 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:bg-white/5 hover:text-zinc-400 transition-all flex items-center justify-center gap-2"
+                                                className="w-full py-5 rounded-[2rem] border-2 border-dashed border-[var(--md-sys-color-outline-variant)] text-[10px] font-black uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-transparent transition-all flex items-center justify-center gap-2 shadow-sm"
                                             >
-                                                <PlusIcon size={12} /> Añadir Fase de {blockLabel}
+                                                <PlusIcon size={16} /> Añadir Fase de {blockLabel}
                                             </button>
                                         </div>
                                     </div>
@@ -297,12 +297,12 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                         });
                                     }
                                 }}
-                                className="w-full py-6 rounded-[2rem] border-4 border-dashed border-white/5 group hover:bg-white/5 hover:border-white/10 transition-all flex flex-col items-center justify-center gap-2"
+                                className="w-full py-10 rounded-[3.5rem] border-4 border-dashed border-[var(--md-sys-color-outline-variant)] group hover:bg-[var(--md-sys-color-primary-container)] hover:border-transparent transition-all flex flex-col items-center justify-center gap-4 bg-white/40"
                             >
-                                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-600 group-hover:text-white transition-all">
-                                    <PlusIcon size={20} />
+                                <div className="w-14 h-14 rounded-full bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] group-hover:bg-[var(--md-sys-color-primary)] group-hover:text-white transition-all shadow-md">
+                                    <PlusIcon size={28} />
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 group-hover:text-zinc-400">Crear {blockLabel}</span>
+                                <span className="text-[11px] font-black uppercase tracking-[0.4em] text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)]">Crear {blockLabel}</span>
                             </button>
                         </div>
                     </div>
@@ -310,59 +310,59 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
             </div>
 
             {/* ── Secciones Secundarias ── */}
-            <div className="flex flex-col gap-12 mt-12 px-2 border-t border-white/10 pt-12">
+            <div className="flex flex-col gap-12 mt-20 px-4 border-t border-[var(--md-sys-color-outline-variant)] pt-16 mb-40">
                 {/* Events Section */}
                 <div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-6">
                         <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-black uppercase tracking-widest text-[#555]">Eventos & Hitos</h3>
-                            <p className="text-[10px] text-zinc-600">Competiciones, evaluaciones y fechas clave</p>
+                            <h3 className="text-title-small font-black uppercase tracking-[0.2em] text-[var(--md-sys-color-on-surface)]">Eventos & Hitos</h3>
+                            <p className="text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest opacity-60">Competiciones, evaluaciones y fechas clave</p>
                         </div>
-                        <button onClick={() => onOpenEventModal()} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all">
+                        <button onClick={() => onOpenEventModal()} className="px-5 py-2.5 rounded-2xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg">
                             + Añadir Evento
                         </button>
                     </div>
                     {program.events?.length ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {program.events.map(ev => (
                                 <div
                                     key={ev.id}
                                     onClick={() => onOpenEventModal(ev)}
-                                    className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/50 transition-all flex items-center justify-between cursor-pointer group"
+                                    className="p-5 rounded-[2rem] bg-white border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)]/50 hover:shadow-xl transition-all flex items-center justify-between cursor-pointer group"
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-cyan-400/20 flex items-center justify-center text-cyan-400">
-                                            <CalendarIcon size={14} />
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-2xl bg-[var(--md-sys-color-primary-container)] flex items-center justify-center text-[var(--md-sys-color-primary)] shadow-sm">
+                                            <CalendarIcon size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-[11px] font-black uppercase text-white">{ev.title}</p>
-                                            <p className="text-[9px] text-zinc-600 uppercase tracking-widest">{ev.type} · Semana {(ev.calculatedWeek || 0) + 1}</p>
+                                            <p className="text-xs font-black uppercase tracking-tight text-[var(--md-sys-color-on-surface)]">{ev.title}</p>
+                                            <p className="text-[9px] text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-[0.15em] mt-1">{ev.type} · Semana {(ev.calculatedWeek || 0) + 1}</p>
                                         </div>
                                     </div>
-                                    <ChevronDownIcon size={12} className="-rotate-90 text-zinc-600 group-hover:text-white transition-colors" />
+                                    <ChevronDownIcon size={14} className="-rotate-90 text-[var(--md-sys-color-outline-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors" />
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="py-12 text-center rounded-3xl bg-white/5 border border-dashed border-white/10">
-                            <CalendarIcon size={24} className="mx-auto text-zinc-700 mb-2" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-700">No hay eventos programados</p>
+                        <div className="py-16 text-center rounded-[3rem] bg-[var(--md-sys-color-surface-container-lowest)] border-2 border-dashed border-[var(--md-sys-color-outline-variant)]">
+                            <CalendarIcon size={32} className="mx-auto text-[var(--md-sys-color-outline-variant)] mb-4" />
+                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--md-sys-color-on-surface-variant)] opacity-40">No hay eventos programados</p>
                         </div>
                     )}
                 </div>
 
                 {/* Conversion Section */}
-                <div className="flex items-center justify-between p-6 rounded-[2rem] bg-gradient-to-br from-amber-400/5 to-transparent border border-amber-400/10 mb-20">
-                    <div className="flex-1">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-amber-200">¿Cambiar modo de programa?</h3>
-                        <p className="text-[10px] text-amber-200/50 mt-1 max-w-sm">Los programas simples son cíclicos; los avanzados permiten estructuras asimétricas y periodización compleja.</p>
+                <div className="flex items-center justify-between p-8 rounded-[2.5rem] bg-[var(--md-sys-color-tertiary-container)] border border-[var(--md-sys-color-tertiary)]/20 shadow-sm">
+                    <div className="flex-1 pr-6">
+                        <h3 className="text-title-small font-black uppercase tracking-tight text-[var(--md-sys-color-on-tertiary-container)]">¿Cambiar modo de programa?</h3>
+                        <p className="text-[10px] font-bold text-[var(--md-sys-color-on-tertiary-container)]/70 mt-2 uppercase tracking-wide leading-relaxed">Los programas simples son cíclicos; los avanzados permiten estructuras asimétricas y periodización compleja.</p>
                     </div>
                     {isCyclic ? (
-                        <button onClick={onShowAdvancedTransition} className="px-5 py-3 rounded-xl bg-amber-400 text-black text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                        <button onClick={onShowAdvancedTransition} className="px-6 py-4 rounded-2xl bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">
                             Pasar a Avanzado
                         </button>
                     ) : (
-                        <button onClick={onShowSimpleTransition} className="px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all">
+                        <button onClick={onShowSimpleTransition} className="px-6 py-4 rounded-2xl bg-white border border-[var(--md-sys-color-outline-variant)] text-[10px] font-black uppercase tracking-widest text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-high)] transition-all shadow-md">
                             Simplificar
                         </button>
                     )}
@@ -379,16 +379,16 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
 
             {/* Add block confirmation modal */}
             {showAddBlockConfirm && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setShowAddBlockConfirm(false)}>
-                    <div className="bg-[#1a1a1a] border border-white/10 rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-                        <div className="w-16 h-16 rounded-full bg-amber-400/10 flex items-center justify-center mb-6 mx-auto">
-                            <AlertTriangleIcon size={32} className="text-amber-400" />
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[var(--md-sys-color-scrim)]/80 backdrop-blur-md animate-fade-in" onClick={() => setShowAddBlockConfirm(false)}>
+                    <div className="bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-[3rem] p-10 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="w-16 h-16 rounded-3xl bg-[var(--md-sys-color-error-container)] flex items-center justify-center mb-8 mx-auto shadow-lg text-[var(--md-sys-color-error)]">
+                            <AlertTriangleIcon size={36} />
                         </div>
-                        <h3 className="text-lg font-black text-center text-white uppercase tracking-tight">Evolución de Programa</h3>
-                        <p className="text-xs text-zinc-500 text-center mt-3 leading-relaxed">
-                            Añadir un bloque adicional convertirá este programa a <span className="text-amber-400 font-bold">Modo Avanzado</span>. Se perderá la repetición cíclica automática de eventos. ¿Deseas evolucionar?
+                        <h3 className="text-xl font-black text-center text-[var(--md-sys-color-on-surface)] uppercase tracking-tight">Evolución de Programa</h3>
+                        <p className="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] text-center mt-4 leading-relaxed uppercase tracking-wide">
+                            Añadir un bloque adicional convertirá este programa a <span className="text-[var(--md-sys-color-primary)] font-black">Modo Avanzado</span>. Se perderá la repetición cíclica automática de eventos. ¿Deseas evolucionar?
                         </p>
-                        <div className="flex flex-col gap-3 mt-8">
+                        <div className="flex flex-col gap-3 mt-10">
                             <button
                                 onClick={() => {
                                     if (pendingAddBlockMacroIdx !== null) {
@@ -402,13 +402,13 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                         setShowAddBlockConfirm(false);
                                     }
                                 }}
-                                className="w-full py-4 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                                className="w-full py-4 rounded-2xl bg-[var(--md-sys-color-primary)] text-white text-xs font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all"
                             >
                                 Sí, evolucionar
                             </button>
                             <button
                                 onClick={() => setShowAddBlockConfirm(false)}
-                                className="w-full py-4 rounded-2xl bg-white/5 text-zinc-500 text-xs font-black uppercase tracking-widest hover:text-white transition-all"
+                                className="w-full py-4 rounded-2xl bg-white text-[var(--md-sys-color-on-surface-variant)] text-xs font-black uppercase tracking-widest hover:text-black border border-[var(--md-sys-color-outline-variant)] transition-all"
                             >
                                 Mantener simple
                             </button>

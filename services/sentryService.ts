@@ -20,7 +20,7 @@ export function initSentry(): void {
         dsn: SENTRY_DSN,
         enableAutoSessionTracking: true,
         sendDefaultPii: true,
-        environment: (typeof __DEV__ !== 'undefined' && __DEV__) ? 'development' : 'production',
+        environment: (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') ? 'development' : 'production',
         tracesSampleRate: 0.1,
       },
       SentryReact.init
@@ -49,7 +49,7 @@ export function captureMessage(message: string, level: 'info' | 'warning' | 'err
   if (!isInitialized) return;
   try {
     Sentry.captureMessage(message, level);
-  } catch (_) {}
+  } catch (_) { }
 }
 
 export function isSentryEnabled(): boolean {

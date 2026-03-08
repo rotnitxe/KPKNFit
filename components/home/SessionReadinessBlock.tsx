@@ -108,10 +108,10 @@ export const SessionReadinessBlock: React.FC<SessionReadinessBlockProps> = ({
     return (
         <div className={compact ? 'mb-3' : 'mb-4'}>
             <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.12em]">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.12em]">
                     Músculos hoy
                 </span>
-                <span className="text-[9px] font-mono text-zinc-500">
+                <span className="text-[9px] font-mono text-[#49454F]">
                     Promedio {muscleAvg}%
                 </span>
             </div>
@@ -124,7 +124,7 @@ export const SessionReadinessBlock: React.FC<SessionReadinessBlockProps> = ({
 
             {articularBatteries.length > 0 && (
                 <div className={`flex flex-wrap gap-1.5 ${compact ? 'mb-2' : 'mb-2.5'}`}>
-                    <span className="text-[8px] text-zinc-500 uppercase tracking-wider w-full">Tendones</span>
+                    <span className="text-[8px] text-[#49454F] uppercase tracking-wider w-full">Tendones</span>
                     {articularBatteries.map((ab) => (
                         <span
                             key={ab.id}
@@ -134,14 +134,14 @@ export const SessionReadinessBlock: React.FC<SessionReadinessBlockProps> = ({
                                 className="shrink-0 rounded-full w-1 h-1"
                                 style={{ backgroundColor: getBarColor(ab.battery) }}
                             />
-                            <span className={`${compact ? 'text-[8px]' : 'text-[9px]'} text-zinc-500`}>{ab.shortLabel}</span>
+                            <span className={`${compact ? 'text-[8px]' : 'text-[9px]'} text-[#49454F]`}>{ab.shortLabel}</span>
                             <span className={`tabular-nums ${compact ? 'text-[8px]' : 'text-[9px]'} text-zinc-600`}>{ab.battery}%</span>
                         </span>
                     ))}
                 </div>
             )}
 
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs text-[#49454F] leading-relaxed">
                 {message}
             </p>
         </div>
@@ -161,10 +161,10 @@ const MuscleChip: React.FC<{ muscle: SessionMuscleForBattery; compact?: boolean 
                 className="shrink-0 rounded-full w-1 h-1"
                 style={{ backgroundColor: color }}
             />
-            <span className={`truncate max-w-[70px] ${compact ? 'text-[9px]' : 'text-[10px]'} text-zinc-400`}>
+            <span className={`truncate max-w-[70px] ${compact ? 'text-[9px]' : 'text-[10px]'} text-[#49454F]`}>
                 {muscle.label}
             </span>
-            <span className={`tabular-nums ${compact ? 'text-[8px]' : 'text-[9px]'} text-zinc-500`}>
+            <span className={`tabular-nums ${compact ? 'text-[8px]' : 'text-[9px]'} text-[#49454F]`}>
                 {muscle.battery}%
             </span>
             <span

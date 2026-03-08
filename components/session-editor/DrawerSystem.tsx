@@ -25,7 +25,7 @@ const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, position = 'right', he
         <>
             <div className="fixed inset-0 z-[110] bg-black/40" onClick={onClose} />
             <div
-                className={`fixed z-[111] bg-[#111] border-white/[0.08] flex flex-col ${posClasses} ${animClass}`}
+                className={`fixed z-[111] bg-[#ECE6F0] border-white/[0.08] flex flex-col ${posClasses} ${animClass}`}
                 style={isBottom ? { height, borderTop: '1px solid rgba(255,255,255,0.08)' } : { borderLeft: '1px solid rgba(255,255,255,0.08)' }}
             >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] shrink-0">
@@ -66,7 +66,7 @@ export const TransferDrawer: React.FC<TransferDrawerProps> = ({ isOpen, onClose,
                 <p className="text-xs text-[#999]">Selecciona la sesión de {mode === 'export' ? 'destino' : 'origen'}:</p>
                 <div className="space-y-2">
                     {weekSessions.filter(s => s.id !== activeSessionId).map(s => (
-                        <button key={s.id} onClick={() => setTargetId(s.id)} className={`w-full p-3 text-left rounded-lg border text-xs font-medium transition-all ${targetId === s.id ? 'bg-[#00F0FF]/10 border-[#00F0FF]/30 text-white' : 'bg-white/[0.02] border-white/[0.06] text-[#999] hover:border-white/10'}`}>
+                        <button key={s.id} onClick={() => setTargetId(s.id)} className={`w-full p-3 text-left rounded-lg border text-xs font-medium transition-all ${targetId === s.id ? 'bg-[#00F0FF]/10 border-[#00F0FF]/30 text-white' : 'bg-white/[0.02] border-white/[0.06] text-[#999] hover:border-[#E6E0E9]'}`}>
                             {s.name || `Sesión Día ${s.dayOfWeek}`}
                             <span className="block text-[10px] text-[#555] mt-0.5">
                             {(s.parts && s.parts.length > 0)
@@ -119,11 +119,11 @@ export const WarmupDrawer: React.FC<WarmupDrawerProps> = ({ isOpen, onClose, exe
                         <span className="w-6 text-xs font-mono text-[#999] text-center">{i + 1}</span>
                         <div className="flex-1">
                             <span className="text-[10px] text-[#555] block">Carga %</span>
-                            <input type="number" value={set.percentageOfWorkingWeight === 0 ? '' : set.percentageOfWorkingWeight} onChange={e => { const v = e.target.value; const u = [...sets]; u[i].percentageOfWorkingWeight = v === '' ? 0 : (parseFloat(v) || 0); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 outline-none" />
+                            <input type="number" value={set.percentageOfWorkingWeight === 0 ? '' : set.percentageOfWorkingWeight} onChange={e => { const v = e.target.value; const u = [...sets]; u[i].percentageOfWorkingWeight = v === '' ? 0 : (parseFloat(v) || 0); setSets(u); }} className="w-full bg-transparent border-b border-[#E6E0E9] focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 outline-none" />
                         </div>
                         <div className="w-16">
                             <span className="text-[10px] text-[#555] block">Reps</span>
-                            <input type="number" value={set.targetReps === 0 ? '' : set.targetReps} onChange={e => { const v = e.target.value; const u = [...sets]; u[i].targetReps = v === '' ? 0 : (parseFloat(v) || 0); setSets(u); }} className="w-full bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 text-center outline-none" />
+                            <input type="number" value={set.targetReps === 0 ? '' : set.targetReps} onChange={e => { const v = e.target.value; const u = [...sets]; u[i].targetReps = v === '' ? 0 : (parseFloat(v) || 0); setSets(u); }} className="w-full bg-transparent border-b border-[#E6E0E9] focus:border-[#00F0FF] text-sm font-mono text-white py-0.5 text-center outline-none" />
                         </div>
                         <button onClick={() => setSets(sets.filter((_, idx) => idx !== i))} className="text-[#555] hover:text-red-400 transition-colors mt-3">
                             <XIcon size={12} />
@@ -160,7 +160,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose, s
                     <button
                         key={idx}
                         onClick={() => { onRestore(hist); onClose(); }}
-                        className="w-full text-left p-3 border border-white/[0.06] hover:border-white/10 rounded-lg text-xs transition-all group"
+                        className="w-full text-left p-3 border border-white/[0.06] hover:border-[#E6E0E9] rounded-lg text-xs transition-all group"
                     >
                         <span className="text-white font-medium group-hover:text-[#00F0FF]">
                             Estado #{sessionHistory.length - idx}
@@ -254,7 +254,7 @@ export const RulesDrawer: React.FC<RulesDrawerProps> = ({ isOpen, onClose, onApp
                                 ))}
                             </div>
                             {scope === 'section' && sectionNames.length > 0 && (
-                                <select value={sectionIndex} onChange={e => setSectionIndex(parseInt(e.target.value))} className="mt-2 w-full bg-[#0d0d0d] border border-white/10 rounded-lg text-xs text-white py-2 px-3">
+                                <select value={sectionIndex} onChange={e => setSectionIndex(parseInt(e.target.value))} className="mt-2 w-full bg-[#0d0d0d] border border-[#E6E0E9] rounded-lg text-xs text-white py-2 px-3">
                                     {sectionNames.map((name, i) => (
                                         <option key={i} value={i} className="bg-black">{name || `Sección ${i + 1}`}</option>
                                     ))}
@@ -337,7 +337,7 @@ export const SaveDrawer: React.FC<SaveDrawerProps> = ({ isOpen, onClose, session
                                     </div>
                                     {showBlockOption && (
                                         <label className="flex items-center gap-1.5 cursor-pointer">
-                                            <input type="checkbox" checked={blockSelections[s.id] || false} onChange={e => setBlockSelections(prev => ({ ...prev, [s.id]: e.target.checked }))} className="rounded border-white/10 bg-black w-3 h-3 text-[#00F0FF] focus:ring-0" />
+                                            <input type="checkbox" checked={blockSelections[s.id] || false} onChange={e => setBlockSelections(prev => ({ ...prev, [s.id]: e.target.checked }))} className="rounded border-[#E6E0E9] bg-black w-3 h-3 text-[#00F0FF] focus:ring-0" />
                                             <span className="text-[10px] text-[#555]">Bloque</span>
                                         </label>
                                     )}
@@ -354,7 +354,7 @@ export const SaveDrawer: React.FC<SaveDrawerProps> = ({ isOpen, onClose, session
                         <p className="text-sm text-[#999]">Guardar cambios en <strong className="text-white">{sessionName}</strong></p>
                         {showBlockOption && (
                             <label className="flex items-center gap-3 p-3 border border-white/[0.08] rounded-lg cursor-pointer hover:bg-white/[0.02] transition-colors">
-                                <input type="checkbox" checked={applyToBlock} onChange={e => setApplyToBlock(e.target.checked)} className="rounded border-white/10 bg-black w-4 h-4 text-[#00F0FF] focus:ring-0" />
+                                <input type="checkbox" checked={applyToBlock} onChange={e => setApplyToBlock(e.target.checked)} className="rounded border-[#E6E0E9] bg-black w-4 h-4 text-[#00F0FF] focus:ring-0" />
                                 <div>
                                     <span className="text-xs font-bold text-white block">Aplicar a todo el bloque</span>
                                     <span className="text-[10px] text-[#555]">Cambia este día en todas las semanas restantes.</span>

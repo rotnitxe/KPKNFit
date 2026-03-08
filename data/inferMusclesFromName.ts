@@ -174,8 +174,8 @@ export function inferInvolvedMuscles(
   // --- PIERNA: Gemelos ---
   if (n.includes('gemelo') || n.includes('pantorrilla') || n.includes('calf') || n.includes('sóleo') || n.includes('soleo')) {
     return [
-      { muscle: 'Gastrocnemio', role: 'primary', activation: 1.0 },
-      { muscle: 'Sóleo', role: 'secondary', activation: 0.8 },
+      { muscle: 'Pantorrillas', role: 'primary', activation: 1.0 },
+      { muscle: 'Pantorrillas', role: 'secondary', activation: 0.8 },
     ];
   }
 
@@ -192,7 +192,7 @@ export function inferInvolvedMuscles(
   // --- PECHO / EMPUJE (solo grupo "Pectoral", sin porciones) ---
   if (n.includes('press') && (n.includes('banca') || n.includes('pecho') || n.includes('bench'))) {
     return [
-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
       { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 },
@@ -200,13 +200,13 @@ export function inferInvolvedMuscles(
   }
   if (n.includes('apertura') || n.includes('fly') || n.includes('cruces')) {
     return [
-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 },
     ];
   }
   if (n.includes('flexión') || n.includes('flexion') || n.includes('push-up') || n.includes('push up')) {
     return [
-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 },
       { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 },
@@ -214,7 +214,7 @@ export function inferInvolvedMuscles(
   }
   if (n.includes('fondo') && !n.includes('entre bancos')) {
     return [
-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.8 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
     ];
@@ -266,7 +266,7 @@ export function inferInvolvedMuscles(
   if (n.includes('elevación') && (n.includes('frontal') || n.includes('front'))) {
     return [
       { muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 },
-      { muscle: 'Pectoral', role: 'secondary', activation: 0.4 },
+      { muscle: 'Pectorales', role: 'secondary', activation: 0.4 },
     ];
   }
 
@@ -274,7 +274,7 @@ export function inferInvolvedMuscles(
   if (n.includes('curl') && (n.includes('bíceps') || n.includes('biceps') || n.includes('martillo') || n.includes('predicador') || n.includes('concentrado') || n.includes('araña') || n.includes('inclinado') || n.includes('polea') || n.includes('arrastre'))) {
     return [
       { muscle: 'Bíceps', role: 'primary', activation: 1.0 },
-      { muscle: 'Braquiorradial', role: 'secondary', activation: 0.5 },
+      { muscle: 'Antebrazo', role: 'secondary', activation: 0.5 },
       { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.4 },
     ];
   }
@@ -304,7 +304,7 @@ export function inferInvolvedMuscles(
   if (n.includes('fondos entre bancos') || n.includes('bench dip')) {
     return [
       { muscle: 'Tríceps', role: 'primary', activation: 1.0 },
-      { muscle: 'Pectoral', role: 'secondary', activation: 0.5 },
+      { muscle: 'Pectorales', role: 'secondary', activation: 0.5 },
     ];
   }
   if (n.includes('extensión tate') || n.includes('tate press')) {
@@ -385,7 +385,7 @@ export function inferInvolvedMuscles(
       return [{ muscle: 'Deltoides Anterior', role: 'primary', activation: 0.5 }];
     }
     if (n.includes('tobillo') || n.includes('ankle')) {
-      return [{ muscle: 'Gemelos', role: 'primary', activation: 0.5 }];
+      return [{ muscle: 'Pantorrillas', role: 'primary', activation: 0.5 }];
     }
     if (n.includes('muñeca') || n.includes('wrist')) {
       return [{ muscle: 'Antebrazo', role: 'primary', activation: 0.5 }];
@@ -416,7 +416,7 @@ export function inferInvolvedMuscles(
   }
   if (bodyPart === 'upper' && (n.includes('press') || n.includes('empuje'))) {
     return [
-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 },
     ];

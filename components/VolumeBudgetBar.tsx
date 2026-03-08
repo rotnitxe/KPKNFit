@@ -17,7 +17,7 @@ const VolumeBudgetBar: React.FC<VolumeBudgetBarProps> = ({ currentVolume, recomm
 
     if (activeMuscles.length === 0) {
         return (
-            <div className="bg-[#111] border border-white/10 rounded-2xl p-6 text-center animate-fade-in">
+            <div className="bg-[#ECE6F0] border border-[#E6E0E9] rounded-2xl p-6 text-center animate-fade-in">
                 <div className="bg-white/5 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                     <TrendingUpIcon className="text-gray-500" />
                 </div>
@@ -32,8 +32,8 @@ const VolumeBudgetBar: React.FC<VolumeBudgetBarProps> = ({ currentVolume, recomm
     }
 
     return (
-        <div className="bg-[#111] border border-white/10 rounded-2xl p-5 animate-fade-in space-y-4">
-            <div className="flex justify-between items-center border-b border-white/5 pb-3">
+        <div className="bg-[#ECE6F0] border border-[#E6E0E9] rounded-2xl p-5 animate-fade-in space-y-4">
+            <div className="flex justify-between items-center border-b border-[#E6E0E9] pb-3">
                 <div className="flex items-center gap-2">
                     <TrendingUpIcon size={16} className="text-white" />
                     <span className="text-xs font-black text-white uppercase tracking-widest">
@@ -104,7 +104,7 @@ const VolumeBudgetBar: React.FC<VolumeBudgetBarProps> = ({ currentVolume, recomm
                 })}
             </div>
             
-            <div className="flex gap-4 pt-2 border-t border-white/5 justify-center opacity-50">
+            <div className="flex gap-4 pt-2 border-t border-[#E6E0E9] justify-center opacity-50">
                 <div className="flex items-center gap-1.5">
                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
                      <span className="text-[8px] font-bold text-gray-500 uppercase">Acumulación</span>

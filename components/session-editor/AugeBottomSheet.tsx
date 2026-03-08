@@ -54,7 +54,7 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
             <button
                 onClick={onToggle}
                 className={`w-full flex items-center justify-between px-5 py-3 border-t transition-all ${
-                    isOpen ? 'bg-zinc-900 border-white/10' : 'bg-black border-white/5 hover:bg-zinc-950'
+                    isOpen ? 'bg-zinc-900 border-[#E6E0E9]' : 'bg-black border-[#E6E0E9] hover:bg-[#FEF7FF]'
                 }`}
             >
                 <div className="flex items-center gap-3">
@@ -65,10 +65,10 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
 
                     {!isOpen && (
                         <div className="flex items-center gap-2 ml-2">
-                            <span className="text-[9px] font-bold text-zinc-500">
+                            <span className="text-[9px] font-bold text-[#49454F]">
                                 MSC {Math.round(drainData.muscularDrainPct || 0)}%
                             </span>
-                            <span className="text-[9px] font-bold text-zinc-500">
+                            <span className="text-[9px] font-bold text-[#49454F]">
                                 SNC {Math.round(drainData.cnsDrainPct || 0)}%
                             </span>
                         </div>
@@ -81,15 +81,15 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
                             {totalAlerts}
                         </span>
                     )}
-                    <ChevronDownIcon size={14} className={`text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDownIcon size={14} className={`text-[#49454F] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
             </button>
 
             {/* Content */}
             {isOpen && (
-                <div className="bg-zinc-950 border-t border-white/5 max-h-[50vh] overflow-y-auto custom-scrollbar animate-fade-in">
+                <div className="bg-[#FEF7FF] border-t border-[#E6E0E9] max-h-[50vh] overflow-y-auto custom-scrollbar animate-fade-in">
                     {/* Tabs */}
-                    <div className="flex border-b border-white/5 px-2">
+                    <div className="flex border-b border-[#E6E0E9] px-2">
                         {([
                             { id: 'volume' as AugeViewMode, label: 'Volumen', icon: <TargetIcon size={12} /> },
                             { id: 'drain' as AugeViewMode, label: 'Fatiga', icon: <ActivityIcon size={12} /> },
@@ -101,7 +101,7 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
                                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-black uppercase tracking-wider border-b-2 transition-colors ${
                                     viewMode === tab.id
                                         ? 'border-white text-white'
-                                        : 'border-transparent text-zinc-600 hover:text-zinc-400'
+                                        : 'border-transparent text-zinc-600 hover:text-[#49454F]'
                                 }`}
                             >
                                 {tab.icon}
@@ -123,7 +123,7 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
                                 ) : (
                                     volumeData.sort((a, b) => b.displayVolume - a.displayVolume).map(v => (
                                         <div key={v.muscleGroup} className="flex items-center gap-3">
-                                            <span className="text-[10px] font-bold text-zinc-400 w-24 truncate">{v.muscleGroup}</span>
+                                            <span className="text-[10px] font-bold text-[#49454F] w-24 truncate">{v.muscleGroup}</span>
                                             <div className="flex-1 h-2 bg-zinc-900 rounded-full overflow-hidden">
                                                 <div
                                                     className={`h-full rounded-full transition-all ${
@@ -148,7 +148,7 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
                                 ].map(metric => (
                                     <div key={metric.label}>
                                         <div className="flex items-center justify-between mb-1">
-                                            <span className="text-[10px] font-bold text-zinc-400">{metric.label}</span>
+                                            <span className="text-[10px] font-bold text-[#49454F]">{metric.label}</span>
                                             <span className={`text-[10px] font-black ${
                                                 metric.value > 80 ? 'text-red-400' : metric.value > 50 ? 'text-yellow-400' : 'text-zinc-300'
                                             }`}>
@@ -179,7 +179,7 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
                                                 <AlertTriangleIcon size={14} className="text-red-400 shrink-0 mt-0.5" />
                                                 <div>
                                                     <span className="text-[10px] font-black text-red-400">{alert.muscle}</span>
-                                                    <p className="text-[9px] text-zinc-400">
+                                                    <p className="text-[9px] text-[#49454F]">
                                                         Volumen: {alert.volume.toFixed(1)} / Límite: {alert.threshold}
                                                     </p>
                                                 </div>
@@ -196,7 +196,7 @@ const AugeBottomSheet: React.FC<AugeBottomSheetProps> = ({
                                                     <span className={`text-[10px] font-black ${alert.severity === 'critical' ? 'text-red-400' : 'text-yellow-400'}`}>
                                                         {alert.type}
                                                     </span>
-                                                    <p className="text-[9px] text-zinc-400">{alert.message}</p>
+                                                    <p className="text-[9px] text-[#49454F]">{alert.message}</p>
                                                 </div>
                                             </div>
                                         ))}

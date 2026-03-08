@@ -41,14 +41,14 @@ const makeGenerateContentRequest = async (
     if (!navigator.onLine) {
         throw new Error("Estás sin conexión. Esta función requiere acceso a internet.");
     }
-    
+
     // Ensure the config object exists and follow structural guidelines
     const { config, ...rest } = params;
     const finalConfig = { ...(config || {}) };
 
     // Auto-switch to valid thinking model if pro is requested
     if (modelName === 'gemini-3-pro-preview' && !finalConfig.thinkingConfig) {
-         finalConfig.thinkingConfig = { thinkingBudget: 16000 };
+        finalConfig.thinkingConfig = { thinkingBudget: 16000 };
     }
 
     // Move thinkingConfig inside the config object if it was passed at the top level
@@ -67,7 +67,7 @@ const makeGenerateContentRequest = async (
     } catch (error: any) {
         console.error("Error en la solicitud a Gemini:", error);
         if (error.toString().includes('429') || (error.message && error.message.includes('RESOURCE_EXHAUSTED'))) {
-             throw new Error("Límite de solicitudes a Gemini excedido. Por favor, revisa tu plan o inténtalo más tarde.");
+            throw new Error("Límite de solicitudes a Gemini excedido. Por favor, revisa tu plan o inténtalo más tarde.");
         }
         throw error;
     }
@@ -94,49 +94,49 @@ const makeGenerateContentStreamRequest = async (
         return resultStream;
     } catch (error: any) {
         console.error("Error en la solicitud de streaming a Gemini:", error);
-         if (error.toString().includes('429') || (error.message && error.message.includes('RESOURCE_EXHAUSTED'))) {
-             throw new Error("Límite de solicitudes a Gemini excedido. Por favor, revisa tu plan o inténtalo más tarde.");
+        if (error.toString().includes('429') || (error.message && error.message.includes('RESOURCE_EXHAUSTED'))) {
+            throw new Error("Límite de solicitudes a Gemini excedido. Por favor, revisa tu plan o inténtalo más tarde.");
         }
         throw error;
     }
 };
 
 export function encode(bytes: Uint8Array) {
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
 }
 
 export function decode(base64: string) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
 }
 
 export async function decodeAudioData(
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
+    data: Uint8Array,
+    ctx: AudioContext,
+    sampleRate: number,
+    numChannels: number,
 ): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+    const dataInt16 = new Int16Array(data.buffer);
+    const frameCount = dataInt16.length / numChannels;
+    const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
 
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    for (let channel = 0; channel < numChannels; channel++) {
+        const channelData = buffer.getChannelData(channel);
+        for (let i = 0; i < frameCount; i++) {
+            channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+        }
     }
-  }
-  return buffer;
+    return buffer;
 }
 
 const throwNotImplemented = (funcName: string) => {
@@ -156,7 +156,7 @@ export const getAICoachAnalysis = async (exerciseName: string, _settings: Settin
 export const getAICoachInsights = async (history: WorkoutLog[], programs: Program[], _settings: Settings, bodyProgress: BodyProgressLog[], nutritionLogs: NutritionLog[]): Promise<CoachInsight> => {
     const client = getClient();
     const prompt = `Analiza las últimas 4 semanas de datos de entrenamiento. Identifica tendencias, posibles estancamientos o riesgos. Proporciona un hallazgo principal, 2-3 sugerencias accionables y un alertLevel ('info', 'warning', 'danger'). Responde ÚNICAMENTE con JSON en español. Datos: ${JSON.stringify({ history: history.slice(-20) })}`;
-    const response = await makeGenerateContentRequest(client, prompt, { config: { responseMimeType: 'application/json' }}, 'gemini-3-flash-preview');
+    const response = await makeGenerateContentRequest(client, prompt, { config: { responseMimeType: 'application/json' } }, 'gemini-3-flash-preview');
     // Guidelines: Access .text property directly
     return safeJsonParse(response.text || '', { title: 'Error', findings: 'No se pudo analizar.', suggestions: [], alertLevel: 'danger' });
 };
@@ -164,13 +164,13 @@ export const getAICoachInsights = async (history: WorkoutLog[], programs: Progra
 export const generateCarpeDiemWeeklyPlan = async (program: Program, history: WorkoutLog[], _settings: Settings, calorieGoal: 'deficit' | 'maintenance' | 'surplus'): Promise<CarpeDiemPlan> => {
     const client = getClient();
     const systemInstruction = `Eres "Prime Coach", un experto mundial en periodización. Tu misión es actuar como planificador para un atleta en modo "Carpe Diem". Analizarás su programa, historial, y fatiga para generar un plan adaptativo para la semana actual. Responde SIEMPRE y ÚNICAMENTE con un objeto JSON en español.`;
-    
+
     const recentHistory = history.slice(-10).map(log => ({
         sessionName: log.sessionName, date: log.date, fatigueLevel: log.fatigueLevel, sessionStressScore: log.sessionStressScore,
     }));
 
     const prompt = `Análisis Semanal para atleta. Programa: "${program.name}", Historial: ${JSON.stringify(recentHistory)}. Objetivo calórico: ${calorieGoal}. Genera 'coachMessage' (markdown) y 'modifiedSessions' (array de objetos Session). Mantén los mismos IDs de sesiones/ejercicios/series.`;
-    
+
     const response = await makeGenerateContentRequest(client, prompt, { config: { systemInstruction, responseMimeType: 'application/json' } }, 'gemini-3-flash-preview');
     // Guidelines: Access .text property directly
     return safeJsonParse(response.text || '', { coachMessage: '', modifiedSessions: [] });
@@ -183,16 +183,16 @@ export const generateBodyLabAnalysis = async (programs: Program[], history: Work
     // Fixed config to ensure thinkingConfig is properly nested
     const response = await makeGenerateContentRequest(client, prompt, { config: { systemInstruction, responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 16000 } } }, 'gemini-3-pro-preview');
     // Guidelines: Access .text property directly
-    return safeJsonParse(response.text || '', { profileTitle: "Atleta", profileSummary: "Análisis no disponible", strongPoints: [], weakPoints: [], recoveryAnalysis: {score:5, summary:""}, frequencyAnalysis: {preferredType:"Mixta", summary:""}, recommendations: [] });
+    return safeJsonParse(response.text || '', { profileTitle: "Atleta", profileSummary: "Análisis no disponible", strongPoints: [], weakPoints: [], recoveryAnalysis: { score: 5, summary: "" }, frequencyAnalysis: { preferredType: "Mixta", summary: "" }, recommendations: [] });
 };
 
 export const generateBiomechanicalAnalysis = async (data: BiomechanicalData, exercises: string[], _settings: Settings): Promise<BiomechanicalAnalysis> => {
-     const client = getClient();
-     const prompt = `Analiza la biomecánica con estos datos: ${JSON.stringify(data)}. JSON: BiomechanicalAnalysis schema.`;
-     // Fixed config to ensure thinkingConfig is properly nested
-     const response = await makeGenerateContentRequest(client, prompt, { config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 16000 } } }, 'gemini-3-pro-preview');
-     // Guidelines: Access .text property directly
-     return safeJsonParse(response.text || '', { apeIndex: {value: 1, interpretation: ""}, advantages: [], challenges: [], exerciseSpecificRecommendations: [] });
+    const client = getClient();
+    const prompt = `Analiza la biomecánica con estos datos: ${JSON.stringify(data)}. JSON: BiomechanicalAnalysis schema.`;
+    // Fixed config to ensure thinkingConfig is properly nested
+    const response = await makeGenerateContentRequest(client, prompt, { config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 16000 } } }, 'gemini-3-pro-preview');
+    // Guidelines: Access .text property directly
+    return safeJsonParse(response.text || '', { apeIndex: { value: 1, interpretation: "" }, advantages: [], challenges: [], exerciseSpecificRecommendations: [] });
 };
 
 export const generateImage = async (prompt: string, aspectRatio: string, settings: Settings): Promise<string> => {
@@ -212,7 +212,7 @@ export const generateImages = async (prompt: string, aspectRatio: string, _setti
             contents: { parts: [{ text: prompt }] },
             config: { imageConfig: { aspectRatio: safeRatio as any } },
         });
-        
+
         const imageUrls: string[] = [];
         if (response.candidates?.[0]?.content?.parts) {
             for (const part of response.candidates[0].content.parts) {
@@ -228,13 +228,13 @@ export const generateImages = async (prompt: string, aspectRatio: string, _setti
         console.warn("Gemini Flash Image failed, falling back to Imagen...", flashError);
         // Fallback: Imagen models
         try {
-             const response = await client.models.generateImages({
+            const response = await client.models.generateImages({
                 model: 'imagen-3.0-generate-001',
                 prompt: prompt,
                 config: {
                     numberOfImages: 1,
                     aspectRatio: safeRatio as any,
-                    outputMimeType: 'image/jpeg' 
+                    outputMimeType: 'image/jpeg'
                 }
             });
 
@@ -249,8 +249,8 @@ export const generateImages = async (prompt: string, aspectRatio: string, _setti
             if (imageUrls.length > 0) return { imageUrls };
             throw new Error("No images returned from Imagen");
         } catch (imagenError) {
-             console.error("Imagen generation also failed:", imagenError);
-             throw new Error("No se pudo generar la imagen. Por favor intenta más tarde.");
+            console.error("Imagen generation also failed:", imagenError);
+            throw new Error("No se pudo generar la imagen. Por favor intenta más tarde.");
         }
     }
 };
@@ -268,7 +268,7 @@ export const editImageWithText = async (base64Image: string, prompt: string, _se
             },
         });
 
-        if (response.candidates && response.candidates[0].content.parts) {
+        if (response.candidates?.[0]?.content?.parts) {
             for (const part of response.candidates[0].content.parts) {
                 if (part.inlineData) {
                     return `data:${part.inlineData.mimeType || 'image/jpeg'};base64,${part.inlineData.data}`;
@@ -303,20 +303,20 @@ export const analyzeExerciseMuscles = async (exerciseName: string, _settings: Se
 
 export const getCoachChatResponseStream = async function* (prompt: string, messages: ChatMessage[], programs: Program[], history: WorkoutLog[], _settings: Settings, sessionContext?: Session | OngoingWorkoutState) {
     const client = getClient();
-    const systemInstruction = `Eres "Prime Coach", un entrenador de fitness servicial, experto y alentador. Responde en español y en formato Markdown. Contexto: ${JSON.stringify({programs: (programs || []).map(p=>p.name), history: (history || []).slice(-5).map(l=>l.sessionName)})}`;
+    const systemInstruction = `Eres "Prime Coach", un entrenador de fitness servicial, experto y alentador. Responde en español y en formato Markdown. Contexto: ${JSON.stringify({ programs: (programs || []).map(p => p.name), history: (history || []).slice(-5).map(l => l.sessionName) })}`;
     const allMessages: Content[] = [...(messages || []).slice(-10), { role: 'user', parts: [{ text: prompt }] }];
-    const resultStream = await makeGenerateContentStreamRequest(client, { parts: allMessages as any }, { config: { systemInstruction }}, 'gemini-3-flash-preview');
+    const resultStream = await makeGenerateContentStreamRequest(client, { parts: allMessages as any }, { config: { systemInstruction } }, 'gemini-3-flash-preview');
     for await (const chunk of resultStream) {
         // Guidelines: Access .text property directly
         yield { text: chunk.text || '' };
     }
 };
 
-export const getPhysicalProgressChatResponseStream = async function*(prompt: string, messages: ChatMessage[], bodyProgress: BodyProgressLog[], nutritionLogs: NutritionLog[], _settings: Settings) {
+export const getPhysicalProgressChatResponseStream = async function* (prompt: string, messages: ChatMessage[], bodyProgress: BodyProgressLog[], nutritionLogs: NutritionLog[], _settings: Settings) {
     const client = getClient();
-    const systemInstruction = `Eres un coach de nutrición. Responde en español. Contexto: ${JSON.stringify({bodyProgress: (bodyProgress || []).slice(-5), nutrition: (nutritionLogs || []).slice(-5)})}`;
+    const systemInstruction = `Eres un coach de nutrición. Responde en español. Contexto: ${JSON.stringify({ bodyProgress: (bodyProgress || []).slice(-5), nutrition: (nutritionLogs || []).slice(-5) })}`;
     const allMessages: Content[] = [...(messages || []).slice(-10), { role: 'user', parts: [{ text: prompt }] }];
-    const resultStream = await makeGenerateContentStreamRequest(client, { parts: allMessages as any }, { config: { systemInstruction }}, 'gemini-3-flash-preview');
+    const resultStream = await makeGenerateContentStreamRequest(client, { parts: allMessages as any }, { config: { systemInstruction } }, 'gemini-3-flash-preview');
     for await (const chunk of resultStream) {
         // Guidelines: Access .text property directly
         yield { text: chunk.text || '' };
@@ -331,10 +331,10 @@ export const generateSpeech = async (text: string, settings: Settings): Promise<
         config: {
             responseModalities: [Modality.AUDIO],
             // Fixed speechConfig nesting to match guidelines
-            speechConfig: { 
-                voiceConfig: { 
-                    prebuiltVoiceConfig: { voiceName: settings.aiVoice || 'Puck' } 
-                } 
+            speechConfig: {
+                voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: settings.aiVoice || 'Puck' }
+                }
             },
         },
     });

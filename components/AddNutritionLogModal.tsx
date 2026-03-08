@@ -157,7 +157,7 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
                  <p className="text-center text-sm text-slate-600 italic py-4">Tu plato está vacío.</p>
              )}
              {foods.map((food, idx) => (
-                 <div key={food.id} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0 group">
+                 <div key={food.id} className="flex justify-between items-center py-3 border-b border-[#E6E0E9] last:border-0 group">
                      <div>
                          <p className="font-bold text-sm text-slate-200">{food.foodName}</p>
                          <p className="text-xs text-slate-500">{food.amount}{food.unit} • {Math.round(food.calories)} kcal</p>
@@ -182,7 +182,7 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
             value={notes} 
             onChange={e => setNotes(e.target.value)} 
             placeholder="Añadir nota..." 
-            className="w-full bg-transparent border-b border-white/10 py-3 text-xs text-slate-400 focus:border-white/30 focus:outline-none placeholder-slate-700"
+            className="w-full bg-transparent border-b border-[#E6E0E9] py-3 text-xs text-slate-400 focus:border-white/30 focus:outline-none placeholder-slate-700"
         />
 
         {/* --- Footer Action --- */}
@@ -220,7 +220,7 @@ const AddFoodComponent: React.FC<{
 
   return (
     <div className="flex flex-col gap-4">
-        <div className="flex gap-6 border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-2">
+        <div className="flex gap-6 border-b border-[#E6E0E9] text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-2">
             <button onClick={() => setMode('search')} className={`pb-1 transition-colors ${mode === 'search' ? 'text-white border-b-2 border-white' : 'hover:text-slate-300'}`}>Buscar</button>
             <button onClick={() => setMode('pantry')} className={`pb-1 transition-colors ${mode === 'pantry' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'hover:text-slate-300'}`}>Despensa</button>
         </div>

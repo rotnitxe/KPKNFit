@@ -206,10 +206,10 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
       {items.map((item, idx) => {
         if (item.type === 'finish') {
           return (
-            <div key="finish" ref={(el) => el && cardRefs.current.set('finish', el)} className="flex-shrink-0">
+            <div key="finish" ref={(el) => { if (el) cardRefs.current.set('finish', el); }} className="flex-shrink-0">
               <FinishCard
                 isExpanded={finishCardExpanded}
-                onPress={() => {}}
+                onPress={() => { }}
                 onExpand={onFinishCardExpand}
                 onFinish={onFinish}
                 durationMinutes={durationMinutes}

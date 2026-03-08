@@ -66,13 +66,17 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
 
     const filteredExercises = useMemo(() => {
         if (!searchQuery) return exerciseList.slice(0, 20);
-        const q = searchQuery.toLowerCase();
-        return exerciseList.filter(e =>
-            e.name.toLowerCase().includes(q) ||
-            (e.equipment && e.equipment.toLowerCase().includes(q)) ||
-            (e.alias && e.alias.toLowerCase().includes(q)) ||
-            e.involvedMuscles?.some(m => m.muscle.toLowerCase().includes(q))
-        ).slice(0, 15);
+        const normalizeText = (text: string) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const searchTerms = normalizeText(searchQuery)
+            .split(' ')
+            .filter(t => t.length > 0 && !['de', 'con', 'en', 'el', 'la', 'los', 'las', 'y', 'a'].includes(t));
+
+        return exerciseList.filter(e => {
+            const searchTarget = normalizeText(
+                `${e.name} ${e.equipment || ''} ${e.alias || ''} ${e.involvedMuscles?.map(m => m.muscle).join(' ') || ''}`
+            );
+            return searchTerms.every(term => searchTarget.includes(term));
+        }).slice(0, 15);
     }, [searchQuery, exerciseList]);
 
     const handleSelectExercise = useCallback((ex: ExerciseMuscleInfo) => {
@@ -121,16 +125,16 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
 
     if (isSearching) {
         return (
-            <div className="bg-zinc-900/60 border border-white/10 rounded-2xl p-3 animate-fade-in">
+            <div className="bg-zinc-900/60 border border-[#E6E0E9] rounded-2xl p-3 animate-fade-in">
                 <div className="relative mb-2">
-                    <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                    <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#49454F]" />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Buscar ejercicio..."
                         autoFocus
-                        className="w-full bg-black border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30"
+                        className="w-full bg-black border border-[#E6E0E9] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30"
                     />
                 </div>
                 <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-0.5">
@@ -141,14 +145,14 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                             className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
                         >
                             <span className="text-xs font-bold text-white">{ex.name}</span>
-                            <span className="text-[9px] text-zinc-500 ml-2">
+                            <span className="text-[9px] text-[#49454F] ml-2">
                                 {ex.involvedMuscles?.filter(m => m.role === 'primary').map(m => normalizeMuscleGroup(m.muscle)).filter((v, i, a) => a.indexOf(v) === i).join(', ')}
                             </span>
                         </button>
                     ))}
                 </div>
                 {exercise.name && (
-                    <button onClick={() => setIsSearching(false)} className="w-full mt-2 py-1.5 text-[10px] font-bold text-zinc-500 hover:text-white transition-colors">
+                    <button onClick={() => setIsSearching(false)} className="w-full mt-2 py-1.5 text-[10px] font-bold text-[#49454F] hover:text-white transition-colors">
                         Cancelar
                     </button>
                 )}
@@ -157,13 +161,12 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
     }
 
     return (
-        <div className={`rounded-2xl border transition-all ${
-            isCulprit
+        <div className={`rounded-2xl border transition-all ${isCulprit
                 ? 'bg-red-950/20 border-red-500/20'
                 : isExpanded
-                    ? 'bg-zinc-900/80 border-white/10'
-                    : 'bg-zinc-900/40 border-white/5 hover:border-white/10'
-        }`}>
+                    ? 'bg-zinc-900/80 border-[#E6E0E9]'
+                    : 'bg-zinc-900/40 border-[#E6E0E9] hover:border-[#E6E0E9]'
+            }`}>
             {/* Collapsed view */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -183,7 +186,7 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                     >
                         {exercise.name || 'Seleccionar ejercicio'}
                     </button>
-                    <span className="text-[10px] text-zinc-500 font-bold">{setsSummary}</span>
+                    <span className="text-[10px] text-[#49454F] font-bold">{setsSummary}</span>
                 </div>
 
                 {exercise.restTime && (
@@ -201,31 +204,31 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
 
             {/* Expanded view */}
             {isExpanded && (
-                <div className="px-3 pb-3 space-y-3 border-t border-white/5 pt-3 animate-fade-in">
+                <div className="px-3 pb-3 space-y-3 border-t border-[#E6E0E9] pt-3 animate-fade-in">
                     {/* Actions bar */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <button
                             onClick={() => onLink(partIndex, exerciseIndex)}
-                            className="px-2 py-1 rounded-md border border-white/10 text-[9px] font-bold text-zinc-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1"
+                            className="px-2 py-1 rounded-md border border-[#E6E0E9] text-[9px] font-bold text-[#49454F] hover:text-white hover:bg-white/5 transition-all flex items-center gap-1"
                         >
                             <LinkIcon size={10} /> Biserie
                         </button>
                         <button
                             onClick={() => onReorder(partIndex, exerciseIndex, 'up')}
-                            className="p-1 rounded-md border border-white/10 text-zinc-500 hover:text-white transition-all"
+                            className="p-1 rounded-md border border-[#E6E0E9] text-[#49454F] hover:text-white transition-all"
                         >
                             <ArrowUpIcon size={12} />
                         </button>
                         <button
                             onClick={() => onReorder(partIndex, exerciseIndex, 'down')}
-                            className="p-1 rounded-md border border-white/10 text-zinc-500 hover:text-white transition-all"
+                            className="p-1 rounded-md border border-[#E6E0E9] text-[#49454F] hover:text-white transition-all"
                         >
                             <ArrowDownIcon size={12} />
                         </button>
                         <div className="flex-1" />
                         <button
                             onClick={() => onRemove(partIndex, exerciseIndex)}
-                            className="p-1 rounded-md border border-white/10 text-zinc-500 hover:text-red-400 hover:border-red-400/30 transition-all"
+                            className="p-1 rounded-md border border-[#E6E0E9] text-[#49454F] hover:text-red-400 hover:border-red-400/30 transition-all"
                         >
                             <TrashIcon size={12} />
                         </button>
@@ -248,10 +251,10 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                                             const sec = (exercise.restTime || 90) % 60;
                                             onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, m * 60 + sec); });
                                         }}
-                                        className="w-10 bg-black border border-white/10 rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
+                                        className="w-10 bg-black border border-[#E6E0E9] rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
                                         placeholder="0"
                                     />
-                                    <span className="text-zinc-500 text-[10px]">:</span>
+                                    <span className="text-[#49454F] text-[10px]">:</span>
                                     <input
                                         type="number"
                                         inputMode="numeric"
@@ -263,7 +266,7 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                                             const m = Math.floor((Math.min(300, exercise.restTime || 90)) / 60);
                                             onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, m * 60 + sec); });
                                         }}
-                                        className="w-10 bg-black border border-white/10 rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
+                                        className="w-10 bg-black border border-[#E6E0E9] rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
                                         placeholder="00"
                                     />
                                 </div>
@@ -284,7 +287,7 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                             <select
                                 value={exercise.trainingMode || 'reps'}
                                 onChange={e => onUpdate(partIndex, exerciseIndex, d => { d.trainingMode = e.target.value as any; })}
-                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
+                                className="w-full bg-black border border-[#E6E0E9] rounded-lg px-2 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
                             >
                                 <option value="reps">Repeticiones</option>
                                 <option value="percent">% 1RM</option>
@@ -306,15 +309,15 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                                 min={1}
                                 className="w-full bg-black border border-amber-500/30 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white placeholder-zinc-600 focus:ring-1 focus:ring-amber-500/50"
                             />
-                            <p className="text-[8px] text-zinc-500 mt-1">Progreso hacia esta meta en Analytics y widgets</p>
+                            <p className="text-[8px] text-[#49454F] mt-1">Progreso hacia esta meta en Analytics y widgets</p>
                         </div>
                     )}
 
                     {/* 1RM calculator (only in percent mode) */}
                     {exercise.trainingMode === 'percent' && (
-                        <div className="bg-black/50 border border-white/5 rounded-xl p-2.5">
+                        <div className="bg-black/50 border border-[#E6E0E9] rounded-xl p-2.5">
                             <div className="flex items-center justify-between mb-2">
-                                <label className="text-[8px] font-bold text-zinc-500 uppercase">1RM Referencia</label>
+                                <label className="text-[8px] font-bold text-[#49454F] uppercase">1RM Referencia</label>
                                 <span className="text-xs font-black text-blue-400">
                                     {exercise.reference1RM ? `${exercise.reference1RM} kg` : 'No definido'}
                                 </span>
@@ -324,7 +327,7 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                                 value={exercise.reference1RM ?? ''}
                                 onChange={e => { const v = e.target.value; onUpdate(partIndex, exerciseIndex, d => { d.reference1RM = v === '' ? undefined : (parseFloat(v) ?? undefined); }); }}
                                 placeholder="1RM en kg"
-                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
+                                className="w-full bg-black border border-[#E6E0E9] rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                             />
                         </div>
                     )}

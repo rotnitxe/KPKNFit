@@ -105,7 +105,7 @@ const StartWorkoutModal: React.FC<StartWorkoutModalProps> = ({ isOpen, onClose }
                         <h3 className="font-black text-white text-md uppercase tracking-tight">{program.name}</h3>
                         <ChevronRightIcon className="details-arrow transition-transform text-slate-500" />
                     </summary>
-                    <div className="border-t border-white/5 p-2 space-y-2">
+                    <div className="border-t border-[#E6E0E9] p-2 space-y-2">
                         {program.macrocycles.flatMap(macro => 
                             (macro.blocks || []).flatMap(block =>
                                 block.mesocycles.flatMap(meso => 
@@ -114,7 +114,7 @@ const StartWorkoutModal: React.FC<StartWorkoutModalProps> = ({ isOpen, onClose }
                                             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2 mb-2">{block.name} • {meso.name} • {week.name}</h4>
                                             <div className="space-y-1">
                                                 {week.sessions.map(session => (
-                                                    <div key={session.id} onClick={() => handleSessionClick(session, program, week.variant)} className="flex justify-between items-center p-3 hover:bg-white/5 bg-black/20 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-white/5 group">
+                                                    <div key={session.id} onClick={() => handleSessionClick(session, program, week.variant)} className="flex justify-between items-center p-3 hover:bg-white/5 bg-black/20 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-[#E6E0E9] group">
                                                         <div className="min-w-0">
                                                             <p className="text-slate-200 font-bold text-sm truncate group-hover:text-white">{session.name}</p>
                                                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{getExerciseCount(session)} ejercicios</p>

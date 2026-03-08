@@ -65,7 +65,7 @@ export const KPKN_SEED_COLOR = '#00C8E0';
  * Dado un color hexadecimal semilla, genera todas las variables CSS de
  * Material You y las inyecta en :root. Llámalo una vez al iniciar la app.
  */
-export function applyTheme(seedHex: string, dark: boolean = true): KPKNThemeTokens {
+export function applyTheme(seedHex: string, dark: boolean = false): KPKNThemeTokens {
     const sourceColor = argbFromHex(seedHex);
     const theme = themeFromSourceColor(sourceColor);
 
@@ -241,9 +241,9 @@ export interface UseThemeOptions {
  * Sincroniza automáticamente con prefers-color-scheme del sistema.
  */
 export function useKPKNTheme(options: UseThemeOptions = {}) {
-    const { seedColor = KPKN_SEED_COLOR, followSystemDark = true } = options;
+    const { seedColor = KPKN_SEED_COLOR, followSystemDark = false } = options;
 
-    const [isDark, setIsDark] = useState(true);
+    const [isDark, setIsDark] = useState(false);
     const [seed, setSeedState] = useState(seedColor);
     const [tokens, setTokens] = useState<KPKNThemeTokens | null>(null);
     const initialized = useRef(false);

@@ -27,7 +27,7 @@ const ExerciseCardContextMenu: React.FC<ExerciseCardContextMenuProps> = ({
         aria-hidden="true"
       />
       <div
-        className="fixed left-1/2 bottom-24 z-[151] -translate-x-1/2 bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-fade-in min-w-[200px]"
+        className="fixed left-1/2 bottom-24 z-[151] -translate-x-1/2 bg-slate-900 border border-[#E6E0E9] rounded-xl shadow-2xl overflow-hidden animate-fade-in min-w-[200px]"
       >
         <button
           type="button"
@@ -40,7 +40,7 @@ const ExerciseCardContextMenu: React.FC<ExerciseCardContextMenuProps> = ({
         <button
           type="button"
           onClick={() => { onSkip(); onClose(); }}
-          className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-white/5 transition-colors border-t border-white/5"
+          className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-white/5 transition-colors border-t border-[#E6E0E9]"
         >
           <MinusIcon size={18} className="text-slate-400" />
           <span className="text-sm font-semibold">Omitir</span>

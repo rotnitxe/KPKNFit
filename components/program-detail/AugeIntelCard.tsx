@@ -13,7 +13,7 @@ const AugeIntelCard: React.FC<AugeIntelCardProps> = ({
     adaptiveCache, collapsed = false, onToggleCollapse,
 }) => {
     return (
-        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
+        <div className="bg-zinc-900/50 border border-[#E6E0E9] rounded-2xl overflow-hidden transition-all duration-300">
             <button onClick={onToggleCollapse} className="w-full flex items-center justify-between p-4 text-left">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
@@ -21,18 +21,18 @@ const AugeIntelCard: React.FC<AugeIntelCardProps> = ({
                     </div>
                     <div>
                         <h3 className="text-xs font-black text-white uppercase tracking-widest">AUGE Intelligence</h3>
-                        <p className="text-[9px] text-zinc-500 font-bold">
+                        <p className="text-[9px] text-[#49454F] font-bold">
                             {adaptiveCache.totalObservations} observaciones
                         </p>
                     </div>
                 </div>
-                <ChevronDownIcon size={16} className={`text-zinc-500 transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
+                <ChevronDownIcon size={16} className={`text-[#49454F] transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
             </button>
 
             {!collapsed && (
                 <div className="px-4 pb-4 space-y-4 animate-fade-in">
                     {/* Banister Model */}
-                    <div className="bg-zinc-950 border border-emerald-500/20 rounded-xl p-4">
+                    <div className="bg-[#FEF7FF] border border-emerald-500/20 rounded-xl p-4">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-3 flex items-center gap-1.5">
                             <ActivityIcon size={12} /> Banister — Fitness vs Fatiga
                         </h4>
@@ -40,12 +40,12 @@ const AugeIntelCard: React.FC<AugeIntelCardProps> = ({
                             <>
                                 {Object.entries(adaptiveCache.banister.systems || {}).map(([sys, data]) => (
                                     <div key={sys} className="mb-3">
-                                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-500 mb-1.5">{sys}</p>
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-[#49454F] mb-1.5">{sys}</p>
                                         <BanisterTrend systemData={data} />
                                     </div>
                                 ))}
                                 {adaptiveCache.banister.verdict && (
-                                    <div className="mt-2 px-3 py-2 bg-black/40 rounded-lg border border-white/5">
+                                    <div className="mt-2 px-3 py-2 bg-black/40 rounded-lg border border-[#E6E0E9]">
                                         <p className="text-[9px] text-zinc-300 font-medium italic">{adaptiveCache.banister.verdict}</p>
                                     </div>
                                 )}
@@ -56,7 +56,7 @@ const AugeIntelCard: React.FC<AugeIntelCardProps> = ({
                     </div>
 
                     {/* Recovery Map */}
-                    <div className="bg-zinc-950 border border-sky-500/20 rounded-xl p-4">
+                    <div className="bg-[#FEF7FF] border border-sky-500/20 rounded-xl p-4">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-sky-400 mb-3">Recuperación Aprendida</h4>
                         <BayesianConfidence
                             totalObservations={adaptiveCache.totalObservations}
@@ -68,10 +68,10 @@ const AugeIntelCard: React.FC<AugeIntelCardProps> = ({
                                     const pop = 72;
                                     const diff = hrs - pop;
                                     return (
-                                        <div key={muscle} className="flex items-center justify-between bg-black p-2 rounded-lg border border-white/5">
+                                        <div key={muscle} className="flex items-center justify-between bg-black p-2 rounded-lg border border-[#E6E0E9]">
                                             <span className="text-[9px] font-bold text-zinc-300">{muscle}</span>
                                             <div className="flex items-center gap-2 text-[8px] font-mono">
-                                                <span className="text-zinc-500">{pop}h</span>
+                                                <span className="text-[#49454F]">{pop}h</span>
                                                 <span className={`font-bold ${diff < 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                                     {hrs.toFixed(0)}h ({diff > 0 ? '+' : ''}{diff.toFixed(0)})
                                                 </span>
@@ -89,7 +89,7 @@ const AugeIntelCard: React.FC<AugeIntelCardProps> = ({
                     </div>
 
                     {/* Self Improvement */}
-                    <div className="bg-zinc-950 border border-yellow-500/20 rounded-xl p-4">
+                    <div className="bg-[#FEF7FF] border border-yellow-500/20 rounded-xl p-4">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-yellow-400 mb-3">Auto-Mejora</h4>
                         {adaptiveCache.selfImprovement ? (
                             <>
@@ -99,13 +99,13 @@ const AugeIntelCard: React.FC<AugeIntelCardProps> = ({
                                     recommendations={adaptiveCache.selfImprovement.recommendations}
                                 />
                                 {adaptiveCache.selfImprovement.accuracy_by_system.length > 0 && (
-                                    <div className="mt-3 space-y-1.5 border-t border-white/5 pt-3">
-                                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-500 mb-1.5">Precisión por Sistema</p>
+                                    <div className="mt-3 space-y-1.5 border-t border-[#E6E0E9] pt-3">
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-[#49454F] mb-1.5">Precisión por Sistema</p>
                                         {adaptiveCache.selfImprovement.accuracy_by_system.map(sys => (
                                             <div key={sys.system} className="flex items-center justify-between bg-black p-2 rounded-lg">
                                                 <span className="text-[9px] font-bold text-zinc-300 uppercase">{sys.system}</span>
                                                 <div className="flex items-center gap-2 text-[8px] font-mono">
-                                                    <span className="text-zinc-500">R²={sys.r_squared.toFixed(2)}</span>
+                                                    <span className="text-[#49454F]">R²={sys.r_squared.toFixed(2)}</span>
                                                     <span className={`font-bold ${sys.r_squared > 0.7 ? 'text-emerald-400' : sys.r_squared > 0.4 ? 'text-yellow-400' : 'text-rose-400'}`}>
                                                         {sys.sample_size} obs
                                                     </span>
@@ -122,11 +122,11 @@ const AugeIntelCard: React.FC<AugeIntelCardProps> = ({
 
                     {/* Findings */}
                     {(adaptiveCache.selfImprovement?.recommendations?.length ?? 0) > 0 && (
-                        <div className="bg-zinc-950 border border-violet-500/20 rounded-xl p-4">
+                        <div className="bg-[#FEF7FF] border border-violet-500/20 rounded-xl p-4">
                             <h4 className="text-[10px] font-black uppercase tracking-widest text-violet-400 mb-2">Hallazgos</h4>
                             <div className="space-y-1.5">
                                 {adaptiveCache.selfImprovement!.recommendations.map((rec, i) => (
-                                    <div key={i} className="flex items-start gap-1.5 bg-black p-2 rounded-lg border border-white/5">
+                                    <div key={i} className="flex items-start gap-1.5 bg-black p-2 rounded-lg border border-[#E6E0E9]">
                                         <span className="text-violet-400 mt-0.5 shrink-0 text-[10px]">→</span>
                                         <p className="text-[9px] text-zinc-300 leading-relaxed">{rec}</p>
                                     </div>

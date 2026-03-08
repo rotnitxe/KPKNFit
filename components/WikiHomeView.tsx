@@ -12,7 +12,7 @@ const WikiSectionCard: React.FC<{
 }> = ({ title, subtitle, accentColor, onClick, icon }) => (
   <div
     onClick={onClick}
-    className="p-4 rounded-2xl border border-white/5 bg-slate-900/50 hover:bg-slate-800/70 cursor-pointer transition-all duration-200 group active:scale-[0.99]"
+    className="p-4 rounded-2xl border border-[#E6E0E9] bg-slate-900/50 hover:bg-slate-800/70 cursor-pointer transition-all duration-200 group active:scale-[0.99]"
   >
     <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${accentColor}`}>
       {icon}
@@ -73,7 +73,7 @@ const WikiHomeView: React.FC = () => {
               <div
                 key={cat}
                 onClick={() => navigateTo('chain-detail', { chainId: cat })}
-                className="p-3 rounded-xl bg-slate-900/50 border border-white/5 hover:border-sky-500/30 cursor-pointer transition-all"
+                className="p-3 rounded-xl bg-slate-900/50 border border-[#E6E0E9] hover:border-sky-500/30 cursor-pointer transition-all"
               >
                 <span className="font-semibold text-slate-200 text-sm">{cat}</span>
               </div>
@@ -92,7 +92,7 @@ const WikiHomeView: React.FC = () => {
             <div
               key={cat}
               onClick={() => navigateTo('muscle-category', { categoryName: cat })}
-              className="p-4 flex justify-between items-center rounded-xl bg-slate-900/30 border border-white/5 hover:border-purple-500/30 cursor-pointer"
+              className="p-4 flex justify-between items-center rounded-xl bg-slate-900/30 border border-[#E6E0E9] hover:border-purple-500/30 cursor-pointer"
             >
               <span className="font-semibold text-slate-200">{cat}</span>
               <ChevronRightIcon className="text-slate-500" size={18} />

@@ -56,28 +56,28 @@ const PhysicalProgress: React.FC = () => {
 
             {activeTab === 'cuerpo' && (
                 <div className="space-y-6">
-                     <div className="bg-gradient-to-br from-slate-900 to-black border border-white/10 rounded-3xl p-6 relative overflow-hidden">
+                     <div className="bg-gradient-to-br from-slate-900 to-black border border-[#E6E0E9] rounded-3xl p-6 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 blur-[50px] rounded-full pointer-events-none"></div>
                         <h3 className="text-lg font-bold text-white mb-4 relative z-10">Métricas Actuales</h3>
                         <div className="grid grid-cols-3 gap-2 text-center my-4 relative z-10">
-                            <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+                            <div className="bg-white/5 p-3 rounded-2xl border border-[#E6E0E9]">
                                 <p className="text-2xl font-black text-white">{settings.userVitals.weight || '--'}<span className="text-xs text-slate-500 font-bold ml-0.5">{settings.weightUnit}</span></p>
                                 <p className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Peso</p>
                             </div>
-                            <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+                            <div className="bg-white/5 p-3 rounded-2xl border border-[#E6E0E9]">
                                 <p className="text-2xl font-black text-white">{settings.userVitals.bodyFatPercentage || '--'}<span className="text-xs text-slate-500 font-bold ml-0.5">%</span></p>
                                 <p className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Grasa</p>
                             </div>
-                            <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+                            <div className="bg-white/5 p-3 rounded-2xl border border-[#E6E0E9]">
                                 <p className="text-2xl font-black text-sky-400">{ffmiData?.normalizedFfmi || '--'}</p>
                                 <p className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">FFMI</p>
                             </div>
                         </div>
                         <div className="flex gap-2 relative z-10">
-                            <Button onClick={() => navigateTo('athlete-profile')} className="flex-1 !py-3 !text-xs uppercase font-black !bg-white/10 hover:!bg-white/20 border-white/5">
+                            <Button onClick={() => navigateTo('athlete-profile')} className="flex-1 !py-3 !text-xs uppercase font-black !bg-white/10 hover:!bg-white/20 border-[#E6E0E9]">
                                 <BodyIcon size={16} /> Perfil
                             </Button>
-                            <Button onClick={() => navigateTo('body-progress')} className="flex-1 !py-3 !text-xs uppercase font-black !bg-white/10 hover:!bg-white/20 border-white/5">
+                            <Button onClick={() => navigateTo('body-progress')} className="flex-1 !py-3 !text-xs uppercase font-black !bg-white/10 hover:!bg-white/20 border-[#E6E0E9]">
                                 Progreso
                             </Button>
                         </div>

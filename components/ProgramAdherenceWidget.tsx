@@ -10,7 +10,7 @@ const ProgramAdherenceWidget: React.FC<{ program: Program; history: WorkoutLog[]
     const isGood = percentage >= 80;
 
     return (
-        <div className="bg-[#111] border border-white/10 rounded-3xl p-5 relative overflow-hidden">
+        <div className="bg-[#ECE6F0] border border-[#E6E0E9] rounded-3xl p-5 relative overflow-hidden">
             <h4 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Adherencia</h4>
             <div className="flex items-end gap-2">
                 <span className={`text-4xl font-black ${isGood ? 'text-white' : 'text-red-400'}`}>{percentage}%</span>

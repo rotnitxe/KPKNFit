@@ -1,0 +1,2 @@
+﻿07b26d2 feat: Implement program detail view with compact hero banner, structure management, and analytics dashboard components.
+b7f92e4 feat: Implement PWA service worker with widget functionality and initial Figma API data fetching scripts.

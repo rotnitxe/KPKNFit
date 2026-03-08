@@ -119,13 +119,13 @@ export const KeyDatesWidget: React.FC<{
 
     if (keyDates.length === 0) {
         return (
-            <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4">
+            <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4">
                 <div className="flex justify-between items-center mb-3">
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                         <CalendarIcon size={10} className="text-violet-400" /> Fechas Clave
                     </span>
                 </div>
-                <p className="text-[10px] text-zinc-500 font-mono">
+                <p className="text-[10px] text-[#49454F] font-mono">
                     {!activeProgram ? 'Activa un programa' : 'Sin fechas clave configuradas'}
                 </p>
             </div>
@@ -133,9 +133,9 @@ export const KeyDatesWidget: React.FC<{
     }
 
     return (
-        <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
+        <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl overflow-hidden">
             <div className="flex justify-between items-center p-4 pb-2">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                     <CalendarIcon size={10} className="text-violet-400" /> Fechas Clave
                 </span>
             </div>
@@ -144,12 +144,12 @@ export const KeyDatesWidget: React.FC<{
                     {keyDates.slice(0, 5).map((item, i) => (
                         <div
                             key={`${item.title}-${i}`}
-                            className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-black/30 border border-white/5"
+                            className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-black/30 border border-[#E6E0E9]"
                         >
                             <div className="min-w-0 flex-1">
                                 <span className="text-[10px] font-bold text-white truncate block">{item.title}</span>
                                 {item.dateStr && item.daysLeft > 0 && (
-                                    <span className="text-[8px] text-zinc-500 font-mono">{(item.dateStr)}</span>
+                                    <span className="text-[8px] text-[#49454F] font-mono">{(item.dateStr)}</span>
                                 )}
                             </div>
                             <div className="shrink-0 ml-2">

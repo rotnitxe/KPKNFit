@@ -284,28 +284,28 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                         <div className="p-4 space-y-2">
                             {isAdvanced ? (
                                 <>
-                                    <button onClick={() => applyReorderWithScope('cyclic')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all">
+                                    <button onClick={() => applyReorderWithScope('cyclic')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-[#E6E0E9] hover:border-white/20 text-white transition-all">
                                         Solo semanas coincidentes ({coincidentLabel})
                                     </button>
-                                    <button onClick={() => applyReorderWithScope('block')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all">
+                                    <button onClick={() => applyReorderWithScope('block')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-[#E6E0E9] hover:border-white/20 text-white transition-all">
                                         Todo el bloque
                                     </button>
                                     {hasMultipleSplitsInBlock && (
-                                        <button onClick={() => applyReorderWithScope('same-split')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all">
+                                        <button onClick={() => applyReorderWithScope('same-split')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-[#E6E0E9] hover:border-white/20 text-white transition-all">
                                             Solo semanas con el mismo split
                                         </button>
                                     )}
                                 </>
                             ) : (
                                 <>
-                                    <button onClick={() => applyReorderWithScope('cyclic')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all">
+                                    <button onClick={() => applyReorderWithScope('cyclic')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-[#E6E0E9] hover:border-white/20 text-white transition-all">
                                         Solo semanas coincidentes ({coincidentLabel})
                                     </button>
-                                    <button onClick={() => applyReorderWithScope('block')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all">
+                                    <button onClick={() => applyReorderWithScope('block')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-[#E6E0E9] hover:border-white/20 text-white transition-all">
                                         Todas las semanas del bloque
                                     </button>
                                     {hasMultipleSplitsInBlock && (
-                                        <button onClick={() => applyReorderWithScope('same-split')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white transition-all">
+                                        <button onClick={() => applyReorderWithScope('same-split')} className="w-full px-4 py-3 rounded-xl text-left text-xs font-medium bg-white/5 hover:bg-white/10 border border-[#E6E0E9] hover:border-white/20 text-white transition-all">
                                             Solo semanas con el mismo split
                                         </button>
                                     )}
@@ -503,7 +503,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
             {/* Event banner - estilo Tú */}
             {weekEvent && (
                 <div className="mx-6 mt-2 px-3 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] flex items-center gap-2" style={{ backgroundColor: 'var(--md-sys-color-surface-container-high)' }}>
-                    <CalendarIcon size={14} className="text-zinc-400 shrink-0" />
+                    <CalendarIcon size={14} className="text-[#49454F] shrink-0" />
                     <span className="text-xs font-bold text-white">{weekEvent.title}</span>
                 </div>
             )}

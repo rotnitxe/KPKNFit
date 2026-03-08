@@ -31,19 +31,19 @@ export const WorkoutCarouselPlaceholderBar: React.FC<{ actions: TabBarActions }>
                 </button>
             </div>
             <div className="flex-1 flex justify-end items-center gap-2">
-                <button onClick={actions.onPauseWorkoutPress} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-white/10 bg-white/5 hover:bg-amber-500/10 text-amber-400" title="Pausar">
+                <button onClick={actions.onPauseWorkoutPress} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-[#E6E0E9] bg-white/5 hover:bg-amber-500/10 text-amber-400" title="Pausar">
                     <PauseIcon size={20} />
                 </button>
-                <button onClick={actions.onCancelWorkoutPress} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-white/10 bg-white/5 hover:bg-red-500/10 text-red-400" title="Cancelar">
+                <button onClick={actions.onCancelWorkoutPress} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-[#E6E0E9] bg-white/5 hover:bg-red-500/10 text-red-400" title="Cancelar">
                     <XCircleIcon size={20} />
                 </button>
-                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${isMenuOpen ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-[#999] hover:text-white hover:bg-white/10'}`} title="Más opciones">
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${isMenuOpen ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-[#E6E0E9] text-[#999] hover:text-white hover:bg-white/10'}`} title="Más opciones">
                     <SettingsIcon size={20} />
                 </button>
                 {isMenuOpen && (
                     <>
                         <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setIsMenuOpen(false)} />
-                        <div className="absolute bottom-full right-0 mb-4 w-64 bg-[#111] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden animate-modal-enter origin-bottom-right">
+                        <div className="absolute bottom-full right-0 mb-4 w-64 bg-[#ECE6F0] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden animate-modal-enter origin-bottom-right">
                             <div className="p-2 space-y-1">
                                 <button onClick={() => { setIsMenuOpen(false); actions.onTimersPress(); }} className="w-full flex items-center gap-3 px-4 py-3 text-left text-xs text-slate-200 hover:bg-white/5 rounded-xl transition-colors font-bold"><ClockIcon size={16} className="text-amber-400/80"/> Cronómetros</button>
                             </div>
@@ -102,7 +102,7 @@ export const WorkoutSessionActionBar: React.FC<{ actions: TabBarActions }> = ({ 
         <div className="relative h-full px-6 flex items-center justify-between w-full max-w-md mx-auto">
             {/* Timer Left */}
             <div className="flex items-center w-28">
-                <div className="flex items-center gap-0.5 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-white/5 shadow-lg w-full justify-between h-10">
+                <div className="flex items-center gap-0.5 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-[#E6E0E9] shadow-lg w-full justify-between h-10">
                     <button onClick={() => handleAdjustRestTimer(-15)} className="w-8 h-full rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 font-bold text-[10px] flex items-center justify-center transition-all active:scale-90">-15</button>
                     <div className="flex flex-col items-center justify-center flex-grow">
                          {restTimer ? (
@@ -129,24 +129,24 @@ export const WorkoutSessionActionBar: React.FC<{ actions: TabBarActions }> = ({ 
             {/* Menu/Stats Right */}
             <div className="flex items-center gap-2 justify-end w-32 h-full">
                 <div className="flex flex-col items-end">
-                    <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-[#111]/80 px-1.5 py-0.5 rounded-md border border-white/[0.08]">
+                    <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-[#ECE6F0]/80 px-1.5 py-0.5 rounded-md border border-white/[0.08]">
                         <ClockIcon size={10} className="text-amber-400/80"/>
                         <span>{formatTime(elapsedTime)}</span>
                     </div>
-                     <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-[#111]/80 px-1.5 py-0.5 rounded-md border border-white/[0.08] mt-1">
+                     <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-[#ECE6F0]/80 px-1.5 py-0.5 rounded-md border border-white/[0.08] mt-1">
                         <DumbbellIcon size={10} className="text-primary-color"/>
                         <span>{stats.completedSets}/{stats.totalSets}</span>
                     </div>
                 </div>
-                <button onClick={actions.onPauseWorkoutPress} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-white/10 bg-white/5 hover:bg-amber-500/10 text-amber-400" title="Pausar">
+                <button onClick={actions.onPauseWorkoutPress} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-[#E6E0E9] bg-white/5 hover:bg-amber-500/10 text-amber-400" title="Pausar">
                     <PauseIcon size={20} />
                 </button>
-                <button onClick={actions.onCancelWorkoutPress} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-white/10 bg-white/5 hover:bg-red-500/10 text-red-400" title="Cancelar">
+                <button onClick={actions.onCancelWorkoutPress} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-[#E6E0E9] bg-white/5 hover:bg-red-500/10 text-red-400" title="Cancelar">
                     <XCircleIcon size={20} />
                 </button>
                 <button 
                     onClick={() => setIsMenuOpen(!isMenuOpen)} 
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${isMenuOpen ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-[#999] hover:text-white hover:bg-white/10'}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${isMenuOpen ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-[#E6E0E9] text-[#999] hover:text-white hover:bg-white/10'}`}
                     title="Más opciones"
                 >
                     <SettingsIcon size={20} />
@@ -155,8 +155,8 @@ export const WorkoutSessionActionBar: React.FC<{ actions: TabBarActions }> = ({ 
                 {isMenuOpen && (
                     <>
                         <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setIsMenuOpen(false)}></div>
-                        <div className="absolute bottom-full right-0 mb-4 w-64 bg-[#111] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden animate-modal-enter origin-bottom-right">
-                            <div className="p-4 bg-[#15171E] border-b border-white/10 space-y-3">
+                        <div className="absolute bottom-full right-0 mb-4 w-64 bg-[#ECE6F0] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden animate-modal-enter origin-bottom-right">
+                            <div className="p-4 bg-[#15171E] border-b border-[#E6E0E9] space-y-3">
                                  <div className="flex justify-between items-center mb-1">
                                     <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Estado Fisiológico</span>
                                     <span className={`text-[10px] font-bold ${stressInfo.color}`}>{stressInfo.label}</span>
@@ -165,8 +165,8 @@ export const WorkoutSessionActionBar: React.FC<{ actions: TabBarActions }> = ({ 
                                     <div className={`h-full transition-all duration-500 ${stressInfo.barColor}`} style={{ width: `${Math.min(100, (stats.totalStress / 120) * 100)}%` }}></div>
                                  </div>
                                  <div className="grid grid-cols-2 gap-2 text-center">
-                                    <div className="bg-[#15171E] p-2 rounded-xl border border-white/10"><p className="text-[9px] text-slate-500 uppercase font-black mb-0.5">Carga (kg)</p><p className="text-xs font-mono font-bold text-amber-400/90">{stats.totalTonnage.toLocaleString()}</p></div>
-                                    <div className="bg-[#15171E] p-2 rounded-xl border border-white/10"><p className="text-[9px] text-slate-500 uppercase font-black mb-0.5">Fatiga (u)</p><p className="text-xs font-mono font-bold text-amber-400">{stats.totalStress}</p></div>
+                                    <div className="bg-[#15171E] p-2 rounded-xl border border-[#E6E0E9]"><p className="text-[9px] text-slate-500 uppercase font-black mb-0.5">Carga (kg)</p><p className="text-xs font-mono font-bold text-amber-400/90">{stats.totalTonnage.toLocaleString()}</p></div>
+                                    <div className="bg-[#15171E] p-2 rounded-xl border border-[#E6E0E9]"><p className="text-[9px] text-slate-500 uppercase font-black mb-0.5">Fatiga (u)</p><p className="text-xs font-mono font-bold text-amber-400">{stats.totalStress}</p></div>
                                  </div>
                             </div>
                             <div className="p-2 space-y-1">

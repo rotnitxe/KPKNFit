@@ -22,7 +22,7 @@ interface ReadinessCheckModalProps {
 }
 
 const CyberSlider: React.FC<{ label: string; value: number; onChange: (v: number) => void; icon: React.ReactNode; color: string; accentClass: string; inverseScale?: boolean }> = ({ label, value, onChange, icon, color, accentClass, inverseScale }) => (
-    <div className="bg-zinc-900/60 p-5 rounded-2xl border border-white/5 mb-3 shadow-inner">
+    <div className="bg-zinc-900/60 p-5 rounded-2xl border border-[#E6E0E9] mb-3 shadow-inner">
         <div className="flex justify-between items-center mb-3">
             <label className="text-[11px] font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
                 <span className={color}>{icon}</span> {label}
@@ -33,7 +33,7 @@ const CyberSlider: React.FC<{ label: string; value: number; onChange: (v: number
             type="range" min="1" max="5" 
             value={value} 
             onChange={(e) => onChange(parseInt(e.target.value))} 
-            className={`w-full h-2 rounded-lg appearance-none cursor-pointer bg-black/50 border border-white/10 ${accentClass}`}
+            className={`w-full h-2 rounded-lg appearance-none cursor-pointer bg-black/50 border border-[#E6E0E9] ${accentClass}`}
         />
         <div className="flex justify-between text-[9px] text-slate-500 uppercase tracking-widest mt-2 font-bold">
             <span>{inverseScale ? 'Óptimo' : 'Pésimo'}</span>
@@ -117,9 +117,9 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
     return (
         <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in pointer-events-auto">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={onClose} />
-            <div className="relative z-10 w-full max-w-md bg-[#0a0a0a] sm:rounded-[2.5rem] rounded-t-[2.5rem] border border-white/10 flex flex-col max-h-[90vh] shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-slide-up overflow-hidden">
+            <div className="relative z-10 w-full max-w-md bg-[#FEF7FF] sm:rounded-[2.5rem] rounded-t-[2.5rem] border border-[#E6E0E9] flex flex-col max-h-[90vh] shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-slide-up overflow-hidden">
                 
-                <div className="p-6 pb-4 border-b border-white/5 shrink-0 relative bg-[#0a0a0a]">
+                <div className="p-6 pb-4 border-b border-[#E6E0E9] shrink-0 relative bg-[#FEF7FF]">
                     <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-sky-500/10 to-transparent pointer-events-none z-0" />
                     <div className="relative z-10 text-center">
                         <div className="w-12 h-12 bg-sky-500/10 rounded-full flex items-center justify-center text-sky-400 mx-auto mb-3 border border-sky-500/20 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
@@ -131,7 +131,7 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
                 </div>
 
                 <div className="p-5 overflow-y-auto hide-scrollbar flex-1 relative bg-black/20">
-                    <div className="mb-5 p-4 bg-[#111] border border-violet-500/20 rounded-2xl">
+                    <div className="mb-5 p-4 bg-[#ECE6F0] border border-violet-500/20 rounded-2xl">
                         <div className="flex items-center gap-2 mb-2">
                             <BrainIcon size={14} className="text-violet-400" />
                             <span className="text-[10px] font-black uppercase tracking-widest text-violet-400">Predicción AUGE</span>
@@ -149,7 +149,7 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
                     <CyberSlider label="Motivación" value={motivation} onChange={setMotivation} icon={<ZapIcon size={16}/>} color="text-sky-400" accentClass="accent-sky-500" />
                 </div>
 
-                <div className="p-5 border-t border-white/5 shrink-0 bg-[#0a0a0a]">
+                <div className="p-5 border-t border-[#E6E0E9] shrink-0 bg-[#FEF7FF]">
                     <button onClick={handleStart} disabled={isSubmitting} className="w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all bg-white text-black hover:bg-slate-200 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
                         {isSubmitting ? 'Sincronizando...' : 'Comenzar Batalla'}
                     </button>

@@ -20,33 +20,34 @@ const StructureSection: React.FC<StructureSectionProps> = ({ program, onUpdatePr
         acc + (m.blocks || []).reduce((ba, b) =>
             ba + b.mesocycles.reduce((ma, me) => ma + me.weeks.length, 0), 0), 0);
 
-    const blockColors = ['bg-[#525252]', 'bg-[#6b6b6b]', 'bg-[#737373]', 'bg-[#858585]', 'bg-[#a3a3a3]'];
+    const blockColors = ['bg-[var(--md-sys-color-primary)]', 'bg-[var(--md-sys-color-secondary)]', 'bg-[var(--md-sys-color-tertiary)]', 'bg-[var(--md-sys-color-error)]', 'bg-[var(--md-sys-color-primary-container)]'];
 
     return (
-        <div className="space-y-4">
-            <h3 className="text-xs font-medium text-white flex items-center gap-2">
-                <ActivityIcon size={14} className="text-[#a3a3a3]" /> Estructura del Programa
+        <div className="space-y-4 bg-[#FEF7FF] p-4 rounded-3xl">
+            <h3 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-[0.2em] flex items-center gap-2">
+                <ActivityIcon size={16} className="text-[var(--md-sys-color-primary)]" /> Estructura del Programa
             </h3>
 
             {/* Timeline bar */}
             {totalWeeks > 0 && (
-                <div className="bg-[#252525] border border-[#3f3f3f] p-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-[8px] font-medium text-[#737373] uppercase tracking-widest">Timeline</span>
-                        <span className="text-[9px] text-[#a3a3a3] font-medium">{totalWeeks} semanas</span>
+                <div className="bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Timeline</span>
+                        <span className="text-label-small text-[var(--md-sys-color-on-surface)] font-black uppercase tracking-wider">{totalWeeks} semanas</span>
                     </div>
-                    <div className="flex gap-0.5 h-4 overflow-hidden">
+                    <div className="flex gap-1 h-6 overflow-hidden rounded-lg bg-[var(--md-sys-color-surface-container-high)]">
                         {program.macrocycles.flatMap((m, mi) =>
                             (m.blocks || []).map((b, bi) => {
                                 const weeks = b.mesocycles.reduce((a, me) => a + me.weeks.length, 0);
+                                if (weeks === 0) return null;
                                 return (
                                     <div
                                         key={`${mi}-${bi}`}
-                                        className={`${blockColors[(mi * 10 + bi) % blockColors.length]} rounded-sm relative group cursor-pointer`}
+                                        className={`${blockColors[(mi * 10 + bi) % blockColors.length]} relative group cursor-pointer transition-all hover:brightness-110`}
                                         style={{ flex: weeks }}
                                         title={`${b.name}: ${weeks}sem`}
                                     >
-                                        <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-black/60 opacity-0 group-hover:opacity-100 transition-opacity truncate px-1">
+                                        <span className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity truncate px-1">
                                             {b.name}
                                         </span>
                                     </div>
@@ -59,95 +60,104 @@ const StructureSection: React.FC<StructureSectionProps> = ({ program, onUpdatePr
 
             {/* Macrocycles */}
             {program.macrocycles.map((macro, macroIdx) => (
-                <div key={macro.id} className="bg-[#252525] border border-[#3f3f3f] p-4 space-y-3">
+                <div key={macro.id} className="bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-3xl p-6 space-y-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 flex-1">
-                            <span className="bg-[#3f3f3f] text-white text-[7px] font-medium px-1.5 py-0.5 uppercase">M{macroIdx + 1}</span>
+                        <div className="flex items-center gap-3 flex-1">
+                            <span className="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Macro {macroIdx + 1}</span>
                             <input
-                                className="bg-transparent text-xs font-medium text-white focus:ring-0 border-none p-0 flex-1"
+                                className="bg-transparent text-headline-small font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tighter focus:ring-0 border-none p-0 flex-1 placeholder-[var(--md-sys-color-outline-variant)]"
                                 value={macro.name}
                                 onChange={e => update(p => { p.macrocycles[macroIdx].name = e.target.value; })}
+                                placeholder="NOMBRE MACROCICLO"
                             />
                         </div>
                     </div>
 
                     {/* Blocks */}
-                    <div className="space-y-3 pl-3 border-l-2 border-[#3f3f3f]">
+                    <div className="space-y-4 pl-4 border-l-2 border-[var(--md-sys-color-outline-variant)]">
                         {(macro.blocks || []).map((block, blockIdx) => (
-                            <div key={block.id} className="bg-[#1a1a1a] border border-[#3f3f3f] p-3 space-y-2">
+                            <div key={block.id} className="bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-4 space-y-3 shadow-sm">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 flex-1">
-                                        <span className="text-[7px] font-medium text-[#737373] uppercase">B{blockIdx + 1}</span>
+                                    <div className="flex items-center gap-3 flex-1">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] font-black text-label-small uppercase shadow-sm`}>
+                                            B{blockIdx + 1}
+                                        </div>
                                         <input
-                                            className="bg-transparent text-[11px] font-medium text-white focus:ring-0 border-none p-0 flex-1"
+                                            className="bg-transparent text-body-medium font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tight focus:ring-0 border-none p-0 flex-1 placeholder-[var(--md-sys-color-outline-variant)]"
                                             value={block.name}
-                                            onChange={e => update(p => { p.macrocycles[macroIdx].blocks[blockIdx].name = e.target.value; })}
+                                            onChange={e => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].name = e.target.value; })}
+                                            placeholder="NOMBRE BLOQUE"
                                         />
                                     </div>
                                     <button
-                                        onClick={() => { if (window.confirm('¿Eliminar bloque?')) update(p => { p.macrocycles[macroIdx].blocks.splice(blockIdx, 1); }); }}
-                                        className="p-1 text-[#737373] hover:text-red-400 transition-colors"
+                                        onClick={() => { if (window.confirm('¿Eliminar bloque?')) update(p => { p.macrocycles[macroIdx].blocks!.splice(blockIdx, 1); }); }}
+                                        className="p-2 text-[var(--md-sys-color-on-surface-variant)]/40 hover:text-[var(--md-sys-color-error)] transition-colors"
                                     >
-                                        <TrashIcon size={10} />
+                                        <TrashIcon size={16} />
                                     </button>
                                 </div>
 
                                 {/* Mesocycles */}
-                                {block.mesocycles.map((meso, mesoIdx) => (
-                                    <div key={meso.id} className="flex items-center justify-between bg-[#252525] p-2">
-                                        <div className="flex items-center gap-2 flex-1">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#525252]" />
-                                            <input
-                                                className="bg-transparent text-[9px] font-medium text-[#a3a3a3] focus:ring-0 border-none p-0 flex-1"
-                                                value={meso.name}
-                                                onChange={e => update(p => { p.macrocycles[macroIdx].blocks[blockIdx].mesocycles[mesoIdx].name = e.target.value; })}
-                                            />
+                                <div className="space-y-2">
+                                    {block.mesocycles.map((meso, mesoIdx) => (
+                                        <div key={meso.id} className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl p-3 shadow-sm">
+                                            <div className="flex items-center gap-3 flex-1">
+                                                <div className="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)] shadow-[0_0_8px_rgba(var(--md-sys-color-primary-rgb),0.4)]" />
+                                                <input
+                                                    className="bg-transparent text-label-large font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-wider focus:ring-0 border-none p-0 flex-1 placeholder-[var(--md-sys-color-outline-variant)]"
+                                                    value={meso.name}
+                                                    onChange={e => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx].name = e.target.value; })}
+                                                    placeholder="NOMBRE MESO"
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-3 self-end sm:self-auto">
+                                                <div className="relative">
+                                                    <select
+                                                        className="appearance-none bg-[var(--md-sys-color-surface-container)] text-[10px] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)] pl-3 pr-8 py-1 rounded-lg font-black uppercase tracking-widest focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/20 focus:border-[var(--md-sys-color-primary)] outline-none transition-all"
+                                                        value={meso.goal}
+                                                        onChange={e => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx].goal = e.target.value as any; })}
+                                                    >
+                                                        {GOAL_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
+                                                    </select>
+                                                </div>
+                                                <span className="text-label-small text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-widest">{meso.weeks.length} sem</span>
+                                                <button
+                                                    onClick={() => update(p => {
+                                                        const m = p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx];
+                                                        m.weeks.push({ id: crypto.randomUUID(), name: `Semana ${m.weeks.length + 1}`, sessions: [] });
+                                                    })}
+                                                    className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all"
+                                                >
+                                                    <PlusIcon size={14} />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <select
-                                                className="bg-[#1a1a1a] text-[7px] text-[#a3a3a3] border border-[#3f3f3f] px-1 py-0.5 font-medium"
-                                                value={meso.goal}
-                                                onChange={e => update(p => { p.macrocycles[macroIdx].blocks[blockIdx].mesocycles[mesoIdx].goal = e.target.value; })}
-                                            >
-                                                {GOAL_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
-                                            </select>
-                                            <span className="text-[8px] text-[#737373] font-medium">{meso.weeks.length}sem</span>
-                                            <button
-                                                onClick={() => update(p => {
-                                                    const m = p.macrocycles[macroIdx].blocks[blockIdx].mesocycles[mesoIdx];
-                                                    m.weeks.push({ id: crypto.randomUUID(), name: `Semana ${m.weeks.length + 1}`, sessions: [] });
-                                                })}
-                                                className="p-0.5 text-[#737373] hover:text-white transition-colors"
-                                            >
-                                                <PlusIcon size={10} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
 
                                 <button
                                     onClick={() => update(p => {
-                                        p.macrocycles[macroIdx].blocks[blockIdx].mesocycles.push({
+                                        p.macrocycles[macroIdx].blocks![blockIdx].mesocycles.push({
                                             id: crypto.randomUUID(), name: 'Nuevo Meso', goal: 'Acumulación', weeks: [],
                                         });
                                     })}
-                                    className="w-full py-1.5 text-[8px] font-bold text-zinc-600 hover:text-white border border-dashed border-white/10 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                    className="w-full py-3 text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-[0.2em] border-2 border-dashed border-[var(--md-sys-color-outline-variant)] rounded-xl flex items-center justify-center gap-2 hover:bg-[var(--md-sys-color-surface)] hover:text-[var(--md-sys-color-primary)] transition-all group"
                                 >
-                                    <PlusIcon size={9} /> Mesociclo
+                                    <PlusIcon size={12} className="group-hover:scale-110 transition-transform" /> Mesociclo
                                 </button>
                             </div>
                         ))}
 
                         <button
                             onClick={() => update(p => {
-                                p.macrocycles[macroIdx].blocks.push({
+                                p.macrocycles[macroIdx].blocks!.push({
                                     id: crypto.randomUUID(), name: 'Nuevo Bloque',
                                     mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación', weeks: [] }],
                                 });
                             })}
-                            className="w-full py-2 text-[8px] font-bold text-zinc-600 hover:text-white border border-dashed border-white/10 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                            className="w-full py-4 text-label-large font-black text-[var(--md-sys-color-on-surface)] bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-[2rem] flex items-center justify-center gap-2 hover:shadow-lg transition-all active:scale-[0.98] uppercase tracking-widest shadow-sm"
                         >
-                            <PlusIcon size={10} /> Bloque
+                            <PlusIcon size={16} /> Añadir Bloque
                         </button>
                     </div>
                 </div>

@@ -57,18 +57,18 @@ export const WeekPreviewSection: React.FC<WeekPreviewSectionProps> = ({
     const hasSessions = weekData && Object.values(weekData.sessionsByDay).some(arr => arr.length > 0);
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden">
+        <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl overflow-hidden">
             <button
                 onClick={() => setExpanded(!expanded)}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
             >
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em]">
                     Esta semana
                 </span>
                 {expanded ? (
-                    <ChevronUpIcon size={16} className="text-zinc-500" />
+                    <ChevronUpIcon size={16} className="text-[#49454F]" />
                 ) : (
-                    <ChevronDownIcon size={16} className="text-zinc-500" />
+                    <ChevronDownIcon size={16} className="text-[#49454F]" />
                 )}
             </button>
 
@@ -86,7 +86,7 @@ export const WeekPreviewSection: React.FC<WeekPreviewSectionProps> = ({
                                             isRest ? 'bg-zinc-900/50' : 'bg-amber-950/20 border border-amber-500/20'
                                         }`}
                                     >
-                                        <span className="text-[8px] font-mono text-zinc-500">
+                                        <span className="text-[8px] font-mono text-[#49454F]">
                                             {DAY_NAMES[day]}
                                         </span>
                                         {isRest ? (
@@ -101,13 +101,13 @@ export const WeekPreviewSection: React.FC<WeekPreviewSectionProps> = ({
                             })}
                         </div>
                     ) : (
-                        <p className="text-[9px] text-zinc-500 text-center py-4">
+                        <p className="text-[9px] text-[#49454F] text-center py-4">
                             Sin sesiones en esta semana
                         </p>
                     )}
                     <button
                         onClick={onNavigateProgram}
-                        className="w-full mt-3 py-2 rounded-lg border border-white/10 text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:text-white hover:border-white/20 transition-colors"
+                        className="w-full mt-3 py-2 rounded-lg border border-[#E6E0E9] text-[9px] font-black text-[#49454F] uppercase tracking-widest hover:text-white hover:border-white/20 transition-colors"
                     >
                         Ver programa
                     </button>

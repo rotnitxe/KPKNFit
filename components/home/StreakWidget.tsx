@@ -71,29 +71,29 @@ export const StreakWidget: React.FC = () => {
     const hasHistory = history.length > 0;
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em] flex items-center gap-1.5">
+        <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#E6E0E9] flex justify-between items-center">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.25em] flex items-center gap-1.5">
                     <FlameIcon size={10} className="text-amber-400" /> Racha
                 </span>
             </div>
             <div className="p-5 flex flex-col items-center">
             {!hasHistory ? (
-                <div className="flex items-center justify-between gap-3 py-2 px-3 w-full rounded-lg bg-white/[0.02] border border-white/5 min-h-[44px]">
-                    <span className="text-[9px] text-zinc-500 font-bold uppercase">0 días</span>
+                <div className="flex items-center justify-between gap-3 py-2 px-3 w-full rounded-lg bg-white/[0.02] border border-[#E6E0E9] min-h-[44px]">
+                    <span className="text-[9px] text-[#49454F] font-bold uppercase">0 días</span>
                     <span className="text-[8px] text-zinc-600">Añade entrenamientos</span>
                 </div>
             ) : (
                 <>
                 <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-black font-mono text-white">{streak}</span>
-                    <span className="text-[10px] text-zinc-500 font-black uppercase">días</span>
+                    <span className="text-[10px] text-[#49454F] font-black uppercase">días</span>
                 </div>
-                <p className="text-[8px] text-zinc-500 font-bold uppercase mt-1">consecutivos</p>
-                <div className="mt-4 pt-4 border-t border-white/5 w-full">
+                <p className="text-[8px] text-[#49454F] font-bold uppercase mt-1">consecutivos</p>
+                <div className="mt-4 pt-4 border-t border-[#E6E0E9] w-full">
                     <div className="flex justify-between text-[9px] font-black uppercase">
-                        <span className="text-zinc-500">Semana</span>
-                        <span className={weeklyAdherence >= 80 ? 'text-emerald-400' : weeklyAdherence >= 50 ? 'text-amber-400' : 'text-zinc-400'}>
+                        <span className="text-[#49454F]">Semana</span>
+                        <span className={weeklyAdherence >= 80 ? 'text-emerald-400' : weeklyAdherence >= 50 ? 'text-amber-400' : 'text-[#49454F]'}>
                             {weeklyAdherence}%
                         </span>
                     </div>

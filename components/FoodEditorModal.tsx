@@ -69,7 +69,7 @@ const FoodEditorModal: React.FC = () => {
                                 value={food.name || ''} 
                                 onChange={e => handleChange('name', e.target.value)} 
                                 placeholder="ej. Pechuga de Pollo"
-                                className="w-full bg-slate-900/50 border border-white/10 rounded-2xl p-4 pl-12 font-bold text-white text-lg focus:border-cyber-copper outline-none transition-all placeholder:text-slate-600"
+                                className="w-full bg-slate-900/50 border border-[#E6E0E9] rounded-2xl p-4 pl-12 font-bold text-white text-lg focus:border-cyber-copper outline-none transition-all placeholder:text-slate-600"
                             />
                         </div>
                     </div>
@@ -82,7 +82,7 @@ const FoodEditorModal: React.FC = () => {
                                 value={food.brand || ''} 
                                 onChange={e => handleChange('brand', e.target.value)} 
                                 placeholder="ej. Casero, Marca..." 
-                                className="w-full text-sm font-bold bg-slate-900/50 border border-white/5 rounded-xl p-3 text-slate-200 outline-none focus:border-white/20 transition-all" 
+                                className="w-full text-sm font-bold bg-slate-900/50 border border-[#E6E0E9] rounded-xl p-3 text-slate-200 outline-none focus:border-white/20 transition-all" 
                             />
                         </div>
                         <div className="space-y-1">
@@ -92,12 +92,12 @@ const FoodEditorModal: React.FC = () => {
                                     type="number" 
                                     value={food.servingSize} 
                                     onChange={e => handleChange('servingSize', Number(e.target.value))} 
-                                    className="w-full text-sm font-bold bg-slate-900/50 border border-white/5 rounded-xl p-3 text-white outline-none focus:border-white/20 text-center" 
+                                    className="w-full text-sm font-bold bg-slate-900/50 border border-[#E6E0E9] rounded-xl p-3 text-white outline-none focus:border-white/20 text-center" 
                                 />
                                 <select 
                                     value={food.unit} 
                                     onChange={e => handleChange('unit', e.target.value)}
-                                    className="w-20 bg-slate-900/50 border border-white/5 rounded-xl text-xs font-black text-slate-400 uppercase outline-none text-center"
+                                    className="w-20 bg-slate-900/50 border border-[#E6E0E9] rounded-xl text-xs font-black text-slate-400 uppercase outline-none text-center"
                                 >
                                     <option value="g">g</option>
                                     <option value="ml">ml</option>
@@ -109,7 +109,7 @@ const FoodEditorModal: React.FC = () => {
                     </div>
 
                     {/* Macros Card */}
-                    <div className="bg-slate-900/30 p-4 rounded-3xl border border-white/5 space-y-4 shadow-lg relative overflow-hidden">
+                    <div className="bg-slate-900/30 p-4 rounded-3xl border border-[#E6E0E9] space-y-4 shadow-lg relative overflow-hidden">
                         {/* Decorative Background Blur */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-cyber-copper/5 blur-[40px] rounded-full pointer-events-none"></div>
                         
@@ -118,19 +118,19 @@ const FoodEditorModal: React.FC = () => {
                         </h4>
                         
                         <div className="grid grid-cols-2 gap-3 relative z-10">
-                            <div className="bg-slate-950 p-3 rounded-2xl border border-white/5 shadow-sm group hover:border-green-500/30 transition-colors">
+                            <div className="bg-slate-950 p-3 rounded-2xl border border-[#E6E0E9] shadow-sm group hover:border-green-500/30 transition-colors">
                                 <label className="block text-[8px] font-black text-green-500 uppercase mb-1 tracking-wider">Calorías (kcal)</label>
                                 <input type="number" value={food.calories} onChange={e => handleChange('calories', Number(e.target.value))} className="w-full bg-transparent border-none font-mono text-2xl font-black text-white p-0 focus:ring-0 placeholder-slate-700" placeholder="0" />
                             </div>
-                            <div className="bg-slate-950 p-3 rounded-2xl border border-white/5 shadow-sm group hover:border-blue-500/30 transition-colors">
+                            <div className="bg-slate-950 p-3 rounded-2xl border border-[#E6E0E9] shadow-sm group hover:border-blue-500/30 transition-colors">
                                 <label className="block text-[8px] font-black text-blue-500 uppercase mb-1 tracking-wider">Proteínas (g)</label>
                                 <input type="number" step="0.1" value={food.protein} onChange={e => handleChange('protein', Number(e.target.value))} className="w-full bg-transparent border-none font-mono text-2xl font-black text-white p-0 focus:ring-0 placeholder-slate-700" placeholder="0.0" />
                             </div>
-                            <div className="bg-slate-950 p-3 rounded-2xl border border-white/5 shadow-sm group hover:border-cyber-copper/30 transition-colors">
+                            <div className="bg-slate-950 p-3 rounded-2xl border border-[#E6E0E9] shadow-sm group hover:border-cyber-copper/30 transition-colors">
                                 <label className="block text-[8px] font-black text-cyber-copper uppercase mb-1 tracking-wider">Carbohidratos (g)</label>
                                 <input type="number" step="0.1" value={food.carbs} onChange={e => handleChange('carbs', Number(e.target.value))} className="w-full bg-transparent border-none font-mono text-2xl font-black text-white p-0 focus:ring-0 placeholder-slate-700" placeholder="0.0" />
                             </div>
-                            <div className="bg-slate-950 p-3 rounded-2xl border border-white/5 shadow-sm group hover:border-yellow-500/30 transition-colors">
+                            <div className="bg-slate-950 p-3 rounded-2xl border border-[#E6E0E9] shadow-sm group hover:border-yellow-500/30 transition-colors">
                                 <label className="block text-[8px] font-black text-yellow-500 uppercase mb-1 tracking-wider">Grasas (g)</label>
                                 <input type="number" step="0.1" value={food.fats} onChange={e => handleChange('fats', Number(e.target.value))} className="w-full bg-transparent border-none font-mono text-2xl font-black text-white p-0 focus:ring-0 placeholder-slate-700" placeholder="0.0" />
                             </div>
@@ -144,13 +144,13 @@ const FoodEditorModal: React.FC = () => {
                             onChange={e => handleChange('aiNotes', e.target.value)} 
                             placeholder="Detalles sobre micronutrientes, fibra, tipo de grasa..."
                             rows={3}
-                            className="w-full bg-slate-900/50 border border-white/5 rounded-2xl p-4 text-xs text-slate-300 shadow-inner focus:border-cyber-copper/30 outline-none resize-none placeholder:text-slate-600" 
+                            className="w-full bg-slate-900/50 border border-[#E6E0E9] rounded-2xl p-4 text-xs text-slate-300 shadow-inner focus:border-cyber-copper/30 outline-none resize-none placeholder:text-slate-600" 
                         />
                     </div>
                 </div>
 
                 {/* Pie de Página Fijo (Sticky Footer) */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-white/10 z-20 flex gap-3">
+                <div className="absolute bottom-0 left-0 right-0 p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-[#FEF7FF]/90 backdrop-blur-xl border-t border-[#E6E0E9] z-20 flex gap-3">
                     <Button onClick={closeFoodEditor} variant="secondary" className="flex-1 !py-3 uppercase font-bold text-xs !bg-slate-900 border-slate-800 text-slate-400 hover:text-white">
                         Cancelar
                     </Button>

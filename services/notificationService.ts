@@ -93,7 +93,7 @@ export const setupNotificationChannels = async () => {
       name: 'Temporizadores',
       description: 'Descanso entre series: sonido y vibración',
       importance: 5,
-      visibility: 2, // VISIBILITY_PUBLIC: mostrar en pantalla de bloqueo
+      visibility: 1, // VISIBILITY_PUBLIC: mostrar en pantalla de bloqueo
       sound: 'rest_beep_final',
       vibration: true,
       lights: true,

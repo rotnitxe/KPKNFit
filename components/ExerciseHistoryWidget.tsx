@@ -15,7 +15,7 @@ const ExerciseHistoryWidget: React.FC<{ program: Program; history: WorkoutLog[] 
         <>
             <button 
                 onClick={() => setIsOpen(true)}
-                className="w-full bg-[#111] border border-white/10 rounded-3xl p-5 flex items-center justify-between hover:bg-white/5 transition-colors group"
+                className="w-full bg-[#ECE6F0] border border-[#E6E0E9] rounded-3xl p-5 flex items-center justify-between hover:bg-white/5 transition-colors group"
             >
                 <div className="flex items-center gap-4">
                     <div className="bg-blue-500/10 p-3 rounded-2xl text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">

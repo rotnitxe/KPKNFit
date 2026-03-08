@@ -39,7 +39,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
             <button
                 onClick={onBack}
-                className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-[#E6E0E9] flex items-center justify-center text-white hover:bg-white/20 transition-colors"
             >
                 <ChevronDownIcon size={20} className="rotate-90" />
             </button>
@@ -65,9 +65,9 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
                 </h1>
                 <div className="flex items-center gap-3 text-xs text-zinc-300 font-medium">
                     {program.author && program.author.trim() !== '' && (
-                        <span className="text-[10px] text-zinc-400">{program.author}</span>
+                        <span className="text-[10px] text-[#49454F]">{program.author}</span>
                     )}
-                    <span className="uppercase font-bold tracking-widest text-[10px] text-zinc-400">{structureLabel}</span>
+                    <span className="uppercase font-bold tracking-widest text-[10px] text-[#49454F]">{structureLabel}</span>
                 </div>
             </div>
 

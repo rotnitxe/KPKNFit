@@ -75,7 +75,7 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
           group hover:scale-[1.02] active:scale-95 transition-transform
       `}>
         <div className="flex-shrink-0 mt-0.5">
-          {ICONS[toast.type] || <InfoIcon size={18} className="text-zinc-400" />}
+          {ICONS[toast.type] || <InfoIcon size={18} className="text-[#49454F]" />}
         </div>
 
         <div className="flex-grow flex flex-col justify-center min-w-0 pt-0.5">
@@ -105,7 +105,7 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
         <button
           onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
           aria-label="Cerrar"
-          className="flex-shrink-0 text-zinc-500 hover:text-white transition-colors p-1"
+          className="flex-shrink-0 text-[#49454F] hover:text-white transition-colors p-1"
         >
           <XIcon size={14} />
         </button>

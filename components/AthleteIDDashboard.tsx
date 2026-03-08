@@ -40,7 +40,7 @@ interface RecordData {
 // --- MICRO COMPONENTS FOR UI ---
 
 const StatBox: React.FC<{ label: string; value: string | number; unit?: string; trend?: string; color?: string }> = ({ label, value, unit, trend, color = "text-white" }) => (
-    <div className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+    <div className="bg-[#111111] border border-[#E6E0E9] rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
         <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 z-10">{label}</span>
         <div className="flex items-baseline gap-1 z-10">
@@ -62,7 +62,7 @@ const SectionHeader: React.FC<{ title: string; icon?: React.ReactNode; action?: 
 );
 
 const InputField: React.FC<{ label: string; value: string | number; onChange: (v: string) => void; type?: string; placeholder?: string }> = ({ label, value, onChange, type = "text", placeholder }) => (
-    <div className="bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3 focus-within:border-primary-color/50 transition-colors group">
+    <div className="bg-[#0A0A0A] border border-[#E6E0E9] rounded-xl px-4 py-3 focus-within:border-primary-color/50 transition-colors group">
         <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 group-focus-within:text-primary-color transition-colors">{label}</label>
         <input 
             type={type} 
@@ -77,7 +77,7 @@ const InputField: React.FC<{ label: string; value: string | number; onChange: (v
 const MeasurementInput: React.FC<{ label: string; value: string; onChange: (v: string) => void }> = ({ label, value, onChange }) => (
     <div>
         <label className="text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">{label}</label>
-        <input type="number" step="0.1" value={value} onChange={e => onChange(e.target.value)} className="w-full bg-slate-900 border border-white/5 rounded-xl p-3 text-center font-bold text-white focus:border-primary-color outline-none" />
+        <input type="number" step="0.1" value={value} onChange={e => onChange(e.target.value)} className="w-full bg-slate-900 border border-[#E6E0E9] rounded-xl p-3 text-center font-bold text-white focus:border-primary-color outline-none" />
     </div>
 );
 
@@ -273,19 +273,19 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
             />
 
             {/* TOP NAVIGATION BAR */}
-            <div className="flex justify-between items-center px-4 pt-6 pb-4 bg-black/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-50">
+            <div className="flex justify-between items-center px-4 pt-6 pb-4 bg-black/80 backdrop-blur-xl border-b border-[#E6E0E9] sticky top-0 z-50">
                 <button onClick={onClose} className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/5"><XIcon size={24} /></button>
                 
-                <div className="flex bg-[#111] p-1 rounded-full border border-white/10">
+                <div className="flex bg-[#ECE6F0] p-1 rounded-full border border-[#E6E0E9]">
                     <button onClick={() => setActiveTab('id')} className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase transition-all duration-300 ${activeTab === 'id' ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-slate-500 hover:text-white'}`}>Athlete ID</button>
                     <button onClick={() => setActiveTab('edit')} className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase transition-all duration-300 ${activeTab === 'edit' ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-slate-500 hover:text-white'}`}>Editar</button>
                 </div>
 
                 <div className="flex gap-2">
                     {activeTab === 'id' && (
-                        <button onClick={handleShareCard} disabled={isSharing} className={`p-2 rounded-full border border-white/10 bg-[#111] text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors ${isSharing ? 'animate-pulse' : ''}`}><LinkIcon size={18} /></button>
+                        <button onClick={handleShareCard} disabled={isSharing} className={`p-2 rounded-full border border-[#E6E0E9] bg-[#ECE6F0] text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors ${isSharing ? 'animate-pulse' : ''}`}><LinkIcon size={18} /></button>
                     )}
-                    <button onClick={() => { onSettingsClick(); onClose(); }} className="p-2 rounded-full border border-white/10 bg-[#111] text-slate-400 hover:text-white transition-colors"><SettingsIcon size={18} /></button>
+                    <button onClick={() => { onSettingsClick(); onClose(); }} className="p-2 rounded-full border border-[#E6E0E9] bg-[#ECE6F0] text-slate-400 hover:text-white transition-colors"><SettingsIcon size={18} /></button>
                 </div>
             </div>
 
@@ -295,7 +295,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                 {activeTab === 'id' ? (
                     <div className="space-y-8 p-4 pb-32">
                         {/* ID CARD VISUALIZER */}
-                        <div id="athlete-id-card-content" className="relative w-full aspect-[4/5] max-h-[500px] mx-auto bg-black rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl flex flex-col">
+                        <div id="athlete-id-card-content" className="relative w-full aspect-[4/5] max-h-[500px] mx-auto bg-black rounded-[2rem] border border-[#E6E0E9] overflow-hidden shadow-2xl flex flex-col">
                             {/* Background Elements */}
                             <div className="absolute inset-0 bg-gradient-to-br from-[#111] to-black z-0" />
                             <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-blue-900/20 to-transparent pointer-events-none" />
@@ -307,7 +307,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nivel</span>
                                     <span className="text-xl font-black text-white uppercase tracking-tighter italic">{athleteTitle}</span>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5">
+                                <div className="bg-white/5 border border-[#E6E0E9] backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5">
                                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                                     <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Activo</span>
                                 </div>
@@ -315,7 +315,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
 
                             {/* Avatar & Name */}
                             <div className="relative z-10 flex flex-col items-center mt-2">
-                                <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-b from-white/20 to-white/5 border border-white/10 shadow-2xl relative group">
+                                <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-b from-white/20 to-white/5 border border-[#E6E0E9] shadow-2xl relative group">
                                     <div className="w-full h-full rounded-full overflow-hidden bg-black relative">
                                          {settings.profilePicture ? (
                                             <img src={settings.profilePicture} alt="Avatar" className="w-full h-full object-cover" />
@@ -334,15 +334,15 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                             {/* Main Stats Grid */}
                             <div className="relative z-10 mt-auto p-6">
                                 <div className="grid grid-cols-3 gap-3">
-                                    <div className="flex flex-col items-center p-3 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                                    <div className="flex flex-col items-center p-3 bg-white/5 rounded-2xl border border-[#E6E0E9] backdrop-blur-sm">
                                         <span className="text-2xl font-black text-white">{latestWeight || '--'}</span>
                                         <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Peso</span>
                                     </div>
-                                    <div className="flex flex-col items-center p-3 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                                    <div className="flex flex-col items-center p-3 bg-white/5 rounded-2xl border border-[#E6E0E9] backdrop-blur-sm">
                                         <span className="text-2xl font-black text-white">{settings.userVitals.bodyFatPercentage || '--'}%</span>
                                         <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Grasa</span>
                                     </div>
-                                    <div className="flex flex-col items-center p-3 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                                    <div className="flex flex-col items-center p-3 bg-white/5 rounded-2xl border border-[#E6E0E9] backdrop-blur-sm">
                                         <span className="text-2xl font-black text-cyan-400">{ffmiValue}</span>
                                         <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">FFMI</span>
                                     </div>
@@ -354,7 +354,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                         <div className="space-y-4">
                             <SectionHeader title="Métricas de Rendimiento" icon={<ActivityIcon size={16}/>} />
                             
-                            <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-5 relative overflow-hidden">
+                            <div className="bg-[#0A0A0A] border border-[#E6E0E9] rounded-3xl p-5 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-[50px] rounded-full pointer-events-none" />
                                 <div className="flex justify-between items-center mb-6">
                                     <div>
@@ -365,7 +365,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                                 </div>
                                 <div className="space-y-3">
                                     {strengthRecords.slice(0, 3).map((record, i) => (
-                                        <div key={i} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                                        <div key={i} className="flex justify-between items-center py-2 border-b border-[#E6E0E9] last:border-0">
                                             <span className="text-xs font-bold text-slate-300">{record.name}</span>
                                             <span className="text-sm font-black text-white">{record.oneRM} <span className="text-[10px] text-slate-600 font-bold">{settings.weightUnit}</span></span>
                                         </div>
@@ -377,12 +377,12 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                         {/* SECTION: PROGRESS CHARTS */}
                         <div className="space-y-4">
                             <SectionHeader title="Evolución Física" icon={<TrendingUpIcon size={16}/>} />
-                            <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-1 overflow-hidden">
+                            <div className="bg-[#0A0A0A] border border-[#E6E0E9] rounded-3xl p-1 overflow-hidden">
                                 <BodyWeightChart progress={bodyProgress} settings={settings} />
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-1 overflow-hidden"><BodyFatChart /></div>
-                                <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-1 overflow-hidden"><FFMIChart /></div>
+                                <div className="bg-[#0A0A0A] border border-[#E6E0E9] rounded-3xl p-1 overflow-hidden"><BodyFatChart /></div>
+                                <div className="bg-[#0A0A0A] border border-[#E6E0E9] rounded-3xl p-1 overflow-hidden"><FFMIChart /></div>
                             </div>
                         </div>
                     </div>
@@ -399,7 +399,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                                 <button 
                                     key={tab.id}
                                     onClick={() => setEditSubTab(tab.id as any)}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap ${editSubTab === tab.id ? 'bg-white text-black border-white' : 'bg-[#0A0A0A] text-slate-500 border-white/10 hover:border-white/30'}`}
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap ${editSubTab === tab.id ? 'bg-white text-black border-white' : 'bg-[#0A0A0A] text-slate-500 border-[#E6E0E9] hover:border-white/30'}`}
                                 >
                                     {tab.icon}
                                     <span className="text-[10px] font-black uppercase tracking-wider">{tab.label}</span>
@@ -408,7 +408,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                         </div>
 
                         {/* EDIT FORMS */}
-                        <div className="bg-[#111] border border-white/5 rounded-3xl p-5 space-y-6 relative">
+                        <div className="bg-[#ECE6F0] border border-[#E6E0E9] rounded-3xl p-5 space-y-6 relative">
                              {/* Save Floater */}
                              {hasChanges && (
                                 <div className="absolute -top-16 left-0 right-0 flex justify-center animate-bounce z-50">
@@ -422,7 +422,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                                 <div className="space-y-6 animate-fade-in">
                                     <div className="flex justify-center mb-6">
                                         <div className="relative group cursor-pointer" onClick={() => setIsPhotoModalOpen(true)}>
-                                            <div className="w-24 h-24 rounded-full border-2 border-white/10 overflow-hidden bg-black">
+                                            <div className="w-24 h-24 rounded-full border-2 border-[#E6E0E9] overflow-hidden bg-black">
                                                 {localSettings.profilePicture ? <img src={localSettings.profilePicture} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"/> : <div className="w-full h-full flex items-center justify-center text-slate-600"><CameraIcon size={32}/></div>}
                                             </div>
                                             <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
@@ -436,7 +436,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                                         
                                         <div className="grid grid-cols-2 gap-4">
                                             <InputField label="Edad" value={localSettings.userVitals.age || ''} onChange={v => handleVitalsChange('age', parseInt(v))} type="number" placeholder="25" />
-                                            <div className="bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3">
+                                            <div className="bg-[#0A0A0A] border border-[#E6E0E9] rounded-xl px-4 py-3">
                                                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Género</label>
                                                 <select value={localSettings.userVitals.gender || ''} onChange={e => handleVitalsChange('gender', e.target.value as any)} className="w-full bg-transparent border-none p-0 text-white font-bold text-sm focus:ring-0">
                                                     <option value="male">Hombre</option><option value="female">Mujer</option><option value="other">Otro</option>
@@ -469,7 +469,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                                         <MeasurementInput label="Long. Antebrazo" value={String(localSettings.userVitals.forearmLength || '')} onChange={v => handleVitalsChange('forearmLength', parseFloat(v))} />
                                     </div>
                                     
-                                    <div className="pt-4 border-t border-white/5">
+                                    <div className="pt-4 border-t border-[#E6E0E9]">
                                         <h4 className="text-xs font-black text-white uppercase mb-4">Somatotipo</h4>
                                         <SomatotypeSlider label="Endomorfo" value={localSettings.userVitals.somatotype?.endomorph || 1} onChange={v => handleVitalsChange('somatotype', {...(localSettings.userVitals.somatotype || {endomorph:1, mesomorph:1, ectomorph:1}), endomorph: v})} />
                                         <SomatotypeSlider label="Mesomorfo" value={localSettings.userVitals.somatotype?.mesomorph || 1} onChange={v => handleVitalsChange('somatotype', {...(localSettings.userVitals.somatotype || {endomorph:1, mesomorph:1, ectomorph:1}), mesomorph: v})} />
@@ -480,7 +480,7 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
 
                             {editSubTab === 'nutrition' && (
                                 <div className="space-y-6 animate-fade-in">
-                                    <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-4">
+                                    <div className="bg-[#0A0A0A] border border-[#E6E0E9] rounded-2xl p-4">
                                         <div className="flex justify-between items-center mb-4">
                                             <h4 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2"><TargetIcon size={14} className="text-red-500"/> Misión Principal</h4>
                                             {localSettings.userVitals.targetWeight && <button onClick={() => handleVitalsChange('targetWeight', undefined)} className="text-[9px] font-bold text-red-400 hover:text-red-300 uppercase">Borrar</button>}
@@ -488,11 +488,11 @@ const AthleteIDDashboard: React.FC<AthleteIDDashboardProps> = ({ isOpen, onClose
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-[9px] font-black text-slate-500 uppercase">Peso Meta</label>
-                                                <input type="number" step="0.1" value={localSettings.userVitals.targetWeight || ''} onChange={e => handleVitalsChange('targetWeight', parseFloat(e.target.value))} className="w-full bg-transparent border-b border-white/10 py-2 text-xl font-black text-white focus:border-primary-color outline-none" placeholder="0.0" />
+                                                <input type="number" step="0.1" value={localSettings.userVitals.targetWeight || ''} onChange={e => handleVitalsChange('targetWeight', parseFloat(e.target.value))} className="w-full bg-transparent border-b border-[#E6E0E9] py-2 text-xl font-black text-white focus:border-primary-color outline-none" placeholder="0.0" />
                                             </div>
                                             <div>
                                                 <label className="text-[9px] font-black text-slate-500 uppercase">Fecha Límite</label>
-                                                <input type="date" value={localSettings.userVitals.targetDate || ''} onChange={e => handleVitalsChange('targetDate', e.target.value)} className="w-full bg-transparent border-b border-white/10 py-2 text-sm font-bold text-white focus:border-primary-color outline-none" />
+                                                <input type="date" value={localSettings.userVitals.targetDate || ''} onChange={e => handleVitalsChange('targetDate', e.target.value)} className="w-full bg-transparent border-b border-[#E6E0E9] py-2 text-sm font-bold text-white focus:border-primary-color outline-none" />
                                             </div>
                                         </div>
                                     </div>

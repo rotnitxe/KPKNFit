@@ -46,7 +46,7 @@ export const WizardFABs: React.FC<WizardFABsProps> = ({
                 <button
                     onClick={onBack}
                     aria-label="Atrás"
-                    className={`absolute z-20 w-12 h-12 rounded-full border border-white/20 bg-black/40 text-zinc-400 hover:text-white hover:bg-black/60 flex items-center justify-center backdrop-blur-sm transition-all left-6 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0a0a] ${acc.back} ${className}`}
+                    className={`absolute z-20 w-12 h-12 rounded-full border border-white/20 bg-black/40 text-[#49454F] hover:text-white hover:bg-black/60 flex items-center justify-center backdrop-blur-sm transition-all left-6 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0a0a] ${acc.back} ${className}`}
                     style={{ bottom: FAB_BOTTOM }}
                 >
                     <ChevronLeftIcon size={22} />

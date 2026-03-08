@@ -1,7 +1,10 @@
 
 // components/GlobalVoiceAssistant.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob, FunctionDeclaration, Type } from '@google/genai';
+import { GoogleGenAI, Modality, Blob, FunctionDeclaration, Type } from '@google/genai';
+
+type LiveSession = any;
+type LiveServerMessage = any;
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { encode, decode, decodeAudioData } from '../services/geminiService';
 import * as aiService from '../services/aiService';
@@ -115,7 +118,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
     const appState = useAppState();
     const { isGlobalVoiceActive } = appState;
     const dispatch = useAppDispatch();
-    const { 
+    const {
         setIsGlobalVoiceActive, addToast,
         handleDeleteProgram, handleStartProgram, setOngoingWorkout,
         setSettings
@@ -123,7 +126,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
 
     const appStateRef = useRef(appState);
     appStateRef.current = appState;
-    
+
     const sessionPromiseRef = useRef<Promise<LiveSession> | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const outputAudioContextRef = useRef<AudioContext | null>(null);
@@ -139,7 +142,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
     }, []);
 
     const stopAllAudio = useCallback(() => {
-        audioSourcesRef.current.forEach(source => { try { source.stop(); } catch(e) {} });
+        audioSourcesRef.current.forEach(source => { try { source.stop(); } catch (e) { } });
         audioSourcesRef.current.clear();
         nextStartTimeRef.current = 0;
     }, []);
@@ -179,15 +182,15 @@ export const GlobalVoiceAssistant: React.FC = () => {
             });
         } else {
             cleanup();
-            KeepAwake.allowSleep().catch(() => {});
+            KeepAwake.allowSleep().catch(() => { });
         }
         return () => {
             if (isGlobalVoiceActive) {
                 cleanup();
-                KeepAwake.allowSleep().catch(() => {});
+                KeepAwake.allowSleep().catch(() => { });
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isGlobalVoiceActive]);
 
     const startSession = async () => {
@@ -196,17 +199,17 @@ export const GlobalVoiceAssistant: React.FC = () => {
 
         const apiKey = appState.settings.apiKeys?.gemini;
         if (!apiKey) {
-             addToast("Configura tu API Key de Gemini en Ajustes para usar el asistente.", "danger");
-             setIsGlobalVoiceActive(false);
-             isConnectingRef.current = false;
-             return;
+            addToast("Configura tu API Key de Gemini en Ajustes para usar el asistente.", "danger");
+            setIsGlobalVoiceActive(false);
+            isConnectingRef.current = false;
+            return;
         }
 
         const ai = new GoogleGenAI({ apiKey });
         const voiceName = appState.settings.aiVoice || 'Puck';
-        
+
         const dateStr = new Date().toLocaleString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        
+
         const systemInstruction = `Eres "Prime God", el asistente de voz omnisciente de la app "YourPrime".
         
         CONTEXTO:
@@ -241,7 +244,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
                         const source = inputCtx.createMediaStreamSource(streamRef.current);
                         const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
                         scriptProcessorRef.current = scriptProcessor;
-                        
+
                         scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
                             const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                             const int16 = new Int16Array(inputData.length);
@@ -257,8 +260,8 @@ export const GlobalVoiceAssistant: React.FC = () => {
                         isConnectingRef.current = false;
                     },
                     onmessage: async (message: LiveServerMessage) => {
-                         const audioData = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-                         if (audioData && outputAudioContextRef.current) {
+                        const audioData = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+                        if (audioData && outputAudioContextRef.current) {
                             const outCtx = outputAudioContextRef.current;
                             nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outCtx.currentTime);
                             const audioBuffer = await decodeAudioData(decode(audioData), outCtx, 24000, 1);
@@ -269,7 +272,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
                             sourceNode.start(nextStartTimeRef.current);
                             nextStartTimeRef.current += audioBuffer.duration;
                             audioSourcesRef.current.add(sourceNode);
-                         }
+                        }
 
                         if (message.toolCall?.functionCalls) {
                             for (const fc of message.toolCall.functionCalls) {
@@ -279,7 +282,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
                                     switch (fc.name) {
                                         case 'getAppState': {
                                             const { domain, query } = fc.args as { domain: string, query?: string };
-                                            
+
                                             switch (domain) {
                                                 case 'workout':
                                                     result = {
@@ -303,7 +306,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
                                                     result = { consumed, goals: { calories: state.settings.dailyCalorieGoal, protein: state.settings.dailyProteinGoal } };
                                                     break;
                                                 case 'history':
-                                                    let filteredHistory = [...state.history].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                                                    let filteredHistory = [...state.history].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                                                     if (query) {
                                                         const q = query.toLowerCase();
                                                         filteredHistory = filteredHistory.filter(log => log.sessionName.toLowerCase().includes(q) || log.completedExercises.some(ex => ex.exerciseName.toLowerCase().includes(q)));
@@ -323,7 +326,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
                                                 case 'programs':
                                                     let programs = state.programs;
                                                     if (query) programs = programs.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
-                                                    result = { programs: programs.map(p => ({name: p.name, description: p.description})) };
+                                                    result = { programs: programs.map(p => ({ name: p.name, description: p.description })) };
                                                     break;
                                                 default:
                                                     result = { error: "Dominio desconocido" };
@@ -344,7 +347,9 @@ export const GlobalVoiceAssistant: React.FC = () => {
                                         }
                                         case 'addExerciseToSession': {
                                             if (!state.ongoingWorkout) { result = { error: 'No hay un entrenamiento activo.' }; break; }
-                                            const { exerciseName, sets, reps } = fc.args as { exerciseName: string, sets?: number, reps?: number };
+                                            const args = fc.args as { exerciseName: string, sets?: number, reps?: number } | undefined;
+                                            if (!args) break;
+                                            const { exerciseName, sets, reps } = args;
                                             const newExercise: any = { id: crypto.randomUUID(), name: exerciseName, restTime: 90, sets: Array.from({ length: sets || 3 }).map(() => ({ id: crypto.randomUUID(), targetReps: reps || 8, intensityMode: 'rpe', targetRPE: 8 })), isFavorite: false, trainingMode: 'reps' };
                                             setOngoingWorkout(prev => {
                                                 if (!prev) return null;
@@ -360,7 +365,9 @@ export const GlobalVoiceAssistant: React.FC = () => {
                                             break;
                                         }
                                         case 'updateUserSettings': {
-                                            const { key, value } = fc.args as { key: string, value: string };
+                                            const args = fc.args as { key: string, value: string } | undefined;
+                                            if (!args) break;
+                                            const { key, value } = args;
                                             const parsedValue = parseValue(value);
                                             const settingUpdate = updateNestedSettings(state.settings, key, parsedValue);
                                             if (Object.keys(settingUpdate).length > 0) {
@@ -386,10 +393,10 @@ export const GlobalVoiceAssistant: React.FC = () => {
                             }
                         }
                     },
-                    onerror: (e) => { 
-                         console.error('Gemini error:', e);
-                         cleanup();
-                         setIsGlobalVoiceActive(false); 
+                    onerror: (e) => {
+                        console.error('Gemini error:', e);
+                        cleanup();
+                        setIsGlobalVoiceActive(false);
                     },
                     onclose: () => { cleanup(); setIsGlobalVoiceActive(false); },
                 }
@@ -406,7 +413,7 @@ export const GlobalVoiceAssistant: React.FC = () => {
     return (
         <div className="fixed bottom-[100px] left-0 right-0 flex justify-center items-center pointer-events-none z-50 animate-fade-in-up">
             <div className="bg-black/80 backdrop-blur-md px-6 py-3 rounded-full border border-cyan-500/50 flex items-center gap-4 shadow-[0_0_30px_rgba(6,182,212,0.3)] pointer-events-auto">
-                 <div className="flex gap-1 items-center h-4">
+                <div className="flex gap-1 items-center h-4">
                     <div className="w-1 bg-cyan-400 h-full animate-[wave_1s_ease-in-out_infinite]"></div>
                     <div className="w-1 bg-cyan-400 h-2/3 animate-[wave_1s_ease-in-out_0.1s_infinite]"></div>
                     <div className="w-1 bg-cyan-400 h-full animate-[wave_1s_ease-in-out_0.2s_infinite]"></div>

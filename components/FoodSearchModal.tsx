@@ -94,18 +94,18 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
                 {!selectedFood ? (
                     <>
                         <div className="relative">
-                            <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                            <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#49454F]" />
                             <input
                                 type="text"
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 placeholder="Ej: pechuga de pollo, arroz..."
                                 autoFocus
-                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
+                                className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-white/30 outline-none"
                             />
                         </div>
 
-                        {isLoading && <p className="text-xs text-zinc-500">Buscando...</p>}
+                        {isLoading && <p className="text-xs text-[#49454F]">Buscando...</p>}
                         {!isLoading && matchType === 'fuzzy' && results.length > 0 && (
                             <p className="text-xs text-amber-400/90 bg-amber-500/10 rounded-lg px-3 py-2">
                                 No hay coincidencia exacta. Mostrando los resultados más cercanos.
@@ -123,19 +123,19 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
                                         {food.image ? (
                                             <img src={food.image} alt="" className="w-8 h-8 rounded-lg object-cover" />
                                         ) : (
-                                            <UtensilsIcon size={14} className="text-zinc-500" />
+                                            <UtensilsIcon size={14} className="text-[#49454F]" />
                                         )}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <p className="text-sm font-medium text-white truncate">{food.name}</p>
-                                        <p className="text-[10px] text-zinc-500 font-mono">
+                                        <p className="text-[10px] text-[#49454F] font-mono">
                                             {Math.round(food.calories)} kcal · P:{food.protein} C:{food.carbs} F:{food.fats}
                                         </p>
                                     </div>
                                 </button>
                             ))}
                             {!isLoading && query && results.length === 0 && (
-                                <p className="text-center text-sm text-zinc-500 py-6">No se encontraron resultados</p>
+                                <p className="text-center text-sm text-[#49454F] py-6">No se encontraron resultados</p>
                             )}
                         </div>
                     </>
@@ -143,15 +143,15 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({ isOpen, onClos
                     <div className="space-y-4">
                         <div>
                             <p className="text-sm font-medium text-white">{selectedFood.name}</p>
-                            <p className="text-[10px] text-zinc-500 font-mono mt-0.5">
+                            <p className="text-[10px] text-[#49454F] font-mono mt-0.5">
                                 {Math.round(selectedFood.calories)} kcal · P:{selectedFood.protein} C:{selectedFood.carbs} F:{selectedFood.fats}
                             </p>
                             {selectedFood.micronutrients && selectedFood.micronutrients.length > 0 && (
                                 <details className="mt-2 group">
-                                    <summary className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:text-zinc-300 list-none">
+                                    <summary className="text-[10px] font-bold text-[#49454F] uppercase tracking-wider cursor-pointer hover:text-zinc-300 list-none">
                                         <span className="inline-flex items-center gap-1">Ver micronutrientes</span>
                                     </summary>
-                                    <div className="mt-1.5 text-[10px] text-zinc-400 font-mono space-y-0.5">
+                                    <div className="mt-1.5 text-[10px] text-[#49454F] font-mono space-y-0.5">
                                         {selectedFood.micronutrients.map((m, i) => (
                                             <div key={i}>{m.name}: {m.amount} {m.unit}</div>
                                         ))}

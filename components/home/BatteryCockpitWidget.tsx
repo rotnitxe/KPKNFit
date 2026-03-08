@@ -42,7 +42,7 @@ const BatteryIndicator: React.FC<{
     return (
         <div
             className={`relative flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${
-                isCalibrating ? 'border-white/30 bg-white/5' : 'border-white/10 bg-black/30'
+                isCalibrating ? 'border-white/30 bg-white/5' : 'border-[#E6E0E9] bg-black/30'
             }`}
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
@@ -71,7 +71,7 @@ const BatteryIndicator: React.FC<{
                 </div>
             </div>
             <span className={`text-xl font-black font-mono tracking-tighter ${displayColor}`}>{displayVal}%</span>
-            <span className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1">{label}</span>
+            <span className="text-[8px] text-[#49454F] font-black uppercase tracking-[0.2em] mt-1">{label}</span>
 
             {isCalibrating && (
                 <div className="absolute inset-0 rounded-xl bg-black/90 flex flex-col items-center justify-center p-3 gap-2" onClick={e => e.stopPropagation()}>
@@ -181,9 +181,9 @@ export const BatteryCockpitWidget: React.FC = () => {
     if (!batteries) return <SkeletonLoader lines={3} />;
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em] flex items-center gap-2">
+        <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#E6E0E9] flex justify-between items-center">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.25em] flex items-center gap-2">
                     <ZapIcon size={10} className="text-amber-400" /> LA BATERÍA
                 </span>
                 <span className="text-[8px] font-mono text-zinc-600">Sistemas biológicos</span>
@@ -232,15 +232,15 @@ export const BatteryCockpitWidget: React.FC = () => {
                     />
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-white/5 flex gap-3 items-start">
-                    <InfoIcon size={14} className="text-zinc-500 shrink-0 mt-0.5" />
-                    <p className="text-[9px] text-zinc-400 font-medium leading-relaxed italic">"{batteries.verdict}"</p>
+                <div className="mt-4 pt-4 border-t border-[#E6E0E9] flex gap-3 items-start">
+                    <InfoIcon size={14} className="text-[#49454F] shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-[#49454F] font-medium leading-relaxed italic">"{batteries.verdict}"</p>
                 </div>
 
                 {adaptiveCache?.banister?.verdict && (
-                    <div className="mt-3 pt-3 border-t border-white/5 flex items-start gap-2">
+                    <div className="mt-3 pt-3 border-t border-[#E6E0E9] flex items-start gap-2">
                         <ZapIcon size={10} className="text-amber-400 mt-0.5 shrink-0" />
-                        <p className="text-[9px] text-zinc-500 font-medium italic">{adaptiveCache.banister.verdict}</p>
+                        <p className="text-[9px] text-[#49454F] font-medium italic">{adaptiveCache.banister.verdict}</p>
                     </div>
                 )}
 

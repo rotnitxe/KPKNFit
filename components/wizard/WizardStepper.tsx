@@ -41,7 +41,7 @@ export const WizardStepper: React.FC<WizardStepperProps> = ({
                                     ? `${acc.active}`
                                     : isCompleted
                                         ? 'bg-white/10 border-white/20 text-white'
-                                        : 'bg-transparent border-white/10 text-zinc-500'
+                                        : 'bg-transparent border-[#E6E0E9] text-[#49454F]'
                             }`}
                             aria-current={isActive ? 'step' : undefined}
                         >

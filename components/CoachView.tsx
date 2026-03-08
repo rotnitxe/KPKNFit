@@ -18,8 +18,8 @@ const CoachView: React.FC<CoachViewProps> = (props) => {
                 <h1 className="text-4xl font-bold uppercase tracking-wider text-white">Coach IA</h1>
             </div>
             
-            <div className="bg-zinc-900/50 border border-white/10 p-8 rounded-2xl">
-                <p className="text-zinc-400">
+            <div className="bg-zinc-900/50 border border-[#E6E0E9] p-8 rounded-2xl">
+                <p className="text-[#49454F]">
                     El Dashboard del Coach está siendo actualizado y consolidado al nuevo sistema.
                 </p>
             </div>

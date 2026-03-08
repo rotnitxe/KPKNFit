@@ -23,7 +23,7 @@ const ProgramMetricRecoveryDetail: React.FC<ProgramMetricRecoveryDetailProps> = 
                 </p>
                 {recoveryData.length > 0 ? (
                     <div className="space-y-2">
-                        {recoveryData.map(([muscle, hours]) => (
+                        {recoveryData.map(([muscle, hours]: [string, any]) => (
                             <div key={muscle} className="flex items-center gap-2">
                                 <span className="w-24 text-[10px] font-bold text-[#8E8E93] truncate text-right shrink-0">{muscle}</span>
                                 <div className="flex-1 h-3 bg-[#1a1a1a] rounded-full overflow-hidden">
@@ -40,7 +40,7 @@ const ProgramMetricRecoveryDetail: React.FC<ProgramMetricRecoveryDetailProps> = 
                         ))}
                     </div>
                 ) : (
-                    <div className="h-48 rounded-xl bg-[#1a1a1a] border border-white/5 flex items-center justify-center">
+                    <div className="h-48 rounded-xl bg-[#1a1a1a] border border-[#E6E0E9] flex items-center justify-center">
                         <span className="text-[12px] text-[#48484A] font-bold">Datos insuficientes</span>
                     </div>
                 )}

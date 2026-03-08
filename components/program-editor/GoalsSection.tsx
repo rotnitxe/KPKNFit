@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Program, ExerciseMuscleInfo } from '../../types';
-import { ActivityIcon, PlusIcon, TrashIcon } from '../icons';
+import { ActivityIcon, PlusIcon, TrashIcon, CalendarIcon } from '../icons';
 
 interface GoalsSectionProps {
     program: Program;
@@ -49,88 +49,102 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ program, exerciseList, onUp
         : [];
 
     return (
-        <div className="space-y-4">
-            <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                <ActivityIcon size={14} className="text-zinc-400" /> Metas
+        <div className="space-y-6 p-4 rounded-3xl">
+            <h3 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-[0.2em] flex items-center gap-2">
+                <ActivityIcon size={16} className="text-[var(--md-sys-color-primary)]" /> Metas del Programa
             </h3>
 
             {/* 1RM Goals */}
-            <div className="bg-zinc-950 border border-white/5 rounded-xl p-4 space-y-3">
+            <div className="bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-6 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Metas de 1RM</span>
+                    <div>
+                        <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest block mb-1">Rendimiento</span>
+                        <h4 className="text-title-small font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tight">Metas de 1RM Fuerza</h4>
+                    </div>
                     <button
                         onClick={() => setShowAddGoal(!showAddGoal)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/10 text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors"
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-label-small font-black uppercase tracking-widest transition-all ${showAddGoal
+                            ? 'bg-[var(--md-sys-color-on-surface)] text-[var(--md-sys-color-surface)]'
+                            : 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] hover:brightness-110'
+                            }`}
                     >
-                        <PlusIcon size={10} /> Agregar
+                        <PlusIcon size={14} /> {showAddGoal ? 'Cerrar' : 'Agregar'}
                     </button>
                 </div>
 
                 {showAddGoal && (
-                    <div className="bg-black border border-white/10 rounded-xl p-3 space-y-2 animate-fade-in">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            placeholder="Buscar ejercicio..."
-                            className="w-full bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30"
-                            autoFocus
-                        />
-                        {filtered.map(ex => (
-                            <button
-                                key={ex.id}
-                                onClick={() => addGoal(ex)}
-                                className="w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold text-zinc-300 hover:bg-zinc-900 transition-colors"
-                            >
-                                {ex.name}
-                            </button>
-                        ))}
+                    <div className="bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-4 space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="Buscar ejercicio..."
+                                className="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl px-4 py-3 text-body-medium font-medium text-[var(--md-sys-color-on-surface)] placeholder-[var(--md-sys-color-outline-variant)] focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/20 focus:border-[var(--md-sys-color-primary)] outline-none transition-all"
+                                autoFocus
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 gap-1 max-h-48 overflow-y-auto custom-scrollbar">
+                            {filtered.length > 0 ? filtered.map(ex => (
+                                <button
+                                    key={ex.id}
+                                    onClick={() => addGoal(ex)}
+                                    className="w-full text-left px-4 py-3 rounded-xl text-label-large font-bold text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface)] hover:text-[var(--md-sys-color-primary)] hover:shadow-sm transition-all flex items-center justify-between group"
+                                >
+                                    {ex.name}
+                                    <PlusIcon size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </button>
+                            )) : searchQuery && (
+                                <div className="py-4 text-center">
+                                    <span className="text-label-small font-bold text-[var(--md-sys-color-outline)] uppercase tracking-widest">No se hallaron resultados</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
                 {exerciseGoals.length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 gap-2">
                         {exerciseGoals.map((goal, idx) => (
-                            <div key={idx} className="flex items-center gap-3 bg-black p-3 rounded-xl border border-white/5 group">
-                                <div className="flex-1 min-w-0">
-                                    <span className="text-[10px] font-bold text-white block truncate">{goal.exerciseName}</span>
+                            <div key={idx} className="flex items-center gap-4 bg-[var(--md-sys-color-surface-container-high)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)] group hover:bg-[var(--md-sys-color-surface)] hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-md transition-all">
+                                <div className="w-10 h-10 rounded-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center text-[var(--md-sys-color-primary)] shrink-0">
+                                    <ActivityIcon size={18} />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
-                                        value={goal.target1RM || ''}
-                                        onChange={e => updateGoalTarget(idx, parseFloat(e.target.value) || 0)}
-                                        placeholder="kg"
-                                        className="w-16 bg-zinc-950 border border-white/10 rounded-lg px-2 py-1 text-xs text-white text-center font-bold focus:ring-1 focus:ring-white/30"
-                                    />
-                                    <span className="text-[8px] text-zinc-500 font-bold">kg</span>
+                                <div className="flex-1 min-w-0">
+                                    <span className="text-label-small font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tight block truncate mb-1">{goal.exerciseName}</span>
+                                    <span className="text-[9px] font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Meta Objetivo 1RM</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="flex flex-col items-end">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                value={goal.target1RM || ''}
+                                                onChange={e => updateGoalTarget(idx, parseFloat(e.target.value) || 0)}
+                                                placeholder="0.0"
+                                                className="w-20 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl px-3 py-2 text-label-large text-[var(--md-sys-color-on-surface)] text-center font-black focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/20 focus:border-[var(--md-sys-color-primary)] outline-none transition-all"
+                                            />
+                                            <span className="text-label-small text-[var(--md-sys-color-on-surface-variant)] font-black uppercase">KG</span>
+                                        </div>
+                                    </div>
                                     <button
                                         onClick={() => removeGoal(idx)}
-                                        className="p-1 text-zinc-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--md-sys-color-outline-variant)] hover:text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]/30 transition-all active:scale-90"
                                     >
-                                        <TrashIcon size={10} />
+                                        <TrashIcon size={16} />
                                     </button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-6 border border-dashed border-white/10 rounded-xl">
-                        <p className="text-[9px] text-zinc-500 font-bold">Sin metas configuradas</p>
+                    <div className="text-center py-10 border-2 border-dashed border-[var(--md-sys-color-outline-variant)] rounded-2xl bg-[var(--md-sys-color-surface-container-lowest)]">
+                        <div className="w-12 h-12 bg-[var(--md-sys-color-surface-container-high)] rounded-full flex items-center justify-center mx-auto mb-3 text-[var(--md-sys-color-outline-variant)]">
+                            <ActivityIcon size={24} />
+                        </div>
+                        <p className="text-label-small text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-widest">Sin metas de fuerza configuradas</p>
                     </div>
                 )}
-            </div>
-
-            {/* Volume goals placeholder */}
-            <div className="bg-zinc-950 border border-white/5 rounded-xl p-4">
-                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Metas de Volumen</span>
-                <p className="text-[9px] text-zinc-600 italic">Configura volumen objetivo por grupo muscular (proximamente).</p>
-            </div>
-
-            {/* Frequency goals placeholder */}
-            <div className="bg-zinc-950 border border-white/5 rounded-xl p-4">
-                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Metas de Frecuencia</span>
-                <p className="text-[9px] text-zinc-600 italic">Define frecuencia objetivo por patrón de movimiento (proximamente).</p>
             </div>
         </div>
     );

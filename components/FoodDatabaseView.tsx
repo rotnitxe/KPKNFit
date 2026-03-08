@@ -25,7 +25,7 @@ const getMacronutrientCategory = (food: FoodItem) => {
 
 const FoodCard: React.FC<{ food: FoodItem; onEdit: (food: FoodItem) => void; onAddToPantry: (food: FoodItem) => void; }> = ({ food, onEdit, onAddToPantry }) => (
     <div
-        className="p-4 flex justify-between items-center bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all duration-200 group active:scale-[0.99]"
+        className="p-4 flex justify-between items-center bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-[#E6E0E9] transition-all duration-200 group active:scale-[0.99]"
         title={food.micronutrients?.length ? `Micronutrientes (por 100g): ${food.micronutrients.map(m => `${m.name} ${m.amount}${m.unit}`).join(', ')}` : undefined}
     >
         <div className="flex items-center gap-4 flex-grow min-w-0">
@@ -56,7 +56,7 @@ const FoodCard: React.FC<{ food: FoodItem; onEdit: (food: FoodItem) => void; onA
 const CategoryCard: React.FC<{ category: string, onClick: () => void, colorClass: string, count: number }> = ({ category, onClick, colorClass, count }) => (
     <div
         onClick={onClick}
-        className={`relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.02] border border-white/5 group ${colorClass}`}
+        className={`relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.02] border border-[#E6E0E9] group ${colorClass}`}
     >
         <div className="relative z-10 flex justify-between items-center">
             <div>
@@ -256,7 +256,7 @@ const FoodDatabaseView: React.FC = () => {
                              <div 
                                 key={micro}
                                 onClick={() => setSelectedMicronutrient(micro)}
-                                className="bg-slate-900/30 border border-white/5 rounded-xl p-3 cursor-pointer hover:bg-slate-800 transition-colors group"
+                                className="bg-slate-900/30 border border-[#E6E0E9] rounded-xl p-3 cursor-pointer hover:bg-slate-800 transition-colors group"
                             >
                                 <p className="text-white font-bold group-hover:text-primary-color transition-colors">{micro}</p>
                                 <p className="text-center text-[10px] text-slate-500 uppercase tracking-wider">{foodDatabase.filter(f => f.micronutrients?.some(m => m.name === micro)).length} fuentes</p>

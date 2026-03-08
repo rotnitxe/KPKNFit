@@ -49,7 +49,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
       {/* Elegant Glass Content with Entrance Animation */}
       <div
         className={`relative z-10 w-full max-w-md 
-                   bg-[#0a0a0a]
+                   bg-[#FEF7FF]
                    rounded-3xl shadow-2xl ring-1 ring-white/10
                    flex flex-col max-h-[85vh]
                    transform transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)
@@ -60,7 +60,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
         <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-3xl z-0" />
 
         {title && (
-          <div className="flex items-center justify-between px-6 py-5 flex-shrink-0 relative z-20 border-b border-white/5 bg-[#0a0a0a]/50 backdrop-blur-xl rounded-t-3xl">
+          <div className="flex items-center justify-between px-6 py-5 flex-shrink-0 relative z-20 border-b border-[#E6E0E9] bg-[#FEF7FF]/50 backdrop-blur-xl rounded-t-3xl">
             <h2 id="modal-title" className="text-lg font-bold text-white tracking-tight">
               {title}
             </h2>

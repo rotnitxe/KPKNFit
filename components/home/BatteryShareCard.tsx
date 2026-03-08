@@ -56,7 +56,7 @@ export const BatteryShareCard: React.FC<BatteryShareCardProps> = ({ cns, muscula
                     }}
                 >
                     {/* Título */}
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.25em] mb-2 mt-5 shrink-0">
+                    <p className="text-[10px] font-black text-[#49454F] uppercase tracking-[0.25em] mb-2 mt-5 shrink-0">
                         Tu Batería AUGE
                     </p>
 
@@ -98,7 +98,6 @@ export const BatteryShareCard: React.FC<BatteryShareCardProps> = ({ cns, muscula
                                         <g transform="rotate(90)">
                                             <foreignObject x={-38} y={-18} width={76} height={36} style={{ overflow: 'visible' }}>
                                                 <div
-                                                    xmlns="http://www.w3.org/1999/xhtml"
                                                     style={{
                                                         width: '100%',
                                                         height: '100%',

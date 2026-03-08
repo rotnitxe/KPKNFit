@@ -62,18 +62,18 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fade-in p-0 sm:p-4">
-            <div className="w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] bg-[#0a0a0a] border border-white/10 rounded-t-3xl sm:rounded-3xl flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]">
+            <div className="w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] bg-[#FEF7FF] border border-[#E6E0E9] rounded-t-3xl sm:rounded-3xl flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]">
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-white/10">
+                <div className="flex items-center justify-between p-5 border-b border-[#E6E0E9]">
                     <div>
                         <h2 className="text-lg font-black text-white uppercase tracking-tight">
                             {step === 'gallery' ? 'Cambiar Split' : 'Configurar Cambio'}
                         </h2>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
+                        <p className="text-[10px] text-[#49454F] font-bold uppercase tracking-widest mt-0.5">
                             {step === 'gallery' ? 'Selecciona una nueva plantilla' : selectedSplit?.name}
                         </p>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-full border border-white/10 text-zinc-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className="p-2 rounded-full border border-[#E6E0E9] text-[#49454F] hover:text-white transition-colors">
                         <XIcon size={16} />
                     </button>
                 </div>
@@ -81,21 +81,21 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                 {step === 'gallery' ? (
                     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                         {/* Search */}
-                        <div className="px-5 py-3 border-b border-white/5">
+                        <div className="px-5 py-3 border-b border-[#E6E0E9]">
                             <div className="relative">
-                                <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#49454F]" />
                                 <input
                                     type="text"
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     placeholder="Buscar split..."
-                                    className="w-full bg-zinc-900 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30 focus:border-white/30"
+                                    className="w-full bg-zinc-900 border border-[#E6E0E9] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30 focus:border-white/30"
                                 />
                             </div>
                         </div>
 
                         {/* Filter tags — scroll horizontal para evitar desbordes y superposiciones */}
-                        <div className="px-5 py-3 border-b border-white/5 shrink-0">
+                        <div className="px-5 py-3 border-b border-[#E6E0E9] shrink-0">
                             <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar -mx-1 px-1">
                                 {FILTER_TAGS.map(tag => (
                                     <button
@@ -104,7 +104,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                         className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all border shrink-0 whitespace-nowrap ${
                                             filter === tag
                                                 ? 'bg-white text-black border-white'
-                                                : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500'
+                                                : 'bg-transparent text-[#49454F] border-zinc-800 hover:border-zinc-500'
                                         }`}
                                     >
                                         {tag}
@@ -125,7 +125,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                         className={`w-full text-left p-4 rounded-2xl border transition-all group ${
                                             isCurrent
                                                 ? 'bg-white/5 border-white/20'
-                                                : 'bg-zinc-900/50 border-white/5 hover:border-white/20 hover:bg-zinc-900'
+                                                : 'bg-zinc-900/50 border-[#E6E0E9] hover:border-white/20 hover:bg-zinc-900'
                                         }`}
                                     >
                                         <div className="flex items-start justify-between gap-2 mb-2">
@@ -138,9 +138,9 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[10px] text-zinc-500 mt-0.5 line-clamp-2">{split.description}</p>
+                                                <p className="text-[10px] text-[#49454F] mt-0.5 line-clamp-2">{split.description}</p>
                                             </div>
-                                            <span className="text-[10px] font-black text-zinc-500 shrink-0">{trainingDays}d</span>
+                                            <span className="text-[10px] font-black text-[#49454F] shrink-0">{trainingDays}d</span>
                                         </div>
                                         <div className="flex gap-1 mt-2">
                                             {split.pattern.map((day, i) => (
@@ -161,10 +161,10 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-5 space-y-6">
                         {/* Selected split preview */}
                         {selectedSplit && (
-                            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-4">
+                            <div className="bg-zinc-900 border border-[#E6E0E9] rounded-2xl p-4">
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-sm font-black text-white">{selectedSplit.name}</span>
-                                    <button onClick={handleBack} className="text-[10px] font-bold text-zinc-400 underline">
+                                    <button onClick={handleBack} className="text-[10px] font-bold text-[#49454F] underline">
                                         Cambiar
                                     </button>
                                 </div>
@@ -176,7 +176,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                             <div key={i} className="flex-1 text-center">
                                                 <div className="text-[8px] font-bold text-zinc-600 mb-1">{dayLabel.slice(0, 3)}</div>
                                                 <div className={`h-1.5 rounded-full ${isRest ? 'bg-zinc-800' : 'bg-white/40'}`} />
-                                                <div className={`text-[7px] mt-1 font-bold truncate ${isRest ? 'text-zinc-700' : 'text-zinc-400'}`}>
+                                                <div className={`text-[7px] mt-1 font-bold truncate ${isRest ? 'text-zinc-700' : 'text-[#49454F]'}`}>
                                                     {isRest ? '-' : day}
                                                 </div>
                                             </div>
@@ -188,30 +188,30 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
 
                         {/* Start day selector */}
                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Inicio de Semana</span>
+                            <span className="text-[10px] font-black text-[#49454F] uppercase tracking-widest">Inicio de Semana</span>
                             <div className="relative">
                                 <select
                                     value={startDay}
                                     onChange={e => setStartDay(parseInt(e.target.value))}
-                                    className="appearance-none bg-zinc-900 border border-white/10 rounded-lg px-3 py-1.5 pr-7 text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
+                                    className="appearance-none bg-zinc-900 border border-[#E6E0E9] rounded-lg px-3 py-1.5 pr-7 text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                                 >
                                     {DAYS_OF_WEEK.map(d => (
                                         <option key={d.value} value={d.value}>{d.label}</option>
                                     ))}
                                 </select>
-                                <ChevronDownIcon size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500" />
+                                <ChevronDownIcon size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#49454F]" />
                             </div>
                         </div>
 
                         {/* Scope selector */}
                         <div>
-                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-3">Alcance del cambio</span>
+                            <span className="text-[10px] font-black text-[#49454F] uppercase tracking-widest block mb-3">Alcance del cambio</span>
                             <div className="space-y-2">
                                 {!isSimpleProgram && (
                                     <button
                                         onClick={() => setScope('week')}
                                         className={`w-full text-left p-4 rounded-xl border transition-all ${
-                                            scope === 'week' ? 'bg-white/5 border-white/30' : 'border-white/5 hover:border-white/15'
+                                            scope === 'week' ? 'bg-white/5 border-white/30' : 'border-[#E6E0E9] hover:border-white/15'
                                         }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -220,7 +220,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                             </div>
                                             <div>
                                                 <span className="text-xs font-black text-white">Solo esta semana</span>
-                                                <p className="text-[10px] text-zinc-500">Cambia las sesiones de la semana seleccionada</p>
+                                                <p className="text-[10px] text-[#49454F]">Cambia las sesiones de la semana seleccionada</p>
                                             </div>
                                         </div>
                                     </button>
@@ -229,7 +229,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                     <button
                                         onClick={() => setScope('block')}
                                         className={`w-full text-left p-4 rounded-xl border transition-all ${
-                                            scope === 'block' ? 'bg-white/5 border-white/30' : 'border-white/5 hover:border-white/15'
+                                            scope === 'block' ? 'bg-white/5 border-white/30' : 'border-[#E6E0E9] hover:border-white/15'
                                         }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -238,7 +238,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                             </div>
                                             <div>
                                                 <span className="text-xs font-black text-white">Todo el bloque</span>
-                                                <p className="text-[10px] text-zinc-500">Aplica a todas las semanas del bloque actual</p>
+                                                <p className="text-[10px] text-[#49454F]">Aplica a todas las semanas del bloque actual</p>
                                             </div>
                                         </div>
                                     </button>
@@ -246,7 +246,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                 <button
                                     onClick={() => setScope('program')}
                                     className={`w-full text-left p-4 rounded-xl border transition-all ${
-                                        scope === 'program' ? 'bg-white/5 border-white/30' : 'border-white/5 hover:border-white/15'
+                                        scope === 'program' ? 'bg-white/5 border-white/30' : 'border-[#E6E0E9] hover:border-white/15'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                                         </div>
                                         <div>
                                             <span className="text-xs font-black text-white">{isSimpleProgram ? 'Todo el ciclo' : 'Todo el programa'}</span>
-                                            <p className="text-[10px] text-zinc-500">Aplica a todas las semanas de todos los bloques</p>
+                                            <p className="text-[10px] text-[#49454F]">Aplica a todas las semanas de todos los bloques</p>
                                         </div>
                                     </div>
                                 </button>
@@ -263,31 +263,31 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
                         </div>
 
                         {/* Preserve exercises toggle */}
-                        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
+                        <div className="bg-zinc-900/50 border border-[#E6E0E9] rounded-xl p-4">
                             <div className="flex items-start gap-3">
                                 <AlertTriangleIcon size={16} className="text-yellow-500 mt-0.5 shrink-0" />
                                 <div className="flex-1">
-                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-2">
+                                    <span className="text-[10px] font-black text-[#49454F] uppercase tracking-widest block mb-2">
                                         Ejercicios existentes
                                     </span>
                                     <div className="space-y-2">
                                         <button
                                             onClick={() => setPreserveExercises(true)}
                                             className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
-                                                preserveExercises ? 'bg-white/5 border-white/20' : 'border-white/5'
+                                                preserveExercises ? 'bg-white/5 border-white/20' : 'border-[#E6E0E9]'
                                             }`}
                                         >
                                             <span className="text-[11px] font-bold text-white">Intentar preservar</span>
-                                            <p className="text-[9px] text-zinc-500">Mapea ejercicios por nombre de sesión al nuevo split</p>
+                                            <p className="text-[9px] text-[#49454F]">Mapea ejercicios por nombre de sesión al nuevo split</p>
                                         </button>
                                         <button
                                             onClick={() => setPreserveExercises(false)}
                                             className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
-                                                !preserveExercises ? 'bg-white/5 border-white/20' : 'border-white/5'
+                                                !preserveExercises ? 'bg-white/5 border-white/20' : 'border-[#E6E0E9]'
                                             }`}
                                         >
                                             <span className="text-[11px] font-bold text-white">Empezar limpio</span>
-                                            <p className="text-[9px] text-zinc-500">Crear sesiones vacías con los nuevos nombres</p>
+                                            <p className="text-[9px] text-[#49454F]">Crear sesiones vacías con los nuevos nombres</p>
                                         </button>
                                     </div>
                                 </div>
@@ -298,7 +298,7 @@ const SplitChangerModal: React.FC<SplitChangerModalProps> = ({
 
                 {/* Footer */}
                 {step === 'scope' && (
-                    <div className="p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-white/10 flex gap-3 shrink-0">
+                    <div className="p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-[#E6E0E9] flex gap-3 shrink-0">
                         <Button variant="secondary" onClick={handleBack} className="flex-1 !py-3 !text-[10px]">
                             Atrás
                         </Button>

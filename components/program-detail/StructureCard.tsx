@@ -42,7 +42,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
     };
 
     return (
-        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
+        <div className="bg-zinc-900/50 border border-[#E6E0E9] rounded-2xl overflow-hidden transition-all duration-300">
             <button onClick={onToggleCollapse} className="w-full flex items-center justify-between p-4 text-left">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
@@ -50,12 +50,12 @@ const StructureCard: React.FC<StructureCardProps> = ({
                     </div>
                     <div>
                         <h3 className="text-xs font-black text-white uppercase tracking-widest">Estructura</h3>
-                        <p className="text-[9px] text-zinc-500 font-bold">
+                        <p className="text-[9px] text-[#49454F] font-bold">
                             {isCyclic ? 'Programa Cíclico' : `${program.macrocycles.length} Macrociclo${program.macrocycles.length > 1 ? 's' : ''}`}
                         </p>
                     </div>
                 </div>
-                <ChevronDownIcon size={16} className={`text-zinc-500 transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
+                <ChevronDownIcon size={16} className={`text-[#49454F] transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
             </button>
 
             {!collapsed && (
@@ -65,7 +65,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
 
                         return (
                             <div key={macro.id} className="space-y-3">
-                                <div className="flex justify-between items-center bg-zinc-950 p-3 rounded-xl border border-white/10">
+                                <div className="flex justify-between items-center bg-[#FEF7FF] p-3 rounded-xl border border-[#E6E0E9]">
                                     <div className="flex items-center gap-2 flex-1">
                                         <span className="bg-white/10 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-wider">M{macroIndex + 1}</span>
                                         <input
@@ -80,7 +80,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                             }}
                                         />
                                     </div>
-                                    <span className="text-[9px] text-zinc-500 font-bold">{macroWeeks.length}sem</span>
+                                    <span className="text-[9px] text-[#49454F] font-bold">{macroWeeks.length}sem</span>
                                 </div>
 
                                 {/* Actions */}
@@ -88,7 +88,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                     {isCyclic ? (
                                         <button
                                             onClick={onShowAdvancedTransition}
-                                            className="py-2 px-3 bg-zinc-900 border border-dashed border-white/20 rounded-lg text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white transition-all flex items-center gap-1.5"
+                                            className="py-2 px-3 bg-zinc-900 border border-dashed border-white/20 rounded-lg text-[8px] font-black uppercase tracking-widest text-[#49454F] hover:text-white hover:border-white transition-all flex items-center gap-1.5"
                                         >
                                             <PlusIcon size={10} /> Añadir Bloque
                                         </button>
@@ -103,14 +103,14 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                     });
                                                     onUpdateProgram?.(updated);
                                                 }}
-                                                className="py-2 px-3 bg-zinc-900 border border-dashed border-white/20 rounded-lg text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white transition-all flex items-center gap-1.5"
+                                                className="py-2 px-3 bg-zinc-900 border border-dashed border-white/20 rounded-lg text-[8px] font-black uppercase tracking-widest text-[#49454F] hover:text-white hover:border-white transition-all flex items-center gap-1.5"
                                             >
                                                 <PlusIcon size={10} /> Bloque
                                             </button>
                                             {macroIndex === 0 && (
                                                 <button
                                                     onClick={onShowSimpleTransition}
-                                                    className="py-2 px-3 bg-black border border-white/10 rounded-lg text-[8px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all flex items-center gap-1.5"
+                                                    className="py-2 px-3 bg-black border border-[#E6E0E9] rounded-lg text-[8px] font-black uppercase tracking-widest text-[#49454F] hover:text-white transition-all flex items-center gap-1.5"
                                                 >
                                                     <ActivityIcon size={10} /> Simplificar
                                                 </button>
@@ -120,13 +120,13 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                 </div>
 
                                 {/* Blocks tree */}
-                                <div className="pl-4 border-l-2 border-white/10 space-y-3">
+                                <div className="pl-4 border-l-2 border-[#E6E0E9] space-y-3">
                                     {(macro.blocks || []).map((block, blockIndex) => {
                                         const isExpanded = expandedBlocks.has(block.id);
                                         return (
                                             <div key={block.id} className="relative group">
-                                                <div className="absolute -left-[13px] top-4 w-2.5 h-2.5 rounded-full border-2 border-white/30 bg-zinc-950 group-hover:border-blue-500 transition-colors" />
-                                                <div className="bg-zinc-950 border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-all">
+                                                <div className="absolute -left-[13px] top-4 w-2.5 h-2.5 rounded-full border-2 border-white/30 bg-[#FEF7FF] group-hover:border-blue-500 transition-colors" />
+                                                <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl overflow-hidden hover:border-white/20 transition-all">
                                                     {/* Block header */}
                                                     <div
                                                         className="p-3 flex items-center justify-between cursor-pointer"
@@ -148,7 +148,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                             />
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-[8px] text-zinc-500 font-bold">
+                                                            <span className="text-[8px] text-[#49454F] font-bold">
                                                                 {block.mesocycles.reduce((a, m) => a + m.weeks.length, 0)}sem
                                                             </span>
                                                             <button
@@ -164,7 +164,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                             >
                                                                 <TrashIcon size={10} />
                                                             </button>
-                                                            <ChevronDownIcon size={14} className={`text-zinc-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                            <ChevronDownIcon size={14} className={`text-[#49454F] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                                                         </div>
                                                     </div>
 
@@ -172,7 +172,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                     {isExpanded && (
                                                         <div className="p-3 pt-0 space-y-3 animate-fade-in">
                                                             {(block.mesocycles || []).map((meso, mesoIndex) => (
-                                                                <div key={meso.id} className="bg-black/40 p-2.5 rounded-lg border border-white/5 space-y-2">
+                                                                <div key={meso.id} className="bg-black/40 p-2.5 rounded-lg border border-[#E6E0E9] space-y-2">
                                                                     <div className="flex items-center justify-between">
                                                                         <div className="flex items-center gap-2 flex-1">
                                                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
@@ -192,7 +192,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                         <div className="flex items-center gap-1.5">
                                                                             {!isCyclic && (
                                                                                 <select
-                                                                                    className="bg-black text-[7px] text-zinc-400 border border-white/10 rounded px-1.5 py-0.5 uppercase font-bold"
+                                                                                    className="bg-black text-[7px] text-[#49454F] border border-[#E6E0E9] rounded px-1.5 py-0.5 uppercase font-bold"
                                                                                     value={meso.goal}
                                                                                     onChange={e => {
                                                                                         const updated = JSON.parse(JSON.stringify(program));
@@ -211,7 +211,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                                     m.weeks.push({ id: crypto.randomUUID(), name: `Semana ${m.weeks.length + 1}`, sessions: [] });
                                                                                     onUpdateProgram?.(updated);
                                                                                 }}
-                                                                                className="p-1 bg-zinc-900 border border-white/10 rounded flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                                                                                className="p-1 bg-zinc-900 border border-[#E6E0E9] rounded flex items-center justify-center text-[#49454F] hover:text-white transition-colors"
                                                                             >
                                                                                 <PlusIcon size={10} />
                                                                             </button>
@@ -219,7 +219,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                     </div>
 
                                                                     {isCyclic && (
-                                                                        <p className="text-[8px] text-zinc-500 italic px-1">
+                                                                        <p className="text-[8px] text-[#49454F] italic px-1">
                                                                             Las semanas se repiten cíclicamente.
                                                                         </p>
                                                                     )}
@@ -237,12 +237,12 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                                 <div key={week.id} className="shrink-0 w-28 relative group/week">
                                                                                     <div
                                                                                         onClick={() => onEditWeek({ macroIndex, blockIndex, mesoIndex, weekIndex, week, isSimple: isCyclic })}
-                                                                                        className={`w-full bg-zinc-950 border ${hasEvent ? 'border-yellow-500/50' : 'border-white/5'} rounded-lg p-2 flex flex-col gap-1.5 hover:border-blue-500 transition-all cursor-pointer`}
+                                                                                        className={`w-full bg-[#FEF7FF] border ${hasEvent ? 'border-yellow-500/50' : 'border-[#E6E0E9]'} rounded-lg p-2 flex flex-col gap-1.5 hover:border-blue-500 transition-all cursor-pointer`}
                                                                                     >
                                                                                         <div className="flex items-center justify-between">
                                                                                             {hasEvent && <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />}
                                                                                             <input
-                                                                                                className={`bg-transparent border-none p-0 text-[8px] font-black uppercase w-full focus:ring-0 ${hasEvent ? 'text-yellow-400' : 'text-zinc-400'}`}
+                                                                                                className={`bg-transparent border-none p-0 text-[8px] font-black uppercase w-full focus:ring-0 ${hasEvent ? 'text-yellow-400' : 'text-[#49454F]'}`}
                                                                                                 defaultValue={week.name}
                                                                                                 onClick={e => e.stopPropagation()}
                                                                                                 onBlur={e => {
@@ -289,7 +289,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                         });
                                                                         onUpdateProgram?.(updated);
                                                                     }}
-                                                                    className="w-full py-2 bg-zinc-900/50 border border-dashed border-white/10 rounded-lg text-[8px] font-black uppercase text-zinc-500 hover:text-white hover:border-white/30 transition-all flex items-center justify-center gap-1.5"
+                                                                    className="w-full py-2 bg-zinc-900/50 border border-dashed border-[#E6E0E9] rounded-lg text-[8px] font-black uppercase text-[#49454F] hover:text-white hover:border-white/30 transition-all flex items-center justify-center gap-1.5"
                                                                 >
                                                                     <PlusIcon size={10} /> Mesociclo
                                                                 </button>

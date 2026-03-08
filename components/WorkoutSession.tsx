@@ -4,7 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { requestPermissions, setupNotificationChannels } from '../services/notificationService';
 import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, ExerciseSet, WarmupSetDefinition, SessionBackground, OngoingSetData, SetInputState, UnilateralSetInputs, DropSetData, RestPauseData, ExerciseMuscleInfo, Program, Settings, PlanDeviation, CoverStyle, ToastData } from '../types';
 import Button from './ui/Button';
-import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons'; 
+import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons';
 import { playSound, preloadSounds, configureAudioSession } from '../services/soundService';
 import { hapticImpact, ImpactStyle, hapticNotification, NotificationType } from '../services/hapticsService';
 import { calculateBrzycki1RM, getWeightSuggestionForSet, roundWeight, calculateWeightFrom1RM } from '../utils/calculations';
@@ -124,8 +124,8 @@ const formatSetTarget = (set: ExerciseSet, exercise: Exercise, settings: Setting
         const percent = set.targetPercentageRM || '?';
         let weightStr = '';
         if (exercise.reference1RM && set.targetPercentageRM) {
-             const weight = calculateWeightFrom1RM(exercise.reference1RM, 1) * (set.targetPercentageRM / 100);
-             weightStr = `(${roundWeight(weight, settings.weightUnit)}${settings.weightUnit})`;
+            const weight = calculateWeightFrom1RM(exercise.reference1RM, 1) * (set.targetPercentageRM / 100);
+            weightStr = `(${roundWeight(weight, settings.weightUnit)}${settings.weightUnit})`;
         }
         return `${reps} Reps @ ${percent}% ${weightStr}`;
     }
@@ -133,9 +133,9 @@ const formatSetTarget = (set: ExerciseSet, exercise: Exercise, settings: Setting
         if (set.targetReps) return `${set.targetReps}+ ${exercise.customUnit || 'Reps'}`;
         return 'AMRAP';
     }
-    if (exercise.trainingMode === 'time' && set.targetDuration) { parts.push(`${set.targetDuration}s`); } 
+    if (exercise.trainingMode === 'time' && set.targetDuration) { parts.push(`${set.targetDuration}s`); }
     else if (set.targetReps) { parts.push(`${set.targetReps} ${exercise.customUnit || 'reps'}`); }
-    
+
     if (set.intensityMode === 'failure') parts.push('Al Fallo');
     else if (set.targetRPE) parts.push(`@ RPE ${set.targetRPE}`);
     else if (set.targetRIR !== undefined) parts.push(`@ RIR ${set.targetRIR}`);
@@ -200,17 +200,17 @@ const HeaderAccordion: React.FC<{
     return (
         <div className="w-full mb-2">
             <div className="flex gap-2 mb-2 px-2">
-                 <button 
-                    onClick={() => toggleSection('tags')} 
+                <button
+                    onClick={() => toggleSection('tags')}
                     className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-medium py-1.5 transition-all ${expandedSection === 'tags' ? 'bg-[#3f3f3f] text-white' : 'bg-[#252525] text-[#a3a3a3] hover:bg-[#3f3f3f] hover:text-white'}`}
                 >
-                   <BodyIcon size={12}/> {selectedTag && selectedTag !== 'Base' ? selectedTag : 'Etiquetas'} {expandedSection === 'tags' ? <ChevronRightIcon className="-rotate-90" size={12}/> : <ChevronRightIcon className="rotate-90" size={12}/>}
+                    <BodyIcon size={12} /> {selectedTag && selectedTag !== 'Base' ? selectedTag : 'Etiquetas'} {expandedSection === 'tags' ? <ChevronRightIcon className="-rotate-90" size={12} /> : <ChevronRightIcon className="rotate-90" size={12} />}
                 </button>
-                <button 
-                    onClick={() => toggleSection('setup')} 
+                <button
+                    onClick={() => toggleSection('setup')}
                     className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-medium py-1.5 transition-all ${expandedSection === 'setup' ? 'bg-[#3f3f3f] text-white' : 'bg-[#252525] text-[#a3a3a3] hover:bg-[#3f3f3f] hover:text-white'}`}
                 >
-                    <SettingsIcon size={12}/> Setup {expandedSection === 'setup' ? <ChevronRightIcon className="-rotate-90" size={12}/> : <ChevronRightIcon className="rotate-90" size={12}/>}
+                    <SettingsIcon size={12} /> Setup {expandedSection === 'setup' ? <ChevronRightIcon className="-rotate-90" size={12} /> : <ChevronRightIcon className="rotate-90" size={12} />}
                 </button>
             </div>
 
@@ -224,24 +224,24 @@ const HeaderAccordion: React.FC<{
                     {isEditingTag ? (
                         <div className="flex gap-2 items-center mt-2 animate-fade-in">
                             <input type="text" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="Nueva..." className="flex-1 bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" autoFocus />
-                            <button onClick={handleCreateTag} className="px-2 py-1.5 bg-white text-[#1a1a1a] text-[10px] font-medium"><CheckIcon size={14}/></button>
-                            <button onClick={() => setIsEditingTag(false)} className="px-2 py-1.5 bg-[#3f3f3f] text-[#a3a3a3] text-[10px] font-medium"><XCircleIcon size={14}/></button>
+                            <button onClick={handleCreateTag} className="px-2 py-1.5 bg-white text-[#1a1a1a] text-[10px] font-medium"><CheckIcon size={14} /></button>
+                            <button onClick={() => setIsEditingTag(false)} className="px-2 py-1.5 bg-[#3f3f3f] text-[#a3a3a3] text-[10px] font-medium"><XCircleIcon size={14} /></button>
                         </div>
                     ) : (
-                         <button onClick={() => setIsEditingTag(true)} className="w-full py-2 text-[#a3a3a3] text-[10px] hover:text-white flex items-center justify-center gap-1"><PlusIcon size={10} /> Crear Nueva Etiqueta</button>
+                        <button onClick={() => setIsEditingTag(true)} className="w-full py-2 text-[#a3a3a3] text-[10px] hover:text-white flex items-center justify-center gap-1"><PlusIcon size={10} /> Crear Nueva Etiqueta</button>
                     )}
                 </div>
             )}
 
             {expandedSection === 'setup' && (
-                 <div className="animate-fade-in bg-[#252525] p-3 space-y-3">
-                     <div className="grid grid-cols-2 gap-3">
-                         <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Asiento</label><input type="text" value={localDetails.seatPosition || ''} onChange={e => setLocalDetails({...localDetails, seatPosition: e.target.value})} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]"/></div>
-                         <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Pines</label><input type="text" value={localDetails.pinPosition || ''} onChange={e => setLocalDetails({...localDetails, pinPosition: e.target.value})} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]"/></div>
-                     </div>
-                     <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Notas</label><textarea value={localDetails.equipmentNotes || ''} onChange={e => setLocalDetails({...localDetails, equipmentNotes: e.target.value})} rows={2} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]"/></div>
-                     <button onClick={handleSaveSetup} className="w-full py-2 text-[10px] uppercase font-medium bg-white text-[#1a1a1a]">Guardar Setup</button>
-                 </div>
+                <div className="animate-fade-in bg-[#252525] p-3 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Asiento</label><input type="text" value={localDetails.seatPosition || ''} onChange={e => setLocalDetails({ ...localDetails, seatPosition: e.target.value })} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" /></div>
+                        <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Pines</label><input type="text" value={localDetails.pinPosition || ''} onChange={e => setLocalDetails({ ...localDetails, pinPosition: e.target.value })} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" /></div>
+                    </div>
+                    <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Notas</label><textarea value={localDetails.equipmentNotes || ''} onChange={e => setLocalDetails({ ...localDetails, equipmentNotes: e.target.value })} rows={2} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" /></div>
+                    <button onClick={handleSaveSetup} className="w-full py-2 text-[10px] uppercase font-medium bg-white text-[#1a1a1a]">Guardar Setup</button>
+                </div>
             )}
         </div>
     );
@@ -358,7 +358,7 @@ const GhostSetInfo: React.FC<{ exerciseId: string; setIndex: number; history: Wo
     if (!lastLog) return null;
     const { date, set } = lastLog;
     const dateStr = new Date(date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
-    return ( <div className="text-[10px] text-[#a3a3a3] flex items-center justify-center gap-1.5 mb-2 py-1 border-b border-[#252525] font-medium"><span>{dateStr}: {set.weight}{settings.weightUnit} x {set.completedReps}{set.completedRPE && <span className="ml-1">(@{set.completedRPE})</span>}</span></div>);
+    return (<div className="text-[10px] text-[#a3a3a3] flex items-center justify-center gap-1.5 mb-2 py-1 border-b border-[#252525] font-medium"><span>{dateStr}: {set.weight}{settings.weightUnit} x {set.completedReps}{set.completedRPE && <span className="ml-1">(@{set.completedRPE})</span>}</span></div>);
 };
 
 const SetDetails: React.FC<{
@@ -395,32 +395,32 @@ const SetDetails: React.FC<{
         el.addEventListener('focusin', handler);
         return () => el.removeEventListener('focusin', handler);
     }, []);
-    
+
     const isUnilateral = exercise.isUnilateral || false;
     const isTimeMode = exercise.trainingMode === 'time';
     const [activeSide, setActiveSide] = useState<'left' | 'right'>('left');
     const [repInputMode, setRepInputMode] = useState<'standard' | 'partial'>('standard');
     const [isBodyweight, setIsBodyweight] = useState(false);
     const [showFailureWarning, setShowFailureWarning] = useState(false);
-    const [showFailedModal, setShowFailedModal] = useState(false); 
+    const [showFailedModal, setShowFailedModal] = useState(false);
     const [isStagnant, setIsStagnant] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); // CANDADO ANTI-DOBLE TOQUE
 
     const currentInputs: SetInputState = isUnilateral ? (inputs as UnilateralSetInputs)[activeSide] : (inputs as SetInputState);
     const safeInputs: SetInputState = currentInputs || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, isIneffective: false, isPartial: false, duration: '', notes: '', advancedTechnique: '', dropSets: [], restPauses: [], performanceMode: 'target', partialReps: '', technicalQuality: '8', discomfortLevel: '0', discomfortNotes: '', tempo: '' };
-    
+
     const targetReps = set.targetReps || 0;
     const completedReps = parseInt(safeInputs.reps, 10) || 0;
     const loggedDuration = parseInt(safeInputs.duration || '0', 10);
     const targetDuration = set.targetDuration || 0;
 
     const debt = isTimeMode ? (loggedDuration - targetDuration) : (completedReps - targetReps);
-    
+
     const targetRPE = set.targetRPE || 8;
     const targetRIR = set.targetRIR;
     const currentRPE = safeInputs.rpe ? parseFloat(safeInputs.rpe) : (safeInputs.rir ? 10 - parseFloat(safeInputs.rir) : 0);
     const intensityDiff = currentRPE > 0 ? (currentRPE - targetRPE) : 0;
-    
+
     const perfColorClass = debt > 0 ? 'text-green-400 border-green-500/50 bg-green-900/10' : debt === 0 ? 'text-blue-400 border-blue-500/50 bg-blue-900/10' : 'text-red-400 border-red-500/50 bg-red-900/10';
     const inputActiveColor = (repInputMode === 'standard' || isTimeMode) ? perfColorClass : 'text-white border-slate-700 bg-slate-800';
 
@@ -434,12 +434,12 @@ const SetDetails: React.FC<{
         if (suggestedWeight != null && suggestedWeight > 0) return suggestedWeight;
         const oneRM = currentSession1RM || exerciseInfo?.calculated1RM || exercise.reference1RM || 0;
         if (oneRM <= 0 || (targetReps <= 0 && targetDuration <= 0)) return null;
-        
+
         const effectiveReps = isTimeMode ? Math.max(1, Math.round(targetDuration / 3)) : targetReps;
         const weight = calculateWeightFrom1RM(oneRM, effectiveReps + (targetRIR !== undefined ? targetRIR : (10 - targetRPE)));
         return roundWeight(weight, settings.weightUnit);
     }, [suggestedWeight, exercise, exerciseInfo, set, currentSession1RM, settings.weightUnit, targetReps, targetDuration, isTimeMode]);
-    
+
     const inputWeight = parseFloat(safeInputs.weight);
     const isWeightWarning = useMemo(() => {
         if (!suggestedLoad || isNaN(inputWeight)) return false;
@@ -466,19 +466,19 @@ const SetDetails: React.FC<{
     const handleAdjust = useCallback((field: 'reps' | 'weight' | 'duration', amount: number) => {
         let targetField: keyof SetInputState = field;
         if (field === 'reps' && repInputMode === 'partial') { targetField = 'partialReps'; }
-        
+
         const val = parseFloat(String(safeInputs[targetField]) || '0') || 0;
         let newValue: number;
         if (field === 'weight') {
             const step = settings.weightUnit === 'kg' ? (val < 20 ? 1.25 : 2.5) : 2.5;
-            newValue = val + (amount * step); 
+            newValue = val + (amount * step);
         } else {
             newValue = Math.max(0, val + amount);
         }
         onInputChange(targetField, newValue.toString(), isUnilateral ? activeSide : undefined);
         if (targetField === 'partialReps' && newValue > 0) { onInputChange('isPartial', true, isUnilateral ? activeSide : undefined); }
     }, [safeInputs, onInputChange, settings.weightUnit, isUnilateral, activeSide, repInputMode]);
-    
+
     const handleLogAttempt = () => {
         if (isSubmitting) return; // Si el candado está cerrado, ignorar toque accidental
         setIsSubmitting(true);
@@ -487,44 +487,44 @@ const SetDetails: React.FC<{
             const reps = parseInt(safeInputs.reps, 10) || 0;
             const target = set.targetReps || 0;
             if (reps < target) {
-                 setShowFailureWarning(true); 
-                 setIsSubmitting(false); // Liberar candado si falla validación
-                 return; 
+                setShowFailureWarning(true);
+                setIsSubmitting(false); // Liberar candado si falla validación
+                return;
             }
         }
         setShowFailureWarning(false);
         onLogSet(!!set.isCalibrator);
-        
+
         // Liberar el candado después de medio segundo
         setTimeout(() => setIsSubmitting(false), 500);
     }
-    
+
     const handleSetDurationSave = (tut: number) => { onInputChange('duration', tut.toString(), isUnilateral ? activeSide : undefined); };
-    
+
     const handleFailedSet = (reason: string) => {
         hapticNotification(NotificationType.Error); // Vibración pesada de error
         onInputChange('isIneffective', true, isUnilateral ? activeSide : undefined);
         onInputChange('performanceMode', 'failed', isUnilateral ? activeSide : undefined);
         onInputChange('discomfortNotes', `🚨 FALLO CRÍTICO: ${reason}`, isUnilateral ? activeSide : undefined);
-        
+
         addToast(`Serie anulada por: ${reason}`, "danger");
-        
+
         onLogSet();
         setShowFailedModal(false);
     };
-    
+
     const handlePerformanceModeChange = (mode: 'target' | 'failure' | 'failed') => {
         hapticImpact(ImpactStyle.Light);
         onInputChange('performanceMode', mode, isUnilateral ? activeSide : undefined);
         if (mode === 'failure') {
             onInputChange('isFailure', true, isUnilateral ? activeSide : undefined);
         } else if (mode === 'target') {
-             onInputChange('isFailure', false, isUnilateral ? activeSide : undefined);
+            onInputChange('isFailure', false, isUnilateral ? activeSide : undefined);
         } else if (mode === 'failed') {
-             setShowFailedModal(true);
+            setShowFailedModal(true);
         }
     }
-    
+
     let containerClass = "set-card-content flex flex-col bg-[#252525] p-3 transition-all duration-500";
     if (cardAnimation === 'amrap') containerClass += " bg-[#2a2a2a]";
     else if (cardAnimation === 'success') containerClass += " bg-[#2a2a2a]";
@@ -555,12 +555,12 @@ const SetDetails: React.FC<{
                         {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? (
                             <div className={`flex items-center rounded-lg p-1.5 border w-28 justify-between transition-colors ${intensityContainerClass}`}>
                                 <span className="text-slate-500 font-bold text-xs uppercase px-2">RIR</span>
-                                <input type="number" step="1" value={safeInputs.rir} onChange={e => onInputChange('rir', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-sm tabular-nums" placeholder="-"/>
+                                <input type="number" step="1" value={safeInputs.rir} onChange={e => onInputChange('rir', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
                             </div>
                         ) : (
                             <div className={`flex items-center rounded-lg p-1.5 border w-28 justify-between transition-colors ${intensityContainerClass}`}>
                                 <span className="text-slate-500 font-bold text-xs uppercase px-2">RPE</span>
-                                <input type="number" step="0.5" value={safeInputs.rpe} onChange={e => onInputChange('rpe', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-sm tabular-nums" placeholder="-"/>
+                                <input type="number" step="0.5" value={safeInputs.rpe} onChange={e => onInputChange('rpe', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
                             </div>
                         )}
                     </div>
@@ -576,7 +576,7 @@ const SetDetails: React.FC<{
                                 <span className="text-[9px] text-slate-400 w-10 shrink-0">Dropset</span>
                                 <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetWeight', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{ds.weight === 0 ? 'Kg' : ds.weight}</button>
                                 <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetReps', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{ds.reps === 0 ? 'Reps' : ds.reps}</button>
-                                <button type="button" onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 shrink-0" title="Eliminar dropset"><MinusIcon size={12}/></button>
+                                <button type="button" onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 shrink-0" title="Eliminar dropset"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                         {(safeInputs.restPauses || []).map((rp, i) => (
@@ -584,7 +584,7 @@ const SetDetails: React.FC<{
                                 <span className="text-[9px] text-slate-400 w-10 shrink-0">Rest-Pause</span>
                                 <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseRestTime', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{rp.restTime === 0 ? 's' : rp.restTime}</button>
                                 <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseReps', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{rp.reps === 0 ? 'Reps' : rp.reps}</button>
-                                <button type="button" onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 shrink-0" title="Eliminar rest-pause"><MinusIcon size={12}/></button>
+                                <button type="button" onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 shrink-0" title="Eliminar rest-pause"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                     </div>
@@ -599,7 +599,7 @@ const SetDetails: React.FC<{
     return (
         <div ref={cardRef} className={`${containerClass} scroll-mb-48`}>
             {set.isAmrap && !cardAnimation && <div className="absolute inset-0 bg-[#2a2a2a]/50 z-0 pointer-events-none"></div>}
-            {isStagnant && <div className="bg-slate-800/60 border border-slate-600/40 p-2 mb-2 rounded-lg text-center text-xs text-slate-400 font-bold flex items-center justify-center gap-2 mx-2 mt-2"><AlertTriangleIcon size={14}/> Mismo peso/reps en 3 sesiones</div>}
+            {isStagnant && <div className="bg-slate-800/60 border border-slate-600/40 p-2 mb-2 rounded-lg text-center text-xs text-slate-400 font-bold flex items-center justify-center gap-2 mx-2 mt-2"><AlertTriangleIcon size={14} /> Mismo peso/reps en 3 sesiones</div>}
 
             {isUnilateral && (
                 <div className="flex bg-[#1a1a1a] p-1 mb-2 relative z-10 shrink-0 mx-2">
@@ -607,9 +607,9 @@ const SetDetails: React.FC<{
                     <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-medium transition-all min-h-[40px] ${activeSide === 'right' ? 'bg-white text-[#1a1a1a]' : 'text-[#a3a3a3] hover:text-white'}`}>Derecha</button>
                 </div>
             )}
-            
+
             <GhostSetInfo exerciseId={(exercise.exerciseDbId || exercise.id) as string} setIndex={setIndex} history={history} settings={settings} />
-            
+
             {showFailureWarning && <div className="mx-2 mb-2 bg-cyber-danger/20 border border-cyber-danger/50 p-3 rounded-xl animate-fade-in relative z-10 text-center"><h4 className="text-cyber-danger font-bold text-sm mb-1">¿Fallo Anticipado?</h4><div className="flex gap-2"><button onClick={() => setShowFailureWarning(false)} className="flex-1 py-2 bg-slate-800 rounded text-xs font-bold">Corregir</button><button onClick={() => onLogSet()} className="flex-1 py-2 bg-cyber-danger rounded text-xs font-bold text-white">Sí, Guardar</button></div></div>}
 
             <div className="space-y-4 px-2">
@@ -617,7 +617,7 @@ const SetDetails: React.FC<{
                     <div className="text-slate-400 font-bold uppercase tracking-wide">
                         Meta: <span className="text-white">{isTimeMode ? `${targetDuration}s` : `${targetReps} reps`}</span> <span className="text-slate-600">|</span> <span className="text-white">{set.intensityMode === 'rir' ? `RIR ${targetRIR}` : `RPE ${targetRPE}`}</span>
                     </div>
-                    
+
                     <div className="flex gap-2 items-center flex-wrap">
                         {suggestedLoad && (
                             <div className="flex items-center gap-1.5">
@@ -625,17 +625,17 @@ const SetDetails: React.FC<{
                                 <button onClick={() => { hapticImpact(ImpactStyle.Light); onInputChange('weight', suggestedLoad.toFixed(1), isUnilateral ? activeSide : undefined); }} className="text-[9px] font-mono font-black uppercase bg-sky-500/30 hover:bg-sky-500/50 text-sky-300 px-2 py-0.5 rounded border border-sky-500/40 transition-colors">Usar</button>
                             </div>
                         )}
-                        
+
                         {/* NUEVO: INDICADOR ESPINAL EN VIVO MIENTRAS ENTRENA */}
                         {(exerciseInfo?.axialLoadFactor ?? 0) > 0 && (
                             <div className="flex items-center gap-1 bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded" title="Estrés Espinal de esta Serie">
                                 <FlameIcon size={10} className="text-red-500" />
                                 <span className="text-[10px] text-red-500 font-bold uppercase">Espinal:</span>
                                 <span className="text-[10px] font-mono font-black text-red-400 tabular-nums">
-                                    {Math.round(calculateSpinalScore({ 
-                                        weight: parseFloat(safeInputs.weight) || suggestedLoad || 0, 
-                                        reps: parseInt(safeInputs.reps) || targetReps || 0, 
-                                        rpe: parseFloat(safeInputs.rpe) || targetRPE || 0 
+                                    {Math.round(calculateSpinalScore({
+                                        weight: parseFloat(safeInputs.weight) || suggestedLoad || 0,
+                                        reps: parseInt(safeInputs.reps) || targetReps || 0,
+                                        rpe: parseFloat(safeInputs.rpe) || targetRPE || 0
                                     }, exerciseInfo))}
                                 </span>
                             </div>
@@ -645,47 +645,47 @@ const SetDetails: React.FC<{
 
                 <div className="grid gap-2 items-center" style={{ gridTemplateColumns: 'minmax(64px,90px) auto minmax(64px,90px)' }}>
                     <div className={`flex flex-col rounded-xl overflow-hidden border shadow-sm relative transition-colors duration-300 ${inputActiveColor}`}>
-                         <button 
-                            onClick={() => !isTimeMode && setRepInputMode(prev => prev === 'standard' ? 'partial' : 'standard')} 
+                        <button
+                            onClick={() => !isTimeMode && setRepInputMode(prev => prev === 'standard' ? 'partial' : 'standard')}
                             className="text-[9px] uppercase font-bold tracking-widest py-1.5 text-center bg-black/20 hover:bg-black/40 transition-colors"
                         >
                             {isTimeMode ? 'Segundos' : (repInputMode === 'standard' ? 'Reps Reales' : 'Parciales')}
                         </button>
                         <div className="relative flex-1 py-1 flex items-center justify-center min-w-0">
-                             <button type="button" onClick={() => onOpenNumpad({ field: isTimeMode ? 'duration' : (repInputMode === 'standard' ? 'reps' : 'partialReps'), side: isUnilateral ? activeSide : undefined })} className="w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 text-inherit placeholder-white/20 min-w-0 truncate" style={{ fontFamily: 'ui-monospace, monospace' }}>
+                            <button type="button" onClick={() => onOpenNumpad({ field: isTimeMode ? 'duration' : (repInputMode === 'standard' ? 'reps' : 'partialReps'), side: isUnilateral ? activeSide : undefined })} className="w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 text-inherit placeholder-white/20 min-w-0 truncate" style={{ fontFamily: 'ui-monospace, monospace' }}>
                                 {isTimeMode ? safeInputs.duration || '0' : (repInputMode === 'standard' ? safeInputs.reps : safeInputs.partialReps) || '0'}
-                             </button>
-                             {debt !== 0 && !isTimeMode && repInputMode === 'standard' && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}</span>}
-                             {debt !== 0 && isTimeMode && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}s</span>}
+                            </button>
+                            {debt !== 0 && !isTimeMode && repInputMode === 'standard' && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}</span>}
+                            {debt !== 0 && isTimeMode && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}s</span>}
                         </div>
                         <div className="grid grid-cols-2 border-t border-black/20 divide-x divide-black/20 bg-black/10">
-                            <button onClick={() => handleAdjust(isTimeMode ? 'duration' : 'reps', isTimeMode ? -5 : -1)} className="py-3 hover:bg-white/10 active:bg-white/20 flex justify-center"><MinusIcon size={14}/></button>
-                            <button onClick={() => handleAdjust(isTimeMode ? 'duration' : 'reps', isTimeMode ? 5 : 1)} className="py-3 hover:bg-white/10 active:bg-white/20 flex justify-center"><PlusIcon size={14}/></button>
+                            <button onClick={() => handleAdjust(isTimeMode ? 'duration' : 'reps', isTimeMode ? -5 : -1)} className="py-3 hover:bg-white/10 active:bg-white/20 flex justify-center"><MinusIcon size={14} /></button>
+                            <button onClick={() => handleAdjust(isTimeMode ? 'duration' : 'reps', isTimeMode ? 5 : 1)} className="py-3 hover:bg-white/10 active:bg-white/20 flex justify-center"><PlusIcon size={14} /></button>
                         </div>
                     </div>
 
                     <div className="flex flex-col justify-center items-center gap-1">
-                         <SetTimerButton onSave={handleSetDurationSave} initialDuration={loggedDuration}/>
-                         <span className="text-[9px] text-slate-600 font-mono">TUT</span>
+                        <SetTimerButton onSave={handleSetDurationSave} initialDuration={loggedDuration} />
+                        <span className="text-[9px] text-slate-600 font-mono">TUT</span>
                     </div>
 
                     <div className={`flex flex-col rounded-xl overflow-hidden border shadow-sm relative transition-colors duration-300 ${isWeightWarning ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)] bg-red-900/10' : 'bg-slate-800 border-slate-700'}`}>
                         <button onClick={() => setIsBodyweight(!isBodyweight)} className={`text-[9px] uppercase font-bold tracking-widest py-1.5 text-center transition-colors ${isBodyweight ? 'bg-emerald-900/50 text-emerald-300' : 'bg-slate-700 text-slate-400 hover:text-white'}`}>{isBodyweight ? 'Peso Corporal' : `Carga (${settings.weightUnit})`}</button>
-                         <div className="relative flex-1 py-1 flex items-center justify-center">
+                        <div className="relative flex-1 py-1 flex items-center justify-center">
                             {isBodyweight ? (
                                 <div className="flex items-center justify-center gap-1 text-emerald-400"><BodyIcon size={24} /><span className="text-xl font-bold">BW</span></div>
                             ) : (
                                 <div className="relative w-full min-w-0">
-                                     <button type="button" onClick={() => onOpenNumpad({ field: 'weight', side: isUnilateral ? activeSide : undefined })} className={`w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 min-w-0 truncate ${isWeightWarning ? 'text-red-400' : 'text-white'}`} style={{ fontFamily: 'ui-monospace, monospace' }}>
+                                    <button type="button" onClick={() => onOpenNumpad({ field: 'weight', side: isUnilateral ? activeSide : undefined })} className={`w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 min-w-0 truncate ${isWeightWarning ? 'text-red-400' : 'text-white'}`} style={{ fontFamily: 'ui-monospace, monospace' }}>
                                         {safeInputs.weight || '0'}
-                                     </button>
-                                     {isWeightWarning && <AlertTriangleIcon size={12} className="absolute top-1 right-2 text-red-500 animate-pulse" />}
+                                    </button>
+                                    {isWeightWarning && <AlertTriangleIcon size={12} className="absolute top-1 right-2 text-red-500 animate-pulse" />}
                                 </div>
                             )}
                         </div>
-                         <div className="grid grid-cols-2 border-t border-slate-700/50 divide-x border-slate-700/50 bg-black/20">
-                            <button onClick={() => handleAdjust('weight', -1)} disabled={isBodyweight} className="py-3 hover:bg-white/5 active:bg-white/10 text-slate-400 hover:text-white flex justify-center disabled:opacity-30"><MinusIcon size={14}/></button>
-                            <button onClick={() => handleAdjust('weight', 1)} disabled={isBodyweight} className="py-3 hover:bg-white/5 active:bg-white/10 text-slate-400 hover:text-white flex justify-center disabled:opacity-30"><PlusIcon size={14}/></button>
+                        <div className="grid grid-cols-2 border-t border-slate-700/50 divide-x border-slate-700/50 bg-black/20">
+                            <button onClick={() => handleAdjust('weight', -1)} disabled={isBodyweight} className="py-3 hover:bg-white/5 active:bg-white/10 text-slate-400 hover:text-white flex justify-center disabled:opacity-30"><MinusIcon size={14} /></button>
+                            <button onClick={() => handleAdjust('weight', 1)} disabled={isBodyweight} className="py-3 hover:bg-white/5 active:bg-white/10 text-slate-400 hover:text-white flex justify-center disabled:opacity-30"><PlusIcon size={14} /></button>
                         </div>
                     </div>
                 </div>
@@ -713,17 +713,17 @@ const SetDetails: React.FC<{
 
                 {safeInputs.performanceMode === 'target' && (
                     <div className="flex justify-center animate-fade-in relative">
-                         {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? (
-                             <div className={`flex items-center rounded-lg p-1.5 border w-24 justify-between transition-colors shrink-0 ${intensityContainerClass}`}>
-                                 <span className="text-slate-500 font-bold text-[10px] uppercase px-1.5">RIR</span>
-                                 <button type="button" onClick={() => onOpenNumpad({ field: 'rir', side: isUnilateral ? activeSide : undefined })} className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono">{safeInputs.rir || '—'}</button>
-                             </div>
-                         ) : (
-                             <div className={`flex items-center rounded-lg p-1.5 border w-24 justify-between transition-colors shrink-0 ${intensityContainerClass}`}>
-                                 <span className="text-slate-500 font-bold text-[10px] uppercase px-1.5">RPE</span>
-                                 <button type="button" onClick={() => onOpenNumpad({ field: 'rpe', side: isUnilateral ? activeSide : undefined })} className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono">{safeInputs.rpe || '—'}</button>
-                             </div>
-                         )}
+                        {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? (
+                            <div className={`flex items-center rounded-lg p-1.5 border w-24 justify-between transition-colors shrink-0 ${intensityContainerClass}`}>
+                                <span className="text-slate-500 font-bold text-[10px] uppercase px-1.5">RIR</span>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'rir', side: isUnilateral ? activeSide : undefined })} className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono">{safeInputs.rir || '—'}</button>
+                            </div>
+                        ) : (
+                            <div className={`flex items-center rounded-lg p-1.5 border w-24 justify-between transition-colors shrink-0 ${intensityContainerClass}`}>
+                                <span className="text-slate-500 font-bold text-[10px] uppercase px-1.5">RPE</span>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'rpe', side: isUnilateral ? activeSide : undefined })} className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono">{safeInputs.rpe || '—'}</button>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -739,7 +739,7 @@ const SetDetails: React.FC<{
                                 <span className="text-[9px] font-mono text-slate-400 w-12 shrink-0">Dropset</span>
                                 <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetWeight', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{ds.weight === 0 ? 'Peso' : ds.weight}</button>
                                 <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetReps', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{ds.reps === 0 ? 'Reps' : ds.reps}</button>
-                                <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0"><MinusIcon size={12}/></button>
+                                <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                         {(safeInputs.restPauses || []).map((rp, i) => (
@@ -747,7 +747,7 @@ const SetDetails: React.FC<{
                                 <span className="text-[9px] font-mono text-slate-400 w-12 shrink-0">Rest-Pause</span>
                                 <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseRestTime', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{rp.restTime === 0 ? 's' : rp.restTime}</button>
                                 <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseReps', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{rp.reps === 0 ? 'Reps' : rp.reps}</button>
-                                <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0"><MinusIcon size={12}/></button>
+                                <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                     </div>
@@ -768,7 +768,7 @@ const SetDetails: React.FC<{
                             const lightColor = currentLight === true ? 'bg-white shadow-[0_0_12px_white] scale-110' : currentLight === false ? 'bg-red-500 shadow-[0_0_12px_red] scale-110' : 'bg-zinc-800 border-2 border-zinc-600';
                             return (
                                 <button key={judgeIdx} type="button" onClick={() => {
-                                    const newLights = [...(safeInputs.judgingLights || [null, null, null])] as [boolean|null, boolean|null, boolean|null];
+                                    const newLights = [...(safeInputs.judgingLights || [null, null, null])] as [boolean | null, boolean | null, boolean | null];
                                     newLights[judgeIdx] = newLights[judgeIdx] === null ? true : newLights[judgeIdx] === true ? false : null;
                                     onInputChange('judgingLights' as any, newLights, isUnilateral ? activeSide : undefined);
                                     const whites = newLights.filter(l => l === true).length;
@@ -788,9 +788,9 @@ const SetDetails: React.FC<{
                     <div className="space-y-4 p-2">
                         <p className="text-sm text-slate-300 text-center mb-4">No se pudo completar ninguna repetición. ¿Cuál fue la causa?</p>
                         <div className="space-y-2">
-                             <Button onClick={() => handleFailedSet('Dolor / Lesión')} variant="danger" className="w-full">Dolor / Molestia</Button>
-                             <Button onClick={() => handleFailedSet('Peso Excesivo')} variant="secondary" className="w-full text-cyber-danger">Carga Excesiva</Button>
-                             <Button onClick={() => handleFailedSet('Fallo Técnico')} variant="secondary" className="w-full">Fallo Técnico</Button>
+                            <Button onClick={() => handleFailedSet('Dolor / Lesión')} variant="danger" className="w-full">Dolor / Molestia</Button>
+                            <Button onClick={() => handleFailedSet('Peso Excesivo')} variant="secondary" className="w-full text-cyber-danger">Carga Excesiva</Button>
+                            <Button onClick={() => handleFailedSet('Fallo Técnico')} variant="secondary" className="w-full">Fallo Técnico</Button>
                         </div>
                     </div>
                 </TacticalModal>
@@ -811,7 +811,7 @@ interface WorkoutSessionProps {
     programId: string;
     settings: Settings;
     history: WorkoutLog[];
-    onFinish: (completedExercises: CompletedExercise[], duration: number, notes?: string, discomforts?: string[], fatigue?: number, clarity?: number, logDate?: string, photoUri?: string, planDeviations?: PlanDeviation[], focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[]) => void;
+    onFinish: (completedExercises: CompletedExercise[], duration: number, notes?: string, discomforts?: string[], fatigue?: number, clarity?: number, logDate?: string, photoUri?: string, planDeviations?: PlanDeviation[], focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[], muscleBatteries?: Record<string, number>) => void;
     onCancel: () => void;
     onPause?: () => void;
     onUpdateExercise1RM: (exerciseDbId: string | undefined, exerciseName: string, weight: number, reps: number, testDate?: string, machineBrand?: string) => void;
@@ -856,11 +856,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         lockLandscape();
         return () => {
             import('@capacitor/screen-orientation').then(({ ScreenOrientation }) =>
-                ScreenOrientation.unlock().catch(() => {})
+                ScreenOrientation.unlock().catch(() => { })
             );
         };
     }, []);
-    
+
     const [isSkippingRest, setIsSkippingRest] = useState(false); // CANDADO DE SEGURIDAD
     const [currentSession, setCurrentSession] = useState<Session>(ongoingWorkout?.session || session);
     const [startTime] = useState(ongoingWorkout?.startTime || Date.now());
@@ -873,10 +873,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const [exerciseFeedback, setExerciseFeedback] = useState<Record<string, any>>(ongoingWorkout?.exerciseFeedback || {});
     const [selectedTags, setSelectedTags] = useState<Record<string, string>>((ongoingWorkout?.selectedBrands as any) || {});
     const [setCardAnimations, setSetCardAnimations] = useState<Record<string, string | null>>({});
-    
+
     const [starGoalProgress, setStarGoalProgress] = useState<{ exerciseId: string; current: number; goal: number; unit: string } | null>(null);
     const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null);
-    const [sessionNotes, setSessionNotes] = useState<string>(ongoingWorkout?.sessionNotes || '');
+    const [sessionNotes, setSessionNotes] = useState<string>((ongoingWorkout as any)?.sessionNotes || '');
     const [showNotesDrawer, setShowNotesDrawer] = useState(false);
     const [numpadState, setNumpadState] = useState<{ setId: string; field: 'weight' | 'reps' | 'partialReps' | 'duration' | 'rpe' | 'rir' | 'dropSetWeight' | 'dropSetReps' | 'restPauseRestTime' | 'restPauseReps'; exerciseId: string; dropSetIndex?: number; restPauseIndex?: number; side?: 'left' | 'right' } | null>(null);
     const [setTypeOverrides, setSetTypeOverrides] = useState<Record<string, 'W' | 'T' | 'F' | 'D'>>((ongoingWorkout?.setTypeOverrides as any) || {});
@@ -896,7 +896,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         const modeKey = `session${activeMode}` as 'sessionB' | 'sessionC' | 'sessionD';
         return (activeMode === 'A' || !currentSession[modeKey]) ? currentSession : (currentSession as any)[modeKey];
     }, [activeMode, currentSession, ongoingWorkout?.topSetAmrapState?.status]);
-    
+
     const renderExercises = useMemo(() => {
         if (sessionForMode.parts && sessionForMode.parts.length > 0) return sessionForMode.parts;
         return [{ id: 'default', name: 'Sesión Principal', exercises: sessionForMode.exercises || [] }];
@@ -984,15 +984,15 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     }, [activeExerciseId, carouselItems, renderExercises, skippedExerciseIds]);
 
     const [activeSetId, setActiveSetId] = useState<string | null>(null);
-    const [setInputs, setSetInputs] = useState<Record<string, SetInputState | UnilateralSetInputs>>((ongoingWorkout?.unilateralSetInputs as any) || {}); 
+    const [setInputs, setSetInputs] = useState<Record<string, SetInputState | UnilateralSetInputs>>((ongoingWorkout?.unilateralSetInputs as any) || {});
 
     useEffect(() => {
-         if (!activeSetId && allExercises.length > 0) {
-             const firstEx = allExercises[0];
-             if (firstEx && firstEx.sets && firstEx.sets.length > 0) {
-                 setActiveSetId(firstEx.sets[0].id);
-             }
-         }
+        if (!activeSetId && allExercises.length > 0) {
+            const firstEx = allExercises[0];
+            if (firstEx && firstEx.sets && firstEx.sets.length > 0) {
+                setActiveSetId(firstEx.sets[0].id);
+            }
+        }
     }, [allExercises, activeSetId]);
 
     const handleSetInputChange = useCallback((setId: string, field: keyof SetInputState, value: any, side?: 'left' | 'right') => {
@@ -1017,17 +1017,17 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
             const rawMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
             const primaryMuscle = normalizeMuscleGroup ? normalizeMuscleGroup(rawMuscle) : rawMuscle;
-            
+
             let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
 
             (ex.sets || []).forEach(set => {
                 const isSetCompleted = !!completedSets[String(set.id)];
                 if (isSetCompleted && (set as any).type !== 'warmup') {
                     accumulatedSets += 1;
-                    
+
                     const completedDataRaw = completedSets[String(set.id)] as { left: OngoingSetData | null, right: OngoingSetData | null };
                     const completedData = ex.isUnilateral ? (completedDataRaw?.left || completedDataRaw?.right) : completedDataRaw?.left;
-                    
+
                     // Mezclamos la data de la serie base con lo que el usuario realmente hizo.
                     // Incluimos partialReps, dropSets, restPauses para que AUGE calcule correctamente
                     // el drenaje de batería (parciales = más fatiga/volumen basura, menos estímulo).
@@ -1066,7 +1066,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const activePartInfo = useMemo(() => {
         if (!activeExerciseId || !renderExercises || renderExercises.length === 0) return null;
         const part = renderExercises.find((p: any) => p.exercises?.some((e: any) => e.id === activeExerciseId));
-        return part || null; 
+        return part || null;
     }, [activeExerciseId, renderExercises]);
 
     // Blindaje Maestro: Previene colapsos si un ejercicio desaparece de la lista en tiempo real
@@ -1097,40 +1097,40 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 });
 
                 currentExercise.sets.forEach((set, index) => {
-                     if (!newInputs[set.id]) {
-                         hasChanges = true;
-                         const initialRPE = set.targetRPE ? set.targetRPE.toString() : '';
-                         const initialRIR = set.targetRIR !== undefined ? set.targetRIR.toString() : '';
-                         const isPlannedFailure = set.intensityMode === 'failure' || set.isAmrap;
+                    if (!newInputs[set.id]) {
+                        hasChanges = true;
+                        const initialRPE = set.targetRPE ? set.targetRPE.toString() : '';
+                        const initialRIR = set.targetRIR !== undefined ? set.targetRIR.toString() : '';
+                        const isPlannedFailure = set.intensityMode === 'failure' || set.isAmrap;
 
-                         const defaultInput: SetInputState = { 
-                             reps: set.targetReps?.toString() || '', 
-                             weight: '', 
-                             rpe: initialRPE, 
-                             rir: initialRIR, 
-                             isFailure: isPlannedFailure, 
-                             performanceMode: isPlannedFailure ? 'failure' : 'target',
-                             isIneffective: false, isPartial: false, 
-                             duration: set.targetDuration?.toString() || '', notes: '', advancedTechnique: '',
-                             dropSets: [], restPauses: [],
-                             partialReps: '', technicalQuality: '8', discomfortLevel: '0', discomfortNotes: '', tempo: ''
-                         };
-                         const exerciseInfo = exerciseList.find(e => e.id === currentExercise.exerciseDbId);
-                         const suggestion = getWeightSuggestionForSet(currentExercise, exerciseInfo, index, completedSetsForExercise, settings, history, selectedTags[currentExercise.id], sessionAdjusted1RMs[currentExercise.id]);
-                         if (suggestion) defaultInput.weight = suggestion.toString();
-                         newInputs[set.id] = currentExercise.isUnilateral ? { left: { ...defaultInput }, right: { ...defaultInput } } : defaultInput;
-                     }
+                        const defaultInput: SetInputState = {
+                            reps: set.targetReps?.toString() || '',
+                            weight: '',
+                            rpe: initialRPE,
+                            rir: initialRIR,
+                            isFailure: isPlannedFailure,
+                            performanceMode: isPlannedFailure ? 'failure' : 'target',
+                            isIneffective: false, isPartial: false,
+                            duration: set.targetDuration?.toString() || '', notes: '', advancedTechnique: '',
+                            dropSets: [], restPauses: [],
+                            partialReps: '', technicalQuality: '8', discomfortLevel: '0', discomfortNotes: '', tempo: ''
+                        };
+                        const exerciseInfo = exerciseList.find(e => e.id === currentExercise.exerciseDbId);
+                        const suggestion = getWeightSuggestionForSet(currentExercise, exerciseInfo, index, completedSetsForExercise, settings, history, selectedTags[currentExercise.id], sessionAdjusted1RMs[currentExercise.id]);
+                        if (suggestion) defaultInput.weight = suggestion.toString();
+                        newInputs[set.id] = currentExercise.isUnilateral ? { left: { ...defaultInput }, right: { ...defaultInput } } : defaultInput;
+                    }
                 });
                 return hasChanges ? newInputs : prev;
             });
-             if (!consolidatedWeights[currentExercise.id]) {
-                 const exerciseInfo = exerciseList.find(e => e.id === currentExercise.exerciseDbId);
-                 const suggestion = getWeightSuggestionForSet(currentExercise, exerciseInfo, 0, [], settings, history, selectedTags[currentExercise.id], sessionAdjusted1RMs[currentExercise.id]);
-                 if (suggestion) setConsolidatedWeights(prev => ({...prev, [currentExercise.id]: suggestion}));
-             }
+            if (!consolidatedWeights[currentExercise.id]) {
+                const exerciseInfo = exerciseList.find(e => e.id === currentExercise.exerciseDbId);
+                const suggestion = getWeightSuggestionForSet(currentExercise, exerciseInfo, 0, [], settings, history, selectedTags[currentExercise.id], sessionAdjusted1RMs[currentExercise.id]);
+                if (suggestion) setConsolidatedWeights(prev => ({ ...prev, [currentExercise.id]: suggestion }));
+            }
         }
     }, [activeExerciseId, allExercises, completedSets, settings, history, selectedTags, exerciseList, sessionAdjusted1RMs, consolidatedWeights]);
-    
+
     useEffect(() => {
         const timer = setInterval(() => { setDuration(Math.floor((Date.now() - startTime) / 1000)); }, 1000);
         return () => clearInterval(timer);
@@ -1172,23 +1172,23 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const moveToNextSet = useCallback(() => {
         const currentEx = allExercises.find(e => e.id === activeExerciseId);
         if (!currentEx) return;
-        
+
         // If current active is a warmup
         if (activeSetId?.startsWith('warmup-')) {
-             const firstSetId = currentEx.sets[0]?.id;
-             if (firstSetId) {
+            const firstSetId = currentEx.sets[0]?.id;
+            if (firstSetId) {
                 setActiveSetId(firstSetId);
                 scrollToId(currentEx.id, `set-card-${firstSetId}`);
-             } else {
-                 // Feedback if no sets?
+            } else {
+                // Feedback if no sets?
                 setActiveSetId(`feedback-${currentEx.id}`);
                 scrollToId(currentEx.id, `feedback-card-${currentEx.id}`);
-             }
-             return;
+            }
+            return;
         }
 
         const currentSetIndex = currentEx.sets.findIndex(s => s.id === activeSetId);
-        
+
         // If not the last set
         if (currentSetIndex !== -1 && currentSetIndex < currentEx.sets.length - 1) {
             const nextSetId = currentEx.sets[currentSetIndex + 1].id;
@@ -1222,10 +1222,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         };
         if (isUnilateral) { const ui = inputData as UnilateralSetInputs; setDataToSave.left = processInput(ui.left); setDataToSave.right = processInput(ui.right); }
         else setDataToSave.left = processInput(inputData as SetInputState);
-        
+
         if (setDataToSave.left || setDataToSave.right) {
             const primaryData = isUnilateral ? (setDataToSave.left || setDataToSave.right)! : setDataToSave.left!;
-            
+
             let adaptiveRestTime = exercise.restTime || 90;
             let addedRest = 0;
 
@@ -1245,16 +1245,16 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             const userWentToFailure = primaryData.isFailure || primaryData.performanceMode === 'failure';
 
             if (primaryData.performanceMode === 'failed') {
-                setSetCardAnimations(prev => ({...prev, [set.id]: 'failure'}));
+                setSetCardAnimations(prev => ({ ...prev, [set.id]: 'failure' }));
                 hapticNotification(NotificationType.Error);
             } else if (actualReps >= targetReps) {
-                setSetCardAnimations(prev => ({...prev, [set.id]: set.isAmrap ? 'amrap' : 'success'}));
+                setSetCardAnimations(prev => ({ ...prev, [set.id]: set.isAmrap ? 'amrap' : 'success' }));
             } else {
-                setSetCardAnimations(prev => ({...prev, [set.id]: null}));
+                setSetCardAnimations(prev => ({ ...prev, [set.id]: null }));
             }
 
             const completedSetsForExercise = exercise.sets.slice(0, setIndex).map(s => {
-                const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined;
+                const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number; machineBrand?: string } } | undefined;
                 if (!d) return { weight: 0 };
                 const p = exercise.isUnilateral ? (d.left || d.right) : d.left;
                 return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 };
@@ -1290,7 +1290,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
             setCompletedSets(prev => ({ ...prev, [String(set.id)]: setDataToSave }));
             hapticImpact(ImpactStyle.Light);
-            
+
             // --- AMRAP CALIBRADOR: Actualizar sessionAdjusted1RMs para ejercicios del mismo músculo ---
             if (isCalibrator && primaryData.weight && primaryData.reps && primaryData.reps > 0) {
                 const newE1RM = calculateBrzycki1RM(primaryData.weight, primaryData.reps, true);
@@ -1299,7 +1299,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     const exInfo = exerciseList.find(e => e.id === exercise.exerciseDbId || e.name === exercise.name);
                     const rawMuscle = exInfo?.involvedMuscles?.find(m => m.role === 'primary')?.muscle || 'General';
                     const calibMuscle = normalizeMuscleGroup(rawMuscle);
-                    
+
                     setSessionAdjusted1RMs(prev => {
                         const next = { ...prev };
                         next[exercise.id] = newE1RM; // Mismo ejercicio: 1RM completo para sets siguientes
@@ -1315,10 +1315,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     addToast(`AMRAP Calibrador: 1RMe ${newE1RM.toFixed(1)}${settings.weightUnit}. Cargas ajustadas para ejercicios de ${calibMuscle}.`, "suggestion");
                 }
             }
-            
+
             playSound('set-logged-sound');
-            moveToNextSet(); 
-            
+            moveToNextSet();
+
             const hasProgrammedRest = (exercise.restTime ?? 0) > 0;
             if (adaptiveRestTime > 0 && !isUnilateral && hasProgrammedRest) handleStartRest(adaptiveRestTime, exercise.name);
         }
@@ -1330,17 +1330,17 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     };
 
     const handleFinishFeedback = (exerciseId: string, feedbackData: any) => {
-        setExerciseFeedback(prev => ({...prev, [exerciseId]: feedbackData}));
-        
+        setExerciseFeedback(prev => ({ ...prev, [exerciseId]: feedbackData }));
+
         // --- STAR GOAL PROGRESS TRIGGER (ELEGANT & ACCURATE) ---
         const ex = allExercises.find(e => e.id === exerciseId);
         if (ex) {
-            const isBasic = program.mode === 'powerlifting' && 
+            const isBasic = program.mode === 'powerlifting' &&
                 (ex.name.toLowerCase().includes('sentadilla') || ex.name.toLowerCase().includes('bench press') || ex.name.toLowerCase().includes('peso muerto') || ex.name.toLowerCase().includes('press de banca'));
-            
+
             const isStar = ex.isStarTarget || isBasic;
             let targetGoal = ex.goal1RM;
-            
+
             if (!targetGoal && isBasic && (program as any).goals) {
                 const n = ex.name.toLowerCase();
                 if (n.includes('sentadilla') || n.includes('squat')) targetGoal = (program as any).goals.squat1RM;
@@ -1349,42 +1349,42 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             }
 
             if (isStar && targetGoal && targetGoal > 0) {
-                 let sessionBestE1RM = 0;
-                 ex.sets.forEach(s => {
-                     const dataRaw = completedSets[String(s.id)];
-                     if (dataRaw) {
-                         const data = dataRaw as { left: OngoingSetData | null, right: OngoingSetData | null };
-                         const primary = ex.isUnilateral ? (data.left || data.right) : data.left;
-                         if (primary && primary.weight && primary.reps) {
-                             const e1RM = calculateBrzycki1RM(primary.weight, primary.reps);
-                             if (e1RM > sessionBestE1RM) sessionBestE1RM = e1RM;
-                         }
-                     }
-                 });
+                let sessionBestE1RM = 0;
+                ex.sets.forEach(s => {
+                    const dataRaw = completedSets[String(s.id)];
+                    if (dataRaw) {
+                        const data = dataRaw as { left: OngoingSetData | null, right: OngoingSetData | null };
+                        const primary = ex.isUnilateral ? (data.left || data.right) : data.left;
+                        if (primary && primary.weight && primary.reps) {
+                            const e1RM = calculateBrzycki1RM(primary.weight, primary.reps);
+                            if (e1RM > sessionBestE1RM) sessionBestE1RM = e1RM;
+                        }
+                    }
+                });
 
-                 let historicalBestE1RM = 0;
-                 const exInfo = exerciseList.find(e => e.id === ex.exerciseDbId);
-                 if (exInfo?.calculated1RM) historicalBestE1RM = exInfo.calculated1RM;
-                 
-                 history.forEach(log => {
-                     const compEx = log.completedExercises.find(ce => ce.exerciseDbId === ex.exerciseDbId);
-                     compEx?.sets.forEach(s => {
-                         if(s.weight && s.completedReps) {
-                             const e1rm = calculateBrzycki1RM(s.weight, s.completedReps);
-                             if(e1rm > historicalBestE1RM) historicalBestE1RM = e1rm;
-                         }
-                     });
-                 });
+                let historicalBestE1RM = 0;
+                const exInfo = exerciseList.find(e => e.id === ex.exerciseDbId);
+                if (exInfo?.calculated1RM) historicalBestE1RM = exInfo.calculated1RM;
 
-                 if (sessionBestE1RM > historicalBestE1RM && sessionBestE1RM > 0) {
-                     setStarGoalProgress({
-                         exerciseId: ex.id,
-                         current: sessionBestE1RM,
-                         goal: targetGoal,
-                         unit: settings.weightUnit
-                     });
-                     setFocusExerciseId(ex.id);
-                 }
+                history.forEach(log => {
+                    const compEx = log.completedExercises.find(ce => ce.exerciseDbId === ex.exerciseDbId);
+                    compEx?.sets.forEach(s => {
+                        if (s.weight && s.completedReps) {
+                            const e1rm = calculateBrzycki1RM(s.weight, s.completedReps);
+                            if (e1rm > historicalBestE1RM) historicalBestE1RM = e1rm;
+                        }
+                    });
+                });
+
+                if (sessionBestE1RM > historicalBestE1RM && sessionBestE1RM > 0) {
+                    setStarGoalProgress({
+                        exerciseId: ex.id,
+                        current: sessionBestE1RM,
+                        goal: targetGoal,
+                        unit: settings.weightUnit
+                    });
+                    setFocusExerciseId(ex.id);
+                }
             }
         }
 
@@ -1417,7 +1417,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     const handleFinishSession = (notes?: string, discomforts?: string[], fatigueLevel?: number, mentalClarity?: number, durationInMinutes?: number, logDate?: string, photoUri?: string, planDeviations?: PlanDeviation[], focus?: number, pump?: number, environmentTags?: string[], sessionDifficulty?: number, planAdherenceTags?: string[], muscleBatteries?: Record<string, number>) => {
         isFinishingRef.current = true; // Block ongoing updates to prevent ghost session
-        
+
         const exercisesToInclude = (allExercises as Exercise[]).filter(ex => !skippedExerciseIds.has(ex.id));
         const completedPayload: CompletedExercise[] = exercisesToInclude.map((ex: Exercise): CompletedExercise | null => {
             const sets: CompletedSet[] = [];
@@ -1426,28 +1426,28 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 const dataRaw = completedSets[setId];
                 if (!dataRaw) return;
                 const data = dataRaw as { left: OngoingSetData | null, right: OngoingSetData | null };
-                const mapSetData = (sData: OngoingSetData, side?: 'left' | 'right'): CompletedSet => ({ 
-                    id: String(set.id) + (side ? `-${side}` : ''), 
-                    targetReps: set.targetReps, targetRPE: set.targetRPE, weight: Number(sData.weight), 
-                    completedReps: Number(sData.reps || 0), completedDuration: Number(sData.duration), 
-                    completedRPE: sData.rpe, completedRIR: sData.rir, isFailure: sData.isFailure, 
-                    isIneffective: sData.isIneffective, machineBrand: sData.machineBrand, 
-                    partialReps: Number(sData.partialReps || 0), isPartial: sData.isPartial, 
-                    side, performanceMode: sData.performanceMode, isAmrap: sData.isAmrap, 
-                    dropSets: sData.dropSets?.map(ds => ({ weight: Number(ds.weight), reps: Number(ds.reps) })), 
-                    restPauses: sData.restPauses?.map(rp => ({ restTime: Number(rp.restTime), reps: Number(rp.reps) })) 
+                const mapSetData = (sData: OngoingSetData, side?: 'left' | 'right'): CompletedSet => ({
+                    id: String(set.id) + (side ? `-${side}` : ''),
+                    targetReps: set.targetReps, targetRPE: set.targetRPE, weight: Number(sData.weight),
+                    completedReps: Number(sData.reps || 0), completedDuration: Number(sData.duration),
+                    completedRPE: sData.rpe, completedRIR: sData.rir, isFailure: sData.isFailure,
+                    isIneffective: sData.isIneffective, machineBrand: sData.machineBrand,
+                    partialReps: Number(sData.partialReps || 0), isPartial: sData.isPartial,
+                    side, performanceMode: sData.performanceMode, isAmrap: sData.isAmrap,
+                    dropSets: sData.dropSets?.map(ds => ({ weight: Number(ds.weight), reps: Number(ds.reps) })),
+                    restPauses: sData.restPauses?.map(rp => ({ restTime: Number(rp.restTime), reps: Number(rp.reps) }))
                 });
-                if (ex.isUnilateral) { 
-                    if (data.left) sets.push(mapSetData(data.left, 'left')); 
-                    if (data.right) sets.push(mapSetData(data.right, 'right')); 
+                if (ex.isUnilateral) {
+                    if (data.left) sets.push(mapSetData(data.left, 'left'));
+                    if (data.right) sets.push(mapSetData(data.right, 'right'));
                 }
                 else if (data.left) sets.push(mapSetData(data.left));
             });
             if (sets.length === 0) return null;
-            return { 
-                exerciseId: ex.id, exerciseDbId: ex.exerciseDbId, exerciseName: ex.name, sets, 
-                initialHeartRate: exerciseHeartRates[ex.id]?.initial, peakHeartRate: exerciseHeartRates[ex.id]?.peak, 
-                ...((exerciseFeedback[ex.id] || {}) as any) 
+            return {
+                exerciseId: ex.id, exerciseDbId: ex.exerciseDbId, exerciseName: ex.name, sets,
+                initialHeartRate: exerciseHeartRates[ex.id]?.initial, peakHeartRate: exerciseHeartRates[ex.id]?.peak,
+                ...((exerciseFeedback[ex.id] || {}) as any)
             };
         }).filter((e): e is CompletedExercise => e !== null);
         onFinish(completedPayload, durationInMinutes ? durationInMinutes * 60 : duration, notes, discomforts, fatigueLevel, mentalClarity, logDate, undefined, planDeviations, focus, pump, environmentTags, sessionDifficulty, planAdherenceTags, muscleBatteries);
@@ -1460,7 +1460,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
     return (
         <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)] bg-[#1a1a1a]">
-             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} fullPage allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
+            <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} fullPage allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
             {activeSetId?.startsWith('warmup-') && (() => {
                 const exId = activeSetId.replace('warmup-', '');
                 const ex = allExercises.find((e: Exercise) => e.id === exId);
@@ -1489,7 +1489,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     />
                 ) : null;
             })()}
-            {historyModalExercise && <ExerciseHistoryModal exercise={historyModalExercise} programId={programId} history={history} settings={settings} onClose={() => setHistoryModalExercise(null)} />}
+            {historyModalExercise && <ExerciseHistoryModal exerciseName={historyModalExercise.name} history={history} settings={settings} onClose={() => setHistoryModalExercise(null)} />}
 
             <AdvancedExercisePickerModal
                 isOpen={!!replaceModalExercise}
@@ -1543,9 +1543,9 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     }
                 }}
             />
-            
+
             {starGoalProgress && (
-                <GoalProgressOverlay 
+                <GoalProgressOverlay
                     current1RM={starGoalProgress.current}
                     goal1RM={starGoalProgress.goal}
                     unit={starGoalProgress.unit}
@@ -1553,7 +1553,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 />
             )}
 
-<WorkoutHeader
+            <WorkoutHeader
                 sessionName={currentSession.name}
                 activePartName={activePartInfo?.name}
                 activePartColor={undefined}
@@ -1571,11 +1571,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 onPause={() => { if (onPause) onPause(); }}
                 onCancel={() => { if (window.confirm('¿Cancelar sesión? Se perderán los datos no guardados.')) onCancel(); }}
             />
-            
+
             <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative">
-            {displayParts.map((part: any, partIndex: number) => (
+                {displayParts.map((part: any, partIndex: number) => (
                     <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group [&>summary]:hidden">
-                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({...prev, [part.id]: !prev[part.id]})); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none bg-[#252525]">
+                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({ ...prev, [part.id]: !prev[part.id] })); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none bg-[#252525]">
                             <div className="flex items-center gap-3"><h3 className="text-sm font-medium uppercase tracking-wide text-[#a3a3a3]">{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-[#737373] transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
                         </summary>
                         <div className="space-y-4 relative pl-0 pr-0 w-full">
@@ -1588,8 +1588,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
                                 return (
                                     <div key={ex.id} className="relative transition-all duration-500 w-full max-w-none" id={`exercise-card-${ex.id}`}>
-                                        <details 
-                                            open={isActive || true} 
+                                        <details
+                                            open={isActive || true}
                                             className={`set-card-details w-full overflow-visible transition-all duration-500 !border-0 !shadow-none !bg-transparent ${isFocused ? 'z-40 ring-2 ring-white/30' : ''}`}
                                         >
                                             <summary className="set-card-summary p-3 flex flex-col items-stretch hidden" onClick={() => handleHeaderClick(ex.id)}>
@@ -1613,13 +1613,13 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                     <h3 className="text-lg font-bold text-white truncate">{ex.name}</h3>
                                                     <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1.5 text-[#737373] hover:text-white shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Historial"><ClockIcon size={18} /></button>
                                                 </div>
-                                                {pr && <div className="p-2 text-center text-sm bg-[#252525] text-[#a3a3a3]"><p className="font-medium flex items-center justify-center gap-2"><TrophyIcon size={16}/> {pr.prString}</p></div>}
-                                                
-                                                <HeaderAccordion 
-                                                    exercise={ex} 
-                                                    exerciseInfo={exInfo} 
-                                                    selectedTag={selectedTags[ex.id]} 
-                                                    onTagChange={(tag) => setSelectedTags(prev => ({...prev, [ex.id]: tag}))} 
+                                                {pr && <div className="p-2 text-center text-sm bg-[#252525] text-[#a3a3a3]"><p className="font-medium flex items-center justify-center gap-2"><TrophyIcon size={16} /> {pr.prString}</p></div>}
+
+                                                <HeaderAccordion
+                                                    exercise={ex}
+                                                    exerciseInfo={exInfo}
+                                                    selectedTag={selectedTags[ex.id]}
+                                                    onTagChange={(tag) => setSelectedTags(prev => ({ ...prev, [ex.id]: tag }))}
                                                 />
 
                                                 {/* Series de aproximación (vista separada) + Series efectivas */}
@@ -1673,11 +1673,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                 const rowClass = isCompleted ? 'session-row-completed' : isActiveRow ? 'session-row-active' : 'session-row-pending';
                                                                 const rowMinH = settings.sessionCompactView ? 40 : 48;
                                                                 const ghost = getGhostForSet((ex.exerciseDbId || ex.id) as string, setIndex, history);
-                                                                const suggestedKg = getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id]);
+                                                                const suggestedKg = getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number; machineBrand?: string } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id]);
                                                                 const placeholderKg = suggestedKg != null ? String(suggestedKg) : (ghost?.weight ? String(ghost.weight) : '');
                                                                 const placeholderReps = ghost?.reps ? String(ghost.reps) : (set.targetReps ? String(set.targetReps) : '');
                                                                 return (
-                                                                        <div key={setId} className="border-b border-white/5">
+                                                                    <div key={setId} className="border-b border-white/5">
                                                                         <div className={`flex items-center gap-2 px-2 py-2 ${rowClass} transition-colors`} style={{ minHeight: rowMinH }} onClick={() => { if (isCompleted || !isActiveRow) { setActiveExerciseId(ex.id); setActiveSetId(setId); } }}>
                                                                             <span className="w-8 text-center text-xs font-mono font-bold text-slate-500 tabular-nums">{setIndex + 1}</span>
                                                                             <div className="flex-1 min-w-[60px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), field: 'weight', exerciseId: ex.id }); }} role="button" tabIndex={0}>
@@ -1694,7 +1694,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                         </div>
                                                                         {isActiveRow && (
                                                                             <div id={`set-card-${setId}`} className="px-2 pb-2">
-                                                                                <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} onOpenNumpad={(opts) => { setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), exerciseId: ex.id, ...opts }); }} />
+                                                                                <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number; machineBrand?: string } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} onOpenNumpad={(opts) => { setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), exerciseId: ex.id, ...opts }); }} />
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -1721,16 +1721,16 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
             {/* Carrusel de tarjetas + acciones */}
             <div className="fixed left-0 right-0 bottom-0 z-20 bg-[#1a1a1a] pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col">
-                    {/* Acciones rápidas: 90s y Notas */}
-                    <div className="flex justify-center gap-2 px-4 py-2 shrink-0">
-                        <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide min-h-[44px]">
-                            <ClockIcon size={14} /> 90s
-                        </button>
-                        <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide min-h-[44px]">
-                            <PencilIcon size={14} /> Notas
-                        </button>
-                    </div>
-                    <div className="shrink-0">
+                {/* Acciones rápidas: 90s y Notas */}
+                <div className="flex justify-center gap-2 px-4 py-2 shrink-0">
+                    <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide min-h-[44px]">
+                        <ClockIcon size={14} /> 90s
+                    </button>
+                    <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide min-h-[44px]">
+                        <PencilIcon size={14} /> Notas
+                    </button>
+                </div>
+                <div className="shrink-0">
                     <CardCarouselBar
                         items={carouselItems}
                         activeExerciseId={activeExerciseId}
@@ -1752,8 +1752,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                         }, 0)}
                         finishCardExpanded={finishCardExpanded}
                     />
-                    </div>
                 </div>
+            </div>
 
             {showNotesDrawer && (
                 <WorkoutDrawer isOpen={true} onClose={() => setShowNotesDrawer(false)} title="Notas de Sesión" height="50vh">
@@ -1783,7 +1783,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                         currentValue = base.restPauses[numpadState.restPauseIndex].reps === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].reps);
                     else {
                         const ef = numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field;
-                        if (['weight','reps','duration','partialReps','rpe','rir'].includes(ef))
+                        if (['weight', 'reps', 'duration', 'partialReps', 'rpe', 'rir'].includes(ef))
                             currentValue = String(base[ef as keyof SetInputState] ?? '');
                     }
                 }
@@ -1817,7 +1817,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     }
                 };
 
-                const isDecimal = ['weight','rpe','dropSetWeight'].includes(numpadState.field);
+                const isDecimal = ['weight', 'rpe', 'dropSetWeight'].includes(numpadState.field);
                 const labels: Record<string, string> = {
                     weight: `Kg (${settings.weightUnit})`,
                     reps: 'Reps',

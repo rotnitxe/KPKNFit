@@ -13,7 +13,7 @@ const ProgramMetricRPEDetail: React.FC<ProgramMetricRPEDetailProps> = () => (
             <p className="text-[11px] text-[#8E8E93]">
                 Distribución RPE por sesión. Histograma, evolución RPE promedio.
             </p>
-            <div className="h-48 rounded-xl bg-[#1a1a1a] border border-white/5 flex items-center justify-center">
+            <div className="h-48 rounded-xl bg-[#1a1a1a] border border-[#E6E0E9] flex items-center justify-center">
                 <span className="text-[12px] text-[#48484A] font-bold">Gráfico en desarrollo</span>
             </div>
         </div>

@@ -28,7 +28,6 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
     const [selectedDate, setSelectedDate] = useState(getLocalDateString());
     const [activeTab, setActiveTab] = useState<NutritionTab>(initialTab ?? 'nutricion');
     const [progressMetric, setProgressMetric] = useState<'weight' | 'bodyFat' | 'muscleMass'>('weight');
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editingBodyLog, setEditingBodyLog] = useState<import('../types').BodyProgressLog | null>(null);
     const [showWizard, setShowWizard] = useState(false);
     const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
@@ -74,8 +73,8 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
         ? activePlan.goalType === 'weight'
             ? `${activePlan.goalValue} kg`
             : activePlan.goalType === 'bodyFat'
-              ? `${activePlan.goalValue}% grasa`
-              : `${activePlan.goalValue}% músculo`
+                ? `${activePlan.goalValue}% grasa`
+                : `${activePlan.goalValue}% músculo`
         : null;
 
     const showGoalReachedCheck = useMemo(() => {
@@ -96,7 +95,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                 sessionStorage.removeItem('kpkn_open_nutrition_wizard');
                 setShowWizard(true);
             }
-        } catch (_) {}
+        } catch (_) { }
     }, []);
 
     useEffect(() => {
@@ -105,11 +104,9 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
 
     useEffect(() => {
         if (isNutritionLogModalOpen) {
-            setIsDrawerOpen(true);
             setActiveTab('nutricion');
-            setIsNutritionLogModalOpen(false);
         }
-    }, [isNutritionLogModalOpen, setIsNutritionLogModalOpen]);
+    }, [isNutritionLogModalOpen]);
 
     const sortedLogs = useMemo(
         () => [...bodyProgress].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
@@ -183,7 +180,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
     }
 
     return (
-        <div className="flex flex-col min-h-full bg-[#121212]">
+        <div className="flex flex-col min-h-full bg-[var(--md-sys-color-surface)]">
             {/* Hero primero — arriba siempre */}
             <div className="shrink-0">
                 {activeTab === 'nutricion' ? (
@@ -222,24 +219,22 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                 )}
             </div>
             {/* Tabs debajo del hero — chips interactivos */}
-            <div className="shrink-0 px-4 py-3 flex gap-2 bg-[#121212]">
+            <div className="shrink-0 px-4 py-3 flex gap-2 bg-[var(--md-sys-color-surface)]">
                 <button
                     onClick={() => setActiveTab('nutricion')}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                        activeTab === 'nutricion'
-                            ? 'bg-white text-black shadow-lg'
-                            : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
-                    }`}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'nutricion'
+                        ? 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-sm'
+                        : 'bg-[var(--md-sys-color-surface-container)]/30 text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container)]'
+                        }`}
                 >
                     Nutrición
                 </button>
                 <button
                     onClick={() => setActiveTab('progreso')}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                        activeTab === 'progreso'
-                            ? 'bg-white text-black shadow-lg'
-                            : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
-                    }`}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'progreso'
+                        ? 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-sm'
+                        : 'bg-[var(--md-sys-color-surface-container)]/30 text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container)]'
+                        }`}
                 >
                     Progreso
                 </button>
@@ -248,11 +243,11 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
             <div className="flex-1 min-h-0 overflow-y-auto">
                 {activeTab === 'nutricion' ? (
                     <>
-                        <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-40">
+                        <div className="max-w-4xl mx-auto px-4 py-4">
                             <NutritionDashboard
                                 selectedDate={selectedDate}
                                 onDateChange={setSelectedDate}
-                                onOpenDrawer={() => setIsDrawerOpen(true)}
+                                onOpenDrawer={() => setIsNutritionLogModalOpen(true)}
                                 showSetupBanner={hasDismissed}
                                 onOpenWizard={() => setShowWizard(true)}
                                 hideHeader
@@ -276,14 +271,14 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                         <div className="max-w-4xl mx-auto px-4 pt-2 pb-2">
                             <button
                                 onClick={() => setIsBodyLogModalOpen(true)}
-                                className="w-full py-3 bg-white text-[#1a1a1a] font-medium text-sm uppercase tracking-wide"
+                                className="w-full py-4 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl shadow-sm active:scale-95 transition-all"
                             >
                                 Actualizar datos
                             </button>
                         </div>
-                        <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-40 space-y-6">
+                        <div className="max-w-4xl mx-auto px-4 py-4 space-y-6">
                             <section>
-                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">Evolución</p>
+                                <p className="text-[9px] font-black text-[#49454F] uppercase tracking-widest mb-3">Evolución</p>
                                 <ErrorBoundary fallbackLabel="WeightVsTargetChart"><WeightVsTargetChart /></ErrorBoundary>
                             </section>
                             <section>
@@ -296,34 +291,34 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                 <ErrorBoundary fallbackLabel="FFMIChart"><FFMIChart /></ErrorBoundary>
                             </section>
                             <section>
-                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">Registros</p>
+                                <p className="text-[9px] font-black text-[#49454F] uppercase tracking-widest mb-3">Registros</p>
                                 {sortedLogs.length === 0 ? (
-                                    <p className="text-zinc-500 text-[10px] py-4">No hay registros. Pulsa Registrar avance.</p>
+                                    <p className="text-[#49454F] text-[10px] py-4">No hay registros. Pulsa Registrar avance.</p>
                                 ) : (
                                     <div className="divide-y divide-white/5">
                                         {sortedLogs.map(log => (
                                             <div key={log.id} className="py-3 flex justify-between items-start">
                                                 <div>
-                                                    <p className="text-sm font-bold text-white">
+                                                    <p className="text-sm font-black text-[var(--md-sys-color-on-surface)]">
                                                         {log.weight != null ? `${log.weight} ${settings.weightUnit}` : '--'}
                                                         {log.bodyFatPercentage != null && ` · ${log.bodyFatPercentage}% grasa`}
                                                         {log.muscleMassPercentage != null && ` · ${log.muscleMassPercentage}% músculo`}
                                                     </p>
-                                                    <p className="text-[10px] text-zinc-500">
+                                                    <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--md-sys-color-on-surface-variant)]/60">
                                                         {new Date(log.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                     </p>
                                                 </div>
                                                 <div className="flex gap-1">
                                                     <button
                                                         onClick={() => { setEditingBodyLog(log); }}
-                                                        className="p-2 text-zinc-500 hover:text-white"
+                                                        className="p-2 text-[#49454F] hover:text-white"
                                                         aria-label="Editar"
                                                     >
                                                         <PencilIcon size={14} />
                                                     </button>
                                                     <button
                                                         onClick={() => window.confirm('¿Eliminar?') && setBodyProgress(prev => prev.filter(l => l.id !== log.id))}
-                                                        className="p-2 text-zinc-500 hover:text-rose-400"
+                                                        className="p-2 text-[#49454F] hover:text-rose-400"
                                                         aria-label="Eliminar"
                                                     >
                                                         <TrashIcon size={14} />
@@ -341,7 +336,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
 
             {activeTab === 'nutricion' && (
                 <button
-                    onClick={() => setIsDrawerOpen(true)}
+                    onClick={() => setIsNutritionLogModalOpen(true)}
                     className="fixed z-20 w-14 h-14 rounded-2xl bg-white text-black font-semibold flex items-center justify-center shadow-xl active:scale-95 transition-transform"
                     style={{ bottom: 'calc(var(--tab-bar-safe-bottom, 140px) + 0.5rem)', right: '1rem' }}
                     aria-label="Añadir comida"
@@ -350,13 +345,6 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                 </button>
             )}
 
-            <RegisterFoodDrawer
-                isOpen={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
-                onSave={handleSaveNutritionLog}
-                settings={settings}
-                initialDate={selectedDate}
-            />
             <NutritionSetupModal
                 isOpen={needsSetupModal}
                 onConfigurarAhora={() => setShowWizard(true)}

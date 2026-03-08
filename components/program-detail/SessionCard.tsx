@@ -50,7 +50,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
     }, [exercisesToDisplay, exerciseList]);
 
     const getFatigueColor = (s: number) => {
-        if (s === 0) return 'bg-zinc-800 text-zinc-500';
+        if (s === 0) return 'bg-zinc-800 text-[#49454F]';
         if (s <= 3) return 'bg-emerald-500 text-emerald-950 shadow-[0_0_10px_rgba(16,185,129,0.5)]';
         if (s <= 7) return 'bg-yellow-400 text-yellow-950 shadow-[0_0_10px_rgba(250,204,21,0.5)]';
         return 'bg-red-500 text-red-950 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
@@ -64,16 +64,16 @@ const SessionCard: React.FC<SessionCardProps> = ({
     };
 
     return (
-        <div className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden mb-2 hover:bg-zinc-900/60 transition-colors">
+        <div className="bg-zinc-900/40 border border-[#E6E0E9] rounded-2xl overflow-hidden mb-2 hover:bg-zinc-900/60 transition-colors">
             <div className="p-3.5">
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex gap-3 items-center">
-                        <div className="w-9 h-9 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center text-xs font-black text-white">
+                        <div className="w-9 h-9 rounded-xl bg-black/50 border border-[#E6E0E9] flex items-center justify-center text-xs font-black text-white">
                             {index + 1}
                         </div>
                         <div>
                             <h4 className="text-sm font-black text-white uppercase tracking-tight leading-none mb-0.5">{session.name}</h4>
-                            <div className="flex items-center gap-3 text-[10px] text-zinc-500 font-medium">
+                            <div className="flex items-center gap-3 text-[10px] text-[#49454F] font-medium">
                                 <span className="flex items-center gap-1"><DumbbellIcon size={10} /> {exercisesToDisplay.length} Ej.</span>
                                 <span className="flex items-center gap-1"><ClockIcon size={10} /> ~{totalSets * 3}m</span>
                             </div>
@@ -100,14 +100,14 @@ const SessionCard: React.FC<SessionCardProps> = ({
                         data-testid="session-edit"
                         aria-label="Editar sesión"
                         onClick={e => { e.stopPropagation(); onEdit(); }}
-                        className="w-10 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-colors"
+                        className="w-10 bg-black/50 border border-[#E6E0E9] rounded-xl flex items-center justify-center text-[#49454F] hover:text-white hover:border-white/30 transition-colors"
                     >
                         <EditIcon size={14} />
                     </button>
                     {onDelete && (
                         <button
                             onClick={e => { e.stopPropagation(); onDelete(); }}
-                            className="w-10 bg-black/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-500/30 transition-colors"
+                            className="w-10 bg-black/50 border border-[#E6E0E9] rounded-xl flex items-center justify-center text-[#49454F] hover:text-red-500 hover:border-red-500/30 transition-colors"
                         >
                             <TrashIcon size={14} />
                         </button>
@@ -116,13 +116,13 @@ const SessionCard: React.FC<SessionCardProps> = ({
             </div>
 
             {isExpanded && (
-                <div className="bg-black/20 border-t border-white/5 p-3 space-y-3 animate-slide-down">
+                <div className="bg-black/20 border-t border-[#E6E0E9] p-3 space-y-3 animate-slide-down">
                     {averageFatigue > 0 && (
-                        <div className="flex items-center justify-between bg-zinc-950 border border-white/5 rounded-xl p-2.5">
+                        <div className="flex items-center justify-between bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-2.5">
                             <div className="flex items-center gap-2">
                                 <ActivityIcon size={14} className={averageFatigue > 7 ? 'text-red-500' : averageFatigue > 3 ? 'text-yellow-400' : 'text-emerald-500'} />
                                 <div className="flex flex-col">
-                                    <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Impacto</span>
+                                    <span className="text-[9px] font-black uppercase text-[#49454F] tracking-widest">Impacto</span>
                                     <span className="text-[11px] font-bold text-white">{getFatigueLabel(averageFatigue)}</span>
                                 </div>
                             </div>
@@ -136,14 +136,14 @@ const SessionCard: React.FC<SessionCardProps> = ({
                         <div className="flex gap-2 pb-1">
                             {exercisesToDisplay.length > 0 ? (
                                 exercisesToDisplay.map((exercise: any, idx: number) => (
-                                    <div key={idx} className="shrink-0 w-48 bg-zinc-800/40 border border-white/10 rounded-xl p-2.5">
+                                    <div key={idx} className="shrink-0 w-48 bg-zinc-800/40 border border-[#E6E0E9] rounded-xl p-2.5">
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="text-[11px] font-bold text-zinc-300 truncate max-w-[100px]">{exercise.name}</span>
-                                            <span className="text-[9px] text-zinc-400 bg-black/50 px-1.5 py-0.5 rounded">{(exercise.sets || []).length}s</span>
+                                            <span className="text-[9px] text-[#49454F] bg-black/50 px-1.5 py-0.5 rounded">{(exercise.sets || []).length}s</span>
                                         </div>
-                                        <div className="border-l border-white/10 pl-2">
+                                        <div className="border-l border-[#E6E0E9] pl-2">
                                             {(exercise.sets || []).slice(0, 1).map((set: any, sIdx: number) => (
-                                                <p key={sIdx} className="text-[9px] text-zinc-400">
+                                                <p key={sIdx} className="text-[9px] text-[#49454F]">
                                                     {set.targetReps} reps {set.targetRPE ? `@ RPE ${set.targetRPE}` : ''}
                                                 </p>
                                             ))}
@@ -155,7 +155,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
                                 ))
                             ) : (
                                 <div className="w-full text-center py-3">
-                                    <p className="text-[10px] text-zinc-500 italic">Sin ejercicios</p>
+                                    <p className="text-[10px] text-[#49454F] italic">Sin ejercicios</p>
                                 </div>
                             )}
                         </div>

@@ -1,15 +1,15 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { Program, ExerciseMuscleInfo } from '../../types';
+import React, { useState, useCallback } from 'react';
+import { Program } from '../../types';
 import { useAppContext } from '../../contexts/AppContext';
 import EditorToolbar from './EditorToolbar';
 import EditorSidebar from './EditorSidebar';
 import DetailsSection from './DetailsSection';
-import StructureSection from './StructureSection';
+import StructureDrawer from '../program-detail/StructureDrawer';
 import GoalsSection from './GoalsSection';
 import EventsSection from './EventsSection';
 import VolumeSection from './VolumeSection';
 import ExportSection from './ExportSection';
-import SplitChangerModal from '../SplitChangerModal';
+import SplitChangerDrawer from '../program-detail/SplitChangerDrawer';
 
 interface ProgramEditorAdvancedProps {
     program: Program;
@@ -23,11 +23,11 @@ const ProgramEditorAdvanced: React.FC<ProgramEditorAdvancedProps> = ({
     const { exerciseList, handleChangeSplit, addToast } = useAppContext();
     const [program, setProgram] = useState<Program>(() => JSON.parse(JSON.stringify(initialProgram)));
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [activeSection, setActiveSection] = useState<string>('details');
     const [isSplitChangerOpen, setIsSplitChangerOpen] = useState(false);
-
-    const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+    const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
 
     const updateProgram = useCallback((updated: Program) => {
         setProgram(updated);
@@ -54,11 +54,6 @@ const ProgramEditorAdvanced: React.FC<ProgramEditorAdvancedProps> = ({
         onCancel();
     }, [hasUnsavedChanges, onCancel]);
 
-    const navigateToSection = useCallback((id: string) => {
-        setActiveSection(id);
-        sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, []);
-
     const handleDuplicate = useCallback(() => {
         const dup = JSON.parse(JSON.stringify(program));
         dup.id = crypto.randomUUID();
@@ -80,8 +75,13 @@ const ProgramEditorAdvanced: React.FC<ProgramEditorAdvancedProps> = ({
         addToast('Exportado', 'success');
     }, [program, addToast]);
 
+    const navigateToSection = (id: string) => {
+        setActiveSection(id);
+        setIsSidebarOpen(false);
+    };
+
     return (
-        <div className="fixed inset-0 z-[100] bg-[#1a1a1a] text-white flex flex-col font-sans">
+        <div className="fixed inset-0 z-[100] bg-[var(--md-sys-color-surface)] text-black flex flex-col font-sans overflow-hidden">
             {/* Toolbar */}
             <EditorToolbar
                 programName={program.name || ''}
@@ -91,83 +91,120 @@ const ProgramEditorAdvanced: React.FC<ProgramEditorAdvancedProps> = ({
                 onCancel={handleCancel}
                 onDuplicate={handleDuplicate}
                 onExport={handleExportJSON}
+                onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             />
 
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex overflow-hidden relative">
+                {/* Backdrop for mobile sidebar */}
+                {isSidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300"
+                        onClick={() => setIsSidebarOpen(false)}
+                    />
+                )}
+
                 {/* Sidebar */}
-                <EditorSidebar
-                    program={program}
-                    activeSectionId={activeSection}
-                    onNavigateToSection={navigateToSection}
-                    onAddBlock={(macroIdx) => {
-                        const updated = JSON.parse(JSON.stringify(program));
-                        updated.macrocycles[macroIdx].blocks.push({
-                            id: crypto.randomUUID(), name: 'Nuevo Bloque',
-                            mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación', weeks: [] }],
-                        });
-                        updateProgram(updated);
-                    }}
-                    onAddWeek={(macroIdx, blockIdx, mesoIdx) => {
-                        const updated = JSON.parse(JSON.stringify(program));
-                        const meso = updated.macrocycles[macroIdx].blocks[blockIdx].mesocycles[mesoIdx];
-                        meso.weeks.push({ id: crypto.randomUUID(), name: `Semana ${meso.weeks.length + 1}`, sessions: [] });
-                        updateProgram(updated);
-                    }}
-                    collapsed={sidebarCollapsed}
-                    onToggleCollapsed={() => setSidebarCollapsed(!sidebarCollapsed)}
-                />
+                <div
+                    className={`fixed inset-y-0 left-0 w-72 bg-white border-r border-[var(--md-sys-color-outline-variant)] z-50 transform transition-transform duration-300 ease-spring ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}
+                >
+                    <EditorSidebar
+                        program={program}
+                        activeSectionId={activeSection}
+                        onNavigateToSection={navigateToSection}
+                        onAddBlock={(macroIdx) => {
+                            const updated = JSON.parse(JSON.stringify(program));
+                            updated.macrocycles[macroIdx].blocks.push({
+                                id: crypto.randomUUID(), name: 'Nuevo Bloque',
+                                mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación', weeks: [] }],
+                            });
+                            updateProgram(updated);
+                        }}
+                        onAddWeek={(macroIdx, blockIdx, mesoIdx) => {
+                            const updated = JSON.parse(JSON.stringify(program));
+                            const meso = updated.macrocycles[macroIdx].blocks[blockIdx].mesocycles[mesoIdx];
+                            meso.weeks.push({ id: crypto.randomUUID(), name: `Semana ${meso.weeks.length + 1}`, sessions: [] });
+                            updateProgram(updated);
+                        }}
+                    />
+                </div>
 
                 {/* Main content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-                    <div ref={el => { sectionRefs.current['details'] = el; }}>
-                        <DetailsSection
-                            program={program}
-                            onUpdateField={updateField}
-                            onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
-                        />
-                    </div>
+                <main className="flex-1 overflow-y-auto custom-scrollbar p-4 bg-[var(--md-sys-color-surface)] pb-32">
+                    <div className="space-y-8 h-full">
+                        {activeSection === 'details' && (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <DetailsSection
+                                    program={program}
+                                    onUpdateField={updateField}
+                                    onOpenSplitChanger={() => setIsSplitChangerOpen(true)}
+                                />
+                            </div>
+                        )}
 
-                    <div ref={el => { sectionRefs.current['structure'] = el; }}>
-                        <StructureSection
-                            program={program}
-                            onUpdateProgram={updateProgram}
-                        />
-                    </div>
+                        {activeSection === 'structure' && (
+                            <div className="animate-in fade-in zoom-in-95 duration-500 h-full">
+                                <StructureDrawer
+                                    isOpen={true}
+                                    onClose={() => { }}
+                                    program={program}
+                                    isCyclic={program.structure === 'simple'}
+                                    selectedBlockId={selectedBlockId}
+                                    selectedWeekId={selectedWeekId}
+                                    onSelectBlock={setSelectedBlockId}
+                                    onSelectWeek={setSelectedWeekId}
+                                    onUpdateProgram={updateProgram}
+                                    onEditWeek={() => { }} // Handle navigation to session editor?
+                                    onShowAdvancedTransition={() => updateField('structure', 'complex')}
+                                    onShowSimpleTransition={() => updateField('structure', 'simple')}
+                                    onOpenEventModal={() => setActiveSection('events')}
+                                    inline={true}
+                                />
+                            </div>
+                        )}
 
-                    <div ref={el => { sectionRefs.current['goals'] = el; }}>
-                        <GoalsSection
-                            program={program}
-                            exerciseList={exerciseList}
-                            onUpdateProgram={updateProgram}
-                        />
-                    </div>
+                        {activeSection === 'goals' && (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <GoalsSection
+                                    program={program}
+                                    exerciseList={exerciseList}
+                                    onUpdateProgram={updateProgram}
+                                />
+                            </div>
+                        )}
 
-                    <div ref={el => { sectionRefs.current['events'] = el; }}>
-                        <EventsSection
-                            program={program}
-                            onUpdateProgram={updateProgram}
-                        />
-                    </div>
+                        {activeSection === 'events' && (
+                            <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+                                <EventsSection
+                                    program={program}
+                                    onUpdateProgram={updateProgram}
+                                />
+                            </div>
+                        )}
 
-                    <div ref={el => { sectionRefs.current['volume'] = el; }}>
-                        <VolumeSection
-                            program={program}
-                            exerciseList={exerciseList}
-                        />
-                    </div>
+                        {activeSection === 'volume' && (
+                            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                                <VolumeSection
+                                    program={program}
+                                    exerciseList={exerciseList}
+                                />
+                            </div>
+                        )}
 
-                    <div ref={el => { sectionRefs.current['export'] = el; }}>
-                        <ExportSection
-                            program={program}
-                            onDuplicate={handleDuplicate}
-                            addToast={addToast}
-                        />
+                        {activeSection === 'export' && (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <ExportSection
+                                    program={program}
+                                    onDuplicate={handleDuplicate}
+                                    addToast={addToast as any}
+                                />
+                            </div>
+                        )}
                     </div>
-                </div>
+                </main>
             </div>
 
-            {/* Split Changer */}
-            <SplitChangerModal
+            {/* Split Changer Drawer */}
+            <SplitChangerDrawer
                 isOpen={isSplitChangerOpen}
                 onClose={() => setIsSplitChangerOpen(false)}
                 currentSplitId={program.selectedSplitId}

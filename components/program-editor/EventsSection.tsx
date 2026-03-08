@@ -56,30 +56,34 @@ const EventsSection: React.FC<EventsSectionProps> = ({ program, onUpdateProgram 
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6 p-4 rounded-3xl">
             <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                    <CalendarIcon size={14} className="text-zinc-400" /> Eventos
+                <h3 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-[0.2em] flex items-center gap-2">
+                    <CalendarIcon size={16} className="text-[var(--md-sys-color-primary)]" /> Eventos
                 </h3>
                 <button
                     onClick={() => openForm()}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-zinc-900 border border-white/10 text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-label-small font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-sm"
                 >
-                    <PlusIcon size={10} /> Nuevo
+                    <PlusIcon size={14} /> Nuevo Evento
                 </button>
             </div>
 
             {/* Timeline */}
             {!isCyclic && events.length > 0 && totalWeeks > 0 && (
-                <div className="bg-zinc-950 border border-white/5 rounded-xl p-3">
-                    <div className="relative w-full h-2 bg-zinc-900 rounded-full">
+                <div className="bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Cronograma de Eventos</span>
+                        <span className="text-label-small text-[var(--md-sys-color-on-surface)] font-bold uppercase">{totalWeeks} Semanas</span>
+                    </div>
+                    <div className="relative w-full h-3 bg-[var(--md-sys-color-surface-container-high)] rounded-full border border-[var(--md-sys-color-outline-variant)] px-1 overflow-visible">
                         {events.map((e, i) => {
                             const pos = Math.min(100, ((e.calculatedWeek + 1) / totalWeeks) * 100);
                             return (
                                 <div
                                     key={i}
                                     style={{ left: `${pos}%` }}
-                                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-yellow-400 -translate-x-1/2 cursor-pointer hover:scale-150 transition-transform"
+                                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[var(--md-sys-color-primary)] border-2 border-[var(--md-sys-color-surface)] shadow-[0_0_10px_rgba(var(--md-sys-color-primary-rgb),0.4)] -translate-x-1/2 cursor-pointer hover:scale-125 transition-all z-10"
                                     onClick={() => openForm(e)}
                                     title={`${e.title} - S${e.calculatedWeek + 1}`}
                                 />
@@ -91,76 +95,102 @@ const EventsSection: React.FC<EventsSectionProps> = ({ program, onUpdateProgram 
 
             {/* Event list */}
             {events.length > 0 ? (
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 gap-2">
                     {events.map((ev, idx) => (
-                        <div key={ev.id || idx} className="flex items-center gap-3 bg-zinc-950 border border-white/5 rounded-xl p-3 group cursor-pointer hover:border-white/15 transition-colors" onClick={() => openForm(ev)}>
-                            <div className="w-2 h-2 bg-yellow-400 rounded-full shrink-0" />
+                        <div key={ev.id || idx} className="flex items-center gap-4 bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-4 group cursor-pointer hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-md transition-all" onClick={() => openForm(ev)}>
+                            <div className="w-10 h-10 rounded-full bg-[var(--md-sys-color-primary-container)] flex items-center justify-center text-[var(--md-sys-color-on-primary-container)] shrink-0 shadow-inner">
+                                <CalendarIcon size={18} />
+                            </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-[11px] font-bold text-white block truncate">{ev.title}</span>
-                                <span className="text-[9px] text-zinc-500">
-                                    {isCyclic ? `Cada ${ev.repeatEveryXCycles} ciclos` : `Semana ${ev.calculatedWeek + 1}`}
+                                <span className="text-label-large font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tight block truncate mb-1">{ev.title}</span>
+                                <span className="text-[9px] font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">
+                                    {isCyclic ? `FRECUENCIA: CADA ${ev.repeatEveryXCycles} CICLOS` : `PLANIFICADO PARA: SEMANA ${ev.calculatedWeek + 1}`}
                                 </span>
                             </div>
                             <button
                                 onClick={e => { e.stopPropagation(); handleDelete(ev.id || ''); }}
-                                className="p-1 text-zinc-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--md-sys-color-outline-variant)] hover:text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]/30 transition-all"
                             >
-                                <TrashIcon size={12} />
+                                <TrashIcon size={16} />
                             </button>
                         </div>
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-8 border border-dashed border-white/10 rounded-xl">
-                    <CalendarIcon size={20} className="text-zinc-700 mx-auto mb-1" />
-                    <p className="text-[9px] text-zinc-500 font-bold">Sin eventos</p>
+                <div className="text-center py-12 border-2 border-dashed border-[var(--md-sys-color-outline-variant)] rounded-3xl bg-[var(--md-sys-color-surface-container-lowest)]">
+                    <div className="w-16 h-16 bg-[var(--md-sys-color-surface-container-high)] rounded-full flex items-center justify-center mx-auto mb-4 text-[var(--md-sys-color-outline-variant)] shadow-sm border border-[var(--md-sys-color-outline-variant)]">
+                        <CalendarIcon size={24} />
+                    </div>
+                    <p className="text-label-small text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-widest">Sin eventos planificados</p>
                 </div>
             )}
 
             {/* Form modal */}
             {showForm && (
-                <div className="bg-zinc-950 border border-white/10 rounded-2xl p-4 space-y-3 animate-fade-in">
+                <div className="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-3xl p-6 space-y-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 ring-4 ring-[var(--md-sys-color-primary)]/5">
                     <div className="flex items-center justify-between">
-                        <h4 className="text-[10px] font-black text-white uppercase tracking-widest">{editingId ? 'Editar' : 'Nuevo'} Evento</h4>
-                        <button onClick={() => setShowForm(false)} className="p-1 text-zinc-500 hover:text-white"><XIcon size={14} /></button>
+                        <h4 className="text-title-small font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-widest">{editingId ? 'Editar' : 'configurar nuevo'} Evento</h4>
+                        <button onClick={() => setShowForm(false)} className="w-8 h-8 flex items-center justify-center rounded-full text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] transition-all"><XIcon size={18} /></button>
                     </div>
-                    <input
-                        type="text"
-                        value={formData.title}
-                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                        placeholder="Nombre del evento"
-                        className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs font-bold text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30"
-                    />
-                    {isCyclic ? (
-                        <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-zinc-500 font-bold">Cada</span>
+
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest px-1">Título del Evento</label>
                             <input
-                                type="number" min={1}
-                                value={formData.repeatEveryXCycles}
-                                onChange={e => setFormData({ ...formData, repeatEveryXCycles: parseInt(e.target.value) || 1 })}
-                                className="w-16 bg-black border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white text-center font-bold focus:ring-1 focus:ring-white/30"
-                            />
-                            <span className="text-[9px] text-zinc-500 font-bold">ciclos</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-zinc-500 font-bold">Semana</span>
-                            <input
-                                type="number" min={1}
-                                value={formData.calculatedWeek + 1}
-                                onChange={e => setFormData({ ...formData, calculatedWeek: (parseInt(e.target.value) || 1) - 1 })}
-                                className="w-16 bg-black border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white text-center font-bold focus:ring-1 focus:ring-white/30"
+                                type="text"
+                                value={formData.title}
+                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="Ej: Toma de marcas 1RM"
+                                className="w-full bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-xl px-4 py-3 text-body-medium font-black text-[var(--md-sys-color-on-surface)] uppercase placeholder-[var(--md-sys-color-outline-variant)] focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/20 focus:border-[var(--md-sys-color-primary)] outline-none transition-all"
                             />
                         </div>
-                    )}
-                    <div className="flex gap-2">
+
+                        <div className="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 border border-[var(--md-sys-color-outline-variant)]">
+                            {isCyclic ? (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Repetir cada</span>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="number" min={1}
+                                            value={formData.repeatEveryXCycles}
+                                            onChange={e => setFormData({ ...formData, repeatEveryXCycles: parseInt(e.target.value) || 1 })}
+                                            className="w-20 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl px-3 py-2 text-label-large text-[var(--md-sys-color-on-surface)] text-center font-black focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/20 focus:border-[var(--md-sys-color-primary)] outline-none transition-all shadow-sm"
+                                        />
+                                        <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase">Ciclos</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Programar en</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase">Semana</span>
+                                        <input
+                                            type="number" min={1}
+                                            value={formData.calculatedWeek + 1}
+                                            onChange={e => setFormData({ ...formData, calculatedWeek: (parseInt(e.target.value) || 1) - 1 })}
+                                            className="w-20 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl px-3 py-2 text-label-large text-[var(--md-sys-color-on-surface)] text-center font-black focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/20 focus:border-[var(--md-sys-color-primary)] outline-none transition-all shadow-sm"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
                         {editingId && (
-                            <button onClick={() => { handleDelete(editingId); setShowForm(false); }} className="px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-[9px] font-bold">
+                            <button
+                                onClick={() => { handleDelete(editingId); setShowForm(false); }}
+                                className="px-5 py-3 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]/30 rounded-xl text-label-small font-black uppercase tracking-widest transition-all"
+                            >
                                 Eliminar
                             </button>
                         )}
-                        <button onClick={handleSave} disabled={!formData.title.trim()} className="flex-1 py-2 bg-white text-black font-black text-[9px] uppercase tracking-widest rounded-lg hover:bg-zinc-200 disabled:opacity-30">
-                            Guardar
+                        <button
+                            onClick={handleSave}
+                            disabled={!formData.title.trim()}
+                            className="flex-1 py-3 bg-[var(--md-sys-color-on-surface)] text-[var(--md-sys-color-surface)] font-black text-label-small uppercase tracking-[0.2em] rounded-xl hover:shadow-xl hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-20 shadow-md"
+                        >
+                            Guardar Cambios
                         </button>
                     </div>
                 </div>

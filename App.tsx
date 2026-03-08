@@ -36,6 +36,7 @@ import { PostSessionQuestionnaireWidget } from './components/PostSessionQuestion
 import AthleteIDDashboard from './components/AthleteIDDashboard';
 import { UpdateNoveltiesModal } from './components/UpdateNoveltiesModal';
 
+import { RegisterFoodDrawer } from './components/nutrition/RegisterFoodDrawer';
 // Icons for header & new menu
 import { ArrowLeftIcon, IdCardIcon } from './components/icons';
 
@@ -97,9 +98,9 @@ const AIArtStudioView = React.lazy(() => import('./components/AIArtStudioView'))
 const HomeCardPageView = React.lazy(() => import('./components/home/HomeCardPageView').then(m => ({ default: m.HomeCardPageView })));
 
 const ViewFallback: React.FC = () => (
-    <div className="flex flex-col items-center justify-center min-h-[40vh] p-8 text-center">
-        <div className="w-10 h-10 border-2 border-slate-500 border-t-white rounded-full animate-spin mb-4" />
-        <p className="text-zinc-400 text-sm">Cargando...</p>
+    <div className="flex flex-col items-center justify-center min-h-[40vh] p-8 text-center bg-transparent">
+        <div className="w-10 h-10 border-2 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4" />
+        <p className="text-zinc-400 text-sm font-black uppercase tracking-widest">Cargando...</p>
     </div>
 );
 
@@ -150,6 +151,7 @@ export const App: React.FC = () => {
         exerciseList,
         isOnline,
         isBodyLogModalOpen,
+        isNutritionLogModalOpen,
         isFinishModalOpen,
         isTimeSaverModalOpen,
         isTimersModalOpen,
@@ -250,7 +252,7 @@ export const App: React.FC = () => {
     // ── Material You Dynamic Color (KPKN Theme Engine) ───────────────────────
     // Genera y aplica tokens de color en CSS variables, siguiendo el dark/light
     // mode del sistema del usuario automáticamente.
-    useKPKNTheme({ followSystemDark: true });
+    useKPKNTheme({ followSystemDark: false });
 
     const handleSaveSleepLog = useCallback((log: SleepLog) => {
         setSleepLogs(prev => prev.map(l => l.id === log.id ? log : l));
@@ -462,11 +464,12 @@ export const App: React.FC = () => {
     }), [handleLogPress, onFinishWorkoutPress, onTimeSaverPress, onModifyPress, onTimersPress, onCancelWorkout, onPauseWorkoutPress, onSaveSessionPress, onAddExercisePress, handleBack, onSaveProgramPress, onSaveLoggedWorkoutPress, onAddCustomExercisePress, onCoachPress, onEditExercisePress, onAnalyzeTechniquePress, onAddToPlaylistPress, addToast]);
 
     const subTabBarContext = useMemo(() => {
+        if (state.isLogActionSheetOpen) return 'kpkn';
         if (['kpkn', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'joint-detail', 'tendon-detail', 'movement-pattern-detail'].includes(view)) return 'kpkn';
         if (['food-database', 'food-detail'].includes(view)) return 'food-database';
         if (['progress'].includes(view)) return 'progress';
         return null;
-    }, [view]);
+    }, [view, state.isLogActionSheetOpen]);
 
     const tabBarContext = useMemo(() => {
         if (view === 'workout') return 'workout';
@@ -481,8 +484,8 @@ export const App: React.FC = () => {
             case 'home': return <Home onNavigate={handleHomeNavigation} onResumeWorkout={handleResumeWorkout} onEditSleepLog={setEditingSleepLog} onNavigateToCard={handleHomeCardNavigation} />;
             case 'nutrition': return <NutritionView />;
             case 'recovery': return (
-                <div className="pt-[20px] px-4 h-full overflow-y-auto hide-scrollbar tab-bar-safe-area">
-                    <h1 className="text-3xl font-black uppercase tracking-tighter text-white mb-6">Recuperación</h1>
+                <div className="pt-[20px] px-4 h-full overflow-y-auto hide-scrollbar tab-bar-safe-area bg-[#F9FAFB]">
+                    <h1 className="text-3xl font-black uppercase tracking-tighter text-zinc-900 mb-6">Recuperación</h1>
                     <MuscleRecoveryWidget />
                 </div>
             );
@@ -624,9 +627,9 @@ export const App: React.FC = () => {
 
     return (
         <div
-            className="app-container fixed inset-0 w-full h-[100dvh] flex flex-col overflow-hidden"
+            className="app-container fixed inset-0 w-full h-[100dvh] flex flex-col overflow-hidden bg-[#FDFCFE]"
             style={{
-                background: `linear-gradient(180deg, #1a1a1a 0px, #1a1a1a max(32px, env(safe-area-inset-top, 0px)), #121212 max(32px, env(safe-area-inset-top, 0px)))`,
+                background: `#FDFCFE`,
             }}
             data-view={view === 'nutrition' || view === 'body-progress' ? 'nutrition' : undefined}
         >
@@ -642,8 +645,18 @@ export const App: React.FC = () => {
                 onSettingsClick={() => navigateTo('settings')}
             />
 
-            <main className={`app-main-content scroll-flexible flex-1 w-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'} ${view === 'home' ? 'p-0' : view === 'workout' ? 'pt-0 pb-0' : 'pt-4 pb-[max(150px,calc(var(--tab-bar-safe-bottom,140px)+24px))]'}`}>
-                <div className={`${view === 'home' || view === 'sleep' || view === 'workout' || view === 'nutrition' || view === 'body-progress' ? 'w-full min-h-full' : 'max-w-4xl mx-auto px-4'} animate-fade-in`}>
+            <main
+                className={`app-main-content flex-1 w-full flex flex-col items-center relative overflow-y-auto overflow-x-hidden custom-scrollbar bg-transparent ${view === 'session-editor' || view === 'program-editor' ? 'z-[10000]' : 'z-10'}`}
+                style={{
+                    paddingTop: (view === 'workout' || view === 'home') ? '0' : 'max(56px, calc(env(safe-area-inset-top, 24px) + 16px))',
+                    paddingBottom: (view === 'workout' || view === 'session-editor' || view === 'program-editor')
+                        ? 'env(safe-area-inset-bottom, 24px)'
+                        : !!subTabBarContext
+                            ? '250px'
+                            : '160px'
+                }}
+            >
+                <div className="w-full min-h-full animate-fade-in overflow-visible">
                     <ErrorBoundary key={view} fallbackLabel={view} onRecover={() => navigateTo('home')}>
                         <Suspense fallback={<ViewFallback />}>
                             {renderView()}
@@ -652,12 +665,29 @@ export const App: React.FC = () => {
                 </div>
             </main>
 
-            {/* TAB BAR: Hides on Program Editor, Session Editor, Workout. Always visible on nutrition/body-progress. */}
+            {/* TAB BAR (LIQUID GLASS SIN BORDES) */}
             {view !== 'program-editor' && view !== 'session-editor' && view !== 'workout' && (
-                <div className={`tab-bar-card-container fixed bottom-0 left-0 w-full z-[60] rounded-t-none min-h-[88px] flex flex-col`}>
-                    <div className="flex flex-col w-full flex-1 min-h-0">
-                        <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />
-                        <div className="h-[88px] shrink-0">
+                <div
+                    className="fixed bottom-6 left-0 right-0 z-[99999] px-4 pointer-events-none pb-[env(safe-area-inset-bottom,0px)] flex justify-center"
+                >
+                    <div
+                        className="pointer-events-auto relative w-full overflow-visible max-w-[420px] rounded-[32px] flex flex-col p-2 animate-fade-in-up transition-all duration-500"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.72)',
+                            backdropFilter: 'blur(40px) saturate(160%)',
+                            WebkitBackdropFilter: 'blur(40px) saturate(160%)',
+                            boxShadow: '0 25px 80px -15px rgba(0, 0, 0, 0.4), 0 10px 30px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+                        }}
+                    >
+                        {/* SubTabBar extension */}
+                        <div
+                            className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                                        ${subTabBarContext ? 'max-h-24 opacity-100 pt-3' : 'max-h-0 opacity-0 pt-0'}`}
+                        >
+                            <SubTabBar context={subTabBarContext} isActive={!!subTabBarContext} viewingExerciseId={viewingExerciseId} onEditExercisePress={tabBarActions.onEditExercisePress} />
+                        </div>
+                        {/* Main TabBar base */}
+                        <div className="h-[68px] shrink-0 w-full">
                             <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext} workoutViewMode="carousel" />
                         </div>
                     </div>
@@ -689,8 +719,14 @@ export const App: React.FC = () => {
             <ReadinessDrawer isOpen={isReadinessModalOpen} onClose={() => { setIsReadinessModalOpen(false); setPendingWorkoutForReadinessCheck(null); }} onContinue={handleContinueFromReadiness} pendingWorkout={pendingWorkoutForReadinessCheck} />
             {state.isAddToPlaylistSheetOpen && <AddToPlaylistSheet />}
             <StartWorkoutDrawer isOpen={isStartWorkoutModalOpen} onClose={() => setIsStartWorkoutModalOpen(false)} />
+            <RegisterFoodDrawer
+                isOpen={isNutritionLogModalOpen}
+                onClose={() => setIsNutritionLogModalOpen(false)}
+                onSave={handleSaveNutritionLog}
+                settings={settings}
+            />
             {pendingCoachBriefing && <CoachBriefingDrawer isOpen={!!pendingCoachBriefing} onClose={handleContinueWorkoutAfterBriefing} briefing={pendingCoachBriefing} />}
-            {state.isLogActionSheetOpen && <LogActionSheet />}
+            {/* {state.isLogActionSheetOpen && <LogActionSheet />} Replaced by SubTabBar */}
             <SpecialSessionLoggerModal />
 
             {/* --- MODAL DE NOVEDADES (SEMI-WIZARD) --- */}

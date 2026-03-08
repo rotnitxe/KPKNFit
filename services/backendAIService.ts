@@ -4,7 +4,7 @@
  * API keys stay on the server; the client only sends prompts and context.
  */
 
-const BACKEND_URL = import.meta?.env?.VITE_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = (import.meta as any)?.env?.VITE_BACKEND_URL || 'http://localhost:8000';
 
 interface GenerateRequest {
     provider?: string;

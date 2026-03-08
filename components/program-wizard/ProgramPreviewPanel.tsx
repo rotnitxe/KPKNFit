@@ -24,21 +24,21 @@ const ProgramPreviewPanel: React.FC<ProgramPreviewPanelProps> = ({
     const restDays = cycleDuration - trainingDays;
 
     return (
-        <div className="h-full flex flex-col bg-zinc-950 border-l border-white/5 overflow-y-auto custom-scrollbar">
-            <div className="p-4 border-b border-white/5">
-                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Preview</h3>
+        <div className="h-full flex flex-col bg-[#FEF7FF] border-l border-[#E6E0E9] overflow-y-auto custom-scrollbar">
+            <div className="p-4 border-b border-[#E6E0E9]">
+                <h3 className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-1">Preview</h3>
                 <p className="text-sm font-black text-white uppercase tracking-tight truncate">
                     {programName || 'Sin nombre'}
                 </p>
-                <p className="text-[9px] text-zinc-500 mt-0.5">{templateName} • {templateType === 'simple' ? 'Cíclico' : 'Bloques'}</p>
+                <p className="text-[9px] text-[#49454F] mt-0.5">{templateName} • {templateType === 'simple' ? 'Cíclico' : 'Bloques'}</p>
             </div>
 
             {/* Split Pattern */}
             {selectedSplit && (
-                <div className="p-4 border-b border-white/5 space-y-3">
+                <div className="p-4 border-b border-[#E6E0E9] space-y-3">
                     <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Split</span>
-                        <span className="text-[9px] font-bold text-zinc-500">{selectedSplit.name}</span>
+                        <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest">Split</span>
+                        <span className="text-[9px] font-bold text-[#49454F]">{selectedSplit.name}</span>
                     </div>
                     <div className="flex gap-1">
                         {selectedSplit.pattern.map((day, i) => {
@@ -48,7 +48,7 @@ const ProgramPreviewPanel: React.FC<ProgramPreviewPanelProps> = ({
                                 <div key={i} className="flex-1 text-center">
                                     <div className="text-[7px] font-bold text-zinc-600 mb-1">{dayName}</div>
                                     <div className={`h-1.5 rounded-full ${isRest ? 'bg-zinc-800' : 'bg-white/40'}`} />
-                                    <div className={`text-[6px] mt-0.5 font-bold truncate ${isRest ? 'text-zinc-700' : 'text-zinc-400'}`}>
+                                    <div className={`text-[6px] mt-0.5 font-bold truncate ${isRest ? 'text-zinc-700' : 'text-[#49454F]'}`}>
                                         {isRest ? '-' : day}
                                     </div>
                                 </div>
@@ -58,11 +58,11 @@ const ProgramPreviewPanel: React.FC<ProgramPreviewPanelProps> = ({
                     <div className="flex gap-3 text-center">
                         <div className="flex-1 bg-zinc-900 rounded-lg p-2">
                             <div className="text-sm font-black text-white">{trainingDays}</div>
-                            <div className="text-[7px] text-zinc-500 font-bold uppercase">Entreno</div>
+                            <div className="text-[7px] text-[#49454F] font-bold uppercase">Entreno</div>
                         </div>
                         <div className="flex-1 bg-zinc-900 rounded-lg p-2">
                             <div className="text-sm font-black text-white">{restDays}</div>
-                            <div className="text-[7px] text-zinc-500 font-bold uppercase">Descanso</div>
+                            <div className="text-[7px] text-[#49454F] font-bold uppercase">Descanso</div>
                         </div>
                     </div>
                 </div>
@@ -70,8 +70,8 @@ const ProgramPreviewPanel: React.FC<ProgramPreviewPanelProps> = ({
 
             {/* Block Structure (complex) */}
             {templateType === 'complex' && blockNames && blockDurations && (
-                <div className="p-4 border-b border-white/5 space-y-2">
-                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Bloques</span>
+                <div className="p-4 border-b border-[#E6E0E9] space-y-2">
+                    <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest block mb-2">Bloques</span>
                     <div className="flex gap-1 h-3 rounded-full overflow-hidden">
                         {blockNames.map((name, i) => {
                             const colors = ['bg-blue-500', 'bg-purple-500', 'bg-yellow-500', 'bg-emerald-500', 'bg-rose-500'];
@@ -86,7 +86,7 @@ const ProgramPreviewPanel: React.FC<ProgramPreviewPanelProps> = ({
                         {blockNames.map((name, i) => (
                             <div key={i} className="flex items-center justify-between text-[9px]">
                                 <span className="text-zinc-300 font-bold">{name}</span>
-                                <span className="text-zinc-500">{blockDurations[i]}sem</span>
+                                <span className="text-[#49454F]">{blockDurations[i]}sem</span>
                             </div>
                         ))}
                     </div>
@@ -95,14 +95,14 @@ const ProgramPreviewPanel: React.FC<ProgramPreviewPanelProps> = ({
 
             {/* Events */}
             {events && events.length > 0 && (
-                <div className="p-4 border-b border-white/5 space-y-2">
-                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Eventos</span>
+                <div className="p-4 border-b border-[#E6E0E9] space-y-2">
+                    <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest block mb-1">Eventos</span>
                     {events.map((ev, i) => (
                         <div key={i} className="flex items-center gap-2 bg-zinc-900 rounded-lg p-2">
                             <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" />
                             <span className="text-[9px] text-zinc-300 font-bold flex-1 truncate">{ev.title}</span>
-                            {ev.repeatEveryXCycles && <span className="text-[8px] text-zinc-500">c/{ev.repeatEveryXCycles}</span>}
-                            {ev.calculatedWeek !== undefined && <span className="text-[8px] text-zinc-500">S{ev.calculatedWeek + 1}</span>}
+                            {ev.repeatEveryXCycles && <span className="text-[8px] text-[#49454F]">c/{ev.repeatEveryXCycles}</span>}
+                            {ev.calculatedWeek !== undefined && <span className="text-[8px] text-[#49454F]">S{ev.calculatedWeek + 1}</span>}
                         </div>
                     ))}
                 </div>

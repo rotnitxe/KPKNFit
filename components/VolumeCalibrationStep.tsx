@@ -129,7 +129,7 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                                             }}
                                             className="w-14 bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white text-center"
                                         />
-                                        <span className="text-[10px] text-zinc-500">series/semana objetivo</span>
+                                        <span className="text-[10px] text-[#49454F]">series/semana objetivo</span>
                                     </div>
                                 </div>
                             );
@@ -174,7 +174,7 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                             <p className="text-sm font-bold text-white mb-3">{rec.muscleGroup}</p>
                             <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label className="text-[9px] text-zinc-500 uppercase">Mínimo</label>
+                                    <label className="text-[9px] text-[#49454F] uppercase">Mínimo</label>
                                     <input
                                         type="number"
                                         min={0}
@@ -185,7 +185,7 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] text-zinc-500 uppercase">Objetivo</label>
+                                    <label className="text-[9px] text-[#49454F] uppercase">Objetivo</label>
                                     <input
                                         type="number"
                                         min={1}
@@ -199,7 +199,7 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] text-zinc-500 uppercase">Máximo</label>
+                                    <label className="text-[9px] text-[#49454F] uppercase">Máximo</label>
                                     <input
                                         type="number"
                                         min={1}
@@ -314,7 +314,7 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                                 <p className="text-sm font-bold text-white mb-3">{rec.muscleGroup}</p>
                                 <div className="grid grid-cols-3 gap-2">
                                     <div>
-                                        <label className="text-[9px] text-zinc-500 uppercase">Mínimo</label>
+                                        <label className="text-[9px] text-[#49454F] uppercase">Mínimo</label>
                                         <input
                                             type="number"
                                             min={0}
@@ -325,7 +325,7 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] text-zinc-500 uppercase">Objetivo</label>
+                                        <label className="text-[9px] text-[#49454F] uppercase">Objetivo</label>
                                         <input
                                             type="number"
                                             min={1}
@@ -339,7 +339,7 @@ export const VolumeCalibrationStep: React.FC<VolumeCalibrationStepProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] text-zinc-500 uppercase">Máximo</label>
+                                        <label className="text-[9px] text-[#49454F] uppercase">Máximo</label>
                                         <input
                                             type="number"
                                             min={1}

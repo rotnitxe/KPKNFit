@@ -22,7 +22,7 @@ const SessionWeekRoadmap: React.FC<SessionWeekRoadmapProps> = ({
     modifiedSessionIds, onDayClick, onSessionSelect, session
 }) => {
     return (
-        <div className="flex flex-col border-b border-white/5 flex-shrink-0 bg-black">
+        <div className="flex flex-col border-b border-[#E6E0E9] flex-shrink-0 bg-black">
             <div className="px-5 py-4 flex items-center justify-between relative overflow-hidden">
                 <div className="absolute top-1/2 left-6 right-6 h-px bg-white/5 -translate-y-1/2 z-0"></div>
                 {orderedDays.map(day => {
@@ -41,7 +41,7 @@ const SessionWeekRoadmap: React.FC<SessionWeekRoadmapProps> = ({
                                 isActive
                                     ? 'bg-white border-white scale-125 shadow-[0_0_10px_rgba(255,255,255,0.3)]'
                                     : hasSession
-                                        ? 'bg-zinc-700 border-zinc-800 hover:bg-zinc-500'
+                                        ? 'bg-zinc-700 border-zinc-800 hover:bg-[#ECE6F0]0'
                                         : 'bg-black border-zinc-800 hover:border-zinc-600'
                             }`}>
                                 {isModified && !isActive && (

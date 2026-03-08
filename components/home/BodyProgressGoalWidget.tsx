@@ -69,23 +69,23 @@ export const BodyProgressGoalWidget: React.FC<{
         return (
             <button
                 onClick={() => goTo()}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/20 transition-colors"
+                className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4 text-left hover:border-white/20 transition-colors"
             >
                 <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                         <TargetIcon size={10} className="text-cyber-copper" /> Progreso corporal
                     </span>
-                    <ChevronRightIcon size={14} className="text-zinc-500" />
+                    <ChevronRightIcon size={14} className="text-[#49454F]" />
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-2">Configura un plan en Nutrición para ver tu progreso.</p>
+                <p className="text-[10px] text-[#49454F] mt-2">Configura un plan en Nutrición para ver tu progreso.</p>
             </button>
         );
     }
 
     return (
-        <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4">
+        <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4">
             <div className="flex justify-between items-center mb-3">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                     <TargetIcon size={10} className="text-cyber-copper" /> Progreso corporal
                 </span>
                 <button
@@ -93,7 +93,7 @@ export const BodyProgressGoalWidget: React.FC<{
                         e.stopPropagation();
                         onNavigate();
                     }}
-                    className="text-zinc-500 hover:text-white transition-colors"
+                    className="text-[#49454F] hover:text-white transition-colors"
                 >
                     <ChevronRightIcon size={14} />
                 </button>
@@ -103,7 +103,7 @@ export const BodyProgressGoalWidget: React.FC<{
                     {currentStr} → {goalStr}
                 </span>
                 {progressPct != null && (
-                    <span className="text-xs font-bold text-zinc-500">{progressPct}%</span>
+                    <span className="text-xs font-bold text-[#49454F]">{progressPct}%</span>
                 )}
             </div>
             {progressPct != null && (
@@ -120,7 +120,7 @@ export const BodyProgressGoalWidget: React.FC<{
                         e.stopPropagation();
                         setIsBodyLogModalOpen(true);
                     }}
-                    className="flex-1 py-2 rounded-xl border border-white/10 bg-white/5 text-xs font-bold text-white hover:bg-white/10"
+                    className="flex-1 py-2 rounded-xl border border-[#E6E0E9] bg-white/5 text-xs font-bold text-white hover:bg-white/10"
                 >
                     Actualizar datos
                 </button>

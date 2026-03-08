@@ -105,7 +105,7 @@ export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> =
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.08)_0%,transparent_70%)]" />
 
             {/* Tarjeta centrada con bordes redondeados */}
-            <div className="relative w-[480px] h-[860px] rounded-[28px] overflow-hidden border border-white/[0.12] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_25px_50px_-12px_rgba(0,0,0,0.5)] flex flex-col bg-zinc-950">
+            <div className="relative w-[480px] h-[860px] rounded-[28px] overflow-hidden border border-white/[0.12] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_25px_50px_-12px_rgba(0,0,0,0.5)] flex flex-col bg-[#FEF7FF]">
                 <div className="absolute inset-0 z-0 opacity-30 mix-blend-luminosity scale-110 -translate-y-8" style={{ overflow: 'hidden' }}>
                     <CaupolicanBackground />
                 </div>
@@ -148,10 +148,10 @@ export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> =
 
                     {/* Minutos + footer */}
                     <div className="shrink-0 space-y-2 pt-2">
-                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 flex items-center justify-center gap-2">
+                        <div className="bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-2.5 flex items-center justify-center gap-2">
                             <ClockIcon size={18} className="text-white/50 shrink-0" />
                             <span className="text-xl font-black text-white">{duration}</span>
-                            <span className="text-[9px] text-zinc-400 font-bold uppercase shrink-0">min</span>
+                            <span className="text-[9px] text-[#49454F] font-bold uppercase shrink-0">min</span>
                         </div>
                         <p className="text-[9px] font-black text-white/40 uppercase tracking-widest text-center">Registra tus entrenamientos con KPKN</p>
                     </div>
@@ -569,7 +569,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     );
   }
   return (
-    <TacticalModal isOpen={isOpen} onClose={onClose} title={title} className="!bg-[#0a0a0a] !border-cyber-cyan/20">
+    <TacticalModal isOpen={isOpen} onClose={onClose} title={title} className="!bg-[#FEF7FF] !border-cyber-cyan/20">
       {content}
     </TacticalModal>
   );

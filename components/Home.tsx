@@ -1,576 +1,280 @@
 // components/Home.tsx
-// ══════════════════════════════════════════════════════════════════════════════
-// Dashboard de Entrenamiento — Pantalla Home
-//
-// Arquitectura M3 (traducida de Compose a React):
-//   Scaffold       → Wrapper <div> con safe-area
-//   TopAppBar      → Hero contextual (AugeTelemetryPanel)
-//   NavigationBar  → TabBar (gestionada en App.tsx)
-//   ElevatedCard   → Componente <ElevatedCard> con sombra dinámica
-//   LazyColumn     → Scroll nativo con overflow-y-auto
-//
-// Reglas:
-//   • Todos los colores usan tokens M3 (--md-sys-color-*), nunca hex fijos
-//   • Espaciados siguen rejilla 8dp (8px, 16px, 24px, 32px, 40px, 48px)
-//   • Cada componente tiene un comentario explicando la decisión UX
-// ══════════════════════════════════════════════════════════════════════════════
-
-import React, { useMemo, useState } from 'react';
-import type { Program, Session, View, WorkoutLog, SleepLog, ProgramWeek } from '../types';
-import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { AugeTelemetryPanel, RingsViewMode } from './home/AugeTelemetryPanel';
-import { SessionTodayCard } from './home/SessionTodayCard';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useAppState } from '../contexts/AppContext';
+import { WorkoutLog, Program, Session } from '../types';
+import { TodaySessionItem } from './home/SessionTodayCard';
 import { HomeCardsSection } from './home/HomeCardsSection';
+import { SessionTodayCard } from './home/SessionTodayCard';
+import { AugeTelemetryPanel, RingsViewMode } from './home/AugeTelemetryPanel';
+import { IntertwinedRingsIcon, SingleRingIcon, PlusIcon, BellIcon, SettingsIcon } from './icons';
 import { CaupolicanIcon } from './CaupolicanIcon';
-import { TargetIcon, PlusIcon, LinkIcon } from './icons';
 import Button from './ui/Button';
-import { ExerciseHistoryNerdView } from './ExerciseHistoryNerdView';
-import { getLocalDateString } from '../utils/dateUtils';
-import { WorkoutShareCard, buildShareCardDataFromLog } from './FinishWorkoutModal';
-import { shareElementAsImage } from '../services/shareService';
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
+// ─── Inline ViewModel (since separate file was not found) ───────────────────
+function useHomeViewModel(onNavigate: (view: any, data?: any) => void, onNavigateToCard: (view: any) => void) {
+    const state = useAppState();
+    const [isStartWorkoutModalOpen, setIsStartWorkoutModalOpen] = useState(false);
 
-interface HomeProps {
-    onNavigate: (view: View, program?: Program) => void;
-    onResumeWorkout: () => void;
-    onEditSleepLog: (log: SleepLog) => void;
-    onNavigateToCard?: (cardType: string) => void;
-}
+    const activeProgram = useMemo(() =>
+        state.programs.find((p: Program) => p.id === state.activeProgramState?.programId) || null
+        , [state.programs, state.activeProgramState]);
 
-// ─── ElevatedCard (equivalente a ElevatedCard de M3) ──────────────────────────
-// UX: Las tarjetas elevadas crean jerarquía visual. El usuario distingue
-// elementos interactivos (cards) del fondo (surface). La sombra tenue
-// refuerza la profundidad sin ser agresiva (M3 elevation level 1).
-
-const ElevatedCard: React.FC<{
-    children: React.ReactNode;
-    className?: string;
-    onClick?: () => void;
-}> = ({ children, className = '', onClick }) => (
-    <div
-        className={`
-            bg-white
-            rounded-[28px]
-            shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)]
-            transition-all duration-200
-            ${onClick ? 'cursor-pointer hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)] active:scale-[0.98]' : ''}
-            ${className}
-        `}
-        onClick={onClick}
-    >
-        {children}
-    </div>
-);
-
-// ─── Componente Principal ─────────────────────────────────────────────────────
-
-// ─── useHomeViewModel (State Hoisting) ────────────────────────────────────────
-// UX: Separamos la lógica de negocio de la UI para facilitar el testing
-// y seguir patrones de arquitectura modernos (MVVM).
-
-function useHomeViewModel(onNavigate: HomeProps['onNavigate'], onNavigateToCard: HomeProps['onNavigateToCard']) {
-    const { programs, history, activeProgramState, settings, ongoingWorkout } = useAppState();
-    const { handleStartWorkout, navigateTo, setIsStartWorkoutModalOpen, handleStartProgram } = useAppDispatch();
-
-    const todayStr = getLocalDateString();
-    const currentDayOfWeek = new Date().getDay();
-    const activeProgram = programs.find(p => p.id === activeProgramState?.programId);
-
-    const todaySessions = useMemo(() => {
-        if (!activeProgram || !activeProgramState) return [];
-        const mIdx = activeProgramState.currentMacrocycleIndex || 0;
-        const macro = activeProgram.macrocycles?.[mIdx];
-        if (!macro) return [];
-
-        let activeWeek: ProgramWeek | null = null;
-        let mesoIdxTotal = 0;
-
-        for (const block of (macro.blocks || [])) {
-            for (const meso of (block.mesocycles || [])) {
-                const week = (meso.weeks || []).find(w => w.id === activeProgramState.currentWeekId);
-                if (week) { activeWeek = week; break; }
-                mesoIdxTotal++;
-            }
-            if (activeWeek) break;
-        }
-
-        if (!activeWeek || !activeWeek.sessions) return [];
-
-        return activeWeek.sessions
-            .filter(s => s.dayOfWeek === currentDayOfWeek)
-            .map(session => {
-                const log = history.find(l => l.sessionId === session.id && l.date.startsWith(todayStr));
-                return {
-                    session,
-                    program: activeProgram,
-                    location: { macroIndex: mIdx, mesoIndex: mesoIdxTotal, weekId: activeWeek!.id },
-                    isCompleted: !!log,
-                    log: log ?? undefined,
-                };
-            });
-    }, [activeProgram, activeProgramState, currentDayOfWeek, history, todayStr]);
-
+    // Sessions calculation
     const sessionsWithOngoing = useMemo(() => {
-        if (!ongoingWorkout) return todaySessions;
-        const inList = todaySessions.some(ts => ts.session.id === ongoingWorkout.session.id && ts.program.id === ongoingWorkout.programId);
-        if (inList) return todaySessions;
-        const ongoingProgram = programs.find(p => p.id === ongoingWorkout.programId) || activeProgram;
-        if (!ongoingProgram) return todaySessions;
-        return [{
-            session: ongoingWorkout.session,
-            program: ongoingProgram,
-            location: { macroIndex: ongoingWorkout.macroIndex ?? 0, mesoIndex: ongoingWorkout.mesoIndex ?? 0, weekId: ongoingWorkout.weekId || '' },
-            isCompleted: false,
-        }, ...todaySessions];
-    }, [todaySessions, ongoingWorkout, activeProgram, programs]);
+        if (!activeProgram || !state.activeProgramState) return [] as TodaySessionItem[];
 
-    const handleCardNav = (cardType: string) => {
-        if (onNavigateToCard) onNavigateToCard(cardType);
-        else if (['macros', 'evolution'].includes(cardType)) navigateTo('body-progress');
-        else if (cardType === 'calories-history') navigateTo('nutrition');
-        else if (activeProgram) navigateTo('program-detail', { programId: activeProgram.id });
-        else if (programs[0]) navigateTo('program-detail', { programId: programs[0].id });
-        else navigateTo('program-editor');
-    };
+        const { currentMacrocycleIndex, currentBlockIndex, currentMesocycleIndex, currentWeekId } = state.activeProgramState;
+        const macro = activeProgram.macrocycles?.[currentMacrocycleIndex ?? 0];
+        const block = macro?.blocks?.[currentBlockIndex ?? 0];
+        const meso = block?.mesocycles?.[currentMesocycleIndex ?? 0];
+        const week = meso?.weeks.find(w => w.id === currentWeekId);
+
+        if (!week) return [] as TodaySessionItem[];
+
+        const today = new Date().getDay(); // 0-6 (Sun-Sat)
+        const dayMap = [7, 1, 2, 3, 4, 5, 6]; // Map JS day to 1-7 (Mon-Sun)
+        const currentDay = dayMap[today];
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        return week.sessions.map(session => {
+            const isToday = session.dayOfWeek === currentDay;
+            const ongoing = state.ongoingWorkout?.session?.id === session.id;
+            const logForToday = state.history.find(log =>
+                log.sessionId === session.id &&
+                log.date.startsWith(todayStr)
+            );
+
+            return {
+                session: session,
+                program: activeProgram,
+                location: {
+                    macroIndex: currentMacrocycleIndex ?? 0,
+                    mesoIndex: currentMesocycleIndex ?? 0,
+                    weekId: currentWeekId ?? ''
+                },
+                isCompleted: !!logForToday,
+                dayOfWeek: session.dayOfWeek || 1,
+                log: logForToday,
+                isOngoing: ongoing
+            };
+        }).sort((a, b) => {
+            if (a.isOngoing) return -1;
+            if (b.isOngoing) return 1;
+
+            const aIsToday = a.session.dayOfWeek === currentDay;
+            const bIsToday = b.session.dayOfWeek === currentDay;
+            if (aIsToday && !bIsToday) return -1;
+            if (!aIsToday && bIsToday) return 1;
+
+            return (a.session.dayOfWeek ?? 0) - (b.session.dayOfWeek ?? 0);
+        });
+    }, [activeProgram, state.activeProgramState, state.ongoingWorkout, state.history]);
+
+    const handleStartWorkout = useCallback((session: Session, program: Program, _?: any, ctx?: any) => {
+        onNavigate('log-workout', { programId: program.id, sessionId: session.id, ...ctx });
+    }, [onNavigate]);
+
+    const handleCardNav = useCallback((cardType: string) => {
+        onNavigateToCard(cardType);
+    }, [onNavigateToCard]);
 
     return {
-        programs,
-        history,
-        settings,
-        activeProgram,
         sessionsWithOngoing,
-        ongoingWorkout,
+        ongoingWorkout: state.ongoingWorkout,
+        programs: state.programs,
+        activeProgram,
         handleStartWorkout,
-        handleStartProgram,
-        navigateTo,
         setIsStartWorkoutModalOpen,
-        handleCardNav
+        handleCardNav,
+        navigateTo: onNavigate,
+        isAppLoading: state.isAppLoading
     };
+}
+
+interface HomeProps {
+    onNavigate: (view: any, props?: any) => void;
+    onResumeWorkout: (workout: any) => void;
+    onNavigateToCard: (view: any) => void;
+    onEditSleepLog?: (log: any) => void; // Fixed missing prop from App.tsx
 }
 
 const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCard }) => {
+    const { settings, activeProgramState, programs: allPrograms } = useAppState();
     const vm = useHomeViewModel(onNavigate, onNavigateToCard);
 
-    // Estados internos de UI (no negocio)
-    const [exerciseHistoryModal, setExerciseHistoryModal] = useState<string | null>(null);
-    const [shareLog, setShareLog] = useState<WorkoutLog | null>(null);
-    const [isSharing, setIsSharing] = useState(false);
     const [ringsView, setRingsView] = useState<RingsViewMode>('rings');
+    const [shareLog, setShareLog] = useState<WorkoutLog | null>(null);
 
-    const dateHeaderStr = useMemo(() => new Date().toLocaleDateString('es-ES', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-    }), []);
+    const activeProgram = useMemo(() =>
+        allPrograms.find((p: Program) => p.id === activeProgramState?.programId) || null
+        , [allPrograms, activeProgramState]);
 
-    const handleShareLog = (log: WorkoutLog) => setShareLog(log);
+    const greeting = (() => {
+        const h = new Date().getHours();
+        if (h < 12) return '¡Buenos días';
+        if (h < 19) return '¡Buenas tardes';
+        return '¡Buenas noches';
+    })();
+    const userName = settings?.username || 'Usuario';
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // renderWithProgram 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ─── Renderers ──────────────────────────────────────────────────────────
+
     const renderWithProgram = () => {
         const primaryProgram = (vm.sessionsWithOngoing.length > 0 && vm.ongoingWorkout && vm.sessionsWithOngoing.length === 1)
-            ? vm.programs.find(p => p.id === vm.ongoingWorkout!.programId) || vm.activeProgram!
-            : vm.activeProgram!;
-        const greeting = (() => {
-            const h = new Date().getHours();
-            if (h < 12) return '¡Buenos días';
-            if (h < 19) return '¡Buenas tardes';
-            return '¡Buenas noches';
-        })();
-        const userName = vm.settings?.username || '';
+            ? vm.programs.find((p: Program) => p.id === vm.ongoingWorkout!.programId) || activeProgram!
+            : activeProgram!;
 
         return (
-            <div
-                className="flex flex-col w-full max-w-md mx-auto pb-10 bg-[#FEF7FF]"
-                style={{ paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}
-            >
-                {/* ═══ Header: avatar + icons ═══ */}
-                <div className="w-full h-28 pb-3 inline-flex flex-col justify-start items-start gap-2">
-                    <div className="self-stretch h-14 px-1 pt-2 inline-flex justify-between items-start">
-                        <div className="w-12 h-12 flex justify-center items-center">
-                            <div className="w-8 h-8 rounded-full border border-black inline-flex flex-col justify-center items-center overflow-hidden bg-white">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-black"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                            </div>
+            <div className="flex flex-col w-full bg-transparent overflow-x-hidden relative">
+                {/* ═══ Header ═══ */}
+                <div className="w-full py-4 px-6 flex flex-col gap-6">
+                    <div className="flex justify-between items-center w-full">
+                        <div className="w-12 h-12 rounded-full border border-black/[0.05] bg-white flex items-center justify-center shadow-sm overflow-hidden">
+                            {settings?.profilePicture ? (
+                                <img src={settings.profilePicture} className="w-full h-full object-cover" alt="Profile" />
+                            ) : (
+                                <CaupolicanIcon size={24} className="text-black/20" />
+                            )}
                         </div>
-                        <div className="flex justify-start items-center overflow-hidden gap-1 pr-1">
-                            <button className="w-12 h-12 flex justify-center items-center rounded-full hover:bg-black/5 transition-colors text-[#49454F]">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                        <div className="flex gap-2">
+                            <button className="w-12 h-12 rounded-full hover:bg-black/5 flex items-center justify-center text-[#49454F] transition-colors">
+                                <BellIcon size={24} />
                             </button>
-                            <button className="w-12 h-12 flex justify-center items-center rounded-full hover:bg-black/5 transition-colors text-[#49454F]">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                            <button onClick={() => onNavigate('settings')} className="w-12 h-12 rounded-full hover:bg-black/5 flex items-center justify-center text-[#49454F] transition-colors">
+                                <SettingsIcon size={24} />
                             </button>
                         </div>
                     </div>
-
-                    {/* ═══ Greeting ═══ */}
-                    <div className="self-stretch px-4 flex flex-col justify-center items-start gap-1">
-                        <div className="self-stretch justify-start text-[#1D1B20] text-[26px] font-medium font-['Roboto'] leading-9 tracking-normal text-wrap line-clamp-2">
-                            {greeting}, {userName}!
-                        </div>
+                    <div className="text-[#1C1B1F] text-[32px] font-black font-['Roboto'] leading-tight tracking-tighter">
+                        {greeting},<br />{userName}!
                     </div>
                 </div>
 
-                {/* ═══ Tus RINGS sin Toolbar ═══ */}
-                <div className="self-stretch pb-3 bg-[#FEF7FF] inline-flex flex-col justify-start items-start overflow-hidden">
-                    <div className="w-40 h-20 px-4 inline-flex justify-start items-center">
-                        <div className="justify-center text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7">Tus RINGS</div>
+                {/* ─── CONTENT ─── */}
+                <div className="relative z-10 w-full min-h-[300px] flex flex-col overflow-visible">
+                    <div className="px-6 flex justify-between items-center h-14 z-10">
+                        <div className="text-[#1D1B20] text-xl font-black font-['Roboto'] leading-7 uppercase tracking-[0.05em]">Tus RINGS</div>
+                        <div className="flex bg-[#ECE6F0] p-1 rounded-full items-center gap-1 shadow-sm">
+                            <button onClick={() => setRingsView('rings')} className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${ringsView === 'rings' ? 'bg-white shadow-sm text-primary' : 'text-[#49454F]'}`}>
+                                <IntertwinedRingsIcon size={22} strokeWidth={2.5} />
+                            </button>
+                            <button onClick={() => setRingsView('individual')} className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${ringsView === 'individual' ? 'bg-white shadow-sm text-primary' : 'text-[#49454F]'}`}>
+                                <SingleRingIcon size={22} strokeWidth={2.5} />
+                            </button>
+                        </div>
                     </div>
-                    {/* Ring container managed naturally by the AugeTelemetryPanel component matching exactly to Figma's `w-36 h-36` */}
-                    <AugeTelemetryPanel variant="hero" shareable viewMode="rings" />
+                    <AugeTelemetryPanel variant="hero" shareable viewMode={ringsView} />
                 </div>
 
                 {/* ═══ Sesión de hoy ═══ */}
-                <div className="self-stretch bg-[#FEF7FF] inline-flex flex-col justify-start items-start">
-                    <div className="self-stretch h-12 px-4 inline-flex justify-between items-center">
-                        <div className="justify-center text-[#1D1B20] text-[22px] font-normal font-['Roboto'] leading-[28px]">Sesión de hoy</div>
-                        <div className="w-12 h-12 rounded-full inline-flex flex-col justify-center items-center overflow-hidden hover:bg-black/5 transition-colors cursor-pointer">
-                            <div className="self-stretch h-10 inline-flex justify-center items-center text-[#49454F]">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="#49454F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                            </div>
-                        </div>
+                <div className="w-full pt-2 overflow-visible">
+                    <div className="px-6 mb-4 flex justify-between items-center">
+                        <div className="text-[#1D1B20] text-[22px] font-black font-['Roboto'] leading-[28px] uppercase tracking-tighter">Sesión de hoy</div>
                     </div>
-                    <SessionTodayCard
-                        key="session"
-                        variant="continuation"
-                        programName={primaryProgram?.name ?? 'Entrenamiento'}
-                        programId={primaryProgram?.id ?? ''}
-                        todaySessions={vm.sessionsWithOngoing}
-                        ongoingWorkout={vm.ongoingWorkout ? { session: vm.ongoingWorkout.session, programId: vm.ongoingWorkout.programId, isPaused: vm.ongoingWorkout.isPaused } : null}
-                        onStartWorkout={vm.handleStartWorkout as any}
-                        onResumeWorkout={onResumeWorkout}
-                        onEditSession={(programId, macroIndex, mesoIndex, weekId, sessionId) =>
-                            vm.navigateTo('session-editor', { programId, macroIndex, mesoIndex, weekId, sessionId })
-                        }
-                        onViewProgram={(programId) => vm.navigateTo('program-detail', { programId })}
-                        onOpenStartWorkoutModal={() => vm.setIsStartWorkoutModalOpen(true)}
-                        onShareLog={handleShareLog}
-                    />
+                    <div className="w-full overflow-visible">
+                        <SessionTodayCard
+                            programName={activeProgram?.name ?? 'Entrenamiento'}
+                            programId={activeProgram?.id ?? ''}
+                            sessions={vm.sessionsWithOngoing}
+                            ongoingWorkout={vm.ongoingWorkout ? { session: vm.ongoingWorkout.session, programId: vm.ongoingWorkout.programId, isPaused: vm.ongoingWorkout.isPaused } : null}
+                            onStartWorkout={vm.handleStartWorkout as any}
+                            onResumeWorkout={() => onResumeWorkout(vm.ongoingWorkout)}
+                            onOpenStartWorkoutModal={() => onNavigate('program-detail', { programId: activeProgram?.id })}
+                            currentDayOfWeek={[7, 1, 2, 3, 4, 5, 6][new Date().getDay()]}
+                        />
+                    </div>
                 </div>
 
-                {/* ═══ Progreso físico y alimentación + Ejercicios ═══ */}
-                <div className="self-stretch">
+                {/* ═══ Home Cards Carousel ═══ */}
+                <div className="w-full mt-6">
                     <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
                 </div>
 
-                {/* ═══ Rincones ═══ */}
-                <div className="self-stretch h-80 px-4 pb-2 bg-[#FEF7FF] inline-flex flex-col justify-start items-start overflow-hidden">
-                    <div className="self-stretch h-12 inline-flex justify-start items-center">
-                        <div className="justify-center text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7">Rincones</div>
-                        <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
-                            <div className="self-stretch h-10 inline-flex justify-center items-center">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="#49454F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                            </div>
-                        </div>
+                {/* ═══ Tus Programas ═══ */}
+                <div className="w-full overflow-visible mt-6">
+                    <div className="px-6 h-12 flex justify-between items-center mb-4">
+                        <div className="text-[#1D1B20] text-[22px] font-black font-['Roboto'] leading-[28px] uppercase tracking-tighter">Tus Programas</div>
                     </div>
-                    <div className="self-stretch inline-flex justify-start items-start gap-4">
-                        <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
-                            {/* Rincón Powerlifter */}
-                            <button onClick={() => vm.navigateTo('powerlifter-corner' as any)} className="self-stretch h-28 rounded-xl flex flex-col justify-start items-start gap-1">
-                                <div className="self-stretch inline-flex justify-start items-start gap-4">
-                                    <div className="w-28 h-28 relative bg-blend-luminosity rounded-2xl overflow-hidden bg-[#ECE6F0] flex-shrink-0">
-                                        <CaupolicanIcon size={48} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[#49454F]" />
-                                    </div>
-                                    <div className="flex-1 self-stretch inline-flex flex-col justify-between items-start pt-1">
-                                        <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                                            <div className="self-stretch justify-start text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7 text-left">Rincón Powerlifter</div>
-                                            <div className="w-60 max-h-12 justify-start text-[#49454F] text-sm font-normal font-['Roboto'] leading-5 tracking-tight text-left">Conoce tus puntos en la federación que compites, historial y calendarios de competición y más.</div>
-                                        </div>
-                                    </div>
+                    <div className="pl-6 overflow-x-auto no-scrollbar flex gap-4 pb-4 pr-6">
+                        {vm.programs.map((prog: Program) => (
+                            <button key={prog.id} onClick={() => onNavigate('program-detail', { programId: prog.id })} className="flex flex-col gap-3 flex-shrink-0 group">
+                                <div className="w-44 h-28 rounded-[32px] bg-white border border-black/[0.03] shadow-sm flex items-center justify-center overflow-hidden group-active:scale-[0.96] transition-all relative">
+                                    {prog.coverImage ? (
+                                        <img src={prog.coverImage} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt={prog.name} />
+                                    ) : (
+                                        <CaupolicanIcon size={40} className="text-black/5" />
+                                    )}
+                                    <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
                                 </div>
+                                <div className="text-[11px] font-black text-black uppercase tracking-tight text-left truncate w-44 px-2">{prog.name}</div>
                             </button>
-                            {/* WikiLab */}
-                            <button onClick={() => vm.navigateTo('wiki-lab' as any)} className="self-stretch h-28 rounded-xl flex flex-col justify-start items-start gap-1">
-                                <div className="self-stretch inline-flex justify-start items-start gap-4">
-                                    <div className="w-28 h-28 relative bg-blend-luminosity rounded-2xl overflow-hidden bg-[#ECE6F0] flex-shrink-0">
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#49454F" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
-                                    </div>
-                                    <div className="flex-1 self-stretch inline-flex flex-col justify-between items-start pt-1">
-                                        <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                                            <div className="self-stretch justify-start text-[#1D1B20] text-xl font-normal font-['Roboto'] leading-7 text-left">WikiLab</div>
-                                            <div className="self-stretch max-h-12 justify-start text-[#49454F] text-sm font-normal font-['Roboto'] leading-5 tracking-tight text-left">Conoce a fondo ejercicios, músculos, articulaciones para mejorar tus programas.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </button>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* ═══ Tus programas ═══ */}
-                <div className="self-stretch pt-3.5 pb-4 bg-[#FEF7FF] inline-flex flex-col justify-start items-start gap-4 overflow-hidden">
-                    <div className="self-stretch h-12 px-4 inline-flex justify-between items-center">
-                        <div className="flex-1 flex justify-start items-center gap-3">
-                            <div className="w-10 h-10 relative bg-blend-luminosity rounded-[20px] bg-[#ECE6F0] flex items-center justify-center">
-                                <CaupolicanIcon size={20} className="text-[#1D1B20]" />
+                {/* ═══ Rincones ═══ */}
+                <div className="px-6 pb-16 mt-6 flex flex-col gap-5 overflow-visible">
+                    <div className="text-[#1D1B20] text-[22px] font-black font-['Roboto'] leading-[28px] uppercase tracking-tighter">Rincones</div>
+                    <div className="flex flex-col gap-4">
+                        <button onClick={() => onNavigate('powerlifter-corner' as any)} className="bg-white/50 backdrop-blur-xl p-5 rounded-[36px] border border-black/[0.02] flex items-center gap-6 active:scale-[0.98] transition-all shadow-sm">
+                            <div className="w-16 h-16 rounded-[24px] bg-[#ECE6F0] flex items-center justify-center flex-shrink-0">
+                                <CaupolicanIcon size={32} className="text-[#49454F]/50" />
                             </div>
-                            <div className="flex-1 inline-flex flex-col justify-start items-start">
-                                <div className="self-stretch justify-start text-[#1D1B20] text-base font-medium font-['Roboto'] leading-6 tracking-tight">Tus programas</div>
+                            <div className="flex-1 flex flex-col items-start gap-0.5">
+                                <span className="text-lg font-black text-[#1D1B20] leading-tight">Powerlifter Corner</span>
+                                <span className="text-xs font-medium text-[#49454F] opacity-60 text-left leading-snug">Federaciones, historial y competiciones.</span>
                             </div>
-                        </div>
-                        <div className="w-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden">
-                            <div className="self-stretch h-10 inline-flex justify-center items-center">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 7l5 5-5 5" stroke="#49454F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        </button>
+                        <button onClick={() => onNavigate('wiki-lab' as any)} className="bg-white/50 backdrop-blur-xl p-5 rounded-[36px] border border-black/[0.02] flex items-center gap-6 active:scale-[0.98] transition-all shadow-sm">
+                            <div className="w-16 h-16 rounded-[24px] bg-[#ECE6F0] flex items-center justify-center flex-shrink-0">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#49454F]/50"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
                             </div>
-                        </div>
-                    </div>
-                    <div className="self-stretch h-24 relative overflow-hidden">
-                        <div className="w-full pl-4 inline-flex justify-start items-start gap-2 overflow-x-auto">
-                            {vm.programs.map(prog => (
-                                <button key={prog.id} onClick={() => vm.navigateTo('program-detail', { programId: prog.id })} className="inline-flex flex-col justify-start items-start gap-1 flex-shrink-0">
-                                    <div className="w-28 h-16 relative rounded-2xl overflow-hidden bg-[#ECE6F0] flex items-center justify-center">
-                                        <CaupolicanIcon size={24} className="text-[#49454F]" />
-                                    </div>
-                                    <div className="self-stretch justify-start text-[#1D1B20] text-sm font-medium font-['Roboto'] leading-5 tracking-tight">{prog.name}</div>
-                                </button>
-                            ))}
-                        </div>
+                            <div className="flex-1 flex flex-col items-start gap-0.5">
+                                <span className="text-lg font-black text-[#1D1B20] leading-tight">WikiLab</span>
+                                <span className="text-xs font-medium text-[#49454F] opacity-60 text-left leading-snug">Ciencia del entrenamiento y biomecánica.</span>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </div>
         );
     };
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // renderSelectProgram
-    // ═══════════════════════════════════════════════════════════════════════════
-    const renderSelectProgram = () => (
-        <>
-            <div
-                className="w-full flex flex-col"
-                style={{
-                    backgroundColor: 'var(--md-sys-color-surface-container)',
-                    paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))',
-                }}
-            >
-                <div className="w-full max-w-md mx-auto px-4 sm:px-6 pt-2 pb-5">
-                    <p className="text-label-sm mb-3 opacity-70" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                        {dateHeaderStr}
-                    </p>
-                    <AugeTelemetryPanel variant="hero" shareable />
-                </div>
+    const renderEmpty = () => (
+        <div className="flex-1 flex flex-col bg-transparent overflow-visible pt-10">
+            <div className="px-6 mb-8 text-[#1C1B1F] text-[32px] font-black font-['Roboto'] leading-tight tracking-tighter">
+                Inicia tu próximo<br /><span className="text-primary">Plan Maestro</span>
+            </div>
+            {/* Minimal Auge Panel */}
+            <div className="w-full overflow-visible">
+                <AugeTelemetryPanel variant="hero" shareable />
             </div>
 
-            <div
-                className="relative z-10 flex flex-col px-6 pt-8 w-full max-w-md mx-auto pb-10 space-y-8"
-                style={{ backgroundColor: 'var(--md-sys-color-background)' }}
-            >
-                <div className="text-center mb-2">
-                    <h2
-                        className="text-headline-sm uppercase tracking-tight font-black"
-                        style={{ color: 'var(--md-sys-color-on-background)' }}
-                    >
-                        Selecciona un Programa
-                    </h2>
-                    <p
-                        className="text-body-sm mt-2 opacity-60"
-                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                    >
-                        Activa uno para comenzar tu evolución.
-                    </p>
+            <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
+
+            <div className="px-6 mt-16 pb-24 flex flex-col items-center text-center gap-8">
+                <div className="relative">
+                    <CaupolicanIcon size={120} className="text-black/[0.03]" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <PlusIcon size={40} className="text-primary/10" />
+                    </div>
                 </div>
-
-                <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
-
-                <div className="space-y-4">
-                    {vm.programs.map(prog => (
-                        <ElevatedCard key={prog.id} className="p-5 flex items-center justify-between group overflow-hidden">
-                            <div className="relative z-10 flex flex-col gap-1">
-                                <h3
-                                    className="text-title-md uppercase tracking-tight font-black truncate max-w-[180px]"
-                                    style={{ color: 'var(--md-sys-color-on-surface)' }}
-                                >
-                                    {prog.name}
-                                </h3>
-                                <p
-                                    className="text-label-sm uppercase tracking-widest opacity-50"
-                                    style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                                >
-                                    {prog.macrocycles?.length || 0} Fases • {prog.mode || 'Estándar'}
-                                </p>
-                            </div>
-                            <Button
-                                onClick={() => {
-                                    vm.handleStartProgram(prog.id);
-                                    vm.navigateTo('program-detail', { programId: prog.id });
-                                }}
-                                className="!py-3 !px-6 !text-label-sm font-black transition-transform min-h-[48px]"
-                                style={{
-                                    backgroundColor: 'var(--md-sys-color-primary)',
-                                    color: 'var(--md-sys-color-on-primary)',
-                                    borderRadius: '12px'
-                                }}
-                            >
-                                ACTIVAR
-                            </Button>
-                            <div
-                                className="absolute -right-6 -bottom-6 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity pointer-events-none"
-                                style={{ color: 'var(--md-sys-color-primary)' }}
-                            >
-                                <TargetIcon size={100} />
-                            </div>
-                        </ElevatedCard>
-                    ))}
+                <div className="max-w-[280px] space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F] opacity-40">Arsenal Vacío</p>
+                    <p className="text-base font-medium text-[#49454F] opacity-70 leading-relaxed">Configura tu biometría avanzada creando tu primer programa de entrenamiento.</p>
                 </div>
-
-                <Button
-                    onClick={() => vm.navigateTo('program-editor')}
-                    variant="secondary"
-                    className="w-full !py-5 !text-label-lg font-black !rounded-xl border-dashed opacity-80 hover:opacity-100 transition-all min-h-[48px]"
-                    style={{
-                        borderColor: 'var(--md-sys-color-outline-variant)',
-                        color: 'var(--md-sys-color-on-surface-variant)',
-                        backgroundColor: 'transparent',
-                    }}
-                >
-                    <PlusIcon className="mr-2" size={18} /> CREAR OTRO PROGRAMA
+                <Button onClick={() => onNavigate('program-editor')} className="w-full !py-5 !rounded-3xl shadow-2xl shadow-primary/20 !bg-primary !text-white !font-black !tracking-widest">
+                    CREAR PROGRAMA
                 </Button>
             </div>
-        </>
-    );
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // renderNoPrograms
-    // ═══════════════════════════════════════════════════════════════════════════
-    const renderNoPrograms = () => (
-        <>
-            <div
-                className="w-full flex flex-col"
-                style={{
-                    backgroundColor: 'var(--md-sys-color-surface-container)',
-                    paddingTop: 'max(1.25rem, env(safe-area-inset-top, 0px))',
-                }}
-            >
-                <div className="w-full max-w-md mx-auto px-4 sm:px-6 pt-2 pb-5">
-                    <p className="text-label-sm mb-3 opacity-70" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                        {dateHeaderStr}
-                    </p>
-                    <AugeTelemetryPanel variant="hero" shareable />
-                </div>
-            </div>
-
-            <div
-                className="relative z-10 flex flex-col px-6 pt-5 w-full max-w-md mx-auto pb-10"
-                style={{ backgroundColor: 'var(--md-sys-color-background)' }}
-            >
-                <HomeCardsSection onNavigateToCard={vm.handleCardNav} />
-
-                <div className="text-center w-full pt-8">
-                    <div className="w-full flex justify-center mb-10 animate-fade-in">
-                        <div className="relative">
-                            <div
-                                className="absolute inset-0 rounded-full blur-3xl scale-150 opacity-[0.15]"
-                                style={{ backgroundColor: 'var(--md-sys-color-primary)' }}
-                            />
-                            <CaupolicanIcon size={200} color="currentColor" />
-                        </div>
-                    </div>
-
-                    <h3
-                        className="text-display-sm sm:text-display-md font-black uppercase tracking-tighter mb-6 leading-[0.85]"
-                        style={{ color: 'var(--md-sys-color-on-background)' }}
-                    >
-                        DISEÑA TU<br />
-                        <span style={{ color: 'var(--md-sys-color-primary)' }}>PRIMER PLAN</span>
-                        <br />
-                        MAESTRO
-                    </h3>
-
-                    <p
-                        className="text-body-sm mb-10 leading-relaxed max-w-xs mx-auto opacity-70"
-                        style={{ color: 'var(--md-sys-color-on-surface-variant)' }}
-                    >
-                        Activa la ingeniería de tu cuerpo. Inicia un programa para desbloquear la telemetría avanzada.
-                    </p>
-
-                    <Button
-                        onClick={() => vm.navigateTo('program-editor')}
-                        className="w-full max-w-xs mx-auto !py-5 !text-title-sm font-black !rounded-2xl border-none mb-10 hover:scale-[1.05] shadow-lg shadow-primary/20 transition-all min-h-[56px]"
-                        style={{
-                            backgroundColor: 'var(--md-sys-color-primary)',
-                            color: 'var(--md-sys-color-on-primary)',
-                        }}
-                    >
-                        <PlusIcon className="mr-2" size={20} /> CREAR PROGRAMA
-                    </Button>
-                </div>
-            </div>
-        </>
+        </div>
     );
 
     return (
-        <div
-            className="relative min-h-full w-full flex flex-col tab-bar-safe-area overflow-y-auto bg-[#FEF7FF]"
-        >
-
-            {vm.activeProgram ? renderWithProgram() : vm.programs.length > 0 ? renderSelectProgram() : renderNoPrograms()}
-
-            {exerciseHistoryModal && (
-                <ExerciseHistoryNerdView
-                    exerciseName={exerciseHistoryModal}
-                    history={vm.history}
-                    settings={vm.settings}
-                    onClose={() => setExerciseHistoryModal(null)}
-                />
-            )}
-
-            {shareLog && (() => {
-                const cardData = buildShareCardDataFromLog(shareLog, vm.settings?.weightUnit ?? 'kg');
-                return (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm">
-                        <ElevatedCard className="p-6 w-full max-w-[280px] flex flex-col items-center gap-4 animate-scale-up">
-                            <h3
-                                className="text-title-small uppercase font-black tracking-widest"
-                                style={{ color: 'var(--md-sys-color-on-surface)' }}
-                            >
-                                Compartir Log
-                            </h3>
-                            <div
-                                className="rounded-xl overflow-hidden shadow-2xl"
-                                style={{
-                                    width: 140,
-                                    height: 248,
-                                    borderColor: 'var(--md-sys-color-outline-variant)',
-                                    borderWidth: 1,
-                                }}
-                            >
-                                <div className="w-[540px] h-[960px] origin-top-left" style={{ transform: 'scale(0.259)' }}>
-                                    <WorkoutShareCard {...cardData} preview />
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-2 w-full">
-                                <Button
-                                    className="w-full !py-3 bg-primary text-on-primary font-black uppercase text-xs rounded-xl min-h-[48px]"
-                                    style={{
-                                        backgroundColor: 'var(--md-sys-color-primary)',
-                                        color: 'var(--md-sys-color-on-primary)',
-                                    }}
-                                    onClick={async () => {
-                                        setIsSharing(true);
-                                        await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'Registra tus entrenamientos con KPKN. #KPKN #Fitness');
-                                        setIsSharing(false);
-                                        setShareLog(null);
-                                    }}
-                                    disabled={isSharing}
-                                >
-                                    {isSharing ? 'Generando...' : 'COMPARTIR'}
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    className="w-full !py-3 font-black uppercase text-xs rounded-xl min-h-[48px]"
-                                    onClick={() => setShareLog(null)}
-                                >
-                                    CANCELAR
-                                </Button>
-                            </div>
-                        </ElevatedCard>
-                    </div>
-                );
-            })()}
+        <div className="w-full min-h-screen pb-20 overflow-x-hidden relative">
+            {activeProgram ? renderWithProgram() : renderEmpty()}
         </div>
     );
 };
-
 
 export default Home;

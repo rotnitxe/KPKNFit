@@ -68,12 +68,12 @@ const SectionToggle: React.FC<{
     onToggle: () => void;
     children: React.ReactNode;
 }> = ({ title, icon, color, isOpen, onToggle, children }) => (
-    <div className="border border-white/5 rounded-xl overflow-hidden bg-[#0a0a0a]">
+    <div className="border border-[#E6E0E9] rounded-xl overflow-hidden bg-[#FEF7FF]">
         <button onClick={onToggle} className="w-full flex justify-between items-center px-4 py-3 text-left hover:bg-white/[0.02] transition-colors">
             <span className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${color}`}>
                 {icon} {title}
             </span>
-            <ChevronDownIcon size={14} className={`text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDownIcon size={14} className={`text-[#49454F] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
         {isOpen && <div className="px-4 pb-4 animate-fade-in">{children}</div>}
     </div>
@@ -118,7 +118,7 @@ export const GPFatigueCurve: React.FC<{
                 })()}
             </svg>
             {!compact && (
-                <div className="flex justify-between text-[8px] text-zinc-500 font-bold mt-1 px-1">
+                <div className="flex justify-between text-[8px] text-[#49454F] font-bold mt-1 px-1">
                     <span>Pico: {peak_fatigue_hour}h</span>
                     {supercompensation_hour && <span className="text-emerald-500">Super: {supercompensation_hour}h</span>}
                     <span className="text-sky-400">Recup: {full_recovery_hour}h</span>
@@ -144,7 +144,7 @@ export const BayesianConfidence: React.FC<{
         <div>
             <div className="flex justify-between items-center mb-2">
                 <span className={`text-[9px] font-black uppercase tracking-widest ${color}`}>{labelMap[label]}</span>
-                <span className="text-[9px] text-zinc-500 font-mono">{totalObservations} obs</span>
+                <span className="text-[9px] text-[#49454F] font-mono">{totalObservations} obs</span>
             </div>
             <div className="h-1.5 bg-black rounded-full overflow-hidden">
                 <div className={`h-full rounded-full transition-all duration-700 ${
@@ -155,7 +155,7 @@ export const BayesianConfidence: React.FC<{
                 <div className="mt-3 space-y-1">
                     {Object.entries(personalizedRecoveryHours).slice(0, 5).map(([muscle, hrs]) => (
                         <div key={muscle} className="flex justify-between text-[9px]">
-                            <span className="text-zinc-400">{muscle}</span>
+                            <span className="text-[#49454F]">{muscle}</span>
                             <span className={`font-mono font-bold ${color}`}>{hrs.toFixed(0)}h</span>
                         </div>
                     ))}
@@ -217,7 +217,7 @@ export const SelfImprovementScore: React.FC<{
         <div>
             <div className="flex items-center gap-3">
                 <span className="text-2xl font-black text-white">{score}</span>
-                <span className="text-[9px] text-zinc-500 font-bold">/100</span>
+                <span className="text-[9px] text-[#49454F] font-bold">/100</span>
                 {trend.length >= 2 && (
                     <svg viewBox="0 0 60 24" className="w-12 h-5 ml-auto">
                         <path d={sparklinePath(trend, 60, 24)} fill="none" className={`stroke-current ${trendColor}`} strokeWidth="1.5" />
@@ -227,7 +227,7 @@ export const SelfImprovementScore: React.FC<{
             {!compact && recommendations && recommendations.length > 0 && (
                 <div className="mt-3 space-y-1">
                     {recommendations.slice(0, 3).map((rec, i) => (
-                        <div key={i} className="flex items-start gap-2 text-[9px] text-zinc-400">
+                        <div key={i} className="flex items-start gap-2 text-[9px] text-[#49454F]">
                             <span className="text-yellow-400 mt-0.5 shrink-0">→</span>
                             <span>{rec}</span>
                         </div>
@@ -282,7 +282,7 @@ const AugeDeepView: React.FC<AugeDeepViewProps> = ({
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="w-full py-2 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-violet-400/70 hover:text-violet-400 transition-colors border border-white/5 rounded-xl hover:border-violet-500/20 bg-[#0a0a0a]"
+                className="w-full py-2 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-violet-400/70 hover:text-violet-400 transition-colors border border-[#E6E0E9] rounded-xl hover:border-violet-500/20 bg-[#FEF7FF]"
             >
                 <BrainIcon size={12} /> AUGE Deep View
                 <ChevronDownIcon size={12} />

@@ -58,7 +58,7 @@ const SessionsStep: React.FC<SessionsStepProps> = ({
                     <EditIcon size={18} className="text-white" />
                     <h3 className="text-lg font-black text-white uppercase tracking-tight">Prepara tus Sesiones</h3>
                 </div>
-                <p className="text-[10px] text-zinc-500">Podrás editarlas con más detalle después de crear el programa.</p>
+                <p className="text-[10px] text-[#49454F]">Podrás editarlas con más detalle después de crear el programa.</p>
             </div>
 
             {/* Block selector (complex) */}
@@ -73,7 +73,7 @@ const SessionsStep: React.FC<SessionsStepProps> = ({
                                 className={`shrink-0 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-wider transition-all border ${
                                     isActive
                                         ? 'bg-white text-black border-white'
-                                        : 'bg-zinc-950 text-zinc-500 border-white/10 hover:border-white/30'
+                                        : 'bg-[#FEF7FF] text-[#49454F] border-[#E6E0E9] hover:border-white/30'
                                 }`}
                             >
                                 {name}
@@ -85,8 +85,8 @@ const SessionsStep: React.FC<SessionsStepProps> = ({
 
             {/* Apply to all toggle */}
             {isComplex && splitMode === 'per_block' && onToggleApplyToAll && (
-                <div className="flex items-center justify-end gap-3 bg-zinc-950 px-3 py-2 rounded-lg border border-white/10">
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
+                <div className="flex items-center justify-end gap-3 bg-[#FEF7FF] px-3 py-2 rounded-lg border border-[#E6E0E9]">
+                    <span className="text-[9px] font-bold text-[#49454F] uppercase tracking-wider">
                         Aplicar a bloques con mismo split
                     </span>
                     <button
@@ -125,8 +125,8 @@ const SessionsStep: React.FC<SessionsStepProps> = ({
                     }
 
                     return (
-                        <div key={index} className={`bg-zinc-950 border rounded-xl p-3 transition-all ${
-                            isRest ? 'border-white/5 opacity-40' : 'border-white/10'
+                        <div key={index} className={`bg-[#FEF7FF] border rounded-xl p-3 transition-all ${
+                            isRest ? 'border-[#E6E0E9] opacity-40' : 'border-[#E6E0E9]'
                         }`}>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -137,7 +137,7 @@ const SessionsStep: React.FC<SessionsStepProps> = ({
                                     </div>
                                     <div>
                                         {isRest ? (
-                                            <span className="text-xs font-bold text-zinc-500 italic">Descanso</span>
+                                            <span className="text-xs font-bold text-[#49454F] italic">Descanso</span>
                                         ) : (
                                             <input
                                                 type="text"
@@ -146,12 +146,12 @@ const SessionsStep: React.FC<SessionsStepProps> = ({
                                                 className="bg-transparent text-xs font-black text-white uppercase tracking-tight focus:ring-0 border-none p-0"
                                             />
                                         )}
-                                        <div className="text-[8px] text-zinc-500 font-bold">{dayLabel}</div>
+                                        <div className="text-[8px] text-[#49454F] font-bold">{dayLabel}</div>
                                     </div>
                                 </div>
                                 {!isRest && (
                                     <div className="flex items-center gap-1">
-                                        <span className="text-[8px] text-zinc-500 font-bold mr-2">
+                                        <span className="text-[8px] text-[#49454F] font-bold mr-2">
                                             {detailedSessions[index]?.exercises?.length || 0} ej.
                                         </span>
                                         <button

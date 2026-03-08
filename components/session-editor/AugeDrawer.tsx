@@ -238,7 +238,7 @@ const AvisoRow: React.FC<{
                             </button>
                         )}
                         {expanded && onApplyCorrection && (
-                            <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                            <div className="mt-3 pt-3 border-t border-[#E6E0E9] space-y-2">
                                 <p className="text-[10px] text-[#999] leading-relaxed">{getCorrectionDescription(aviso)}</p>
                                 <div className="flex flex-col gap-1.5">
                                     {getCorrectionOptions(aviso).map((opt, idx) => (
@@ -286,7 +286,7 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
     return (
         <>
             <div className="fixed inset-0 z-[110] bg-black/40" onClick={onClose} />
-            <div className="fixed top-0 right-0 bottom-0 z-[111] w-[320px] max-w-[85vw] bg-[#111] border-l border-white/[0.08] flex flex-col animate-slide-left">
+            <div className="fixed top-0 right-0 bottom-0 z-[111] w-[320px] max-w-[85vw] bg-[#ECE6F0] border-l border-white/[0.08] flex flex-col animate-slide-left">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
                     <div className="flex items-center gap-2">
                         <ActivityIcon size={16} className="text-[#00F0FF]" />
@@ -341,7 +341,7 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                                 <TargetIcon size={12} />
                                 Volumen por músculo
                             </h3>
-                            <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                            <div className="flex rounded-lg border border-[#E6E0E9] overflow-hidden">
                                 <button
                                     onClick={() => setVolumeContext('session')}
                                     className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'session' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
@@ -383,7 +383,7 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                                 <ActivityIcon size={12} />
                                 Fatiga AUGE
                             </h3>
-                            <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                            <div className="flex rounded-lg border border-[#E6E0E9] overflow-hidden">
                                 <button
                                     onClick={() => setDrainContext('session')}
                                     className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'session' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}

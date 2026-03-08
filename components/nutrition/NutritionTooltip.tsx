@@ -49,7 +49,7 @@ export const NutritionTooltip: React.FC<NutritionTooltipProps> = ({ content, tit
     const tooltipContent = (
         <div
             style={style}
-            className="fixed p-3 bg-[#0a0a0a] border border-white/10 rounded-lg shadow-xl z-[9999] text-xs text-zinc-300 w-[260px]"
+            className="fixed p-3 bg-[#FEF7FF] border border-[#E6E0E9] rounded-lg shadow-xl z-[9999] text-xs text-zinc-300 w-[260px]"
             role="tooltip"
         >
             {title && <p className="font-bold text-emerald-400 mb-1">{title}</p>}
@@ -68,7 +68,7 @@ export const NutritionTooltip: React.FC<NutritionTooltipProps> = ({ content, tit
                     e.stopPropagation();
                     setIsVisible((v) => !v);
                 }}
-                className="cursor-pointer text-zinc-500 hover:text-emerald-400 transition-colors"
+                className="cursor-pointer text-[#49454F] hover:text-emerald-400 transition-colors"
                 aria-label="Información"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

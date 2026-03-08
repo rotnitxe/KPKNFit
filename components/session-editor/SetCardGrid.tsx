@@ -55,7 +55,7 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                                     ? 'bg-white text-black border-white'
                                     : isAmrap
                                         ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
-                                        : 'bg-zinc-900 border-white/5 text-zinc-300 hover:border-white/20'
+                                        : 'bg-zinc-900 border-[#E6E0E9] text-zinc-300 hover:border-white/20'
                             }`}
                         >
                             <span className="font-black">S{i + 1}</span>
@@ -66,7 +66,7 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                 })}
                 <button
                     onClick={onAddSet}
-                    className="px-2 py-1 rounded-lg border border-dashed border-white/10 text-zinc-600 hover:text-white hover:border-white/30 transition-all"
+                    className="px-2 py-1 rounded-lg border border-dashed border-[#E6E0E9] text-zinc-600 hover:text-white hover:border-white/30 transition-all"
                 >
                     <PlusIcon size={12} />
                 </button>
@@ -88,28 +88,28 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                                     ? 'bg-white text-black border-white'
                                     : isAmrap
                                         ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
-                                        : 'bg-zinc-900 border-white/5 text-zinc-300 hover:border-white/20'
+                                        : 'bg-zinc-900 border-[#E6E0E9] text-zinc-300 hover:border-white/20'
                             }`}
                         >
                             S{i + 1} {repsStr} {intensityStr}
                         </button>
                     );
                 })}
-                <button onClick={onAddSet} className="px-2 py-1 rounded-lg border border-dashed border-white/10 text-zinc-600 hover:text-white hover:border-white/30 transition-all">
+                <button onClick={onAddSet} className="px-2 py-1 rounded-lg border border-dashed border-[#E6E0E9] text-zinc-600 hover:text-white hover:border-white/30 transition-all">
                     <PlusIcon size={12} />
                 </button>
             </div>
 
             {editingSet !== null && sets[editingSet] && (
-                <div className="bg-zinc-900/80 border border-white/10 rounded-xl p-3 space-y-3 animate-fade-in">
+                <div className="bg-zinc-900/80 border border-[#E6E0E9] rounded-xl p-3 space-y-3 animate-fade-in">
                     <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Serie {editingSet + 1}</span>
+                        <span className="text-[10px] font-black text-[#49454F] uppercase tracking-widest">Serie {editingSet + 1}</span>
                         <div className="flex gap-2">
                             {onAmrapToggle && (
                                 <button
                                     onClick={() => onAmrapToggle(editingSet)}
                                     className={`text-[9px] font-bold px-2 py-1 rounded-md border transition-all ${
-                                        sets[editingSet].isAmrap ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400' : 'border-white/10 text-zinc-500 hover:text-white'
+                                        sets[editingSet].isAmrap ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400' : 'border-[#E6E0E9] text-[#49454F] hover:text-white'
                                     }`}
                                 >
                                     <FlameIcon size={10} className="inline mr-0.5" /> AMRAP
@@ -117,7 +117,7 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                             )}
                             <button
                                 onClick={() => { onRemoveSet(editingSet); setEditingSet(null); }}
-                                className="p-1 rounded-md border border-white/10 text-zinc-500 hover:text-red-400 hover:border-red-400/30 transition-all"
+                                className="p-1 rounded-md border border-[#E6E0E9] text-[#49454F] hover:text-red-400 hover:border-red-400/30 transition-all"
                             >
                                 <XIcon size={12} />
                             </button>
@@ -141,7 +141,7 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                                         onSetChange(editingSet, 'targetReps', val);
                                     }
                                 }}
-                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
+                                className="w-full bg-black border border-[#E6E0E9] rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                             />
                         </div>
                         <div>
@@ -149,7 +149,7 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                             <select
                                 value={sets[editingSet].intensityMode || 'rpe'}
                                 onChange={e => onSetChange(editingSet, 'intensityMode', e.target.value)}
-                                className="w-full bg-black border border-white/10 rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
+                                className="w-full bg-black border border-[#E6E0E9] rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-white focus:ring-1 focus:ring-white/30"
                             >
                                 <option value="rpe">RPE</option>
                                 <option value="rir">RIR</option>
@@ -167,7 +167,7 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                                     value={sets[editingSet].weight != null ? sets[editingSet].weight : ''}
                                     onChange={e => { const v = e.target.value; onSetChange(editingSet, 'weight', v === '' ? undefined : (parseFloat(v) || 0)); }}
                                     placeholder="kg"
-                                    className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
+                                    className="w-full bg-black border border-[#E6E0E9] rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                                 />
                             ) : (
                                 <input
@@ -184,7 +184,7 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                                             onSetChange(editingSet, 'targetRPE', val);
                                         }
                                     }}
-                                    className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
+                                    className="w-full bg-black border border-[#E6E0E9] rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                                 />
                             )}
                         </div>
@@ -198,13 +198,13 @@ const SetCardGrid: React.FC<SetCardGridProps> = ({
                                     type="number"
                                     value={sets[editingSet].targetPercentageRM ?? ''}
                                     onChange={e => { const v = e.target.value; onSetChange(editingSet, 'targetPercentageRM', v === '' ? undefined : (parseInt(v, 10) || 0)); }}
-                                    className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
+                                    className="w-full bg-black border border-[#E6E0E9] rounded-lg px-2 py-1.5 text-center text-xs font-bold text-white focus:ring-1 focus:ring-white/30"
                                 />
                             </div>
                             {reference1RM ? (
                                 <div>
                                     <label className="text-[8px] font-bold text-zinc-600 uppercase block mb-1">Peso Est.</label>
-                                    <div className="w-full bg-zinc-900 border border-white/5 rounded-lg py-1.5 text-center text-xs font-bold text-blue-400">
+                                    <div className="w-full bg-zinc-900 border border-[#E6E0E9] rounded-lg py-1.5 text-center text-xs font-bold text-blue-400">
                                         {Math.round((reference1RM * (sets[editingSet].targetPercentageRM || 0) / 100) * 4) / 4} kg
                                     </div>
                                 </div>

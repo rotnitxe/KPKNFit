@@ -85,7 +85,7 @@ const WeeklyWellbeingCard: React.FC = () => {
 
     if (!weeklyAverages && !hasLoggedToday) {
          return (
-            <div className="bg-slate-900/30 border border-white/5 rounded-2xl p-4 text-center">
+            <div className="bg-slate-900/30 border border-[#E6E0E9] rounded-2xl p-4 text-center">
                  <p className="text-sm text-slate-400 mb-2">¿Cómo te sientes hoy?</p>
                  <Button onClick={() => setIsModalOpen(true)} variant="secondary" className="w-full !text-xs">Registrar Estado</Button>
                  <ReadinessDrawer isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onContinue={handleSaveDailyWellbeing} />
@@ -96,7 +96,7 @@ const WeeklyWellbeingCard: React.FC = () => {
     if (!weeklyAverages) return null;
 
     return (
-        <div className="bg-slate-900/30 border border-white/5 rounded-2xl p-4">
+        <div className="bg-slate-900/30 border border-[#E6E0E9] rounded-2xl p-4">
             <ReadinessDrawer isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onContinue={handleSaveDailyWellbeing} />
             
             <div className="flex justify-between items-center mb-3">

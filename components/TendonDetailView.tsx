@@ -50,7 +50,7 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
   }
 
   return (
-    <div className="tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
+    <div className="tab-bar-safe-area animate-fade-in bg-[#FEF7FF] min-h-screen">
       <header className="relative h-32 -mx-4 bg-gradient-to-b from-cyber-cyan/30 to-[#0a0a0a] border-b border-cyber-cyan/20">
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -60,23 +60,23 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
       </header>
 
       <div className="space-y-6 mt-6 px-4">
-        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
           <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Descripción</h3>
           <p className="text-slate-300 text-sm">{tendon.description}</p>
         </div>
 
-        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
           <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Músculo asociado</h3>
           {muscle ? (
             <div
               onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: muscle.id })}
-              className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-cyber-cyan/20 hover:border-cyber-cyan/50 cursor-pointer transition-all"
+              className="p-4 flex justify-between items-center rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 hover:border-cyber-cyan/50 cursor-pointer transition-all"
             >
               <span className="font-mono font-semibold text-slate-200 text-sm">{muscle.name}</span>
               <ChevronRightIcon className="text-cyber-cyan/50" size={18} />
             </div>
           ) : (
-            <p className="p-4 rounded-xl bg-[#0a0a0a] border border-cyber-cyan/20 text-slate-500 text-sm italic">
+            <p className="p-4 rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 text-slate-500 text-sm italic">
               {tendon.muscleId
                 ? `Músculo referenciado no disponible en la base de datos.`
                 : 'Sin músculo asociado registrado.'}
@@ -85,7 +85,7 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
         </div>
 
         {protectiveExercises.length > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-green-500/90 mb-2">Ejercicios que fortalecen o protegen</h3>
             <p className="text-xs text-slate-400 mb-3">Isométricos, movilidad y ejercicios recomendados para la salud de este tendón.</p>
             <div className="space-y-2">
@@ -104,11 +104,11 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
         )}
 
         {joint && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Articulación</h3>
             <div
               onClick={() => navigateTo('joint-detail', { jointId: joint.id })}
-              className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-cyber-cyan/20 hover:border-cyber-cyan/50 cursor-pointer transition-all"
+              className="p-4 flex justify-between items-center rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 hover:border-cyber-cyan/50 cursor-pointer transition-all"
             >
               <span className="font-mono font-semibold text-slate-200 text-sm">{joint.name}</span>
               <ChevronRightIcon className="text-cyber-cyan/50" size={18} />
@@ -122,9 +122,9 @@ const TendonDetailView: React.FC<TendonDetailViewProps> = ({ tendonId }) => {
               <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-red-400/90">Lesiones Comunes</h3>
               <ChevronRightIcon className="details-arrow text-cyber-cyan/50" />
             </summary>
-            <div className="p-4 border-t border-white/5 space-y-3 bg-[#080808]">
+            <div className="p-4 border-t border-[#E6E0E9] space-y-3 bg-[#080808]">
               {tendon.commonInjuries.map((inj, i) => (
-                <div key={i} className="bg-[#0a0a0a] rounded-xl p-3 border border-cyber-cyan/20">
+                <div key={i} className="bg-[#FEF7FF] rounded-xl p-3 border border-cyber-cyan/20">
                   <h4 className="font-semibold text-white text-sm">{inj.name}</h4>
                   <p className="text-slate-400 text-xs mt-1">{inj.description}</p>
                   {inj.returnProgressions && inj.returnProgressions.length > 0 && (

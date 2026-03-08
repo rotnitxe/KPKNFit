@@ -56,7 +56,7 @@ export const MuscleTrainingAnalysis: React.FC<MuscleTrainingAnalysisProps> = ({ 
     };
 
     return (
-        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Análisis de Entrenamiento (IA)</h3>
             {isLoading ? (
                 <SkeletonLoader lines={4} />

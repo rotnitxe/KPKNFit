@@ -45,15 +45,15 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
                     <h1 className={`font-black text-white tracking-tight ${firstVisitToday ? 'text-2xl' : 'text-xl'}`}>
                         {greeting}
                     </h1>
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 shrink-0">
-                        <span className="text-[9px] font-mono text-zinc-400">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-[#E6E0E9] shrink-0">
+                        <span className="text-[9px] font-mono text-[#49454F]">
                             {dateStr}
                         </span>
                     </div>
                 </div>
 
                 {context.type === 'no_program' && (
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-[#49454F]">
                         Crea tu programa para comenzar a entrenar.
                     </p>
                 )}
@@ -67,7 +67,7 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
                         {onShareLog && (
                             <button
                                 onClick={() => onShareLog(todayLog)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white hover:border-white/20 transition-colors text-xs font-bold"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-[#E6E0E9] rounded-lg text-[#49454F] hover:text-white hover:border-white/20 transition-colors text-xs font-bold"
                             >
                                 <LinkIcon size={14} /> Compartir
                             </button>
@@ -76,19 +76,19 @@ export const HomeHeroSection: React.FC<HomeHeroSectionProps> = ({
                 )}
 
                 {context.type === 'has_program' && context.sessionToday && !context.trainedToday && (
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-[#49454F]">
                         Sesión programada para hoy.
                     </p>
                 )}
 
                 {context.type === 'rest_day' && (
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-[#49454F]">
                         Día de descanso.
                     </p>
                 )}
 
                 {context.type === 'no_session' && (
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-[#49454F]">
                         Sin sesión programada hoy.
                     </p>
                 )}

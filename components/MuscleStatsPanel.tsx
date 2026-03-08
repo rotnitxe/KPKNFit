@@ -11,13 +11,13 @@ const getStatusFromThresholds = (sets: number, thresholds: MuscleVolumeThreshold
     const { min, max } = thresholds;
 
     if (isPowerlifting) {
-        if (sets === 0) return { label: 'Inactivo', color: 'text-zinc-500', border: 'border-zinc-600' };
+        if (sets === 0) return { label: 'Inactivo', color: 'text-[#49454F]', border: 'border-zinc-200' };
         if (sets < 6) return { label: 'Bajo', color: 'text-blue-400', border: 'border-blue-500/50' };
         if (sets <= 12) return { label: 'Óptimo', color: 'text-emerald-400', border: 'border-emerald-500/50' };
         return { label: 'Alto', color: 'text-amber-400', border: 'border-amber-500/50' };
     }
 
-    if (sets === 0) return { label: 'Inactivo', color: 'text-zinc-500', border: 'border-zinc-600' };
+    if (sets === 0) return { label: 'Inactivo', color: 'text-[#49454F]', border: 'border-zinc-200' };
     if (sets < min) return { label: 'Subentreno', color: 'text-blue-400', border: 'border-blue-500/50' };
     if (sets <= max) return { label: 'Óptimo', color: 'text-emerald-400', border: 'border-emerald-500/50' };
     return { label: 'Sobreentreno', color: 'text-red-400', border: 'border-red-500/50' };

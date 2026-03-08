@@ -34,16 +34,16 @@ export const CalorieGoalCard: React.FC<{
 }> = ({ calorieGoal, onEditClick }) => {
     const hasGoal = calorieGoal > 0;
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex justify-between items-center">
+        <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4 flex justify-between items-center">
             <div>
-                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Objetivo</p>
+                <p className="text-[9px] font-black text-[#49454F] uppercase tracking-widest">Objetivo</p>
                 <p className="text-lg font-black text-white font-mono">
                     {hasGoal ? `${calorieGoal} kcal` : 'Configura tu plan'}
                 </p>
             </div>
             <button
                 onClick={onEditClick}
-                className="text-[9px] font-bold text-zinc-500 uppercase hover:text-white transition-colors"
+                className="text-[9px] font-bold text-[#49454F] uppercase hover:text-white transition-colors"
             >
                 {hasGoal ? 'Editar plan' : 'Configurar'}
             </button>
@@ -96,7 +96,7 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
         <TacticalModal isOpen={isOpen} onClose={onClose} title="Objetivo Calórico">
             <div className="space-y-5">
                 <div>
-                    <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                    <label className="block text-[9px] font-black text-[#49454F] uppercase tracking-widest mb-2">
                         Fórmula TMB
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -107,7 +107,7 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
                                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
                                     formula === opt.id
                                         ? 'bg-white text-black border-white'
-                                        : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+                                        : 'bg-white/5 border-[#E6E0E9] text-[#49454F] hover:text-white'
                                 }`}
                             >
                                 {opt.label}
@@ -117,7 +117,7 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
                 </div>
 
                 <div>
-                    <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                    <label className="block text-[9px] font-black text-[#49454F] uppercase tracking-widest mb-2">
                         Nivel de actividad
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -128,7 +128,7 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
                                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
                                     activityLevel === opt.id
                                         ? 'bg-white text-black border-white'
-                                        : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+                                        : 'bg-white/5 border-[#E6E0E9] text-[#49454F] hover:text-white'
                                 }`}
                             >
                                 {opt.label}
@@ -138,7 +138,7 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
                 </div>
 
                 <div>
-                    <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                    <label className="block text-[9px] font-black text-[#49454F] uppercase tracking-widest mb-2">
                         Objetivo
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -149,7 +149,7 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
                                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
                                     goal === opt.id
                                         ? 'bg-white text-black border-white'
-                                        : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+                                        : 'bg-white/5 border-[#E6E0E9] text-[#49454F] hover:text-white'
                                 }`}
                             >
                                 {opt.label}
@@ -160,13 +160,13 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
 
                 {(goal === 'lose' || goal === 'gain') && (
                     <div>
-                        <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                        <label className="block text-[9px] font-black text-[#49454F] uppercase tracking-widest mb-2">
                             Cambio semanal (kg)
                         </label>
                         <select
                             value={weeklyChangeKg}
                             onChange={e => setWeeklyChangeKg(Number(e.target.value))}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                            className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30"
                         >
                             <option value={0.25}>0.25 kg/sem</option>
                             <option value={0.5}>0.5 kg/sem</option>
@@ -179,7 +179,7 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
                 )}
 
                 <div>
-                    <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">
+                    <label className="block text-[9px] font-black text-[#49454F] uppercase tracking-widest mb-2">
                         Multiplicador salud (ej. 0.9 = -10%)
                     </label>
                     <input
@@ -189,12 +189,12 @@ export const CalorieGoalModal: React.FC<CalorieGoalModalProps> = ({ isOpen, onCl
                         step={0.05}
                         value={healthMultiplier}
                         onChange={e => setHealthMultiplier(Number(e.target.value) || 1)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-mono outline-none focus:border-white/30"
+                        className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-sm text-white font-mono outline-none focus:border-white/30"
                     />
                 </div>
 
-                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">
+                <div className="bg-white/5 rounded-xl p-4 border border-[#E6E0E9]">
+                    <p className="text-[9px] font-black text-[#49454F] uppercase tracking-widest mb-1">
                         Vista previa
                     </p>
                     <p className="text-2xl font-black text-white font-mono">{previewCalories} kcal/día</p>

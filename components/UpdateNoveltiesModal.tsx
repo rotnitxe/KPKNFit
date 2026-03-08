@@ -29,9 +29,9 @@ export const UpdateNoveltiesModal: React.FC<UpdateNoveltiesModalProps> = ({ isOp
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-fade-in">
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 flex-shrink-0">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#E6E0E9] flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -63,7 +63,7 @@ export const UpdateNoveltiesModal: React.FC<UpdateNoveltiesModalProps> = ({ isOp
                                 <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">¡KPKN Actualizado!</h3>
                                 <p className="text-slate-400 text-sm">Versión {version} con mejoras importantes en nutrición y WikiLab.</p>
                             </div>
-                            <div className="bg-white/5 rounded-2xl p-5 border border-white/5 text-left">
+                            <div className="bg-white/5 rounded-2xl p-5 border border-[#E6E0E9] text-left">
                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-3">En esta actualización</p>
                                 <ul className="space-y-2 text-sm text-slate-300">
                                     <li className="flex items-center gap-2"><span className="text-cyan-500">●</span> Plan de alimentación rediseñado</li>
@@ -87,11 +87,11 @@ export const UpdateNoveltiesModal: React.FC<UpdateNoveltiesModalProps> = ({ isOp
                                     <h4 className="font-bold text-white mb-2">Landing antes del wizard</h4>
                                     <p>Ya no te lanzamos el wizard a secas. Primero verás una pantalla con "Cómo funciona" (3 pasos), beneficios y un CTA para crear tu plan.</p>
                                 </div>
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                <div className="bg-white/5 rounded-xl p-4 border border-[#E6E0E9]">
                                     <h4 className="font-bold text-white mb-2">Wizard en 3 pasos</h4>
                                     <p>Cada paso agrupa varias cosas importantes: Objetivo + AUGE + Datos corporales → Actividad + Metabólicas + Dieta → Desglose + Macros + Tendencia. Con explicaciones de por qué importa cada cosa.</p>
                                 </div>
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                <div className="bg-white/5 rounded-xl p-4 border border-[#E6E0E9]">
                                     <h4 className="font-bold text-white mb-2">Editor de plan completo</h4>
                                     <p>Una vez creado el plan, puedes editarlo sin volver al wizard. Editor nivel nerd: objetivo, AUGE, datos corporales, bioimpedancia, actividad, metabólicas, dieta, fórmula TMB, macros... todo editable por separado. Acceso desde Nutrición o Ajustes.</p>
                                 </div>
@@ -110,11 +110,11 @@ export const UpdateNoveltiesModal: React.FC<UpdateNoveltiesModalProps> = ({ isOp
                                     <h4 className="font-bold text-white mb-2">Pestañas por sección</h4>
                                     <p>Ejercicios | Anatomía | Articulaciones | Tendones | Patrones. Cada pestaña muestra solo su contenido, sin mezclar.</p>
                                 </div>
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                <div className="bg-white/5 rounded-xl p-4 border border-[#E6E0E9]">
                                     <h4 className="font-bold text-white mb-2">Búsqueda agrupada</h4>
                                     <p>Al buscar, los resultados se muestran con headers claros: TENDONES (N), MÚSCULOS (N), ARTICULACIONES (N)... Separación visual entre grupos.</p>
                                 </div>
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                <div className="bg-white/5 rounded-xl p-4 border border-[#E6E0E9]">
                                     <h4 className="font-bold text-white mb-2">Datos corregidos</h4>
                                     <p>El tendón del Supraespinoso ya no mostraba "Deltoides Lateral". Añadimos Supraespinoso e Infraespinoso a la base de datos y corregimos las referencias. Fallback cuando un músculo no existe.</p>
                                 </div>
@@ -180,7 +180,7 @@ export const UpdateNoveltiesModal: React.FC<UpdateNoveltiesModalProps> = ({ isOp
                 </div>
 
                 {/* Footer */}
-                <div className="flex gap-3 px-5 py-4 border-t border-white/10 flex-shrink-0">
+                <div className="flex gap-3 px-5 py-4 border-t border-[#E6E0E9] flex-shrink-0">
                     {step > 0 ? (
                         <Button onClick={handlePrev} variant="secondary" className="flex-1">
                             <ChevronLeftIcon size={18} className="mr-1" /> Atrás

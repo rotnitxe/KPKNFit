@@ -92,15 +92,15 @@ export const PCEActionModal: React.FC = () => {
                 <div className="mt-4 bg-gray-800/60 border border-violet-500/20 p-4 rounded-xl">
                     <h3 className="font-bold text-violet-400 mb-3 flex items-center gap-2 text-sm">🧠 Impacto Proyectado AUGE</h3>
                     <div className="mb-3">
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-2">Fatiga próximas 72h</p>
+                        <p className="text-[10px] text-[#49454F] font-bold uppercase tracking-widest mb-2">Fatiga próximas 72h</p>
                         <GPFatigueCurve data={adaptiveCache.gpCurve} compact />
                     </div>
                     <div className="mb-3">
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-2">Recuperación Bayesiana</p>
+                        <p className="text-[10px] text-[#49454F] font-bold uppercase tracking-widest mb-2">Recuperación Bayesiana</p>
                         <BayesianConfidence totalObservations={adaptiveCache.totalObservations} personalizedRecoveryHours={adaptiveCache.personalizedRecoveryHours} compact />
                     </div>
                     {adaptiveCache.banister?.verdict && (
-                        <div className="px-2 py-1.5 bg-black/40 rounded-lg border border-white/5">
+                        <div className="px-2 py-1.5 bg-black/40 rounded-lg border border-[#E6E0E9]">
                             <p className="text-[9px] text-zinc-300 font-medium italic">{adaptiveCache.banister.verdict}</p>
                         </div>
                     )}

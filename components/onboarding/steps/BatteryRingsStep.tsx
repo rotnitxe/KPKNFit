@@ -122,7 +122,7 @@ export const BatteryRingsStep: React.FC<BatteryRingsStepProps> = ({
   };
 
   return (
-    <div className="flex flex-col min-h-0 flex-1 bg-[#0a0a0a]">
+    <div className="flex flex-col min-h-0 flex-1 bg-[#FEF7FF]">
       <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar space-y-8">
         
         {/* Explicación de la Batería */}
@@ -130,7 +130,7 @@ export const BatteryRingsStep: React.FC<BatteryRingsStepProps> = ({
           <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
             BATERÍA <span className="text-[#facc15]">AUGE</span> <Zap size={24} className="text-[#facc15]" />
           </h2>
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 relative overflow-hidden">
+          <div className="bg-white/5 border border-[#E6E0E9] rounded-2xl p-4 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#facc15]/5 rounded-full blur-3xl -mr-10 -mt-10" />
             <p className="text-sm text-white/70 leading-relaxed relative z-10">
               Hemos estimado tu estado actual basado en tus últimos entrenamientos. 
@@ -161,13 +161,13 @@ export const BatteryRingsStep: React.FC<BatteryRingsStepProps> = ({
             
             {/* Desglose de músculos involucrados */}
             {Object.keys(muscleBreakdown).length > 0 ? (
-              <div className="w-full mt-6 pt-4 border-t border-white/5">
+              <div className="w-full mt-6 pt-4 border-t border-[#E6E0E9]">
                 <p className="text-[11px] font-bold text-white/40 uppercase tracking-wider mb-3 text-center">
                   Músculos afectados por tus ejercicios
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {Object.entries(muscleBreakdown).map(([muscle, delta]) => (
-                    <div key={muscle} className="bg-black/40 border border-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                    <div key={muscle} className="bg-black/40 border border-[#E6E0E9] px-3 py-1.5 rounded-lg flex items-center gap-2">
                       <span className="text-xs text-white/80 capitalize">{muscle}</span>
                       {/* Convertimos el delta de vuelta a nivel de batería para mostrarlo en verde/rojo */}
                       <span className={`text-xs font-bold ${delta > 50 ? 'text-[#ef4444]' : 'text-green-500'}`}>
@@ -187,7 +187,7 @@ export const BatteryRingsStep: React.FC<BatteryRingsStepProps> = ({
 
       </div>
       
-      <div className="shrink-0 p-4 border-t border-[#2a2a2a] bg-[#0a0a0a]">
+      <div className="shrink-0 p-4 border-t border-[#2a2a2a] bg-[#FEF7FF]">
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={handleFinish}

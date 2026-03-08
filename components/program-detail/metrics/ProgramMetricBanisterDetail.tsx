@@ -17,7 +17,7 @@ const ProgramMetricBanisterDetail: React.FC<ProgramMetricBanisterDetailProps> = 
                 Fitness vs fatiga. Curva Banister interactiva, predicciones.
             </p>
             {adaptiveCache?.banister && (
-                <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5">
+                <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#E6E0E9]">
                     <p className="text-[10px] text-[#48484A] mb-3">
                         {adaptiveCache.banister.verdict || 'Modelo Banister activo'}
                     </p>
@@ -25,7 +25,7 @@ const ProgramMetricBanisterDetail: React.FC<ProgramMetricBanisterDetailProps> = 
                 </div>
             )}
             {!adaptiveCache?.banister && (
-                <div className="h-48 rounded-xl bg-[#1a1a1a] border border-white/5 flex items-center justify-center">
+                <div className="h-48 rounded-xl bg-[#1a1a1a] border border-[#E6E0E9] flex items-center justify-center">
                     <span className="text-[12px] text-[#48484A] font-bold">Datos insuficientes</span>
                 </div>
             )}

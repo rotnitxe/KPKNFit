@@ -179,10 +179,10 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
       />
       {/* Drawer: desliza desde abajo, 90% altura, borde superior naranja */}
       <div
-        className={`relative z-10 w-full max-w-lg max-h-[90vh] flex flex-col bg-[#0a0a0a] text-white overflow-hidden rounded-t-2xl shadow-2xl border-t-4 border-cyber-cyan/80 transform transition-transform duration-300 ease-out ${isOpen && isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`relative z-10 w-full max-w-lg max-h-[90vh] flex flex-col bg-[#FEF7FF] text-white overflow-hidden rounded-t-2xl shadow-2xl border-t-4 border-cyber-cyan/80 transform transition-transform duration-300 ease-out ${isOpen && isVisible ? 'translate-y-0' : 'translate-y-full'}`}
       >
             {/* Header Fijo */}
-            <div className="flex justify-between items-center p-5 border-b border-cyber-cyan/20 bg-[#0a0a0a] shrink-0">
+            <div className="flex justify-between items-center p-5 border-b border-cyber-cyan/20 bg-[#FEF7FF] shrink-0">
                 <h2 className="text-xs font-black uppercase tracking-widest text-cyber-cyan/90">{existingExercise ? "Editar Ejercicio" : "Nuevo Ejercicio"}</h2>
                 <button onClick={onClose} className="text-cyber-cyan/70 hover:text-cyber-cyan transition-colors p-1">
                     <XIcon size={20}/>
@@ -195,32 +195,32 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
                 {/* Info Principal: Grid de 2 columnas para optimizar espacio */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1 md:col-span-2">
-                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Nombre</label>
+                        <label className="text-[10px] font-bold text-[#49454F] uppercase tracking-widest">Nombre</label>
                         <input 
                             type="text" 
                             value={exercise.name} 
                             onChange={e => handleChange('name', e.target.value)} 
                             placeholder="Ej. Press Militar Libre"
-                            className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded-xl p-3 text-sm font-bold text-white focus:border-cyber-cyan/50 outline-none transition-colors placeholder:text-zinc-600"
+                            className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded-xl p-3 text-sm font-bold text-white focus:border-cyber-cyan/50 outline-none transition-colors placeholder:text-zinc-600"
                         />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Alias</label>
+                        <label className="text-[10px] font-bold text-[#49454F] uppercase tracking-widest">Alias</label>
                         <input 
                             type="text" 
                             value={exercise.alias || ''} 
                             onChange={e => handleChange('alias', e.target.value)} 
                             placeholder="Ej. OHP"
-                            className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded-xl p-3 text-sm font-bold text-white focus:border-cyber-cyan/50 outline-none transition-colors placeholder:text-zinc-600 text-center"
+                            className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded-xl p-3 text-sm font-bold text-white focus:border-cyber-cyan/50 outline-none transition-colors placeholder:text-zinc-600 text-center"
                         />
                     </div>
                 </div>
 
                 {/* Clasificación en Grid 2x2 compacta */}
-                <div className="bg-[#0a0a0a] border border-cyber-cyan/20 rounded-xl p-4 grid grid-cols-2 gap-4">
+                <div className="bg-[#FEF7FF] border border-cyber-cyan/20 rounded-xl p-4 grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Patrón</label>
-                        <select value={exercise.force} onChange={e => handleForceChange(e.target.value)} className="w-full text-xs font-bold bg-[#0a0a0a] border border-cyber-cyan/20 rounded-lg p-2 text-white outline-none focus:border-cyber-cyan/50">
+                        <label className="text-[10px] font-bold text-[#49454F] uppercase tracking-widest">Patrón</label>
+                        <select value={exercise.force} onChange={e => handleForceChange(e.target.value)} className="w-full text-xs font-bold bg-[#FEF7FF] border border-cyber-cyan/20 rounded-lg p-2 text-white outline-none focus:border-cyber-cyan/50">
                             <option value="Empuje">Empuje</option>
                             <option value="Tirón">Tirón</option>
                             <option value="Bisagra">Bisagra</option>
@@ -235,8 +235,8 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
                         </select>
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Equipo</label>
-                        <select value={exercise.equipment} onChange={e => handleChange('equipment', e.target.value as any)} className="w-full text-xs font-bold bg-[#0a0a0a] border border-cyber-cyan/20 rounded-lg p-2 text-white outline-none focus:border-cyber-cyan/50">
+                        <label className="text-[10px] font-bold text-[#49454F] uppercase tracking-widest">Equipo</label>
+                        <select value={exercise.equipment} onChange={e => handleChange('equipment', e.target.value as any)} className="w-full text-xs font-bold bg-[#FEF7FF] border border-cyber-cyan/20 rounded-lg p-2 text-white outline-none focus:border-cyber-cyan/50">
                             <option value="Barra">Barra</option>
                             <option value="Mancuerna">Mancuerna</option>
                             <option value="Máquina">Máquina</option>
@@ -248,16 +248,16 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
                         </select>
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tipo</label>
-                        <select value={exercise.type} onChange={e => handleChange('type', e.target.value as any)} className="w-full text-xs font-bold bg-[#0a0a0a] border border-cyber-cyan/20 rounded-lg p-2 text-white outline-none focus:border-cyber-cyan/50">
+                        <label className="text-[10px] font-bold text-[#49454F] uppercase tracking-widest">Tipo</label>
+                        <select value={exercise.type} onChange={e => handleChange('type', e.target.value as any)} className="w-full text-xs font-bold bg-[#FEF7FF] border border-cyber-cyan/20 rounded-lg p-2 text-white outline-none focus:border-cyber-cyan/50">
                             <option value="Básico">Básico</option>
                             <option value="Accesorio">Accesorio</option>
                             <option value="Aislamiento">Aislamiento</option>
                         </select>
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Categoría</label>
-                        <select value={exercise.category} onChange={e => handleChange('category', e.target.value as any)} className="w-full text-xs font-bold bg-[#0a0a0a] border border-cyber-cyan/20 rounded-lg p-2 text-white outline-none focus:border-cyber-cyan/50">
+                        <label className="text-[10px] font-bold text-[#49454F] uppercase tracking-widest">Categoría</label>
+                        <select value={exercise.category} onChange={e => handleChange('category', e.target.value as any)} className="w-full text-xs font-bold bg-[#FEF7FF] border border-cyber-cyan/20 rounded-lg p-2 text-white outline-none focus:border-cyber-cyan/50">
                             <option value="Hipertrofia">Hipertrofia</option>
                             <option value="Fuerza">Fuerza</option>
                             <option value="Potencia">Potencia</option>
@@ -268,49 +268,49 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
                 </div>
 
                 {/* Pregunta Clave AUGE */}
-                <div className="bg-[#0a0a0a] p-4 rounded-xl border border-cyber-cyan/20 flex justify-between items-center">
+                <div className="bg-[#FEF7FF] p-4 rounded-xl border border-cyber-cyan/20 flex justify-between items-center">
                     <div>
                         <span className="text-xs font-bold text-white block">Carga Axial (Espalda)</span>
-                        <span className="text-[9px] text-zinc-500 font-medium leading-tight block mt-1">¿El peso descansa o comprime tu columna?</span>
+                        <span className="text-[9px] text-[#49454F] font-medium leading-tight block mt-1">¿El peso descansa o comprime tu columna?</span>
                     </div>
                     <ToggleSwitch checked={isAxialLoaded} onChange={setIsAxialLoaded} />
                 </div>
 
                 {/* Perfil AUGE */}
-                <div className="bg-[#0a0a0a] p-4 rounded-xl border border-cyber-cyan/20 space-y-3">
+                <div className="bg-[#FEF7FF] p-4 rounded-xl border border-cyber-cyan/20 space-y-3">
                     <div className="flex justify-between items-center mb-2">
                         <h4 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
                             <ActivityIcon size={14}/> Motor Drenaje AUGE
                         </h4>
-                        <span className="text-[9px] text-zinc-500 uppercase font-bold text-right">Auto-calculado</span>
+                        <span className="text-[9px] text-[#49454F] uppercase font-bold text-right">Auto-calculado</span>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-zinc-500 uppercase block text-center">EFC (Local)</label>
-                            <input type="number" min="1" max="5" step="0.1" value={exercise.efc || ''} onChange={e => handleChange('efc', parseFloat(e.target.value) || undefined)} className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded-lg p-2.5 text-xs font-bold text-white text-center focus:border-cyber-cyan/50 outline-none placeholder:text-zinc-600" placeholder={`Auto (${predictedAuge.efc.toFixed(1)})`} />
+                            <label className="text-[9px] font-bold text-[#49454F] uppercase block text-center">EFC (Local)</label>
+                            <input type="number" min="1" max="5" step="0.1" value={exercise.efc || ''} onChange={e => handleChange('efc', parseFloat(e.target.value) || undefined)} className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded-lg p-2.5 text-xs font-bold text-white text-center focus:border-cyber-cyan/50 outline-none placeholder:text-zinc-600" placeholder={`Auto (${predictedAuge.efc.toFixed(1)})`} />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-zinc-500 uppercase block text-center">CNC (SNC)</label>
-                            <input type="number" min="1" max="5" step="0.1" value={exercise.cnc || ''} onChange={e => handleChange('cnc', parseFloat(e.target.value) || undefined)} className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded-lg p-2.5 text-xs font-bold text-white text-center focus:border-cyber-cyan/50 outline-none placeholder:text-zinc-600" placeholder={`Auto (${predictedAuge.cnc.toFixed(1)})`} />
+                            <label className="text-[9px] font-bold text-[#49454F] uppercase block text-center">CNC (SNC)</label>
+                            <input type="number" min="1" max="5" step="0.1" value={exercise.cnc || ''} onChange={e => handleChange('cnc', parseFloat(e.target.value) || undefined)} className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded-lg p-2.5 text-xs font-bold text-white text-center focus:border-cyber-cyan/50 outline-none placeholder:text-zinc-600" placeholder={`Auto (${predictedAuge.cnc.toFixed(1)})`} />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-zinc-500 uppercase block text-center">SSC (Espinal)</label>
-                            <input type="number" min="0" max="2" step="0.1" value={exercise.ssc || ''} onChange={e => handleChange('ssc', parseFloat(e.target.value) || undefined)} className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded-lg p-2.5 text-xs font-bold text-white text-center focus:border-cyber-cyan/50 outline-none placeholder:text-zinc-600" placeholder={`Auto (${predictedAuge.ssc.toFixed(1)})`} />
+                            <label className="text-[9px] font-bold text-[#49454F] uppercase block text-center">SSC (Espinal)</label>
+                            <input type="number" min="0" max="2" step="0.1" value={exercise.ssc || ''} onChange={e => handleChange('ssc', parseFloat(e.target.value) || undefined)} className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded-lg p-2.5 text-xs font-bold text-white text-center focus:border-cyber-cyan/50 outline-none placeholder:text-zinc-600" placeholder={`Auto (${predictedAuge.ssc.toFixed(1)})`} />
                         </div>
                     </div>
                 </div>
 
                 {/* Músculos */}
                 <div className="space-y-3">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Músculos Implicados</label>
+                    <label className="text-[10px] font-bold text-[#49454F] uppercase tracking-widest block">Músculos Implicados</label>
                     <div className="space-y-2">
                         {exercise.involvedMuscles.map((inv, idx) => (
-                            <div key={idx} className="flex items-center gap-2 bg-[#0a0a0a] p-2 rounded-xl border border-cyber-cyan/20">
+                            <div key={idx} className="flex items-center gap-2 bg-[#FEF7FF] p-2 rounded-xl border border-cyber-cyan/20">
                                 <select value={inv.muscle} onChange={e => handleInvolvedMuscleChange(idx, 'muscle', e.target.value)} className="flex-grow text-xs bg-transparent border-none font-bold text-white outline-none">
-                                    <option value="" className="text-zinc-500">Músculo...</option>
-                                    {muscleOptions.map(m => <option key={m} value={m} className="bg-[#111] text-white">{m}</option>)}
+                                    <option value="" className="text-[#49454F]">Músculo...</option>
+                                    {muscleOptions.map(m => <option key={m} value={m} className="bg-[#ECE6F0] text-white">{m}</option>)}
                                 </select>
-                                <select value={inv.role} onChange={e => handleInvolvedMuscleChange(idx, 'role', e.target.value)} className={`w-28 text-[9px] font-black uppercase bg-[#0a0a0a] border border-cyber-cyan/20 rounded p-1.5 outline-none ${inv.role === 'primary' ? 'text-cyber-cyan' : 'text-zinc-500'}`}>
+                                <select value={inv.role} onChange={e => handleInvolvedMuscleChange(idx, 'role', e.target.value)} className={`w-28 text-[9px] font-black uppercase bg-[#FEF7FF] border border-cyber-cyan/20 rounded p-1.5 outline-none ${inv.role === 'primary' ? 'text-cyber-cyan' : 'text-[#49454F]'}`}>
                                     <option value="primary">Primario</option>
                                     <option value="secondary">Secundario</option>
                                     <option value="stabilizer">Estabilizador</option>
@@ -329,13 +329,13 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
                     </div>
                 </div>
 
-                {error && <p className="text-red-400/90 text-center text-xs font-bold bg-[#0a0a0a] border border-cyber-cyan/20 p-3 rounded-xl">{error}</p>}
+                {error && <p className="text-red-400/90 text-center text-xs font-bold bg-[#FEF7FF] border border-cyber-cyan/20 p-3 rounded-xl">{error}</p>}
                 
             </div>
 
             {/* Footer Fijo (Siempre Visible) */}
-            <div className="p-5 border-t border-cyber-cyan/20 bg-[#0a0a0a] flex gap-3 shrink-0">
-                <Button onClick={onClose} variant="secondary" className="flex-1 !py-3 uppercase font-bold text-xs bg-[#0a0a0a] border-cyber-cyan/20 text-cyber-cyan/80 hover:text-cyber-cyan hover:border-cyber-cyan/40">
+            <div className="p-5 border-t border-cyber-cyan/20 bg-[#FEF7FF] flex gap-3 shrink-0">
+                <Button onClick={onClose} variant="secondary" className="flex-1 !py-3 uppercase font-bold text-xs bg-[#FEF7FF] border-cyber-cyan/20 text-cyber-cyan/80 hover:text-cyber-cyan hover:border-cyber-cyan/40">
                     Cancelar
                 </Button>
                 <Button onClick={handleSaveClick} className="flex-[2] !py-3 uppercase font-black text-xs bg-cyber-cyan text-black hover:bg-cyber-cyan/90 border-cyber-cyan">

@@ -27,17 +27,17 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useKeyboardOverlayMode } from '../hooks/useKeyboardOverlayMode';
 
 export interface SessionEditorProps {
-  // Ahora onSave puede recibir un array de sesiones modificadas para el guardado en lote
-  onSave: ((sessions: Session | Session[], programId?: string, macroIndex?: number, mesoIndex?: number, weekId?: string) => void);
-  onCancel: () => void;
-  existingSessionInfo: { session: Session, programId: string, macroIndex: number; mesoIndex: number; weekId: string; sessionId?: string } | null;
-  isOnline: boolean;
-  settings: Settings;
-  saveTrigger: number;
-  addExerciseTrigger: number;
-  exerciseList: ExerciseMuscleInfo[];
-  /** Si existe, usa volumeRecommendationsToLimits en lugar de settings.volumeLimits */
-  program?: Program | null;
+    // Ahora onSave puede recibir un array de sesiones modificadas para el guardado en lote
+    onSave: ((sessions: Session | Session[], programId?: string, macroIndex?: number, mesoIndex?: number, weekId?: string) => void);
+    onCancel: () => void;
+    existingSessionInfo: { session: Session, programId: string, macroIndex: number; mesoIndex: number; weekId: string; sessionId?: string } | null;
+    isOnline: boolean;
+    settings: Settings;
+    saveTrigger: number;
+    addExerciseTrigger: number;
+    exerciseList: ExerciseMuscleInfo[];
+    /** Si existe, usa volumeRecommendationsToLimits en lugar de settings.volumeLimits */
+    program?: Program | null;
 }
 
 const SESSION_DRAFT_KEY = 'session-editor-draft';
@@ -45,7 +45,7 @@ const PRESET_PART_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6
 
 const UnlinkIcon: React.FC<{ size?: number; className?: string }> = ({ size = 20, className = '' }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m18.84 12.25 1.72-1.71h0a5.003 5.003 0 0 0-7.07-7.07l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.003 5.003 0 0 0 7.07 7.07l1.71-1.71"/><line x1="8" y1="2" x2="22" y2="16" />
+        <path d="m18.84 12.25 1.72-1.71h0a5.003 5.003 0 0 0-7.07-7.07l-1.72 1.71" /><path d="m5.17 11.75-1.71 1.71a5.003 5.003 0 0 0 7.07 7.07l1.71-1.71" /><line x1="8" y1="2" x2="22" y2="16" />
     </svg>
 );
 const WandIcon: React.FC<{ size?: number; className?: string }> = ({ size = 20, className = '' }) => (
@@ -57,9 +57,9 @@ const TrophyIcon: React.FC<{ size?: number; className?: string }> = ({ size = 20
 
 // FÓRMULA DOTS (Aproximación simplificada para cálculo en vivo rápido)
 const calculateDOTS = (total: number, bw: number, isMale: boolean = true) => {
-    if(!bw || bw <= 0 || !total) return 0;
+    if (!bw || bw <= 0 || !total) return 0;
     // Simplificación de coeficientes para rendimiento en app móvil
-    const coeff = isMale 
+    const coeff = isMale
         ? (-0.000001093 * Math.pow(bw, 4) + 0.0007391293 * Math.pow(bw, 3) - 0.1918759221 * Math.pow(bw, 2) + 24.0900756 * bw - 307.75076)
         : (-0.0000010706 * Math.pow(bw, 4) + 0.0005158568 * Math.pow(bw, 3) - 0.1126655495 * Math.pow(bw, 2) + 13.6175032 * bw - 57.96288);
     return coeff > 0 ? Math.round((total * (500 / coeff)) * 100) / 100 : 0;
@@ -74,13 +74,13 @@ const AmrapSelectionModal: React.FC<{
         <TacticalModal isOpen={isOpen} onClose={onClose} title="Configuración AMRAP">
             <div className="space-y-6 p-2">
                 <div className="bg-yellow-900/20 p-4 rounded-xl border border-yellow-500/30 text-center">
-                    <FlameIcon size={48} className="mx-auto text-yellow-400 mb-2 animate-pulse"/>
+                    <FlameIcon size={48} className="mx-auto text-yellow-400 mb-2 animate-pulse" />
                     <h3 className="text-xl font-bold text-white">Modo "As Many Reps As Possible"</h3>
                     <p className="text-sm text-slate-400 mt-2">Vas a ir al fallo real. ¿Cómo quieres que afecte esto al resto de tu sesión?</p>
                 </div>
                 <div className="grid gap-4">
-                     <button onClick={() => onConfirm(true)} className="relative group p-4 rounded-xl border-2 border-sky-500/50 bg-sky-900/10 hover:bg-sky-900/30 transition-all text-left">
-                        <div className="absolute top-3 right-3"><SparklesIcon className="text-sky-400" size={20}/></div>
+                    <button onClick={() => onConfirm(true)} className="relative group p-4 rounded-xl border-2 border-sky-500/50 bg-sky-900/10 hover:bg-sky-900/30 transition-all text-left">
+                        <div className="absolute top-3 right-3"><SparklesIcon className="text-sky-400" size={20} /></div>
                         <h4 className="text-lg font-bold text-white mb-1">AMRAP Calibrador (Recomendado)</h4>
                         <p className="text-xs text-slate-300">La IA analizará tu rendimiento en esta serie. Si superas tus marcas, <strong>ajustará automáticamente el peso</strong> de los siguientes ejercicios de este músculo.</p>
                     </button>
@@ -116,10 +116,10 @@ const SessionAugeDashboard: React.FC<{
     const { hyperStats, globalDrain, sessionAlerts, weeklyAlerts, exerciseRanking } = useMemo(() => {
         const hyperMap: Record<string, { flat: number, effective: number, fail: number }> = {};
         const weeklyHyperMap: Record<string, { flat: number, effective: number }> = {};
-        
+
         let totalCns = 0; let totalSpinal = 0; let totalMuscular = 0;
         let weeklyCns = 0; let weeklySpinal = 0; let weeklyMuscular = 0;
-        
+
         const ranking: { id: string, name: string, fatigue: number, isCurrentSession: boolean }[] = [];
         const tanks = calculatePersonalizedBatteryTanks(settings);
 
@@ -130,16 +130,16 @@ const SessionAugeDashboard: React.FC<{
                 const info = exerciseList.find((e: any) => e.id === ex.exerciseDbId || e.name === ex.name);
                 if (!info) return;
                 const primaryMuscle = normalizeMuscleGroup(info.involvedMuscles.find((m: any) => m.role === 'primary')?.muscle || 'General');
-                
+
                 const validSets = ex.sets?.filter((s: any) => (s as any).type !== 'warmup') || [];
                 let exFatigueScore = 0;
 
                 validSets.forEach((set: any) => {
                     let accumulatedSets = muscleSetCount[primaryMuscle] || 0;
-                    
+
                     // --- THE SINGLE SOURCE OF TRUTH (Batería Local Acumulada) ---
                     const drain = calculateSetBatteryDrain(set, info, tanks, accumulatedSets, ex.restTime || 90);
-                    
+
                     muscleSetCount[primaryMuscle] = accumulatedSets + 1;
                     exFatigueScore += drain.cnsDrainPct + drain.muscularDrainPct;
 
@@ -157,7 +157,7 @@ const SessionAugeDashboard: React.FC<{
                     info.involvedMuscles.forEach((m: any) => {
                         const parent = normalizeMuscleGroup(m.muscle);
                         const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
-                        
+
                         const effVol = hyperFactor * volMult;
                         const flatVol = hyperFactor;
 
@@ -193,7 +193,7 @@ const SessionAugeDashboard: React.FC<{
         const sortMap = (map: Record<string, { flat: number, effective: number, fail?: number }>) => Object.entries(map)
             .map(([muscle, data]) => ({ muscle, volume: Math.round(data.effective * 10) / 10, flat: data.flat, failRatio: data.flat > 0 ? (data.fail || 0) / data.flat : 0 }))
             .filter(item => item.volume > 0).sort((a, b) => b.volume - a.volume);
-        
+
         const sortedHyper = sortMap(hyperMap);
         const sortedWeekly = sortMap(weeklyHyperMap);
         ranking.sort((a, b) => b.fatigue - a.fatigue);
@@ -226,10 +226,10 @@ const SessionAugeDashboard: React.FC<{
             return { ...m, mrv, message, isAlert };
         }).filter(m => m.isAlert);
 
-        return { 
-            hyperStats: context === 'session' ? sortedHyper : sortedWeekly, 
-            globalDrain: { 
-                cns: Math.min(100, context === 'session' ? totalCns : weeklyCns), 
+        return {
+            hyperStats: context === 'session' ? sortedHyper : sortedWeekly,
+            globalDrain: {
+                cns: Math.min(100, context === 'session' ? totalCns : weeklyCns),
                 spinal: Math.min(100, context === 'session' ? totalSpinal : weeklySpinal),
                 muscular: Math.min(100, context === 'session' ? totalMuscular : weeklyMuscular)
             },
@@ -247,17 +247,17 @@ const SessionAugeDashboard: React.FC<{
     }, [sessionAlerts]);
 
     return (
-        <div className="p-4 border border-[#222] rounded-xl bg-[#0a0a0a] mb-6 shadow-2xl">
+        <div className="p-4 border border-[#222] rounded-xl bg-[#FEF7FF] mb-6 shadow-2xl">
             <div className="flex justify-end mb-3">
                 <ToggleSwitch checked={context === 'week'} onChange={(c) => setContext(c ? 'week' : 'session')} label={context === 'week' ? 'Contexto: Semana' : 'Contexto: Sesión'} size="sm" isBlackAndWhite={true} />
             </div>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#222]">
-                 <div className="flex gap-4 overflow-x-auto hide-scrollbar w-full">
-                    <button onClick={() => setViewMode('volume')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'volume' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><TargetIcon size={12}/> Estímulo</button>
-                    <button onClick={() => setViewMode('drain')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'drain' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ActivityIcon size={12}/> Fatiga</button>
-                    <button onClick={() => setViewMode('ranking')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'ranking' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><LayersIcon size={12}/> Ranking</button>
-                    <button onClick={() => setViewMode('prediction')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'prediction' ? 'text-violet-400 underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-zinc-400'}`}><ZapIcon size={12}/> Predicción</button>
-                 </div>
+                <div className="flex gap-4 overflow-x-auto hide-scrollbar w-full">
+                    <button onClick={() => setViewMode('volume')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'volume' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-[#49454F]'}`}><TargetIcon size={12} /> Estímulo</button>
+                    <button onClick={() => setViewMode('drain')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'drain' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-[#49454F]'}`}><ActivityIcon size={12} /> Fatiga</button>
+                    <button onClick={() => setViewMode('ranking')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'ranking' ? 'text-white underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-[#49454F]'}`}><LayersIcon size={12} /> Ranking</button>
+                    <button onClick={() => setViewMode('prediction')} className={`text-[10px] font-semibold uppercase tracking-wide transition-colors flex items-center gap-1 shrink-0 ${viewMode === 'prediction' ? 'text-violet-400 underline decoration-2 underline-offset-4' : 'text-zinc-600 hover:text-[#49454F]'}`}><ZapIcon size={12} /> Predicción</button>
+                </div>
             </div>
 
             {viewMode === 'volume' && context === 'week' && weeklyAlerts.length > 0 && (
@@ -266,21 +266,21 @@ const SessionAugeDashboard: React.FC<{
                         <div key={alert.muscle} className="bg-red-950/30 border border-red-900/50 p-3 rounded-lg flex gap-2 items-start">
                             <FlameIcon size={16} className="text-red-500 shrink-0 mt-0.5 animate-pulse" />
                             <p className="text-[10px] text-red-200 leading-relaxed">
-                                <strong className="font-bold text-red-400 uppercase tracking-wide">Sobrecarga: {alert.muscle}.</strong><br/>
+                                <strong className="font-bold text-red-400 uppercase tracking-wide">Sobrecarga: {alert.muscle}.</strong><br />
                                 {alert.message}
                             </p>
                         </div>
                     ))}
                 </div>
             )}
-            
+
             {viewMode === 'volume' && context === 'session' && sessionAlerts.length > 0 && (
                 <div className="mb-4 space-y-2 animate-fade-in">
                     {sessionAlerts.map(alert => (
                         <div key={alert.muscle} className="bg-cyber-danger/20 border border-cyber-warning/50 p-2 rounded-lg flex gap-2 items-start">
                             <InfoIcon size={14} className="text-cyber-cyan shrink-0 mt-0.5" />
                             <p className="text-[9px] text-cyber-warning leading-tight">
-                                <strong className="font-bold text-cyber-cyan">Peligro en {alert.muscle}:</strong><br/>
+                                <strong className="font-bold text-cyber-cyan">Peligro en {alert.muscle}:</strong><br />
                                 {alert.message}
                             </p>
                         </div>
@@ -290,54 +290,55 @@ const SessionAugeDashboard: React.FC<{
 
             {viewMode === 'volume' ? (
                 <div className="animate-fade-in space-y-2">
-                     <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 space-y-2">
+                    <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 space-y-2">
                         {hyperStats.length > 0 ? hyperStats.map(stat => {
                             const isDanger = context === 'week' ? stat.volume > 18 : stat.volume > 6;
                             const maxScale = context === 'week' ? 25 : 10;
                             return (
-                            <div key={stat.muscle} className="flex justify-between items-center group">
-                                <span className={`text-[9px] font-black uppercase w-24 truncate ${isDanger ? 'text-red-400' : 'text-zinc-300'}`}>{stat.muscle}</span>
-                                <div className="flex-1 mx-2 h-1.5 bg-[#111] rounded-full overflow-hidden">
-                                    <div className={`h-full transition-all ${isDanger ? 'bg-red-500' : 'bg-white'}`} style={{ width: `${Math.min(100, (stat.volume / maxScale) * 100)}%` }}></div>
+                                <div key={stat.muscle} className="flex justify-between items-center group">
+                                    <span className={`text-[9px] font-black uppercase w-24 truncate ${isDanger ? 'text-red-400' : 'text-zinc-300'}`}>{stat.muscle}</span>
+                                    <div className="flex-1 mx-2 h-1.5 bg-[#ECE6F0] rounded-full overflow-hidden">
+                                        <div className={`h-full transition-all ${isDanger ? 'bg-red-500' : 'bg-white'}`} style={{ width: `${Math.min(100, (stat.volume / maxScale) * 100)}%` }}></div>
+                                    </div>
+                                    <span className="text-[10px] font-semibold text-white text-right whitespace-nowrap">{stat.volume} series</span>
                                 </div>
-                                <span className="text-[10px] font-semibold text-white text-right whitespace-nowrap">{stat.volume} series</span>
-                            </div>
-                        )}) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">Sin datos de volumen</p>}
-                     </div>
+                            )
+                        }) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">Sin datos de volumen</p>}
+                    </div>
                 </div>
             ) : viewMode === 'drain' ? (
                 <div className="space-y-4 animate-fade-in relative">
-                     <button onClick={() => setShowFatigueInfo(!showFatigueInfo)} className="absolute -top-10 right-0 text-zinc-500 hover:text-white"><InfoIcon size={16}/></button>
-                     {showFatigueInfo && (
-                         <div className="bg-zinc-900 p-3 rounded-lg border border-white/10 text-[9px] text-zinc-300 mb-4 animate-fade-in leading-relaxed">
-                             <strong className="text-white">Escala de Fatiga (1 al 10):</strong><br/>
-                             <span className="text-green-400">1-3:</span> Baja fatiga sistémica. Fácil recuperación.<br/>
-                             <span className="text-yellow-400">4-7:</span> Fatiga moderada/alta. Estímulo óptimo.<br/>
-                             <span className="text-red-400">8-10:</span> Drenaje extremo. Requiere descanso prolongado.
-                         </div>
-                     )}
-                     <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
+                    <button onClick={() => setShowFatigueInfo(!showFatigueInfo)} className="absolute -top-10 right-0 text-[#49454F] hover:text-white"><InfoIcon size={16} /></button>
+                    {showFatigueInfo && (
+                        <div className="bg-zinc-900 p-3 rounded-lg border border-[#E6E0E9] text-[9px] text-zinc-300 mb-4 animate-fade-in leading-relaxed">
+                            <strong className="text-white">Escala de Fatiga (1 al 10):</strong><br />
+                            <span className="text-green-400">1-3:</span> Baja fatiga sistémica. Fácil recuperación.<br />
+                            <span className="text-yellow-400">4-7:</span> Fatiga moderada/alta. Estímulo óptimo.<br />
+                            <span className="text-red-400">8-10:</span> Drenaje extremo. Requiere descanso prolongado.
+                        </div>
+                    )}
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-[#ECE6F0] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-[9px] font-black uppercase text-zinc-500">MSC</span>
+                                <span className="text-[9px] font-black uppercase text-[#49454F]">MSC</span>
                                 <span className={`text-xs font-semibold ${globalDrain.muscular >= 80 ? 'text-red-500' : globalDrain.muscular >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.muscular.toFixed(0)}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
                                 <div className={`h-full transition-all ${globalDrain.muscular >= 80 ? 'bg-red-500' : globalDrain.muscular >= 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.muscular}%` }}></div>
                             </div>
                         </div>
-                        <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
+                        <div className="bg-[#ECE6F0] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-[9px] font-black uppercase text-zinc-500">SNC</span>
+                                <span className="text-[9px] font-black uppercase text-[#49454F]">SNC</span>
                                 <span className={`text-xs font-semibold ${globalDrain.cns >= 80 ? 'text-red-500' : globalDrain.cns >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.cns.toFixed(0)}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
                                 <div className={`h-full transition-all ${globalDrain.cns >= 80 ? 'bg-red-500' : globalDrain.cns >= 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${globalDrain.cns}%` }}></div>
                             </div>
                         </div>
-                        <div className="bg-[#111] p-3 rounded-lg border border-[#222]">
+                        <div className="bg-[#ECE6F0] p-3 rounded-lg border border-[#222]">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-[9px] font-black uppercase text-zinc-500">ESP</span>
+                                <span className="text-[9px] font-black uppercase text-[#49454F]">ESP</span>
                                 <span className={`text-xs font-semibold ${globalDrain.spinal >= 80 ? 'text-red-500' : globalDrain.spinal >= 40 ? 'text-yellow-500' : 'text-green-500'}`}>{globalDrain.spinal.toFixed(0)}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#000] rounded-full overflow-hidden">
@@ -348,34 +349,34 @@ const SessionAugeDashboard: React.FC<{
                 </div>
             ) : viewMode === 'ranking' ? (
                 <div className="animate-fade-in space-y-2">
-                     <p className="text-[9px] text-zinc-500 uppercase font-bold mb-2">Ranking de impacto sistémico</p>
-                     <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 space-y-2">
+                    <p className="text-[9px] text-[#49454F] uppercase font-bold mb-2">Ranking de impacto sistémico</p>
+                    <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 space-y-2">
                         {exerciseRanking.length > 0 ? exerciseRanking.map((rank, idx) => {
                             const maxFatigue = exerciseRanking[0]?.fatigue > 0 ? exerciseRanking[0].fatigue : 1;
                             const percentage = Math.min(100, Math.max(0, (rank.fatigue / maxFatigue) * 100));
 
                             return (
-                                <button key={`${rank.id}-${idx}`} onClick={() => scrollToExercise(rank.id)} className="w-full flex justify-between items-center group bg-[#111] hover:bg-[#222] p-2 rounded-lg transition-colors border border-transparent hover:border-white/10 text-left">
+                                <button key={`${rank.id}-${idx}`} onClick={() => scrollToExercise(rank.id)} className="w-full flex justify-between items-center group bg-[#ECE6F0] hover:bg-[#222] p-2 rounded-lg transition-colors border border-transparent hover:border-[#E6E0E9] text-left">
                                     <span className="text-[10px] font-bold text-white truncate pr-2 flex-1"><span className="text-zinc-600 mr-2">{idx + 1}.</span>{rank.name}</span>
                                     <div className="flex items-center gap-2">
                                         <div className="w-16 h-1 bg-black rounded-full overflow-hidden">
                                             <div className="h-full bg-red-500 transition-all" style={{ width: `${percentage}%` }}></div>
                                         </div>
-                                        <span className="text-[9px] font-mono text-zinc-400 w-8 text-right">{rank.fatigue.toFixed(0)}</span>
+                                        <span className="text-[9px] font-mono text-[#49454F] w-8 text-right">{rank.fatigue.toFixed(0)}</span>
                                     </div>
                                 </button>
                             );
                         }) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">No hay ejercicios evaluables</p>}
-                     </div>
+                    </div>
                 </div>
             ) : (
                 <div className="animate-fade-in space-y-4">
-                    <div className="bg-[#111] p-3 rounded-xl border border-violet-500/10">
-                        <h4 className="text-[9px] font-black uppercase tracking-widest text-violet-400 mb-3 flex items-center gap-2"><ZapIcon size={10}/> Curva GP — Fatiga Esperada</h4>
+                    <div className="bg-[#ECE6F0] p-3 rounded-xl border border-violet-500/10">
+                        <h4 className="text-[9px] font-black uppercase tracking-widest text-violet-400 mb-3 flex items-center gap-2"><ZapIcon size={10} /> Curva GP — Fatiga Esperada</h4>
                         <GPFatigueCurve data={adaptiveCache.gpCurve} />
                     </div>
 
-                    <div className="bg-[#111] p-3 rounded-xl border border-sky-500/10">
+                    <div className="bg-[#ECE6F0] p-3 rounded-xl border border-sky-500/10">
                         <h4 className="text-[9px] font-black uppercase tracking-widest text-sky-400 mb-3">Recuperación Post-Sesión (Bayesiano)</h4>
                         <BayesianConfidence
                             totalObservations={adaptiveCache.totalObservations}
@@ -383,7 +384,7 @@ const SessionAugeDashboard: React.FC<{
                         />
                     </div>
 
-                    <div className="bg-[#111] p-3 rounded-xl border border-emerald-500/10">
+                    <div className="bg-[#ECE6F0] p-3 rounded-xl border border-emerald-500/10">
                         <h4 className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-3">Impacto Banister</h4>
                         {adaptiveCache.banister ? (
                             <>
@@ -403,8 +404,8 @@ const SessionAugeDashboard: React.FC<{
                             const drainVal = globalDrain[sys === 'cns' ? 'cns' : sys];
                             const confColor = getConfidenceColor(adaptiveCache.totalObservations);
                             return (
-                                <div key={sys} className="bg-[#111] px-2 py-1.5 rounded-lg flex items-center justify-between">
-                                    <span className="text-[8px] font-black uppercase text-zinc-500">{sys}</span>
+                                <div key={sys} className="bg-[#ECE6F0] px-2 py-1.5 rounded-lg flex items-center justify-between">
+                                    <span className="text-[8px] font-black uppercase text-[#49454F]">{sys}</span>
                                     <div className="flex items-center gap-1.5">
                                         <span className="text-[9px] font-mono font-bold text-white">{drainVal.toFixed(0)}%</span>
                                         <span className={`w-1.5 h-1.5 rounded-full ${confColor.replace('text-', 'bg-')}`} title={getConfidenceLabel(adaptiveCache.totalObservations)} />
@@ -428,7 +429,7 @@ const WarmupConfigModal: React.FC<{
 }> = ({ isOpen, onClose, exerciseName, warmupSets, onSave }) => {
     const [sets, setSets] = useState<WarmupSetDefinition[]>([]);
     useEffect(() => {
-        if(isOpen) setSets(warmupSets.length > 0 ? [...warmupSets] : [{ id: crypto.randomUUID(), percentageOfWorkingWeight: 50, targetReps: 10 }]);
+        if (isOpen) setSets(warmupSets.length > 0 ? [...warmupSets] : [{ id: crypto.randomUUID(), percentageOfWorkingWeight: 50, targetReps: 10 }]);
     }, [isOpen, warmupSets]);
     const addSet = () => {
         const last = sets[sets.length - 1];
@@ -452,17 +453,17 @@ const WarmupConfigModal: React.FC<{
                             <span className="text-xs font-bold w-6">{i + 1}</span>
                             <div className="flex flex-col flex-1">
                                 <label className="text-[10px] text-slate-400">Carga %</label>
-                                <input type="number" value={set.percentageOfWorkingWeight} onChange={e => updateSet(i, 'percentageOfWorkingWeight', parseFloat(e.target.value))} className="w-full bg-slate-900 border-none rounded text-xs p-1"/>
+                                <input type="number" value={set.percentageOfWorkingWeight} onChange={e => updateSet(i, 'percentageOfWorkingWeight', parseFloat(e.target.value))} className="w-full bg-slate-900 border-none rounded text-xs p-1" />
                             </div>
                             <div className="flex flex-col w-16">
                                 <label className="text-[10px] text-slate-400">Reps</label>
-                                <input type="number" value={set.targetReps} onChange={e => updateSet(i, 'targetReps', parseFloat(e.target.value))} className="w-full bg-slate-900 border-none rounded text-xs p-1"/>
+                                <input type="number" value={set.targetReps} onChange={e => updateSet(i, 'targetReps', parseFloat(e.target.value))} className="w-full bg-slate-900 border-none rounded text-xs p-1" />
                             </div>
-                            <button onClick={() => removeSet(i)} className="text-slate-500 hover:text-red-400"><TrashIcon size={16}/></button>
+                            <button onClick={() => removeSet(i)} className="text-slate-500 hover:text-red-400"><TrashIcon size={16} /></button>
                         </div>
                     ))}
                 </div>
-                <Button onClick={addSet} variant="secondary" className="w-full !py-2 !text-xs"><PlusIcon size={14}/> Añadir Serie</Button>
+                <Button onClick={addSet} variant="secondary" className="w-full !py-2 !text-xs"><PlusIcon size={14} /> Añadir Serie</Button>
                 <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
                     <Button variant="secondary" onClick={onClose}>Cancelar</Button>
                     <Button onClick={handleSave}>Guardar Configuración</Button>
@@ -547,17 +548,17 @@ const SwipeableSetCard: React.FC<{
             </div>
             <div
                 ref={contentRef}
-                className="bg-[#0a0a0a] p-3 flex flex-col justify-between relative z-10 min-h-full will-change-transform"
+                className="bg-[#FEF7FF] p-3 flex flex-col justify-between relative z-10 min-h-full will-change-transform"
             >
-                <div className="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
-                    <span className="font-black text-zinc-500 text-[10px] bg-black px-2 py-0.5 rounded-full border border-zinc-800">S{setIndex + 1}</span>
+                <div className="flex justify-between items-center mb-3 pb-2 border-b border-[#E6E0E9]">
+                    <span className="font-black text-[#49454F] text-[10px] bg-black px-2 py-0.5 rounded-full border border-zinc-800">S{setIndex + 1}</span>
                 </div>
                 <div className="flex flex-col items-center mb-3 bg-black/50 p-2 rounded-xl">
-                    <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mb-1">{exercise.trainingMode === 'time' ? 'Segundos' : isAmrap ? 'Mínimo Reps' : 'Reps Target'}</span>
+                    <span className="text-[8px] text-[#49454F] font-bold uppercase tracking-widest mb-1">{exercise.trainingMode === 'time' ? 'Segundos' : isAmrap ? 'Mínimo Reps' : 'Reps Target'}</span>
                     {exercise.trainingMode === 'time' ? (
-                        <input type="number" maxLength={4} value={set.targetDuration ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetDuration', v === '' ? undefined : parseInt(v)); }} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white max-w-[48px]" placeholder="0"/>
+                        <input type="number" maxLength={4} value={set.targetDuration ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetDuration', v === '' ? undefined : parseInt(v)); }} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white max-w-[48px]" placeholder="0" />
                     ) : (
-                        <input type="number" maxLength={2} max={99} value={set.targetReps ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetReps', v === '' ? undefined : Math.min(99, Math.max(0, parseInt(v) || 0))); }} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 max-w-[48px] ${isAmrap ? 'text-yellow-400' : 'text-white'}`}/>
+                        <input type="number" maxLength={2} max={99} value={set.targetReps ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetReps', v === '' ? undefined : Math.min(99, Math.max(0, parseInt(v) || 0))); }} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 max-w-[48px] ${isAmrap ? 'text-yellow-400' : 'text-white'}`} />
                     )}
                 </div>
                 <div className="flex items-center justify-between gap-1">
@@ -565,13 +566,13 @@ const SwipeableSetCard: React.FC<{
                         <div className="flex-1 bg-yellow-900/20 border border-yellow-600/30 rounded p-1.5 flex justify-center text-center"><span className="text-[8px] font-black text-yellow-500 uppercase leading-none">{set.isCalibrator ? 'Calibrador' : 'Al Fallo'}</span></div>
                     ) : (
                         <div className="flex flex-col flex-1 bg-zinc-900 p-1.5 rounded-lg border border-zinc-800">
-                            <select value={mode} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[8px] text-zinc-500 font-bold border-none focus:ring-0 uppercase p-0 mb-0.5">
+                            <select value={mode} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[8px] text-[#49454F] font-bold border-none focus:ring-0 uppercase p-0 mb-0.5">
                                 {exercise.trainingMode === 'percent' && <option value="solo_rm">RM</option>}
                                 <option value="rpe">RPE</option><option value="rir">RIR</option><option value="failure">FAIL</option>
                                 {exercise.trainingMode === 'percent' && <option value="load">%</option>}
                             </select>
                             {mode !== 'failure' && mode !== 'solo_rm' && (
-                                <input type="number" step="0.5" value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => { const v = e.target.value; if (v === '') handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); else { const n = parseFloat(v); if (!isNaN(n)) handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', n); } }} className="w-full bg-transparent text-sm font-bold text-white focus:border-white p-0 border-none" placeholder="-"/>
+                                <input type="number" step="0.5" value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => { const v = e.target.value; if (v === '') handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); else { const n = parseFloat(v); if (!isNaN(n)) handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', n); } }} className="w-full bg-transparent text-sm font-bold text-white focus:border-white p-0 border-none" placeholder="-" />
                             )}
                         </div>
                     )}
@@ -579,8 +580,8 @@ const SwipeableSetCard: React.FC<{
                         <div className="flex flex-col flex-1 bg-blue-900/10 p-1.5 rounded-lg border border-blue-500/20 items-center">
                             {mode === 'load' ? (
                                 <>
-                                    <input type="number" value={set.targetPercentageRM ?? ''} onChange={e => handleSetChange(setIndex, 'targetPercentageRM', e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-8 text-center bg-transparent text-sm font-black p-0 border-none focus:ring-0 text-blue-400" placeholder="%"/>
-                                    {estimatedLoad != null && <span className="text-[8px] font-mono text-zinc-400 mt-0.5">{estimatedLoad}kg</span>}
+                                    <input type="number" value={set.targetPercentageRM ?? ''} onChange={e => handleSetChange(setIndex, 'targetPercentageRM', e.target.value === '' ? undefined : parseFloat(e.target.value))} className="w-8 text-center bg-transparent text-sm font-black p-0 border-none focus:ring-0 text-blue-400" placeholder="%" />
+                                    {estimatedLoad != null && <span className="text-[8px] font-mono text-[#49454F] mt-0.5">{estimatedLoad}kg</span>}
                                 </>
                             ) : (
                                 estimatedLoad != null && <span className="text-[10px] font-mono text-cyber-cyan font-bold">{estimatedLoad}kg</span>
@@ -626,12 +627,12 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     const [infoModalExercise, setInfoModalExercise] = useState<ExerciseMuscleInfo | null>(null);
     const [activeAutocomplete, setActiveAutocomplete] = useState(false);
     const [isWarmupModalOpen, setIsWarmupModalOpen] = useState(false);
-    
+
     // Estados Calculadora 1RM
     const [rmInputMode, setRmInputMode] = useState<'manual' | 'calculator'>(exercise.prFor1RM ? 'calculator' : 'manual');
     const [prWeight, setPrWeight] = useState(String(exercise.prFor1RM?.weight || ''));
     const [prReps, setPrReps] = useState(String(exercise.prFor1RM?.reps || ''));
-    
+
     const [pendingAmrapSetIndex, setPendingAmrapSetIndex] = useState<number | null>(null);
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
     const [isAdvancedPickerOpen, setIsAdvancedPickerOpen] = useState(false); // Estado del modal avanzado
@@ -703,7 +704,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
             }
         }
     };
-    
+
     const confirmAmrapSettings = (isCalibrator: boolean) => {
         if (pendingAmrapSetIndex !== null) {
             onSetChange(pendingAmrapSetIndex, { intensityMode: 'amrap', isAmrap: true, isCalibrator: isCalibrator });
@@ -712,7 +713,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     };
 
     const exerciseInfo = useMemo(() => exerciseList.find(e => e.id === exercise.exerciseDbId), [exerciseList, exercise.exerciseDbId]);
-    
+
     const handleCreateNewExercise = useCallback(() => {
         if (!exercise.name) return;
         setOnExerciseCreated(() => (newEx: ExerciseMuscleInfo) => { onExerciseChange({ name: newEx.name, exerciseDbId: newEx.id }); });
@@ -742,27 +743,27 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
     const localDrain = useMemo(() => {
         const tanks = calculatePersonalizedBatteryTanks(settings);
         let cnsPct = 0, spinalPct = 0, muscularPct = 0;
-        
+
         const safeSets = Array.isArray(exercise.sets) ? exercise.sets : [];
-        
+
         safeSets.forEach((set, idx) => {
             if ((set as any)?.type === 'warmup') return;
-            
+
             // Pasamos `idx` simulando el volumen acumulado intra-ejercicio 
             // para detonar la alerta visual si excede su capacidad.
             const drain = calculateSetBatteryDrain(set, exerciseInfo, tanks, idx, exercise.restTime || 90);
-            
+
             cnsPct += drain.cnsDrainPct;
             spinalPct += drain.spinalDrainPct;
             muscularPct += drain.muscularDrainPct;
         });
-        
+
         return { cns: cnsPct, spinal: spinalPct, muscular: muscularPct };
     }, [exercise.sets, exerciseInfo, exercise.restTime, settings]);
 
     return (
         <div className="flex gap-2 items-start transition-all duration-300 w-full max-w-full">
-             <WarmupConfigModal isOpen={isWarmupModalOpen} onClose={() => setIsWarmupModalOpen(false)} exerciseName={exercise.name} warmupSets={exercise.warmupSets || []} onSave={(sets) => onExerciseChange('warmupSets', sets)} />
+            <WarmupConfigModal isOpen={isWarmupModalOpen} onClose={() => setIsWarmupModalOpen(false)} exerciseName={exercise.name} warmupSets={exercise.warmupSets || []} onSave={(sets) => onExerciseChange('warmupSets', sets)} />
             <AmrapSelectionModal isOpen={pendingAmrapSetIndex !== null} onClose={() => setPendingAmrapSetIndex(null)} onConfirm={confirmAmrapSettings} />
 
             {isSelectionMode && (
@@ -772,8 +773,8 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                     </button>
                 </div>
             )}
-            
-            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''} ${isJunkVolumeCulprit ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-white/10'}`} open={isDetailsOpen}>
+
+            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''} ${isJunkVolumeCulprit ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-[#E6E0E9]'}`} open={isDetailsOpen}>
                 {isJunkVolumeCulprit && (
                     <div className="absolute top-0 right-2 bg-red-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-b-lg shadow-lg z-10 animate-pulse">
                         Volumen Basura
@@ -781,13 +782,13 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                 )}
                 <summary className="py-4 px-2 flex items-center gap-3 cursor-pointer list-none hover:bg-zinc-900 transition-colors rounded-lg group" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) { e.preventDefault(); setIsDetailsOpen(prev => !prev); } }}>
                     <div className="flex items-center gap-3 flex-grow min-w-0">
-                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExerciseChange('isStarTarget', !exercise.isStarTarget); }} className={`transition-colors flex-shrink-0 ${exercise.isStarTarget ? 'text-white' : 'text-zinc-700 group-hover:text-zinc-500'}`}>
+                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExerciseChange('isStarTarget', !exercise.isStarTarget); }} className={`transition-colors flex-shrink-0 ${exercise.isStarTarget ? 'text-white' : 'text-zinc-700 group-hover:text-[#49454F]'}`}>
                             <StarIcon size={18} filled={exercise.isStarTarget} />
                         </button>
                         <div className="relative flex-grow min-w-0 flex flex-col">
-                            <button 
-                                type="button" 
-                                onClick={(e) => { e.preventDefault(); setIsAdvancedPickerOpen(true); }} 
+                            <button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); setIsAdvancedPickerOpen(true); }}
                                 className={`w-full text-left !text-lg !font-bold !bg-transparent !border-0 !p-0 uppercase tracking-tight truncate ${exercise.name ? 'text-white' : 'text-zinc-600'}`}
                             >
                                 {exercise.name || "Buscar ejercicio..."}
@@ -797,7 +798,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                     <FlameIcon size={10} /> Alta Carga Espinal (SSC: {exerciseInfo!.axialLoadFactor})
                                 </span>
                             )}
-                            
+
                             <AdvancedExercisePickerModal
                                 isOpen={isAdvancedPickerOpen}
                                 initialSearch={exercise.name}
@@ -817,19 +818,19 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                         <button type="button" onClick={(e) => { e.preventDefault(); if (exerciseInfo) setInfoModalExercise(exerciseInfo); }} className={`transition-colors ${exerciseInfo ? 'text-white' : 'text-zinc-700'}`}><InfoIcon size={18} /></button>
-                        <ChevronRightIcon className="details-arrow text-zinc-500" size={16} />
+                        <ChevronRightIcon className="details-arrow text-[#49454F]" size={16} />
                     </div>
                 </summary>
 
                 <div className="px-2 py-2 flex gap-4 bg-zinc-900/30 rounded mb-4">
                     {!isConfirmingDelete ? (
                         <>
-                            {onLinkNext && !isLast && <button onClick={(e) => { e.preventDefault(); onLinkNext(); }} className="text-[9px] font-black uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1"><LinkIcon size={12}/> Biserie</button>}
-                            {onUnlink && <button onClick={(e) => { e.preventDefault(); onUnlink(); }} className="text-[9px] font-black uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1"><UnlinkIcon size={12}/> Separar</button>}
+                            {onLinkNext && !isLast && <button onClick={(e) => { e.preventDefault(); onLinkNext(); }} className="text-[9px] font-black uppercase text-[#49454F] hover:text-white transition-colors flex items-center gap-1"><LinkIcon size={12} /> Biserie</button>}
+                            {onUnlink && <button onClick={(e) => { e.preventDefault(); onUnlink(); }} className="text-[9px] font-black uppercase text-[#49454F] hover:text-white transition-colors flex items-center gap-1"><UnlinkIcon size={12} /> Separar</button>}
                             <div className="flex-grow"></div>
                             <div className="flex gap-2">
-                                <button onClick={(e) => { e.preventDefault(); onReorder('up'); }} disabled={isFirst} className="text-zinc-600 hover:text-white disabled:opacity-20"><ArrowUpIcon size={14}/></button>
-                                <button onClick={(e) => { e.preventDefault(); onReorder('down'); }} disabled={isLast} className="text-zinc-600 hover:text-white disabled:opacity-20"><ArrowDownIcon size={14}/></button>
+                                <button onClick={(e) => { e.preventDefault(); onReorder('up'); }} disabled={isFirst} className="text-zinc-600 hover:text-white disabled:opacity-20"><ArrowUpIcon size={14} /></button>
+                                <button onClick={(e) => { e.preventDefault(); onReorder('down'); }} disabled={isLast} className="text-zinc-600 hover:text-white disabled:opacity-20"><ArrowDownIcon size={14} /></button>
                             </div>
                             <button onClick={(e) => { e.preventDefault(); setIsConfirmingDelete(true); }} className="text-[9px] font-black uppercase text-zinc-600 hover:text-red-500 transition-colors ml-4"><TrashIcon size={14} /></button>
                         </>
@@ -837,15 +838,15 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                         <div className="flex items-center gap-4 w-full justify-end">
                             <span className="text-[10px] font-bold text-red-500 uppercase">¿Borrar?</span>
                             <button onClick={(e) => { e.preventDefault(); onRemoveExercise(); }} className="text-[10px] font-black uppercase text-white bg-red-600 px-3 py-1 rounded">Sí</button>
-                            <button onClick={(e) => { e.preventDefault(); setIsConfirmingDelete(false); }} className="text-[10px] font-black uppercase text-zinc-400">No</button>
+                            <button onClick={(e) => { e.preventDefault(); setIsConfirmingDelete(false); }} className="text-[10px] font-black uppercase text-[#49454F]">No</button>
                         </div>
                     )}
                 </div>
-                
+
                 <div className="px-1 pb-4 space-y-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs items-start">
                         <div>
-                            <label className={`text-[9px] font-black uppercase tracking-wider ${isInSuperset && !isSupersetLast ? 'text-white' : 'text-zinc-500'}`}>{restLabel}</label>
+                            <label className={`text-[9px] font-black uppercase tracking-wider ${isInSuperset && !isSupersetLast ? 'text-white' : 'text-[#49454F]'}`}>{restLabel}</label>
                             <div className="flex items-center gap-1 mt-1">
                                 <div className="flex items-center gap-0.5 flex-1 min-w-0">
                                     <input
@@ -858,7 +859,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                         className="w-10 bg-transparent border-b border-zinc-700 text-white font-medium focus:border-white focus:ring-0 p-1 text-xs text-center"
                                         placeholder="0"
                                     />
-                                    <span className="text-zinc-500 text-xs">:</span>
+                                    <span className="text-[#49454F] text-xs">:</span>
                                     <input
                                         type="number"
                                         inputMode="numeric"
@@ -873,30 +874,39 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                 {exercise.sets?.length > 0 && (() => {
                                     const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
                                     const avgPercent1RM = exercise.trainingMode === 'percent' && exercise.sets?.length ? exercise.sets.reduce((a, s) => a + ((s as any).targetPercentageRM || 0), 0) / exercise.sets.length : undefined;
-                                    const fatigue = getExerciseFatigue(exercise);
-                                    const augeNorm = (fatigue.snc + fatigue.msc) / 200;
+                                    const info = exerciseList.find(e => e.id === exercise.exerciseDbId || e.name === exercise.name);
+                                    let snc = 0, msc = 0;
+                                    if (info) {
+                                        const tanks = calculatePersonalizedBatteryTanks(settings);
+                                        (exercise.sets || []).forEach(set => {
+                                            const drain = calculateSetBatteryDrain(set, info, tanks, 0, exercise.restTime || 90);
+                                            msc += drain.muscularDrainPct;
+                                            snc += drain.cnsDrainPct;
+                                        });
+                                    }
+                                    const augeNorm = (Math.min(100, snc) + Math.min(100, msc)) / 200;
                                     const suggested = suggestRestSeconds(exercise.sets.length, avgRPE, avgPercent1RM, augeNorm);
                                     const current = exercise.restTime || 90;
                                     if (Math.abs(suggested - current) > 15) {
-                                        return <button type="button" onClick={() => onExerciseChange('restTime', suggested)} className="text-[8px] font-bold uppercase text-cyber-cyan hover:text-cyber-cyan whitespace-nowrap">Sug: {Math.floor(suggested/60)}:{String(suggested%60).padStart(2,'0')}</button>;
+                                        return <button type="button" onClick={() => onExerciseChange('restTime', suggested)} className="text-[8px] font-bold uppercase text-cyber-cyan hover:text-cyber-cyan whitespace-nowrap">Sug: {Math.floor(suggested / 60)}:{String(suggested % 60).padStart(2, '0')}</button>;
                                     }
                                     return null;
                                 })()}
                             </div>
                         </div>
                         <div>
-                            <label className="text-[9px] text-zinc-500 font-black uppercase tracking-wider">Modo</label>
+                            <label className="text-[9px] text-[#49454F] font-black uppercase tracking-wider">Modo</label>
                             <select value={exercise.trainingMode || 'reps'} onChange={(e) => onExerciseChange('trainingMode', e.target.value as any)} className="w-full mt-1 bg-black text-white border-b border-zinc-700 text-xs font-bold p-1 focus:ring-0 uppercase"><option value="reps">Repeticiones</option><option value="percent">% 1RM</option><option value="time">Tiempo</option><option value="custom">Libre</option></select>
                         </div>
-                        
+
                         {/* CALCULADORA 1RM (Solo visible en modo Percent) */}
                         {exercise.trainingMode === 'percent' && (
-                            <div className="col-span-2 bg-zinc-900/50 p-2 rounded border border-white/5 grid grid-cols-3 gap-2 animate-fade-in">
+                            <div className="col-span-2 bg-zinc-900/50 p-2 rounded border border-[#E6E0E9] grid grid-cols-3 gap-2 animate-fade-in">
                                 <div className="col-span-3 flex justify-between mb-1">
-                                    <span className="text-[9px] font-black uppercase text-zinc-400">1RM de Referencia</span>
+                                    <span className="text-[9px] font-black uppercase text-[#49454F]">1RM de Referencia</span>
                                     <div className="flex gap-2">
-                                        <button onClick={() => setRmInputMode('manual')} className={`text-[8px] font-bold uppercase px-1 rounded ${rmInputMode === 'manual' ? 'bg-white text-black' : 'text-zinc-500'}`}>Manual</button>
-                                        <button onClick={() => setRmInputMode('calculator')} className={`text-[8px] font-bold uppercase px-1 rounded ${rmInputMode === 'calculator' ? 'bg-white text-black' : 'text-zinc-500'}`}>Estimador</button>
+                                        <button onClick={() => setRmInputMode('manual')} className={`text-[8px] font-bold uppercase px-1 rounded ${rmInputMode === 'manual' ? 'bg-white text-black' : 'text-[#49454F]'}`}>Manual</button>
+                                        <button onClick={() => setRmInputMode('calculator')} className={`text-[8px] font-bold uppercase px-1 rounded ${rmInputMode === 'calculator' ? 'bg-white text-black' : 'text-[#49454F]'}`}>Estimador</button>
                                     </div>
                                 </div>
                                 {rmInputMode === 'calculator' ? (
@@ -926,33 +936,33 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
 
                     {/* --- MINI-BATERÍAS AUGE (Drenaje en Vivo) --- */}
                     {exercise.sets.length > 0 && (
-                        <div className="col-span-2 md:col-span-4 bg-zinc-950 p-2.5 rounded-lg border border-white/5 space-y-2 mb-3 mt-1 shadow-inner">
-                            <div className="flex justify-between items-center border-b border-white/5 pb-1 mb-1">
-                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1"><ActivityIcon size={10}/> Drenaje Predictivo Local</span>
+                        <div className="col-span-2 md:col-span-4 bg-[#FEF7FF] p-2.5 rounded-lg border border-[#E6E0E9] space-y-2 mb-3 mt-1 shadow-inner">
+                            <div className="flex justify-between items-center border-b border-[#E6E0E9] pb-1 mb-1">
+                                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest flex items-center gap-1"><ActivityIcon size={10} /> Drenaje Predictivo Local</span>
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">MSC</span><span className={`text-[8px] font-mono ${localDrain.muscular > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.muscular.toFixed(0)}%</span></div>
-                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.muscular > 80 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{width: `${localDrain.muscular}%`}}></div></div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">MSC</span><span className={`text-[8px] font-mono ${localDrain.muscular > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.muscular.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.muscular > 80 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${localDrain.muscular}%` }}></div></div>
                                 </div>
                                 <div>
-                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">SNC</span><span className={`text-[8px] font-mono ${localDrain.cns > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.cns.toFixed(0)}%</span></div>
-                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.cns > 80 ? 'bg-red-500' : 'bg-yellow-500'}`} style={{width: `${localDrain.cns}%`}}></div></div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">SNC</span><span className={`text-[8px] font-mono ${localDrain.cns > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.cns.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.cns > 80 ? 'bg-red-500' : 'bg-yellow-500'}`} style={{ width: `${localDrain.cns}%` }}></div></div>
                                 </div>
                                 <div>
-                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-zinc-400">ESP</span><span className={`text-[8px] font-mono ${localDrain.spinal > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.spinal.toFixed(0)}%</span></div>
-                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.spinal > 80 ? 'bg-red-500' : 'bg-cyber-cyan'}`} style={{width: `${localDrain.spinal}%`}}></div></div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">ESP</span><span className={`text-[8px] font-mono ${localDrain.spinal > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.spinal.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.spinal > 80 ? 'bg-red-500' : 'bg-cyber-cyan'}`} style={{ width: `${localDrain.spinal}%` }}></div></div>
                                 </div>
                             </div>
                         </div>
                     )}
-                    
+
                     {/* BARRA DE HERRAMIENTAS ADICIONAL */}
-                    <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                             <input type="checkbox" checked={exercise.isCompetitionLift} onChange={(e) => onExerciseChange('isCompetitionLift', e.target.checked)} className="rounded border-zinc-700 bg-black text-yellow-500 focus:ring-0 w-3 h-3" />
-                             <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${exercise.isCompetitionLift ? 'text-yellow-500' : 'text-zinc-600 group-hover:text-white'}`}>Modo Competición / Tarima</span>
-                         </label>
+                    <div className="flex justify-between items-center mb-2 border-b border-[#E6E0E9] pb-2">
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" checked={exercise.isCompetitionLift} onChange={(e) => onExerciseChange('isCompetitionLift', e.target.checked)} className="rounded border-zinc-700 bg-black text-yellow-500 focus:ring-0 w-3 h-3" />
+                            <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${exercise.isCompetitionLift ? 'text-yellow-500' : 'text-zinc-600 group-hover:text-white'}`}>Modo Competición / Tarima</span>
+                        </label>
                     </div>
 
                     <div className="w-full relative">
@@ -963,43 +973,43 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                             </div>
                         )}
                         {/* --- MODO STANDARD (Scroll Horizontal de Tarjetas) --- */}
-                            <div className="flex gap-2 overflow-x-auto pb-8 custom-scrollbar snap-x items-stretch relative z-20 pointer-events-auto">
-                                {exercise.sets.map((set, setIndex) => {
-                                    const isAmrap = set.isAmrap || set.intensityMode === 'amrap';
-                                    const ref1RM = exercise.reference1RM;
-                                    const mode = set.intensityMode || (exercise.trainingMode === 'percent' ? 'solo_rm' : 'rpe');
-                                    const useIntensityWeight = exercise.trainingMode === 'percent' && (mode === 'solo_rm' || mode === 'rpe' || mode === 'rir' || mode === 'failure' || mode === 'amrap');
-                                    const useLoadPercent = exercise.trainingMode === 'percent' && mode === 'load' && set.targetPercentageRM != null;
-                                    let estimatedLoad: number | null = null;
-                                    if (useIntensityWeight && ref1RM) {
-                                        estimatedLoad = calculateWeightFrom1RMAndIntensity(ref1RM, set);
-                                        if (estimatedLoad != null) estimatedLoad = Math.round(estimatedLoad * 4) / 4;
-                                    } else if (useLoadPercent && ref1RM) {
-                                        estimatedLoad = Math.round((ref1RM * (set.targetPercentageRM || 0) / 100) * 4) / 4;
-                                    }
+                        <div className="flex gap-2 overflow-x-auto pb-8 custom-scrollbar snap-x items-stretch relative z-20 pointer-events-auto">
+                            {exercise.sets.map((set, setIndex) => {
+                                const isAmrap = set.isAmrap || set.intensityMode === 'amrap';
+                                const ref1RM = exercise.reference1RM;
+                                const mode = set.intensityMode || (exercise.trainingMode === 'percent' ? 'solo_rm' : 'rpe');
+                                const useIntensityWeight = exercise.trainingMode === 'percent' && (mode === 'solo_rm' || mode === 'rpe' || mode === 'rir' || mode === 'failure' || mode === 'amrap');
+                                const useLoadPercent = exercise.trainingMode === 'percent' && mode === 'load' && set.targetPercentageRM != null;
+                                let estimatedLoad: number | null = null;
+                                if (useIntensityWeight && ref1RM) {
+                                    estimatedLoad = calculateWeightFrom1RMAndIntensity(ref1RM, set);
+                                    if (estimatedLoad != null) estimatedLoad = Math.round(estimatedLoad * 4) / 4;
+                                } else if (useLoadPercent && ref1RM) {
+                                    estimatedLoad = Math.round((ref1RM * (set.targetPercentageRM || 0) / 100) * 4) / 4;
+                                }
 
-                                    return (
-                                        <SwipeableSetCard
-                                            key={set.id}
-                                            set={set}
-                                            setIndex={setIndex}
-                                            isAmrap={isAmrap}
-                                            mode={mode}
-                                            estimatedLoad={estimatedLoad}
-                                            exercise={exercise}
-                                            handleSetChange={handleSetChange}
-                                            onRemoveSet={onRemoveSet}
-                                            setPendingAmrapSetIndex={setPendingAmrapSetIndex}
-                                        />
-                                    )
-                                })}
-                                {!hideAddSetButton && (
-                                    <div className="shrink-0 w-24 flex flex-col gap-2 justify-center pl-2">
-                                        <button onClick={() => onAddSet()} className="w-full h-12 border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900 rounded-xl text-[10px] font-black uppercase text-zinc-400 hover:text-white transition-all flex items-center justify-center shadow-inner"><PlusIcon size={16}/></button>
-                                        <button onClick={() => setIsWarmupModalOpen(true)} className="w-full h-10 border border-zinc-800 bg-transparent hover:bg-zinc-900 rounded-xl text-[8px] font-black uppercase text-zinc-500 hover:text-white transition-all">Aprox</button>
-                                    </div>
-                                )}
-                            </div>
+                                return (
+                                    <SwipeableSetCard
+                                        key={set.id}
+                                        set={set}
+                                        setIndex={setIndex}
+                                        isAmrap={isAmrap}
+                                        mode={mode}
+                                        estimatedLoad={estimatedLoad}
+                                        exercise={exercise}
+                                        handleSetChange={handleSetChange}
+                                        onRemoveSet={onRemoveSet}
+                                        setPendingAmrapSetIndex={setPendingAmrapSetIndex}
+                                    />
+                                )
+                            })}
+                            {!hideAddSetButton && (
+                                <div className="shrink-0 w-24 flex flex-col gap-2 justify-center pl-2">
+                                    <button onClick={() => onAddSet()} className="w-full h-12 border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900 rounded-xl text-[10px] font-black uppercase text-[#49454F] hover:text-white transition-all flex items-center justify-center shadow-inner"><PlusIcon size={16} /></button>
+                                    <button onClick={() => setIsWarmupModalOpen(true)} className="w-full h-10 border border-zinc-800 bg-transparent hover:bg-zinc-900 rounded-xl text-[8px] font-black uppercase text-[#49454F] hover:text-white transition-all">Aprox</button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </details>
@@ -1015,7 +1025,7 @@ const SupersetManagementBlock: React.FC<{
     onUpdateSession: (updater: (draft: Session) => void) => void;
     partIndex: number;
     partColor?: string;
-    onReorderExercise: (partIdx: number, exIdx: number, dir: 'up'|'down') => void;
+    onReorderExercise: (partIdx: number, exIdx: number, dir: 'up' | 'down') => void;
     onToggleSelect: (id: string) => void;
     selectedIds: Set<string>;
     isSelectionMode: boolean;
@@ -1023,7 +1033,7 @@ const SupersetManagementBlock: React.FC<{
     onLinkNext: (partIdx: number, exIdx: number) => void;
     culpritIds?: Set<string>;
 }> = ({ exercises, onUpdateSession, partIndex, partColor, onReorderExercise, onToggleSelect, selectedIds, isSelectionMode, onUnlink, onLinkNext, culpritIds }) => {
-    
+
     // Derived state: Number of rounds is determined by the max sets of any exercise in the group
     const rounds = useMemo(() => Math.max(...exercises.map(e => e.ex.sets.length)), [exercises]);
 
@@ -1031,19 +1041,19 @@ const SupersetManagementBlock: React.FC<{
         onUpdateSession(draft => {
             if (!draft.parts?.[partIndex]) return;
             exercises.forEach(({ index }) => {
-                draft.parts![partIndex].exercises[index].sets.push({ 
-                    id: crypto.randomUUID(), 
-                    targetReps: 8, 
-                    intensityMode: 'rpe', 
-                    targetRPE: 8 
+                draft.parts![partIndex].exercises[index].sets.push({
+                    id: crypto.randomUUID(),
+                    targetReps: 8,
+                    intensityMode: 'rpe',
+                    targetRPE: 8
                 });
             });
         });
     };
 
     const handleRemoveRound = () => {
-         if (rounds <= 1) return;
-         onUpdateSession(draft => {
+        if (rounds <= 1) return;
+        onUpdateSession(draft => {
             if (!draft.parts?.[partIndex]) return;
             exercises.forEach(({ index }) => {
                 if (draft.parts![partIndex].exercises[index].sets.length > 0) {
@@ -1076,39 +1086,39 @@ const SupersetManagementBlock: React.FC<{
         <div className="relative pl-3 border-l-2 border-cyber-cyan/50 my-6 py-2 bg-cyber-cyan/[0.02] rounded-r-xl">
             <div className="flex justify-between items-center mb-3 px-1">
                 <div className="flex items-center gap-2">
-                    <ZapIcon size={16} className="text-cyber-cyan"/>
+                    <ZapIcon size={16} className="text-cyber-cyan" />
                     <span className="text-cyber-cyan font-black text-xs uppercase tracking-widest">Biserie / Circuito</span>
                 </div>
                 <div className="flex items-center gap-3">
-                     <div className="flex items-center gap-2 bg-slate-900/80 px-2 py-1 rounded-lg border border-white/5">
+                    <div className="flex items-center gap-2 bg-slate-900/80 px-2 py-1 rounded-lg border border-[#E6E0E9]">
                         <span className="text-[9px] font-bold text-slate-500 uppercase">Rondas</span>
                         <button onClick={handleRemoveRound} className="text-slate-400 hover:text-white px-1 font-bold">-</button>
                         <span className="text-sm font-black text-white w-4 text-center">{rounds}</span>
                         <button onClick={handleAddRound} className="text-slate-400 hover:text-white px-1 font-bold">+</button>
-                     </div>
+                    </div>
                 </div>
             </div>
 
             <div className="space-y-4">
                 {exercises.map(({ ex, index: ei }, i) => (
-                    <MemoizedExerciseCard 
-                        key={ex.id} 
-                        exercise={ex} 
-                        categoryColor={partColor} 
-                        isInSuperset={true} 
-                        isSupersetLast={i === exercises.length - 1} 
-                        onExerciseChange={(f, v) => { onUpdateSession(d => { if (typeof f === 'string') (d.parts![partIndex].exercises[ei] as any)[f] = v; else d.parts![partIndex].exercises[ei] = {...d.parts![partIndex].exercises[ei], ...f}; }); }} 
-                        onSetChange={(si, f, v) => { onUpdateSession(d => { if (typeof f === 'string') (d.parts![partIndex].exercises[ei].sets[si] as any)[f] = v; else d.parts![partIndex].exercises[ei].sets[si] = {...d.parts![partIndex].exercises[ei].sets[si], ...f}; }); }} 
-                        onAddSet={() => { /* Handled globally by block */ }} 
-                        onRemoveSet={(si) => onUpdateSession(d => { d.parts![partIndex].exercises[ei].sets.splice(si, 1); })} 
-                        onRemoveExercise={() => onUpdateSession(d => { d.parts![partIndex].exercises.splice(ei, 1); })} 
-                        onReorder={(dir) => onReorderExercise(partIndex, ei, dir)} 
-                        onLinkNext={() => onLinkNext(partIndex, ei)} 
-                        onUnlink={() => onUnlink(partIndex, ei)} 
-                        isFirst={partIndex === 0 && ei === 0} 
+                    <MemoizedExerciseCard
+                        key={ex.id}
+                        exercise={ex}
+                        categoryColor={partColor}
+                        isInSuperset={true}
+                        isSupersetLast={i === exercises.length - 1}
+                        onExerciseChange={(f, v) => { onUpdateSession(d => { if (typeof f === 'string') (d.parts![partIndex].exercises[ei] as any)[f] = v; else d.parts![partIndex].exercises[ei] = { ...d.parts![partIndex].exercises[ei], ...f }; }); }}
+                        onSetChange={(si, f, v) => { onUpdateSession(d => { if (typeof f === 'string') (d.parts![partIndex].exercises[ei].sets[si] as any)[f] = v; else d.parts![partIndex].exercises[ei].sets[si] = { ...d.parts![partIndex].exercises[ei].sets[si], ...f }; }); }}
+                        onAddSet={() => { /* Handled globally by block */ }}
+                        onRemoveSet={(si) => onUpdateSession(d => { d.parts![partIndex].exercises[ei].sets.splice(si, 1); })}
+                        onRemoveExercise={() => onUpdateSession(d => { d.parts![partIndex].exercises.splice(ei, 1); })}
+                        onReorder={(dir) => onReorderExercise(partIndex, ei, dir)}
+                        onLinkNext={() => onLinkNext(partIndex, ei)}
+                        onUnlink={() => onUnlink(partIndex, ei)}
+                        isFirst={partIndex === 0 && ei === 0}
                         isLast={false} // Logic handled by parent usually but less critical here
-                        isSelectionMode={isSelectionMode} 
-                        isSelected={selectedIds.has(ex.id)} 
+                        isSelectionMode={isSelectionMode}
+                        isSelected={selectedIds.has(ex.id)}
                         isJunkVolumeCulprit={culpritIds?.has(ex.id)}
                         onToggleSelect={() => onToggleSelect(ex.id)}
                         hideAddSetButton={true} // Hide individual add set
@@ -1117,13 +1127,13 @@ const SupersetManagementBlock: React.FC<{
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-3 px-1">
-                <div className="bg-slate-900/50 p-2 rounded-lg border border-white/5 flex flex-col items-center">
+                <div className="bg-slate-900/50 p-2 rounded-lg border border-[#E6E0E9] flex flex-col items-center">
                     <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mb-1">Descanso Interno</span>
-                    <input type="number" step="10" value={transitionRest} onChange={e => handleRestChange('transition', parseInt(e.target.value))} className="w-16 bg-transparent text-center font-bold text-white text-sm focus:ring-0 border-b border-slate-700"/>
+                    <input type="number" step="10" value={transitionRest} onChange={e => handleRestChange('transition', parseInt(e.target.value))} className="w-16 bg-transparent text-center font-bold text-white text-sm focus:ring-0 border-b border-slate-700" />
                 </div>
-                 <div className="bg-slate-900/50 p-2 rounded-lg border border-white/5 flex flex-col items-center">
+                <div className="bg-slate-900/50 p-2 rounded-lg border border-[#E6E0E9] flex flex-col items-center">
                     <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mb-1">Descanso de Ronda</span>
-                    <input type="number" step="10" value={roundRest} onChange={e => handleRestChange('round', parseInt(e.target.value))} className="w-16 bg-transparent text-center font-bold text-white text-sm focus:ring-0 border-b border-slate-700"/>
+                    <input type="number" step="10" value={roundRest} onChange={e => handleRestChange('round', parseInt(e.target.value))} className="w-16 bg-transparent text-center font-bold text-white text-sm focus:ring-0 border-b border-slate-700" />
                 </div>
             </div>
         </div>
@@ -1143,7 +1153,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 const data = JSON.parse(raw);
                 return { score: data.score ?? 0, message: data.message ?? 'AUGE sugirió reducir el volumen de esta sesión.' };
             }
-        } catch (_) {}
+        } catch (_) { }
         return null;
     });
     // Analysis expanded state (legacy, kept for compatibility)
@@ -1183,7 +1193,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             }
         }
         const newSessionFromAdd = existingSessionInfo?.session;
-        const isAddMode = newSessionFromAdd && (existingSessionInfo?.dayOfWeek !== undefined || !existingSessionInfo?.sessionId);
+        const isAddMode = newSessionFromAdd && ((existingSessionInfo as any)?.dayOfWeek !== undefined || !existingSessionInfo?.sessionId);
         if (sessions.length === 0) {
             const initial = JSON.parse(JSON.stringify(newSessionFromAdd || { id: crypto.randomUUID(), name: '', description: '', exercises: [], warmup: [] }));
             if (!initial.parts) initial.parts = [{ id: crypto.randomUUID(), name: 'Principal', exercises: initial.exercises || [] }];
@@ -1308,7 +1318,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, [globalSessionAlerts, addToast]);
 
     // ESTADO PARA ALERTAS DE CINETICA AVANZADA
-    const [neuralAlerts, setNeuralAlerts] = useState<{type: string, message: string, severity: 'warning'|'critical'}[]>([]);
+    const [neuralAlerts, setNeuralAlerts] = useState<{ type: string, message: string, severity: 'warning' | 'critical' }[]>([]);
 
     const culpritExerciseIds = useMemo(() => {
         const culprits = new Set<string>();
@@ -1316,14 +1326,14 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         let totalSpinalLoad = 0;
         let elbowStress = 0;
         let kneeStress = 0;
-        
+
         const allEx = [...(session?.exercises || [])];
         (session?.parts || []).forEach(p => allEx.push(...p.exercises));
-        
+
         allEx.forEach(ex => {
             const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
             if (!info) return;
-            
+
             let isCulprit = false;
             const validSets = ex.sets?.filter(s => (s as any).type !== 'warmup') || [];
             if (validSets.length === 0) return;
@@ -1336,13 +1346,13 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
                     const addedVol = hyperFactor * volMult;
                     const limit = limits[parent]?.maxSession || 6;
-                    
+
                     if ((volMap[parent] || 0) + addedVol > limit) {
                         if ((volMap[parent] || 0) <= limit) isCulprit = true;
                     }
                     volMap[parent] = (volMap[parent] || 0) + addedVol;
                 });
-                
+
                 // 2. Detección de Carga Espinal
                 if ((info.axialLoadFactor || 0) > 0) {
                     totalSpinalLoad += (info.axialLoadFactor || 0);
@@ -1354,11 +1364,11 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             const count = validSets.length;
             if (exName.includes('press francés') || exName.includes('rompecráneos') || exName.includes('extensión en polea')) elbowStress += count;
             if (exName.includes('extensión de cuádriceps') || exName.includes('sissy')) kneeStress += count;
-            
+
             if (isCulprit) culprits.add(ex.id);
         });
 
-        const newAlerts: {type: string, message: string, severity: 'warning'|'critical'}[] = [];
+        const newAlerts: { type: string, message: string, severity: 'warning' | 'critical' }[] = [];
         // Déficit calórico: ya no es alerta, se muestra como aviso estático en AUGE
         if (totalSpinalLoad > 15) {
             newAlerts.push({ type: 'Espinal', severity: 'critical', message: 'Carga axial alta. Considera variantes máquina o cable.' });
@@ -1369,14 +1379,14 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         if (kneeStress > 8) {
             newAlerts.push({ type: 'Articular', severity: 'warning', message: 'Fricción Patelar: Demasiada cizalla en la rodilla por extensiones puras. Asegura un buen calentamiento previo.' });
         }
-        
+
         setNeuralAlerts(newAlerts);
         return culprits;
     }, [session, limits, settings.calorieGoalObjective, exerciseList]);
     // Transfer mode states removed — migrated to TransferDrawer
     // Rules and history modals removed — migrated to drawers
     const [sessionHistory, setSessionHistory] = useState<Session[]>([]);
-    
+
     // applyToWholeBlock removed — managed inside SaveDrawer
 
     const [sessionRules, setSessionRules] = useState<{ maxRPE?: number; maxExercisesPerMuscle?: number }>({});
@@ -1398,12 +1408,12 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         };
     }, []);
     // Single save modal removed — migrated to SaveDrawer
-    
+
     const sessionRef = useRef(session);
     const weekSessionsRef = useRef(weekSessions);
     const modifiedIdsRef = useRef(modifiedSessionIds);
     const onSaveRef = useRef(onSave);
-    
+
     useEffect(() => { sessionRef.current = session; }, [session]);
     useEffect(() => { weekSessionsRef.current = weekSessions; }, [weekSessions]);
     useEffect(() => { modifiedIdsRef.current = modifiedSessionIds; }, [modifiedSessionIds]);
@@ -1454,7 +1464,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         clone.id = crypto.randomUUID();
         clone.dayOfWeek = targetDay;
         clone.scheduleLabel = undefined; // Limpiamos etiquetas específicas
-        
+
         if (clone.exercises) {
             clone.exercises = clone.exercises.map((ex: any) => ({
                 ...ex,
@@ -1486,9 +1496,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             const payload = sessionsToSave.length === 1 ? sessionsToSave[0] : sessionsToSave;
             // @ts-ignore
             currentOnSave(payload, currentInfo.programId, currentInfo.macroIndex, currentInfo.mesoIndex, currentInfo.weekId);
-       } else {
-            currentOnSave(sessionsToSave[0]); 
-       }
+        } else {
+            currentOnSave(sessionsToSave[0]);
+        }
         await storageService.remove(SESSION_DRAFT_KEY);
         setIsDirty(false);
     };
@@ -1563,7 +1573,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         try {
             const payload = { weekSessions, activeSessionId, existingSessionInfo: infoRef.current };
             await storageService.set(SESSION_DRAFT_KEY, payload);
-            try { sessionStorage.setItem('session-draft-just-saved', '1'); } catch (_) {}
+            try { sessionStorage.setItem('session-draft-just-saved', '1'); } catch (_) { }
             setShowExitConfirmModal(false);
             setModifiedSessionIds(new Set());
             setIsDirty(false);
@@ -1593,7 +1603,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     };
 
     // ... (rest of the component logic remains largely the same, ensuring setSession updates correctly)
-    
+
     const handleAddExercise = useCallback((partIndex: number) => {
         const newEx: Exercise = { id: crypto.randomUUID(), name: '', sets: [{ id: crypto.randomUUID(), targetReps: 10, intensityMode: 'rpe', targetRPE: 8 }], restTime: 90, isFavorite: false, trainingMode: 'reps' };
         updateSession(draft => { if (!draft.parts) draft.parts = []; if (!draft.parts[partIndex]) return; draft.parts[partIndex].exercises.push(newEx); });
@@ -1623,9 +1633,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         if (currentSuperset) groups.push({ type: 'superset', items: currentSuperset, id: currentSupersetId! });
         return groups;
     };
-    
+
     const handleToggleSelectExercise = useCallback((exerciseId: string) => { setSelectedExerciseIds(prev => { const newSet = new Set(prev); if (newSet.has(exerciseId)) newSet.delete(exerciseId); else newSet.add(exerciseId); return newSet; }); }, []);
-    
+
     // ... (Bulk Apply logic unchanged) ...
 
     // Header styling moved to ContextualHeader component
@@ -1661,19 +1671,19 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, [updateSession]);
     const handleLinkWithNext = (partIndex: number, exerciseIndex: number) => { updateSession(draft => { const part = draft.parts?.[partIndex]; if (!part || !part.exercises[exerciseIndex + 1]) return; const currentEx = part.exercises[exerciseIndex]; const nextEx = part.exercises[exerciseIndex + 1]; const newId = currentEx.supersetId || crypto.randomUUID(); currentEx.supersetId = newId; nextEx.supersetId = newId; }); };
     const handleUnlink = (partIndex: number, exerciseIndex: number) => { updateSession(draft => { const part = draft.parts?.[partIndex]; if (!part) return; part.exercises[exerciseIndex].supersetId = undefined; }); }
-    
+
     const handleAddPart = () => { updateSession(draft => { if (!draft.parts) draft.parts = []; const newIndex = draft.parts.length; draft.parts.push({ id: crypto.randomUUID(), name: "Nueva Sección", exercises: [], color: PRESET_PART_COLORS[newIndex % PRESET_PART_COLORS.length] }); }); };
-    
-    const handleRemovePart = (index: number, e: React.MouseEvent) => { 
+
+    const handleRemovePart = (index: number, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (window.confirm("¿Eliminar sección?")) { 
-            updateSession(draft => { 
-                if (!draft.parts) return; 
-                draft.parts.splice(index, 1); 
-            }); 
-        } 
+        if (window.confirm("¿Eliminar sección?")) {
+            updateSession(draft => {
+                if (!draft.parts) return;
+                draft.parts.splice(index, 1);
+            });
+        }
     };
-    
+
     const handleDragStart = (index: number) => setDraggedPartIndex(index);
     const handleDragOver = (e: React.DragEvent) => e.preventDefault();
     const handleDrop = (targetIndex: number) => { if (draggedPartIndex === null || draggedPartIndex === targetIndex) return; updateSession(draft => { if (!draft.parts) return; const partToMove = draft.parts[draggedPartIndex]; draft.parts.splice(draggedPartIndex, 1); draft.parts.splice(targetIndex, 0, partToMove); }); setDraggedPartIndex(null); };
@@ -2043,11 +2053,11 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                     <div className="mx-4 mt-4 p-3 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-between gap-3">
                         <div>
                             <p className="text-xs font-bold text-cyber-cyan uppercase tracking-wider">Sugerencia AUGE (PCE)</p>
-                            <p className="text-[10px] text-zinc-400 mt-0.5">{pceBanner.message} Revisa series e intensidad.</p>
+                            <p className="text-[10px] text-[#49454F] mt-0.5">{pceBanner.message} Revisa series e intensidad.</p>
                         </div>
                         <button
                             onClick={() => {
-                                try { sessionStorage.removeItem(PCE_BANNER_KEY); } catch (_) {}
+                                try { sessionStorage.removeItem(PCE_BANNER_KEY); } catch (_) { }
                                 setPceBanner(null);
                             }}
                             className="shrink-0 px-3 py-1.5 rounded-lg bg-black/40 text-[10px] font-bold text-white hover:bg-black/60 transition-colors"
@@ -2065,7 +2075,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                             </h3>
                             <div className="flex items-center gap-1.5">
                                 <span className="text-[10px] text-[#555]">BW</span>
-                                <input type="number" value={session.meetBodyweight || ''} onChange={e => updateSession(d => { d.meetBodyweight = parseFloat(e.target.value); })} className="w-14 bg-transparent border-b border-white/10 focus:border-yellow-400 text-xs font-mono text-white text-center py-0.5 outline-none" placeholder="kg" />
+                                <input type="number" value={session.meetBodyweight || ''} onChange={e => updateSession(d => { d.meetBodyweight = parseFloat(e.target.value); })} className="w-14 bg-transparent border-b border-[#E6E0E9] focus:border-yellow-400 text-xs font-mono text-white text-center py-0.5 outline-none" placeholder="kg" />
                             </div>
                         </div>
                         {(() => {
@@ -2139,7 +2149,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                                                                         });
                                                                     }}
                                                                     scrollRef={el => { exerciseRefs.current[ex.id] = el; if (el) el.setAttribute('data-name', ex.name); }}
-                                                                    dragHandleProps={provided.dragHandleProps}
+                                                                    dragHandleProps={provided.dragHandleProps as any}
                                                                 />
                                                             </div>
                                                         )}
@@ -2261,10 +2271,10 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             {/* Confirmación salir con cambios */}
             {showExitConfirmModal && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-[#111] border border-white/10 rounded-xl p-6 max-w-sm w-full">
+                    <div className="bg-[#ECE6F0] border border-[#E6E0E9] rounded-xl p-6 max-w-sm w-full">
                         <p className="text-sm text-white mb-4">Hay cambios sin guardar. ¿Qué deseas hacer?</p>
                         <div className="flex flex-col gap-2">
-                            <button onClick={handleSaveDraftAndExit} className="w-full py-2.5 rounded-lg border border-white/10 text-[#999] hover:text-white hover:bg-white/5 transition-colors text-sm font-medium">
+                            <button onClick={handleSaveDraftAndExit} className="w-full py-2.5 rounded-lg border border-[#E6E0E9] text-[#999] hover:text-white hover:bg-white/5 transition-colors text-sm font-medium">
                                 Guardar borrador y salir
                             </button>
                             <button onClick={handleExitWithoutSaving} className="w-full py-2.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium">
@@ -2281,10 +2291,10 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             {/* Confirmación borrar ejercicio */}
             {pendingRemoveExercise && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-[#111] border border-white/10 rounded-xl p-6 max-w-sm w-full">
+                    <div className="bg-[#ECE6F0] border border-[#E6E0E9] rounded-xl p-6 max-w-sm w-full">
                         <p className="text-sm text-white mb-4">¿Eliminar <strong>{pendingRemoveExercise.name}</strong>?</p>
                         <div className="flex gap-3">
-                            <button onClick={() => setPendingRemoveExercise(null)} className="flex-1 py-2.5 rounded-lg border border-white/10 text-[#999] hover:text-white transition-colors text-sm font-medium">Cancelar</button>
+                            <button onClick={() => setPendingRemoveExercise(null)} className="flex-1 py-2.5 rounded-lg border border-[#E6E0E9] text-[#999] hover:text-white transition-colors text-sm font-medium">Cancelar</button>
                             <button onClick={() => handleExerciseRemove(pendingRemoveExercise.partIndex, pendingRemoveExercise.exerciseIndex)} className="flex-1 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-500 transition-colors text-sm font-bold">Sí</button>
                         </div>
                     </div>

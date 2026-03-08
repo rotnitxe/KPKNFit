@@ -200,7 +200,7 @@ const SwipeableSetRow: React.FC<{
             )}
             <div
                 ref={contentRef}
-                className="flex items-center gap-1 px-2 py-2 hover:bg-white/[0.02] transition-colors group min-h-[48px] bg-[#0a0a0a] relative z-10"
+                className="flex items-center gap-1 px-2 py-2 hover:bg-white/[0.02] transition-colors group min-h-[48px] bg-[#FEF7FF] relative z-10"
                 style={{ transform: `translate3d(${swipeOffset}px,0,0)` }}
             >
                 <span className="w-8 text-center text-xs font-mono text-[#999] font-bold tabular-nums shrink-0">{setIndex + 1}</span>
@@ -249,7 +249,7 @@ const SwipeableSetRow: React.FC<{
                     <select
                         value={mode}
                         onChange={e => onSetChange(setIndex, 'intensityMode', e.target.value)}
-                        className="bg-black/50 text-[10px] font-bold text-[#999] border border-white/10 rounded px-1 py-0.5 focus:ring-1 focus:ring-cyber-cyan/30 cursor-pointer text-center"
+                        className="bg-black/50 text-[10px] font-bold text-[#999] border border-[#E6E0E9] rounded px-1 py-0.5 focus:ring-1 focus:ring-cyber-cyan/30 cursor-pointer text-center"
                     >
                         {isPercent && <option value="solo_rm" className="bg-black text-white">SOLO RM</option>}
                         <option value="rpe" className="bg-black text-white">RPE</option>

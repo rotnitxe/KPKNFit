@@ -21,13 +21,13 @@ interface StickyMiniNavProps {
 
 const StickyMiniNav: React.FC<StickyMiniNavProps> = ({ onScrollTo }) => {
     return (
-        <div className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-white/5 shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
+        <div className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-[#E6E0E9] shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
             <div className="flex items-center justify-center gap-1 px-2 py-2 overflow-x-auto no-scrollbar">
                 {NAV_ITEMS.map(item => (
                     <button
                         key={item.id}
                         onClick={() => onScrollTo(item.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest text-zinc-500 hover:text-white hover:bg-zinc-900 transition-all shrink-0"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest text-[#49454F] hover:text-white hover:bg-zinc-900 transition-all shrink-0"
                     >
                         {item.icon}
                         <span className="hidden sm:inline">{item.label}</span>

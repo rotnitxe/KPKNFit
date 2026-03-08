@@ -25,8 +25,8 @@ const SessionEditorHeader: React.FC<SessionEditorHeaderProps> = ({
     };
 
     return (
-        <div className="relative flex-shrink-0 bg-black border-b border-white/10 z-20">
-            <button onClick={onCancel} className="absolute top-3 right-3 z-50 p-2 bg-black/60 backdrop-blur-md rounded-full text-zinc-400 hover:text-white transition-colors border border-white/10">
+        <div className="relative flex-shrink-0 bg-black border-b border-[#E6E0E9] z-20">
+            <button onClick={onCancel} className="absolute top-3 right-3 z-50 p-2 bg-black/60 backdrop-blur-md rounded-full text-[#49454F] hover:text-white transition-colors border border-[#E6E0E9]">
                 <XIcon size={16} />
             </button>
 
@@ -46,21 +46,21 @@ const SessionEditorHeader: React.FC<SessionEditorHeaderProps> = ({
                     value={session.description}
                     onChange={e => updateSession(d => { d.description = e.target.value; })}
                     placeholder="Descripción..."
-                    className="text-[11px] text-zinc-400 bg-transparent border-none focus:ring-0 w-full p-0 placeholder-zinc-700 font-medium"
+                    className="text-[11px] text-[#49454F] bg-transparent border-none focus:ring-0 w-full p-0 placeholder-zinc-700 font-medium"
                 />
 
                 <div className="flex items-center gap-2 pt-1">
-                    <button onClick={onOpenBgModal} className="p-2 rounded-lg border border-white/10 text-zinc-500 hover:text-white hover:bg-white/5 transition-all" title="Fondo">
+                    <button onClick={onOpenBgModal} className="p-2 rounded-lg border border-[#E6E0E9] text-[#49454F] hover:text-white hover:bg-white/5 transition-all" title="Fondo">
                         <ImageIcon size={14} />
                     </button>
                     {activeSessionId !== 'empty' && (
-                        <button onClick={onOpenTransferModal} className="px-3 py-1.5 bg-zinc-900 border border-white/10 hover:bg-zinc-800 rounded-lg text-[9px] font-bold uppercase text-zinc-400 hover:text-white transition-all flex items-center gap-1.5">
+                        <button onClick={onOpenTransferModal} className="px-3 py-1.5 bg-zinc-900 border border-[#E6E0E9] hover:bg-zinc-800 rounded-lg text-[9px] font-bold uppercase text-[#49454F] hover:text-white transition-all flex items-center gap-1.5">
                             <LayersIcon size={12} /> Transferir
                         </button>
                     )}
                     <button
                         onClick={() => updateSession(d => { d.isMeetDay = !d.isMeetDay; })}
-                        className={`p-2 rounded-lg border transition-all ${session.isMeetDay ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400' : 'border-white/10 text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                        className={`p-2 rounded-lg border transition-all ${session.isMeetDay ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400' : 'border-[#E6E0E9] text-[#49454F] hover:text-white hover:bg-white/5'}`}
                         title="Competición"
                     >
                         <TrophyIcon size={14} />

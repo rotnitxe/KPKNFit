@@ -67,9 +67,9 @@ export const ReadinessWidget: React.FC = () => {
     };
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em]">
+        <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#E6E0E9] flex justify-between items-center">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.25em]">
                     Disponibilidad
                 </span>
                 <span className="text-[8px] font-mono text-zinc-600">Readiness</span>
@@ -98,10 +98,10 @@ export const ReadinessWidget: React.FC = () => {
                                 <span className="text-2xl font-black font-mono text-white">{displayReadiness.toFixed(1)}</span>
                             </div>
                         </div>
-                        <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest">/ 10</span>
+                        <span className="text-[8px] text-[#49454F] font-black uppercase tracking-widest">/ 10</span>
                         <button
                             onClick={() => { setEditValue(displayReadiness); setIsEditing(true); }}
-                            className="mt-3 text-[8px] font-black text-zinc-500 uppercase tracking-widest hover:text-white transition-colors"
+                            className="mt-3 text-[8px] font-black text-[#49454F] uppercase tracking-widest hover:text-white transition-colors"
                         >
                             Ajustar
                         </button>
@@ -117,7 +117,7 @@ export const ReadinessWidget: React.FC = () => {
                             onChange={e => setEditValue(parseFloat(e.target.value))}
                             className="w-full accent-white"
                         />
-                        <div className="flex justify-between text-[10px] font-mono text-zinc-400">
+                        <div className="flex justify-between text-[10px] font-mono text-[#49454F]">
                             <span>1</span>
                             <span className="text-white font-black">{editValue.toFixed(1)}</span>
                             <span>10</span>
@@ -132,11 +132,11 @@ export const ReadinessWidget: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-white/[0.02] border border-white/5 min-h-[44px]">
-                        <span className="text-[9px] text-zinc-500 font-bold uppercase">Sin datos</span>
+                    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-white/[0.02] border border-[#E6E0E9] min-h-[44px]">
+                        <span className="text-[9px] text-[#49454F] font-bold uppercase">Sin datos</span>
                         <button
                             onClick={() => { setEditValue(7); setIsEditing(true); }}
-                            className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors shrink-0"
+                            className="text-[8px] font-black text-[#49454F] uppercase tracking-widest hover:text-white transition-colors shrink-0"
                         >
                             Añade datos
                         </button>

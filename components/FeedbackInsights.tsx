@@ -26,7 +26,7 @@ const FeedbackInsights: React.FC<FeedbackInsightsProps> = ({ feedbackHistory, ac
     if (insights.length === 0) return null;
 
     return (
-        <div className="bg-[#111] border border-white/10 rounded-2xl p-5 animate-fade-in mb-6">
+        <div className="bg-[#ECE6F0] border border-[#E6E0E9] rounded-2xl p-5 animate-fade-in mb-6">
             <div className="flex items-center gap-2 mb-4">
                 <div className="bg-purple-500/20 p-2 rounded-lg text-purple-400">
                     <ActivityIcon size={18} />

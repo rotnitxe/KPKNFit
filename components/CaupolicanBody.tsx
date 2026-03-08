@@ -85,9 +85,9 @@ export const CaupolicanBody: React.FC<{
         <div className="flex flex-col items-center w-full">
             <div className="relative w-full max-w-[260px] aspect-[1/2.2] overflow-hidden flex items-center justify-center">
 
-                <div className="absolute top-2 z-40 bg-black/60 backdrop-blur-md p-1 rounded-full border border-white/10 flex shadow-lg">
-                    <button onClick={() => setView('front')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${view === 'front' ? 'bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)]' : 'text-zinc-500 hover:text-white'}`}>Anterior</button>
-                    <button onClick={() => setView('back')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${view === 'back' ? 'bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)]' : 'text-zinc-500 hover:text-white'}`}>Posterior</button>
+                <div className="absolute top-2 z-40 bg-white/80 backdrop-blur-md p-1 rounded-full border border-[#ECE6F0] flex shadow-lg">
+                    <button onClick={() => setView('front')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${view === 'front' ? 'bg-blue-600 text-white shadow-md' : 'text-[#49454F] hover:text-zinc-900'}`}>Anterior</button>
+                    <button onClick={() => setView('back')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${view === 'back' ? 'bg-blue-600 text-white shadow-md' : 'text-[#49454F] hover:text-zinc-900'}`}>Posterior</button>
                 </div>
 
                 {/* CONTENEDOR 3D */}
@@ -96,17 +96,17 @@ export const CaupolicanBody: React.FC<{
                         className="relative w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.175,0.885,0.32,1.1)]"
                         style={{ transformStyle: 'preserve-3d', transform: view === 'front' ? 'rotateY(0deg)' : 'rotateY(180deg)' }}
                     >
-                        {/* --- CARA FRONTAL (Ahora es un bloque sólido negro que atrapa todo) --- */}
-                        <div className="absolute inset-0 w-full h-full bg-black overflow-hidden" style={{ backfaceVisibility: 'hidden', transform: 'translateZ(1px)' }}>
+                        {/* --- CARA FRONTAL --- */}
+                        <div className="absolute inset-0 w-full h-full bg-white overflow-hidden" style={{ backfaceVisibility: 'hidden', transform: 'translateZ(1px)' }}>
                             <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-                                <div className="absolute top-[2%] w-[26%] h-[18%] bg-zinc-700 rounded-[40px]"></div>
-                                <div className="absolute top-[15%] w-[46%] h-[45%] bg-zinc-700 rounded-[40px]"></div>
-                                <div className="absolute top-[20%] w-[96%] h-[50%] bg-zinc-700 rounded-[30px]"></div>
-                                <div className="absolute top-[50%] w-[52%] h-[30%] bg-zinc-700 rounded-[30px]"></div>
-                                <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-zinc-700 rounded-[20px]"></div>
+                                <div className="absolute top-[2%] w-[26%] h-[18%] bg-[#ECE6F0] rounded-[40px]"></div>
+                                <div className="absolute top-[15%] w-[46%] h-[45%] bg-[#ECE6F0] rounded-[40px]"></div>
+                                <div className="absolute top-[20%] w-[96%] h-[50%] bg-[#ECE6F0] rounded-[30px]"></div>
+                                <div className="absolute top-[50%] w-[52%] h-[30%] bg-[#ECE6F0] rounded-[30px]"></div>
+                                <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-[#ECE6F0] rounded-[20px]"></div>
                             </div>
                             {/* Silueta del cuerpo primero (z-10) */}
-                            <div className="absolute inset-0 z-10 p-8 flex items-center justify-center opacity-100 pointer-events-none"><CaupolicanA /></div>
+                            <div className="absolute inset-0 z-10 p-8 flex items-center justify-center opacity-100 scale-95 pointer-events-none"><CaupolicanA /></div>
                             {/* Zonas de calor ENCIMA de la silueta para que sean visibles */}
                             <div
                                 className="absolute inset-0 z-20 p-8 cursor-default pointer-events-auto"
@@ -127,21 +127,20 @@ export const CaupolicanBody: React.FC<{
                             </div>
                             <div className="absolute inset-0 z-[25] p-8 pointer-events-none">{renderDiscomforts('front')}</div>
 
-                            {/* Eliminados marcos sólidos que cortaban el resplandor */}
-                            <div className="absolute inset-0 z-30 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.8)]" />
+                            <div className="absolute inset-0 z-30 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.03)]" />
                         </div>
 
-                        {/* --- CARA POSTERIOR (También es un bloque sólido negro) --- */}
-                        <div className="absolute inset-0 w-full h-full bg-black overflow-hidden" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg) translateZ(1px)' }}>
+                        {/* --- CARA POSTERIOR --- */}
+                        <div className="absolute inset-0 w-full h-full bg-white overflow-hidden" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg) translateZ(1px)' }}>
                             <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-                                <div className="absolute top-[2%] w-[26%] h-[18%] bg-zinc-700 rounded-[40px]"></div>
-                                <div className="absolute top-[15%] w-[46%] h-[45%] bg-zinc-700 rounded-[40px]"></div>
-                                <div className="absolute top-[20%] w-[96%] h-[50%] bg-zinc-700 rounded-[30px]"></div>
-                                <div className="absolute top-[50%] w-[52%] h-[30%] bg-zinc-700 rounded-[30px]"></div>
-                                <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-zinc-700 rounded-[20px]"></div>
+                                <div className="absolute top-[2%] w-[26%] h-[18%] bg-[#ECE6F0] rounded-[40px]"></div>
+                                <div className="absolute top-[15%] w-[46%] h-[45%] bg-[#ECE6F0] rounded-[40px]"></div>
+                                <div className="absolute top-[20%] w-[96%] h-[50%] bg-[#ECE6F0] rounded-[30px]"></div>
+                                <div className="absolute top-[50%] w-[52%] h-[30%] bg-[#ECE6F0] rounded-[30px]"></div>
+                                <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-[#ECE6F0] rounded-[20px]"></div>
                             </div>
                             {/* Silueta del cuerpo primero (z-10) */}
-                            <div className="absolute inset-0 z-10 p-8 flex items-center justify-center opacity-100 pointer-events-none"><CaupolicanB /></div>
+                            <div className="absolute inset-0 z-10 p-8 flex items-center justify-center opacity-100 scale-95 pointer-events-none"><CaupolicanB /></div>
                             {/* Zonas de calor ENCIMA de la silueta para que sean visibles */}
                             <div
                                 className="absolute inset-0 z-20 p-8 cursor-default pointer-events-auto"
@@ -164,9 +163,9 @@ export const CaupolicanBody: React.FC<{
                             </div>
                             <div className="absolute inset-0 z-[25] p-8 pointer-events-none">{renderDiscomforts('back')}</div>
 
-                            {/* Eliminados marcos sólidos que cortaban el resplandor */}
-                            <div className="absolute inset-0 z-30 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.8)]" />
+                            <div className="absolute inset-0 z-30 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.03)]" />
                         </div>
+
                     </div>
                 </div>
             </div>

@@ -47,7 +47,7 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
     const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
 
     return (
-        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
+        <div className="bg-zinc-900/50 border border-[#E6E0E9] rounded-2xl overflow-hidden transition-all duration-300">
             <button onClick={onToggleCollapse} className="w-full flex items-center justify-between p-4 text-left">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
@@ -55,22 +55,22 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
                     </div>
                     <div>
                         <h3 className="text-xs font-black text-white uppercase tracking-widest">Métricas</h3>
-                        <p className="text-[9px] text-zinc-500 font-bold">
+                        <p className="text-[9px] text-[#49454F] font-bold">
                             Adherencia {totalAdherence}% • {displayedSessions.length} sesiones
                         </p>
                     </div>
                 </div>
-                <ChevronDownIcon size={16} className={`text-zinc-500 transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
+                <ChevronDownIcon size={16} className={`text-[#49454F] transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
             </button>
 
             {!collapsed && (
                 <div className="px-4 pb-4 space-y-4 animate-fade-in relative">
                     {!isActive && (
                         <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 rounded-2xl flex justify-center items-start pt-16">
-                            <div className="flex flex-col items-center text-center p-4 max-w-xs bg-black/40 rounded-2xl border border-white/5">
+                            <div className="flex flex-col items-center text-center p-4 max-w-xs bg-black/40 rounded-2xl border border-[#E6E0E9]">
                                 <DumbbellIcon size={36} className="text-zinc-600 mb-3 animate-pulse" />
                                 <h3 className="text-base font-black text-white uppercase mb-1">Programa Inactivo</h3>
-                                <p className="text-[10px] text-zinc-400">Inicia este programa para ver métricas.</p>
+                                <p className="text-[10px] text-[#49454F]">Inicia este programa para ver métricas.</p>
                             </div>
                         </div>
                     )}
@@ -87,7 +87,7 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
                                         className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-bold border transition-all ${
                                             week.id === selectedWeekId
                                                 ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_10px_rgba(37,99,235,0.5)]'
-                                                : 'border-zinc-800 bg-zinc-900/50 text-zinc-500 hover:bg-zinc-800'
+                                                : 'border-zinc-800 bg-zinc-900/50 text-[#49454F] hover:bg-zinc-800'
                                         }`}
                                     >
                                         {idx + 1}
@@ -97,7 +97,7 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
                         )}
 
                         {/* Filter tabs */}
-                        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 border-b border-white/5">
+                        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 border-b border-[#E6E0E9]">
                             {FILTERS.map(f => (
                                 <button
                                     key={f.id}
@@ -105,7 +105,7 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
                                     className={`shrink-0 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors border ${
                                         metricFilter === f.id
                                             ? 'bg-white text-black border-white'
-                                            : 'bg-zinc-900/50 text-zinc-500 border-white/10 hover:text-white'
+                                            : 'bg-zinc-900/50 text-[#49454F] border-[#E6E0E9] hover:text-white'
                                     }`}
                                 >
                                     {f.label}
@@ -203,22 +203,22 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
                             className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
                             onClick={() => setShowAdherenceModal(false)}
                         >
-                            <div className="bg-zinc-950 border border-white/10 w-full max-w-sm rounded-2xl p-5 shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                            <div className="bg-[#FEF7FF] border border-[#E6E0E9] w-full max-w-sm rounded-2xl p-5 shadow-2xl relative" onClick={e => e.stopPropagation()}>
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-cyan-500 opacity-50 rounded-t-2xl" />
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <h3 className="text-lg font-black text-white uppercase tracking-tight">Adherencia</h3>
-                                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Avance</p>
+                                        <p className="text-[9px] text-[#49454F] font-bold uppercase tracking-widest">Avance</p>
                                     </div>
-                                    <button onClick={() => setShowAdherenceModal(false)} className="p-1.5 bg-zinc-900 rounded-full text-zinc-500 hover:text-white transition-colors">
+                                    <button onClick={() => setShowAdherenceModal(false)} className="p-1.5 bg-zinc-900 rounded-full text-[#49454F] hover:text-white transition-colors">
                                         <XIcon size={14} />
                                     </button>
                                 </div>
                                 <div className="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar">
                                     {weeklyAdherence.map((week, i) => (
                                         <div key={i} className="flex items-center gap-2">
-                                            <span className="w-14 text-right text-[9px] font-black text-zinc-400 uppercase">{week.weekName}</span>
-                                            <div className="flex-1 h-2.5 bg-black border border-white/5 rounded-full overflow-hidden">
+                                            <span className="w-14 text-right text-[9px] font-black text-[#49454F] uppercase">{week.weekName}</span>
+                                            <div className="flex-1 h-2.5 bg-black border border-[#E6E0E9] rounded-full overflow-hidden">
                                                 <div
                                                     className={`h-full rounded-full transition-all duration-1000 ${week.pct === 100 ? 'bg-emerald-400' : week.pct > 50 ? 'bg-yellow-400' : 'bg-red-500'}`}
                                                     style={{ width: `${week.pct}%` }}
@@ -228,9 +228,9 @@ const MetricsCard: React.FC<MetricsCardProps> = ({
                                         </div>
                                     ))}
                                 </div>
-                                <div className="mt-6 p-3 bg-zinc-900/50 rounded-xl border border-white/5 text-center">
+                                <div className="mt-6 p-3 bg-zinc-900/50 rounded-xl border border-[#E6E0E9] text-center">
                                     <p className="text-2xl font-black text-white">{totalAdherence}%</p>
-                                    <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Total</p>
+                                    <p className="text-[8px] text-[#49454F] font-bold uppercase tracking-widest">Total</p>
                                 </div>
                             </div>
                         </div>

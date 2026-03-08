@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Exercise, ExerciseSet, ExerciseMuscleInfo } from '../../types';
-import { StarIcon, TrashIcon, ChevronDownIcon, ClockIcon, LinkIcon, SearchIcon, PlusIcon, FlameIcon } from '../icons';
+import { StarIcon, TrashIcon, ChevronDownIcon, ClockIcon, LinkIcon, SearchIcon, PlusIcon, FlameIcon, TrophyIcon } from '../icons';
 import InlineSetTable from './InlineSetTable';
 import FatigueIndicators from './FatigueIndicators';
 import { SwipeDeleteHintModal } from './SwipeDeleteHintModal';
@@ -88,13 +88,17 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
 
     const filteredExercises = useMemo(() => {
         if (!searchQuery) return exerciseList.slice(0, 20);
-        const q = searchQuery.toLowerCase();
-        return exerciseList.filter(e =>
-            e.name.toLowerCase().includes(q) ||
-            (e.equipment && e.equipment.toLowerCase().includes(q)) ||
-            (e.alias && e.alias.toLowerCase().includes(q)) ||
-            e.involvedMuscles?.some(m => m.muscle.toLowerCase().includes(q))
-        ).slice(0, 15);
+        const normalizeText = (text: string) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const searchTerms = normalizeText(searchQuery)
+            .split(' ')
+            .filter(t => t.length > 0 && !['de', 'con', 'en', 'el', 'la', 'los', 'las', 'y', 'a'].includes(t));
+
+        return exerciseList.filter(e => {
+            const searchTarget = normalizeText(
+                `${e.name} ${e.equipment || ''} ${e.alias || ''} ${e.involvedMuscles?.map(m => m.muscle).join(' ') || ''}`
+            );
+            return searchTerms.every(term => searchTarget.includes(term));
+        }).slice(0, 15);
     }, [searchQuery, exerciseList]);
 
     const handleSelectExercise = useCallback((ex: ExerciseMuscleInfo) => {
@@ -172,7 +176,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
     if (isSearching && !onOpenExerciseModal) {
         // Fallback: dropdown inline solo cuando no hay modal (ej. ProgramEditor u otros contextos)
         return (
-            <div ref={setRef} className="px-4 py-3 border-b border-white/5 animate-fade-in scroll-mb-48">
+            <div ref={setRef} className="px-4 py-3 border-b border-[#E6E0E9] animate-fade-in scroll-mb-48">
                 <div className="relative mb-2">
                     <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555]" />
                     <input
@@ -181,7 +185,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Buscar ejercicio..."
                         autoFocus
-                        className="w-full bg-[#0d0d0d] border-b border-white/10 focus:border-[#00F0FF] pl-9 pr-3 py-2.5 text-sm text-white placeholder-[#555] outline-none transition-colors"
+                        className="w-full bg-[#0d0d0d] border-b border-[#E6E0E9] focus:border-[#00F0FF] pl-9 pr-3 py-2.5 text-sm text-white placeholder-[#555] outline-none transition-colors"
                     />
                 </div>
                 <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-0.5">
@@ -210,7 +214,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
     return (
         <div
             ref={setRef}
-            className={`border-b transition-colors scroll-mb-48 ${isCulprit ? 'border-red-500/20 bg-red-950/5' : 'border-white/5'}`}
+            className={`border-b transition-colors scroll-mb-48 ${isCulprit ? 'border-red-500/20 bg-red-950/5' : 'border-[#E6E0E9]'}`}
         >
             {/* Collapsed row */}
             <button
@@ -241,7 +245,8 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                 {/* Fatigue indicators */}
                 {fatigue && <FatigueIndicators msc={fatigue.msc} snc={fatigue.snc} spinal={fatigue.spinal} />}
 
-                {/* Star */}
+                {/* Competition / Star */}
+                {exercise.isCompetitionLift && <TrophyIcon size={12} className="text-orange-400 shrink-0" />}
                 {exercise.isStarTarget && <StarIcon size={12} filled className="text-yellow-400 shrink-0" />}
 
                 {/* Expand chevron */}
@@ -277,7 +282,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                         const sec = (exercise.restTime || 90) % 60;
                                         onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, m * 60 + sec); });
                                     }}
-                                    className="w-8 bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
+                                    className="w-8 bg-transparent border-b border-[#E6E0E9] focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
                                     placeholder="0"
                                 />
                                 <span className="text-[#555] text-[10px]">:</span>
@@ -292,7 +297,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                                         const m = Math.floor((Math.min(300, exercise.restTime || 90)) / 60);
                                         onUpdate(partIndex, exerciseIndex, d => { d.restTime = Math.min(300, m * 60 + sec); });
                                     }}
-                                    className="w-8 bg-transparent border-b border-white/10 focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
+                                    className="w-8 bg-transparent border-b border-[#E6E0E9] focus:border-[#00F0FF] text-[10px] font-mono text-white text-center py-0.5 outline-none transition-colors"
                                     placeholder="00"
                                 />
                             </div>
@@ -311,7 +316,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         <select
                             value={exercise.trainingMode || 'reps'}
                             onChange={e => onUpdate(partIndex, exerciseIndex, d => { d.trainingMode = e.target.value as any; })}
-                            className="bg-transparent text-[10px] font-bold text-[#999] border-b border-white/10 focus:border-[#00F0FF] py-0.5 px-1 outline-none cursor-pointer"
+                            className="bg-transparent text-[10px] font-bold text-[#999] border-b border-[#E6E0E9] focus:border-[#00F0FF] py-0.5 px-1 outline-none cursor-pointer"
                         >
                             <option value="reps" className="bg-black">Reps</option>
                             <option value="percent" className="bg-black">% 1RM</option>
@@ -407,6 +412,9 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         <div className="flex-1" />
 
                         {/* Actions */}
+                        <button onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.isCompetitionLift = !d.isCompetitionLift; })} className={`p-1 ${exercise.isCompetitionLift ? 'text-orange-400' : 'text-[#555] hover:text-orange-400'} transition-colors`} title="Competition Lift">
+                            <TrophyIcon size={12} />
+                        </button>
                         <button onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.isStarTarget = !d.isStarTarget; })} className={`p-1 ${exercise.isStarTarget ? 'text-yellow-400' : 'text-[#555] hover:text-yellow-400'} transition-colors`}>
                             <StarIcon size={12} filled={exercise.isStarTarget} />
                         </button>
@@ -427,7 +435,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         onRemoveSet={handleRemoveSet}
                         onAmrapToggle={onAmrapToggle ? (setIdx) => onAmrapToggle(partIndex, exerciseIndex, setIdx) : undefined}
                         reference1RM={effectiveReference1RM}
-                        onFirstAddSet={() => { try { if (!localStorage.getItem('kpkn_seen_swipe_delete_hint')) setShowSwipeHint(true); } catch (_) {} }}
+                        onFirstAddSet={() => { try { if (!localStorage.getItem('kpkn_seen_swipe_delete_hint')) setShowSwipeHint(true); } catch (_) { } }}
                         weightUnit={weightUnit}
                     />
                     {showSwipeHint && <SwipeDeleteHintModal onClose={() => setShowSwipeHint(false)} />}

@@ -68,7 +68,7 @@ const SpecialSessionLoggerModal: React.FC = () => {
 
     return (
         <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-xl flex flex-col font-sans text-white overflow-hidden animate-fade-in">
-            <div className="p-6 flex justify-between items-center border-b border-white/10 bg-[#050505] shrink-0">
+            <div className="p-6 flex justify-between items-center border-b border-[#E6E0E9] bg-[#050505] shrink-0">
                 <div className="flex items-center gap-3">
                     {type === 'powerlifting_comp' ? <TrophyIcon size={24} className="text-yellow-500"/> : <StarIcon size={24} className="text-blue-500"/>}
                     <h2 className="text-xl font-black uppercase tracking-tight leading-none">{session.name}</h2>
@@ -84,25 +84,25 @@ const SpecialSessionLoggerModal: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Federación</label>
-                                    <select value={fed} onChange={e=>setFed(e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 rounded-xl outline-none mt-1 font-bold">
+                                    <select value={fed} onChange={e=>setFed(e.target.value)} className="w-full bg-[#ECE6F0] border border-[#E6E0E9] p-3 rounded-xl outline-none mt-1 font-bold">
                                         <option>IPF</option><option>WRPF</option><option>IPL</option><option>USAPL</option><option>Otra</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Peso Corporal (kg)</label>
-                                    <input type="number" value={bw} onChange={e=>setBw(e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: 82.5"/>
+                                    <input type="number" value={bw} onChange={e=>setBw(e.target.value)} className="w-full bg-[#ECE6F0] border border-[#E6E0E9] p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: 82.5"/>
                                 </div>
                             </div>
 
                             {/* Intentos Componente Reutilizable */}
                             {[ {l:'Sentadilla', s:sq, f:setSq}, {l:'Press Banca', s:bp, f:setBp}, {l:'Peso Muerto', s:dl, f:setDl} ].map((lift, i) => (
-                                <div key={i} className="bg-[#111] p-5 rounded-2xl border border-white/5">
+                                <div key={i} className="bg-[#ECE6F0] p-5 rounded-2xl border border-[#E6E0E9]">
                                     <h4 className="text-sm font-black uppercase text-white mb-4">{lift.l}</h4>
                                     <div className="flex gap-2">
                                         {lift.s.map((att, aIdx) => (
                                             <div key={aIdx} className="flex-1 flex flex-col gap-2">
                                                 <span className="text-[9px] font-bold text-center text-gray-500 uppercase">Intento {aIdx+1}</span>
-                                                <input type="number" value={att.w} onChange={e=>{const n=[...lift.s]; n[aIdx].w=e.target.value; lift.f(n);}} className="w-full bg-black border border-white/10 p-2 rounded-lg text-center font-bold text-sm outline-none focus:border-yellow-500" placeholder="kg"/>
+                                                <input type="number" value={att.w} onChange={e=>{const n=[...lift.s]; n[aIdx].w=e.target.value; lift.f(n);}} className="w-full bg-black border border-[#E6E0E9] p-2 rounded-lg text-center font-bold text-sm outline-none focus:border-yellow-500" placeholder="kg"/>
                                                 <button onClick={()=>{const n=[...lift.s]; n[aIdx].v=!n[aIdx].v; lift.f(n);}} className={`w-full py-1.5 rounded text-[10px] font-black uppercase transition-colors ${att.v ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
                                                     {att.v ? 'Válido' : 'Nulo'}
                                                 </button>
@@ -114,18 +114,18 @@ const SpecialSessionLoggerModal: React.FC = () => {
 
                             <div>
                                 <label className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Posición o Medalla</label>
-                                <input type="text" value={ranking} onChange={e=>setRanking(e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: 1er Lugar / Medalla de Oro"/>
+                                <input type="text" value={ranking} onChange={e=>setRanking(e.target.value)} className="w-full bg-[#ECE6F0] border border-[#E6E0E9] p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: 1er Lugar / Medalla de Oro"/>
                             </div>
                         </div>
                     )}
 
                     {(type === '1rm_test' || type === 'admission_test') && (
-                        <div className="bg-[#111] p-5 rounded-2xl border border-white/5 space-y-4 animate-slide-up">
+                        <div className="bg-[#ECE6F0] p-5 rounded-2xl border border-[#E6E0E9] space-y-4 animate-slide-up">
                             <h4 className="text-sm font-black uppercase text-white mb-2">Registrar Pruebas</h4>
                             {tests.map((t, i) => (
                                 <div key={i} className="flex gap-2">
-                                    <input type="text" value={t.name} onChange={e=>{const n=[...tests]; n[i].name=e.target.value; setTests(n);}} className="flex-1 bg-black border border-white/10 p-3 rounded-xl text-xs font-bold outline-none" placeholder={type === '1rm_test' ? 'Ejercicio (Ej: Squat)' : 'Prueba (Ej: Dominadas)'}/>
-                                    <input type="text" value={t.result} onChange={e=>{const n=[...tests]; n[i].result=e.target.value; setTests(n);}} className="w-24 bg-black border border-white/10 p-3 rounded-xl text-xs font-bold outline-none text-center" placeholder={type === '1rm_test' ? 'kg' : 'Reps/Tiempo'}/>
+                                    <input type="text" value={t.name} onChange={e=>{const n=[...tests]; n[i].name=e.target.value; setTests(n);}} className="flex-1 bg-black border border-[#E6E0E9] p-3 rounded-xl text-xs font-bold outline-none" placeholder={type === '1rm_test' ? 'Ejercicio (Ej: Squat)' : 'Prueba (Ej: Dominadas)'}/>
+                                    <input type="text" value={t.result} onChange={e=>{const n=[...tests]; n[i].result=e.target.value; setTests(n);}} className="w-24 bg-black border border-[#E6E0E9] p-3 rounded-xl text-xs font-bold outline-none text-center" placeholder={type === '1rm_test' ? 'kg' : 'Reps/Tiempo'}/>
                                 </div>
                             ))}
                             <button onClick={()=>setTests([...tests, {name:'', result:''}])} className="w-full py-3 border border-dashed border-white/20 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-white">+ Añadir Prueba</button>
@@ -133,7 +133,7 @@ const SpecialSessionLoggerModal: React.FC = () => {
                             {type === 'admission_test' && (
                                 <div className="pt-4">
                                     <label className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Resultado Final</label>
-                                    <input type="text" value={ranking} onChange={e=>setRanking(e.target.value)} className="w-full bg-black border border-white/10 p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: APTO / APROBADO"/>
+                                    <input type="text" value={ranking} onChange={e=>setRanking(e.target.value)} className="w-full bg-black border border-[#E6E0E9] p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: APTO / APROBADO"/>
                                 </div>
                             )}
                         </div>
@@ -141,14 +141,14 @@ const SpecialSessionLoggerModal: React.FC = () => {
 
                     {type === 'bodybuilding_comp' && (
                         <div className="space-y-6 animate-slide-up">
-                            <div className="bg-[#111] p-5 rounded-2xl border border-white/5 space-y-4">
+                            <div className="bg-[#ECE6F0] p-5 rounded-2xl border border-[#E6E0E9] space-y-4">
                                 <div>
                                     <label className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Categoría</label>
-                                    <input type="text" value={fed} onChange={e=>setFed(e.target.value)} className="w-full bg-black border border-white/10 p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: Men's Physique, Classic..."/>
+                                    <input type="text" value={fed} onChange={e=>setFed(e.target.value)} className="w-full bg-black border border-[#E6E0E9] p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: Men's Physique, Classic..."/>
                                 </div>
                                 <div>
                                     <label className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Posición / Ranking</label>
-                                    <input type="text" value={ranking} onChange={e=>setRanking(e.target.value)} className="w-full bg-black border border-white/10 p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: 2do Lugar, Top 5..."/>
+                                    <input type="text" value={ranking} onChange={e=>setRanking(e.target.value)} className="w-full bg-black border border-[#E6E0E9] p-3 rounded-xl outline-none mt-1 font-bold" placeholder="Ej: 2do Lugar, Top 5..."/>
                                 </div>
                             </div>
                         </div>
@@ -156,7 +156,7 @@ const SpecialSessionLoggerModal: React.FC = () => {
 
                     <div>
                         <label className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Notas o Feedback de Jueces</label>
-                        <textarea value={notes} onChange={e=>setNotes(e.target.value)} className="w-full bg-[#111] border border-white/10 p-4 rounded-xl outline-none mt-1 text-sm text-gray-300 min-h-[100px]" placeholder="Escribe tus impresiones del evento..."></textarea>
+                        <textarea value={notes} onChange={e=>setNotes(e.target.value)} className="w-full bg-[#ECE6F0] border border-[#E6E0E9] p-4 rounded-xl outline-none mt-1 text-sm text-gray-300 min-h-[100px]" placeholder="Escribe tus impresiones del evento..."></textarea>
                     </div>
 
                 </div>

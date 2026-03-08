@@ -1,172 +1,161 @@
 // components/home/SessionTodayCard.tsx
-// Material 3 — Figma-exact session card
-// ALWAYS renders full layout (image + name + play) even without active sessions
-
-import React from 'react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Program, Session, WorkoutLog } from '../../types';
-import { PlayIcon, CheckCircleIcon, PencilIcon, SettingsIcon, RefreshCwIcon, LinkIcon, PauseIcon } from '../icons';
+import { PlayIcon, CheckCircleIcon, PauseIcon, ChevronRightIcon, ChevronLeftIcon } from '../icons';
 import { CaupolicanIcon } from '../CaupolicanIcon';
-import { getSessionDayLabel } from '../../utils/sessionDayLabel';
 import { useAppState } from '../../contexts/AppContext';
-import { SessionReadinessBlock } from './SessionReadinessBlock';
 
 export interface TodaySessionItem {
     session: Session;
     program: Program;
     location: { macroIndex: number; mesoIndex: number; weekId: string };
     isCompleted: boolean;
+    dayOfWeek?: number;
     log?: WorkoutLog;
 }
 
 interface SessionTodayCardProps {
     programName: string;
     programId: string;
-    todaySessions: TodaySessionItem[];
+    sessions: TodaySessionItem[];
     ongoingWorkout?: { session: Session; programId: string; isPaused?: boolean } | null;
     onStartWorkout: (session: Session, program: Program, _?: unknown, ctx?: { macroIndex: number; mesoIndex: number; weekId: string }) => void;
     onResumeWorkout?: () => void;
-    onEditSession: (programId: string, macroIndex: number, mesoIndex: number, weekId: string, sessionId: string) => void;
-    onViewProgram: (programId: string) => void;
     onOpenStartWorkoutModal: () => void;
-    onShareLog?: (log: WorkoutLog) => void;
-    variant?: 'card' | 'continuation';
+    currentDayOfWeek: number;
 }
 
 export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
     programName,
-    programId,
-    todaySessions,
+    sessions,
     ongoingWorkout,
     onStartWorkout,
     onResumeWorkout,
-    onEditSession,
-    onViewProgram,
     onOpenStartWorkoutModal,
-    onShareLog,
-    variant = 'card',
+    currentDayOfWeek
 }) => {
-    const { exerciseList } = useAppState();
-    const hasSessions = todaySessions.length > 0;
-    const firstSession = todaySessions[0];
+    const [activeIndex, setActiveIndex] = useState(0);
 
-    // ─── No sessions: ALWAYS show full Figma layout with placeholder ────────
+    const hasSessions = sessions.length > 0;
+
+    const handleStart = (ts: TodaySessionItem) => {
+        const isToday = ts.dayOfWeek === currentDayOfWeek;
+        const isRestDay = !sessions.some(s => s.dayOfWeek === currentDayOfWeek);
+        const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+        const dayName = dayNames[(ts.dayOfWeek || 1) - 1];
+
+        if (isRestDay) {
+            if (window.confirm("¿Estás seguro que quieres entrenar en tu día de descanso? Recuerda que el descanso es esencial para el progreso.")) {
+                onStartWorkout(ts.session, ts.program, undefined, ts.location);
+            }
+            return;
+        }
+
+        if (!isToday) {
+            if (window.confirm(`Esta sesión está programada para el ${dayName}, ¿estás seguro que quieres iniciarla?`)) {
+                onStartWorkout(ts.session, ts.program, undefined, ts.location);
+            }
+            return;
+        }
+
+        onStartWorkout(ts.session, ts.program, undefined, ts.location);
+    };
+
     if (!hasSessions) {
         return (
-            <div className="self-stretch inline-flex flex-col justify-start items-start w-full">
-                <div onClick={onOpenStartWorkoutModal} className="self-stretch w-full h-28 px-4 py-2 inline-flex justify-start items-start gap-2 overflow-hidden cursor-pointer">
-                    <div className="flex-1 self-stretch bg-[#ECE6F0] rounded-[24px] inline-flex flex-col justify-center items-center gap-1">
-                        <CaupolicanIcon size={32} className="text-[#49454F] opacity-40" />
-                    </div>
-                </div>
-                <div onClick={onOpenStartWorkoutModal} className="self-stretch w-full px-4 py-2 inline-flex justify-between items-center cursor-pointer">
-                    <div className="flex-1 inline-flex flex-col justify-start items-start">
-                        <div className="self-stretch text-[#1D1B20] text-base font-normal font-['Roboto'] leading-6 tracking-wide">
-                            Día de descanso
-                        </div>
-                        <div className="self-stretch text-[#49454F] text-sm font-normal font-['Roboto'] leading-5 tracking-tight line-clamp-2">
-                            Configura un programa
-                        </div>
-                    </div>
-                    <div className="w-12 h-12 flex justify-center items-center">
-                        <div className="w-10 h-10 rounded-[100px] inline-flex flex-col justify-center items-center overflow-hidden bg-[#ECE6F0]">
-                            <PlayIcon size={16} className="text-[#49454F] ml-1" />
-                        </div>
+            <div className="px-6 w-full max-w-md mx-auto">
+                <div onClick={onOpenStartWorkoutModal} className="w-full h-48 rounded-[32px] bg-gradient-to-br from-[#ECE6F0] to-[#D0BCFF] flex flex-col items-center justify-center gap-4 cursor-pointer shadow-xl shadow-black/5 active:scale-[0.98] transition-all">
+                    <CaupolicanIcon size={48} className="text-[#49454F] opacity-30" />
+                    <div className="text-center">
+                        <div className="text-[#1D1B20] text-lg font-black uppercase tracking-widest">Día de descanso</div>
+                        <div className="text-[#49454F] text-xs font-medium opacity-60">Configura un programa para hoy</div>
                     </div>
                 </div>
             </div>
         );
     }
 
-    // ─── Has sessions: render each ──────────────────────────────────────────
+    const currentSession = sessions[activeIndex];
+    const isOngoing = ongoingWorkout && ongoingWorkout.programId === currentSession.program.id && ongoingWorkout.session.id === currentSession.session.id;
+    const coverImage = currentSession.program.coverImage;
+
     return (
-        <div className="space-y-3">
-            {todaySessions.map((ts, idx) => {
-                const isOngoing = ongoingWorkout && ongoingWorkout.programId === ts.program.id && ongoingWorkout.session.id === ts.session.id;
-                const isPaused = isOngoing && ongoingWorkout?.isPaused;
-
-                return (
-                    <div key={idx} className="self-stretch inline-flex flex-col justify-start items-start w-full">
-                        <div className="self-stretch w-full h-28 px-4 py-2 inline-flex justify-start items-start gap-2 overflow-hidden">
-                            <div className="flex-1 self-stretch bg-[#ECE6F0] rounded-[24px] inline-flex flex-col justify-center items-center gap-1 relative">
-                                <CaupolicanIcon size={32} className="text-[#49454F] opacity-40" />
-                                {ts.isCompleted && (
-                                    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/90 text-white text-xs font-medium uppercase tracking-wider rounded-full font-['Roboto']">
-                                        <CheckCircleIcon size={10} /> Completada
-                                    </div>
-                                )}
-                                {isOngoing && !ts.isCompleted && (
-                                    <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 text-white text-xs font-medium uppercase tracking-wider rounded-full font-['Roboto'] ${isPaused ? 'bg-amber-500/90' : 'bg-[#1D1B20]'}`}>
-                                        {isPaused ? <PauseIcon size={10} /> : <PlayIcon size={10} />}
-                                        {isPaused ? 'Pausada' : 'En curso'}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="self-stretch w-full px-4 py-2 inline-flex justify-between items-center">
-                            <div className="flex-1 flex flex-col justify-start items-start pr-2">
-                                <div className="self-stretch text-[#1D1B20] text-base font-normal font-['Roboto'] leading-6 tracking-wide truncate">
-                                    {ts.session.name}
-                                </div>
-                                <div className="self-stretch text-[#49454F] text-sm font-normal font-['Roboto'] leading-5 tracking-tight line-clamp-2">
-                                    {programName}
-                                </div>
-                            </div>
-                            <div className="w-12 h-12 flex justify-center items-center shrink-0">
-                                {!ts.isCompleted && (
-                                    isOngoing && onResumeWorkout ? (
-                                        <button onClick={onResumeWorkout} className="w-10 h-10 rounded-[100px] flex items-center justify-center bg-[#1D1B20] text-white overflow-hidden transition-all active:scale-95">
-                                            <PlayIcon size={16} className="ml-1" fill="currentColor" />
-                                        </button>
-                                    ) : (
-                                        <button onClick={() => onStartWorkout(ts.session, ts.program, undefined, ts.location)} className="w-10 h-10 rounded-[100px] flex items-center justify-center bg-[#ECE6F0] text-[#1D1B20] border-2 border-[#1D1B20] overflow-hidden transition-all active:scale-95">
-                                            <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-[#1D1B20] border-b-[6px] border-b-transparent ml-1" />
-                                        </button>
-                                    )
-                                )}
-                                {ts.isCompleted && ts.log && onShareLog && (
-                                    <button onClick={() => onShareLog(ts.log!)} className="w-10 h-10 rounded-[100px] flex items-center justify-center bg-[#ECE6F0] text-[#49454F] overflow-hidden transition-all active:scale-95">
-                                        <LinkIcon size={16} />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* ── Readiness block ── */}
-                        {!ts.isCompleted && (
-                            <div className="self-stretch px-4 mt-2">
-                                <SessionReadinessBlock session={ts.session} compact />
-                            </div>
+        <div className="w-full flex flex-col items-center gap-4 overflow-visible px-6">
+            <div className="relative w-full max-w-[420px] aspect-[16/9] rounded-[40px] overflow-hidden shadow-2xl shadow-black/10 group">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentSession.session.id}
+                        initial={{ opacity: 0, scale: 1.05 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute inset-0"
+                    >
+                        {coverImage ? (
+                            <img src={coverImage} className="w-full h-full object-cover" alt="Session Cover" />
+                        ) : (
+                            <div className="absolute inset-0 bg-gradient-to-tr from-[#6750A4] via-[#D0BCFF] to-[#FEF7FF] opacity-80" />
                         )}
-                    </div>
-                );
-            })}
+                        <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
 
-            {/* Quick actions - Figma style */}
-            <div className="flex gap-2 px-4 pt-1">
-                {firstSession && (
-                    <button
-                        onClick={() => onEditSession(firstSession.program.id, firstSession.location.macroIndex, firstSession.location.mesoIndex, firstSession.location.weekId, firstSession.session.id)}
-                        className="flex-1 py-2.5 rounded-full text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] transition-colors flex items-center justify-center gap-1.5 font-['Roboto'] tracking-wide"
-                    >
-                        <PencilIcon size={12} /> Editar
-                    </button>
-                )}
-                {firstSession && (
-                    <button
-                        onClick={() => onViewProgram(firstSession.program.id)}
-                        className="flex-1 py-2.5 rounded-full text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] transition-colors flex items-center justify-center gap-1.5 font-['Roboto'] tracking-wide"
-                    >
-                        <SettingsIcon size={12} /> Programa
-                    </button>
-                )}
-                <button
-                    onClick={onOpenStartWorkoutModal}
-                    className="flex-1 py-2.5 rounded-full text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high,#E8E0DE)] transition-colors flex items-center justify-center gap-1.5 font-['Roboto'] tracking-wide"
-                >
-                    <RefreshCwIcon size={12} /> Cambiar
-                </button>
+                        <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                            <div className="flex justify-between items-end">
+                                <div className="flex flex-col gap-1 pr-4 max-w-[70%]">
+                                    <div className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em]">
+                                        {programName}
+                                    </div>
+                                    <div className="text-white text-2xl font-black leading-tight truncate">
+                                        {currentSession.session.name}
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={isOngoing ? onResumeWorkout : () => handleStart(currentSession)}
+                                    className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
+                                >
+                                    {isOngoing && !ongoingWorkout?.isPaused ? (
+                                        <div className="flex gap-1.5">
+                                            <div className="w-1.5 h-6 bg-black rounded-full" />
+                                            <div className="w-1.5 h-6 bg-black rounded-full" />
+                                        </div>
+                                    ) : (
+                                        <PlayIcon size={28} className="text-black ml-1.5" fill="currentColor" />
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
+
+                {/* Badge for Day */}
+                <div className="absolute top-6 left-6 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white text-[10px] font-black uppercase tracking-widest">
+                    {currentSession.dayOfWeek === currentDayOfWeek ? 'Sesión de hoy' : 'Próxima sesión'}
+                </div>
             </div>
+
+            {/* Pagination / Arrows */}
+            {sessions.length > 1 && (
+                <div className="flex items-center gap-6">
+                    <button
+                        onClick={() => setActiveIndex(prev => (prev > 0 ? prev - 1 : sessions.length - 1))}
+                        className="w-10 h-10 rounded-full bg-black/[0.03] flex items-center justify-center text-[#49454F] active:scale-90 transition-transform"
+                    >
+                        <ChevronLeftIcon size={20} />
+                    </button>
+                    <div className="flex gap-1.5">
+                        {sessions.map((_, i) => (
+                            <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-6 bg-primary' : 'w-1.5 bg-black/10'}`} />
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => setActiveIndex(prev => (prev < sessions.length - 1 ? prev + 1 : 0))}
+                        className="w-10 h-10 rounded-full bg-black/[0.03] flex items-center justify-center text-[#49454F] active:scale-90 transition-transform"
+                    >
+                        <ChevronRightIcon size={20} />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

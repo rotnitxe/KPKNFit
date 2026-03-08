@@ -64,30 +64,30 @@ export const NutritionTelemetryPanel: React.FC<NutritionTelemetryPanelProps> = (
                     <div key={id} className="flex flex-col items-center">
                         <div className="relative w-12 h-12">
                             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                <circle r={RING_RADIUS} cx="18" cy="18" fill="none" stroke="#27272a" strokeWidth="2.5" />
+                                <circle r={RING_RADIUS} cx="18" cy="18" fill="none" stroke="var(--md-sys-color-surface-container)" strokeWidth="3" />
                                 <circle
                                     r={RING_RADIUS}
                                     cx="18"
                                     cy="18"
                                     fill="none"
                                     stroke={strokeColor}
-                                    strokeWidth="2.5"
+                                    strokeWidth="3"
                                     strokeDasharray={`${dashOffset} ${RING_CIRCUMFERENCE}`}
                                     strokeLinecap="round"
                                     className="transition-all duration-500"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <span className={`text-xs font-black font-mono tabular-nums ${textColor}`}>
+                                <span className={`text-[10px] font-black tabular-nums ${textColor}`}>
                                     {Math.round(value)}
                                 </span>
                             </div>
                         </div>
-                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider mt-0.5">
+                        <span className="text-[8px] font-black text-[var(--md-sys-color-on-surface-variant)]/60 uppercase tracking-widest mt-1.5">
                             {label}
                         </span>
                         {goal > 0 && (
-                            <span className="text-[7px] text-zinc-600 font-mono">{Math.round(goal)}</span>
+                            <span className="text-[7px] text-[var(--md-sys-color-on-surface-variant)]/30 font-bold tracking-tighter">{Math.round(goal)}</span>
                         )}
                     </div>
                 );

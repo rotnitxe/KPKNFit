@@ -39,7 +39,7 @@ const WELCOME_SLIDES = [
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-6 text-white text-2xl font-bold tracking-tighter"
+          className="mt-6 text-[#1D1B20] text-2xl font-bold tracking-tighter"
         >
           BIENVENIDO A <span className="text-[#facc15]">KPKN</span>
         </motion.h1>
@@ -62,10 +62,10 @@ const WELCOME_SLIDES = [
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className={`p-3 rounded-2xl ${f.col} border border-white/5 flex flex-col items-center gap-2 text-center`}
+              className={`p-3 rounded-2xl ${f.col} border border-[#E6E0E9] flex flex-col items-center gap-2 text-center`}
             >
-              <div className="text-white/80">{f.icon}</div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/90">{f.txt}</span>
+              <div className="text-[#1D1B20]/80">{f.icon}</div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D1B20]/90">{f.txt}</span>
             </motion.div>
           ))}
         </div>
@@ -73,9 +73,9 @@ const WELCOME_SLIDES = [
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="bg-black/20 p-4 rounded-2xl border border-white/5"
+          className="bg-black/20 p-4 rounded-2xl border border-[#E6E0E9]"
         >
-          <p className="text-white/70 text-xs leading-relaxed text-center italic">
+          <p className="text-[#1D1B20]/70 text-xs leading-relaxed text-center italic">
             "La fuerza no viene de la capacidad física, sino de una voluntad indomable."
           </p>
         </motion.div>
@@ -236,14 +236,14 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
             setSettings({ hasSeenWelcome: true, hasSeenGeneralWizard: true, precalibrationDismissed: true });
             onComplete();
           }}
-          className="absolute top-[max(0.5rem,env(safe-area-inset-top))] right-4 z-10 text-white/90 text-sm font-medium py-2 px-3 rounded-lg bg-black/30"
+          className="absolute top-[max(0.5rem,env(safe-area-inset-top))] right-4 z-10 text-[#1D1B20]/90 text-sm font-medium py-2 px-3 rounded-lg bg-[#ECE6F0]"
         >
           Omitir
         </button>
         <motion.div 
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="relative z-20 flex-1 flex flex-col min-h-0 m-5 mt-16 rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 backdrop-blur-md" 
+          className="relative z-20 flex-1 flex flex-col min-h-0 m-5 mt-16 rounded-[2.5rem] overflow-hidden shadow-2xl border border-[#E6E0E9] backdrop-blur-md" 
           style={{ background: 'linear-gradient(180deg, rgba(40,40,40,0.95) 0%, rgba(20,20,20,0.98) 100%)' }}
         >
           <div ref={scrollRef} onScroll={handleScroll} className="flex-1 flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth hide-scrollbar">
@@ -322,7 +322,7 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      className="fixed inset-0 z-[9999] flex flex-col bg-[#0a0a0a] overflow-hidden safe-area-root"
+      className="fixed inset-0 z-[9999] flex flex-col bg-[#F4EFF4] overflow-hidden safe-area-root"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -336,13 +336,13 @@ export const UnifiedWelcomeWizard: React.FC<UnifiedWelcomeWizardProps> = ({ onCo
       <div className="absolute top-4 left-4 right-4 flex justify-between z-50 mt-[max(1rem,env(safe-area-inset-top))]">
         <button 
           onClick={goPrevPhase} 
-          className="px-4 py-2 bg-black/60 rounded-full text-white/80 hover:text-white backdrop-blur-md text-sm font-medium border border-white/10 shadow-lg"
+          className="px-4 py-2 bg-black/60 rounded-full text-[#1D1B20]/80 hover:text-[#1D1B20] backdrop-blur-md text-sm font-medium border border-[#E6E0E9] shadow-lg"
         >
           ← Atrás
         </button>
         <button 
           onClick={goNextPhase} 
-          className="px-4 py-2 bg-black/60 rounded-full text-white/80 hover:text-white backdrop-blur-md text-sm font-medium border border-white/10 shadow-lg"
+          className="px-4 py-2 bg-black/60 rounded-full text-[#1D1B20]/80 hover:text-[#1D1B20] backdrop-blur-md text-sm font-medium border border-[#E6E0E9] shadow-lg"
           style={{ visibility: currentPhaseIndex === wizardPhases.length - 1 ? 'hidden' : 'visible' }}
         >
           Adelante →

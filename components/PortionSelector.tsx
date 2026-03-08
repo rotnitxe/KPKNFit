@@ -58,26 +58,26 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
             <div>
                 <p className="text-xs text-slate-400 font-medium">{food.name}</p>
                 {food.cookingBehavior === 'shrinks' && (
-                    <p className="text-[10px] text-zinc-500 mt-0.5">Si pesas cocido, el sistema ajustará los macros automáticamente.</p>
+                    <p className="text-[10px] text-[#49454F] mt-0.5">Si pesas cocido, el sistema ajustará los macros automáticamente.</p>
                 )}
                 {food.cookingBehavior === 'expands' && (
-                    <p className="text-[10px] text-zinc-500 mt-0.5">Si pesas hidratado/cocido, el sistema convertirá a peso seco.</p>
+                    <p className="text-[10px] text-[#49454F] mt-0.5">Si pesas hidratado/cocido, el sistema convertirá a peso seco.</p>
                 )}
             </div>
 
             {/* Paso 1: ¿Cómo quieres medir? */}
             <div>
-                <label className="block text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-2">¿Cómo quieres medir?</label>
+                <label className="block text-[9px] font-bold text-[#49454F] uppercase tracking-widest mb-2">¿Cómo quieres medir?</label>
                 <div className="flex gap-2">
                     <button
                         onClick={() => setMeasureStep('quantity')}
-                        className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${measureStep === 'quantity' ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
+                        className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${measureStep === 'quantity' ? 'bg-white text-black' : 'bg-white/5 text-[#49454F] hover:text-white'}`}
                     >
                         Por cantidad (gramos)
                     </button>
                     <button
                         onClick={() => setMeasureStep('size')}
-                        className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${measureStep === 'size' ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
+                        className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${measureStep === 'size' ? 'bg-white text-black' : 'bg-white/5 text-[#49454F] hover:text-white'}`}
                     >
                         Por tamaño/referencia
                     </button>
@@ -88,7 +88,7 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
             {measureStep === 'quantity' && (
                 <div className="space-y-2">
                     <div>
-                        <label className="block text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Gramos</label>
+                        <label className="block text-[9px] font-bold text-[#49454F] uppercase tracking-widest mb-1">Gramos</label>
                         <input
                             type="number"
                             value={gramsValue}
@@ -96,15 +96,15 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
                             onFocus={() => setUseOz(false)}
                             min={1}
                             step={5}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+                            className="w-full bg-white/5 border border-[#E6E0E9] rounded-lg px-3 py-2 text-sm text-white"
                         />
                     </div>
                     <details className="group">
-                        <summary className="text-[10px] font-bold text-zinc-500 uppercase cursor-pointer hover:text-zinc-300 list-none">
+                        <summary className="text-[10px] font-bold text-[#49454F] uppercase cursor-pointer hover:text-zinc-300 list-none">
                             Avanzado (onzas)
                         </summary>
                         <div className="mt-2">
-                            <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Onzas</label>
+                            <label className="block text-[9px] font-bold text-[#49454F] uppercase mb-1">Onzas</label>
                             <input
                                 type="number"
                                 value={ozValue}
@@ -112,7 +112,7 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
                                 onFocus={() => setUseOz(true)}
                                 min={0.1}
                                 step={0.5}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+                                className="w-full bg-white/5 border border-[#E6E0E9] rounded-lg px-3 py-2 text-sm text-white"
                             />
                         </div>
                     </details>
@@ -125,13 +125,13 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
                     <div className="flex gap-1 p-1 bg-white/5 rounded-lg">
                         <button
                             onClick={() => setSizeStep('preset')}
-                            className={`flex-1 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${sizeStep === 'preset' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+                            className={`flex-1 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${sizeStep === 'preset' ? 'bg-white text-black' : 'text-[#49454F] hover:text-white'}`}
                         >
                             Tamaño
                         </button>
                         <button
                             onClick={() => setSizeStep('reference')}
-                            className={`flex-1 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${sizeStep === 'reference' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+                            className={`flex-1 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${sizeStep === 'reference' ? 'bg-white text-black' : 'text-[#49454F] hover:text-white'}`}
                         >
                             Referencia
                         </button>
@@ -145,7 +145,7 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
                                     <button
                                         key={p}
                                         onClick={() => setPreset(p)}
-                                        className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex flex-col items-center ${preset === p ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
+                                        className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex flex-col items-center ${preset === p ? 'bg-white text-black' : 'bg-white/5 text-[#49454F] hover:text-white'}`}
                                     >
                                         <span>{portionLabels[p]}</span>
                                         <span className="text-[9px] font-normal opacity-80">(~{estGrams}g)</span>
@@ -157,7 +157,7 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
 
                     {sizeStep === 'reference' && (
                         <div className="space-y-1">
-                            <label className="block text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Referencia visual</label>
+                            <label className="block text-[9px] font-bold text-[#49454F] uppercase tracking-widest">Referencia visual</label>
                             <div className="flex flex-col gap-1">
                                 {PORTION_REFERENCES.map(entry => {
                                     const ft = getFoodTypeForPortion(food);
@@ -167,12 +167,12 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
                                             key={entry.key}
                                             onClick={() => setRef(entry.key)}
                                             title={entry.description}
-                                            className={`text-left px-3 py-2 rounded-lg text-sm transition-all ${ref === entry.key ? 'bg-white text-black' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
+                                            className={`text-left px-3 py-2 rounded-lg text-sm transition-all ${ref === entry.key ? 'bg-white text-black' : 'bg-white/5 text-[#49454F] hover:text-white'}`}
                                         >
                                             <span className="block">{entry.label}</span>
-                                            <span className="text-[10px] text-zinc-500 font-mono">~{estGrams}g</span>
+                                            <span className="text-[10px] text-[#49454F] font-mono">~{estGrams}g</span>
                                             {entry.description && (
-                                                <span className="block text-[9px] text-zinc-500 mt-0.5">{entry.description}</span>
+                                                <span className="block text-[9px] text-[#49454F] mt-0.5">{entry.description}</span>
                                             )}
                                         </button>
                                     );
@@ -185,7 +185,7 @@ export const PortionSelector: React.FC<PortionSelectorProps> = ({ food, onConfir
 
             <div className="flex gap-2 pt-2">
                 {onCancel && (
-                    <button onClick={onCancel} className="flex-1 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white bg-white/5">
+                    <button onClick={onCancel} className="flex-1 py-2 rounded-lg text-sm font-bold text-[#49454F] hover:text-white bg-white/5">
                         Cancelar
                     </button>
                 )}

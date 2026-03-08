@@ -27,7 +27,7 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ e
     return (
         <div
             onClick={() => navigateTo('exercise-detail', { exerciseId: exercise.id })}
-            className="p-4 flex justify-between items-center cursor-pointer list-none bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-cyber-cyan/20 hover:border-cyber-cyan/50 transition-all group"
+            className="p-4 flex justify-between items-center cursor-pointer list-none bg-[#FEF7FF] hover:bg-slate-900/80 rounded-xl border border-cyber-cyan/20 hover:border-cyber-cyan/50 transition-all group"
         >
             <div className="min-w-0 flex-1">
                 <h3 className="font-bold text-white text-md group-hover:text-cyber-cyan/90 transition-colors">{exercise.name}</h3>
@@ -89,7 +89,7 @@ const ExerciseDatabaseView: React.FC = () => {
     }, [exerciseList]);
 
     return (
-        <div className="pt-[65px] tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
+        <div className="pt-[65px] tab-bar-safe-area animate-fade-in bg-[#FEF7FF] min-h-screen">
             <header className="flex items-center gap-4 mb-6 -mx-4 px-4">
                 <button onClick={handleBack} className="p-2 text-slate-300 hover:text-cyber-cyan/80 transition-colors">
                     <ArrowLeftIcon />
@@ -100,14 +100,14 @@ const ExerciseDatabaseView: React.FC = () => {
                 </div>
             </header>
 
-            <div className="bg-[#0a0a0a] py-4 -mx-4 px-4 border-b border-cyber-cyan/20 space-y-3">
+            <div className="bg-[#FEF7FF] py-4 -mx-4 px-4 border-b border-cyber-cyan/20 space-y-3">
                 <div className="relative">
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Buscar por nombre..."
-                        className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyber-cyan/50 focus:border-cyber-cyan/40"
+                        className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyber-cyan/50 focus:border-cyber-cyan/40"
                     />
                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-cyan/50" size={20} />
                 </div>
@@ -123,7 +123,7 @@ const ExerciseDatabaseView: React.FC = () => {
                                 className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-lg border transition-all ${
                                     patternFilter === p
                                         ? 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/50'
-                                        : 'bg-[#0a0a0a] text-slate-500 border-cyber-cyan/20 hover:border-cyber-cyan/40 hover:text-slate-300'
+                                        : 'bg-[#FEF7FF] text-slate-500 border-cyber-cyan/20 hover:border-cyber-cyan/40 hover:text-slate-300'
                                 }`}
                             >
                                 {p === 'All' ? 'Todos' : p}
@@ -136,20 +136,20 @@ const ExerciseDatabaseView: React.FC = () => {
                     <summary className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-400 cursor-pointer py-2 px-3 hover:text-cyber-cyan/80">
                         Filtros Avanzados
                     </summary>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-3 border-t border-white/5 bg-[#0d0d0d]">
-                        <select value={muscleFilter} onChange={e => setMuscleFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-3 border-t border-[#E6E0E9] bg-[#0d0d0d]">
+                        <select value={muscleFilter} onChange={e => setMuscleFilter(e.target.value)} className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
                             {filterOptions.muscles.map(cat => <option key={cat} value={cat}>{cat === 'All' ? 'Músculo Principal' : cat}</option>)}
                         </select>
-                        <select value={equipmentFilter} onChange={e => setEquipmentFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
+                        <select value={equipmentFilter} onChange={e => setEquipmentFilter(e.target.value)} className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
                             {filterOptions.equipment.map(eq => <option key={eq} value={eq}>{eq === 'All' ? 'Equipamiento' : eq}</option>)}
                         </select>
-                        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
+                        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
                             {filterOptions.categories.map(cat => <option key={cat} value={cat}>{cat === 'All' ? 'Categoría' : cat}</option>)}
                         </select>
-                        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
+                        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
                             {filterOptions.types.map(t => <option key={t} value={t}>{t === 'All' ? 'Tipo' : t}</option>)}
                         </select>
-                        <select value={chainFilter} onChange={e => setChainFilter(e.target.value)} className="w-full bg-[#0a0a0a] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
+                        <select value={chainFilter} onChange={e => setChainFilter(e.target.value)} className="w-full bg-[#FEF7FF] border border-cyber-cyan/20 rounded text-white text-sm py-1.5">
                             {filterOptions.chains.map(c => <option key={c} value={c}>{c === 'All' ? 'Cadena Muscular' : c}</option>)}
                         </select>
                     </div>

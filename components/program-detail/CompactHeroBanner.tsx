@@ -36,12 +36,12 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
     const modeLabel = program.mode === 'powerlifting' ? 'Powerlifting' : program.mode === 'powerbuilding' ? 'Powerbuilding' : 'Hipertrofia';
 
     return (
-        <div className="relative w-full shrink-0 min-h-[120px] sm:min-h-[128px]" style={{ backgroundColor: 'var(--md-sys-color-surface-container)' }}>
+        <div className="relative w-full shrink-0 min-h-[120px] sm:min-h-[128px]" style={{ backgroundColor: '#FEF7FF' }}>
             {/* Background opcional: imagen difuminada */}
             {program.coverImage && (
                 <>
                     <img src={program.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" style={{ filter: 'blur(24px)' }} />
-                    <div className="absolute inset-0 bg-[var(--md-sys-color-surface-container)]/85" />
+                    <div className="absolute inset-0 bg-[#FEF7FF]/85" />
                 </>
             )}
 

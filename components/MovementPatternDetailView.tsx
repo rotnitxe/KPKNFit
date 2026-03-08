@@ -52,7 +52,7 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
   }
 
   return (
-    <div className="tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
+    <div className="tab-bar-safe-area animate-fade-in bg-[#FEF7FF] min-h-screen">
       <header className="relative h-32 -mx-4 bg-gradient-to-b from-cyber-cyan/20 to-[#0a0a0a] border-b border-cyber-cyan/20">
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -62,13 +62,13 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
       </header>
 
       <div className="space-y-6 mt-6 px-4">
-        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
           <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Descripción</h3>
           <p className="text-slate-300 text-sm">{pattern.description}</p>
         </div>
 
         {(pattern.forceTypes?.length || 0) > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Tipos de Fuerza</h3>
             <div className="flex flex-wrap gap-2">
               {pattern.forceTypes.map((f, i) => (
@@ -79,14 +79,14 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
         )}
 
         {relatedMuscles.length > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Músculos principales</h3>
             <div className="space-y-2">
               {relatedMuscles.map(m => (
                 <div
                   key={m.id}
                   onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: m.id })}
-                  className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
+                  className="p-4 flex justify-between items-center rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
                 >
                   <span className="font-mono font-semibold text-slate-200 text-sm">{m.name}</span>
                   <ChevronRightIcon className="text-slate-500" size={16} />
@@ -97,14 +97,14 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
         )}
 
         {relatedJoints.length > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Articulaciones principales</h3>
             <div className="space-y-2">
               {relatedJoints.map(j => j && (
                 <div
                   key={j.id}
                   onClick={() => navigateTo('joint-detail', { jointId: j.id })}
-                  className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
+                  className="p-4 flex justify-between items-center rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
                 >
                   <span className="font-mono font-semibold text-slate-200 text-sm">{j.name}</span>
                   <ChevronRightIcon className="text-slate-500" size={16} />
@@ -115,7 +115,7 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
         )}
 
         {exampleExercises.length > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2">
               <DumbbellIcon size={14} /> Ejercicios de ejemplo
             </h3>
@@ -124,7 +124,7 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
                 <div
                   key={ex.id}
                   onClick={() => navigateTo('exercise-detail', { exerciseId: ex.id })}
-                  className="p-4 flex justify-between items-center rounded-xl bg-[#0a0a0a] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
+                  className="p-4 flex justify-between items-center rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
                 >
                   <span className="font-mono font-semibold text-slate-200 text-sm">{ex.name}</span>
                   <ChevronRightIcon className="text-slate-500" size={16} />

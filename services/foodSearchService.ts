@@ -52,7 +52,7 @@ function getCache(): Map<string, CacheEntry> {
             }
             return map;
         }
-    } catch (_) {}
+    } catch (_) { }
     return new Map();
 }
 
@@ -60,7 +60,7 @@ function setCache(map: Map<string, CacheEntry>) {
     try {
         const arr = Array.from(map.entries()).slice(-CACHE_MAX_ENTRIES);
         localStorage.setItem(CACHE_KEY, JSON.stringify(arr));
-    } catch (_) {}
+    } catch (_) { }
 }
 
 const OFF_MICRO_MAP: Record<string, { name: string; unit: string }> = {
@@ -512,15 +512,17 @@ function mergeAndDeduplicate(local: FoodItem[], off: FoodItem[], usda: FoodItem[
  */
 export async function searchFoods(
     query: string,
-    settings?: Settings | null
+    settings?: Settings | null,
+    brandHint?: string
 ): Promise<SearchFoodsResult> {
     ensurePreload();
     const q = normalizeQueryForSearch(query);
     if (!q) return { results: [], matchType: 'exact' };
     if (!hasSignificantQuery(q)) return { results: [], matchType: 'exact' };
 
+    const cacheKey = brandHint ? `${q}|${brandHint}` : q;
     const cache = getCache();
-    const cached = cache.get(q);
+    const cached = cache.get(cacheKey);
     if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
         return { results: cached.results, matchType: cached.matchType };
     }
@@ -528,15 +530,11 @@ export async function searchFoods(
     const usdaKey = settings?.apiKeys?.usda || '';
     const { results: local, matchType: localMatchType } = searchLocalWithMatch(q);
 
-    if (q.length < 4) {
-        const merged = filterByRelevance(mergeAndDeduplicate(local, [], []), q);
-        if (merged.length > 0) {
-            const entry: CacheEntry = { query: query.trim(), results: merged.slice(0, 15), matchType: localMatchType, ts: Date.now() };
-            cache.set(q, entry);
-            setCache(cache);
-            return { results: merged.slice(0, 15), matchType: localMatchType };
-        }
-    }
+    // Si la query es corta y local encontró algo, priorizamos local pero también tomamos API si hay red. 
+    // Wait, let's keep the existing logic structure but apply sorting at the end.
+
+    let merged: FoodItem[] = [];
+    let matchType: SearchMatchType = localMatchType;
 
     // 1. OFFLINE PRIMERO: bases integradas (instantáneo, sin red)
     const [offOffline, usdaOffline] = await Promise.all([
@@ -544,9 +542,8 @@ export async function searchFoods(
         searchUSDAOffline(q),
     ]);
 
-    let merged = mergeAndDeduplicate(local, offOffline, usdaOffline);
+    merged = mergeAndDeduplicate(local, offOffline, usdaOffline);
     merged = filterByRelevance(merged, q);
-    let matchType: SearchMatchType = localMatchType;
     if (merged.length === 0) matchType = 'partial';
 
     // 2. Solo si hay pocos resultados Y hay conexión: consultar APIs online (más lento)
@@ -586,8 +583,19 @@ export async function searchFoods(
         }
     }
 
+    if (brandHint) {
+        const lowerBrand = brandHint.toLowerCase();
+        merged.sort((a, b) => {
+            const aHasBrand = (a.brand || '').toLowerCase().includes(lowerBrand) || a.name.toLowerCase().includes(lowerBrand);
+            const bHasBrand = (b.brand || '').toLowerCase().includes(lowerBrand) || b.name.toLowerCase().includes(lowerBrand);
+            if (aHasBrand && !bHasBrand) return -1;
+            if (!aHasBrand && bHasBrand) return 1;
+            return 0;
+        });
+    }
+
     const entry: CacheEntry = { query: query.trim(), results: merged, matchType, ts: Date.now() };
-    cache.set(q, entry);
+    cache.set(cacheKey, entry);
     setCache(cache);
 
     return { results: merged, matchType };
@@ -597,8 +605,8 @@ let preloadStarted = false;
 function ensurePreload(): void {
     if (preloadStarted || typeof window === 'undefined') return;
     preloadStarted = true;
-    loadOFFOffline().catch(() => {});
-    loadUSDAOffline().catch(() => {});
+    loadOFFOffline().catch(() => { });
+    loadUSDAOffline().catch(() => { });
 }
 
 /** Preload de bases offline solo en la primera búsqueda (evita cargar al arranque) */

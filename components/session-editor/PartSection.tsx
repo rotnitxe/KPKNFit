@@ -37,7 +37,7 @@ const PartSection: React.FC<PartSectionProps> = ({
                     {showColorPicker && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowColorPicker(false)} />
-                            <div className="absolute top-6 left-0 z-50 bg-[#111] border border-white/10 rounded-lg p-2 flex gap-1.5">
+                            <div className="absolute top-6 left-0 z-50 bg-[#ECE6F0] border border-[#E6E0E9] rounded-lg p-2 flex gap-1.5">
                                 {PART_COLORS.map(c => (
                                     <button
                                         key={c}
@@ -60,7 +60,7 @@ const PartSection: React.FC<PartSectionProps> = ({
                         onBlur={() => setIsEditingName(false)}
                         onKeyDown={e => { if (e.key === 'Enter') setIsEditingName(false); }}
                         autoFocus
-                        className="text-xs font-bold uppercase tracking-wide text-[#999] bg-transparent border-b border-white/10 focus:border-[#00F0FF] outline-none py-0.5"
+                        className="text-xs font-bold uppercase tracking-wide text-[#999] bg-transparent border-b border-[#E6E0E9] focus:border-[#00F0FF] outline-none py-0.5"
                     />
                 ) : (
                     <button

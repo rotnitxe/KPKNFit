@@ -20,11 +20,11 @@ export const COOKING_METHOD_FACTORS: Record<CookingMethod, CookingFactor> = {
 /** Patrones de texto para detectar método de cocción (orden: más específicos primero) */
 export const COOKING_PATTERNS: { pattern: RegExp; method: CookingMethod }[] = [
     { pattern: /\bempanizado\b|\bempanado\b|\bapanado\b|\bbreaded\b/i, method: 'empanizado_frito' },
-    { pattern: /\ba la plancha\b|\ba la parrilla\b|\bparrilla\b|\bplancha\b|\bgrilled\b|\basado\b|\basada\b/i, method: 'plancha' },
-    { pattern: /\b(?:al )?horno\b|\bhornear\b|\bhorneado\b|\bhorneada\b|\bbaked\b/i, method: 'horno' },
+    { pattern: /\ba la plancha\b|\ba la parrilla\b|\bparrilla\b|\bplancha\b|\bgrilled\b|\basado\b|\basada\b|\bal carb[oó]n\b/i, method: 'plancha' },
+    { pattern: /\b(?:al )?horno\b|\bhornear\b|\bhorneado\b|\bhorneada\b|\bbaked\b|\bfrito al aire\b|\bairfryer\b|\bair\s?fryer\b/i, method: 'horno' },
     { pattern: /\bfrito\b|\bfreído\b|\bfreída\b|\bfried\b|\brevuelto\b|\brevuelta\b|\bsalteado\b|\bsalteada\b|\bsaltear\b/i, method: 'frito' },
     { pattern: /\b(?:al )?vapor\b|\bvapor\b|\bsteamed\b/i, method: 'cocido' },
-    { pattern: /\bcocido\b|\bcocida\b|\bhervido\b|\bhervida\b|\bboiled\b/i, method: 'cocido' },
+    { pattern: /\bcocido\b|\bcocida\b|\bhervido\b|\bhervida\b|\bboiled\b|\bsancochado\b|\bsancochada\b/i, method: 'cocido' },
     { pattern: /\bcrudo\b|\bcruda\b|\bfresco\b|\bfresca\b|\braw\b/i, method: 'crudo' },
 ];
 

@@ -23,10 +23,10 @@ const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React
         icon: <ZapIcon size={40} className="text-cyber-cyan" />,
         content: (
             <div className="space-y-4 text-center">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
+                <p className="text-[#1D1B20] text-sm font-medium leading-relaxed">
                     La app más completa para entrenar con inteligencia. Programa, trackea y optimiza tu rendimiento.
                 </p>
-                <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+                <p className="text-[10px]  text-[#49454F] uppercase tracking-[0.3em]">
                     Primera impresión
                 </p>
             </div>
@@ -38,10 +38,10 @@ const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React
         icon: <DumbbellIcon size={40} className="text-cyber-cyan" />,
         content: (
             <div className="space-y-4 text-left">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    <span className="text-white font-bold">Programas:</span> estructura, bloques, mesociclos. <span className="text-white font-bold">Sesiones:</span> 1RM, RPE/RIR, AMRAP, biseries.
+                <p className="text-[#1D1B20] text-sm font-medium leading-relaxed">
+                    <span className="text-[#1D1B20] font-bold">Programas:</span> estructura, bloques, mesociclos. <span className="text-[#1D1B20] font-bold">Sesiones:</span> 1RM, RPE/RIR, AMRAP, biseries.
                 </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">
+                <p className="text-[#1D1B20] text-sm leading-relaxed">
                     Batería muscular en tiempo real. Nutrición conectada. Todo el control que necesitas.
                 </p>
             </div>
@@ -53,10 +53,10 @@ const SLIDES: { id: string; title: string; icon: React.ReactNode; content: React
         icon: <UtensilsIcon size={40} className="text-cyber-cyan" />,
         content: (
             <div className="space-y-4 text-center">
-                <p className="text-zinc-300 text-sm font-medium leading-relaxed">
+                <p className="text-[#1D1B20] text-sm font-medium leading-relaxed">
                     Configura tu programa y plan nutricional. Puedes omitir y hacerlo después.
                 </p>
-                <p className="text-[10px] font-mono text-cyber-cyan/80 uppercase tracking-widest">
+                <p className="text-[10px]  text-cyber-cyan/80 uppercase tracking-widest">
                     Listo para entrenar
                 </p>
             </div>
@@ -94,26 +94,26 @@ export const WelcomeWizard: React.FC<WelcomeWizardProps> = ({ onComplete }) => {
                                 {current.icon}
                             </div>
                         </div>
-                        <h2 className="text-xl font-black text-white uppercase tracking-tight text-center mb-6 font-mono">
+                        <h2 className="text-xl font-black text-[#1D1B20] uppercase tracking-tight text-center mb-6 ">
                             {current.title}
                         </h2>
-                        <div className="bg-black/60 rounded-2xl border border-white/10 p-6">
+                        <div className="bg-black/60 rounded-2xl border border-[#E6E0E9] p-6">
                             {current.content}
                         </div>
                     </div>
                 </div>
 
                 {/* Navegación inferior */}
-                <div className="shrink-0 px-6 wizard-safe-footer pt-4 border-t border-white/5">
+                <div className="shrink-0 px-6 wizard-safe-footer pt-4 border-t border-[#E6E0E9]">
                     <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
                         <button
                             onClick={handlePrev}
                             disabled={slide === 0}
                             aria-label="Atrás"
-                            className={`p-3 rounded-xl border transition-all font-mono text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#0a0a0a] ${
+                            className={`p-3 rounded-xl border transition-all  text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#0a0a0a] ${
                                 slide === 0
-                                    ? 'border-white/5 text-zinc-600 cursor-not-allowed'
-                                    : 'border-white/20 text-zinc-400 hover:text-white hover:border-cyber-cyan/30'
+                                    ? 'border-[#E6E0E9] text-zinc-600 cursor-not-allowed'
+                                    : 'border-white/20 text-[#49454F] hover:text-[#1D1B20] hover:border-cyber-cyan/30'
                             }`}
                         >
                             <ChevronRightIcon size={18} className="inline-block mr-1 rotate-180" />

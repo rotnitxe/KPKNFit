@@ -1,77 +1,83 @@
 // components/SubTabBar.tsx
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useAppContext, useAppDispatch, useUIState, useUIDispatch } from '../contexts/AppContext';
-import { SearchIcon, DumbbellIcon, ClipboardListIcon, PlusIcon, UtensilsIcon, BrainIcon, TrendingUpIcon, BodyIcon, ActivityIcon, PencilIcon, ClipboardPlusIcon } from './icons';
+import {
+    SearchIcon, DumbbellIcon, ClipboardListIcon, PlusIcon,
+    UtensilsIcon, BrainIcon, TrendingUpIcon, BodyIcon,
+    ActivityIcon, SettingsIcon, WorkoutIcon
+} from './icons';
 
 interface SubTabBarProps {
-  context: 'kpkn' | 'food-database' | 'progress' | 'athlete-profile' | null;
-  isActive: boolean;
-  viewingExerciseId?: string | null;
-  onEditExercisePress?: () => void;
+    context: 'kpkn' | 'food-database' | 'progress' | 'athlete-profile' | null;
+    isActive: boolean;
+    viewingExerciseId?: string | null;
+    onEditExercisePress?: () => void;
 }
 
 const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExerciseId, onEditExercisePress }) => {
-    const { navigateTo, openCustomExerciseEditor, view } = useAppContext();
+    const { navigateTo, openCustomExerciseEditor, view, setIsStartWorkoutModalOpen, setIsNutritionLogModalOpen } = useAppContext();
     const { setExerciseToAddId } = useAppDispatch();
-    const { searchQuery, activeSubTabs } = useUIState();
-    const { setSearchQuery, setActiveSubTabs, setIsAddToPlaylistSheetOpen } = useUIDispatch();
-
-    const handleAddToPlaylist = () => {
-        if (viewingExerciseId) {
-            setExerciseToAddId(viewingExerciseId);
-            setIsAddToPlaylistSheetOpen(true);
-        }
-    };
-
-    const isDatabaseContext = context === 'kpkn' || context === 'food-database';
+    const { searchQuery, activeSubTabs, isLogActionSheetOpen } = useUIState();
+    const { setSearchQuery, setActiveSubTabs, setIsLogActionSheetOpen } = useUIDispatch();
 
     const activeSubTab = context ? (activeSubTabs[context] || (context === 'progress' ? 'cuerpo' : context === 'athlete-profile' ? 'vitals' : 'Explorar')) : null;
 
     if (!context) return null;
 
+    const handleAction = (callback: () => void) => {
+        callback();
+        setIsLogActionSheetOpen(false);
+    };
+
+    const renderKpknButtons = () => (
+        <div className="flex items-center justify-center w-full h-full px-6 gap-8 overflow-hidden">
+            <button
+                onClick={() => handleAction(() => {
+                    setIsNutritionLogModalOpen(true);
+                })}
+                className="flex items-center justify-center active:scale-95 transition-all group py-2"
+            >
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-amber-500 transition-colors">Comida</span>
+            </button>
+
+            <div className="w-[1px] h-3 bg-slate-400/20" />
+
+            <button
+                onClick={() => handleAction(() => navigateTo('settings'))}
+                className="flex items-center justify-center active:scale-95 transition-all group py-2"
+            >
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-900 transition-colors">Ajustes</span>
+            </button>
+
+            <div className="w-[1px] h-3 bg-slate-400/20" />
+
+            <button
+                onClick={() => handleAction(() => setIsStartWorkoutModalOpen(true))}
+                className="flex items-center justify-center active:scale-95 transition-all group py-2"
+            >
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-emerald-500 transition-colors">Sesión</span>
+            </button>
+        </div>
+    );
+
     const renderDatabaseControls = () => (
         <div className="flex items-center gap-1.5 w-full px-2 py-1">
-            {/* Search Box */}
             <div className="relative flex-grow">
                 <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={view === 'food-database' ? "Buscar alimento..." : "Buscar ejercicio, músculo, articulación..."}
-                    className="w-full h-9 bg-black/90 backdrop-blur-md border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-white/30 placeholder-white/30"
+                    placeholder={view === 'food-database' ? "Buscar alimento..." : "Buscar ejercicio..."}
+                    className="w-full h-9 bg-black/5 rounded-xl pl-9 pr-3 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-400"
                 />
-                <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40" size={12} />
+                <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             </div>
 
-            {/* Icon Actions */}
             <div className="flex gap-1">
-                {/* Toggle ejercicios: solo en food-database (KPKN ya no incluye alimentos, usar Nutrition) */}
-                {view === 'food-database' && (
-                    <button 
-                        onClick={() => navigateTo('kpkn')}
-                        className="p-2 rounded-lg bg-black/90 text-slate-400 hover:text-blue-400 border border-white/10 transition-all shrink-0"
-                        title="Ir a Ejercicios"
-                    >
-                        <DumbbellIcon size={16} />
-                    </button>
-                )}
-
-                {/* Context-Specific Actions */}
                 {view === 'kpkn' && (
-                     <button 
-                        onClick={() => { setActiveSubTabs(p => ({...p, 'kpkn': activeSubTab === 'Mis Listas' ? 'Explorar' : 'Mis Listas'})); }}
-                        className={`p-2 rounded-lg transition-all border border-white/10 shrink-0 ${activeSubTab === 'Mis Listas' ? 'bg-white text-black' : 'bg-black/90 text-slate-400 hover:text-white'}`}
-                        title="Mis Listas"
-                    >
-                        <ClipboardListIcon size={16} />
-                    </button>
-                )}
-                
-                {/* Add Button: solo en KPKN (crear ejercicio) */}
-                {view === 'kpkn' && (
-                    <button 
-                        onClick={openCustomExerciseEditor}
-                        className="p-2 rounded-lg bg-primary-color text-white shrink-0 hover:brightness-110 active:scale-95"
+                    <button
+                        onClick={() => openCustomExerciseEditor()}
+                        className="p-2 rounded-lg bg-blue-600 text-white active:scale-95 shadow-lg shadow-blue-500/20"
                         title="Crear Ejercicio"
                     >
                         <PlusIcon size={16} />
@@ -90,15 +96,15 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
         ];
 
         return (
-            <div className="grid grid-cols-2 gap-1.5 w-full px-2 py-1">
+            <div className="grid grid-cols-2 gap-1.5 w-full px-2">
                 {pTabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveSubTabs(p => ({ ...p, 'progress': tab.id }))}
-                        className={`h-8 flex items-center justify-center text-[10px] font-black uppercase rounded-lg transition-all duration-200 active:scale-95 gap-1.5 border border-white/5
-                                  ${activeSubTab === tab.id ? 'bg-white text-black' : 'bg-black/80 backdrop-blur-md hover:bg-white/10 text-white'}`}
+                        className={`h-8 flex items-center justify-center text-[9px] font-black uppercase rounded-lg transition-all gap-1.5
+                                  ${activeSubTab === tab.id ? 'bg-blue-600 text-white shadow-md' : 'bg-black/5 text-slate-500'}`}
                     >
-                        <tab.icon size={12}/>
+                        <tab.icon size={12} />
                         <span>{tab.label}</span>
                     </button>
                 ))}
@@ -108,24 +114,24 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
 
     const renderDefaultButtons = () => {
         let buttons: any[] = [];
-         if (context === 'athlete-profile') {
+        if (context === 'athlete-profile') {
             buttons = [
                 { id: 'vitals', label: 'Vitales', icon: ActivityIcon, action: () => setActiveSubTabs(p => ({ ...p, 'athlete-profile': 'vitals' })) },
                 { id: 'anatomy', label: 'Anatomía', icon: BrainIcon, action: () => setActiveSubTabs(p => ({ ...p, 'athlete-profile': 'anatomy' })) },
-                { id: 'nutrition', label: 'Nutrición', icon: UtensilsIcon, action: () => setActiveSubTabs(p => ({ ...p, 'athlete-profile': 'nutrition' })) }
+                { id: 'nutrition', label: 'Metas', icon: UtensilsIcon, action: () => setActiveSubTabs(p => ({ ...p, 'athlete-profile': 'nutrition' })) }
             ];
         }
 
         return (
-            <div className="w-full flex items-center justify-center px-2 py-1 gap-1.5">
+            <div className="w-full flex items-center justify-center px-2 gap-1.5">
                 {buttons.map((btn) => (
                     <button
                         key={btn.id}
                         onClick={btn.action}
-                        className={`h-8 flex-1 flex items-center justify-center text-[10px] font-black uppercase rounded-lg transition-all duration-200 active:scale-95 gap-1.5 border border-white/5
-                                  ${activeSubTab === btn.id ? 'bg-white text-black' : 'bg-black/80 backdrop-blur-md hover:bg-white/10 text-white'}`}
+                        className={`h-8 flex-1 flex items-center justify-center text-[9px] font-black uppercase rounded-lg transition-all gap-1.5
+                                  ${activeSubTab === btn.id ? 'bg-blue-600 text-white shadow-md' : 'bg-black/5 text-slate-500'}`}
                     >
-                        {btn.icon && <btn.icon size={12}/>}
+                        {btn.icon && <btn.icon size={12} />}
                         <span>{btn.label}</span>
                     </button>
                 ))}
@@ -133,15 +139,14 @@ const SubTabBar: React.FC<SubTabBarProps> = ({ context, isActive, viewingExercis
         );
     };
 
-    // Integrada en la TabBar: misma barra, sin separación
     return (
-        <div 
-            className={`w-full shrink-0 transition-all duration-200 ease-out flex flex-col justify-center items-center gap-1 py-1.5 border-b border-white/5
-                        ${isActive ? 'opacity-100 max-h-[80px]' : 'opacity-0 max-h-0 py-0 overflow-hidden pointer-events-none'}`}
-        >
-            {isDatabaseContext ? renderDatabaseControls() : 
-             context === 'progress' ? renderProgressButtons() : 
-             renderDefaultButtons()}
+        <div className="w-full flex flex-col justify-center items-center">
+            <div className={`w-full px-1 transition-all duration-500 delay-100 ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                {context === 'kpkn' && (view !== 'kpkn' || isLogActionSheetOpen) ? renderKpknButtons() :
+                    (context === 'kpkn' || context === 'food-database') ? renderDatabaseControls() :
+                        context === 'progress' ? renderProgressButtons() :
+                            renderDefaultButtons()}
+            </div>
         </div>
     );
 };

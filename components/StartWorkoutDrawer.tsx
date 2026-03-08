@@ -74,11 +74,12 @@ const StartWorkoutDrawer: React.FC<StartWorkoutDrawerProps> = ({ isOpen, onClose
 
     return (
       <div className="space-y-3 animate-fade-in p-5">
-        <h3 className="text-base font-mono font-black text-center mb-4 uppercase tracking-widest text-cyber-cyan/90">
-          Variante para "{sessionToStart.session.name}"
+        <h3 className="text-xs font-black text-center mb-6 uppercase tracking-[0.2em] text-[var(--md-sys-color-on-surface-variant)]">
+          Variante para <br />
+          <span className="text-xl text-[var(--md-sys-color-on-surface)]">"{sessionToStart.session.name}"</span>
         </h3>
         {variants.map(v => (
-          <Button key={v} onClick={() => handleVariantClick(v as any)} className="w-full !py-4 !text-[10px] font-mono font-black uppercase tracking-widest border border-cyber-cyan/30 bg-cyber-cyan/10 text-cyber-cyan hover:bg-cyber-cyan/20">
+          <Button key={v} onClick={() => handleVariantClick(v as any)} className="w-full !rounded-2xl !py-5 !text-[11px] font-black uppercase tracking-[0.2em] !bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)] shadow-sm active:scale-95 transition-all">
             Realizar Sesión {v}
           </Button>
         ))}
@@ -90,32 +91,34 @@ const StartWorkoutDrawer: React.FC<StartWorkoutDrawerProps> = ({ isOpen, onClose
     <div className="space-y-4 max-h-[65vh] overflow-y-auto p-5 custom-scrollbar">
       {programs.length === 0 && (
         <div className="text-center py-12">
-          <DumbbellIcon size={48} className="mx-auto text-slate-600 mb-4" />
-          <p className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest">No hay programas activos</p>
-          <Button onClick={() => { navigateTo('program-editor'); onClose(); }} className="mt-6 border border-cyber-cyan/30">Crear Nuevo Programa</Button>
+          <DumbbellIcon size={48} className="mx-auto text-[var(--md-sys-color-outline-variant)] mb-4" />
+          <p className="text-[10px] font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">No hay programas activos</p>
+          <Button onClick={() => { navigateTo('program-editor'); onClose(); }} className="mt-6 !rounded-xl !bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]">Crear Nuevo Programa</Button>
         </div>
       )}
       {programs.map(program => (
-        <details key={program.id} className="border border-cyber-cyan/20 rounded-xl overflow-hidden bg-[#0d0d0d]" open={programs.length === 1}>
-          <summary className="p-4 cursor-pointer list-none flex justify-between items-center">
-            <h3 className="font-mono font-black text-white text-sm uppercase tracking-widest">{program.name}</h3>
-            <ChevronRightIcon className="details-arrow transition-transform text-slate-500" />
+        <details key={program.id} className="border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-container-low)]" open={programs.length === 1}>
+          <summary className="p-4 cursor-pointer list-none flex justify-between items-center active:bg-black/5 transition-colors">
+            <h3 className="font-black text-[var(--md-sys-color-on-surface)] text-sm uppercase tracking-widest">{program.name}</h3>
+            <ChevronRightIcon className="details-arrow transition-transform text-[var(--md-sys-color-on-surface-variant)]" />
           </summary>
-          <div className="border-t border-cyber-cyan/10 p-3 space-y-2">
+          <div className="border-t border-[var(--md-sys-color-outline-variant)]/50 p-3 space-y-2 bg-[var(--md-sys-color-surface)]">
             {program.macrocycles.flatMap(macro =>
               (macro.blocks || []).flatMap(block =>
                 block.mesocycles.flatMap(meso =>
                   meso.weeks.map(week => (
                     <div key={week.id} className="mb-4 last:mb-0">
-                      <h4 className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest px-2 mb-2">{block.name} • {meso.name} • {week.name}</h4>
-                      <div className="space-y-1">
+                      <h4 className="text-[10px] font-black text-[var(--md-sys-color-on-surface-variant)]/40 uppercase tracking-[0.15em] px-2 mb-2">{block.name} • {meso.name} • {week.name}</h4>
+                      <div className="space-y-2">
                         {week.sessions.map(session => (
-                          <div key={session.id} onClick={() => handleSessionClick(session, program, week.variant)} className="flex justify-between items-center p-3 hover:bg-cyber-cyan/10 bg-[#0a0a0a] rounded-xl cursor-pointer transition-colors border border-cyber-cyan/10 hover:border-cyber-cyan/30 group">
+                          <div key={session.id} onClick={() => handleSessionClick(session, program, week.variant)} className="flex justify-between items-center p-4 hover:bg-[var(--md-sys-color-primary-container)]/30 bg-[var(--md-sys-color-surface-container)] rounded-2xl cursor-pointer transition-all border border-[var(--md-sys-color-outline-variant)] group active:scale-[0.98]">
                             <div className="min-w-0">
-                              <p className="text-slate-200 font-mono font-bold text-sm truncate group-hover:text-white">{session.name}</p>
-                              <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">{getSessionExerciseCount(session)} ejercicios</p>
+                              <p className="text-[var(--md-sys-color-on-surface)] font-black text-sm uppercase tracking-tight truncate">{session.name}</p>
+                              <p className="text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]/60 uppercase tracking-widest">{getSessionExerciseCount(session)} ejercicios</p>
                             </div>
-                            <PlayIcon size={20} className="text-cyber-cyan/70 group-hover:text-cyber-cyan" />
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shadow-sm">
+                              <PlayIcon size={20} />
+                            </div>
                           </div>
                         ))}
                       </div>

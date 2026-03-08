@@ -15,14 +15,14 @@ export const SwipeDeleteHintModal: React.FC<SwipeDeleteHintModalProps> = ({ onCl
     return (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={handleDismiss}>
             <div
-                className="bg-[#111] border border-white/10 rounded-2xl p-6 max-w-[320px] shadow-xl animate-modal-pop"
+                className="bg-[#ECE6F0] border border-[#E6E0E9] rounded-2xl p-6 max-w-[320px] shadow-xl animate-modal-pop"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex gap-4 items-start">
                     <img src="/CaupolicanAlerta.svg" alt="" className="w-14 h-14 object-contain flex-shrink-0" aria-hidden />
                     <div>
                         <h3 className="text-sm font-black text-white uppercase tracking-wider mb-2">¿Cómo eliminar una serie?</h3>
-                        <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+                        <p className="text-xs text-[#49454F] leading-relaxed mb-4">
                             Arrastra la serie hacia la derecha para eliminarla. Así ahorramos espacio y mantienes la interfaz limpia.
                         </p>
                         <button

@@ -110,13 +110,55 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
     let result = exerciseList;
 
     if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.name.toLowerCase().includes(q) ||
-          (e.equipment && e.equipment.toLowerCase().includes(q)) ||
-          (e.alias && e.alias.toLowerCase().includes(q))
-      );
+      const normalizeText = (text: string) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const rawSearch = normalizeText(search);
+      const searchTerms = rawSearch
+        .split(' ')
+        .filter(t => t.length > 0 && !['de', 'con', 'en', 'el', 'la', 'los', 'las', 'y', 'a', 'para'].includes(t));
+
+      const scoredResults = result.map((e) => {
+        const primaryMuscle = getPrimaryMuscleName(e);
+        const nameNorm = normalizeText(e.name);
+        const searchTarget = normalizeText(`${e.name} ${e.equipment || ''} ${e.alias || ''} ${primaryMuscle}`);
+
+        let score = 0;
+        let matches = 0;
+
+        // Exact matches
+        if (nameNorm.includes(rawSearch)) {
+          score += 100;
+          if (nameNorm === rawSearch) score += 50;
+          if (nameNorm.startsWith(rawSearch)) score += 20;
+        }
+
+        searchTerms.forEach(term => {
+          if (searchTarget.includes(term)) {
+            matches++;
+            score += 10;
+            // Prefix bonus
+            if (searchTarget.split(' ').some(w => w.startsWith(term))) score += 5;
+          } else {
+            // Forgiving typo match logic
+            if (term.length > 3) {
+              const partialMatch = searchTarget.split(' ').some(w => w.length > 3 && (w.includes(term.slice(0, -1)) || term.includes(w.slice(0, -1))));
+              if (partialMatch) {
+                matches += 0.5;
+                score += 3;
+              }
+            }
+          }
+        });
+
+        // Boost KPKN Top Tier exercises if they match
+        if (isTopTier(e.name) && matches > 0) score += 15;
+
+        return { exercise: e, score, matches, matchedTermsCount: matches };
+      }).filter(item => item.matches >= Math.max(1, searchTerms.length - 1.5) || item.score > 0);
+      // Need at least one match, or most terms matched if multiple typed.
+
+      result = scoredResults
+        .sort((a, b) => b.score - a.score)
+        .map(item => item.exercise);
     } else if (activeCategory) {
       if (activeCategory === 'KPKN Top Tier') result = result.filter((e) => isTopTier(e.name));
       else if (activeCategory === 'Baja Fatiga')

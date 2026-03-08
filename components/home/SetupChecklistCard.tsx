@@ -20,18 +20,18 @@ export const SetupChecklistCard: React.FC<SetupChecklistCardProps> = ({
     if (hasProgram && hasNutrition) return null;
 
     return (
-        <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02]">
-            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest flex-1">
+        <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#E6E0E9] bg-white/[0.02]">
+            <span className="text-[9px] font-bold text-[#49454F] uppercase tracking-widest flex-1">
                 Completa tu configuración
             </span>
             <div className="flex items-center gap-1">
                 {!hasProgram && (
-                    <button onClick={onProgramPress} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 hover:border-zinc-500/30 text-[8px] font-black text-zinc-400 uppercase tracking-widest transition-colors">
+                    <button onClick={onProgramPress} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#E6E0E9] hover:bg-white/5 hover:border-zinc-500/30 text-[8px] font-black text-[#49454F] uppercase tracking-widest transition-colors">
                         <DumbbellIcon size={10} /> Programa
                     </button>
                 )}
                 {!hasNutrition && (
-                    <button onClick={onNutritionPress} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 hover:border-zinc-500/30 text-[8px] font-black text-zinc-400 uppercase tracking-widest transition-colors">
+                    <button onClick={onNutritionPress} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#E6E0E9] hover:bg-white/5 hover:border-zinc-500/30 text-[8px] font-black text-[#49454F] uppercase tracking-widest transition-colors">
                         <UtensilsIcon size={10} /> Nutrición
                     </button>
                 )}

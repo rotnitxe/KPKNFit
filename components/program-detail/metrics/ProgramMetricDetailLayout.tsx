@@ -26,7 +26,7 @@ const ProgramMetricDetailLayout: React.FC<ProgramMetricDetailLayoutProps> = ({ t
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
-            <header className="shrink-0 sticky top-0 z-20 bg-black border-b border-white/5 px-4 py-3 flex items-center gap-3">
+            <header className="shrink-0 sticky top-0 z-20 bg-black border-b border-[#E6E0E9] px-4 py-3 flex items-center gap-3">
                 <button
                     onClick={handleBack}
                     className="p-1.5 -ml-1 rounded-lg text-[#8E8E93] hover:text-white hover:bg-white/5 transition-colors"

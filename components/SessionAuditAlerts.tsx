@@ -5,71 +5,71 @@ import { validateSessionVolume, normalizeMuscleGroup } from '../services/volumeC
 import { HYPERTROPHY_ROLE_MULTIPLIERS, FATIGUE_ROLE_MULTIPLIERS } from '../services/auge';
 
 interface SessionAuditAlertsProps {
-    sessionExercises: { name: string; sets: any[]; exerciseDbId?: string }[]; 
+    sessionExercises: { name: string; sets: any[]; exerciseDbId?: string }[];
     allExercisesDB: Exercise[];
     settings?: Settings | null;
 }
 
 const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercises, allExercisesDB, settings }) => {
-    
+
     const { sessionVolume, marginalFatigue } = useMemo(() => {
         const hyperMap: Record<string, number> = {};
         const fatigueMap: Record<string, number> = {};
-        
+
         if (!sessionExercises) return { sessionVolume: hyperMap, marginalFatigue: fatigueMap };
 
         sessionExercises.forEach(ex => {
-             const dbInfo = allExercisesDB.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
-             
-             if (dbInfo && dbInfo.involvedMuscles) {
-                 const setParam = ex.sets; 
-                 const setCount = Array.isArray(setParam) ? setParam.length : (typeof setParam === 'number' ? setParam : 0);
+            const dbInfo = allExercisesDB.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
 
-                 const exerciseHyperImpacts: Record<string, number> = {};
-                 const exerciseFatigueImpacts: Record<string, number> = {};
+            if (dbInfo && (dbInfo as any).involvedMuscles) {
+                const setParam = ex.sets;
+                const setCount = Array.isArray(setParam) ? setParam.length : (typeof setParam === 'number' ? setParam : 0);
 
-                 dbInfo.involvedMuscles.forEach((m) => {
-                     const parentMuscle = normalizeMuscleGroup(m.muscle);
-                     
-                     const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
-                     const fatigueFactor = FATIGUE_ROLE_MULTIPLIERS[m.role] ?? 0;
+                const exerciseHyperImpacts: Record<string, number> = {};
+                const exerciseFatigueImpacts: Record<string, number> = {};
 
-                     const hyperImpact = setCount * hyperFactor;
-                     const fatigueImpact = setCount * fatigueFactor;
+                ((dbInfo as any).involvedMuscles as any[]).forEach((m) => {
+                    const parentMuscle = normalizeMuscleGroup(m.muscle);
 
-                     if (!exerciseHyperImpacts[parentMuscle] || hyperImpact > exerciseHyperImpacts[parentMuscle]) {
-                         exerciseHyperImpacts[parentMuscle] = hyperImpact;
-                     }
-                     if (!exerciseFatigueImpacts[parentMuscle] || fatigueImpact > exerciseFatigueImpacts[parentMuscle]) {
-                         exerciseFatigueImpacts[parentMuscle] = fatigueImpact;
-                     }
-                 });
+                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
+                    const fatigueFactor = FATIGUE_ROLE_MULTIPLIERS[m.role] ?? 0;
 
-                 // Volcar impactos únicos
-                 Object.entries(exerciseHyperImpacts).forEach(([parent, vol]) => {
-                     if (!hyperMap[parent]) hyperMap[parent] = 0;
-                     hyperMap[parent] += vol;
-                 });
-                 Object.entries(exerciseFatigueImpacts).forEach(([parent, vol]) => {
-                     if (!fatigueMap[parent]) fatigueMap[parent] = 0;
-                     fatigueMap[parent] += vol;
-                 });
-             }
+                    const hyperImpact = setCount * hyperFactor;
+                    const fatigueImpact = setCount * fatigueFactor;
+
+                    if (!exerciseHyperImpacts[parentMuscle] || hyperImpact > exerciseHyperImpacts[parentMuscle]) {
+                        exerciseHyperImpacts[parentMuscle] = hyperImpact;
+                    }
+                    if (!exerciseFatigueImpacts[parentMuscle] || fatigueImpact > exerciseFatigueImpacts[parentMuscle]) {
+                        exerciseFatigueImpacts[parentMuscle] = fatigueImpact;
+                    }
+                });
+
+                // Volcar impactos únicos
+                Object.entries(exerciseHyperImpacts).forEach(([parent, vol]) => {
+                    if (!hyperMap[parent]) hyperMap[parent] = 0;
+                    hyperMap[parent] += vol;
+                });
+                Object.entries(exerciseFatigueImpacts).forEach(([parent, vol]) => {
+                    if (!fatigueMap[parent]) fatigueMap[parent] = 0;
+                    fatigueMap[parent] += vol;
+                });
+            }
         });
         return { sessionVolume: hyperMap, marginalFatigue: fatigueMap };
     }, [sessionExercises, allExercisesDB]);
 
     const alerts: { type: 'warning' | 'error' | 'info'; msg: string }[] = [];
-    
+
     const deficitRegime = settings?.calorieGoalObjective === 'deficit';
 
     // 2. Validar Techo de Sesión (Límite de Hipertrofia)
     (Object.entries(sessionVolume) as [string, number][]).forEach(([muscle, vol]) => {
         const check = validateSessionVolume(vol, muscle, { deficitRegime });
         if (!check.isValid && check.message) {
-             alerts.push({ type: 'error', msg: check.message });
+            alerts.push({ type: 'error', msg: check.message });
         } else if (check.isValid && check.message) {
-             alerts.push({ type: 'warning', msg: check.message });
+            alerts.push({ type: 'warning', msg: check.message });
         }
     });
 
@@ -78,9 +78,9 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
         const hyperVol = sessionVolume[muscle] || 0;
         // Si hay alta fatiga (equiv. a ~8+ series de estabilizador) pero nulo/bajo estímulo hipertrófico
         if (fatigueVol >= 2.5 && hyperVol <= 0.5) {
-            alerts.push({ 
-                type: 'info', 
-                msg: `🔋 Fatiga Marginal: Has acumulado mucho estrés isométrico en ${muscle} actuando como estabilizador. Su batería se ha drenado al trabajar en la sombra sin recibir estímulo de hipertrofia.` 
+            alerts.push({
+                type: 'info',
+                msg: `🔋 Fatiga Marginal: Has acumulado mucho estrés isométrico en ${muscle} actuando como estabilizador. Su batería se ha drenado al trabajar en la sombra sin recibir estímulo de hipertrofia.`
             });
         }
     });
@@ -90,15 +90,14 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
     return (
         <div className="mb-4 space-y-2 animate-in fade-in slide-in-from-top-2">
             {alerts.map((alert, i) => (
-                <div 
-                    key={i} 
-                    className={`flex items-start gap-3 p-3 rounded-xl border ${
-                        alert.type === 'error' 
-                        ? 'bg-red-500/10 border-red-500/20 text-red-200' 
+                <div
+                    key={i}
+                    className={`flex items-start gap-3 p-3 rounded-xl border ${alert.type === 'error'
+                        ? 'bg-red-500/10 border-red-500/20 text-red-200'
                         : alert.type === 'warning'
-                        ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-200'
-                        : 'bg-cyber-warning/10 border-cyber-warning/20 text-cyber-warning'
-                    }`}
+                            ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-200'
+                            : 'bg-cyber-warning/10 border-cyber-warning/20 text-cyber-warning'
+                        }`}
                 >
                     {alert.type === 'error' ? (
                         <AlertTriangleIcon size={16} className="text-red-500 shrink-0 mt-0.5" />

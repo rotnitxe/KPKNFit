@@ -43,20 +43,20 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
     return (
         <button
             onClick={onNavigate}
-            className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/20 transition-colors group"
+            className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4 text-left hover:border-white/20 transition-colors group"
         >
             <div className="flex justify-between items-center mb-3">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                     <UtensilsIcon size={10} className="text-emerald-400" /> Nutrición
                 </span>
-                <ChevronRightIcon size={14} className="text-zinc-500 group-hover:text-white transition-colors" />
+                <ChevronRightIcon size={14} className="text-[#49454F] group-hover:text-white transition-colors" />
             </div>
             {hasGoal ? (
                 <>
                     <div className="flex justify-between items-baseline mb-2">
                         <span className="text-lg font-black font-mono text-white">
                             {Math.round(dailyTotals.calories)}
-                            <span className="text-[10px] font-bold text-zinc-500 ml-1">/ {calorieGoal} kcal</span>
+                            <span className="text-[10px] font-bold text-[#49454F] ml-1">/ {calorieGoal} kcal</span>
                         </span>
                     </div>
                     <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-3">
@@ -88,7 +88,7 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
                                     {Math.round(dailyTotals.protein)}
                                 </span>
                             </div>
-                            <span className="text-[8px] text-zinc-500 font-bold mt-0.5">P</span>
+                            <span className="text-[8px] text-[#49454F] font-bold mt-0.5">P</span>
                         </div>
                         <div className="flex flex-col items-center">
                             <div className="w-10 h-10 relative">
@@ -109,7 +109,7 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
                                     {Math.round(dailyTotals.carbs)}
                                 </span>
                             </div>
-                            <span className="text-[8px] text-zinc-500 font-bold mt-0.5">C</span>
+                            <span className="text-[8px] text-[#49454F] font-bold mt-0.5">C</span>
                         </div>
                         <div className="flex flex-col items-center">
                             <div className="w-10 h-10 relative">
@@ -130,12 +130,12 @@ export const MiniNutritionWidget: React.FC<{ onNavigate: () => void }> = ({ onNa
                                     {Math.round(dailyTotals.fats)}
                                 </span>
                             </div>
-                            <span className="text-[8px] text-zinc-500 font-bold mt-0.5">G</span>
+                            <span className="text-[8px] text-[#49454F] font-bold mt-0.5">G</span>
                         </div>
                     </div>
                 </>
             ) : (
-                <p className="text-[10px] text-zinc-500 font-mono">Configura tu plan en Nutrición</p>
+                <p className="text-[10px] text-[#49454F] font-mono">Configura tu plan en Nutrición</p>
             )}
         </button>
     );

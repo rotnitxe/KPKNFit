@@ -54,21 +54,21 @@ export const RelativeStrengthWidget: React.FC<{
 
     if (!hasAny) {
         return (
-            <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4">
+            <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4">
                 <div className="flex justify-between items-center mb-3">
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                         <ActivityIcon size={10} className="text-emerald-400" /> Fuerza Relativa
                     </span>
                 </div>
-                <p className="text-[10px] text-zinc-500 font-mono">Sin registros de básicos</p>
+                <p className="text-[10px] text-[#49454F] font-mono">Sin registros de básicos</p>
             </div>
         );
     }
 
     return (
-        <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4">
+        <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4">
             <div className="flex justify-between items-center mb-3">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                     <ActivityIcon size={10} className="text-emerald-400" /> Fuerza Relativa
                 </span>
                 {bodyWeight > 0 && (
@@ -79,17 +79,17 @@ export const RelativeStrengthWidget: React.FC<{
                 {basics.map(({ label, rm, name }) => {
                     const ratio = bodyWeight > 0 && rm > 0 ? (rm / bodyWeight).toFixed(2) : null;
                     return (
-                        <div key={label} className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/30 border border-white/5">
+                        <div key={label} className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/30 border border-[#E6E0E9]">
                             <div className="min-w-0">
                                 <span className="text-[10px] font-bold text-white">{label}</span>
                                 {name && rm === 0 ? null : name && (
-                                    <p className="text-[8px] text-zinc-500 truncate">{name}</p>
+                                    <p className="text-[8px] text-[#49454F] truncate">{name}</p>
                                 )}
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                                 <span className="text-sm font-black text-emerald-400">{rm > 0 ? `${Math.round(rm)} kg` : '—'}</span>
                                 {ratio != null && rm > 0 && (
-                                    <span className="text-[9px] font-mono text-zinc-500">{ratio}x BW</span>
+                                    <span className="text-[9px] font-mono text-[#49454F]">{ratio}x BW</span>
                                 )}
                             </div>
                         </div>

@@ -180,7 +180,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
     if (!isActive) {
         return (
-            <div className="h-full flex items-center justify-center p-8" style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
+            <div className="h-full flex items-center justify-center p-8" style={{ backgroundColor: '#FEF7FF' }}>
                 <div className="text-center">
                     <DumbbellIcon size={32} className="mx-auto mb-4 opacity-30" style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
                     <h3 className="text-label-lg font-black uppercase tracking-[0.2em]" style={{ color: 'var(--md-sys-color-on-surface)' }}>Programa Inactivo</h3>
@@ -191,7 +191,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     }
 
     return (
-        <div style={{ backgroundColor: 'var(--md-sys-color-background)' }}>
+        <div style={{ backgroundColor: '#FEF7FF' }}>
             <div className="px-6 py-6 pb-[max(95px,calc(80px+env(safe-area-inset-bottom,0px)+12px))] space-y-10">
                 <div className="text-label-sm font-black uppercase tracking-[0.2em] opacity-50" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perspectiva Global</div>
                 {/* ── Body Map ── */}

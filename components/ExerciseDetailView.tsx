@@ -22,7 +22,7 @@ const StarRating: React.FC<{ rating: number; onSetRating?: (rating: number) => v
 );
 
 const TagWithTooltip: React.FC<{ label: string }> = ({ label }) => (
-    <div className="flex items-center px-2 py-1 bg-[#0a0a0a] border border-cyber-cyan/20 text-slate-300 rounded-lg">
+    <div className="flex items-center px-2 py-1 bg-[#FEF7FF] border border-cyber-cyan/20 text-slate-300 rounded-lg">
         <span className="text-[10px] font-mono font-semibold">{label}</span>
         <InfoTooltip term={label} />
     </div>
@@ -30,7 +30,7 @@ const TagWithTooltip: React.FC<{ label: string }> = ({ label }) => (
 
 const IndicatorBar: React.FC<{ label: string; value: number; max?: number; details?: string }> = ({ label, value, max = 10, details }) => {
     const percentage = (value / max) * 100;
-    const hue = (value/max * 120); // 0=red(0), 10=green(120)
+    const hue = (value / max * 120); // 0=red(0), 10=green(120)
     const reversedHue = 120 - (value / max * 120); // 10=red(0), 1=green(108)
 
     return (
@@ -54,58 +54,58 @@ export const KinesiologyAnalysis: React.FC<{ exercise: ExerciseMuscleInfo }> = (
     if (!hasAnyData) return null;
 
     return (
-        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
-             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><BrainIcon size={14} /> Análisis Kinesiológico</h3>
-             <div className="space-y-4">
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
+            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><BrainIcon size={14} /> Análisis Kinesiológico</h3>
+            <div className="space-y-4">
                 {resistanceProfile && (
-                    <div className="bg-[#0d0d0d] p-3 rounded-lg border border-white/5">
+                    <div className="bg-[#0d0d0d] p-3 rounded-lg border border-[#E6E0E9]">
                         <h4 className="font-semibold text-primary-color">Perfil de Resistencia</h4>
                         <p className="text-sm text-slate-300">Tensión Máxima: <span className="font-bold capitalize">{resistanceProfile.peakTensionPoint}</span></p>
                     </div>
                 )}
                 {commonMistakes && commonMistakes.length > 0 && (
-                     <details className="rounded-xl border border-white/5 overflow-hidden">
-                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Faltas Técnicas Comunes</h4><ChevronRightIcon className="details-arrow"/></summary>
-                        <ul className="p-3 border-t border-white/5 list-disc list-inside space-y-2 text-sm text-slate-300">
+                    <details className="rounded-xl border border-[#E6E0E9] overflow-hidden">
+                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Faltas Técnicas Comunes</h4><ChevronRightIcon className="details-arrow" /></summary>
+                        <ul className="p-3 border-t border-[#E6E0E9] list-disc list-inside space-y-2 text-sm text-slate-300">
                             {commonMistakes.map((item, i) => <li key={i}><strong className="text-slate-300">{item.mistake}:</strong> <span className="text-slate-400">{item.correction}</span></li>)}
                         </ul>
                     </details>
                 )}
-                 {anatomicalConsiderations && anatomicalConsiderations.length > 0 && (
-                     <details className="rounded-xl border border-white/5 overflow-hidden">
-                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Consideraciones Anatómicas</h4><ChevronRightIcon className="details-arrow"/></summary>
-                        <ul className="p-3 border-t border-white/5 list-disc list-inside space-y-2 text-sm text-slate-300">
+                {anatomicalConsiderations && anatomicalConsiderations.length > 0 && (
+                    <details className="rounded-xl border border-[#E6E0E9] overflow-hidden">
+                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Consideraciones Anatómicas</h4><ChevronRightIcon className="details-arrow" /></summary>
+                        <ul className="p-3 border-t border-[#E6E0E9] list-disc list-inside space-y-2 text-sm text-slate-300">
                             {anatomicalConsiderations.map((item, i) => <li key={i}><strong className="text-slate-300">{item.trait}:</strong> <span className="text-slate-400">{item.advice}</span></li>)}
                         </ul>
                     </details>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {progressions && progressions.length > 0 && (
-                        <details className="rounded-xl border border-white/5 overflow-hidden">
-                            <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-green-400 flex items-center gap-2"><ArrowUpIcon size={12}/> Progresiones</h4><ChevronRightIcon className="details-arrow"/></summary>
-                            <ul className="p-3 border-t border-white/5 list-disc list-inside space-y-2 text-sm text-slate-300">
+                        <details className="rounded-xl border border-[#E6E0E9] overflow-hidden">
+                            <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-green-400 flex items-center gap-2"><ArrowUpIcon size={12} /> Progresiones</h4><ChevronRightIcon className="details-arrow" /></summary>
+                            <ul className="p-3 border-t border-[#E6E0E9] list-disc list-inside space-y-2 text-sm text-slate-300">
                                 {progressions.map((item, i) => <li key={i}><strong className="text-slate-300">{item.name}:</strong> <span className="text-slate-400">{item.description}</span></li>)}
                             </ul>
                         </details>
                     )}
-                     {regressions && regressions.length > 0 && (
-                        <details className="rounded-xl border border-white/5 overflow-hidden">
-                            <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-yellow-400 flex items-center gap-2"><ArrowDownIcon size={12}/> Regresiones</h4><ChevronRightIcon className="details-arrow"/></summary>
-                            <ul className="p-3 border-t border-white/5 list-disc list-inside space-y-2 text-sm text-slate-300">
+                    {regressions && regressions.length > 0 && (
+                        <details className="rounded-xl border border-[#E6E0E9] overflow-hidden">
+                            <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-yellow-400 flex items-center gap-2"><ArrowDownIcon size={12} /> Regresiones</h4><ChevronRightIcon className="details-arrow" /></summary>
+                            <ul className="p-3 border-t border-[#E6E0E9] list-disc list-inside space-y-2 text-sm text-slate-300">
                                 {regressions.map((item, i) => <li key={i}><strong className="text-slate-300">{item.name}:</strong> <span className="text-slate-400">{item.description}</span></li>)}
                             </ul>
                         </details>
                     )}
                 </div>
-                 {periodizationNotes && periodizationNotes.length > 0 && (
-                     <details className="rounded-xl border border-white/5 overflow-hidden">
-                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Contexto de Programa</h4><ChevronRightIcon className="details-arrow"/></summary>
-                        <div className="p-3 border-t border-white/5 space-y-3 text-sm text-slate-300">
+                {periodizationNotes && periodizationNotes.length > 0 && (
+                    <details className="rounded-xl border border-[#E6E0E9] overflow-hidden">
+                        <summary className="p-3 cursor-pointer flex justify-between items-center list-none bg-[#0d0d0d]"><h4 className="text-[10px] font-mono font-bold text-white">Contexto de Programa</h4><ChevronRightIcon className="details-arrow" /></summary>
+                        <div className="p-3 border-t border-[#E6E0E9] space-y-3 text-sm text-slate-300">
                             {periodizationNotes.map((item, i) => (
                                 <div key={i}>
                                     <div className="flex justify-between items-center">
                                         <h5 className="font-bold text-primary-color capitalize">{item.phase}</h5>
-                                        <StarRating rating={item.suitability} colorClass="text-primary-color"/>
+                                        <StarRating rating={item.suitability} colorClass="text-primary-color" />
                                     </div>
                                     <p className="text-xs text-slate-400 italic">"{item.notes}"</p>
                                 </div>
@@ -113,7 +113,7 @@ export const KinesiologyAnalysis: React.FC<{ exercise: ExerciseMuscleInfo }> = (
                         </div>
                     </details>
                 )}
-             </div>
+            </div>
         </div>
     )
 };
@@ -138,11 +138,11 @@ const ImageVideoGallery: React.FC<{
         onUpdate([...images, result], videos);
         setIsLoading(null);
     };
-    
+
     const handleSelectImageFromSearch = (imageUrl: string) => {
         onUpdate([...images, imageUrl], videos);
     };
-    
+
     const handleSearchVideos = async () => {
         setIsLoading('webVideo');
         const webVideos = await searchWebForExerciseVideos(exerciseName, settings);
@@ -159,7 +159,7 @@ const ImageVideoGallery: React.FC<{
             reader.readAsDataURL(e.target.files[0]);
         }
     };
-    
+
     const addVideoUrl = () => {
         const url = prompt("Pega la URL del video (YouTube, Instagram, etc.):");
         if (url) {
@@ -177,41 +177,41 @@ const ImageVideoGallery: React.FC<{
                 onSelectImage={handleSelectImageFromSearch}
                 initialQuery={exerciseName}
             />
-            <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+            <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                 <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Galería Multimedia</h3>
                 <div className="relative">
                     <div className="flex overflow-x-auto snap-x snap-mandatory space-x-3 pb-3 hide-scrollbar">
                         {images.map((img, i) => (
                             <div key={`img-${i}`} className="snap-center flex-shrink-0 w-4/5 sm:w-3/5">
-                                 <img src={img} alt={`${exerciseName} ${i+1}`} className="aspect-video w-full object-cover rounded-lg shadow-md" />
+                                <img src={img} alt={`${exerciseName} ${i + 1}`} className="aspect-video w-full object-cover rounded-lg shadow-md" />
                             </div>
                         ))}
                         {videos.map((vid, i) => (
-                             <div key={`vid-${i}`} className="snap-center flex-shrink-0 w-4/5 sm:w-3/5">
+                            <div key={`vid-${i}`} className="snap-center flex-shrink-0 w-4/5 sm:w-3/5">
                                 <button type="button" onClick={() => import('../utils/inAppBrowser').then(m => m.openInAppBrowser(vid))} className="aspect-video bg-black rounded-lg flex items-center justify-center text-white w-full h-full shadow-md hover:opacity-90">
                                     <VideoIcon size={32} />
                                 </button>
                             </div>
                         ))}
                         {!hasMedia && (
-                            <div className="flex-shrink-0 w-full text-center text-slate-500 text-sm font-mono py-8 bg-[#0d0d0d] rounded-lg border border-white/5">
-                                No hay imágenes ni videos. <br/> ¡Añade algunos!
+                            <div className="flex-shrink-0 w-full text-center text-slate-500 text-sm font-mono py-8 bg-[#0d0d0d] rounded-lg border border-[#E6E0E9]">
+                                No hay imágenes ni videos. <br /> ¡Añade algunos!
                             </div>
                         )}
                     </div>
-                     {hasMedia && (
+                    {hasMedia && (
                         <div className="absolute top-0 right-0 bottom-3 w-8 bg-gradient-to-l from-black/50 to-transparent pointer-events-none flex items-center justify-center">
-                            <ChevronRightIcon className="text-white/50 animate-pulse"/>
+                            <ChevronRightIcon className="text-white/50 animate-pulse" />
                         </div>
                     )}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[10px] font-mono mt-4">
-                    <button onClick={() => fileInputRef.current?.click()} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors"><UploadIcon size={12} className="inline mr-1"/> Subir</button>
-                    <input type="file" ref={fileInputRef} onChange={handleUpload} accept="image/*" className="hidden"/>
-                    <button onClick={handleGenerateImage} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><SparklesIcon size={12} className="inline mr-1"/> Generar IA</button>
-                    <button onClick={() => setIsImageSearchOpen(true)} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><ImageIcon size={12} className="inline mr-1"/> Buscar Imagen</button>
-                    <button onClick={addVideoUrl} disabled={!!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><PlusIcon size={12} className="inline mr-1"/> Video URL</button>
-                    <button onClick={handleSearchVideos} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><VideoIcon size={12} className="inline mr-1"/> Buscar Video</button>
+                    <button onClick={() => fileInputRef.current?.click()} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors"><UploadIcon size={12} className="inline mr-1" /> Subir</button>
+                    <input type="file" ref={fileInputRef} onChange={handleUpload} accept="image/*" className="hidden" />
+                    <button onClick={handleGenerateImage} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><SparklesIcon size={12} className="inline mr-1" /> Generar IA</button>
+                    <button onClick={() => setIsImageSearchOpen(true)} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><ImageIcon size={12} className="inline mr-1" /> Buscar Imagen</button>
+                    <button onClick={addVideoUrl} disabled={!!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><PlusIcon size={12} className="inline mr-1" /> Video URL</button>
+                    <button onClick={handleSearchVideos} disabled={!isOnline || !!isLoading} className="py-2 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0d0d0d] text-slate-300 hover:border-cyber-cyan/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><VideoIcon size={12} className="inline mr-1" /> Buscar Video</button>
                 </div>
             </div>
         </>
@@ -222,7 +222,7 @@ const RecommendedMobility: React.FC<{ exerciseNames?: string[] }> = ({ exerciseN
     if (!exerciseNames || exerciseNames.length === 0) return null;
 
     return (
-        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Movilidad Recomendada (Pre-sesión)</h3>
             <ul className="list-disc list-inside space-y-1 text-slate-300 text-sm">
                 {exerciseNames.map((name, i) => (
@@ -248,7 +248,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     const { setCurrentBackgroundOverride, addOrUpdateCustomExercise, openCustomExerciseEditor } = useAppDispatch();
     const [exercise, setExercise] = useState<ExerciseMuscleInfo | null>(null);
     const [isLoading, setIsLoading] = useState({ analysis: false, community: false });
-    
+
     useEffect(() => {
         const foundExercise = exerciseList.find(e => e.id === exerciseId);
         if (foundExercise) {
@@ -259,10 +259,10 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     const registeredVariants = useMemo(() => {
         if (!exercise) return [];
         const variants = new Set<string>();
-        programs.forEach(p => 
-            p.macrocycles.flatMap(m => (m.blocks || []).flatMap(b => b.mesocycles)).forEach(meso => 
-                meso.weeks.forEach(w => 
-                    w.sessions.forEach(s => 
+        programs.forEach(p =>
+            p.macrocycles.flatMap(m => (m.blocks || []).flatMap(b => b.mesocycles)).forEach(meso =>
+                meso.weeks.forEach(w =>
+                    w.sessions.forEach(s =>
                         s.exercises.forEach(ex => {
                             if (ex.exerciseDbId === exercise.id && ex.variantName) {
                                 variants.add(ex.variantName);
@@ -281,7 +281,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
         if (mainImage) {
             setCurrentBackgroundOverride({ type: 'image', value: mainImage, style: { blur: 16, brightness: 0.4 } });
         } else {
-             setCurrentBackgroundOverride(undefined);
+            setCurrentBackgroundOverride(undefined);
         }
         return () => setCurrentBackgroundOverride(undefined);
     }, [exercise, setCurrentBackgroundOverride]);
@@ -293,7 +293,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
             if (!foundExercise.aiCoachAnalysis) fetchAICoachAnalysis(foundExercise);
             if (!foundExercise.communityOpinion) fetchCommunityOpinion(foundExercise);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [exerciseId, isOnline]); // Fetch AI data only when ID changes
 
     const updateExerciseState = (updatedData: Partial<ExerciseMuscleInfo>) => {
@@ -314,7 +314,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
             setIsLoading(prev => ({ ...prev, analysis: false }));
         }
     };
-    
+
     const fetchCommunityOpinion = async (ex: ExerciseMuscleInfo) => {
         setIsLoading(prev => ({ ...prev, community: true }));
         try {
@@ -345,20 +345,20 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
     }
 
     return (
-        <div className="tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
+        <div className="tab-bar-safe-area animate-fade-in bg-[#FEF7FF] min-h-screen">
             <header className="relative h-48 -mx-4 border-b border-cyber-cyan/20">
                 <div className="absolute bottom-4 left-4 right-4 z-10">
-                     <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-                         <button onClick={handleFavoriteToggle} aria-label="Marcar como favorito">
-                            <StarIcon size={28} filled={exercise.isFavorite} className={exercise.isFavorite ? 'text-yellow-400' : 'text-slate-600 hover:text-yellow-400'}/>
-                         </button>
-                         {exercise.name}
+                    <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+                        <button onClick={handleFavoriteToggle} aria-label="Marcar como favorito">
+                            <StarIcon size={28} filled={exercise.isFavorite} className={exercise.isFavorite ? 'text-yellow-400' : 'text-slate-600 hover:text-yellow-400'} />
+                        </button>
+                        {exercise.name}
                     </h1>
                     {exercise.alias && <p className="text-slate-400 text-sm ml-10 italic">{exercise.alias}</p>}
                     <p className="text-slate-300 ml-10 mt-1">{primaryMuscle}</p>
                 </div>
             </header>
-            
+
             <div className="space-y-6 mt-6 px-4">
                 <div className="flex flex-wrap gap-2">
                     <TagWithTooltip label={exercise.category} />
@@ -366,15 +366,15 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                     <TagWithTooltip label={exercise.equipment} />
                     {exercise.force && <TagWithTooltip label={exercise.force} />}
                 </div>
-                
-                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                     <label className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2 block">Tu Calificación</label>
                     <StarRating rating={exercise.userRating || 0} onSetRating={handleUserRating} />
                 </div>
 
                 {/* AUGE interactivo */}
                 {(exercise.efc != null || exercise.cnc != null || exercise.ssc != null) && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">1 Serie Efectiva = Fatiga AUGE</h3>
                         <div className="grid grid-cols-3 gap-4">
                             {exercise.efc != null && (
@@ -409,14 +409,14 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 )}
 
                 {exercise.functionalTransfer && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Transferencia Funcional</h3>
                         <p className="text-sm text-slate-300">{exercise.functionalTransfer}</p>
                     </div>
                 )}
 
-                {((exercise.injuryRisk?.details || exercise.commonMistakes?.length) ?? 0) > 0 && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                {(!!exercise.injuryRisk?.details || (exercise.commonMistakes?.length ?? 0) > 0) && (
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-red-400/90 mb-2">Malestares / Precauciones</h3>
                         {exercise.injuryRisk?.details && <p className="text-sm text-slate-300 mb-2">{exercise.injuryRisk.details}</p>}
                         {exercise.commonMistakes && exercise.commonMistakes.length > 0 && (
@@ -428,7 +428,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 )}
 
                 {similarExercises.length > 0 && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Ejercicios Similares</h3>
                         <div className="flex flex-wrap gap-2">
                             {similarExercises.map(ex => (
@@ -441,7 +441,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                 )}
 
                 {((exercise.progressions?.length || 0) + (exercise.regressions?.length || 0)) > 0 && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Ejercicios que Mejoran este Movimiento</h3>
                         <div className="space-y-2 text-sm">
                             {exercise.progressions?.map((p, i) => (
@@ -459,24 +459,24 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                         </div>
                     </div>
                 )}
-                
+
                 <ImageVideoGallery images={exercise.images || []} videos={exercise.videos || []} exerciseName={exercise.name} isOnline={isOnline} onUpdate={handleMediaUpdate} />
 
-                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
-                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Descripción</h3>
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Descripción</h3>
                     <p className="whitespace-pre-wrap text-slate-300 text-sm">{exercise.description}</p>
                 </div>
-                
+
                 {registeredVariants.length > 0 && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
-                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Variantes Registradas</h3>
-                         <ul className="list-disc list-inside text-sm text-slate-300">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Variantes Registradas</h3>
+                        <ul className="list-disc list-inside text-sm text-slate-300">
                             {registeredVariants.map(variant => <li key={variant}>{variant}</li>)}
-                         </ul>
+                        </ul>
                     </div>
                 )}
 
-                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 text-center">Análisis de Rendimiento</h3>
                     <div className="space-y-4">
                         <div className="space-y-4">
@@ -487,7 +487,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                         </div>
 
                         {((exercise.averageRestSeconds != null) || exercise.coreInvolvement || (exercise.bracingRecommended != null) || (exercise.strapsRecommended != null) || (exercise.bodybuildingScore != null)) && (
-                            <div className="pt-4 border-t border-white/5">
+                            <div className="pt-4 border-t border-[#E6E0E9]">
                                 <p className="text-[10px] font-mono text-slate-500 uppercase mb-2">Detalle operativo</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     {exercise.averageRestSeconds != null && (
@@ -526,14 +526,14 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                     </div>
                 </div>
 
-                
-                
+
+
                 <KinesiologyAnalysis exercise={exercise} />
 
                 {exercise.recommendedMobility && exercise.recommendedMobility.length > 0 && <RecommendedMobility exerciseNames={exercise.recommendedMobility} />}
-                
-                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
-                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><SparklesIcon size={14}/> Análisis del Coach IA</h3>
+
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><SparklesIcon size={14} /> Análisis del Coach IA</h3>
                     {isLoading.analysis ? <SkeletonLoader lines={5} /> : exercise.aiCoachAnalysis ? (
                         <div className="space-y-4 text-sm">
                             <p className="italic text-slate-300">"{exercise.aiCoachAnalysis.summary}"</p>
@@ -544,7 +544,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                                 </ul>
                             </div>
                             <div>
-                                 <h4 className="font-semibold text-yellow-400 mb-1">Contras:</h4>
+                                <h4 className="font-semibold text-yellow-400 mb-1">Contras:</h4>
                                 <ul className="list-disc list-inside text-slate-300">
                                     {exercise.aiCoachAnalysis.cons.map((con, i) => <li key={i}>{con}</li>)}
                                 </ul>
@@ -553,18 +553,18 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
                     ) : <p className="text-sm text-slate-500">No hay análisis disponible.</p>}
                 </div>
 
-                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
-                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><UsersIcon size={14}/> Opinión de la Comunidad</h3>
-                     {isLoading.community ? <SkeletonLoader lines={3} /> : exercise.communityOpinion && exercise.communityOpinion.length > 0 ? (
-                         <ul className="list-disc list-inside space-y-2 text-sm text-slate-300">
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
+                    <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><UsersIcon size={14} /> Opinión de la Comunidad</h3>
+                    {isLoading.community ? <SkeletonLoader lines={3} /> : exercise.communityOpinion && exercise.communityOpinion.length > 0 ? (
+                        <ul className="list-disc list-inside space-y-2 text-sm text-slate-300">
                             {exercise.communityOpinion.map((op, i) => <li key={i}>{op}</li>)}
                         </ul>
-                     ) : <p className="text-sm text-slate-500">No hay opiniones disponibles.</p>}
+                    ) : <p className="text-sm text-slate-500">No hay opiniones disponibles.</p>}
                 </div>
 
                 {exercise.sportsRelevance && exercise.sportsRelevance.length > 0 && (
-                     <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
-                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Relevancia Deportiva</h3>
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
+                        <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Relevancia Deportiva</h3>
                         <div className="flex flex-wrap gap-2">
                             {exercise.sportsRelevance.map(sport => (
                                 <span key={sport} className="px-2 py-1 bg-[#0d0d0d] border border-cyber-cyan/20 text-slate-300 rounded-lg text-[10px] font-mono">{sport}</span>

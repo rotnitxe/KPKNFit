@@ -81,7 +81,7 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
             <div className="fixed inset-0 z-[9998] flex flex-col bg-[#050505] overflow-hidden safe-area-root">
                 <div className="relative z-10 flex-1 flex items-center justify-center p-6 min-h-0">
                     <div className="w-full max-w-md">
-                        <div className="bg-black/80 border border-white/10 rounded-2xl overflow-hidden">
+                        <div className="bg-black/80 border border-[#E6E0E9] rounded-2xl overflow-hidden">
                             <div className="p-8">
                                 <div className="w-16 h-16 rounded-2xl bg-cyber-cyan/20 border border-cyber-cyan/30 flex items-center justify-center mx-auto mb-6">
                                     <ZapIcon size={32} className="text-cyber-cyan" />
@@ -89,29 +89,29 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
                                 <h1 className="text-xl font-black text-white uppercase tracking-tight text-center mb-1 font-mono">
                                     Configura tu plan
                                 </h1>
-                                <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest text-center mb-8">
+                                <p className="text-[10px] text-[#49454F] font-mono uppercase tracking-widest text-center mb-8">
                                     Empieza creando tu programa. Nutrición después.
                                 </p>
 
                                 <div className="space-y-4">
                                     <button
                                         onClick={() => setPhase('program')}
-                                        className="w-full p-5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyber-cyan/30 transition-all text-left flex items-center gap-4 group"
+                                        className="w-full p-5 rounded-xl border border-[#E6E0E9] bg-white/5 hover:bg-white/10 hover:border-cyber-cyan/30 transition-all text-left flex items-center gap-4 group"
                                     >
                                         <div className="w-12 h-12 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan/20 flex items-center justify-center group-hover:bg-cyber-cyan/30">
                                             <DumbbellIcon size={24} className="text-cyber-cyan" />
                                         </div>
                                         <div className="flex-1 text-left min-w-0">
                                             <span className="font-bold text-white block font-mono text-sm">Empezar con Programa</span>
-                                            <span className="text-[10px] text-zinc-500 font-mono">Crear tu programa de entrenamiento</span>
+                                            <span className="text-[10px] text-[#49454F] font-mono">Crear tu programa de entrenamiento</span>
                                         </div>
-                                        <ChevronRightIcon size={20} className="text-zinc-500 shrink-0" />
+                                        <ChevronRightIcon size={20} className="text-[#49454F] shrink-0" />
                                     </button>
                                 </div>
 
                                 <button
                                     onClick={handleSkipAll}
-                                    className="mt-6 w-full py-2.5 text-[10px] font-mono text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                                    className="mt-6 w-full py-2.5 text-[10px] font-mono text-[#49454F] hover:text-white transition-colors uppercase tracking-widest"
                                 >
                                     Omitir por ahora
                                 </button>
@@ -128,7 +128,7 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
             <div className="fixed inset-0 z-[9998] flex flex-col bg-[#050505] overflow-hidden safe-area-root">
                 <div className="relative z-10 flex-1 flex items-center justify-center p-6 min-h-0">
                     <div className="w-full max-w-md">
-                        <div className="bg-black/80 border border-white/10 rounded-2xl overflow-hidden">
+                        <div className="bg-black/80 border border-[#E6E0E9] rounded-2xl overflow-hidden">
                             <div className="p-8">
                                 <div className="w-16 h-16 rounded-2xl bg-cyber-cyan/20 border border-cyber-cyan/30 flex items-center justify-center mx-auto mb-6">
                                     <UtensilsIcon size={32} className="text-cyber-cyan" />
@@ -136,29 +136,29 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
                                 <h1 className="text-xl font-black text-white uppercase tracking-tight text-center mb-1 font-mono">
                                     ¿Configurar Nutrición?
                                 </h1>
-                                <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest text-center mb-8">
+                                <p className="text-[10px] text-[#49454F] font-mono uppercase tracking-widest text-center mb-8">
                                     Calorías, macros y objetivos. Opcional.
                                 </p>
 
                                 <div className="space-y-4">
                                     <button
                                         onClick={() => setPhase('nutrition')}
-                                        className="w-full p-5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyber-cyan/30 transition-all text-left flex items-center gap-4 group"
+                                        className="w-full p-5 rounded-xl border border-[#E6E0E9] bg-white/5 hover:bg-white/10 hover:border-cyber-cyan/30 transition-all text-left flex items-center gap-4 group"
                                     >
                                         <div className="w-12 h-12 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan/20 flex items-center justify-center group-hover:bg-cyber-cyan/30">
                                             <UtensilsIcon size={24} className="text-cyber-cyan" />
                                         </div>
                                         <div className="flex-1 text-left min-w-0">
                                             <span className="font-bold text-white block font-mono text-sm">Empezar Nutrición</span>
-                                            <span className="text-[10px] text-zinc-500 font-mono">Datos biométricos y plan</span>
+                                            <span className="text-[10px] text-[#49454F] font-mono">Datos biométricos y plan</span>
                                         </div>
-                                        <ChevronRightIcon size={20} className="text-zinc-500 shrink-0" />
+                                        <ChevronRightIcon size={20} className="text-[#49454F] shrink-0" />
                                     </button>
                                 </div>
 
                                 <button
                                     onClick={() => setPhase('precalibration')}
-                                    className="mt-6 w-full py-2.5 text-[10px] font-mono text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                                    className="mt-6 w-full py-2.5 text-[10px] font-mono text-[#49454F] hover:text-white transition-colors uppercase tracking-widest"
                                 >
                                     Completar después
                                 </button>
@@ -174,12 +174,12 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
         return (
             <div className="fixed inset-0 z-[9998] flex flex-col bg-[#050505] overflow-hidden safe-area-root">
                 <div className="relative z-10 flex flex-col flex-1 min-h-0">
-                    <div className="flex justify-between items-center p-4 border-b border-white/10 shrink-0">
+                    <div className="flex justify-between items-center p-4 border-b border-[#E6E0E9] shrink-0">
                         <h2 className="text-[10px] font-black text-white uppercase tracking-widest font-mono">Nutrición</h2>
                         <div className="flex gap-2">
                             <button
                                 onClick={handleNutritionLater}
-                                className="px-4 py-2 rounded-xl text-[10px] font-black uppercase bg-white/5 border border-white/10 text-zinc-400 hover:text-white font-mono"
+                                className="px-4 py-2 rounded-xl text-[10px] font-black uppercase bg-white/5 border border-[#E6E0E9] text-[#49454F] hover:text-white font-mono"
                             >
                                 Completar después
                             </button>
@@ -188,7 +188,7 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
                                     setSettings({ hasSeenGeneralWizard: true, hasDismissedNutritionSetup: true });
                                     onComplete();
                                 }}
-                                className="p-2 rounded-xl border border-white/10 text-zinc-500 hover:text-white"
+                                className="p-2 rounded-xl border border-[#E6E0E9] text-[#49454F] hover:text-white"
                             >
                                 <XIcon size={18} />
                             </button>
@@ -206,11 +206,11 @@ export const GeneralOnboardingWizard: React.FC<GeneralOnboardingWizardProps> = (
         return (
             <div className="fixed inset-0 z-[9998] flex flex-col bg-[#050505] overflow-hidden safe-area-root">
                 <div className="relative z-10 flex flex-col flex-1 min-h-0">
-                    <div className="flex justify-between items-center p-4 border-b border-white/10 shrink-0">
+                    <div className="flex justify-between items-center p-4 border-b border-[#E6E0E9] shrink-0">
                         <h2 className="text-[10px] font-black text-white uppercase tracking-widest font-mono">Pre-calibrar batería</h2>
                         <button
                             onClick={handlePrecalibrationSkip}
-                            className="px-4 py-2 rounded-xl text-[10px] font-black uppercase bg-white/5 border border-white/10 text-zinc-400 hover:text-white font-mono"
+                            className="px-4 py-2 rounded-xl text-[10px] font-black uppercase bg-white/5 border border-[#E6E0E9] text-[#49454F] hover:text-white font-mono"
                         >
                             Completar después
                         </button>

@@ -12,7 +12,7 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo, isFavorite?: boolea
     return (
         <div
             onClick={() => navigateTo('exercise-detail', { exerciseId: exercise.id })}
-            className="p-4 flex justify-between items-center cursor-pointer list-none bg-[#0a0a0a] hover:bg-slate-900/80 rounded-xl border border-cyber-cyan/20 hover:border-cyber-cyan/40 transition-all"
+            className="p-4 flex justify-between items-center cursor-pointer list-none bg-[#FEF7FF] hover:bg-slate-900/80 rounded-xl border border-cyber-cyan/20 hover:border-cyber-cyan/40 transition-all"
         >
             <div className="flex items-center gap-2">
                 {isFavorite && <StarIcon size={16} className="text-yellow-400" />}
@@ -128,7 +128,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
     }
 
     return (
-        <div className="tab-bar-safe-area animate-fade-in bg-[#0a0a0a] min-h-screen">
+        <div className="tab-bar-safe-area animate-fade-in bg-[#FEF7FF] min-h-screen">
             {isEditorOpen && (
                 <MuscleGroupEditorModal
                     isOpen={isEditorOpen}
@@ -140,7 +140,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                 {muscleInfo.coverImage && <img src={muscleInfo.coverImage} alt={muscleInfo.name} className="w-full h-full object-cover" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
                  <div className="absolute top-2 right-2 flex gap-2">
-                    <button onClick={() => setIsEditorOpen(true)} className="py-1.5 px-3 rounded-lg border border-cyber-cyan/20 bg-[#0a0a0a]/90 text-[10px] font-mono text-cyber-cyan/90 hover:border-cyber-cyan/40 transition-colors"><PencilIcon size={12} className="inline mr-1"/> Editar Página</button>
+                    <button onClick={() => setIsEditorOpen(true)} className="py-1.5 px-3 rounded-lg border border-cyber-cyan/20 bg-[#FEF7FF]/90 text-[10px] font-mono text-cyber-cyan/90 hover:border-cyber-cyan/40 transition-colors"><PencilIcon size={12} className="inline mr-1"/> Editar Página</button>
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
                     <h1 className="text-3xl font-bold font-mono text-white">{muscleInfo.name}</h1>
@@ -149,7 +149,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
 
              <div className="space-y-6 mt-6 px-4">
                  <MuscleTrainingAnalysis muscleName={muscleInfo.name} history={history} isOnline={isOnline} settings={settings} />
-                 <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                 <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Información General</h3>
                     <p className="whitespace-pre-wrap text-slate-300 text-sm">{muscleInfo.description}</p>
                     {!wikiExtract && (
@@ -174,14 +174,14 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                         </button>
                     )}
                     {wikiExtract && (
-                        <div className="mt-3 p-3 bg-[#0a0a0a] rounded-lg border border-cyber-cyan/20">
+                        <div className="mt-3 p-3 bg-[#FEF7FF] rounded-lg border border-cyber-cyan/20">
                             <p className="text-xs text-slate-400 italic">{wikiExtract}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Importancia en la Estética */}
-                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Importancia en la Estética</h3>
                     <p className="text-slate-300 text-sm">{muscleInfo.aestheticImportance || muscleInfo.aestheticRole || muscleInfo.importance?.health || `El ${muscleInfo.name} contribuye a la forma y proporción del cuerpo. Su desarrollo equilibrado mejora la simetría y la apariencia general.`}</p>
                 </div>
@@ -193,9 +193,9 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90">Porciones / Cabezas</h3>
                             <ChevronRightIcon className="details-arrow text-cyber-cyan/50" />
                         </summary>
-                        <div className="p-4 border-t border-white/5 space-y-4 bg-[#080808]">
+                        <div className="p-4 border-t border-[#E6E0E9] space-y-4 bg-[#080808]">
                             {childMuscleInfos.map(portion => (
-                                <div key={portion.id} className="bg-[#0a0a0a] rounded-xl p-4 border border-cyber-cyan/20">
+                                <div key={portion.id} className="bg-[#FEF7FF] rounded-xl p-4 border border-cyber-cyan/20">
                                     <h4 className="font-semibold text-white mb-2">{portion.name}</h4>
                                     <p className="text-sm text-slate-400 mb-2">{portion.description}</p>
                                     {(portion.origin || portion.insertion) && (
@@ -223,11 +223,11 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h4 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Importancia en Movimiento</h4>
                         <p className="text-sm text-slate-300">{muscleInfo.importance.movement}</p>
                     </div>
-                     <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                     <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h4 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Importancia en Salud</h4>
                         <p className="text-sm text-slate-300">{muscleInfo.importance.health}</p>
                     </div>
@@ -235,7 +235,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
 
                 {/* Articulaciones relacionadas */}
                 {(muscleInfo.relatedJoints?.length || 0) > 0 && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Articulaciones Relacionadas</h3>
                         <div className="flex flex-wrap gap-2">
                             {muscleInfo.relatedJoints?.map(jId => {
@@ -253,7 +253,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
 
                 {/* Tendones relacionados */}
                 {(muscleInfo.relatedTendons?.length || 0) > 0 && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                         <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Tendones Relacionados</h3>
                         <div className="flex flex-wrap gap-2">
                             {muscleInfo.relatedTendons?.map(tId => {
@@ -276,9 +276,9 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                             <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-red-400/90">Lesiones Comunes</h3>
                             <ChevronRightIcon className="details-arrow text-cyber-cyan/50" />
                         </summary>
-                        <div className="p-4 border-t border-white/5 space-y-3 bg-[#080808]">
+                        <div className="p-4 border-t border-[#E6E0E9] space-y-3 bg-[#080808]">
                             {muscleInfo.commonInjuries.map((inj, i) => (
-                                <div key={i} className="bg-[#0a0a0a] rounded-lg p-3 border border-cyber-cyan/20">
+                                <div key={i} className="bg-[#FEF7FF] rounded-lg p-3 border border-cyber-cyan/20">
                                     <h4 className="font-semibold text-white text-sm">{inj.name}</h4>
                                     <p className="text-slate-400 text-xs mt-1">{inj.description}</p>
                                     {inj.returnProgressions && inj.returnProgressions.length > 0 && (
@@ -290,7 +290,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                     </details>
                 )}
 
-                 <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                 <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                     <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Volumen Semanal Recomendado (series)</h3>
                     <div className="grid grid-cols-3 gap-2 text-center">
                         <div><p className="text-xl font-mono font-bold text-green-400">{muscleInfo.volumeRecommendations.mev}</p><p className="text-[10px] text-slate-500 uppercase tracking-wider">Mínimo</p></div>
@@ -300,14 +300,14 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                 </div>
                 
                  {recommendedExercises.length > 0 && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><SparklesIcon size={14}/> Ejercicios Destacados</h3>
                         {recommendedExercises.map(ex => <ExerciseItem key={ex.id} exercise={ex} isFavorite={ex.id === muscleInfo.favoriteExerciseId}/>)}
                     </div>
                  )}
                  
                  {allExercises.length > 0 && (
-                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#0a0a0a]">
+                    <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
                          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2"><DumbbellIcon size={14}/> Ejercicios Principales</h3>
                         <div className="max-h-72 overflow-y-auto space-y-4 pr-1">
                             {exercisesByHead ? (
@@ -316,7 +316,7 @@ const MuscleGroupDetailView: React.FC<MuscleGroupDetailViewProps> = ({ muscleGro
                                     if (exs.length === 0) return null;
                                     return (
                                         <div key={head}>
-                                            <h4 className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-[#0a0a0a] py-1">{head}</h4>
+                                            <h4 className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-[#FEF7FF] py-1">{head}</h4>
                                             <div className="space-y-2">
                                                 {exs.map(ex => <ExerciseItem key={ex.id} exercise={ex} />)}
                                             </div>

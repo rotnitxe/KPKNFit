@@ -295,7 +295,7 @@ export const useUIStore = create<UIStoreState>()(
         setIsOnline: (v) => set((s) => { s.isOnline = v; }),
         setInstallPromptEvent: (v) => set((s) => { s.installPromptEvent = v; }),
         setToasts: (v) => set((s) => { s.toasts = applyUpdater(s.toasts, v); }),
-        setOnExerciseCreated: (v) => set((s) => { s.onExerciseCreated = applyUpdater(s.onExerciseCreated, v); }),
+        setOnExerciseCreated: (v) => set((s) => { s.onExerciseCreated = v as any; }),
 
         addToast: (message, type = 'success', title, duration, why) => set((s) => {
             const DEDUPE_MS = 2000;

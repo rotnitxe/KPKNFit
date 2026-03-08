@@ -169,7 +169,7 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
                 {allEvalMuscles.map(m => {
                     const domsPred = getMuscleDomsPrediction(m);
                     return (
-                        <div key={m} className="bg-slate-900/50 p-4 rounded-2xl border border-white/5 space-y-4">
+                        <div key={m} className="bg-slate-900/50 p-4 rounded-2xl border border-[#E6E0E9] space-y-4">
                             <div className="flex justify-between items-center">
                                 <h4 className="font-bold text-white flex items-center gap-2"><DumbbellIcon size={14} className="text-primary-color"/> {m}</h4>
                             </div>
@@ -196,7 +196,7 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
 
                 {/* ADD EXTRA MUSCLE */}
                 {showMuscleSearch ? (
-                    <div className="animate-fade-in bg-slate-800 p-3 rounded-xl border border-white/10">
+                    <div className="animate-fade-in bg-slate-800 p-3 rounded-xl border border-[#E6E0E9]">
                         <div className="flex items-center gap-2 mb-3 bg-black/20 p-2 rounded-lg">
                             <SearchIcon size={14} className="text-slate-500"/>
                             <input type="text" placeholder="Buscar músculo..." className="bg-transparent border-none text-xs w-full focus:ring-0" autoFocus />
@@ -208,7 +208,7 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
                         </div>
                     </div>
                 ) : (
-                    <button onClick={() => setShowMuscleSearch(true)} className="w-full py-3 border-2 border-dashed border-white/5 rounded-2xl text-slate-500 text-xs font-bold hover:text-white hover:border-white/10 transition-all flex items-center justify-center gap-2">
+                    <button onClick={() => setShowMuscleSearch(true)} className="w-full py-3 border-2 border-dashed border-[#E6E0E9] rounded-2xl text-slate-500 text-xs font-bold hover:text-white hover:border-[#E6E0E9] transition-all flex items-center justify-center gap-2">
                         <PlusIcon size={14}/> Evaluar otro músculo específico
                     </button>
                 )}
@@ -217,7 +217,7 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
                     const { matches, total } = getAccuracySummary();
                     const pct = total > 0 ? Math.round((matches / total) * 100) : 0;
                     return (
-                        <div className="bg-[#111] border border-violet-500/20 p-4 rounded-2xl flex items-center justify-between">
+                        <div className="bg-[#ECE6F0] border border-violet-500/20 p-4 rounded-2xl flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <ZapIcon size={14} className="text-violet-400" />
                                 <span className="text-[10px] font-bold text-zinc-300">AUGE acertó en {matches}/{total}</span>

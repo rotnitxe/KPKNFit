@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SaveIcon, XIcon, ChevronDownIcon, TrashIcon, EditIcon } from '../icons';
+import { SaveIcon, XIcon, ChevronDownIcon, TrashIcon, EditIcon, MenuIcon } from '../icons';
 
 interface EditorToolbarProps {
     programName: string;
@@ -10,71 +10,85 @@ interface EditorToolbarProps {
     onDuplicate?: () => void;
     onExport?: () => void;
     onDelete?: () => void;
+    onToggleSidebar?: () => void;
 }
 
 const EditorToolbar: React.FC<EditorToolbarProps> = ({
     programName, onChangeName, hasUnsavedChanges,
-    onSave, onCancel, onDuplicate, onExport, onDelete,
+    onSave, onCancel, onDuplicate, onExport, onDelete, onToggleSidebar,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#3f3f3f] bg-[#1a1a1a] shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)] bg-white/80 backdrop-blur-md shrink-0 sticky top-0 z-[100]">
             {/* Left: Back + Name */}
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-                <button
-                    onClick={onCancel}
-                    className="p-1.5 rounded-full border border-[#3f3f3f] text-[#a3a3a3] hover:text-white transition-colors shrink-0"
-                >
-                    <XIcon size={16} />
-                </button>
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <EditIcon size={14} className="text-[#737373] shrink-0" />
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+                {onToggleSidebar && (
+                    <button
+                        onClick={onToggleSidebar}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-black hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all active:scale-90"
+                    >
+                        <MenuIcon size={20} />
+                    </button>
+                )}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <EditIcon size={16} className="text-black/40 shrink-0" />
                     <input
                         type="text"
                         value={programName}
                         onChange={e => onChangeName(e.target.value)}
-                        className="bg-transparent text-sm font-medium text-white focus:ring-0 border-none p-0 flex-1 min-w-0"
+                        className="bg-transparent text-lg font-black text-black uppercase tracking-tighter focus:ring-0 border-none p-0 flex-1 min-w-0 placeholder-black/10"
                         placeholder="Nombre del programa"
                     />
                 </div>
                 {hasUnsavedChanges && (
-                    <div className="w-2 h-2 rounded-full bg-[#a3a3a3] shrink-0 animate-pulse" title="Cambios sin guardar" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)] shrink-0 animate-pulse shadow-[0_0_8px_rgba(var(--md-sys-color-primary-rgb),0.5)]" title="Cambios sin guardar" />
                 )}
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-2 shrink-0 ml-3">
+            <div className="flex items-center gap-3 shrink-0 ml-4">
                 <button
                     onClick={onSave}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-white text-[#1a1a1a] text-[9px] font-medium uppercase tracking-widest hover:bg-[#e5e5e5] transition-colors"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black/90 hover:shadow-lg transition-all active:scale-95"
                 >
-                    <SaveIcon size={12} /> Guardar
+                    <SaveIcon size={14} /> Guardar
                 </button>
 
                 <div className="relative">
                     <button
                         onClick={() => setMenuOpen(!menuOpen)}
-                        className="p-2 rounded-lg border border-[#3f3f3f] text-[#a3a3a3] hover:text-white transition-colors"
+                        className="w-10 h-10 rounded-xl border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center text-black/60 hover:text-black hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all"
                     >
-                        <ChevronDownIcon size={14} />
+                        <ChevronDownIcon size={16} />
                     </button>
                     {menuOpen && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                            <div className="absolute top-full right-0 mt-1 bg-[#252525] border border-[#3f3f3f] overflow-hidden z-50 min-w-[160px] animate-fade-in">
+                            <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--md-sys-color-outline-variant)] rounded-2xl shadow-2xl overflow-hidden z-50 min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="px-4 py-2 mb-1 border-b border-[var(--md-sys-color-surface-container-low)]">
+                                    <span className="text-[9px] font-black text-black/40 uppercase tracking-widest">Opciones</span>
+                                </div>
+                                {onCancel && (
+                                    <button
+                                        onClick={() => { onCancel(); setMenuOpen(false); }}
+                                        className="w-full text-left px-4 py-2 mb-1 border-b border-[var(--md-sys-color-surface-container-low)] text-[11px] font-black uppercase tracking-tight text-black/60 hover:bg-[var(--md-sys-color-surface-container-low)] hover:text-black transition-colors"
+                                    >
+                                        Descartar Cambios
+                                    </button>
+                                )}
                                 {onDuplicate && (
                                     <button
                                         onClick={() => { onDuplicate(); setMenuOpen(false); }}
-                                        className="w-full text-left px-4 py-2.5 text-[10px] font-medium text-[#a3a3a3] hover:bg-[#2a2a2a] hover:text-white transition-colors"
+                                        className="w-full text-left px-4 py-3 text-[11px] font-black uppercase tracking-tight text-black/60 hover:bg-[var(--md-sys-color-surface-container-low)] hover:text-black transition-colors"
                                     >
-                                        Duplicar
+                                        Duplicar Programa
                                     </button>
                                 )}
                                 {onExport && (
                                     <button
                                         onClick={() => { onExport(); setMenuOpen(false); }}
-                                        className="w-full text-left px-4 py-2.5 text-[10px] font-medium text-[#a3a3a3] hover:bg-[#2a2a2a] hover:text-white transition-colors"
+                                        className="w-full text-left px-4 py-3 text-[11px] font-black uppercase tracking-tight text-black/60 hover:bg-[var(--md-sys-color-surface-container-low)] hover:text-black transition-colors"
                                     >
                                         Exportar JSON
                                     </button>
@@ -82,9 +96,9 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
                                 {onDelete && (
                                     <button
                                         onClick={() => { onDelete(); setMenuOpen(false); }}
-                                        className="w-full text-left px-4 py-2.5 text-[10px] font-medium text-red-400 hover:bg-[#2a2a2a] transition-colors flex items-center gap-2"
+                                        className="w-full text-left px-4 py-3 text-[11px] font-black uppercase tracking-tight text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]/30 transition-colors flex items-center gap-2"
                                     >
-                                        <TrashIcon size={12} /> Eliminar
+                                        <TrashIcon size={14} /> Eliminar Programa
                                     </button>
                                 )}
                             </div>

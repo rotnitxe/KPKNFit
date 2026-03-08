@@ -55,9 +55,8 @@ const DotSelector: React.FC<{
           key={v}
           type="button"
           onClick={() => onChange(v)}
-          className={`w-7 h-7 rounded-full border-2 transition-colors ${
-            value === v ? 'bg-[#525252] border-[#525252]' : 'bg-white border-[#a3a3a3] hover:border-[#737373]'
-          }`}
+          className={`w-7 h-7 rounded-full border-2 transition-colors ${value === v ? 'bg-[#525252] border-[#525252]' : 'bg-white border-[#a3a3a3] hover:border-[#737373]'
+            }`}
           aria-label={`${v} de 5`}
         />
       ))}
@@ -98,7 +97,7 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
     const normalizedSession = {
       exercises: resolved?.exercises ?? [],
       parts: resolved?.parts ?? [],
-    };
+    } as any;
     return getSessionMusclesWithBatteries(normalizedSession, exerciseList, perMuscle).slice(0, 6);
   }, [pendingWorkout, exerciseList, perMuscle]);
 
@@ -107,7 +106,7 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
     const s = pendingWorkout.session as any;
     const mode = pendingWorkout.weekVariant || 'A';
     const resolved = s?.[`session${mode}`] ?? s;
-    const normalizedSession = { exercises: resolved?.exercises ?? [], parts: resolved?.parts ?? [] };
+    const normalizedSession = { exercises: resolved?.exercises ?? [], parts: resolved?.parts ?? [] } as any;
     return getSessionArticularBatteries(normalizedSession, exerciseList, batteries.articularBatteries);
   }, [pendingWorkout, exerciseList, batteries?.articularBatteries]);
 
@@ -127,7 +126,7 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
     if (!isOpen || !history) return;
     calculateGlobalBatteriesAsync(history, sleepLogs || [], dailyWellbeingLogs || [], nutritionLogs || [], settings, exerciseList)
       .then(setBatteries)
-      .catch(() => {});
+      .catch(() => { });
   }, [isOpen, history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList]);
 
   useEffect(() => {
@@ -312,11 +311,10 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
             {tendonImbalanceAlerts.map((a, i) => (
               <div
                 key={i}
-                className={`p-3 rounded-lg border text-[10px] ${
-                  a.type === 'danger'
+                className={`p-3 rounded-lg border text-[10px] ${a.type === 'danger'
                     ? 'bg-red-50 border-red-200 text-red-800'
                     : 'bg-amber-50 border-amber-200 text-amber-800'
-                }`}
+                  }`}
               >
                 <p className="font-semibold uppercase tracking-wide mb-0.5">Precaución: tendones</p>
                 <p className="leading-relaxed">{a.message}</p>

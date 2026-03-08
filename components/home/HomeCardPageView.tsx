@@ -46,7 +46,7 @@ export const HomeCardPageView: React.FC<HomeCardPageViewProps> = ({ cardType, on
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-[#121212] text-white flex flex-col safe-area-root">
+        <div className="fixed inset-0 z-[100] bg-[#ECE6F0] text-white flex flex-col safe-area-root">
             {/* Header — mismo lenguaje que Home / CompactHeroBanner */}
             <div
                 className="shrink-0 flex items-center gap-3 px-4 py-3"
@@ -54,7 +54,7 @@ export const HomeCardPageView: React.FC<HomeCardPageViewProps> = ({ cardType, on
             >
                 <button
                     onClick={goBack}
-                    className="w-9 h-9 shrink-0 rounded-lg bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    className="w-9 h-9 shrink-0 rounded-lg bg-white/5 flex items-center justify-center text-[#49454F] hover:text-white hover:bg-white/[0.08] transition-colors"
                     aria-label="Volver"
                 >
                     <ArrowLeftIcon size={18} className="rotate-90" />
@@ -127,11 +127,11 @@ const ExerciseHistoryDetailInline: React.FC<{
 
     return (
         <div className="space-y-5">
-            <button onClick={onBack} className="text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-zinc-400 -ml-1">← Lista</button>
+            <button onClick={onBack} className="text-[10px] font-black text-[#49454F] uppercase tracking-widest hover:text-[#49454F] -ml-1">← Lista</button>
             <h3 className="text-sm font-black text-white uppercase tracking-tight">{exercise.name}</h3>
             {chartData.length > 1 ? (
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Progresión (Peso Máx)</p>
+                <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-4">
+                    <p className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-4">Progresión (Peso Máx)</p>
                     <div className="h-[180px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData}>
@@ -145,12 +145,12 @@ const ExerciseHistoryDetailInline: React.FC<{
                     </div>
                 </div>
             ) : (
-                <p className="text-[11px] text-zinc-500 py-4">Necesitas más de una sesión para ver la gráfica.</p>
+                <p className="text-[11px] text-[#49454F] py-4">Necesitas más de una sesión para ver la gráfica.</p>
             )}
             <div className="space-y-2">
                 {exerciseHistory.map((log, i) => (
-                    <div key={i} className="bg-[#0a0a0a] border border-white/10 p-3 rounded-xl">
-                        <p className="font-black text-zinc-500 text-[10px] uppercase mb-2 tracking-widest">
+                    <div key={i} className="bg-[#FEF7FF] border border-[#E6E0E9] p-3 rounded-xl">
+                        <p className="font-black text-[#49454F] text-[10px] uppercase mb-2 tracking-widest">
                             {new Date(log.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
                         </p>
                         <ul className="space-y-1">
@@ -159,14 +159,14 @@ const ExerciseHistoryDetailInline: React.FC<{
                                 return (
                                     <li key={si} className="flex justify-between text-xs text-gray-400">
                                         <span className="font-mono text-white">{set.weight} {settings.weightUnit} x {set.completedReps}</span>
-                                        {set.completedRPE && <span className="text-[9px] font-bold text-zinc-500">RPE {set.completedRPE}</span>}
+                                        {set.completedRPE && <span className="text-[9px] font-bold text-[#49454F]">RPE {set.completedRPE}</span>}
                                     </li>
                                 );
                             })}
                         </ul>
                     </div>
                 ))}
-                {exerciseHistory.length === 0 && <p className="text-[11px] text-zinc-500 py-4">No hay registros aún.</p>}
+                {exerciseHistory.length === 0 && <p className="text-[11px] text-[#49454F] py-4">No hay registros aún.</p>}
             </div>
         </div>
     );
@@ -196,7 +196,7 @@ const ExerciseHistoryPage: React.FC<{ program: Program | undefined; history: Wor
 
     if (!program) {
         return (
-            <p className="text-[11px] text-zinc-500 py-8">Crea o activa un programa para ver el historial por ejercicio.</p>
+            <p className="text-[11px] text-[#49454F] py-8">Crea o activa un programa para ver el historial por ejercicio.</p>
         );
     }
 
@@ -233,13 +233,13 @@ const ExerciseHistoryPage: React.FC<{ program: Program | undefined; history: Wor
     return (
         <div className="flex flex-col gap-4">
             <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={14} />
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-[#49454F]" size={14} />
                 <input
                     type="text"
                     placeholder="Buscar ejercicio..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-[13px] text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20"
+                    className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl py-2.5 pl-9 pr-4 text-[13px] text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20"
                 />
             </div>
             <div className="space-y-1.5">
@@ -247,14 +247,14 @@ const ExerciseHistoryPage: React.FC<{ program: Program | undefined; history: Wor
                     <button
                         key={exercise.id}
                         onClick={() => setSelectedExercise(exercise)}
-                        className="w-full flex items-center justify-between p-3.5 bg-[#0a0a0a] border border-white/10 rounded-xl hover:border-white/15 transition-colors group text-left"
+                        className="w-full flex items-center justify-between p-3.5 bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl hover:border-white/15 transition-colors group text-left"
                     >
                         <span className="font-semibold text-zinc-300 text-[13px] group-hover:text-white">{exercise.name}</span>
-                        <ChevronRightIcon size={14} className="text-zinc-600 group-hover:text-zinc-400 shrink-0" />
+                        <ChevronRightIcon size={14} className="text-zinc-600 group-hover:text-[#49454F] shrink-0" />
                     </button>
                 ))}
                 {exercises.length === 0 && (
-                    <p className="text-[11px] text-zinc-500 py-6">No se encontraron ejercicios.</p>
+                    <p className="text-[11px] text-[#49454F] py-6">No se encontraron ejercicios.</p>
                 )}
             </div>
         </div>
@@ -288,30 +288,30 @@ const Star1RMPage: React.FC<{ program: Program | undefined }> = ({ program }) =>
 
     if (!program || count === 0) {
         return (
-            <p className="text-[11px] text-zinc-500 py-8">Marca ejercicios estrella en el editor de sesiones para ver tu progreso 1RM.</p>
+            <p className="text-[11px] text-[#49454F] py-8">Marca ejercicios estrella en el editor de sesiones para ver tu progreso 1RM.</p>
         );
     }
 
     return (
         <div className="space-y-4">
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4">
-                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Ejercicios estrella</p>
+            <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-4">
+                <p className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-1">Ejercicios estrella</p>
                 <p className="text-xl font-black text-white tabular-nums">{count}</p>
             </div>
             <div className="space-y-1.5">
                 {list.map((item, i) => (
                     <div
                         key={i}
-                        className="bg-[#0a0a0a] border border-white/10 rounded-xl p-3.5 flex justify-between items-center"
+                        className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-3.5 flex justify-between items-center"
                     >
                         <span className="font-semibold text-white text-[13px]">{item.name}</span>
                         {item.goal != null && item.goal > 0 && (
-                            <span className="text-[10px] font-bold text-zinc-400 tabular-nums">{item.goal} kg</span>
+                            <span className="text-[10px] font-bold text-[#49454F] tabular-nums">{item.goal} kg</span>
                         )}
                     </div>
                 ))}
             </div>
-            <p className="text-[10px] text-zinc-500">
+            <p className="text-[10px] text-[#49454F]">
                 Abre el detalle de tu programa para ver gráficas de progreso por ejercicio.
             </p>
         </div>
@@ -337,21 +337,21 @@ const EventMarksPage: React.FC<{ program: Program | undefined }> = ({ program })
     const events = (program as any)?.events || [];
 
     if (!program) {
-        return <p className="text-[11px] text-zinc-500 py-8">Activa un programa para ver eventos.</p>;
+        return <p className="text-[11px] text-[#49454F] py-8">Activa un programa para ver eventos.</p>;
     }
 
     if (events.length === 0) {
         return (
-            <p className="text-[11px] text-zinc-500 py-8">Añade eventos o fechas clave en el editor de tu programa.</p>
+            <p className="text-[11px] text-[#49454F] py-8">Añade eventos o fechas clave en el editor de tu programa.</p>
         );
     }
 
     return (
         <div className="space-y-1.5">
             {events.map((e: any, i: number) => (
-                <div key={e.id || i} className="bg-[#0a0a0a] border border-white/10 rounded-xl p-3.5">
+                <div key={e.id || i} className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-3.5">
                     <p className="font-semibold text-white text-[13px]">{e.title}</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5 tracking-wider">
+                    <p className="text-[10px] text-[#49454F] mt-0.5 tracking-wider">
                         Semana {e.calculatedWeek ?? '?'} · {e.type === '1rm_test' ? 'Test 1RM' : e.type || 'Evento'}
                     </p>
                 </div>
@@ -384,15 +384,15 @@ const IPFGLPage: React.FC<{ history: WorkoutLog[] }> = ({ history }) => {
 
     if (!isPowerlifter) {
         return (
-            <p className="text-[11px] text-zinc-500 py-8">IPF GL está disponible para programas de powerlifting o powerbuilding.</p>
+            <p className="text-[11px] text-[#49454F] py-8">IPF GL está disponible para programas de powerlifting o powerbuilding.</p>
         );
     }
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-5">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Puntos IPF GL</p>
+        <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-5">
+            <p className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-2">Puntos IPF GL</p>
             <p className="text-3xl font-black text-white tabular-nums tracking-tight">{Math.round(points)}</p>
-            <p className="text-[11px] text-zinc-500 mt-2">Total: {total} kg (S+B+P)</p>
+            <p className="text-[11px] text-[#49454F] mt-2">Total: {total} kg (S+B+P)</p>
         </div>
     );
 };
@@ -408,17 +408,17 @@ const MacrosPage: React.FC = () => {
     return (
         <div className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Peso</p>
+                <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-4">
+                    <p className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-1">Peso</p>
                     <p className="text-lg font-black text-white tabular-nums">{lastLog?.weight ?? settings?.userVitals?.weight ?? '--'} kg</p>
                 </div>
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Meta calórica</p>
+                <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-4">
+                    <p className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-1">Meta calórica</p>
                     <p className="text-lg font-black text-white tabular-nums">{calorieGoal ? Math.round(calorieGoal) : '--'} kcal</p>
                 </div>
             </div>
             {bodyProgress?.length > 0 && (
-                <div className="space-y-4 [&_.section-card]:bg-[#0a0a0a] [&_.section-card]:border [&_.section-card]:border-white/10 [&_.section-card]:rounded-xl">
+                <div className="space-y-4 [&_.section-card]:bg-[#FEF7FF] [&_.section-card]:border [&_.section-card]:border-[#E6E0E9] [&_.section-card]:rounded-xl">
                     <WeightVsTargetChart />
                     <BodyFatChart />
                     <MuscleMassChart />
@@ -434,11 +434,11 @@ const EvolutionPage: React.FC = () => {
     return (
         <div className="space-y-4">
             {bodyProgress?.length > 0 ? (
-                <div className="[&_.section-card]:bg-[#0a0a0a] [&_.section-card]:border [&_.section-card]:border-white/10 [&_.section-card]:rounded-xl">
+                <div className="[&_.section-card]:bg-[#FEF7FF] [&_.section-card]:border [&_.section-card]:border-[#E6E0E9] [&_.section-card]:rounded-xl">
                     <WeightVsTargetChart />
                 </div>
             ) : (
-                <p className="text-[11px] text-zinc-500 py-8">Configura un plan de nutrición y registra tu composición para ver la evolución.</p>
+                <p className="text-[11px] text-[#49454F] py-8">Configura un plan de nutrición y registra tu composición para ver la evolución.</p>
             )}
         </div>
     );
@@ -464,13 +464,13 @@ const CaloriesHistoryPage: React.FC = () => {
 
     if (chartData.length === 0) {
         return (
-            <p className="text-[11px] text-zinc-500 py-8">Registra comidas para ver el historial de calorías.</p>
+            <p className="text-[11px] text-[#49454F] py-8">Registra comidas para ver el historial de calorías.</p>
         );
     }
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Últimos {chartData.length} días</p>
+        <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-4">
+            <p className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-4">Últimos {chartData.length} días</p>
             <div className="h-[180px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
@@ -513,14 +513,14 @@ const BodyMeasuresPage: React.FC = () => {
 
     if (!hasBasic && !hasCustom) {
         return (
-            <p className="text-[11px] text-zinc-500 py-8">
+            <p className="text-[11px] text-[#49454F] py-8">
                 Registra peso, % grasa, % músculo o medidas corporales en Progreso corporal para ver la evolución.
             </p>
         );
     }
 
     return (
-        <div className="space-y-4 [&_.section-card]:bg-[#0a0a0a] [&_.section-card]:border [&_.section-card]:border-white/10 [&_.section-card]:rounded-xl">
+        <div className="space-y-4 [&_.section-card]:bg-[#FEF7FF] [&_.section-card]:border [&_.section-card]:border-[#E6E0E9] [&_.section-card]:rounded-xl">
             {hasBasic && (
                 <>
                     <ErrorBoundary><WeightVsTargetChart /></ErrorBoundary>
@@ -538,8 +538,8 @@ const BodyMeasuresPage: React.FC = () => {
                     }));
                 if (chartData.length < 2) return null;
                 return (
-                    <div key={key} className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4">
-                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">{key}</p>
+                    <div key={key} className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-4">
+                        <p className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-4">{key}</p>
                         <div className="h-[160px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={chartData}>
@@ -593,22 +593,22 @@ const FFMIBMIPage: React.FC = () => {
 
     if (!hasBmi && !hasFfmi) {
         return (
-            <p className="text-[11px] text-zinc-500 py-8">
+            <p className="text-[11px] text-[#49454F] py-8">
                 Configura tu estatura en ajustes y registra peso (+ % grasa para FFMI) en Progreso corporal.
             </p>
         );
     }
 
     return (
-        <div className="space-y-4 [&_.section-card]:bg-[#0a0a0a] [&_.section-card]:border [&_.section-card]:border-white/10 [&_.section-card]:rounded-xl">
+        <div className="space-y-4 [&_.section-card]:bg-[#FEF7FF] [&_.section-card]:border [&_.section-card]:border-[#E6E0E9] [&_.section-card]:rounded-xl">
             {hasFfmi && (
                 <ErrorBoundary>
                     <FFMIChart />
                 </ErrorBoundary>
             )}
             {hasBmi && (
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Evolución IMC</p>
+                <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-xl p-4">
+                    <p className="text-[10px] font-black text-[#49454F] uppercase tracking-widest mb-4">Evolución IMC</p>
                     <div className="h-[180px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData}>

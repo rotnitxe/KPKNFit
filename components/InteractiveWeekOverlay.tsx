@@ -61,7 +61,7 @@ const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onS
             {/* BOTÓN CERRAR (Pequeño, esquina superior derecha) */}
             <button 
                 onClick={onClose} 
-                className="absolute top-6 right-6 z-50 p-2.5 bg-zinc-900 border border-white/10 rounded-full text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all shadow-lg"
+                className="absolute top-6 right-6 z-50 p-2.5 bg-zinc-900 border border-[#E6E0E9] rounded-full text-[#49454F] hover:text-white hover:bg-zinc-800 transition-all shadow-lg"
                 title="Cerrar sin guardar"
             >
                 <XIcon size={14}/>
@@ -71,12 +71,12 @@ const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onS
             <div className="w-full max-w-4xl flex flex-col h-full relative">
                 
                 {/* TÍTULO CON SU PROPIO ESPACIO */}
-                <div className="w-full flex flex-col items-center justify-center pt-8 pb-6 shrink-0 border-b border-white/5">
-                    <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-1">Editor de Split</span>
+                <div className="w-full flex flex-col items-center justify-center pt-8 pb-6 shrink-0 border-b border-[#E6E0E9]">
+                    <span className="text-[10px] text-[#49454F] font-black uppercase tracking-widest mb-1">Editor de Split</span>
                     <h2 className="text-2xl font-black text-white uppercase tracking-tight text-center px-4 w-full break-words leading-tight">
                         Distribución: {week.name || weekTitle}
                     </h2>
-                    <p className="text-[10px] text-zinc-400 mt-2 font-bold max-w-xs text-center">Arrastra las sesiones para reorganizar tu semana.</p>
+                    <p className="text-[10px] text-[#49454F] mt-2 font-bold max-w-xs text-center">Arrastra las sesiones para reorganizar tu semana.</p>
                 </div>
 
                 {/* GRID DE DÍAS (Tarjetas compactas) */}
@@ -92,19 +92,19 @@ const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onS
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.droppableProps}
-                                                className={`bg-[#0a0a0a] border rounded-2xl p-3 transition-colors min-h-[120px] flex flex-col
-                                                    ${snapshot.isDraggingOver ? 'border-white/40 bg-[#111]' : 'border-[#222]'}`}
+                                                className={`bg-[#FEF7FF] border rounded-2xl p-3 transition-colors min-h-[120px] flex flex-col
+                                                    ${snapshot.isDraggingOver ? 'border-white/40 bg-[#ECE6F0]' : 'border-[#222]'}`}
                                             >
                                                 <div className="flex items-center justify-between mb-3 shrink-0">
                                                     <div className="flex items-center gap-2">
                                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${daySessions.length > 0 ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-600'}`}>
                                                             {day.label.substring(0,3).toUpperCase()}
                                                         </div>
-                                                        <span className="text-[11px] font-bold text-zinc-400 uppercase">{day.label}</span>
+                                                        <span className="text-[11px] font-bold text-[#49454F] uppercase">{day.label}</span>
                                                     </div>
                                                     <button 
                                                         onClick={() => handleAddSessionToDay(day.value)}
-                                                        className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-colors border border-white/10 shadow-sm"
+                                                        className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-[#49454F] hover:text-white rounded-lg transition-colors border border-[#E6E0E9] shadow-sm"
                                                         title={`Añadir sesión al ${day.label}`}
                                                     >
                                                         <PlusIcon size={12}/>
@@ -119,12 +119,12 @@ const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onS
                                                                 ref={provided.innerRef}
                                                                     {...provided.draggableProps}
                                                                     {...provided.dragHandleProps}
-                                                                    className={`bg-zinc-900 border border-white/5 rounded-xl p-3 flex items-center justify-between group shadow-sm transition-all
+                                                                    className={`bg-zinc-900 border border-[#E6E0E9] rounded-xl p-3 flex items-center justify-between group shadow-sm transition-all
                                                                         ${snapshot.isDragging ? 'shadow-[0_10px_30px_rgba(0,0,0,0.8)] scale-105 border-white/20 z-50' : 'hover:border-white/20'}`}
                                                                 >
                                                                     <div className="flex-1 pr-2 truncate">
                                                                         <h4 className="text-[11px] font-black text-white uppercase truncate">{session.name}</h4>
-                                                                        <span className="text-[9px] text-zinc-500 font-bold">
+                                                                        <span className="text-[9px] text-[#49454F] font-bold">
                                                                         {(session.parts && session.parts.length > 0)
                                                                             ? session.parts.reduce((a, p) => a + (p.exercises?.length || 0), 0)
                                                                             : (session.exercises || []).length
@@ -133,14 +133,14 @@ const InteractiveWeekOverlay: React.FC<Props> = ({ week, weekTitle, onClose, onS
                                                                     <div className="flex items-center gap-1 shrink-0">
                                                                         <button 
                                                                             onClick={() => handleEditSession(session.id)}
-                                                                            className="p-1.5 bg-black/50 rounded text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
+                                                                            className="p-1.5 bg-black/50 rounded text-[#49454F] hover:text-white hover:bg-zinc-800 transition-colors"
                                                                             title="Editar Sesión"
                                                                         >
                                                                             <EditIcon size={12}/>
                                                                         </button>
                                                                         <button 
                                                                             onClick={() => handleDeleteSession(session.id)}
-                                                                            className="p-1.5 bg-black/50 rounded text-zinc-500 hover:text-red-500 hover:bg-red-500/20 transition-colors"
+                                                                            className="p-1.5 bg-black/50 rounded text-[#49454F] hover:text-red-500 hover:bg-red-500/20 transition-colors"
                                                                             title="Eliminar Sesión"
                                                                         >
                                                                             <TrashIcon size={12}/>

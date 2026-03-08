@@ -17,11 +17,11 @@ const RECOVERY_PROFILES: Record<string, number> = {
 };
 
 const MUSCLE_PROFILE_MAP: Record<string, string> = {
-    'bíceps': 'fast', 'tríceps': 'fast', 'deltoides': 'fast', 'deltoides-anterior': 'fast', 'deltoides-lateral': 'fast', 'deltoides-posterior': 'fast',
-    'pantorrillas': 'fast', 'abdomen': 'fast', 'antebrazo': 'fast',
-    'pectorales': 'medium', 'dorsales': 'medium', 'hombros': 'medium', 'trapecio': 'medium',
-    'cuádriceps': 'slow', 'glúteos': 'slow', 'aductores': 'medium',
-    'isquiosurales': 'heavy', 'espalda baja': 'heavy', 'erectores espinales': 'heavy', 'core': 'medium'
+    'Bíceps': 'fast', 'Tríceps': 'fast', 'Deltoides': 'fast', 'Deltoides Anterior': 'fast', 'Deltoides Lateral': 'fast', 'Deltoides Posterior': 'fast',
+    'Pantorrillas': 'fast', 'Abdomen': 'fast', 'Antebrazo': 'fast',
+    'Pectorales': 'medium', 'Dorsales': 'medium', 'Hombros': 'medium', 'Trapecio': 'medium',
+    'Cuádriceps': 'slow', 'Glúteos': 'slow', 'Aductores': 'medium',
+    'Isquiosurales': 'heavy', 'Erectores Espinales': 'heavy', 'Core': 'medium'
 };
 
 const ATHLETE_CAPACITY_FLOORS: Record<string, number> = {
@@ -54,21 +54,21 @@ const safeExp = (val: number): number => {
 
 // Mapa de normalización para agrupar variantes anatómicas
 const MUSCLE_CATEGORY_MAP: Record<string, string[]> = {
-    'pectorales': ['pectoral', 'pecho'],
-    'dorsales': ['dorsal', 'dorsales', 'redondo mayor', 'espalda alta', 'lats', 'romboides'],
-    'deltoides': ['deltoides', 'hombro', 'delts'],
-    'deltoides-anterior': ['deltoides anterior', 'deltoide anterior', 'anterior'],
-    'deltoides-lateral': ['deltoides lateral', 'deltoide lateral', 'lateral', 'medio'],
-    'deltoides-posterior': ['deltoides posterior', 'deltoide posterior', 'posterior'],
-    'bíceps': ['bíceps', 'biceps', 'braquial', 'braquiorradial', 'antebrazo'],
-    'tríceps': ['tríceps', 'triceps'],
-    'cuádriceps': ['cuádriceps', 'cuadriceps', 'recto femoral', 'vasto', 'quads'],
-    'isquiosurales': ['isquiosurales', 'isquiotibiales', 'bíceps femoral', 'semitendinoso', 'semimembranoso', 'femoral', 'hamstrings'],
-    'glúteos': ['glúteo', 'gluteo', 'glutes'],
-    'pantorrillas': ['pantorrilla', 'gemelo', 'gastrocnemio', 'sóleo', 'soleo', 'calves'],
-    'abdomen': ['abdomen', 'abdominal', 'oblicuo', 'recto abdominal', 'core', 'transverso', 'abs', 'flexores de cadera', 'iliopsoas'],
-    'trapecio': ['trapecio'],
-    'espalda baja': ['erector', 'espinal', 'lumbar', 'espalda baja', 'cuadrado lumbar', 'lower back']
+    'Pectorales': ['pectoral', 'pecho'],
+    'Dorsales': ['dorsal', 'dorsales', 'redondo mayor', 'espalda alta', 'lats', 'romboides'],
+    'Deltoides': ['deltoides', 'hombro', 'delts'],
+    'Deltoides Anterior': ['deltoides anterior', 'deltoide anterior', 'anterior'],
+    'Deltoides Lateral': ['deltoides lateral', 'deltoide lateral', 'lateral', 'medio'],
+    'Deltoides Posterior': ['deltoides posterior', 'deltoide posterior', 'posterior'],
+    'Bíceps': ['bíceps', 'biceps', 'braquial', 'braquiorradial', 'antebrazo'],
+    'Tríceps': ['tríceps', 'triceps'],
+    'Cuádriceps': ['cuádriceps', 'cuadriceps', 'recto femoral', 'vasto', 'quads'],
+    'Isquiosurales': ['isquiosurales', 'isquiotibiales', 'bíceps femoral', 'semitendinoso', 'semimembranoso', 'femoral', 'hamstrings'],
+    'Glúteos': ['glúteo', 'gluteo', 'glutes'],
+    'Pantorrillas': ['pantorrilla', 'gemelo', 'gastrocnemio', 'sóleo', 'soleo', 'calves'],
+    'Abdomen': ['abdomen', 'abdominal', 'oblicuo', 'recto abdominal', 'core', 'transverso', 'abs', 'flexores de cadera', 'iliopsoas'],
+    'Trapecio': ['trapecio'],
+    'Erectores Espinales': ['erector', 'espinal', 'lumbar', 'espalda baja', 'cuadrado lumbar', 'lower back']
 };
 
 const isMuscleInGroup = (specificMuscle: string, targetCategory: string): boolean => {
@@ -820,23 +820,23 @@ export const calculateGlobalBatteries = (
 // --- BATERÍA POR MÚSCULO (para acordeón Home) ---
 /** Lista de músculos para el acordeón. Sin porciones excepto deltoides (anterior, lateral, posterior). */
 export const ACCORDION_MUSCLES: { id: string; label: string; isDeltoidPortion?: boolean }[] = [
-    { id: 'bíceps', label: 'Bíceps' },
-    { id: 'tríceps', label: 'Tríceps' },
-    { id: 'pectorales', label: 'Pectorales' },
-    { id: 'dorsales', label: 'Dorsales' },
-    { id: 'deltoides-anterior', label: 'Deltoides Anterior', isDeltoidPortion: true },
-    { id: 'deltoides-lateral', label: 'Deltoides Lateral', isDeltoidPortion: true },
-    { id: 'deltoides-posterior', label: 'Deltoides Posterior', isDeltoidPortion: true },
-    { id: 'cuádriceps', label: 'Cuádriceps' },
-    { id: 'glúteos', label: 'Glúteos' },
-    { id: 'isquiosurales', label: 'Isquiosurales' },
-    { id: 'pantorrillas', label: 'Pantorrillas' },
-    { id: 'abdomen', label: 'Abdomen' },
-    { id: 'antebrazo', label: 'Antebrazo' },
-    { id: 'trapecio', label: 'Trapecio' },
-    { id: 'core', label: 'Core' },
-    { id: 'espalda baja', label: 'Espalda Baja' },
-    { id: 'aductores', label: 'Aductores' },
+    { id: 'Bíceps', label: 'Bíceps' },
+    { id: 'Tríceps', label: 'Tríceps' },
+    { id: 'Pectorales', label: 'Pectorales' },
+    { id: 'Dorsales', label: 'Dorsales' },
+    { id: 'Deltoides Anterior', label: 'Deltoides Anterior', isDeltoidPortion: true },
+    { id: 'Deltoides Lateral', label: 'Deltoides Lateral', isDeltoidPortion: true },
+    { id: 'Deltoides Posterior', label: 'Deltoides Posterior', isDeltoidPortion: true },
+    { id: 'Cuádriceps', label: 'Cuádriceps' },
+    { id: 'Glúteos', label: 'Glúteos' },
+    { id: 'Isquiosurales', label: 'Isquiosurales' },
+    { id: 'Pantorrillas', label: 'Pantorrillas' },
+    { id: 'Abdomen', label: 'Abdomen' },
+    { id: 'Antebrazo', label: 'Antebrazo' },
+    { id: 'Trapecio', label: 'Trapecio' },
+    { id: 'Core', label: 'Core' },
+    { id: 'Erectores Espinales', label: 'Erectores Espinales' },
+    { id: 'Aductores', label: 'Aductores' },
 ];
 
 export const getPerMuscleBatteries = (

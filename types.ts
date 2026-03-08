@@ -803,6 +803,8 @@ export interface BodyProgressLog {
     bodyFatPercentage?: number;
     muscleMassPercentage?: number;
     measurements?: Record<string, number>;
+    photos?: string[];
+    aiInsight?: string;
 }
 
 /** Plan de nutrición (equivalente a Program en entrenamiento) */
@@ -830,7 +832,7 @@ export const PORTION_MULTIPLIERS: Record<PortionPreset, number> = {
 };
 
 export type PortionUnit = 'g' | 'oz' | 'preset' | 'reference';
-export type PortionReference = 'palm' | 'fist' | 'tablespoon' | 'cup' | 'handful' | 'pinch';
+export type PortionReference = 'palm' | 'fist' | 'tablespoon' | 'cup' | 'handful' | 'pinch' | 'teaspoon' | 'glass' | 'slice' | 'can' | 'portion' | 'scoop';
 
 export interface PortionInput {
     type: PortionUnit;
@@ -848,6 +850,13 @@ export interface ParsedMealItem {
     portion?: PortionPreset | PortionInput;
     /** true cuando findInDatabase usó coincidencia parcial (no exacta) */
     isFuzzyMatch?: boolean;
+    brandHint?: string;
+    macroOverrides?: { calories?: number; protein?: number; carbs?: number; fats?: number };
+    anatomicalModifiers?: ('sin_miga' | 'sin_yema' | 'solo_claras' | 'sin_piel')[];
+    heuristicModifiers?: ('descremado' | 'light' | 'integral')[];
+    dimensionalMultiplier?: number;
+    subItems?: ParsedMealItem[];
+    isGroup?: boolean;
 }
 
 export interface ParsedMealDescription {

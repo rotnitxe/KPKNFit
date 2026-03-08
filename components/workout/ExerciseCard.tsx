@@ -30,7 +30,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    const timer = setTimeout(() => onLongPress(), 500);
+    const timer = setTimeout(() => onLongPress(), 500) as unknown as number;
     (e.currentTarget as HTMLButtonElement & { _longPressTimer?: number })._longPressTimer = timer;
   };
 

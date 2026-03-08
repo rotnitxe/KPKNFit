@@ -52,8 +52,8 @@ const QuickStatsBar: React.FC<QuickStatsBarProps> = ({
     return (
         <div className="grid grid-cols-4 gap-2 px-4 py-3">
             {items.map(item => (
-                <div key={item.label} className="bg-zinc-900/50 border border-white/5 rounded-xl p-3 text-center">
-                    <item.icon size={14} className="text-zinc-500 mx-auto mb-1" />
+                <div key={item.label} className="bg-zinc-900/50 border border-[#E6E0E9] rounded-xl p-3 text-center">
+                    <item.icon size={14} className="text-[#49454F] mx-auto mb-1" />
                     <div className="text-sm font-black text-white leading-none">{item.value}</div>
                     <div className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">{item.label}</div>
                 </div>

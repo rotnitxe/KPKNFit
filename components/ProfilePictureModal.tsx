@@ -104,7 +104,7 @@ const ProfilePictureModal: React.FC<ProfilePictureModalProps> = ({ isOpen, onClo
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 p-3 rounded-xl border border-white/10">
+                <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 p-3 rounded-xl border border-[#E6E0E9]">
                     <h4 className="text-xs font-bold text-white mb-2 flex items-center gap-2">
                         <SparklesIcon size={14} className="text-purple-400"/> Generador IA (Anime)
                     </h4>

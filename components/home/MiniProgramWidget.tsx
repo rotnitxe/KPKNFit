@@ -34,13 +34,13 @@ export const MiniProgramWidget: React.FC<{ onNavigate: () => void }> = ({ onNavi
         return (
             <button
                 onClick={onNavigate}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/20 transition-colors group"
+                className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4 text-left hover:border-white/20 transition-colors group"
             >
                 <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">Programa</span>
-                    <ChevronRightIcon size={14} className="text-zinc-500" />
+                    <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em]">Programa</span>
+                    <ChevronRightIcon size={14} className="text-[#49454F]" />
                 </div>
-                <p className="text-[10px] text-zinc-500 font-mono mt-2">Sin programa activo</p>
+                <p className="text-[10px] text-[#49454F] font-mono mt-2">Sin programa activo</p>
             </button>
         );
     }
@@ -48,27 +48,27 @@ export const MiniProgramWidget: React.FC<{ onNavigate: () => void }> = ({ onNavi
     return (
         <button
             onClick={onNavigate}
-            className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/20 transition-colors group"
+            className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4 text-left hover:border-white/20 transition-colors group"
         >
             <div className="flex justify-between items-center mb-3">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">Programa</span>
-                <ChevronRightIcon size={14} className="text-zinc-500 group-hover:text-white transition-colors" />
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em]">Programa</span>
+                <ChevronRightIcon size={14} className="text-[#49454F] group-hover:text-white transition-colors" />
             </div>
             <div className="grid grid-cols-3 gap-2">
-                <div className="bg-black/30 rounded-lg p-2 border border-white/5">
+                <div className="bg-black/30 rounded-lg p-2 border border-[#E6E0E9]">
                     <DumbbellIcon size={14} className="text-emerald-400 mb-1" />
                     <span className="text-[10px] font-mono font-black text-white block">{metrics ? Math.round(metrics.volume) : '—'}</span>
-                    <span className="text-[8px] text-zinc-500">Vol</span>
+                    <span className="text-[8px] text-[#49454F]">Vol</span>
                 </div>
-                <div className="bg-black/30 rounded-lg p-2 border border-white/5">
+                <div className="bg-black/30 rounded-lg p-2 border border-[#E6E0E9]">
                     <FlameIcon size={14} className="text-rose-400 mb-1" />
                     <span className="text-[10px] font-mono font-black text-white block">{metrics?.adherence ?? '—'}%</span>
-                    <span className="text-[8px] text-zinc-500">Adh.</span>
+                    <span className="text-[8px] text-[#49454F]">Adh.</span>
                 </div>
-                <div className="bg-black/30 rounded-lg p-2 border border-white/5">
+                <div className="bg-black/30 rounded-lg p-2 border border-[#E6E0E9]">
                     <ZapIcon size={14} className="text-amber-400 mb-1" />
                     <span className="text-[10px] font-mono font-black text-white block">{metrics?.recovery ?? '—'}%</span>
-                    <span className="text-[8px] text-zinc-500">Recup.</span>
+                    <span className="text-[8px] text-[#49454F]">Recup.</span>
                 </div>
             </div>
         </button>

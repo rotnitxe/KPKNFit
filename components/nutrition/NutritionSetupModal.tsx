@@ -24,13 +24,13 @@ export const NutritionSetupModal: React.FC<NutritionSetupModalProps> = ({
                 onClick={onConfigurarDespues}
                 aria-hidden="true"
             />
-            <div className="fixed left-0 right-0 bottom-0 z-[201] bg-[#0a0a0a] border-t border-white/10 rounded-none shadow-2xl animate-slide-up pb-[max(1rem, env(safe-area-inset-bottom))]">
+            <div className="fixed left-0 right-0 bottom-0 z-[201] bg-[#FEF7FF] border-t border-[#E6E0E9] rounded-none shadow-2xl animate-slide-up pb-[max(1rem, env(safe-area-inset-bottom))]">
                 <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mt-3 mb-4" aria-hidden />
                 <div className="px-6 pb-6">
                     <h2 className="text-lg font-black text-white uppercase tracking-tight mb-2">
                         Ajusta tu plan de alimentación
                     </h2>
-                    <p className="text-sm text-zinc-400 mb-6">
+                    <p className="text-sm text-[#49454F] mb-6">
                         Configura calorías y macros según tu objetivo, datos corporales y actividad.
                     </p>
                     <div className="flex flex-col gap-3">
@@ -42,7 +42,7 @@ export const NutritionSetupModal: React.FC<NutritionSetupModalProps> = ({
                         </Button>
                         <button
                             onClick={onConfigurarDespues}
-                            className="w-full py-3 rounded-none border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 transition-colors text-sm font-bold"
+                            className="w-full py-3 rounded-none border border-[#E6E0E9] text-[#49454F] hover:text-white hover:border-white/20 transition-colors text-sm font-bold"
                         >
                             Configurar después
                         </button>

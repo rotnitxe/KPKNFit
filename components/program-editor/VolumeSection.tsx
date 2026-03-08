@@ -17,7 +17,7 @@ const VolumeSection: React.FC<VolumeSectionProps> = ({ program, exerciseList }) 
                     meso.weeks.forEach(week => {
                         const vol = calculateUnifiedMuscleVolume(week.sessions, exerciseList);
                         const muscles: Record<string, number> = {};
-                        vol.forEach(v => { muscles[v.muscleName] = v.displayVolume; });
+                        vol.forEach(v => { muscles[v.muscleGroup] = v.displayVolume; });
                         result.push({ weekName: week.name, muscles });
                     });
                 });
@@ -39,69 +39,97 @@ const VolumeSection: React.FC<VolumeSectionProps> = ({ program, exerciseList }) 
     }, [weeklyVolumes]);
 
     return (
-        <div className="space-y-4">
-            <h3 className="text-xs font-medium text-white flex items-center gap-2">
-                <ActivityIcon size={14} className="text-[#a3a3a3]" /> Volumen Planificado
+        <div className="space-y-6 p-4 rounded-3xl">
+            <h3 className="text-title-sm font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-[0.2em] flex items-center gap-2">
+                <ActivityIcon size={16} className="text-[var(--md-sys-color-primary)]" /> Distribución de Volumen
             </h3>
 
             {weeklyVolumes.length > 0 && allMuscles.length > 0 ? (
-                <div className="bg-[#252525] border border-[#3f3f3f] p-4 overflow-x-auto">
-                    {/* Heatmap */}
-                    <div className="min-w-[400px]">
-                        <div className="flex mb-2">
-                            <div className="w-24 shrink-0" />
-                            {weeklyVolumes.map((w, i) => (
-                                <div key={i} className="flex-1 text-center text-[7px] font-medium text-[#737373] uppercase">
-                                    {w.weekName.replace('Semana ', 'S')}
-                                </div>
-                            ))}
+                <div className="bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-6 shadow-sm overflow-hidden">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest block mb-1">Mapa de Calor</span>
+                            <h4 className="text-title-small font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tight">Sets por Grupo Muscular</h4>
                         </div>
-                        {allMuscles.slice(0, 15).map(muscle => (
-                            <div key={muscle} className="flex items-center mb-0.5">
-                                <div className="w-24 shrink-0 text-[8px] font-medium text-[#a3a3a3] truncate pr-2">{muscle}</div>
-                                {weeklyVolumes.map((w, i) => {
-                                    const vol = w.muscles[muscle] || 0;
-                                    const intensity = maxVolume > 0 ? vol / maxVolume : 0;
-                                    return (
-                                        <div key={i} className="flex-1 px-0.5">
-                                            <div
-                                                className="h-4 rounded-sm transition-colors"
-                                                style={{
-                                                    backgroundColor: vol === 0
-                                                        ? '#252525'
-                                                        : `rgba(163, 163, 163, ${0.2 + intensity * 0.6})`,
-                                                }}
-                                                title={`${muscle}: ${vol.toFixed(1)} sets`}
-                                            />
-                                        </div>
-                                    );
-                                })}
+                        {/* Legend */}
+                        <div className="flex items-center gap-3 bg-[var(--md-sys-color-surface-container-high)] px-3 py-1.5 rounded-full border border-[var(--md-sys-color-outline-variant)]">
+                            <span className="text-[8px] text-[var(--md-sys-color-on-surface-variant)] font-black uppercase">Low</span>
+                            <div className="flex gap-1">
+                                {[0.1, 0.3, 0.5, 0.7, 0.9].map((o, i) => (
+                                    <div key={i} className="w-4 h-3 rounded-md" style={{ backgroundColor: `rgba(var(--md-sys-color-primary-rgb), ${o})` }} />
+                                ))}
                             </div>
-                        ))}
+                            <span className="text-[8px] text-[var(--md-sys-color-on-surface-variant)] font-black uppercase">High</span>
+                        </div>
                     </div>
 
-                    {/* Legend */}
-                    <div className="flex items-center justify-end gap-2 mt-3">
-                        <span className="text-[7px] text-zinc-500 font-bold">Bajo</span>
-                        <div className="flex gap-0.5">
-                            {[0.15, 0.35, 0.55, 0.75, 1].map((o, i) => (
-                                <div key={i} className="w-4 h-2 rounded-sm" style={{ backgroundColor: `rgba(59, 130, 246, ${o})` }} />
-                            ))}
+                    <div className="overflow-x-auto custom-scrollbar pb-4 text-[var(--md-sys-color-on-surface)]">
+                        <div className="min-w-[500px]">
+                            <div className="flex mb-4">
+                                <div className="w-32 shrink-0" />
+                                {weeklyVolumes.map((w, i) => (
+                                    <div key={i} className="flex-1 text-center text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-tight">
+                                        {w.weekName.replace('Semana ', 'W')}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="space-y-1.5">
+                                {allMuscles.slice(0, 15).map(muscle => (
+                                    <div key={muscle} className="flex items-center">
+                                        <div className="w-32 shrink-0 text-label-small font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tighter truncate pr-4">{muscle}</div>
+                                        {weeklyVolumes.map((w, i) => {
+                                            const vol = w.muscles[muscle] || 0;
+                                            const intensity = maxVolume > 0 ? vol / maxVolume : 0;
+                                            return (
+                                                <div key={i} className="flex-1 px-1">
+                                                    <div
+                                                        className="h-8 rounded-xl border border-[var(--md-sys-color-surface)] transition-all transform hover:scale-[1.05] hover:z-10 shadow-sm"
+                                                        style={{
+                                                            backgroundColor: vol === 0
+                                                                ? 'var(--md-sys-color-surface-container-lowest)'
+                                                                : `rgba(var(--md-sys-color-primary-rgb), ${0.1 + intensity * 0.8})`,
+                                                        }}
+                                                        title={`${muscle}: ${vol.toFixed(1)} sets`}
+                                                    >
+                                                        {vol > 0 && (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <span className={`text-[8px] font-black ${intensity > 0.5 ? 'text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-primary)]'}`}>
+                                                                    {vol.toFixed(1)}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <span className="text-[7px] text-zinc-500 font-bold">Alto</span>
                     </div>
                 </div>
             ) : (
-                <div className="bg-zinc-950 border border-white/5 rounded-xl p-6 text-center">
-                    <ActivityIcon size={24} className="text-zinc-700 mx-auto mb-2" />
-                    <p className="text-[9px] text-zinc-500 font-bold">Agrega sesiones con ejercicios para ver el volumen planificado.</p>
+                <div className="bg-[var(--md-sys-color-surface-container-low)] border-2 border-dashed border-[var(--md-sys-color-outline-variant)] rounded-3xl p-12 text-center">
+                    <div className="w-20 h-20 bg-[var(--md-sys-color-surface-container-high)] rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-outline-variant)]">
+                        <ActivityIcon size={32} />
+                    </div>
+                    <p className="text-label-small text-[var(--md-sys-color-on-surface-variant)] font-black uppercase tracking-[0.2em]">Pendiente de asignación de carga</p>
+                    <p className="text-[9px] text-[var(--md-sys-color-outline)] font-bold uppercase mt-2">Añade ejercicios a las semanas de entrenamiento</p>
                 </div>
             )}
 
-            {/* Overtraining alerts placeholder */}
-            <div className="bg-zinc-950 border border-white/5 rounded-xl p-4">
-                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Alertas de Sobreentrenamiento</span>
-                <p className="text-[9px] text-zinc-600 italic">Análisis predictivo disponible con suficientes datos de sesiones.</p>
+            {/* Smart Alerts */}
+            <div className="bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] border border-[var(--md-sys-color-tertiary)]/20 rounded-3xl p-6 shadow-sm flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--md-sys-color-surface)]/50 flex items-center justify-center text-[var(--md-sys-color-tertiary)] shrink-0 shadow-inner">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m12 9 4.1 3-1.6 5h-5l-1.6-5L12 9z" /><path d="m12 3 1.9 5.8a2 2 0 0 0 1.8 1.4H22l-5 3.7a2 2 0 0 0-.7 2.3l1.9 5.8-4.9-3.5a2 2 0 0 0-2.4 0l-4.9 3.5 1.9-5.8a2 2 0 0 0-.7-2.3L2 10.2h6.3a2 2 0 0 0 1.8-1.4L12 3z" /></svg>
+                </div>
+                <div>
+                    <span className="text-label-small font-black uppercase tracking-widest block mb-1">Carga Predictiva AI</span>
+                    <h4 className="text-title-small font-black uppercase tracking-tight mb-2">Análisis de Estrés Sistémico</h4>
+                    <p className="text-body-small font-bold uppercase tracking-tight leading-relaxed opacity-80">
+                        El motor de biomecánica está procesando tus selecciones. Las alertas de sobreentrenamiento aparecerán una vez el volumen exceda el MRV teórico.
+                    </p>
+                </div>
             </div>
         </div>
     );

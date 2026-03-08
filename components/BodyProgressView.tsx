@@ -101,7 +101,7 @@ const BodyProgressView: React.FC = () => {
     return (
         <div className="fixed inset-0 z-[100] bg-black text-white flex flex-col safe-area-root">
             {/* Hero */}
-            <div className="shrink-0 bg-gradient-to-b from-slate-900/80 to-black border-b border-white/5 px-4 pt-4 pb-6">
+            <div className="shrink-0 bg-gradient-to-b from-slate-900/80 to-black border-b border-[#E6E0E9] px-4 pt-4 pb-6">
                 <div className="flex items-center justify-between mb-4">
                     <button
                         onClick={handleBack}
@@ -114,19 +114,19 @@ const BodyProgressView: React.FC = () => {
                     <div className="w-10" />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                    <div className="bg-white/5 rounded-xl p-3 border border-[#E6E0E9]">
                         <p className="text-[10px] font-bold text-slate-500 uppercase">Estatura</p>
                         <p className="text-xl font-black text-white">{height}<span className="text-xs text-slate-500 ml-0.5">cm</span></p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                    <div className="bg-white/5 rounded-xl p-3 border border-[#E6E0E9]">
                         <p className="text-[10px] font-bold text-slate-500 uppercase">Peso</p>
                         <p className="text-xl font-black text-white">{weight}<span className="text-xs text-slate-500 ml-0.5">{settings.weightUnit}</span></p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                    <div className="bg-white/5 rounded-xl p-3 border border-[#E6E0E9]">
                         <p className="text-[10px] font-bold text-slate-500 uppercase">% Grasa</p>
                         <p className="text-xl font-black text-white">{bodyFat}<span className="text-xs text-slate-500 ml-0.5">%</span></p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                    <div className="bg-white/5 rounded-xl p-3 border border-[#E6E0E9]">
                         <p className="text-[10px] font-bold text-slate-500 uppercase">% Músculo</p>
                         <p className="text-xl font-black text-white">{muscleMass}<span className="text-xs text-slate-500 ml-0.5">%</span></p>
                     </div>
@@ -148,7 +148,7 @@ const BodyProgressView: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-white/5 shrink-0">
+            <div className="flex border-b border-[#E6E0E9] shrink-0">
                 <button
                     onClick={() => setActiveTab('registros')}
                     className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide text-center transition-colors ${activeTab === 'registros' ? 'text-cyber-copper border-b-2 border-cyber-copper' : 'text-[#48484A]'}`}
@@ -193,14 +193,14 @@ const BodyProgressView: React.FC = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleOpenEdit(log)}
-                                                    className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center text-slate-400 hover:text-white"
+                                                    className="w-8 h-8 rounded-lg border border-[#E6E0E9] flex items-center justify-center text-slate-400 hover:text-white"
                                                     aria-label="Editar"
                                                 >
                                                     <PencilIcon size={14} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(log)}
-                                                    className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center text-slate-400 hover:text-red-400"
+                                                    className="w-8 h-8 rounded-lg border border-[#E6E0E9] flex items-center justify-center text-slate-400 hover:text-red-400"
                                                     aria-label="Eliminar"
                                                 >
                                                     <TrashIcon size={14} />

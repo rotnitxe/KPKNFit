@@ -60,20 +60,20 @@ export const QuickLogWidget: React.FC = () => {
     const allEmpty = !hasWeightToday && !hasSleepToday && !hasNutritionToday;
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-none overflow-hidden">
-            <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em]">
+        <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-none overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#E6E0E9] flex justify-between items-center">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.25em]">
                     Quick Log
                 </span>
             </div>
             {allEmpty ? (
                 <div className="p-4">
-                    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-white/[0.02] border border-white/5 min-h-[44px]">
-                        <span className="text-[9px] text-zinc-500 font-bold uppercase">Añade datos</span>
+                    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-white/[0.02] border border-[#E6E0E9] min-h-[44px]">
+                        <span className="text-[9px] text-[#49454F] font-bold uppercase">Añade datos</span>
                         <div className="flex items-center gap-2">
-                            <button onClick={() => setIsBodyLogModalOpen(true)} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Peso</button>
-                            <button onClick={() => navigateTo('sleep')} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Sueño</button>
-                            <button onClick={() => { navigateTo('nutrition'); setIsNutritionLogModalOpen(true); }} className="text-[8px] font-black text-zinc-400 uppercase tracking-widest hover:text-white">Nutrición</button>
+                            <button onClick={() => setIsBodyLogModalOpen(true)} className="text-[8px] font-black text-[#49454F] uppercase tracking-widest hover:text-white">Peso</button>
+                            <button onClick={() => navigateTo('sleep')} className="text-[8px] font-black text-[#49454F] uppercase tracking-widest hover:text-white">Sueño</button>
+                            <button onClick={() => { navigateTo('nutrition'); setIsNutritionLogModalOpen(true); }} className="text-[8px] font-black text-[#49454F] uppercase tracking-widest hover:text-white">Nutrición</button>
                         </div>
                     </div>
                 </div>
@@ -95,7 +95,7 @@ export const QuickLogWidget: React.FC = () => {
                                     </span>
                                 )}
                             </div>
-                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                            <span className="text-[9px] font-black text-[#49454F] uppercase tracking-widest">
                                 {label}
                             </span>
                             <span className={`text-[8px] font-mono ${completed ? 'text-emerald-500' : 'text-zinc-600'}`}>

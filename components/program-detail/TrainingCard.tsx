@@ -85,7 +85,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                         : (isStandardWeek ? 'Descanso / Recuperación' : 'Descanso');
 
                     return (
-                        <div key={`day-${dayNum}`} className="bg-zinc-900/30 border border-white/5 rounded-2xl p-3 relative overflow-hidden">
+                        <div key={`day-${dayNum}`} className="bg-zinc-900/30 border border-[#E6E0E9] rounded-2xl p-3 relative overflow-hidden">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2.5">
                                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-black border ${
@@ -96,16 +96,16 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                                         {dayAbbrev}
                                     </div>
                                     <div>
-                                        <h4 className={`text-xs font-black uppercase tracking-wider ${daySessions.length > 0 ? 'text-white' : 'text-zinc-500'}`}>
+                                        <h4 className={`text-xs font-black uppercase tracking-wider ${daySessions.length > 0 ? 'text-white' : 'text-[#49454F]'}`}>
                                             {dayTitle}
                                         </h4>
-                                        <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">{daySubtitle}</p>
+                                        <p className="text-[8px] text-[#49454F] font-bold uppercase tracking-widest">{daySubtitle}</p>
                                     </div>
                                 </div>
                                 {onAddSession && (
                                     <button
                                         onClick={() => onAddSession(program.id, macroIndex, weekData.mesoIndex, weekData.id, dayNum)}
-                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black border border-white/10 text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all"
+                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black border border-[#E6E0E9] text-[9px] font-black text-[#49454F] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all"
                                     >
                                         <PlusIcon size={12} />
                                     </button>
@@ -134,7 +134,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                                 onAddSession && (
                                     <button
                                         onClick={() => onAddSession(program.id, macroIndex, weekData.mesoIndex, weekData.id, dayNum)}
-                                        className="w-full h-12 rounded-xl bg-black/50 border border-dashed border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/30 transition-all group"
+                                        className="w-full h-12 rounded-xl bg-black/50 border border-dashed border-[#E6E0E9] flex items-center justify-center hover:bg-white/5 hover:border-white/30 transition-all group"
                                     >
                                         <PlusIcon size={14} className="text-zinc-600 group-hover:text-white mr-1.5 transition-colors" />
                                         <span className="text-[9px] font-bold text-zinc-600 group-hover:text-white uppercase tracking-widest transition-colors">Añadir</span>
@@ -149,7 +149,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
     };
 
     return (
-        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
+        <div className="bg-zinc-900/50 border border-[#E6E0E9] rounded-2xl overflow-hidden transition-all duration-300">
             {/* Card Header */}
             <button onClick={onToggleCollapse} className="w-full flex items-center justify-between p-4 text-left">
                 <div className="flex items-center gap-3">
@@ -158,7 +158,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                     </div>
                     <div>
                         <h3 className="text-xs font-black text-white uppercase tracking-widest">Entrenamiento</h3>
-                        <p className="text-[9px] text-zinc-500 font-bold">
+                        <p className="text-[9px] text-[#49454F] font-bold">
                             {isCyclic
                                 ? `${currentWeeks.length} semana${currentWeeks.length > 1 ? 's' : ''} cíclica${currentWeeks.length > 1 ? 's' : ''}`
                                 : `${roadmapBlocks.length} bloques • Semana ${selectedWeekIndex}`
@@ -166,7 +166,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                         </p>
                     </div>
                 </div>
-                <ChevronDownIcon size={16} className={`text-zinc-500 transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
+                <ChevronDownIcon size={16} className={`text-[#49454F] transition-transform duration-300 ${collapsed ? '' : 'rotate-180'}`} />
             </button>
 
             {!collapsed && (
@@ -184,7 +184,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                         )}
                         <button
                             onClick={onOpenSplitChanger}
-                            className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-[9px] font-black uppercase tracking-widest border border-white/10 hover:bg-zinc-700 hover:text-white transition-colors flex items-center gap-1.5 ml-auto"
+                            className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-[9px] font-black uppercase tracking-widest border border-[#E6E0E9] hover:bg-zinc-700 hover:text-white transition-colors flex items-center gap-1.5 ml-auto"
                         >
                             <SettingsIcon size={12} /> Split
                         </button>
@@ -203,7 +203,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                                         className={`shrink-0 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5 ${
                                             isSelected
                                                 ? 'bg-white text-black border-white shadow-[0_0_12px_rgba(255,255,255,0.15)]'
-                                                : 'bg-zinc-900 border-white/10 text-zinc-500 hover:text-white hover:bg-zinc-800'
+                                                : 'bg-zinc-900 border-[#E6E0E9] text-[#49454F] hover:text-white hover:bg-zinc-800'
                                         }`}
                                     >
                                         {isCurrent && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />}
@@ -228,7 +228,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                                         className={`shrink-0 relative px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${
                                             isWeekSelected && !selectedEventId
                                                 ? 'bg-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.4)]'
-                                                : 'text-zinc-500 hover:text-white hover:bg-zinc-800'
+                                                : 'text-[#49454F] hover:text-white hover:bg-zinc-800'
                                         }`}
                                     >
                                         {hasEvent && (
@@ -259,30 +259,30 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                         <div className="space-y-3 animate-slide-up">
                             <div className="flex items-center gap-2 mb-3">
                                 <div className="h-px bg-white/10 flex-1" />
-                                <h4 className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Historial</h4>
+                                <h4 className="text-[8px] font-black text-[#49454F] uppercase tracking-widest">Historial</h4>
                                 <div className="h-px bg-white/10 flex-1" />
                             </div>
                             {programLogs.length > 0 ? programLogs.slice(0, 10).map(log => (
-                                <div key={log.id} className="bg-zinc-900/40 border border-white/5 p-4 rounded-2xl relative overflow-hidden">
+                                <div key={log.id} className="bg-zinc-900/40 border border-[#E6E0E9] p-4 rounded-2xl relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
                                             <div className="text-xs font-bold text-white">{log.sessionName || 'Sesión Completa'}</div>
-                                            <div className="text-[9px] text-zinc-500">{new Date(log.date).toLocaleDateString()}</div>
+                                            <div className="text-[9px] text-[#49454F]">{new Date(log.date).toLocaleDateString()}</div>
                                         </div>
                                     </div>
-                                    <div className="space-y-1 border-t border-white/5 pt-2">
+                                    <div className="space-y-1 border-t border-[#E6E0E9] pt-2">
                                         {(log.completedExercises || []).slice(0, 3).map((ex: any, i: number) => (
                                             <div key={i} className="flex justify-between items-center text-[10px]">
-                                                <span className="text-zinc-400 truncate flex-1">{ex.exerciseName}</span>
+                                                <span className="text-[#49454F] truncate flex-1">{ex.exerciseName}</span>
                                                 <span className="text-zinc-300 font-bold">{ex.sets?.length || 0}s</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )) : (
-                                <div className="text-center py-8 bg-zinc-900/20 rounded-2xl border border-dashed border-white/10">
-                                    <p className="text-[10px] text-zinc-500">Sin historial.</p>
+                                <div className="text-center py-8 bg-zinc-900/20 rounded-2xl border border-dashed border-[#E6E0E9]">
+                                    <p className="text-[10px] text-[#49454F]">Sin historial.</p>
                                 </div>
                             )}
                         </div>
@@ -296,7 +296,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                                         <div className="bg-yellow-900/10 border border-yellow-500/20 rounded-2xl p-4 text-center">
                                             <ActivityIcon size={20} className="text-yellow-500 mx-auto mb-1" />
                                             <h4 className="text-sm font-black text-white uppercase">{ev.title}</h4>
-                                            <p className="text-[9px] text-zinc-400 mt-0.5">Cada {ev.repeatEveryXCycles} Ciclos</p>
+                                            <p className="text-[9px] text-[#49454F] mt-0.5">Cada {ev.repeatEveryXCycles} Ciclos</p>
                                         </div>
                                         {(ev.sessions || []).map((session: any, idx: number) => (
                                             <SessionCard
@@ -341,8 +341,8 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                         (() => {
                             const selectedWeek = currentWeeks.find(w => w.id === selectedWeekId) || currentWeeks[0];
                             if (!selectedWeek) return (
-                                <div className="py-8 text-center border border-dashed border-white/10 rounded-2xl">
-                                    <p className="text-[9px] text-zinc-500 font-black uppercase tracking-widest">Selecciona un bloque y semana</p>
+                                <div className="py-8 text-center border border-dashed border-[#E6E0E9] rounded-2xl">
+                                    <p className="text-[9px] text-[#49454F] font-black uppercase tracking-widest">Selecciona un bloque y semana</p>
                                 </div>
                             );
                             return renderDaySessions(

@@ -117,7 +117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, []);
 
     useEffect(() => {
-        let remove: (() => void) | (() => Promise<void>) = () => {};
+        let remove: (() => void) | (() => Promise<void>) = () => { };
         addNetworkStatusListener((status) => ui.setIsOnline(status.connected)).then((fn) => { remove = fn; });
         return () => { remove(); };
     }, []);
@@ -375,6 +375,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
             event.preventDefault();
+            if (useUIStore.getState().isLogActionSheetOpen) {
+                ui.setIsLogActionSheetOpen(false);
+                return;
+            }
             const stack = useUIStore.getState().historyStack;
             if (stack.length > 1) {
                 handleBack();
@@ -548,12 +552,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const program = newPrograms.find((p: Program) => p.id === programId);
             if (!program) return prevPrograms;
 
-            const block = program.macrocycles?.flatMap(m => m.blocks || []).find((b: Block) => b.id === targetBlockId);
+            const block = program.macrocycles?.flatMap((m: any) => m.blocks || []).find((b: Block) => b.id === targetBlockId);
             if (!block) return prevPrograms;
 
             const allWeeksInBlock: { week: ProgramWeek; globalIdx: number }[] = [];
-            block.mesocycles.forEach(meso => {
-                meso.weeks.forEach(w => {
+            block.mesocycles.forEach((meso: any) => {
+                meso.weeks.forEach((w: any) => {
                     allWeeksInBlock.push({ week: w, globalIdx: allWeeksInBlock.length });
                 });
             });
@@ -919,7 +923,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             });
         }
 
-        syncWithBackend('local').catch(() => {});
+        syncWithBackend('local').catch(() => { });
 
         completedExercises.forEach(ex => {
             if (!ex.exerciseDbId) return;
@@ -1252,7 +1256,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         },
         handleUpdateExercise1RM, handleUpdateExerciseBrandPR, handleUpdateExerciseRepDebt,
         handleStartRest, handleAdjustRestTimer, handleSkipRestTimer,
-        handleLogPress: () => ui.setIsLogActionSheetOpen(true),
+        handleLogPress: () => ui.setIsLogActionSheetOpen(p => !p),
         addOrUpdateCustomExercise, batchAddExercises, createAndAddExerciseToDB, setExerciseList,
         exportExerciseDatabase, importExerciseDatabase, setIsDirty: ui.setIsDirty, handleModifyWorkout,
         handleSaveModifiedWorkout, setIsWorkoutEditorOpen: ui.setIsWorkoutEditorOpen, setKpknaction: ui.setKpknaction,

@@ -65,21 +65,21 @@ export const Star1RMGoalsWidget: React.FC<{
 
     if (starList.length === 0) {
         return (
-            <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-4">
+            <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4">
                 <div className="flex justify-between items-center mb-3">
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                         <StarIcon size={10} filled className="text-amber-400" /> 1RM Estrella
                     </span>
                 </div>
-                <p className="text-[10px] text-zinc-500 font-mono">Sin ejercicios estrella en el programa activo</p>
+                <p className="text-[10px] text-[#49454F] font-mono">Sin ejercicios estrella en el programa activo</p>
             </div>
         );
     }
 
     return (
-        <div className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
+        <div className="w-full bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl overflow-hidden">
             <div className="flex justify-between items-center p-4 pb-2">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="text-[9px] font-black text-[#49454F] uppercase tracking-[0.2em] flex items-center gap-2">
                     <StarIcon size={10} filled className="text-amber-400" /> 1RM Estrella
                 </span>
             </div>
@@ -90,7 +90,7 @@ export const Star1RMGoalsWidget: React.FC<{
                             ? Math.min(100, (lastE1rm / goal1RM) * 100)
                             : null;
                         return (
-                            <div key={name} className="py-2 px-3 rounded-lg bg-black/30 border border-white/5 space-y-1.5">
+                            <div key={name} className="py-2 px-3 rounded-lg bg-black/30 border border-[#E6E0E9] space-y-1.5">
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-[10px] font-bold text-white truncate flex-1">{name}</span>
                                     <span className="text-xs font-black text-cyan-400 shrink-0">
