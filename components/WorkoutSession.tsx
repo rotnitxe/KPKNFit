@@ -940,22 +940,39 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const setsContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     const sessionForMode = useMemo(() => {
-        if (ongoingWorkout?.topSetAmrapState?.status !== 'completed' && currentSession.exercises[0]?.isCalibratorAmrap) return { ...currentSession, exercises: [currentSession.exercises[0]] };
+        const firstExercise = Array.isArray(currentSession.exercises) ? currentSession.exercises[0] : undefined;
+        if (ongoingWorkout?.topSetAmrapState?.status !== 'completed' && firstExercise?.isCalibratorAmrap) return { ...currentSession, exercises: [firstExercise] };
         const modeKey = `session${activeMode}` as 'sessionB' | 'sessionC' | 'sessionD';
         return (activeMode === 'A' || !currentSession[modeKey]) ? currentSession : (currentSession as any)[modeKey];
     }, [activeMode, currentSession, ongoingWorkout?.topSetAmrapState?.status]);
 
     const renderExercises = useMemo(() => {
-        if (sessionForMode.parts && sessionForMode.parts.length > 0) return sessionForMode.parts;
-        return [{ id: 'default', name: 'Sesión Principal', exercises: sessionForMode.exercises || [] }];
+        const normalizeExercise = (exercise: any, exerciseIndex: number, partIndex: number): Exercise => ({
+            ...(exercise || {}),
+            id: exercise?.id || `exercise-${partIndex}-${exerciseIndex}`,
+            name: exercise?.name || `Ejercicio ${exerciseIndex + 1}`,
+            sets: Array.isArray(exercise?.sets) ? exercise.sets : []
+        });
+
+        const normalizePart = (part: any, partIndex: number) => ({
+            ...(part || {}),
+            id: part?.id || `part-${partIndex}`,
+            name: part?.name || `Parte ${partIndex + 1}`,
+            exercises: Array.isArray(part?.exercises)
+                ? part.exercises.map((exercise: any, exerciseIndex: number) => normalizeExercise(exercise, exerciseIndex, partIndex))
+                : []
+        });
+
+        if (Array.isArray(sessionForMode.parts) && sessionForMode.parts.length > 0) return sessionForMode.parts.map(normalizePart);
+        const baseExercises = Array.isArray(sessionForMode.exercises)
+            ? sessionForMode.exercises.map((exercise: any, exerciseIndex: number) => normalizeExercise(exercise, exerciseIndex, 0))
+            : [];
+        return [{ id: 'default', name: 'Sesion Principal', exercises: baseExercises }];
     }, [sessionForMode]);
 
     const allExercises = useMemo<Exercise[]>(() => {
-        if (sessionForMode.parts && sessionForMode.parts.length > 0) {
-            return sessionForMode.parts.flatMap((p: any) => (p.exercises || []).map((e: any) => e as Exercise));
-        }
-        return (sessionForMode.exercises as Exercise[]) || [];
-    }, [sessionForMode]);
+        return (renderExercises as { exercises?: Exercise[] }[]).flatMap((part: { exercises?: Exercise[] }) => part.exercises || []);
+    }, [renderExercises]);
 
     const carouselItems = useMemo<CarouselItemType[]>(() => {
         const items: CarouselItemType[] = [];
@@ -1030,6 +1047,12 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         }
         return renderExercises;
     }, [activeExerciseId, carouselItems, renderExercises, skippedExerciseIds]);
+
+    const visibleExerciseCount = useMemo(() => {
+        return displayParts.reduce((total: number, part: any) => total + ((part?.exercises || []).length), 0);
+    }, [displayParts]);
+
+    const showEmptySessionState = visibleExerciseCount === 0;
 
     const [activeSetId, setActiveSetId] = useState<string | null>(null);
     const [setInputs, setSetInputs] = useState<Record<string, SetInputState | UnilateralSetInputs>>((ongoingWorkout?.unilateralSetInputs as any) || {});
@@ -1689,13 +1712,38 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             />
 
             <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative" style={{ backgroundColor: 'var(--md-sys-color-surface-container, #1A1C24)' }}>
-                {displayParts.map((part: any, partIndex: number) => (
+                {showEmptySessionState && (
+                    <div className="mx-2 mt-4 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] p-5 text-center">
+                        <AlertTriangleIcon size={22} className="mx-auto mb-3 text-[var(--md-sys-color-on-surface-variant)]" />
+                        <h3 className="text-[15px] font-semibold text-[var(--md-sys-color-on-surface)]">No hay ejercicios disponibles</h3>
+                        <p className="mt-2 text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
+                            Esta sesion se abrio sin ejercicios validos. Puedes reintentar la carga o salir.
+                        </p>
+                        <div className="mt-4 flex items-center justify-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => window.location.reload()}
+                                className="min-h-[44px] rounded-full border border-[var(--md-sys-color-outline)] px-4 text-[12px] font-semibold text-[var(--md-sys-color-on-surface)] transition-colors hover:bg-black/10"
+                            >
+                                Reintentar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { if (window.confirm('Cancelar sesion y salir?')) onCancel(); }}
+                                className="min-h-[44px] rounded-full bg-[var(--md-sys-color-primary)] px-4 text-[12px] font-semibold text-[var(--md-sys-color-on-primary)]"
+                            >
+                                Salir
+                            </button>
+                        </div>
+                    </div>
+                )}
+                {!showEmptySessionState && displayParts.map((part: any, partIndex: number) => (
                     <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group">
                         <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({ ...prev, [part.id]: !prev[part.id] })); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm" style={{ backgroundColor: 'var(--md-sys-color-surface-container-high, #1F212A)' }}>
                             <div className="flex items-center gap-3"><h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-primary)]">{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-[var(--md-sys-color-on-surface-variant)] transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
                         </summary>
                         <div className="space-y-4 relative pl-0 pr-0 w-full">
-                            {part.exercises.map((ex: Exercise) => {
+                            {(part.exercises || []).map((ex: Exercise) => {
                                 const exInfo = exerciseList.find(e => e.id === ex.exerciseDbId);
                                 const pr = findPrForExercise(exInfo || ({} as any), history, settings, selectedTags[ex.id]);
                                 const isActive = activeExerciseId === ex.id;
