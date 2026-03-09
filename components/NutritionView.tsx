@@ -70,14 +70,21 @@ const formatEta = (eta: string | null): string => {
     return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
+const getViewportWidth = (): number => {
+    if (typeof window === 'undefined') return 390;
+    return window.innerWidth || 390;
+};
+
 const MacroRingStack: React.FC<{
     proteinPct: number;
     carbsPct: number;
     fatsPct: number;
-}> = ({ proteinPct, carbsPct, fatsPct }) => {
-    const size = 176;
-    const stroke = 10;
-    const spacing = 5;
+    size?: number;
+}> = ({ proteinPct, carbsPct, fatsPct, size = 152 }) => {
+    const stroke = Math.max(8, Math.round(size * 0.058));
+    const spacing = Math.max(4, Math.round(size * 0.026));
+    const centerMainFont = size <= 142 ? 24 : 28;
+    const centerSubFont = size <= 142 ? 8 : 9;
     const outer = size / 2 - stroke;
     const middle = outer - stroke - spacing;
     const inner = middle - stroke - spacing;
@@ -114,15 +121,15 @@ const MacroRingStack: React.FC<{
     };
 
     return (
-        <div className="relative w-[152px] h-[152px] shrink-0">
+        <div className="relative shrink-0" style={{ width: size, height: size }}>
             <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
                 {renderRing(outer, carbsPct, MACRO_COLORS.carbs)}
                 {renderRing(middle, proteinPct, MACRO_COLORS.protein)}
                 {renderRing(inner, fatsPct, MACRO_COLORS.fats)}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-[30px] font-black leading-none text-[#1D1B20] font-['Roboto']">P/C/G</p>
-                <p className="text-[9px] uppercase tracking-[0.22em] font-black text-[#49454F]">Balance</p>
+                <p className="font-black leading-none text-[#1D1B20] font-['Roboto']" style={{ fontSize: centerMainFont }}>P/C/G</p>
+                <p className="uppercase tracking-[0.22em] font-black text-[#49454F]" style={{ fontSize: centerSubFont }}>Balance</p>
             </div>
         </div>
     );
@@ -152,7 +159,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
     const [analyticsExpanded, setAnalyticsExpanded] = useState(true);
     const [showWizard, setShowWizard] = useState(false);
     const [editingBodyLog, setEditingBodyLog] = useState<BodyProgressLog | null>(null);
-    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);`r`n    const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
 
     const { dailyCalories, calorieGoal, dailyTotals, proteinGoal, carbGoal, fatGoal } = useNutritionStats(selectedDate);
 
@@ -187,6 +194,34 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
             // noop
         }
     }, []);
+
+    useEffect(() => {
+        const onResize = () => setViewportWidth(getViewportWidth());
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    const isCompactPhone = viewportWidth <= 390;
+    const isPlusPhone = viewportWidth >= 412;
+
+    const layout = useMemo(
+        () => ({
+            pagePadX: isCompactPhone ? 12 : 16,
+            topPad: isCompactPhone ? 12 : 16,
+            topBottomPad: isCompactPhone ? 10 : 12,
+            headerRadius: isCompactPhone ? 28 : 32,
+            sectionRadius: isCompactPhone ? 24 : 28,
+            headerPadX: isCompactPhone ? 16 : 20,
+            headerTop: isCompactPhone ? 16 : 20,
+            headerBottom: isCompactPhone ? 14 : 18,
+            ringSize: isCompactPhone ? 140 : isPlusPhone ? 156 : 148,
+            contentBottom: isCompactPhone ? 120 : 112,
+            fabBottom: isCompactPhone
+                ? 'calc(var(--tab-bar-safe-bottom, 132px) + 0.375rem)'
+                : 'calc(var(--tab-bar-safe-bottom, 140px) + 0.5rem)',
+        }),
+        [isCompactPhone, isPlusPhone]
+    );
 
     const latestLog = useMemo(
         () => [...bodyProgress].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] ?? null,
@@ -906,4 +941,8 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
 };
 
 export default NutritionView;
+
+
+
+
 

@@ -514,7 +514,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
     const renderHeader = () => (
         <div className="sticky top-0 z-20 backdrop-blur-xl bg-[var(--md-sys-color-surface)]/85 border-b border-black/[0.05]">
-            <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="w-full px-4 py-4">
                 <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#49454F]">Configurar plan de alimentación</p>
                 <h2 className="text-[22px] font-black text-[#1D1B20] mt-1">Wizard Clínico v2</h2>
                 <div className="grid grid-cols-5 gap-2 mt-4">
@@ -544,7 +544,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         <div className="space-y-4">
             <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Meta principal</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                <div className="grid grid-cols-1 gap-2 mt-3">
                     {(Object.keys(METRIC_META) as NutritionGoalMetric[]).map((metric) => (
                         <button
                             key={metric}
@@ -564,7 +564,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                     ))}
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-3 items-end">
+                <div className="mt-4 grid grid-cols-1 gap-3 items-end">
                     <div>
                         <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Objetivo</label>
                         <input
@@ -586,7 +586,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
             <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Dirección del plan</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                <div className="grid grid-cols-1 gap-2 mt-3">
                     {(Object.keys(GOAL_DIRECTION_META) as GoalDirection[]).map((direction) => (
                         <button
                             key={direction}
@@ -606,7 +606,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
             <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Metas secundarias</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                <div className="grid grid-cols-1 gap-2 mt-3">
                     {(Object.keys(METRIC_META) as NutritionGoalMetric[])
                         .filter((metric) => metric !== primaryMetric)
                         .map((metric) => {
@@ -646,7 +646,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         <div className="space-y-4">
             <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Datos base obligatorios</p>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+                <div className="grid grid-cols-1 gap-3 mt-3">
                     <div>
                         <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Edad</label>
                         <input type="number" value={age} onChange={(event) => { const value = event.target.value; setAge(value === '' ? '' : Number(value)); }} min={10} max={100} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
@@ -678,7 +678,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         <div className="space-y-4">
             <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Composición corporal obligatoria</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 gap-3 mt-3">
                     <div className="rounded-2xl border border-black/[0.08] bg-white p-4">
                         <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">% Grasa</label>
                         <input type="number" value={bodyFat} onChange={(event) => { const value = event.target.value; setBodyFat(value === '' ? '' : Number(value)); setCompositionConfirmed(true); }} min={4} max={55} step={0.1} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
@@ -712,7 +712,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
             <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Actividad y contexto metabólico</p>
 
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mt-3">
+                <div className="grid grid-cols-1 gap-2 mt-3">
                     {[1, 2, 3, 4, 5].map((level) => (
                         <button
                             key={level}
@@ -739,7 +739,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 </div>
 
                 {useAdvancedActivity && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                    <div className="grid grid-cols-1 gap-3 mt-3">
                         <div>
                             <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Días/semana</label>
                             <input type="number" value={activityDaysPerWeek} onChange={(event) => setActivityDaysPerWeek(Number(event.target.value) || 0)} min={0} max={7} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
@@ -755,7 +755,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                     </div>
                 )}
 
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="mt-4 grid grid-cols-1 gap-3">
                     <div>
                         <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Método de cálculo</label>
                         <select value={formula} onChange={(event) => setFormula(event.target.value as any)} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm">
@@ -794,7 +794,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                     )}
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="mt-4 grid grid-cols-1 gap-3">
                     <div>
                         <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Factor de salud</label>
                         <input type="number" value={healthMultiplier} onChange={(event) => setHealthMultiplier(Number(event.target.value) || 1)} min={0.8} max={1.2} step={0.01} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
@@ -832,7 +832,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         <div className="space-y-4">
             <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Cálculo final y overrides</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                <div className="grid grid-cols-1 gap-2 mt-3">
                     <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">BMR</p><p className="text-lg font-black text-[#1D1B20] mt-1">{bmr != null ? Math.round(bmr) : '—'} kcal</p></div>
                     <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">TDEE</p><p className="text-lg font-black text-[#1D1B20] mt-1">{tdee != null ? Math.round(tdee) : '—'} kcal</p></div>
                     <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">Calorías objetivo</p><p className="text-lg font-black text-[#1D1B20] mt-1">{Math.round(calorieTarget)} kcal</p></div>
@@ -847,7 +847,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
                 <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
                     <label className="flex items-center gap-2 text-sm font-semibold text-[#1D1B20]"><input type="checkbox" checked={manualMacros} onChange={(event) => setManualMacros(event.target.checked)} />Editar macros manualmente</label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                    <div className="grid grid-cols-1 gap-3 mt-3">
                         <div><label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Proteína (g)</label><input type="number" value={proteinGoal} onChange={(event) => setProteinGoal(Number(event.target.value) || 0)} disabled={!manualMacros} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm disabled:opacity-60" /></div>
                         <div><label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Carbohidratos (g)</label><input type="number" value={carbsGoal} onChange={(event) => setCarbsGoal(Number(event.target.value) || 0)} disabled={!manualMacros} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm disabled:opacity-60" /></div>
                         <div><label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Grasas (g)</label><input type="number" value={fatsGoal} onChange={(event) => setFatsGoal(Number(event.target.value) || 0)} disabled={!manualMacros} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm disabled:opacity-60" /></div>
@@ -895,11 +895,11 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
             {renderHeader()}
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto">
-                <div className="max-w-4xl mx-auto px-4 py-4 pb-28">{renderContent()}</div>
+                <div className="w-full px-4 py-4 pb-28">{renderContent()}</div>
             </div>
 
             <div className="sticky bottom-0 z-20 bg-[var(--md-sys-color-surface)]/90 backdrop-blur-xl border-t border-black/[0.05]">
-                <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+                <div className="w-full px-4 py-3 flex items-center justify-between gap-3">
                     <button onClick={() => setStep((prev) => Math.max(0, prev - 1))} disabled={step === 0} className="rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] border border-black/[0.15] text-[#49454F] disabled:opacity-50">Atrás</button>
                     <button onClick={handleNext} className="rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-[0.14em] bg-[var(--md-sys-color-primary)] text-white">{step === TOTAL_STEPS - 1 ? 'Confirmar plan' : 'Continuar'}</button>
                 </div>
@@ -907,3 +907,4 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         </div>
     );
 };
+
