@@ -1,7 +1,6 @@
 // components/workout/InCardTimer.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { PlayIcon, PauseIcon } from '../icons';
-import { CheckCircleIcon } from '../icons';
+import { PlayIcon, PauseIcon, CheckCircleIcon } from '../icons';
 
 interface InCardTimerProps {
     initialTime: number;
@@ -20,8 +19,8 @@ export const InCardTimer: React.FC<InCardTimerProps> = ({ initialTime, onSave })
             intervalRef.current = window.setInterval(() => {
                 setTime(Date.now() - (startTimeRef.current || 0));
             }, 50);
-        } else {
-            if (intervalRef.current) clearInterval(intervalRef.current);
+        } else if (intervalRef.current) {
+            clearInterval(intervalRef.current);
         }
         return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
     }, [isRunning, time]);
@@ -31,10 +30,12 @@ export const InCardTimer: React.FC<InCardTimerProps> = ({ initialTime, onSave })
     const formatMs = (ms: number) => { const totalSeconds = Math.floor(ms / 1000); const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0'); const secs = (totalSeconds % 60).toString().padStart(2, '0'); return `${mins}:${secs}`; };
 
     return (
-        <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-1 pr-2 border border-slate-700">
-            <button onClick={handleToggle} className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${isRunning ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>{isRunning ? <PauseIcon size={14} /> : <PlayIcon size={14} />}</button>
-            <span className={`font-mono font-bold text-lg w-14 text-center ${isRunning ? 'text-white' : 'text-slate-400'}`}>{formatMs(time)}</span>
-            <button onClick={handleStop} className="p-1.5 text-slate-400 hover:text-white bg-slate-700/50 rounded hover:bg-slate-600 transition-colors" title="Detener y Guardar"><CheckCircleIcon size={16} /></button>
+        <div className="flex items-center gap-2 rounded-[12px] p-1 pr-2 border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]">
+            <button onClick={handleToggle} className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${isRunning ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]' : 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'}`}>
+                {isRunning ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
+            </button>
+            <span className={`font-mono font-bold text-lg w-14 text-center ${isRunning ? 'text-[var(--md-sys-color-on-surface)]' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>{formatMs(time)}</span>
+            <button onClick={handleStop} className="p-1.5 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] bg-[var(--md-sys-color-surface-container)] rounded-full transition-colors" title="Detener y guardar"><CheckCircleIcon size={16} /></button>
         </div>
     );
 };

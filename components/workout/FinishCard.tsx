@@ -1,5 +1,5 @@
 // components/workout/FinishCard.tsx
-// Carrusel final — estilo "Tú": plano, gris, sin tarjetas
+// Tarjeta final del carrusel, consistente con M3 outlined + glass.
 
 import React, { useState } from 'react';
 import { CheckCircleIcon } from '../icons';
@@ -40,39 +40,48 @@ const FinishCard: React.FC<FinishCardProps> = ({
   return (
     <div
       className={`
-        flex-shrink-0 overflow-hidden transition-all duration-200 bg-[#252525]
-        ${expanded ? 'w-64 min-h-[120px]' : 'w-36 min-h-[56px]'}
+        workout-surface-card flex-shrink-0 overflow-hidden transition-all duration-200 rounded-[12px] border bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)]
+        ${expanded ? 'w-[280px] min-h-[130px]' : 'w-[186px] min-h-[78px]'}
       `}
     >
       <button
         type="button"
         onClick={handleToggle}
         className={`
-          w-full h-full flex flex-col items-center justify-center gap-1
-          p-3 transition-all active:scale-95
-          ${!expanded ? 'min-h-[56px]' : ''}
+          workout-pressable w-full h-full flex flex-col items-start justify-center gap-1
+          px-4 py-3 text-left transition-all active:scale-[0.99]
+          ${!expanded ? 'min-h-[78px]' : ''}
         `}
       >
-        <CheckCircleIcon size={expanded ? 24 : 20} className="text-white" />
-        <span className="text-xs font-medium text-white uppercase tracking-wide">
-          Finalizar
-        </span>
+        <div className="flex items-center gap-2">
+          <CheckCircleIcon size={20} className="text-[var(--md-sys-color-primary)]" />
+          <span className="text-[15px] leading-5 font-medium text-[var(--md-sys-color-on-surface)]">
+            Finalizar sesión
+          </span>
+        </div>
+
+        {!expanded && (
+          <span className="text-[12px] leading-4 text-[var(--md-sys-color-on-surface-variant)]">
+            {completedSetsCount}/{totalSetsCount} series
+          </span>
+        )}
+
         {expanded && (
           <div className="w-full mt-2 space-y-1 text-left">
-            <p className="text-[10px] text-[#a3a3a3]">
+            <p className="text-[12px] leading-4 text-[var(--md-sys-color-on-surface-variant)]">
               {durationMinutes} min • {completedSetsCount}/{totalSetsCount} series
             </p>
             {totalTonnage > 0 && (
-              <p className="text-[10px] text-[#a3a3a3]">
+              <p className="text-[12px] leading-4 text-[var(--md-sys-color-on-surface-variant)]">
                 Tonelaje: {totalTonnage.toLocaleString()} kg
               </p>
             )}
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onFinish(); }}
-              className="w-full mt-2 py-2 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide"
+              className="workout-pressable w-full mt-2 py-2.5 rounded-[999px] bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-[11px] font-semibold uppercase tracking-wide"
             >
-              Abrir modal de finalización
+              Abrir finalización
             </button>
           </div>
         )}
@@ -82,3 +91,4 @@ const FinishCard: React.FC<FinishCardProps> = ({
 };
 
 export default FinishCard;
+

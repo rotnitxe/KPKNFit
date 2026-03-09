@@ -1,5 +1,5 @@
 // components/workout/ExerciseCard.tsx
-// Carrusel de ejercicios — estilo "Tú": plano, sin tarjetas, integrado en fondo
+// Tarjeta horizontal de carrusel inspirada en M3 (outlined) + glass.
 
 import React from 'react';
 import type { Exercise } from '../../types';
@@ -23,6 +23,10 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
   const label = exercises.length > 1
     ? exercises.map(e => e.name).join(' • ')
     : exercises[0]?.name ?? '';
+
+  const subtitle = exercises.length > 1
+    ? `${exercises.length} ejercicios`
+    : 'Bloque de trabajo';
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -51,20 +55,23 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
       onTouchEnd={clearTimer}
       onTouchCancel={clearTimer}
       className={
-        'flex-shrink-0 w-36 min-h-[56px] px-3 py-2.5 flex flex-col items-center justify-center gap-0.5 transition-all duration-200 active:scale-95 ' +
-        (isSkipped ? 'opacity-50 bg-[#1a1a1a]' : isActive ? 'bg-[#3f3f3f]' : 'bg-[#252525]')
+        'workout-pressable workout-surface-card flex-shrink-0 w-[186px] min-h-[78px] px-4 py-3 text-left rounded-[12px] border transition-all duration-200 active:scale-[0.98] ' +
+        (isSkipped
+          ? 'opacity-65 bg-[var(--md-sys-color-surface-container)] border-[var(--md-sys-color-outline-variant)]'
+          : isActive
+            ? 'bg-[var(--md-sys-color-secondary-container)] border-[var(--md-sys-color-outline)] shadow-[0_8px_24px_rgba(0,0,0,0.10)]'
+            : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-outline)]')
       }
     >
-      <span className={'text-xs font-medium text-center line-clamp-2 leading-tight ' + (isSkipped ? 'text-[#737373]' : 'text-white')}>
+      <span className={'block text-[15px] leading-5 font-medium line-clamp-2 ' + (isSkipped ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-[var(--md-sys-color-on-surface)]')}>
         {label}
       </span>
-      {isSkipped && (
-        <span className="text-[9px] font-medium uppercase tracking-wide text-[#737373] mt-0.5">
-          Omitido
-        </span>
-      )}
+      <span className="block mt-1 text-[12px] leading-4 text-[var(--md-sys-color-on-surface-variant)]">
+        {isSkipped ? 'Omitido' : subtitle}
+      </span>
     </button>
   );
 };
 
 export default ExerciseCard;
+

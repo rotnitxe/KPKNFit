@@ -1,9 +1,9 @@
 // components/workout/WarmupDrawer.tsx
-// Drawer de calentamiento - migración de WarmupDashboard
+// Drawer de calentamiento con estilo M3 + liquid glass.
 
 import React, { useState, useEffect } from 'react';
 import { Exercise, WarmupSetDefinition } from '../../types';
-import { FlameIcon, ActivityIcon, CheckCircleIcon } from '../icons';
+import { FlameIcon, CheckCircleIcon } from '../icons';
 import { hapticImpact } from '../../services/hapticsService';
 import { ImpactStyle } from '../../services/hapticsService';
 import { roundWeight } from '../../utils/calculations';
@@ -59,22 +59,22 @@ const WarmupDrawer: React.FC<WarmupDrawerProps> = ({
   };
 
   return (
-    <WorkoutDrawer isOpen={isOpen} onClose={onClose} title="Series de aproximación" height="85vh">
+    <WorkoutDrawer isOpen={isOpen} onClose={onClose} title="Series de aproximacion" height="85vh">
       <div className="p-5 space-y-6">
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
-            <FlameIcon size={20} className="text-sky-400" />
-            <span className="text-[10px] font-mono font-black uppercase tracking-widest text-sky-400">
-              {isConsolidated ? 'Peso Meta' : 'Peso Objetivo'}
+          <div className="inline-flex items-center gap-2 px-4 py-3 rounded-[16px] bg-[var(--md-sys-color-secondary-container)] border border-[var(--md-sys-color-outline-variant)]">
+            <FlameIcon size={20} className="text-[var(--md-sys-color-primary)]" />
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-secondary-container)]">
+              {isConsolidated ? 'Peso meta' : 'Peso objetivo'}
             </span>
             <input
               type="number"
               value={baseWeight || ''}
               onChange={(e) => onBaseWeightChange(parseFloat(e.target.value) || 0)}
-              className="w-20 bg-transparent border-b border-slate-600 text-center font-bold text-white text-lg focus:border-sky-400 outline-none"
+              className="w-20 bg-transparent border-b border-[var(--md-sys-color-outline)] text-center font-semibold text-[var(--md-sys-color-on-surface)] text-lg focus:border-[var(--md-sys-color-primary)] outline-none"
               placeholder="0"
             />
-            <span className="text-[10px] text-slate-500 font-mono">{settings.weightUnit}</span>
+            <span className="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">{settings.weightUnit}</span>
           </div>
         </div>
 
@@ -90,35 +90,35 @@ const WarmupDrawer: React.FC<WarmupDrawerProps> = ({
               <button
                 key={set.id}
                 onClick={() => toggleSet(set.id)}
-                className={`flex items-center justify-between w-full px-4 py-4 rounded-xl border transition-all text-left group ${
+                className={`flex items-center justify-between w-full px-4 py-4 rounded-[16px] border transition-all text-left group ${
                   isDone
-                    ? 'bg-sky-600/20 border-sky-500/50 text-white'
-                    : 'bg-[#0d0d0d] border-cyber-cyan/20 text-slate-300 hover:border-sky-500/30'
+                    ? 'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary-container)]'
+                    : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-outline)]'
                 }`}
               >
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      isDone ? 'bg-sky-500 border-sky-500' : 'border-slate-600 group-hover:border-sky-500/50'
+                      isDone ? 'bg-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)]' : 'border-[var(--md-sys-color-outline)] group-hover:border-[var(--md-sys-color-primary)]'
                     }`}
                   >
-                    {isDone && <CheckCircleIcon size={14} className="text-white" />}
+                    {isDone && <CheckCircleIcon size={14} className="text-[var(--md-sys-color-on-primary)]" />}
                   </div>
                   <div>
-                    <div className="font-mono font-black text-lg">
+                    <div className="font-semibold text-lg">
                       {calculatedWeight}
-                      <span className="text-[10px] opacity-70 ml-1 font-bold">{settings.weightUnit}</span>
+                      <span className="text-[10px] opacity-70 ml-1 font-medium">{settings.weightUnit}</span>
                     </div>
-                    <span className="text-[9px] font-mono text-sky-400 uppercase tracking-wider">
-                      {set.percentageOfWorkingWeight}% Carga
+                    <span className="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
+                      {set.percentageOfWorkingWeight}% carga
                     </span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-black text-white block leading-none">
+                  <span className="text-2xl font-semibold text-[var(--md-sys-color-on-surface)] block leading-none">
                     {set.targetReps}
                   </span>
-                  <span className="text-[9px] font-mono text-slate-500 uppercase font-bold">Reps</span>
+                  <span className="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">Reps</span>
                 </div>
               </button>
             );

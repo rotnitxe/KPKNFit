@@ -1,5 +1,5 @@
 // components/workout/CardCarouselBar.tsx
-// Carrusel horizontal con drag nativo táctil (sigue el dedo en tiempo real)
+// Carrusel horizontal con drag nativo tactil (sigue el dedo en tiempo real).
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { Exercise } from '../../types';
@@ -236,7 +236,7 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
           >
             {onReorder && (
               <div
-                className="p-2 -m-2 text-[#737373] hover:text-white shrink-0 touch-manipulation"
+                className="p-2 -m-2 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] shrink-0 touch-manipulation"
                 style={{ touchAction: 'none' }}
                 onPointerDown={(e) => handlePointerDown(e, item.firstExerciseId, idx)}
                 title="Mantén y arrastra para reordenar"
@@ -259,7 +259,6 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
         );
       })}
 
-      {/* Clon flotante que sigue el dedo */}
       {draggedItem && dragPosition && (
         <div
           className="fixed z-[9999] pointer-events-none will-change-transform"
@@ -267,11 +266,11 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
             left: dragPosition.x,
             top: dragPosition.y,
             transform: 'translate(-50%, -50%)',
-            width: 144,
+            width: 186,
           }}
         >
-          <div className="scale-105 origin-center bg-[#3f3f3f] p-3 flex flex-col items-center justify-center min-h-[56px]">
-            <span className="text-xs font-medium text-center line-clamp-2 leading-tight text-white">
+          <div className="scale-105 origin-center rounded-[12px] border border-[var(--md-sys-color-outline)] bg-[var(--md-sys-color-secondary-container)] px-4 py-3 shadow-[0_14px_30px_rgba(0,0,0,0.2)]">
+            <span className="block text-[14px] leading-5 font-medium text-[var(--md-sys-color-on-surface)] line-clamp-2">
               {draggedItem.exercises.length > 1
                 ? draggedItem.exercises.map(e => e.name).join(' • ')
                 : draggedItem.exercises[0]?.name ?? ''}

@@ -270,7 +270,7 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
             <button
               type="button"
               onClick={() => setIsCalibrating(!isCalibrating)}
-              className={`w-full py-2 text-[10px] font-semibold uppercase ${isCalibrating ? 'bg-[#525252] text-white' : 'bg-white text-[#525252] border border-[#a3a3a3]'}`}
+              className={`w-full py-2 text-[11px] font-semibold uppercase rounded-[999px] ${isCalibrating ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]'}`}
             >
               {isCalibrating ? 'Ajustando SNC / Columna' : 'Ajustar SNC / Columna'}
             </button>
@@ -386,11 +386,11 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
           <button
             onClick={handleStart}
             disabled={isSubmitting}
-            className="w-full py-3.5 text-[10px] font-mono font-black uppercase tracking-widest bg-white text-[#1a1a1a] border border-[#a3a3a3] disabled:opacity-50"
+            className="w-full py-3.5 text-[11px] font-semibold uppercase tracking-wide rounded-[999px] bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border border-[var(--md-sys-color-primary)] disabled:opacity-50"
           >
             {isSubmitting ? 'Sincronizando...' : 'Comenzar Batalla'}
           </button>
-          <button onClick={onClose} disabled={isSubmitting} className="w-full py-2.5 text-[10px] font-mono font-semibold uppercase tracking-widest text-[#525252]">
+          <button onClick={onClose} disabled={isSubmitting} className="w-full py-2.5 text-[11px] font-medium uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">
             Cancelar
           </button>
         </div>
@@ -400,3 +400,4 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
 };
 
 export default ReadinessDrawer;
+

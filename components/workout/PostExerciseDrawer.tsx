@@ -1,6 +1,5 @@
 // components/workout/PostExerciseDrawer.tsx
-// Drawer de feedback post-ejercicio - nutre el modal de finalización
-// Estética "Tú": selectores de puntos 1–10, gris, sin accent-*
+// Drawer de feedback post-ejercicio con estilo Material 3 + liquid glass.
 
 import React, { useState, useMemo } from 'react';
 import { CheckCircleIcon, SearchIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
@@ -9,7 +8,6 @@ import { ImpactStyle } from '../../services/hapticsService';
 import WorkoutDrawer from './WorkoutDrawer';
 import { DISCOMFORT_DATABASE } from '../../data/discomfortList';
 
-/** Selector de puntos 1–10 en fila, estilo ReadinessDrawer */
 const PointSelector: React.FC<{
   value: number;
   onChange: (v: number) => void;
@@ -23,7 +21,9 @@ const PointSelector: React.FC<{
           type="button"
           onClick={() => onChange(v)}
           className={`w-7 h-7 rounded-full border transition-colors text-[10px] font-medium ${
-            value === v ? 'bg-[#525252] border-[#525252] text-white' : 'bg-white border-[#a3a3a3] text-[#1a1a1a] hover:border-[#737373]'
+            value === v
+              ? 'bg-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]'
+              : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-outline)]'
           }`}
           aria-label={`${v} de 10`}
         >
@@ -32,7 +32,7 @@ const PointSelector: React.FC<{
       ))}
     </div>
     {labels && (
-      <div className="flex justify-between w-full mt-0.5 text-[9px] text-[#737373]">
+      <div className="flex justify-between w-full mt-0.5 text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
         <span>{labels[0]}</span>
         <span>{labels[1]}</span>
       </div>
@@ -44,7 +44,7 @@ export interface PostExerciseFeedback {
   technicalQuality: number;
   discomforts: string[];
   perceivedFatigue?: number;
-  jointLoad?: number; // deprecated, mantener por compatibilidad
+  jointLoad?: number;
 }
 
 interface PostExerciseDrawerProps {
@@ -94,22 +94,25 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
   };
 
   return (
-    <WorkoutDrawer isOpen={isOpen} onClose={onClose} title="Feedback Post-Ejercicio" height="80vh">
+    <WorkoutDrawer isOpen={isOpen} onClose={onClose} title="Feedback post-ejercicio" height="80vh">
       <div className="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex flex-col gap-4">
-        <div className="text-center shrink-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#525252]">
-            ¿Cómo sentiste el {exerciseName}?
+        <div className="rounded-[12px] border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-3">
+          <p className="text-[16px] font-medium text-[var(--md-sys-color-on-surface)]">
+            {exerciseName}
+          </p>
+          <p className="text-[14px] text-[var(--md-sys-color-on-surface-variant)]">
+            Completa el cierre del ejercicio
           </p>
         </div>
 
-        <div className="space-y-4 shrink-0">
+        <div className="space-y-4">
           <div>
-            <p className="text-[10px] font-semibold text-[#525252] uppercase tracking-wide mb-1">Calidad técnica</p>
+            <p className="text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wide mb-1">Calidad tecnica</p>
             <PointSelector value={technicalQuality} onChange={setTechnicalQuality} labels={['Baja', 'Alta']} />
           </div>
 
           <div>
-            <p className="text-[10px] font-semibold text-[#525252] uppercase tracking-wide mb-1">Fatiga percibida</p>
+            <p className="text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wide mb-1">Fatiga percibida</p>
             <PointSelector value={perceivedFatigue} onChange={setPerceivedFatigue} labels={['Nada', 'Mucha']} />
           </div>
 
@@ -117,21 +120,21 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
             <button
               type="button"
               onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)}
-              className="flex items-center gap-2 text-[10px] font-semibold text-[#525252] uppercase tracking-wide mb-2"
+              className="flex items-center gap-2 text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wide mb-2"
             >
               ¿Tuviste alguna molestia?
               {showDiscomfortSearch ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
             </button>
             {showDiscomfortSearch && (
               <div className="animate-fade-in space-y-3">
-                <div className="flex items-center gap-2 bg-white p-2 border border-[#a3a3a3]">
-                  <SearchIcon size={14} className="text-[#737373]" />
+                <div className="flex items-center gap-2 bg-[var(--md-sys-color-surface)] p-2 border border-[var(--md-sys-color-outline-variant)] rounded-[12px]">
+                  <SearchIcon size={14} className="text-[var(--md-sys-color-on-surface-variant)]" />
                   <input
                     type="text"
                     value={discomfortSearchQuery}
                     onChange={(e) => setDiscomfortSearchQuery(e.target.value)}
                     placeholder="Describe o busca..."
-                    className="bg-transparent border-none text-sm w-full focus:ring-0 text-[#1a1a1a] placeholder:text-[#a3a3a3]"
+                    className="bg-transparent border-none text-sm w-full focus:ring-0 text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"
                   />
                 </div>
                 <div className="max-h-36 overflow-y-auto custom-scrollbar space-y-2">
@@ -140,14 +143,14 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
                       key={d.id}
                       type="button"
                       onClick={() => toggleDiscomfort(d.name)}
-                      className={`w-full text-left p-3 border transition-all ${
+                      className={`w-full text-left p-3 rounded-[12px] border transition-all ${
                         selectedDiscomforts.includes(d.name)
-                          ? 'bg-[#525252] border-[#525252] text-white'
-                          : 'bg-white border-[#a3a3a3] hover:border-[#737373] text-[#1a1a1a]'
+                          ? 'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary-container)]'
+                          : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)]'
                       }`}
                     >
                       <span className="font-semibold text-sm">{d.name}</span>
-                      <p className={`text-[10px] mt-1 ${selectedDiscomforts.includes(d.name) ? 'text-white/80' : 'text-[#737373]'}`}>{d.description}</p>
+                      <p className="text-[11px] mt-1 text-[var(--md-sys-color-on-surface-variant)]">{d.description}</p>
                     </button>
                   ))}
                 </div>
@@ -156,7 +159,7 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
                     {selectedDiscomforts.map((name) => (
                       <span
                         key={name}
-                        className="px-2 py-0.5 bg-[#525252] text-white text-[10px] font-medium flex items-center gap-1 inline-flex"
+                        className="px-2 py-0.5 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-[10px] font-medium rounded-[999px] flex items-center gap-1 inline-flex"
                       >
                         {name}
                         <button
@@ -175,16 +178,16 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
           </div>
         </div>
 
-        <p className="text-[9px] text-[#737373] shrink-0">
-          Estos datos se sumarán al resumen final para que puedas editarlos al terminar.
+        <p className="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
+          Estos datos se sumaran al resumen final para que puedas editarlos al terminar.
         </p>
 
         <button
           onClick={handleSave}
-          className="w-full py-3.5 text-[10px] font-semibold uppercase tracking-wide bg-white text-[#1a1a1a] border border-[#a3a3a3] flex items-center justify-center gap-2 shrink-0"
+          className="w-full py-3.5 text-[11px] font-semibold uppercase tracking-wide bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-[999px] border border-[var(--md-sys-color-primary)] flex items-center justify-center gap-2"
         >
           <CheckCircleIcon size={18} />
-          Completar Ejercicio
+          Completar ejercicio
         </button>
       </div>
     </WorkoutDrawer>

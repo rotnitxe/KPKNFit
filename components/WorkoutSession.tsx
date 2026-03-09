@@ -165,7 +165,7 @@ const HeaderAccordion: React.FC<{
             addOrUpdateCustomExercise({ ...exInfo, setupDetails: localDetails });
         }
         setExpandedSection(null);
-    }
+    };
 
     const liveExerciseInfo = useMemo(() => {
         return exerciseList.find(e => e.id === exerciseInfo?.id) || exerciseInfo;
@@ -175,7 +175,10 @@ const HeaderAccordion: React.FC<{
         const tagSet = new Set<string>();
         (exercise.brandEquivalencies || []).forEach(b => tagSet.add(b.brand));
         (liveExerciseInfo?.brandEquivalencies || []).forEach(b => tagSet.add(b.brand));
-        tagSet.add('Base'); tagSet.add('Sentado'); tagSet.add('Parado'); tagSet.add('Unilateral');
+        tagSet.add('Base');
+        tagSet.add('Sentado');
+        tagSet.add('Parado');
+        tagSet.add('Unilateral');
         if (selectedTag) tagSet.add(selectedTag);
         return Array.from(tagSet).sort();
     }, [exercise, liveExerciseInfo, selectedTag]);

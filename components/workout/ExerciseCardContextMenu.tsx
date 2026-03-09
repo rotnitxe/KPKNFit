@@ -1,5 +1,5 @@
 // components/workout/ExerciseCardContextMenu.tsx
-// Menú contextual al mantener presionada una tarjeta del carrusel
+// Menu contextual al mantener presionada una tarjeta del carrusel.
 
 import React from 'react';
 import { SwapIcon, MinusIcon } from '../icons';
@@ -22,28 +22,34 @@ const ExerciseCardContextMenu: React.FC<ExerciseCardContextMenuProps> = ({
   return (
     <>
       <div
-        className="fixed inset-0 z-[150]"
+        className="fixed inset-0 z-[150] bg-black/20 backdrop-blur-[3px]"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className="fixed left-1/2 bottom-24 z-[151] -translate-x-1/2 bg-slate-900 border border-[#E6E0E9] rounded-xl shadow-2xl overflow-hidden animate-fade-in min-w-[200px]"
+        className="fixed left-1/2 bottom-24 z-[151] liquid-glass-panel -translate-x-1/2 rounded-[18px] border border-[var(--md-sys-color-outline-variant)]/70 overflow-hidden animate-fade-in min-w-[220px]"
+        style={{
+          background: 'linear-gradient(160deg, rgba(254,247,255,0.95) 0%, rgba(247,242,250,0.90) 100%)',
+          backdropFilter: 'blur(18px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+          boxShadow: '0 20px 35px rgba(0,0,0,0.18)',
+        }}
       >
         <button
           type="button"
           onClick={() => { onReplace(); onClose(); }}
-          className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-white/5 transition-colors"
+          className="workout-pressable w-full flex items-center gap-3 px-4 py-3 text-left text-[var(--md-sys-color-on-surface)] hover:bg-black/[0.03] transition-colors"
         >
-          <SwapIcon size={18} className="text-cyber-cyan" />
-          <span className="text-sm font-semibold">Cambiar ejercicio</span>
+          <SwapIcon size={18} className="text-[var(--md-sys-color-primary)]" />
+          <span className="text-sm font-medium">Cambiar ejercicio</span>
         </button>
         <button
           type="button"
           onClick={() => { onSkip(); onClose(); }}
-          className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-white/5 transition-colors border-t border-[#E6E0E9]"
+          className="workout-pressable w-full flex items-center gap-3 px-4 py-3 text-left text-[var(--md-sys-color-on-surface)] hover:bg-black/[0.03] transition-colors border-t border-[var(--md-sys-color-outline-variant)]/50"
         >
-          <MinusIcon size={18} className="text-slate-400" />
-          <span className="text-sm font-semibold">Omitir</span>
+          <MinusIcon size={18} className="text-[var(--md-sys-color-on-surface-variant)]" />
+          <span className="text-sm font-medium">Omitir</span>
         </button>
       </div>
     </>
@@ -51,3 +57,5 @@ const ExerciseCardContextMenu: React.FC<ExerciseCardContextMenuProps> = ({
 };
 
 export default ExerciseCardContextMenu;
+
+

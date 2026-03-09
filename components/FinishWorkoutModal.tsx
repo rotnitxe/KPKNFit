@@ -177,7 +177,7 @@ const PointSelector: React.FC<{ value: number; onChange: (v: number) => void; la
           type="button"
           onClick={() => onChange(v)}
           className={`w-7 h-7 rounded-full border transition-colors text-[10px] font-medium ${
-            value === v ? 'bg-[#525252] border-[#525252] text-white' : 'bg-white border-[#a3a3a3] text-[#1a1a1a] hover:border-[#737373]'
+            value === v ? 'bg-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-on-surface-variant)] text-white' : 'bg-white border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-on-surface-variant)]'
           }`}
           aria-label={`${v} de 10`}
         >
@@ -186,7 +186,7 @@ const PointSelector: React.FC<{ value: number; onChange: (v: number) => void; la
       ))}
     </div>
     {labels && (
-      <div className="flex justify-between w-full mt-0.5 text-[9px] text-[#737373]">
+      <div className="flex justify-between w-full mt-0.5 text-[9px] text-[var(--md-sys-color-on-surface-variant)]">
         <span>{labels[0]}</span>
         <span>{labels[1]}</span>
       </div>
@@ -374,10 +374,10 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
 
   const TagGroup: React.FC<{title:string; tags: string[]; selected: string[]; onToggle: (tag:string) => void;}> = ({title, tags, selected, onToggle}) => (
       <div>
-        <label className={`block text-[10px] font-semibold uppercase tracking-wide mb-2 ${useFullPage ? 'text-[#525252]' : 'text-cyber-cyan/80 font-mono font-black tracking-widest'}`}>{title}</label>
+        <label className={`block text-[10px] font-semibold uppercase tracking-wide mb-2 ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan/80 font-mono font-black tracking-widest'}`}>{title}</label>
         <div className="flex flex-wrap gap-2">
             {tags.map(tag => (
-                <button key={tag} onClick={() => onToggle(tag)} className={`px-3 py-1.5 text-[10px] font-medium border transition-all ${useFullPage ? (selected.includes(tag) ? 'bg-[#525252] border-[#525252] text-white' : 'bg-white border-[#a3a3a3] text-[#1a1a1a] hover:border-[#737373]') : (selected.includes(tag) ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan font-mono font-bold uppercase rounded-lg' : 'bg-slate-900/80 border-slate-700 text-slate-500 hover:border-cyber-cyan/30 hover:text-slate-400 font-mono font-bold uppercase rounded-lg')}`}>
+                <button key={tag} onClick={() => onToggle(tag)} className={`px-3 py-1.5 text-[10px] font-medium border transition-all ${useFullPage ? (selected.includes(tag) ? 'bg-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-on-surface-variant)] text-white' : 'bg-white border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-on-surface-variant)]') : (selected.includes(tag) ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan font-mono font-bold uppercase rounded-lg' : 'bg-slate-900/80 border-slate-700 text-slate-500 hover:border-cyber-cyan/30 hover:text-slate-400 font-mono font-bold uppercase rounded-lg')}`}>
                     {tag}
                 </button>
             ))}
@@ -390,7 +390,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     const point = Math.min(10, Math.max(1, Math.round(value / 10)));
     return (
       <div>
-        <label className="block text-[10px] font-semibold text-[#525252] uppercase tracking-wide mb-1">{label}</label>
+        <label className="block text-[10px] font-semibold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wide mb-1">{label}</label>
         <PointSelector value={point} onChange={(v) => onChange(v * 10)} labels={['10%', '100%']} />
       </div>
     );
@@ -414,49 +414,49 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
       {!showRecoverySuggestion ? (
         <div className={`space-y-5 p-4 ${useFullPage ? 'bg-[#e5e5e5]' : 'bg-[#0a0c10]'}`}>
             {/* Resumen compacto */}
-            <div className={`flex items-center justify-between gap-4 p-4 ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl bg-slate-950/80 border border-cyber-cyan/20'}`}>
+            <div className={`flex items-center justify-between gap-4 p-4 ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl bg-slate-950/80 border border-cyber-cyan/20'}`}>
                 <div>
-                    <span className={`text-[9px] font-semibold uppercase tracking-wide block ${useFullPage ? 'text-[#737373]' : 'font-mono font-black text-cyber-cyan/70 tracking-widest'}`}>Sesión Completada</span>
-                    <span className={`text-lg font-semibold ${useFullPage ? 'text-[#1a1a1a]' : 'font-mono font-black text-white'}`}>{new Date(logDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    <span className={`text-[9px] font-semibold uppercase tracking-wide block ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-black text-cyber-cyan/70 tracking-widest'}`}>Sesión Completada</span>
+                    <span className={`text-lg font-semibold ${useFullPage ? 'text-[var(--md-sys-color-on-surface)]' : 'font-mono font-black text-white'}`}>{new Date(logDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                 </div>
-                <div className={`flex items-center gap-3 font-medium ${useFullPage ? 'text-[#525252]' : 'text-cyber-cyan font-mono font-bold'}`}>
+                <div className={`flex items-center gap-3 font-medium ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan font-mono font-bold'}`}>
                     <span>{durationInMinutes || '--'} min</span>
-                    <span className={useFullPage ? 'text-[#a3a3a3]' : 'text-slate-600'}>|</span>
+                    <span className={useFullPage ? 'text-[var(--md-sys-color-outline-variant)]' : 'text-slate-600'}>|</span>
                     <span>Nivel {sessionDifficulty}</span>
                 </div>
             </div>
 
             {/* Duración y fecha */}
             <div className="grid grid-cols-2 gap-3">
-                <div className={`overflow-hidden ${useFullPage ? 'border border-[#a3a3a3] bg-white' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80'}`}>
-                    <label className={`block px-3 pt-2 text-[9px] font-semibold uppercase ${useFullPage ? 'text-[#525252]' : 'font-mono font-bold text-slate-500'}`}>Duración (min)</label>
-                    <input type="number" value={durationInMinutes} onChange={(e) => setDurationInMinutes(e.target.value)} className={`w-full pb-3 px-3 text-lg font-medium focus:outline-none focus:ring-0 border-none ${useFullPage ? 'bg-white text-[#1a1a1a] [color-scheme:light]' : 'bg-slate-950/50 text-white font-mono font-bold [color-scheme:dark]'}`} placeholder="60" />
+                <div className={`overflow-hidden ${useFullPage ? 'border border-[var(--md-sys-color-outline-variant)] bg-white' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80'}`}>
+                    <label className={`block px-3 pt-2 text-[9px] font-semibold uppercase ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-bold text-slate-500'}`}>Duración (min)</label>
+                    <input type="number" value={durationInMinutes} onChange={(e) => setDurationInMinutes(e.target.value)} className={`w-full pb-3 px-3 text-lg font-medium focus:outline-none focus:ring-0 border-none ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] [color-scheme:light]' : 'bg-slate-950/50 text-white font-mono font-bold [color-scheme:dark]'}`} placeholder="60" />
                 </div>
-                <div className={`overflow-hidden ${useFullPage ? 'border border-[#a3a3a3] bg-white' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80'}`}>
-                    <label className={`block px-3 pt-2 text-[9px] font-semibold uppercase ${useFullPage ? 'text-[#525252]' : 'font-mono font-bold text-slate-500'}`}>Fecha</label>
-                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className={`w-full pb-3 px-3 text-sm font-medium focus:outline-none focus:ring-0 border-none ${useFullPage ? 'bg-white text-[#1a1a1a] [color-scheme:light]' : 'bg-slate-950/50 text-white font-mono font-bold [color-scheme:dark]'}`} />
+                <div className={`overflow-hidden ${useFullPage ? 'border border-[var(--md-sys-color-outline-variant)] bg-white' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80'}`}>
+                    <label className={`block px-3 pt-2 text-[9px] font-semibold uppercase ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-bold text-slate-500'}`}>Fecha</label>
+                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className={`w-full pb-3 px-3 text-sm font-medium focus:outline-none focus:ring-0 border-none ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] [color-scheme:light]' : 'bg-slate-950/50 text-white font-mono font-bold [color-scheme:dark]'}`} />
                 </div>
             </div>
             
             {/* Baterías AUGE: selectores de puntos 1–10 */}
-            <div className={`p-4 space-y-5 ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
-                <p className={`text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[#525252]' : 'font-mono text-slate-500'}`}>Batería consumida (1–10)</p>
+            <div className={`p-4 space-y-5 ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
+                <p className={`text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono text-slate-500'}`}>Batería consumida (1–10)</p>
                 <BatteryPointSelector label="1. Estado general" value={generalBattery} onChange={setGeneralBattery} />
                 
                 <div>
-                    <button type="button" onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)} className={`w-full flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide mb-2 py-1 ${useFullPage ? 'text-[#525252]' : 'font-mono font-bold text-slate-400'}`}>
+                    <button type="button" onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)} className={`w-full flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide mb-2 py-1 ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-bold text-slate-400'}`}>
                         <span>2. Músculos trabajados</span>
-                        {muscleAccordionOpen ? <ChevronDownIcon size={14} className={useFullPage ? 'text-[#525252]' : 'text-cyber-cyan'} /> : <ChevronRightIcon size={14} className={useFullPage ? 'text-[#525252]' : 'text-cyber-cyan'} />}
+                        {muscleAccordionOpen ? <ChevronDownIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan'} /> : <ChevronRightIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan'} />}
                     </button>
                     {muscleAccordionOpen && musclesWithEffectiveSets.length > 0 && (
-                        <div className={`space-y-3 mt-3 animate-fade-in pl-2 ${useFullPage ? 'border-l-2 border-[#a3a3a3]' : 'border-l-2 border-cyber-cyan/20'}`}>
+                        <div className={`space-y-3 mt-3 animate-fade-in pl-2 ${useFullPage ? 'border-l-2 border-[var(--md-sys-color-outline-variant)]' : 'border-l-2 border-cyber-cyan/20'}`}>
                             {musclesWithEffectiveSets.map(m => (
                                 <BatteryPointSelector key={m} label={MUSCLE_LABEL_MAP[m] || m} value={muscleBatteries[m] ?? 50} onChange={(v) => setMuscleBatteries(prev => ({ ...prev, [m]: v }))} />
                             ))}
                         </div>
                     )}
                     {muscleAccordionOpen && musclesWithEffectiveSets.length === 0 && (
-                        <p className={`text-[10px] ${useFullPage ? 'text-[#737373]' : 'text-slate-600 font-mono'}`}>No hay músculos con series efectivas.</p>
+                        <p className={`text-[10px] ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-slate-600 font-mono'}`}>No hay músculos con series efectivas.</p>
                     )}
                 </div>
 
@@ -464,77 +464,77 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
             </div>
 
             <div className="space-y-4 pt-1">
-                <div className={`overflow-hidden ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
-                    <button type="button" onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)} className={`w-full flex items-center justify-between px-4 py-3 text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[#525252] hover:bg-[#f5f5f5]' : 'font-mono font-bold text-slate-400 hover:text-cyber-cyan/90'}`}>
+                <div className={`overflow-hidden ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
+                    <button type="button" onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)} className={`w-full flex items-center justify-between px-4 py-3 text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[#f5f5f5]' : 'font-mono font-bold text-slate-400 hover:text-cyber-cyan/90'}`}>
                         <span>¿Tuviste alguna molestia?</span>
-                        {showDiscomfortSearch ? <ChevronDownIcon size={14} className={useFullPage ? 'text-[#525252] shrink-0' : 'text-cyber-cyan shrink-0'} /> : <ChevronRightIcon size={14} className={useFullPage ? 'text-[#525252] shrink-0' : 'text-cyber-cyan shrink-0'} />}
+                        {showDiscomfortSearch ? <ChevronDownIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)] shrink-0' : 'text-cyber-cyan shrink-0'} /> : <ChevronRightIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)] shrink-0' : 'text-cyber-cyan shrink-0'} />}
                     </button>
                     {showDiscomfortSearch && (
                         <div className={`animate-fade-in space-y-3 px-4 pb-4 pt-3 border-t ${useFullPage ? 'border-[#d4d4d4]' : 'border-cyber-cyan/10'}`}>
-                            <div className={`flex items-center gap-2 p-2 ${useFullPage ? 'bg-[#f5f5f5] border border-[#a3a3a3]' : 'bg-slate-900/80 rounded-lg border border-cyber-cyan/20'}`}>
-                                <SearchIcon size={14} className={useFullPage ? 'text-[#737373] shrink-0' : 'text-cyber-cyan/60 shrink-0'} />
-                                <input type="text" value={discomfortSearchQuery} onChange={(e) => setDiscomfortSearchQuery(e.target.value)} placeholder="Describe tu molestia o busca..." className={`bg-transparent border-none text-sm w-full focus:ring-0 focus:outline-none ${useFullPage ? 'text-[#1a1a1a] placeholder:text-[#a3a3a3]' : 'text-white placeholder-slate-500'}`} />
+                            <div className={`flex items-center gap-2 p-2 ${useFullPage ? 'bg-[#f5f5f5] border border-[var(--md-sys-color-outline-variant)]' : 'bg-slate-900/80 rounded-lg border border-cyber-cyan/20'}`}>
+                                <SearchIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)] shrink-0' : 'text-cyber-cyan/60 shrink-0'} />
+                                <input type="text" value={discomfortSearchQuery} onChange={(e) => setDiscomfortSearchQuery(e.target.value)} placeholder="Describe tu molestia o busca..." className={`bg-transparent border-none text-sm w-full focus:ring-0 focus:outline-none ${useFullPage ? 'text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-outline-variant)]' : 'text-white placeholder-slate-500'}`} />
                             </div>
                             <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-2">
                                 {filteredDiscomforts.map(d => (
-                                    <button key={d.id} type="button" onClick={() => toggleDiscomfort(d.name)} className={`w-full text-left p-3 border transition-all ${useFullPage ? (selectedDiscomforts.includes(d.name) ? 'bg-[#525252] border-[#525252] text-white' : 'bg-white border-[#a3a3a3] text-[#1a1a1a] hover:border-[#737373]') : (selectedDiscomforts.includes(d.name) ? 'rounded-lg bg-cyber-cyan/20 border-cyber-cyan/50' : 'rounded-lg bg-slate-800/50 border-cyber-cyan/10 hover:border-cyber-cyan/30')}`}>
+                                    <button key={d.id} type="button" onClick={() => toggleDiscomfort(d.name)} className={`w-full text-left p-3 border transition-all ${useFullPage ? (selectedDiscomforts.includes(d.name) ? 'bg-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-on-surface-variant)] text-white' : 'bg-white border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-on-surface-variant)]') : (selectedDiscomforts.includes(d.name) ? 'rounded-lg bg-cyber-cyan/20 border-cyber-cyan/50' : 'rounded-lg bg-slate-800/50 border-cyber-cyan/10 hover:border-cyber-cyan/30')}`}>
                                         <span className="font-semibold text-sm">{d.name}</span>
-                                        <p className={`text-[10px] mt-1 ${useFullPage ? (selectedDiscomforts.includes(d.name) ? 'text-white/80' : 'text-[#737373]') : 'text-slate-400'}`}>{d.description}</p>
+                                        <p className={`text-[10px] mt-1 ${useFullPage ? (selectedDiscomforts.includes(d.name) ? 'text-white/80' : 'text-[var(--md-sys-color-on-surface-variant)]') : 'text-slate-400'}`}>{d.description}</p>
                                     </button>
                                 ))}
                             </div>
                             {selectedDiscomforts.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                     {selectedDiscomforts.map(name => (
-                                        <span key={name} className={`px-2 py-0.5 text-[10px] font-medium flex items-center gap-1 inline-flex ${useFullPage ? 'bg-[#525252] text-white' : 'rounded-full bg-cyber-cyan/30 text-cyber-cyan font-bold'}`}>{name} <button type="button" onClick={() => toggleDiscomfort(name)} className={useFullPage ? 'opacity-80 hover:opacity-100' : 'ml-1 opacity-70 hover:text-white'}>×</button></span>
+                                        <span key={name} className={`px-2 py-0.5 text-[10px] font-medium flex items-center gap-1 inline-flex ${useFullPage ? 'bg-[var(--md-sys-color-on-surface-variant)] text-white' : 'rounded-full bg-cyber-cyan/30 text-cyber-cyan font-bold'}`}>{name} <button type="button" onClick={() => toggleDiscomfort(name)} className={useFullPage ? 'opacity-80 hover:opacity-100' : 'ml-1 opacity-70 hover:text-white'}>×</button></span>
                                     ))}
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
-                <div className={`p-4 space-y-4 ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
+                <div className={`p-4 space-y-4 ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
                     <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
                     <TagGroup title="Adherencia" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
                 </div>
             </div>
             
-            <div className={`overflow-hidden ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
-              <label className={`block px-3 pt-3 text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[#525252]' : 'font-mono font-bold text-slate-500'}`}>Notas del Diario</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="¿Algo que destacar hoy?" className={`w-full px-3 pb-3 pt-1 text-sm focus:outline-none focus:ring-0 border-none resize-none ${useFullPage ? 'bg-white text-[#1a1a1a] placeholder:text-[#a3a3a3]' : 'font-mono bg-transparent text-white placeholder-slate-500'}`} />
+            <div className={`overflow-hidden ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
+              <label className={`block px-3 pt-3 text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-bold text-slate-500'}`}>Notas del Diario</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="¿Algo que destacar hoy?" className={`w-full px-3 pb-3 pt-1 text-sm focus:outline-none focus:ring-0 border-none resize-none ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-outline-variant)]' : 'font-mono bg-transparent text-white placeholder-slate-500'}`} />
             </div>
-            <div className={`flex gap-2 pt-4 border-t ${useFullPage ? 'border-[#a3a3a3]' : 'border-cyber-cyan/20'}`}>
-                <button onClick={handleShare} disabled={isSharing} className={`flex-1 py-4 font-semibold uppercase tracking-wide flex items-center justify-center gap-2 ${useFullPage ? 'bg-white text-[#1a1a1a] border border-[#a3a3a3] hover:bg-[#f5f5f5] disabled:opacity-50' : '!border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80 transition-all font-mono'}`}>
+            <div className={`flex gap-2 pt-4 border-t ${useFullPage ? 'border-[var(--md-sys-color-outline-variant)]' : 'border-cyber-cyan/20'}`}>
+                <button onClick={handleShare} disabled={isSharing} className={`flex-1 py-4 font-semibold uppercase tracking-wide flex items-center justify-center gap-2 ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] hover:bg-[#f5f5f5] disabled:opacity-50' : '!border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80 transition-all font-mono'}`}>
                     {isSharing ? (
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-[#737373] border-t-[#1a1a1a] rounded-full animate-spin"></div>
-                            <span className={`text-[10px] tracking-wide ${useFullPage ? 'text-[#525252]' : 'text-cyber-cyan/90'}`}>Compartiendo...</span>
+                            <div className="w-4 h-4 border-2 border-[var(--md-sys-color-on-surface-variant)] border-t-[var(--md-sys-color-on-surface)] rounded-full animate-spin"></div>
+                            <span className={`text-[10px] tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan/90'}`}>Compartiendo...</span>
                         </div>
                     ) : (
-                        <><LinkIcon size={18} className={useFullPage ? 'text-[#525252]' : 'text-cyber-cyan/80'}/> <span className={`text-[11px] tracking-wide ${useFullPage ? 'text-[#1a1a1a]' : 'text-cyber-cyan/90'}`}>Compartir</span></>
+                        <><LinkIcon size={18} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan/80'}/> <span className={`text-[11px] tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface)]' : 'text-cyber-cyan/90'}`}>Compartir</span></>
                     )}
                 </button>
-                <button onClick={handleFinishAttempt} className={`flex-[2] py-4 text-base font-semibold uppercase tracking-wide flex items-center justify-center gap-2 ${useFullPage ? 'bg-white text-[#1a1a1a] border border-[#a3a3a3]' : '!bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black tracking-widest shadow-[0_0_20px_rgba(0,240,255,0.3)]'}`}>
+                <button onClick={handleFinishAttempt} className={`flex-[2] py-4 text-base font-semibold uppercase tracking-wide flex items-center justify-center gap-2 ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]' : '!bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black tracking-widest shadow-[0_0_20px_rgba(0,240,255,0.3)]'}`}>
                     <CheckCircleIcon size={20}/> Finalizar sesión
                 </button>
             </div>
         </div>
       ) : (
           <div className={`space-y-6 p-4 animate-fade-in ${useFullPage ? 'bg-[#e5e5e5]' : 'bg-[#0a0c10] rounded-xl'}`}>
-              <div className={`p-4 text-center ${useFullPage ? 'bg-white border border-[#a3a3a3]' : 'bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-xl'}`}>
-                <ActivityIcon size={40} className={`mx-auto mb-2 ${useFullPage ? 'text-[#525252]' : 'text-cyber-cyan'}`} />
-                <h4 className={`text-lg font-bold uppercase tracking-wider ${useFullPage ? 'text-[#1a1a1a]' : 'text-cyber-cyan font-mono'}`}>Señales de Fatiga Acumulada</h4>
-                <p className={`text-sm mt-1 ${useFullPage ? 'text-[#525252]' : 'text-slate-400 font-mono'}`}>Tu nivel de fatiga ({fatigueLevel}) y claridad mental ({mentalClarity}) sugieren que necesitas un descanso para evitar el sobreentrenamiento.</p>
+              <div className={`p-4 text-center ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-xl'}`}>
+                <ActivityIcon size={40} className={`mx-auto mb-2 ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan'}`} />
+                <h4 className={`text-lg font-bold uppercase tracking-wider ${useFullPage ? 'text-[var(--md-sys-color-on-surface)]' : 'text-cyber-cyan font-mono'}`}>Señales de Fatiga Acumulada</h4>
+                <p className={`text-sm mt-1 ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-slate-400 font-mono'}`}>Tu nivel de fatiga ({fatigueLevel}) y claridad mental ({mentalClarity}) sugieren que necesitas un descanso para evitar el sobreentrenamiento.</p>
               </div>
 
               <div className="space-y-3">
-                  <p className={`text-sm text-center italic ${useFullPage ? 'text-[#525252]' : 'text-slate-300 font-mono'}`}>"He detectado que tu sistema nervioso está bajo estrés. ¿Insertamos una sesión de descarga mañana?"</p>
+                  <p className={`text-sm text-center italic ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-slate-300 font-mono'}`}>"He detectado que tu sistema nervioso está bajo estrés. ¿Insertamos una sesión de descarga mañana?"</p>
                   
-                  <button onClick={handleAcceptDeload} className={`w-full py-4 flex items-center justify-center gap-2 font-semibold uppercase tracking-wide ${useFullPage ? 'bg-white text-[#1a1a1a] border border-[#a3a3a3]' : '!bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black tracking-widest'}`}>
+                  <button onClick={handleAcceptDeload} className={`w-full py-4 flex items-center justify-center gap-2 font-semibold uppercase tracking-wide ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]' : '!bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black tracking-widest'}`}>
                     <ZapIcon size={20}/> Sí, programar Descarga / Descanso Activo
                   </button>
                   
-                  <button onClick={executeFinish} className={`w-full py-4 flex items-center justify-center gap-2 font-semibold uppercase tracking-wide ${useFullPage ? 'bg-white text-[#1a1a1a] border border-[#a3a3a3]' : '!border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80'}`}>
+                  <button onClick={executeFinish} className={`w-full py-4 flex items-center justify-center gap-2 font-semibold uppercase tracking-wide ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]' : '!border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80'}`}>
                     <BrainIcon size={20}/> No, seguiré con mi programa habitual
                   </button>
               </div>
@@ -547,14 +547,14 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
 
   if (useFullPage) {
     return (
-      <div className="fixed inset-0 z-[100000] flex flex-col bg-[#e5e5e5] animate-fade-in">
-        <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-[#a3a3a3] bg-white">
-          <h3 className="text-[10px] font-semibold uppercase tracking-wide text-[#1a1a1a]">{title}</h3>
-          <button onClick={onClose} className="p-2 -mr-2 text-[#525252] hover:text-[#1a1a1a] transition-colors" aria-label="Cerrar">
+      <div className="fixed inset-0 z-[100000] flex flex-col bg-[var(--md-sys-color-surface-container)] animate-fade-in">
+        <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-[var(--md-sys-color-outline-variant)]/50" style={{ background: 'linear-gradient(160deg, rgba(254,247,255,0.92) 0%, rgba(247,242,250,0.88) 100%)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+          <h3 className="text-[10px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface)]">{title}</h3>
+          <button onClick={onClose} className="p-2 -mr-2 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors" aria-label="Cerrar">
             <span className="text-xl leading-none">×</span>
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto min-h-0 pb-8 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 overflow-y-auto min-h-0 pb-8 px-4 pt-2" style={{ WebkitOverflowScrolling: 'touch' }}>
           {content}
         </div>
       </div>
@@ -576,3 +576,4 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
 };
 
 export default FinishWorkoutModal;
+

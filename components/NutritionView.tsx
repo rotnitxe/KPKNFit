@@ -644,6 +644,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
 
     return (
         <div className="min-h-full flex flex-col bg-[var(--md-sys-color-surface)]">
+
             <div
                 style={{
                     paddingLeft: layout.pagePadX,
@@ -652,11 +653,18 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                     paddingBottom: layout.topBottomPad,
                 }}
             >
-                <div
-                    className="bg-white/45 backdrop-blur-xl border border-black/[0.04] shadow-[0_16px_50px_-20px_rgba(0,0,0,0.35)] overflow-visible"
-                    style={{ borderRadius: layout.headerRadius }}
+                <header
+                    className="relative overflow-hidden rounded-[32px] border border-black/[0.04] bg-gradient-to-b from-white/90 to-white/70 shadow-[0_6px_60px_-26px_rgba(0,0,0,0.35)]"
+                    style={{ minHeight: 200 }}
                 >
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -top-6 -left-6 w-[200px] h-[200px] rounded-full bg-[#B3261E]/20 blur-[70px]" />
+                        <div className="absolute top-10 right-[-40px] w-[220px] h-[220px] rounded-full bg-[#006A6A]/20 blur-[90px]" />
+                        <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 w-[260px] h-[260px] rounded-full bg-[#6750A4]/15 blur-[120px]" />
+                    </div>
+
                     <div
+                        className="relative"
                         style={{
                             paddingLeft: layout.headerPadX,
                             paddingRight: layout.headerPadX,
@@ -664,10 +672,17 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                             paddingBottom: layout.headerBottom,
                         }}
                     >
-                        <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex items-start justify-between gap-3">
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]">Progreso físico y alimentación</p>
-                                <h1 className="text-[23px] font-black leading-tight tracking-tight text-[#1D1B20] mt-1">Nutrición y progreso físico</h1>
+                                <h1 className="text-[26px] font-black leading-tight tracking-tight text-[#1D1B20] mt-1">Nutrición y progreso físico</h1>
+                                <p className="text-[11px] text-[#49454F] mt-1">
+                                    {new Date(`${selectedDate}T00:00:00`).toLocaleDateString('es-ES', {
+                                        weekday: 'long',
+                                        day: 'numeric',
+                                        month: 'long',
+                                    })}
+                                </p>
                             </div>
                             {hasActivePlan ? (
                                 <button
@@ -685,15 +700,16 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                 </button>
                             )}
                         </div>
-                        <div className="grid grid-cols-2 gap-2.5 items-stretch">
-                            <div className="rounded-[24px] bg-white/60 border border-black/[0.04] p-3.5 overflow-visible">
-                                <div className="flex justify-between items-baseline mb-2">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Calorías totales</span>
-                                    <span className="text-[11px] font-black text-[#1D1B20] tabular-nums">
+
+                        <div className="mt-4 grid gap-3 lg:grid-cols-[1.05fr,0.95fr]">
+                            <div className="rounded-[28px] border border-black/[0.05] bg-white/75 p-3.5 space-y-3">
+                                <div className="flex justify-between items-baseline">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Calorías</span>
+                                    <span className="text-[12px] font-black text-[#1D1B20] tabular-nums">
                                         {Math.round(dailyCalories)} / {calorieGoal > 0 ? Math.round(calorieGoal) : '--'} kcal
                                     </span>
                                 </div>
-                                <div className="h-2 bg-black/5 rounded-full overflow-hidden mb-3">
+                                <div className="h-2 bg-black/5 rounded-full overflow-hidden">
                                     <div
                                         className="h-full rounded-full transition-all duration-700"
                                         style={{
@@ -702,8 +718,25 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                         }}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    {macroBarData.map((macro) => (
+                                        <div key={macro.key}>
+                                            <div className="flex justify-between text-[10px] mb-1">
+                                                <span className="font-black uppercase tracking-[0.13em] text-[#49454F]">{macro.key}</span>
+                                                <span className="font-semibold text-[#1D1B20] tabular-nums">
+                                                    {macro.value}g / {macro.goal}g
+                                                </span>
+                                            </div>
+                                            <div className="h-1.5 bg-black/[0.05] rounded-full overflow-hidden">
+                                                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, (macro.value / macro.goal) * 100)}%`, background: macro.color }} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
 
-                                <div className="flex justify-center">
+                            <div className="space-y-3">
+                                <div className="rounded-[28px] border border-black/[0.05] bg-white/75 p-3.5 flex flex-col items-center gap-2">
                                     <MacroRingStack
                                         caloriesPct={macroRingPct.calories}
                                         proteinPct={macroRingPct.protein}
@@ -711,81 +744,47 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                         fatsPct={macroRingPct.fats}
                                         size={layout.ringSize}
                                     />
+                                    <div className="text-xs font-black uppercase tracking-[0.18em] text-[#49454F] text-center">
+                                        {primaryGoalCard.label} · {primaryGoalCard.current.toFixed(1)} {primaryGoalCard.unit}
+                                    </div>
                                 </div>
-
-                                <div className="space-y-2 mt-2.5">
-                                    {macroBarData.map((macro) => (
-                                        <div key={macro.key}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[#49454F]">{macro.key}</span>
-                                                <span className="text-[10px] font-black tabular-nums text-[#1D1B20]">
-                                                    {macro.value}g / {macro.goal}g
-                                                </span>
-                                            </div>
-                                            <div className="h-1.5 bg-black/5 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full transition-all duration-700"
-                                                    style={{ width: `${Math.min(100, (macro.value / macro.goal) * 100)}%`, background: macro.color }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="rounded-[24px] bg-white/60 border border-black/[0.04] p-3.5 flex flex-col">
-                                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Meta principal</p>
-                                <p className="text-sm font-black text-[#1D1B20] mt-1">
-                                    {primaryGoalCard.label}: {primaryGoalCard.current.toFixed(1)} {primaryGoalCard.unit}
-                                </p>
-                                <p className="text-[12px] text-[#49454F] mt-0.5">
-                                    Objetivo: <span className="font-black text-[#1D1B20]">{primaryGoalCard.goal.toFixed(1)} {primaryGoalCard.unit}</span>
-                                </p>
-
-                                <div className="mt-3 rounded-xl border border-black/[0.05] bg-white/70 px-3 py-2.5">
-                                    <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#49454F]">Tendencia promedio 7 días</p>
+                                <div className="rounded-[28px] border border-black/[0.05] bg-white/75 p-3.5 space-y-1">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Meta y tendencia</p>
+                                    <p className="text-sm font-black text-[#1D1B20]">
+                                        Objetivo: {primaryGoalCard.goal.toFixed(1)} {primaryGoalCard.unit}
+                                    </p>
                                     {sevenDayTrend ? (
-                                        <p className="text-sm font-black text-[#1D1B20] mt-1 tabular-nums">
-                                            {sevenDayTrend.weeklyDelta >= 0 ? '+' : ''}
-                                            {sevenDayTrend.weeklyDelta.toFixed(2)} {sevenDayTrend.unit}
+                                        <p className="text-[12px] text-[#1D1B20]">
+                                            +{sevenDayTrend.weeklyDelta.toFixed(2)} {sevenDayTrend.unit} / 7 días
                                         </p>
                                     ) : (
-                                        <p className="text-[12px] text-[#49454F] mt-1">Sigue registrando para ver tu tendencia.</p>
+                                        <p className="text-[12px] text-[#49454F]">Sigue registrando para ver la tendencia.</p>
                                     )}
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2 mt-3">
-                                    {primaryKpis.slice(0, 4).map((kpi) => (
-                                        <div key={kpi.label} className="rounded-xl border border-black/[0.05] bg-white/75 px-2.5 py-2">
-                                            <p className="text-[8px] font-black uppercase tracking-[0.14em] text-[#49454F]">{kpi.label}</p>
-                                            <p className="text-[11px] font-black text-[#1D1B20] mt-0.5">{kpi.value}</p>
-                                        </div>
-                                    ))}
                                 </div>
                             </div>
                         </div>
                     </div>
+                </header>
 
-                    <div className="px-4 py-3 border-t border-black/[0.05] bg-white/60 flex flex-wrap items-center gap-2.5">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${trendBadge.classes}`}>
-                            {trendBadge.label}
+                <div className="px-4 py-3 border-t border-black/[0.05] bg-white/60 flex flex-wrap items-center gap-2.5">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${trendBadge.classes}`}>
+                        {trendBadge.label}
+                    </span>
+                    <span className="text-[11px] text-[#49454F]">
+                        ETA:{' '}
+                        <span className="font-black text-[#1D1B20]">
+                            {formatEta(planProjection?.etaDate ?? activePlan?.estimatedEndDate ?? null)}
                         </span>
-                        <span className="text-[11px] text-[#49454F]">
-                            ETA:{' '}
-                            <span className="font-black text-[#1D1B20]">
-                                {formatEta(planProjection?.etaDate ?? activePlan?.estimatedEndDate ?? null)}
-                            </span>
+                    </span>
+                    <span className="text-[11px] text-[#49454F]">
+                        Avance: <span className="font-black text-[#1D1B20]">{progressPct}%</span>
+                    </span>
+                    {planRiskFlags[0] && (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${getRiskClasses(planRiskFlags[0].severity)}`}>
+                            <AlertTriangleIcon size={12} />
+                            {planRiskFlags[0].message}
                         </span>
-                        <span className="text-[11px] text-[#49454F]">
-                            Avance: <span className="font-black text-[#1D1B20]">{progressPct}%</span>
-                        </span>
-                        {planRiskFlags[0] && (
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${getRiskClasses(planRiskFlags[0].severity)}`}>
-                                <AlertTriangleIcon size={12} />
-                                {planRiskFlags[0].message}
-                            </span>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
 
