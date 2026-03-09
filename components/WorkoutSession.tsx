@@ -1575,7 +1575,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     };
 
     return (
-        <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)] bg-[var(--md-sys-color-surface-container)]">
+        <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)] bg-[var(--md-sys-color-surface-container,#1A1C24)]" style={{ backgroundColor: 'var(--md-sys-color-surface-container, #1A1C24)' }}>
             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} fullPage allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
             {activeSetId?.startsWith('warmup-') && (() => {
                 const exId = activeSetId.replace('warmup-', '');
@@ -1688,10 +1688,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 onCancel={() => { if (window.confirm('¿Cancelar sesión? Se perderán los datos no guardados.')) onCancel(); }}
             />
 
-            <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative bg-[var(--md-sys-color-surface-container)]">
+            <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative" style={{ backgroundColor: 'var(--md-sys-color-surface-container, #1A1C24)' }}>
                 {displayParts.map((part: any, partIndex: number) => (
                     <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group">
-                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({ ...prev, [part.id]: !prev[part.id] })); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none bg-[var(--md-sys-color-surface-container-high)] rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
+                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({ ...prev, [part.id]: !prev[part.id] })); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm" style={{ backgroundColor: 'var(--md-sys-color-surface-container-high, #1F212A)' }}>
                             <div className="flex items-center gap-3"><h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-primary)]">{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-[var(--md-sys-color-on-surface-variant)] transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
                         </summary>
                         <div className="space-y-4 relative pl-0 pr-0 w-full">
@@ -1711,7 +1711,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                             <summary className="set-card-summary p-3 flex flex-col items-stretch" onClick={() => handleHeaderClick(ex.id)}>
                                                 <div className="flex items-center justify-between gap-3 w-full">
                                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                        <div className={`w-8 h-8 flex items-center justify-center font-medium text-lg flex-shrink-0 bg-[#252525] text-[#a3a3a3]`}>
+                                                        <div className={`w-8 h-8 flex items-center justify-center font-medium text-lg flex-shrink-0 text-[#a3a3a3]`} style={{ backgroundColor: 'var(--bg-badge, #252525)' }}>
                                                             {allExercises.findIndex(e => e.id === ex.id) + 1}
                                                         </div>
                                                         <p className="font-bold text-lg text-white truncate">{ex.name}</p>
@@ -1836,13 +1836,13 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             </div>
 
             {/* Carrusel de tarjetas + acciones */}
-            <div className="fixed left-0 right-0 bottom-0 z-20 liquid-glass-panel pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col border-t border-[var(--md-sys-color-outline-variant)]/40" style={{ background: 'linear-gradient(180deg, rgba(254,247,255,0.86) 0%, rgba(247,242,250,0.92) 100%)', backdropFilter: 'blur(22px) saturate(140%)', WebkitBackdropFilter: 'blur(22px) saturate(140%)' }}>
+            <div className="fixed left-0 right-0 bottom-0 z-20 liquid-glass-panel pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col border-t border-[var(--md-sys-color-outline-variant)]/40" style={{ background: 'linear-gradient(180deg, rgba(26,28,36,0.95) 0%, rgba(26,28,36,0.98) 100%)', backdropFilter: 'blur(22px) saturate(140%)', WebkitBackdropFilter: 'blur(22px) saturate(140%)', borderColor: 'var(--md-sys-color-outline-variant, rgba(255,255,255,0.1))' }}>
                 {/* Acciones rápidas: 90s y Notas */}
                 <div className="flex justify-center gap-2 px-4 py-2 shrink-0">
-                    <button onClick={() => handleStartRest(90, 'Descanso')} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[11px] font-semibold uppercase tracking-wide min-h-[44px]">
+                    <button onClick={() => handleStartRest(90, 'Descanso')} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] text-[11px] font-semibold uppercase tracking-wide min-h-[44px]" style={{ backgroundColor: 'var(--md-sys-color-secondary-container, rgba(255,123,0,0.2))', color: 'var(--md-sys-color-on-secondary-container, #FF7B00)' }}>
                         <ClockIcon size={14} /> 90s
                     </button>
-                    <button onClick={() => setShowNotesDrawer(true)} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[11px] font-semibold uppercase tracking-wide min-h-[44px]">
+                    <button onClick={() => setShowNotesDrawer(true)} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] text-[11px] font-semibold uppercase tracking-wide min-h-[44px]" style={{ backgroundColor: 'var(--md-sys-color-secondary-container, rgba(255,123,0,0.2))', color: 'var(--md-sys-color-on-secondary-container, #FF7B00)' }}>
                         <PencilIcon size={14} /> Notas
                     </button>
                 </div>
