@@ -121,22 +121,22 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
 
   return (
     <TacticalModal isOpen={isOpen} onClose={onClose} title="">
-      <div className="flex flex-col h-full space-y-6">
+      <div className="flex flex-col h-full space-y-4">
         
-        {/* --- Header: Date & Meal Type Selection (Compact) --- */}
-        <div className="flex justify-between items-center">
+        {/* --- Header: Date & Meal Type Selection (Very Compact) --- */}
+        <div className="flex justify-between items-center bg-white/5 p-2 rounded-2xl">
              <input 
                 type="date" 
                 value={logDate} 
                 onChange={e => setLogDate(e.target.value)} 
-                className="bg-transparent text-slate-400 text-xs font-medium border-none outline-none p-0 focus:ring-0 w-auto"
+                className="bg-transparent text-slate-400 text-[10px] font-bold border-none outline-none p-0 focus:ring-0 w-auto"
             />
-            <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+            <div className="flex gap-1">
                 {mealOptions.map(opt => (
                     <button 
                         key={opt.id}
                         onClick={() => setMealType(opt.id)}
-                        className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${mealType === opt.id ? 'bg-white text-black shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${mealType === opt.id ? 'bg-white text-black shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         {opt.label.substring(0, 3)}
                     </button>
@@ -144,33 +144,35 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
             </div>
         </div>
 
-        {/* --- Total Summary (Elegant Number) --- */}
-        <div className="text-center py-2">
-            <span className="text-5xl font-black text-white tracking-tighter">{Math.round(totalMacros.calories)}</span>
-            <span className="text-sm font-bold text-slate-500 ml-1">kcal</span>
-            <div className="text-xs font-semibold text-blue-400 mt-1">{totalMacros.protein.toFixed(1)}g Proteína</div>
+        {/* --- Total Summary (Balanced) --- */}
+        <div className="text-center py-1">
+            <span className="text-4xl font-black text-white tracking-tighter">{Math.round(totalMacros.calories)}</span>
+            <span className="text-xs font-bold text-slate-500 ml-1 uppercase tracking-widest">kcal</span>
+            <div className="flex justify-center gap-4 mt-1">
+                <span className="text-[10px] font-black text-primary uppercase tracking-tighter">Proteína: {totalMacros.protein.toFixed(1)}g</span>
+            </div>
         </div>
 
-        {/* --- Food List (Clean) --- */}
-        <div className="space-y-0">
+        {/* --- Food List (Compact) --- */}
+        <div className="space-y-1 max-h-[160px] overflow-y-auto no-scrollbar">
              {foods.length === 0 && !isAddingMode && (
-                 <p className="text-center text-sm text-slate-600 italic py-4">Tu plato está vacío.</p>
+                 <p className="text-center text-[10px] text-slate-600 italic py-2">Tu plato está vacío.</p>
              )}
              {foods.map((food, idx) => (
-                 <div key={food.id} className="flex justify-between items-center py-3 border-b border-[#E6E0E9] last:border-0 group">
-                     <div>
-                         <p className="font-bold text-sm text-slate-200">{food.foodName}</p>
-                         <p className="text-xs text-slate-500">{food.amount}{food.unit} • {Math.round(food.calories)} kcal</p>
+                 <div key={food.id} className="flex justify-between items-center py-2 px-3 bg-white/5 rounded-xl group">
+                     <div className="flex-1 min-w-0">
+                         <p className="font-bold text-xs text-slate-200 truncate">{food.foodName}</p>
+                         <p className="text-[9px] text-slate-500 uppercase font-black">{food.amount}{food.unit} • {Math.round(food.calories)} kcal</p>
                      </div>
                      <button onClick={() => removeFoodFromList(food.id)} className="text-slate-600 hover:text-red-400 transition-colors p-2">
-                         <TrashIcon size={14}/>
+                         <TrashIcon size={12}/>
                      </button>
                  </div>
              ))}
         </div>
 
-        {/* --- Add Interface (Integrated) --- */}
-        <div className="bg-white/5 rounded-2xl p-4 overflow-hidden">
+        {/* --- Add Interface (Compact) --- */}
+        <div className="bg-white/5 rounded-2xl p-3 overflow-hidden border border-white/5">
              <AddFoodComponent 
                 onAddFood={addFoodToList} 
                 pantryItems={pantryItems} 
@@ -181,25 +183,26 @@ const AddNutritionLogModal: React.FC<AddNutritionLogModalProps> = ({ isOpen, onC
         <input 
             value={notes} 
             onChange={e => setNotes(e.target.value)} 
-            placeholder="Añadir nota..." 
-            className="w-full bg-transparent border-b border-[#E6E0E9] py-3 text-xs text-slate-400 focus:border-white/30 focus:outline-none placeholder-slate-700"
+            placeholder="Añadir nota opcional..." 
+            className="w-full bg-transparent border-b border-white/5 py-2 text-[10px] text-slate-400 focus:border-white/20 focus:outline-none placeholder-slate-800"
         />
 
         {/* --- Footer Action --- */}
-        <div className="pt-4">
+        <div className="pt-2">
             <Button 
                 onClick={handleSave} 
-                className={`w-full !py-4 !rounded-xl !text-sm shadow-xl border-none font-bold transition-all
-                    ${foods.length > 0 ? 'bg-white text-black hover:bg-slate-200 opacity-100' : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'}
+                className={`w-full !py-3.5 !rounded-[20px] !text-xs shadow-xl border-none font-black tracking-[0.15em] transition-all
+                    ${foods.length > 0 ? 'bg-primary text-white active:scale-95' : 'bg-slate-900 text-slate-700 cursor-not-allowed'}
                 `}
                 disabled={foods.length === 0}
             >
-                {foods.length > 0 ? `Confirmar Comida (${Math.round(totalMacros.calories)} kcal)` : 'Añade alimentos para guardar'}
+                {foods.length > 0 ? `REGISTRAR COMIDA` : 'SIN ALIMENTOS'}
             </Button>
         </div>
 
       </div>
     </TacticalModal>
+
   );
 };
 

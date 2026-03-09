@@ -24,100 +24,100 @@ const AthleteProfilingWizard: React.FC<AthleteProfilingWizardProps> = ({ onCompl
         mobility: 0 as 1 | 2 | 3,
     });
 
-    // 1. DEFINICIÓN DE PASOS (títulos amigables)
+    // 1. DEFINICIÓN DE PASOS (títulos amigables y empáticos)
     const steps: { id: QuestionStep; title: string; description: string; icon: any }[] = [
-        { id: 'preference', title: '¿Cuál es tu enfoque?', description: 'Define cómo quieres entrenar: estética, fuerza o ambos.', icon: <TargetIcon size={24} /> },
-        { id: 'technique', title: '¿Cómo ejecutas los ejercicios?', description: 'Tu capacidad para mantener buena forma bajo carga.', icon: <DumbbellIcon size={24} /> },
-        { id: 'consistency', title: '¿Qué tan regular entrenas?', description: 'Tu constancia en los últimos meses.', icon: <ActivityIcon size={24} /> },
-        { id: 'strength', title: '¿Cómo está tu fuerza?', description: 'Referencia a cuánto mueves respecto a tu peso.', icon: <ZapIcon size={24} /> },
-        { id: 'mobility', title: '¿Cómo está tu movilidad?', description: 'Cómo te sientes con el rango de movimiento de tus articulaciones.', icon: <MoveIcon size={24} /> },
+        { id: 'preference', title: '¿Cuál es tu norte?', description: 'Cuéntanos qué te motiva hoy: ¿buscas verte mejor, sentirte más fuerte o un equilibrio de ambos?', icon: <TargetIcon size={24} /> },
+        { id: 'technique', title: 'Tu conexión con el hierro', description: '¿Cómo te sientes al ejecutar tus movimientos? Queremos entender tu nivel de confianza con la técnica.', icon: <DumbbellIcon size={24} /> },
+        { id: 'consistency', title: 'Tu ritmo de vida', description: 'El progreso nace de la constancia. ¿Cómo ha sido tu frecuencia de entrenamiento últimamente?', icon: <ActivityIcon size={24} /> },
+        { id: 'strength', title: 'Tu nivel de fuerza actual', description: 'No importa dónde estés, sino hacia dónde vas. Danos una idea de tu fuerza respecto a tu peso.', icon: <ZapIcon size={24} /> },
+        { id: 'mobility', title: '¿Cómo se siente tu cuerpo?', description: 'La libertad de movimiento es clave para evitar molestias y rendir al máximo.', icon: <MoveIcon size={24} /> },
     ];
 
-    // 2. OPCIONES (Deben coincidir con los IDs de arriba)
+    // 2. OPCIONES (Más cálidas y explicativas)
     const options: Record<string, { value: any; label: string; detail: string }[]> = {
         preference: [
             {
                 value: 'Bodybuilder',
-                label: 'Músculo y estética',
-                detail: 'Quiero ganar tamaño muscular y verme mejor.'
+                label: 'Estética y Vitalidad',
+                detail: 'Mi prioridad es mejorar mi composición corporal y ganar masa muscular.'
             },
             {
                 value: 'Powerbuilder',
-                label: 'Fuerza + Músculo',
-                detail: 'Quiero ser más fuerte y también ganar músculo.'
+                label: 'Fuerza con Propósito',
+                detail: 'Busco el equilibrio: ser cada día más fuerte sin descuidar mi apariencia.'
             },
             {
                 value: 'Powerlifter',
-                label: 'Solo fuerza',
-                detail: 'Lo que importa es subir mis números (peso muerto, sentadilla, banca).'
+                label: 'Rendimiento Máximo',
+                detail: 'Mi enfoque está en los números: quiero dominar los levantamientos principales.'
             },
         ],
         technique: [
             {
                 value: 1,
-                label: 'Estoy aprendiendo',
-                detail: 'Aún corrigiendo la técnica en varios ejercicios.'
+                label: 'Estoy Construyendo mi Base',
+                detail: 'Estoy aprendiendo los patrones básicos y puliendo mis movimientos.'
             },
             {
                 value: 2,
-                label: 'Técnica sólida',
-                detail: 'Ejecuto bien la mayoría de los ejercicios.'
+                label: 'Me Siento Seguro',
+                detail: 'Controlo la mayoría de los ejercicios con buena forma y conciencia.'
             },
             {
                 value: 3,
-                label: 'Dominio total',
-                detail: 'Mantengo buena forma incluso con peso máximo.'
+                label: 'Dominio y Fluidez',
+                detail: 'Mi técnica es sólida incluso cuando el esfuerzo es máximo.'
             },
         ],
         consistency: [
             {
                 value: 1,
-                label: 'Principiante',
-                detail: 'Empiezo de cero o acabo de retomar.'
+                label: 'Retomando el Hábito',
+                detail: 'Estoy volviendo a empezar o mis semanas son algo irregulares.'
             },
             {
                 value: 2,
-                label: 'Intermedio',
-                detail: 'Entreno 2-3 veces por semana sin faltar mucho.'
+                label: 'Ritmo Estable',
+                detail: 'Entreno de forma constante unas 2 o 3 veces por semana.'
             },
             {
                 value: 3,
-                label: 'Muy constante',
-                detail: 'Entreno 4 o más días por semana, es parte de mi rutina.'
+                label: 'Compromiso Total',
+                detail: 'El entrenamiento es parte innegociable de mi día a día (+4 veces).'
             },
         ],
         strength: [
             {
                 value: 1,
-                label: 'Estoy empezando',
-                detail: 'Aún construyo mi fuerza base en los ejercicios principales.'
+                label: 'Descubriendo mi Fuerza',
+                detail: 'Aún estoy conociendo mis límites y construyendo fuerza inicial.'
             },
             {
                 value: 2,
-                label: 'Muevo mi peso bien',
-                detail: 'Puedo hacer sentadilla, peso muerto, etc. con mi propio peso o más.'
+                label: 'Fuerza Intermedia',
+                detail: 'Manejo mi propio peso corporal con facilidad en ejercicios clave.'
             },
             {
                 value: 3,
-                label: 'Muevo cargas altas',
-                detail: 'Muevo 1.5x o más mi peso en los ejercicios compuestos.'
+                label: 'Nivel Avanzado',
+                detail: 'Muevo cargas pesadas con frecuencia (más de 1.5x mi peso).'
             },
         ],
         mobility: [
             {
                 value: 1,
-                label: 'Rigidez o molestias',
-                detail: 'Algunos ejercicios me cuestan por falta de movilidad.'
+                label: 'Siento Rigidez',
+                detail: 'Me cuesta llegar a rangos profundos o siento tensiones acumuladas.'
             },
             {
                 value: 2,
-                label: 'Sin limitaciones',
-                detail: 'Hago todos los ejercicios con buen rango de movimiento.'
+                label: 'Movimiento Fluido',
+                detail: 'Me muevo con libertad en la mayoría de mis entrenamientos.'
             },
             {
                 value: 3,
-                label: 'Muy flexible',
-                detail: 'Tengo buena movilidad incluso en posiciones profundas.'
+                label: 'Gran Flexibilidad',
+                detail: 'Tengo un rango de movimiento excelente y articulaciones ágiles.'
             },
         ],
     };

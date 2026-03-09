@@ -159,7 +159,8 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
     const [analyticsExpanded, setAnalyticsExpanded] = useState(true);
     const [showWizard, setShowWizard] = useState(false);
     const [editingBodyLog, setEditingBodyLog] = useState<BodyProgressLog | null>(null);
-    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);`r`n    const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+    const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
 
     const { dailyCalories, calorieGoal, dailyTotals, proteinGoal, carbGoal, fatGoal } = useNutritionStats(selectedDate);
 
@@ -430,9 +431,26 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
 
     return (
         <div className="min-h-full flex flex-col bg-[var(--md-sys-color-surface)]">
-            <div className="px-4 pt-4 pb-3">
-                <div className="rounded-[32px] bg-white/45 backdrop-blur-xl border border-black/[0.04] shadow-[0_16px_50px_-20px_rgba(0,0,0,0.35)] overflow-hidden">
-                    <div className="px-6 pt-6 pb-5">
+            <div
+                style={{
+                    paddingLeft: layout.pagePadX,
+                    paddingRight: layout.pagePadX,
+                    paddingTop: layout.topPad,
+                    paddingBottom: layout.topBottomPad,
+                }}
+            >
+                <div
+                    className="bg-white/45 backdrop-blur-xl border border-black/[0.04] shadow-[0_16px_50px_-20px_rgba(0,0,0,0.35)] overflow-hidden"
+                    style={{ borderRadius: layout.headerRadius }}
+                >
+                    <div
+                        style={{
+                            paddingLeft: layout.headerPadX,
+                            paddingRight: layout.headerPadX,
+                            paddingTop: layout.headerTop,
+                            paddingBottom: layout.headerBottom,
+                        }}
+                    >
                         <div className="flex items-start justify-between gap-4 mb-4">
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]">
@@ -513,6 +531,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                     proteinPct={macroRingPct.protein}
                                     carbsPct={macroRingPct.carbs}
                                     fatsPct={macroRingPct.fats}
+                                    size={layout.ringSize}
                                 />
                                 <div className="flex items-center gap-3 mt-2 text-[9px] font-black uppercase tracking-[0.14em] text-[#49454F]">
                                     <span className="inline-flex items-center gap-1">
@@ -552,8 +571,8 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                 </div>
             </div>
             {viewState === 'no-plan' ? (
-                <div className="px-4 pb-8">
-                    <div className="w-full rounded-[32px] bg-white/60 border border-black/[0.04] p-8 shadow-sm">
+                <div style={{ paddingLeft: layout.pagePadX, paddingRight: layout.pagePadX, paddingBottom: 24 }}>
+                    <div className="w-full bg-white/60 border border-black/[0.04] p-8 shadow-sm" style={{ borderRadius: layout.headerRadius }}>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F] mb-2">Plan-first</p>
                         <h2 className="text-[26px] font-black leading-tight text-[#1D1B20] mb-2">Primero definamos tu plan de alimentación</h2>
                         <p className="text-sm text-[#49454F] max-w-2xl">
@@ -583,7 +602,14 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                 </div>
             ) : (
                 <>
-                    <div className="px-4 pt-1 pb-3">
+                    <div
+                        style={{
+                            paddingLeft: layout.pagePadX,
+                            paddingRight: layout.pagePadX,
+                            paddingTop: 4,
+                            paddingBottom: layout.topBottomPad,
+                        }}
+                    >
                         <div className="w-full flex gap-2 rounded-2xl p-1 bg-[var(--md-sys-color-surface-container-low)] border border-black/[0.03]">
                             <button
                                 onClick={() => setActiveTab('alimentacion')}
@@ -608,11 +634,21 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                         </div>
                     </div>
 
-                    <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-28">
+                    <div
+                        className="flex-1 min-h-0 overflow-y-auto"
+                        style={{
+                            paddingLeft: layout.pagePadX,
+                            paddingRight: layout.pagePadX,
+                            paddingBottom: layout.contentBottom,
+                        }}
+                    >
                         <div className="w-full space-y-4">
                             {activeTab === 'alimentacion' ? (
                                 <>
-                                    <section className="rounded-[28px] bg-white/60 border border-black/[0.04] overflow-hidden">
+                                    <section
+                                        className="bg-white/60 border border-black/[0.04] overflow-hidden"
+                                        style={{ borderRadius: layout.sectionRadius }}
+                                    >
                                         <div className="px-5 py-4 border-b border-black/[0.05] flex items-center justify-between">
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Registro de alimentos</p>
@@ -681,7 +717,10 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                         </div>
                                     </section>
 
-                                    <section className="rounded-[28px] bg-white/60 border border-black/[0.04] overflow-hidden">
+                                    <section
+                                        className="bg-white/60 border border-black/[0.04] overflow-hidden"
+                                        style={{ borderRadius: layout.sectionRadius }}
+                                    >
                                         <button
                                             onClick={() => setAnalyticsExpanded((current) => !current)}
                                             className="w-full px-5 py-4 flex items-center justify-between"
@@ -787,7 +826,10 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                 </>
                             ) : (
                                 <>
-                                    <section className="rounded-[28px] bg-white/60 border border-black/[0.04] p-4">
+                                    <section
+                                        className="bg-white/60 border border-black/[0.04] p-4"
+                                        style={{ borderRadius: layout.sectionRadius }}
+                                    >
                                         <div className="flex flex-wrap justify-between gap-3 items-center mb-3">
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Métricas corporales</p>
@@ -810,7 +852,10 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                         </div>
                                     </section>
 
-                                    <section className="rounded-[28px] bg-white/60 border border-black/[0.04] p-4">
+                                    <section
+                                        className="bg-white/60 border border-black/[0.04] p-4"
+                                        style={{ borderRadius: layout.sectionRadius }}
+                                    >
                                         <div className="flex flex-wrap gap-2 items-center justify-between">
                                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Proyección y tendencia</p>
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${trendBadge.classes}`}>
@@ -852,7 +897,10 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                                         </ErrorBoundary>
                                     </section>
 
-                                    <section className="rounded-[28px] bg-white/60 border border-black/[0.04] overflow-hidden">
+                                    <section
+                                        className="bg-white/60 border border-black/[0.04] overflow-hidden"
+                                        style={{ borderRadius: layout.sectionRadius }}
+                                    >
                                         <div className="px-5 py-4 border-b border-black/[0.05]">
                                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Historial editable</p>
                                             <p className="text-sm font-bold text-[#1D1B20] mt-0.5">Peso, composición y medidas</p>
@@ -910,8 +958,8 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                     {activeTab === 'alimentacion' && (
                         <button
                             onClick={() => setIsNutritionLogModalOpen(true)}
-                            className="fixed right-4 z-20 rounded-2xl px-4 h-12 bg-[var(--md-sys-color-primary)] text-white text-sm font-black tracking-wide shadow-lg flex items-center gap-2 active:scale-[0.98] transition-transform"
-                            style={{ bottom: 'calc(var(--tab-bar-safe-bottom, 140px) + 0.5rem)' }}
+                            className="fixed z-20 rounded-2xl px-4 h-12 bg-[var(--md-sys-color-primary)] text-white text-sm font-black tracking-wide shadow-lg flex items-center gap-2 active:scale-[0.98] transition-transform"
+                            style={{ bottom: layout.fabBottom, right: layout.pagePadX }}
                             aria-label="Registrar alimento"
                         >
                             <UtensilsIcon size={16} />
@@ -941,8 +989,4 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
 };
 
 export default NutritionView;
-
-
-
-
 
