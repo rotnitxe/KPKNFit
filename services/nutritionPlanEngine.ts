@@ -65,6 +65,26 @@ const metricValueFromLog = (
     return log.muscleMassPercentage ?? settings.userVitals?.muscleMassPercentage ?? null;
 };
 
+const metricQualityFromLog = (
+    metric: 'weight' | 'bodyFat' | 'muscleMass',
+    log: BodyProgressLog
+): number => {
+    if (metric === 'bodyFat') {
+        if (log.bodyFatQuality === 'measured') return 1;
+        if (log.bodyFatQuality === 'estimated') return 0.75;
+        return 0.9;
+    }
+
+    if (metric === 'muscleMass') {
+        if (log.muscleMassQuality === 'measured') return 1;
+        if (log.muscleMassQuality === 'estimated') return 0.75;
+        return 0.9;
+    }
+
+    // Peso suele provenir de balanza y no tenemos quality flag explícita.
+    return 1;
+};
+
 const computeLinearProjection = (points: Array<{ x: number; y: number }>, goal: number): { etaDate: string | null; weeklyDelta: number | null } => {
     if (points.length < 2) return { etaDate: null, weeklyDelta: null };
 
@@ -108,11 +128,15 @@ export const buildNutritionProjection = (params: {
         .map((log) => {
             const y = metricValueFromLog(metric, log, settings);
             const x = new Date(log.date).getTime() / DAY_MS;
-            return y == null || Number.isNaN(y) ? null : { x, y };
+            const quality = metricQualityFromLog(metric, log);
+            return y == null || Number.isNaN(y) ? null : { x, y, quality };
         })
-        .filter((p): p is { x: number; y: number } => p != null);
+        .filter((p): p is { x: number; y: number; quality: number } => p != null);
 
-    const projection = computeLinearProjection(points, goal);
+    const projection = computeLinearProjection(
+        points.map((point) => ({ x: point.x, y: point.y })),
+        goal
+    );
 
     let trendStatus: NutritionTrendStatus = 'unknown';
     if (!projection.etaDate && points.length >= 2) {
@@ -128,7 +152,11 @@ export const buildNutritionProjection = (params: {
         trendStatus = 'on_track';
     }
 
-    const confidence = clamp(points.length / 10, 0.2, 1);
+    const densityConfidence = clamp(points.length / 10, 0.2, 1);
+    const qualityConfidence = points.length
+        ? points.reduce((sum, point) => sum + point.quality, 0) / points.length
+        : 0.6;
+    const confidence = clamp(densityConfidence * qualityConfidence, 0.2, 1);
 
     return {
         etaDate: projection.etaDate ?? plan.estimatedEndDate ?? null,

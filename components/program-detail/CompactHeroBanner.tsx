@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Program } from '../../types';
-import { ChevronLeftIcon, EditIcon, PlayIcon, PauseIcon, SettingsIcon, CheckCircleIcon, SlidersIcon } from '../icons';
+import { ChevronLeftIcon, EditIcon, PlayIcon, PauseIcon, SettingsIcon, CheckCircleIcon, ZapIcon, TargetIcon } from '../icons';
 
 interface CompactHeroBannerProps {
     program: Program;
@@ -24,14 +24,11 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
     totalAdherence, trainingDaysCount,
 }) => {
     const [modeDropdownOpen, setModeDropdownOpen] = useState(false);
-    const [focusDropdownOpen, setFocusDropdownOpen] = useState(false);
     const modeRef = useRef<HTMLDivElement>(null);
-    const focusRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (modeRef.current && !modeRef.current.contains(e.target as Node)) setModeDropdownOpen(false);
-            if (focusRef.current && !focusRef.current.contains(e.target as Node)) setFocusDropdownOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -39,19 +36,10 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
 
     const modeLabel = program.mode === 'powerlifting' ? 'Powerlifting' : program.mode === 'powerbuilding' ? 'Powerbuilding' : 'Hipertrofia';
 
-    const getFocusLabel = (phase?: string) => {
-        switch (phase) {
-            case 'accumulation': return 'Hipertrofia';
-            case 'transformation': return 'Fuerza';
-            case 'realization': return 'Realización';
-            default: return 'Fuerza';
-        }
-    };
-
     return (
         <div className="relative w-full overflow-visible flex flex-col items-center">
             {/* ── Liquid Glass Hero Container ── */}
-            <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] overflow-hidden shadow-2xl shadow-black/10 rounded-b-[48px]">
+            <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] overflow-hidden shadow-2xl shadow-black/10">
                 {/* Background Image / Gradient */}
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -67,7 +55,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                         )}
                         {/* Glass Overlays */}
                         <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                     </motion.div>
                 </AnimatePresence>
 
@@ -84,9 +72,9 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                         <div className="relative" ref={modeRef}>
                             <button
                                 onClick={() => setModeDropdownOpen(!modeDropdownOpen)}
-                                className="h-12 px-6 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-between text-white active:scale-95 transition-all shadow-lg shadow-black/20"
+                                className="w-24 h-11 px-4 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-between text-white active:scale-95 transition-all"
                             >
-                                <span className="text-xs font-black uppercase tracking-widest truncate mr-2">{modeLabel}</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest truncate mr-1">{modeLabel}</span>
                                 <ChevronLeftIcon size={14} className="-rotate-90 opacity-50" />
                             </button>
 
@@ -96,7 +84,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        className="absolute top-full right-0 mt-3 z-50 py-2 rounded-2xl bg-white/95 backdrop-blur-2xl border border-white/20 shadow-2xl min-w-[180px] overflow-hidden"
+                                        className="absolute top-full right-0 mt-2 z-50 py-2 rounded-2xl bg-white border border-black/5 shadow-2xl min-w-[160px] overflow-hidden"
                                     >
                                         {(['hypertrophy', 'powerlifting', 'powerbuilding'] as const).map(m => (
                                             <button
@@ -110,7 +98,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                                                     }
                                                     setModeDropdownOpen(false);
                                                 }}
-                                                className={`w-full px-5 py-4 text-left text-xs font-black uppercase tracking-widest transition-colors ${program.mode === m ? 'bg-black text-white' : 'text-black/60 hover:bg-black/5'}`}
+                                                className={`w-full px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${program.mode === m ? 'bg-black text-white' : 'text-black/60 hover:bg-black/5'}`}
                                             >
                                                 {m === 'hypertrophy' ? 'Hipertrofia' : m === 'powerlifting' ? 'Powerlifting' : 'Powerbuilding'}
                                             </button>
@@ -122,28 +110,28 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
 
                         <button
                             onClick={onEdit}
-                            className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-90 transition-all shadow-lg shadow-black/20"
+                            className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-90 transition-all font-black uppercase tracking-widest"
                         >
-                            <SlidersIcon size={20} />
+                            <SettingsIcon size={20} />
                         </button>
                     </div>
                 </div>
 
                 {/* Hero Content */}
-                <div className="absolute inset-x-0 bottom-0 p-8 pt-24 flex justify-between items-end z-20">
-                    <div className="flex flex-col gap-2 flex-1 pr-6">
+                <div className="absolute inset-x-0 bottom-0 p-8 pt-20 flex justify-between items-end z-20">
+                    <div className="flex flex-col gap-2 flex-1 pr-4">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="flex flex-wrap gap-2 mb-2"
+                            className="flex flex-wrap gap-2 mb-1"
                         >
-                            <div className={`px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${isActive ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : isPaused ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-white/10 text-white/60 border-white/20'}`}>
-                                <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse outline outline-4 outline-emerald-400/20' : isPaused ? 'bg-amber-400' : 'bg-white/40'}`} />
+                            <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isActive ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : isPaused ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-white/10 text-white/60 border-white/20'}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : isPaused ? 'bg-amber-400' : 'bg-white/40'}`} />
                                 {isActive ? 'Activo' : isPaused ? 'Pausado' : 'Borrador'}
                             </div>
                             {totalAdherence > 0 && (
-                                <div className="px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 backdrop-blur-md">
-                                    <CheckCircleIcon size={14} />
+                                <div className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                                    <CheckCircleIcon size={12} />
                                     {totalAdherence}% Adherencia
                                 </div>
                             )}
@@ -152,7 +140,7 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-white text-5xl sm:text-6xl font-black leading-[0.9] tracking-tighter"
+                            className="text-white text-3xl sm:text-4xl font-black leading-[0.9] tracking-tighter"
                         >
                             {program.name}
                         </motion.h1>
@@ -161,94 +149,59 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="text-white/80 text-[14px] font-bold uppercase tracking-[0.05em] mt-3 max-w-[90%] leading-relaxed line-clamp-2"
+                            className="text-white/60 text-[11px] font-bold uppercase tracking-widest mt-1 max-w-[90%] leading-relaxed line-clamp-2"
                         >
                             {program.description || "Sin descripción proporcionada"}
                         </motion.p>
                     </div>
 
-                    {/* Circular Action Button - Premium Glass Style */}
+                    {/* Circular Action Button */}
                     <motion.button
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={isActive ? onPause : onStart}
-                        className={`w-28 h-28 rounded-full flex items-center justify-center shadow-2xl relative shrink-0 transition-colors border-[6px] border-white/10 overflow-hidden ${isActive ? 'bg-white/20 text-white backdrop-blur-2xl' : 'bg-white text-black'}`}
+                        className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl relative shrink-0 ${isActive ? 'bg-white text-black' : 'bg-white text-black shadow-white/10'}`}
                     >
                         {isActive && !isPaused ? (
-                            <div className="flex gap-2.5">
-                                <div className="w-2.5 h-10 bg-current rounded-full" />
-                                <div className="w-2.5 h-10 bg-current rounded-full" />
+                            <div className="flex gap-1.5">
+                                <div className="w-1.5 h-7 bg-black rounded-full" />
+                                <div className="w-1.5 h-7 bg-black rounded-full" />
                             </div>
                         ) : (
-                            <PlayIcon size={48} className="ml-2" fill="currentColor" />
+                            <PlayIcon size={32} className="ml-1.5" fill="currentColor" />
                         )}
 
-                        {/* Pulsing ring if active */}
+                        {/* Animated Ring if active */}
                         {isActive && (
-                            <div className="absolute inset-0 rounded-full border-4 border-emerald-400/50 animate-[ping_3s_infinite]" />
+                            <div className="absolute inset-0 rounded-full border-2 border-emerald-500 animate-[ping_2s_infinite] opacity-30" />
                         )}
                     </motion.button>
                 </div>
             </div>
 
-            {/* ── Secondary Stats Bar (Compact & Serious Liquid Glass) ── */}
-            <div className="w-full px-2 sm:px-6 -mt-12 z-30">
-                <div className="w-full bg-white/85 backdrop-blur-[40px] rounded-[36px] p-2 shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-white/60 flex items-stretch divide-x divide-black/[0.04]">
-                    {/* Stats Sections */}
-                    <div className="flex-1 flex flex-col items-center py-4">
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] mb-1">Semana</span>
+            {/* ── Secondary Stats Bar (Material 3 Surface) ── */}
+            <div className="w-full px-6 -mt-6 z-30">
+                <div className="w-full bg-white rounded-[28px] p-5 shadow-xl border border-black/[0.03] flex items-center justify-between">
+                    <div className="flex flex-col gap-1 flex-1 items-center border-r border-black/[0.05]">
+                        <span className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em]">Semana</span>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-black text-[#1D1B20] leading-none">{currentWeekIndex + 1}</span>
-                            <span className="text-xs font-bold text-zinc-300 uppercase leading-none">/ {totalWeeks}</span>
+                            <span className="text-lg font-black text-black leading-none">{currentWeekIndex + 1}</span>
+                            <span className="text-[10px] font-black text-black/20 uppercase tracking-widest">/ {totalWeeks}</span>
                         </div>
                     </div>
-
-                    <div className="flex-1 flex flex-col items-center py-4">
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] mb-1">Frecuencia</span>
-                        <span className="text-xl font-black text-[#1D1B20] leading-none">{trainingDaysCount}D</span>
+                    <div className="flex flex-col gap-1 flex-1 items-center border-r border-black/[0.05]">
+                        <span className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em]">Frecuencia</span>
+                        <div className="flex items-center gap-1.5">
+                            <ZapIcon size={14} className="text-amber-500" />
+                            <span className="text-lg font-black text-black leading-none">{trainingDaysCount}d</span>
+                        </div>
                     </div>
-
-                    {/* Editable Focus Field */}
-                    <div className="flex-1 relative" ref={focusRef}>
-                        <button
-                            onClick={() => setFocusDropdownOpen(!focusDropdownOpen)}
-                            className="w-full h-full flex flex-col items-center py-4 hover:bg-black/[0.02] transition-colors rounded-r-[28px] group"
-                        >
-                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] mb-1">Enfoque</span>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[14px] font-black text-blue-600 uppercase tracking-[0.1em]">{getFocusLabel(program.trainingPhase)}</span>
-                                <ChevronLeftIcon size={12} className="-rotate-90 text-zinc-300 group-hover:text-blue-400 transition-colors" />
-                            </div>
-                        </button>
-
-                        <AnimatePresence>
-                            {focusDropdownOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    className="absolute bottom-full right-0 mb-4 z-50 py-3 rounded-3xl bg-white/95 backdrop-blur-3xl border border-black/5 shadow-2xl min-w-[180px] overflow-hidden"
-                                >
-                                    {(['accumulation', 'transformation', 'realization'] as const).map(p => (
-                                        <button
-                                            key={p}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (onUpdateProgram) {
-                                                    const updated = JSON.parse(JSON.stringify(program));
-                                                    updated.trainingPhase = p;
-                                                    onUpdateProgram(updated);
-                                                }
-                                                setFocusDropdownOpen(false);
-                                            }}
-                                            className={`w-full px-6 py-4 text-left text-[11px] font-black uppercase tracking-widest transition-colors ${program.trainingPhase === p ? 'bg-blue-600 text-white' : 'text-zinc-600 hover:bg-black/5'}`}
-                                        >
-                                            {getFocusLabel(p)}
-                                        </button>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                    <div className="flex flex-col gap-1 flex-1 items-center">
+                        <span className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em]">Enfoque</span>
+                        <div className="flex items-center gap-1.5">
+                            <TargetIcon size={14} className="text-blue-500" />
+                            <span className="text-xs font-black text-black leading-none whitespace-nowrap overflow-hidden text-ellipsis">FUERZA</span>
+                        </div>
                     </div>
                 </div>
             </div>

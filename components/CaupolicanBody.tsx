@@ -124,8 +124,8 @@ export const CaupolicanBody: React.FC<{
                                 onClick={onBodyBackgroundClick ?? undefined}
                                 role="presentation"
                             >
-                                <HeatZone top={24} left={32} width={14} height={5} muscle="Pectorales" />
-                                <HeatZone top={24} left={54} width={14} height={5} muscle="Pectorales" />
+                                <HeatZone top={24} left={32} width={14} height={5} muscle="Pectoral" />
+                                <HeatZone top={24} left={54} width={14} height={5} muscle="Pectoral" />
                                 <HeatZone top={36} left={42} width={16} height={10} muscle="Abdomen" />
                                 <HeatZone top={52} left={28} width={15} height={13} muscle="Cuádriceps" />
                                 <HeatZone top={52} left={57} width={15} height={13} muscle="Cuádriceps" />
@@ -154,15 +154,15 @@ export const CaupolicanBody: React.FC<{
                                 onClick={onBodyBackgroundClick ?? undefined}
                                 role="presentation"
                             >
-                                <HeatZone top={28} left={25} width={50} height={16} muscle="Dorsales" />
+                                <HeatZone top={28} left={25} width={50} height={16} muscle="Dorsal" />
                                 <HeatZone top={18} left={45} width={10} height={7} muscle="Trapecio" />
-                                <HeatZone top={44} left={42} width={16} height={7} muscle="Erectores Espinales" />
+                                <HeatZone top={44} left={42} width={16} height={7} muscle="Espalda Baja" />
                                 <HeatZone top={52} left={32} width={14} height={9} muscle="Glúteos" />
                                 <HeatZone top={52} left={54} width={14} height={9} muscle="Glúteos" />
                                 <HeatZone top={70} left={25} width={15} height={13} muscle="Isquiosurales" />
                                 <HeatZone top={70} left={60} width={15} height={13} muscle="Isquiosurales" />
-                                <HeatZone top={80} left={28} width={12} height={12} muscle="Pantorrillas" />
-                                <HeatZone top={80} left={60} width={12} height={12} muscle="Pantorrillas" />
+                                <HeatZone top={80} left={28} width={12} height={12} muscle="Gemelos" />
+                                <HeatZone top={80} left={60} width={12} height={12} muscle="Gemelos" />
                                 <HeatZone top={34} left={15} width={10} height={12} muscle="Tríceps" />
                                 <HeatZone top={34} left={75} width={10} height={12} muscle="Tríceps" />
                                 <HeatZone top={22} left={14} width={9} height={9} muscle="Deltoides" />

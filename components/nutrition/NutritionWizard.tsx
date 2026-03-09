@@ -1,784 +1,908 @@
-// components/nutrition/NutritionWizard.tsx
-// Wizard de objetivos nutricionales (3 pasos). Estética Tú (emerald/white/zinc).
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { ChevronDownIcon, ChevronUpIcon } from '../icons';
-import type { Settings, CalorieGoalConfig, NutritionPlan } from '../../types';
-import { mifflinStJeor, katchMcArdle, calculateCaloriesForBodyFatTrend } from '../../utils/calorieFormulas';
-import { useAppState, useAppDispatch } from '../../contexts/AppContext';
-import { NutritionTooltip } from './NutritionTooltip';
-import { WizardFABs, WizardStepper } from '../wizard';
-
-const ACTIVITY_FACTORS: Record<number, number> = {
-    1: 1.2, 2: 1.375, 3: 1.55, 4: 1.725, 5: 1.9,
-};
-
-const GOAL_OPTIONS: { id: CalorieGoalConfig['goal']; label: string; why: string }[] = [
-    { id: 'lose', label: 'Definición', why: 'Déficit calórico para reducir grasa manteniendo masa muscular.' },
-    { id: 'maintain', label: 'Mantención', why: 'Calorías de equilibrio para mantener peso y composición.' },
-    { id: 'gain', label: 'Superávit', why: 'Excedente controlado para ganar masa muscular.' },
-];
-
-const GENDER_OPTIONS: { id: string; label: string }[] = [
-    { id: 'male', label: 'Hombre' },
-    { id: 'female', label: 'Mujer' },
-    { id: 'transmale', label: 'Trans masculino' },
-    { id: 'transfemale', label: 'Trans femenino' },
-    { id: 'other', label: 'No binario' },
-];
-
-const ACTIVITY_OPTIONS: { id: number; label: string; desc: string }[] = [
-    { id: 1, label: 'Sedentario', desc: 'Poco o ningún ejercicio' },
-    { id: 2, label: 'Ligero', desc: 'Ejercicio 1-3 días/semana' },
-    { id: 3, label: 'Moderado', desc: 'Ejercicio 3-5 días/semana' },
-    { id: 4, label: 'Activo', desc: 'Ejercicio 6-7 días/semana' },
-    { id: 5, label: 'Muy activo', desc: 'Ejercicio intenso diario' },
-];
-
-const METABOLIC_CONDITIONS = [
-    { id: 'diabetes', label: 'Diabetes tipo 1/2' },
-    { id: 'hypothyroid', label: 'Hipotiroidismo' },
-    { id: 'hyperthyroid', label: 'Hipertiroidismo' },
-    { id: 'metabolic_syndrome', label: 'Síndrome metabólico' },
-    { id: 'none', label: 'Ninguna' },
-];
-
-const DIET_OPTIONS: { id: string; label: string }[] = [
-    { id: 'omnivore', label: 'Omnívoro' },
-    { id: 'vegetarian', label: 'Vegetariano' },
-    { id: 'vegan', label: 'Vegano' },
-];
-
-const KCAL_PER_GRAM = { protein: 4, carbs: 4, fat: 9 };
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    BodyProgressLog,
+    CalorieGoalConfig,
+    NutritionGoal,
+    NutritionGoalMetric,
+    NutritionPlan,
+    NutritionRiskFlag,
+} from '../../types';
+import { useAppDispatch, useAppState } from '../../contexts/AppContext';
+import { getDatePartFromString, getLocalDateString } from '../../utils/dateUtils';
+import {
+    buildCalculationSnapshot,
+    buildNutritionProjection,
+    buildNutritionRiskFlags,
+    estimateBodyFatFromAnthropometrics,
+    estimateMuscleMassFromBodyFat,
+} from '../../services/nutritionPlanEngine';
+import {
+    calculateBMR,
+    calculateCaloriesForBodyFatTrend,
+} from '../../utils/calorieFormulas';
+import { AlertTriangleIcon } from '../icons';
 
 interface NutritionWizardProps {
     onComplete: () => void;
 }
 
-const OBJETIVO_OPTIONS: { id: NutritionPlan['goalType']; label: string; unit: string; placeholder: string }[] = [
-    { id: 'weight', label: 'Peso objetivo', unit: 'kg', placeholder: 'Ej: 70' },
-    { id: 'bodyFat', label: '% Grasa objetivo', unit: '%', placeholder: 'Ej: 15' },
-    { id: 'muscleMass', label: '% Músculo objetivo', unit: '%', placeholder: 'Ej: 42' },
+type GoalDirection = 'lose' | 'maintain' | 'gain';
+
+const TOTAL_STEPS = 5;
+const ACTIVITY_FACTORS: Record<number, number> = {
+    1: 1.2,
+    2: 1.375,
+    3: 1.55,
+    4: 1.725,
+    5: 1.9,
+};
+
+const METRIC_META: Record<NutritionGoalMetric, { label: string; unit: string; min: number; max: number; step: number }> = {
+    weight: { label: 'Peso', unit: 'kg', min: 35, max: 260, step: 0.1 },
+    bodyFat: { label: '% Grasa', unit: '%', min: 4, max: 55, step: 0.1 },
+    muscleMass: { label: '% Músculo', unit: '%', min: 20, max: 60, step: 0.1 },
+};
+
+const GOAL_DIRECTION_META: Record<GoalDirection, { title: string; subtitle: string }> = {
+    lose: { title: 'Definición', subtitle: 'Déficit controlado y preservación muscular' },
+    maintain: { title: 'Mantención', subtitle: 'Equilibrio para sostener composición corporal' },
+    gain: { title: 'Volumen limpio', subtitle: 'Superávit moderado para ganar masa muscular' },
+};
+
+const DIET_OPTIONS = [
+    { value: 'omnivore', label: 'Omnívoro' },
+    { value: 'vegetarian', label: 'Vegetariano' },
+    { value: 'vegan', label: 'Vegano' },
+    { value: 'keto', label: 'Keto' },
+] as const;
+
+const METABOLIC_OPTIONS = [
+    'Diabetes',
+    'Resistencia a la insulina',
+    'Hipotiroidismo',
+    'Hipertiroidismo',
+    'Síndrome metabólico',
 ];
 
-const TOTAL_STEPS = 3;
+const getRiskClasses = (severity: NutritionRiskFlag['severity']): string => {
+    if (severity === 'danger') return 'bg-[#B3261E]/12 text-[#8C1D18] border-[#B3261E]/25';
+    if (severity === 'warning') return 'bg-[#7D5700]/12 text-[#6B4F00] border-[#7D5700]/25';
+    return 'bg-[#006A6A]/10 text-[#005353] border-[#006A6A]/20';
+};
 
 export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) => {
-    const { settings } = useAppState();
-    const { setSettings, addToast, setNutritionPlans, setActiveNutritionPlanId } = useAppDispatch();
+    const { settings, bodyProgress } = useAppState();
+    const { setSettings, setNutritionPlans, setActiveNutritionPlanId, setBodyProgress, addToast } = useAppDispatch();
+
     const scrollRef = useRef<HTMLDivElement>(null);
+
     const [step, setStep] = useState(0);
+
+    const [goalDirection, setGoalDirection] = useState<GoalDirection>(
+        settings.calorieGoalObjective === 'deficit' ? 'lose' : settings.calorieGoalObjective === 'surplus' ? 'gain' : 'maintain'
+    );
+    const [primaryMetric, setPrimaryMetric] = useState<NutritionGoalMetric>('weight');
+    const [primaryValue, setPrimaryValue] = useState<number | ''>(() => settings.userVitals?.targetWeight ?? settings.userVitals?.weight ?? 70);
+    const [secondaryMetrics, setSecondaryMetrics] = useState<NutritionGoalMetric[]>([]);
+    const [secondaryValues, setSecondaryValues] = useState<Record<NutritionGoalMetric, number | ''>>({
+        weight: '',
+        bodyFat: settings.userVitals?.bodyFatPercentage ?? '',
+        muscleMass: settings.userVitals?.muscleMassPercentage ?? '',
+    });
+
+    const [age, setAge] = useState<number | ''>(settings.userVitals?.age ?? '');
+    const [gender, setGender] = useState<NonNullable<typeof settings.userVitals.gender>>(settings.userVitals?.gender ?? 'male');
+    const [height, setHeight] = useState<number | ''>(settings.userVitals?.height ?? '');
+    const [weight, setWeight] = useState<number | ''>(settings.userVitals?.weight ?? '');
+
+    const [bodyFat, setBodyFat] = useState<number | ''>(settings.userVitals?.bodyFatPercentage ?? '');
+    const [muscleMass, setMuscleMass] = useState<number | ''>(settings.userVitals?.muscleMassPercentage ?? '');
+    const [bodyFatQuality, setBodyFatQuality] = useState<'measured' | 'estimated'>('estimated');
+    const [muscleMassQuality, setMuscleMassQuality] = useState<'measured' | 'estimated'>('estimated');
+    const [autoEstimatedComposition, setAutoEstimatedComposition] = useState(false);
+    const [compositionConfirmed, setCompositionConfirmed] = useState(false);
+
+    const [activityLevel, setActivityLevel] = useState<number>(settings.calorieGoalConfig?.activityLevel ?? 3);
+    const [useAdvancedActivity, setUseAdvancedActivity] = useState(false);
+    const [activityDaysPerWeek, setActivityDaysPerWeek] = useState<number>(settings.calorieGoalConfig?.activityDaysPerWeek ?? 4);
+    const [activityHoursPerDay, setActivityHoursPerDay] = useState<number>(settings.calorieGoalConfig?.activityHoursPerDay ?? 1);
+    const [customActivityFactor, setCustomActivityFactor] = useState<number | ''>(settings.calorieGoalConfig?.customActivityFactor ?? '');
+
+    const [formula, setFormula] = useState<CalorieGoalConfig['formula']>(settings.calorieGoalConfig?.formula ?? 'mifflin');
+    const [trendMode, setTrendMode] = useState<'kg_per_week' | 'pct_fat_per_week'>('kg_per_week');
+    const [weeklyChangeKg, setWeeklyChangeKg] = useState<number>(settings.calorieGoalConfig?.weeklyChangeKg ?? 0.45);
+    const [bodyFatTrendPct, setBodyFatTrendPct] = useState<number>(0.25);
+    const [healthMultiplier, setHealthMultiplier] = useState<number>(settings.calorieGoalConfig?.healthMultiplier ?? 1);
+    const [dietPreference, setDietPreference] = useState<typeof DIET_OPTIONS[number]['value']>(
+        (settings.dietaryPreference as typeof DIET_OPTIONS[number]['value']) ?? 'omnivore'
+    );
+    const [metabolicConditions, setMetabolicConditions] = useState<string[]>(settings.metabolicConditions ?? []);
+    const [connectAuge, setConnectAuge] = useState<boolean>(settings.algorithmSettings?.augeEnableNutritionTracking ?? true);
+
+    const [manualCalorieOverride, setManualCalorieOverride] = useState(false);
+    const [manualCalories, setManualCalories] = useState<number | ''>('');
+    const [manualMacros, setManualMacros] = useState(false);
+    const [proteinGoal, setProteinGoal] = useState<number>(settings.dailyProteinGoal ?? 150);
+    const [carbsGoal, setCarbsGoal] = useState<number>(settings.dailyCarbGoal ?? 220);
+    const [fatsGoal, setFatsGoal] = useState<number>(settings.dailyFatGoal ?? 70);
+    const [overrideAcknowledged, setOverrideAcknowledged] = useState(false);
 
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     }, [step]);
-    const [goalType, setGoalType] = useState<NutritionPlan['goalType']>('weight');
-    const [goalValue, setGoalValue] = useState<number | ''>(() => {
-        const w = settings.userVitals?.weight;
-        return typeof w === 'number' ? w : 70;
-    });
-    const [trendMode, setTrendMode] = useState<NutritionPlan['trendMode']>('kg_per_week');
-    const [trendValue, setTrendValue] = useState(0.3);
-    const [goal, setGoal] = useState<CalorieGoalConfig['goal']>(settings.calorieGoalObjective === 'deficit' ? 'lose' : settings.calorieGoalObjective === 'surplus' ? 'gain' : 'maintain');
-    useEffect(() => {
-        if (trendMode === 'pct_fat_per_week') {
-            setTrendValue((v) => (goal === 'lose' && v > 0 ? -0.3 : goal === 'gain' && v < 0 ? 0.3 : v));
-        }
-    }, [trendMode, goal]);
-    const [connectAuge, setConnectAuge] = useState(settings.algorithmSettings?.augeEnableNutritionTracking ?? true);
-    const [height, setHeight] = useState<number | ''>(settings.userVitals?.height ?? 170);
-    const [weight, setWeight] = useState<number | ''>(settings.userVitals?.weight ?? 70);
-    const [age, setAge] = useState<number | ''>(settings.userVitals?.age ?? 30);
-    const [gender, setGender] = useState(settings.userVitals?.gender ?? 'male');
-    const [bodyFat, setBodyFat] = useState<number | ''>(settings.userVitals?.bodyFatPercentage ?? '');
-    const [muscleMass, setMuscleMass] = useState<number | ''>(settings.userVitals?.muscleMassPercentage ?? '');
-    const activityMap: Record<string, number> = { sedentary: 1, light: 2, moderate: 3, active: 4, very_active: 5 };
-    const [activityLevel, setActivityLevel] = useState(settings.calorieGoalConfig?.activityLevel ?? (activityMap[settings.userVitals?.activityLevel || ''] ?? 3));
-    const [metabolicConditions, setMetabolicConditions] = useState<string[]>(settings.metabolicConditions ?? []);
-    const [dietPreference, setDietPreference] = useState(settings.dietaryPreference ?? 'omnivore');
-    const [weeklyChangeKg, setWeeklyChangeKg] = useState(settings.calorieGoalConfig?.weeklyChangeKg ?? 0.5);
-    const [healthMultiplier, setHealthMultiplier] = useState(settings.calorieGoalConfig?.healthMultiplier ?? 1);
-    const [proteinG, setProteinG] = useState(settings.dailyProteinGoal ?? 150);
-    const [carbsG, setCarbsG] = useState(settings.dailyCarbGoal ?? 250);
-    const [fatsG, setFatsG] = useState<number | ''>(settings.dailyFatGoal ?? 70);
-    const [otherCondition, setOtherCondition] = useState('');
-    const [formulaExpanded, setFormulaExpanded] = useState(false);
-    const [advancedActivityExpanded, setAdvancedActivityExpanded] = useState(false);
-    const [showHelp, setShowHelp] = useState(false);
-    const [customActivityFactor, setCustomActivityFactor] = useState<number | ''>(() => {
-        const custom = settings.calorieGoalConfig?.customActivityFactor;
-        return typeof custom === 'number' ? custom : '';
-    });
-    const [activityDaysPerWeek, setActivityDaysPerWeek] = useState(settings.calorieGoalConfig?.activityDaysPerWeek ?? 3);
-    const [activityHoursPerDay, setActivityHoursPerDay] = useState(settings.calorieGoalConfig?.activityHoursPerDay ?? 1);
 
-    const activityIdx = activityLevel;
-    const derivedActivityFactor = useMemo(() => {
-        if (customActivityFactor !== '' && typeof customActivityFactor === 'number') return customActivityFactor;
-        if (!advancedActivityExpanded) return ACTIVITY_FACTORS[activityIdx] ?? 1.55;
+    useEffect(() => {
+        if (step !== 2) return;
+        if (bodyFat !== '' && muscleMass !== '') return;
+        if (weight === '' || height === '' || age === '') return;
+
+        const estimatedBodyFat = estimateBodyFatFromAnthropometrics({
+            weightKg: Number(weight),
+            heightCm: Number(height),
+            age: Number(age),
+            gender,
+        });
+        const estimatedMuscle = estimateMuscleMassFromBodyFat({
+            bodyFatPct: estimatedBodyFat,
+            gender,
+        });
+
+        if (bodyFat === '') {
+            setBodyFat(estimatedBodyFat);
+            setBodyFatQuality('estimated');
+        }
+        if (muscleMass === '') {
+            setMuscleMass(estimatedMuscle);
+            setMuscleMassQuality('estimated');
+        }
+
+        setAutoEstimatedComposition(true);
+        setCompositionConfirmed(false);
+    }, [step, bodyFat, muscleMass, weight, height, age, gender]);
+
+    useEffect(() => {
+        if (bodyFat !== '' && muscleMass !== '') {
+            setFormula('katch');
+        }
+    }, [bodyFat, muscleMass]);
+
+    const activityFactor = useMemo(() => {
+        if (customActivityFactor !== '') return Number(customActivityFactor);
+        if (!useAdvancedActivity) return ACTIVITY_FACTORS[activityLevel] ?? 1.55;
+
         const days = Math.min(7, Math.max(0, activityDaysPerWeek));
         const hours = Math.min(24, Math.max(0, activityHoursPerDay));
-        return 1.2 + (days / 7) * 0.4 + (hours / 12) * 0.3;
-    }, [activityIdx, advancedActivityExpanded, customActivityFactor, activityDaysPerWeek, activityHoursPerDay]);
+        return Math.min(2, Math.max(1, 1.2 + (days / 7) * 0.45 + (hours / 12) * 0.25));
+    }, [activityDaysPerWeek, activityHoursPerDay, activityLevel, customActivityFactor, useAdvancedActivity]);
 
-    const bmr = useMemo(() => {
-        const w = weight === '' ? NaN : Number(weight);
-        const h = height === '' ? NaN : Number(height);
-        const a = age === '' ? NaN : Number(age);
-        if (Number.isNaN(w) || Number.isNaN(h) || Number.isNaN(a) || !w || !h || !a) return null;
-        const bf = bodyFat !== '' ? Number(bodyFat) : 15;
-        const useKatch = bodyFat !== '' && bf > 0;
-        if (useKatch) return katchMcArdle(w, bf);
-        const g = gender === 'female' || gender === 'transfemale' ? 'female' : 'male';
-        return mifflinStJeor(w, h, a, g);
-    }, [weight, height, age, gender, bodyFat]);
+    const userVitalsDraft = useMemo(() => ({
+        ...settings.userVitals,
+        age: age === '' ? undefined : Number(age),
+        gender,
+        height: height === '' ? undefined : Number(height),
+        weight: weight === '' ? undefined : Number(weight),
+        bodyFatPercentage: bodyFat === '' ? undefined : Number(bodyFat),
+        muscleMassPercentage: muscleMass === '' ? undefined : Number(muscleMass),
+        activityLevel: (['sedentary', 'light', 'moderate', 'active', 'very_active'][Math.max(0, Math.min(4, activityLevel - 1))] as any),
+    }), [activityLevel, age, bodyFat, gender, height, muscleMass, settings.userVitals, weight]);
 
-    const tdeeBase = useMemo(() => {
-        if (bmr == null) return null;
-        return Math.round(bmr * derivedActivityFactor * healthMultiplier);
-    }, [bmr, derivedActivityFactor, healthMultiplier]);
+    const calorieGoalConfig = useMemo<CalorieGoalConfig>(() => ({
+        formula,
+        activityLevel,
+        goal: goalDirection,
+        weeklyChangeKg,
+        healthMultiplier,
+        ...(customActivityFactor !== '' ? { customActivityFactor: Number(customActivityFactor) } : {}),
+        ...(useAdvancedActivity ? { activityDaysPerWeek, activityHoursPerDay } : {}),
+    }), [activityDaysPerWeek, activityHoursPerDay, activityLevel, customActivityFactor, formula, goalDirection, healthMultiplier, useAdvancedActivity, weeklyChangeKg]);
+
+    const effectiveSettings = useMemo(() => ({
+        ...settings,
+        userVitals: userVitalsDraft,
+        calorieGoalObjective: goalDirection === 'lose' ? 'deficit' : goalDirection === 'gain' ? 'surplus' : 'maintenance',
+    }), [goalDirection, settings, userVitalsDraft]);
+
+    const bmr = useMemo(() => calculateBMR(effectiveSettings, calorieGoalConfig), [calorieGoalConfig, effectiveSettings]);
 
     const tdee = useMemo(() => {
-        if (tdeeBase == null) return null;
-        if (goal === 'maintain') return tdeeBase;
-        if (trendMode === 'kg_per_week') {
-            if (goal === 'lose') return tdeeBase - (weeklyChangeKg * 7700) / 7;
-            if (goal === 'gain') return tdeeBase + (weeklyChangeKg * 7700) / 7;
-            return tdeeBase;
+        if (bmr == null) return null;
+        return Math.round(bmr * activityFactor * healthMultiplier);
+    }, [activityFactor, bmr, healthMultiplier]);
+
+    const recommendedCalories = useMemo(() => {
+        if (tdee == null) return 0;
+        const weightKg = weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight);
+
+        if (goalDirection === 'maintain') return Math.round(tdee);
+
+        if (trendMode === 'pct_fat_per_week') {
+            const signedTrend = goalDirection === 'lose' ? -Math.abs(bodyFatTrendPct) : Math.abs(bodyFatTrendPct);
+            return calculateCaloriesForBodyFatTrend(tdee, weightKg, signedTrend);
         }
-        const weightNum = weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight) || 70;
-        return calculateCaloriesForBodyFatTrend(tdeeBase, weightNum, trendValue);
-    }, [tdeeBase, goal, weeklyChangeKg, trendMode, trendValue, weight, settings.userVitals?.weight]);
 
-    const proteinMultiplier = dietPreference === 'vegan' ? 1.15 : dietPreference === 'vegetarian' ? 1.08 : 1;
+        const weekly = Math.abs(weeklyChangeKg);
+        const kcalShift = (weekly * 7700) / 7;
+        return Math.round(goalDirection === 'lose' ? tdee - kcalShift : tdee + kcalShift);
+    }, [bodyFatTrendPct, goalDirection, settings.userVitals?.weight, tdee, trendMode, weeklyChangeKg, weight]);
 
-    const caloriesFromMacros = useMemo(() => {
-        const p = proteinG * KCAL_PER_GRAM.protein * proteinMultiplier;
-        const c = carbsG * KCAL_PER_GRAM.carbs;
-        const f = (fatsG === '' ? 0 : Number(fatsG)) * KCAL_PER_GRAM.fat;
-        return Math.round(p + c + f);
-    }, [proteinG, carbsG, fatsG, proteinMultiplier]);
+    const calorieTarget = useMemo(() => {
+        if (manualCalorieOverride && manualCalories !== '') return Number(manualCalories);
+        return recommendedCalories;
+    }, [manualCalorieOverride, manualCalories, recommendedCalories]);
 
-    const weeklyTrendKg = useMemo(() => {
-        if (tdeeBase == null || weight === '') return null;
-        const diff = caloriesFromMacros - tdeeBase;
-        return (diff * 7) / 7700;
-    }, [tdeeBase, caloriesFromMacros]);
+    const recommendedMacros = useMemo(() => {
+        const weightKg = weight === '' ? 70 : Number(weight);
+        const proteinFactor = goalDirection === 'gain' ? 2.2 : goalDirection === 'lose' ? 2.0 : 1.8;
+        const veganFactor = dietPreference === 'vegan' ? 1.12 : dietPreference === 'vegetarian' ? 1.06 : 1;
+        const protein = Math.round(weightKg * proteinFactor * veganFactor);
+        const fats = Math.max(45, Math.round(weightKg * 0.75));
+        const carbs = Math.max(40, Math.round((calorieTarget - protein * 4 - fats * 9) / 4));
 
-    const ffmi = useMemo(() => {
-        if (!weight || !height || bodyFat === '') return null;
-        const w = Number(weight);
-        const h = Number(height) / 100;
-        const bf = Number(bodyFat);
-        const lbm = w * (1 - bf / 100);
-        return (lbm / (h * h)).toFixed(1);
-    }, [weight, height, bodyFat]);
+        return { protein, carbs, fats };
+    }, [calorieTarget, dietPreference, goalDirection, weight]);
 
-    const goalAlert = useMemo(() => {
-        const gv = goalValue === '' ? null : Number(goalValue);
-        if (gv == null) return null;
-        if (goalType === 'weight') {
-            const h = height === '' ? 170 : Number(height) || 170;
-            const imc = gv / ((h / 100) ** 2);
-            if (imc < 18.5 || imc > 24.9) return `IMC objetivo ${imc.toFixed(1)} fuera del rango saludable OMS (18.5–24.9).`;
-        }
-        if (goalType === 'bodyFat') {
-            if (gv < 5 || gv > 50) return '% grasa fuera de rango razonable (5–50%).';
-        }
-        if (goalType === 'muscleMass') {
-            const isFemale = gender === 'female' || gender === 'transfemale';
-            if (isFemale && (gv < 25 || gv > 45)) return 'Rango típico mujer: 25–45%.';
-            if (!isFemale && (gv < 30 || gv > 55)) return 'Rango típico hombre: 30–55%.';
-        }
-        return null;
-    }, [goalType, goalValue, height, gender]);
+    useEffect(() => {
+        if (manualMacros) return;
+        setProteinGoal(recommendedMacros.protein);
+        setCarbsGoal(recommendedMacros.carbs);
+        setFatsGoal(recommendedMacros.fats);
+    }, [manualMacros, recommendedMacros]);
 
+    const weeklyEquivalentKg = useMemo(() => {
+        if (trendMode === 'kg_per_week') return Math.abs(weeklyChangeKg);
+        const weightKg = weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight);
+        return Math.abs((bodyFatTrendPct / 100) * weightKg);
+    }, [bodyFatTrendPct, settings.userVitals?.weight, trendMode, weeklyChangeKg, weight]);
+
+    const riskFlags = useMemo(() => {
+        return buildNutritionRiskFlags({
+            settings: effectiveSettings,
+            calorieTarget,
+            goalMetric: primaryMetric,
+            goalValue: primaryValue === '' ? 0 : Number(primaryValue),
+            weeklyChangeKg: weeklyEquivalentKg,
+        });
+    }, [calorieTarget, effectiveSettings, primaryMetric, primaryValue, weeklyEquivalentKg]);
+
+    const hasHardStop = riskFlags.some((flag) => flag.hardStop);
+    const needsExplicitOverride = riskFlags.some((flag) => !flag.hardStop && (flag.severity === 'warning' || flag.severity === 'danger'));
+
+    const macroCalories = useMemo(() => proteinGoal * 4 + carbsGoal * 4 + fatsGoal * 9, [proteinGoal, carbsGoal, fatsGoal]);
     const estimatedEndDate = useMemo(() => {
+        if (primaryValue === '' || goalDirection === 'maintain') return null;
+
         const now = new Date();
-        const currentWeight = weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight) || 70;
-        const currentBodyFat = bodyFat !== '' ? Number(bodyFat) : 20;
-        const currentMuscle = muscleMass !== '' ? Number(muscleMass) : 38;
-        const gv = goalValue === '' ? null : Number(goalValue);
-        if (gv == null) return null;
+        const goal = Number(primaryValue);
         let weeks = 0;
-        if (goalType === 'weight') {
-            const trend = trendMode === 'kg_per_week' ? (goal === 'lose' ? -weeklyChangeKg : goal === 'gain' ? weeklyChangeKg : 0) : 0;
-            if (trend === 0) return null;
-            weeks = Math.abs((gv - currentWeight) / trend);
-        } else if (goalType === 'bodyFat') {
-            const trend = trendMode === 'pct_fat_per_week' ? trendValue : 0;
-            if (trend === 0) return null;
-            weeks = Math.abs((gv - currentBodyFat) / trend);
+
+        if (primaryMetric === 'weight') {
+            const current = weight === '' ? (settings.userVitals?.weight ?? goal) : Number(weight);
+            const deltaPerWeek = trendMode === 'kg_per_week'
+                ? (goalDirection === 'lose' ? -Math.abs(weeklyChangeKg) : Math.abs(weeklyChangeKg))
+                : (goalDirection === 'lose' ? -0.35 : 0.35);
+            if (deltaPerWeek === 0) return null;
+            weeks = Math.abs((goal - current) / deltaPerWeek);
+        } else if (primaryMetric === 'bodyFat') {
+            const current = bodyFat === '' ? (settings.userVitals?.bodyFatPercentage ?? goal) : Number(bodyFat);
+            const deltaPerWeek = trendMode === 'pct_fat_per_week'
+                ? (goalDirection === 'lose' ? -Math.abs(bodyFatTrendPct) : Math.abs(bodyFatTrendPct))
+                : (goalDirection === 'lose' ? -0.3 : 0.3);
+            if (deltaPerWeek === 0) return null;
+            weeks = Math.abs((goal - current) / deltaPerWeek);
         } else {
-            const trendPct = trendMode === 'pct_fat_per_week' ? trendValue : 0.15;
-            weeks = Math.abs((gv - currentMuscle) / trendPct);
+            const current = muscleMass === '' ? (settings.userVitals?.muscleMassPercentage ?? goal) : Number(muscleMass);
+            const deltaPerWeek = goalDirection === 'lose' ? -0.12 : 0.18;
+            if (deltaPerWeek === 0) return null;
+            weeks = Math.abs((goal - current) / deltaPerWeek);
         }
+
+        if (!Number.isFinite(weeks) || weeks <= 0) return null;
+
         const end = new Date(now);
         end.setDate(end.getDate() + Math.ceil(weeks * 7));
         return end.toISOString().slice(0, 10);
-    }, [goalType, goalValue, trendMode, trendValue, weeklyChangeKg, goal, weight, bodyFat, muscleMass, settings.userVitals?.weight]);
+    }, [
+        bodyFat,
+        bodyFatTrendPct,
+        goalDirection,
+        muscleMass,
+        primaryMetric,
+        primaryValue,
+        settings.userVitals?.bodyFatPercentage,
+        settings.userVitals?.muscleMassPercentage,
+        settings.userVitals?.weight,
+        trendMode,
+        weeklyChangeKg,
+        weight,
+    ]);
 
-    const caloriesAlert = useMemo(() => {
-        if (!tdee || tdee >= 1200) return null;
-        const isFemale = gender === 'female' || gender === 'transfemale';
-        const min = isFemale ? 1200 : 1500;
-        if (tdee < min) return `Calorías por debajo de ${min} kcal/día pueden afectar la salud.`;
-        return null;
-    }, [tdee, gender]);
+    const stepValidity = useMemo(() => {
+        const step0 = primaryValue !== '' && Number(primaryValue) > 0;
+        const step1 =
+            age !== '' &&
+            Number(age) > 0 &&
+            height !== '' &&
+            Number(height) > 0 &&
+            weight !== '' &&
+            Number(weight) > 0 &&
+            !!gender;
+        const step2 = bodyFat !== '' && muscleMass !== '' && (!autoEstimatedComposition || compositionConfirmed);
+        const step3 = activityLevel >= 1 && activityLevel <= 5;
+        const step4 = calorieTarget > 0 && !hasHardStop && (!needsExplicitOverride || overrideAcknowledged);
+        return [step0, step1, step2, step3, step4];
+    }, [
+        activityLevel,
+        age,
+        autoEstimatedComposition,
+        bodyFat,
+        calorieTarget,
+        compositionConfirmed,
+        gender,
+        hasHardStop,
+        height,
+        muscleMass,
+        needsExplicitOverride,
+        overrideAcknowledged,
+        primaryValue,
+        weight,
+    ]);
 
-    const isValid = useMemo(() => {
-        const h = height !== '' && Number(height) > 0;
-        const w = weight !== '' && Number(weight) > 0;
-        const a = age !== '' && Number(age) > 0;
-        const g = !!gender;
-        return h && w && a && g;
-    }, [height, weight, age, gender]);
-
-    const autoMacros = useMemo(() => {
-        if (!tdee || tdee < 800) return null;
-        const w = weight === '' ? 70 : Number(weight) || 70;
-        const p = Math.round(Math.min(w * 2.2, Math.max(w * 1.6, (tdee * 0.3) / 4)));
-        const remaining = tdee - p * 4;
-        const c = Math.round((remaining * 0.45) / 4);
-        const f = Math.round((remaining * 0.55) / 9);
-        return { protein: p, carbs: c, fats: f };
-    }, [tdee, weight, goal, trendMode, trendValue, dietPreference]);
-
-    useEffect(() => {
-        if (autoMacros) {
-            setProteinG(autoMacros.protein);
-            setCarbsG(autoMacros.carbs);
-            setFatsG(autoMacros.fats);
-        }
-    }, [autoMacros]);
-
-    const handleFinish = () => {
-        const config: CalorieGoalConfig = {
-            formula: bodyFat !== '' ? 'katch' : 'mifflin',
-            activityLevel: activityIdx,
-            goal,
-            weeklyChangeKg,
-            healthMultiplier,
-            ...(customActivityFactor !== '' && { customActivityFactor: Number(customActivityFactor) }),
-            ...(advancedActivityExpanded && { activityDaysPerWeek, activityHoursPerDay }),
+    const buildGoals = (): { primaryGoal: NutritionGoal; secondaryGoals: NutritionGoal[] } => {
+        const primaryGoal: NutritionGoal = {
+            metric: primaryMetric,
+            value: Number(primaryValue),
+            label: METRIC_META[primaryMetric].label,
+            unit: METRIC_META[primaryMetric].unit,
+            priority: 'primary',
         };
-        const plan: NutritionPlan = {
+
+        const secondaryGoals: NutritionGoal[] = secondaryMetrics
+            .filter((metric) => metric !== primaryMetric)
+            .map((metric) => ({
+                metric,
+                value: Number(secondaryValues[metric]),
+                label: METRIC_META[metric].label,
+                unit: METRIC_META[metric].unit,
+                priority: 'secondary',
+            }))
+            .filter((goal) => Number.isFinite(goal.value) && goal.value > 0);
+
+        return { primaryGoal, secondaryGoals };
+    };
+
+    const handleNext = () => {
+        if (!stepValidity[step]) {
+            if (step === 2 && autoEstimatedComposition && !compositionConfirmed) {
+                addToast('Confirma o edita la composición corporal antes de continuar.', 'danger');
+                return;
+            }
+            addToast('Faltan datos obligatorios en este paso.', 'danger');
+            return;
+        }
+
+        if (step < TOTAL_STEPS - 1) {
+            setStep((prev) => prev + 1);
+            return;
+        }
+
+        const { primaryGoal, secondaryGoals } = buildGoals();
+
+        const estimatedWeekly = trendMode === 'kg_per_week' ? Math.abs(weeklyChangeKg) : weeklyEquivalentKg;
+        const normalizedConfig: CalorieGoalConfig = {
+            ...calorieGoalConfig,
+            weeklyChangeKg: estimatedWeekly,
+        };
+
+        const draftPlanBase: NutritionPlan = {
             id: `np-${Date.now()}`,
-            name: goalType === 'weight' ? `Peso ${goalValue} kg` : goalType === 'bodyFat' ? `${goalValue}% grasa` : `${goalValue}% músculo`,
-            goalType,
-            goalValue: goalValue === '' ? (goalType === 'weight' ? 70 : goalType === 'bodyFat' ? 15 : 42) : Number(goalValue),
+            name: `${METRIC_META[primaryMetric].label} ${Number(primaryValue)}${METRIC_META[primaryMetric].unit}`,
+            goalType: primaryMetric,
+            goalValue: Number(primaryValue),
             trendMode,
-            trendValue,
-            startDate: new Date().toISOString().slice(0, 10),
+            trendValue:
+                trendMode === 'kg_per_week'
+                    ? goalDirection === 'lose'
+                        ? -Math.abs(weeklyChangeKg)
+                        : Math.abs(weeklyChangeKg)
+                    : goalDirection === 'lose'
+                      ? -Math.abs(bodyFatTrendPct)
+                      : Math.abs(bodyFatTrendPct),
+            startDate: getLocalDateString(),
             estimatedEndDate: estimatedEndDate ?? undefined,
-            calorieGoalConfig: config,
+            calorieGoalConfig: normalizedConfig,
             isActive: true,
             createdAt: new Date().toISOString(),
+            primaryGoal,
+            secondaryGoals,
+            calculationSnapshot: buildCalculationSnapshot({
+                settings: {
+                    ...effectiveSettings,
+                    dailyCalorieGoal: calorieTarget,
+                },
+                calorieGoalConfig: normalizedConfig,
+            }),
+            riskFlags,
         };
-        setNutritionPlans((prev) => {
-            const rest = prev.map((p) => ({ ...p, isActive: false }));
-            return [...rest, plan];
+
+        const projection = buildNutritionProjection({
+            plan: draftPlanBase,
+            bodyProgress,
+            settings: {
+                ...effectiveSettings,
+                dailyCalorieGoal: calorieTarget,
+            },
         });
-        setActiveNutritionPlanId(plan.id);
+
+        const finalPlan: NutritionPlan = {
+            ...draftPlanBase,
+            projection: {
+                ...projection,
+                etaDate: projection.etaDate ?? estimatedEndDate,
+            },
+        };
+
+        setNutritionPlans((prev) => {
+            const rest = prev.map((plan) => ({ ...plan, isActive: false }));
+            return [...rest, finalPlan];
+        });
+        setActiveNutritionPlanId(finalPlan.id);
+
+        const activityKey = ['sedentary', 'light', 'moderate', 'active', 'very_active'][
+            Math.max(0, Math.min(4, activityLevel - 1))
+        ] as any;
+
         setSettings({
             hasSeenNutritionWizard: true,
-            calorieGoalConfig: config,
-            calorieGoalObjective: goal === 'lose' ? 'deficit' : goal === 'gain' ? 'surplus' : 'maintenance',
-            dailyCalorieGoal: caloriesFromMacros,
-            dailyProteinGoal: Math.round(proteinG * proteinMultiplier),
-            dailyCarbGoal: carbsG,
-            dailyFatGoal: fatsG === '' ? (settings.dailyFatGoal ?? 70) : Number(fatsG),
+            nutritionWizardVersion: 2,
+            hasDismissedNutritionSetup: true,
+            calorieGoalObjective:
+                goalDirection === 'lose' ? 'deficit' : goalDirection === 'gain' ? 'surplus' : 'maintenance',
+            calorieGoalConfig: normalizedConfig,
+            dailyCalorieGoal: calorieTarget,
+            dailyProteinGoal: proteinGoal,
+            dailyCarbGoal: carbsGoal,
+            dailyFatGoal: fatsGoal,
+            dietaryPreference: dietPreference,
+            metabolicConditions,
             userVitals: {
                 ...settings.userVitals,
-                height: height === '' ? (settings.userVitals?.height ?? 170) : Number(height),
-                weight: weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight),
-                age: age === '' ? (settings.userVitals?.age ?? 30) : Number(age),
-                gender: gender as any,
-                bodyFatPercentage: bodyFat !== '' ? Number(bodyFat) : undefined,
-                muscleMassPercentage: muscleMass !== '' ? Number(muscleMass) : undefined,
-                activityLevel: ['sedentary', 'light', 'moderate', 'active', 'very_active'][activityIdx - 1] as any,
+                age: Number(age),
+                gender,
+                height: Number(height),
+                weight: Number(weight),
+                bodyFatPercentage: Number(bodyFat),
+                muscleMassPercentage: Number(muscleMass),
+                activityLevel: activityKey,
+                ...(primaryMetric === 'weight' ? { targetWeight: Number(primaryValue) } : {}),
+                targetDate: finalPlan.projection?.etaDate ?? estimatedEndDate ?? undefined,
             },
             algorithmSettings: {
                 ...settings.algorithmSettings,
                 augeEnableNutritionTracking: connectAuge,
             },
-            dietaryPreference: dietPreference as any,
-            metabolicConditions: metabolicConditions.filter(c => c !== 'none').concat(otherCondition ? [otherCondition] : []),
         });
-        addToast('Objetivos nutricionales configurados.', 'success');
+
+        setBodyProgress((prev) => {
+            const today = getLocalDateString();
+            const hasTodayLog = prev.some((log) => getDatePartFromString(log.date) === today);
+            if (hasTodayLog) return prev;
+
+            const baselineLog: BodyProgressLog = {
+                id: crypto.randomUUID(),
+                date: new Date().toISOString(),
+                weight: Number(weight),
+                bodyFatPercentage: Number(bodyFat),
+                muscleMassPercentage: Number(muscleMass),
+                bodyFatQuality,
+                muscleMassQuality,
+            };
+
+            return [...prev, baselineLog];
+        });
+
+        addToast('Plan nutricional creado y activado.', 'success');
         onComplete();
     };
 
-    const renderStep = () => {
-        switch (step) {
-            case 0:
-                return (
-                    <div className="space-y-8" role="region" aria-label="Configuración nutricional">
-                        <section aria-labelledby="meta-plan-heading">
-                            <h2 id="meta-plan-heading" className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
-                                Meta y tipo de plan
-                                <NutritionTooltip showHelp={showHelp} content="Define una meta concreta (peso, %grasa o %músculo) y el tipo: definición, mantención o superávit." title="Objetivo" />
-                            </h2>
-                            <p className="text-slate-400 text-sm mt-1">¿Qué quieres lograr?</p>
-                            <div className="space-y-4 mt-4">
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Tipo de plan</label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        {GOAL_OPTIONS.map(opt => (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => setGoal(opt.id)}
-                                                className={`p-4 rounded-xl border text-left sm:text-center transition-all min-w-0 ${goal === opt.id ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-[#E6E0E9] text-slate-300 hover:border-emerald-500/30'
-                                                    }`}
-                                            >
-                                                <span className="font-bold block">{opt.label}</span>
-                                                <span className="text-[10px] text-slate-500 mt-1 block">{opt.why}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Meta concreta</label>
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        {OBJETIVO_OPTIONS.map((opt) => (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => setGoalType(opt.id)}
-                                                className={`px-4 py-2 rounded-xl font-bold transition-all ${goalType === opt.id ? 'bg-emerald-500 text-black border border-emerald-500' : 'bg-white/5 text-slate-400 border border-[#E6E0E9] hover:border-emerald-500/30'
-                                                    }`}
-                                            >
-                                                {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <input
-                                        type="number"
-                                        value={goalValue === '' ? '' : goalValue}
-                                        onChange={(e) => {
-                                            const v = e.target.value;
-                                            setGoalValue(v === '' ? '' : Number(v) || 0);
-                                        }}
-                                        placeholder={OBJETIVO_OPTIONS.find((o) => o.id === goalType)?.placeholder}
-                                        min={goalType === 'weight' ? 30 : goalType === 'bodyFat' ? 5 : 20}
-                                        max={goalType === 'weight' ? 300 : goalType === 'bodyFat' ? 60 : 60}
-                                        step={goalType === 'weight' ? 1 : 0.5}
-                                        className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none placeholder-slate-600"
-                                    />
-                                </div>
-                                {goalAlert && (
-                                    <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/50">
-                                        <p className="text-sm font-bold text-amber-200">{goalAlert}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </section>
+    const toggleSecondaryMetric = (metric: NutritionGoalMetric) => {
+        if (metric === primaryMetric) return;
+        setSecondaryMetrics((prev) =>
+            prev.includes(metric) ? prev.filter((item) => item !== metric) : [...prev, metric]
+        );
+    };
 
-                        <section aria-labelledby="datos-corporales-heading">
-                            <h2 id="datos-corporales-heading" className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
-                                Datos corporales
-                                <NutritionTooltip showHelp={showHelp} content="Peso, estatura y edad para TMB. Con %grasa usamos Katch-McArdle." title="Datos corporales" />
-                            </h2>
-                            <p className="text-slate-400 text-sm mt-1">Necesarios para calcular calorías.</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Estatura (cm)</label>
-                                    <input type="number" value={height === '' ? '' : height} onChange={e => { const v = e.target.value; setHeight(v === '' ? '' : (Number(v) || 0)); }} min={100} max={250}
-                                        className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Peso (kg)</label>
-                                    <input type="number" value={weight === '' ? '' : weight} onChange={e => { const v = e.target.value; setWeight(v === '' ? '' : (Number(v) || 0)); }} min={30} max={300}
-                                        className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Edad</label>
-                                    <input type="number" value={age === '' ? '' : age} onChange={e => { const v = e.target.value; setAge(v === '' ? '' : (Number(v) || 0)); }} min={10} max={120}
-                                        className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
-                                </div>
-                            </div>
-                            <div className="mt-4">
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Género</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {GENDER_OPTIONS.map(opt => (
-                                        <button key={opt.id} onClick={() => setGender(opt.id as any)}
-                                            className={`px-3 py-2 rounded-lg text-sm font-bold transition-all ${gender === opt.id ? 'bg-emerald-500 text-black border border-emerald-500' : 'bg-white/5 text-slate-400 border border-[#E6E0E9] hover:border-emerald-500/30'
-                                                }`}>
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="pt-4 mt-4 border-t border-[#E6E0E9]">
-                                <p className="text-[10px] font-bold text-emerald-500 uppercase mb-2 flex items-center gap-1">
-                                    Bioimpedancia (opcional)
-                                    <NutritionTooltip showHelp={showHelp} content="Si tienes %grasa, usamos Katch-McArdle." title="Katch-McArdle" />
-                                </p>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Grasa</label>
-                                        <input type="number" value={bodyFat} onChange={e => setBodyFat(e.target.value === '' ? '' : Number(e.target.value))} min={5} max={60} step={0.5} placeholder="Ej: 18"
-                                            className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-emerald-500/50 outline-none" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Músculo</label>
-                                        <input type="number" value={muscleMass} onChange={e => setMuscleMass(e.target.value === '' ? '' : Number(e.target.value))} min={20} max={50} step={0.5} placeholder="Ej: 42"
-                                            className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-emerald-500/50 outline-none" />
-                                    </div>
-                                </div>
-                                {ffmi != null && <p className="text-xs text-emerald-500 font-mono mt-2">FFMI estimado: {ffmi}</p>}
-                            </div>
-                        </section>
-
-                        <section aria-label="Conectar con la batería muscular">
-                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono">Conectar con la batería muscular</h2>
-                            <p className="text-slate-400 text-sm mt-1">La nutrición se ajusta según tu fatiga y recuperación durante el entrenamiento.</p>
-                            <div className="flex gap-4 mt-4">
-                                <button
-                                    onClick={() => setConnectAuge(true)}
-                                    className={`flex-1 p-4 rounded-xl border font-bold transition-all ${connectAuge ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'bg-white/5 border-[#E6E0E9] text-slate-400'
-                                        }`}
-                                >
-                                    Sí
-                                </button>
-                                <button
-                                    onClick={() => setConnectAuge(false)}
-                                    className={`flex-1 p-4 rounded-xl border font-bold transition-all ${!connectAuge ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'bg-white/5 border-[#E6E0E9] text-slate-400'
-                                        }`}
-                                >
-                                    No
-                                </button>
-                            </div>
-                        </section>
-                    </div>
-                );
-            case 1:
-                return (
-                    <div className="space-y-8">
-                        <div>
-                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
-                                Nivel de actividad
-                                <NutritionTooltip showHelp={showHelp} content="El TDEE se calcula como TMB × factor de actividad. Sedentario 1.2, muy activo 1.9. En Avanzado puedes afinar con días/horas o factor personalizado." title="Actividad" />
-                            </h2>
-                            <p className="text-slate-400 text-sm mt-1">¿Qué tan activo eres fuera del gimnasio?</p>
-                            <div className="space-y-2 mt-4">
-                                {ACTIVITY_OPTIONS.map(opt => (
-                                    <button key={opt.id} onClick={() => setActivityLevel(opt.id)}
-                                        className={`w-full p-4 rounded-xl border text-left transition-all ${activityIdx === opt.id ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-[#E6E0E9] text-slate-300 hover:border-emerald-500/30'
-                                            }`}>
-                                        <span className="font-bold block">{opt.label}</span>
-                                        <span className="text-xs text-slate-500">{opt.desc}</span>
-                                    </button>
-                                ))}
-                            </div>
-                            <button
-                                onClick={() => setAdvancedActivityExpanded(!advancedActivityExpanded)}
-                                className="flex items-center gap-2 mt-4 text-emerald-500/90 text-xs font-bold hover:text-emerald-500/80"
-                            >
-                                {advancedActivityExpanded ? <ChevronUpIcon size={14} /> : <ChevronDownIcon size={14} />}
-                                Avanzado
-                            </button>
-                            {advancedActivityExpanded && (
-                                <div className="mt-3 p-4 rounded-xl bg-white/5 border border-[#E6E0E9] space-y-4">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Días de ejercicio/semana</label>
-                                        <input type="number" value={activityDaysPerWeek} onChange={e => setActivityDaysPerWeek(Number(e.target.value) || 0)} min={0} max={7}
-                                            className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Horas activas/día (promedio)</label>
-                                        <input type="number" value={activityHoursPerDay} onChange={e => setActivityHoursPerDay(Number(e.target.value) || 0)} min={0} max={24} step={0.5}
-                                            className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono focus:border-emerald-500/50 outline-none" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Factor personalizado (opcional, 1.0–2.0)</label>
-                                        <input type="number" value={customActivityFactor} onChange={e => setCustomActivityFactor(e.target.value === '' ? '' : Number(e.target.value))} min={1} max={2} step={0.05} placeholder="Ej: 1.55"
-                                            className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono placeholder-slate-600 focus:border-emerald-500/50 outline-none" />
-                                    </div>
-                                    <p className="text-xs text-emerald-500 font-mono">Factor efectivo: {derivedActivityFactor.toFixed(2)}</p>
-                                </div>
-                            )}
+    const renderHeader = () => (
+        <div className="sticky top-0 z-20 backdrop-blur-xl bg-[var(--md-sys-color-surface)]/85 border-b border-black/[0.05]">
+            <div className="max-w-4xl mx-auto px-4 py-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#49454F]">Configurar plan de alimentación</p>
+                <h2 className="text-[22px] font-black text-[#1D1B20] mt-1">Wizard Clínico v2</h2>
+                <div className="grid grid-cols-5 gap-2 mt-4">
+                    {Array.from({ length: TOTAL_STEPS }).map((_, index) => (
+                        <div key={index} className="space-y-1">
+                            <div
+                                className="h-1.5 rounded-full"
+                                style={{
+                                    background:
+                                        index < step
+                                            ? 'var(--md-sys-color-primary)'
+                                            : index === step
+                                              ? 'rgba(0,106,106,0.5)'
+                                              : 'rgba(0,0,0,0.12)',
+                                }}
+                            />
+                            <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#49454F]">
+                                Paso {index + 1}
+                            </p>
                         </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+    const renderStep0 = () => (
+        <div className="space-y-4">
+            <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Meta principal</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                    {(Object.keys(METRIC_META) as NutritionGoalMetric[]).map((metric) => (
+                        <button
+                            key={metric}
+                            onClick={() => {
+                                setPrimaryMetric(metric);
+                                setSecondaryMetrics((prev) => prev.filter((item) => item !== metric));
+                            }}
+                            className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                                primaryMetric === metric
+                                    ? 'bg-[#006A6A]/10 border-[#006A6A]/40'
+                                    : 'bg-white/70 border-black/[0.08] hover:bg-white'
+                            }`}
+                        >
+                            <p className="text-sm font-black text-[#1D1B20]">{METRIC_META[metric].label}</p>
+                            <p className="text-xs text-[#49454F] mt-1">Objetivo en {METRIC_META[metric].unit}</p>
+                        </button>
+                    ))}
+                </div>
 
-                        <div>
-                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono">Enfermedades metabólicas</h2>
-                            <p className="text-slate-400 text-sm mt-1">Para ajuste de calorías si aplica.</p>
-                            <div className="space-y-2 mt-4">
-                                {METABOLIC_CONDITIONS.map(opt => (
-                                    <label key={opt.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-[#E6E0E9] cursor-pointer">
-                                        <input type="checkbox" checked={metabolicConditions.includes(opt.id)}
-                                            onChange={() => {
-                                                if (opt.id === 'none') setMetabolicConditions(['none']);
-                                                else setMetabolicConditions(prev => prev.includes(opt.id) ? prev.filter(x => x !== opt.id) : [...prev.filter(x => x !== 'none'), opt.id]);
-                                            }} className="rounded" />
-                                        <span className="text-sm font-medium text-white">{opt.label}</span>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-3 items-end">
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Objetivo</label>
+                        <input
+                            type="number"
+                            value={primaryValue}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                setPrimaryValue(value === '' ? '' : Number(value));
+                            }}
+                            min={METRIC_META[primaryMetric].min}
+                            max={METRIC_META[primaryMetric].max}
+                            step={METRIC_META[primaryMetric].step}
+                            className="w-full rounded-xl border border-black/[0.12] bg-white px-3 py-2.5 text-sm text-[#1D1B20]"
+                        />
+                    </div>
+                    <p className="text-sm text-[#49454F]">Meta actual: <span className="font-bold text-[#1D1B20]">{METRIC_META[primaryMetric].label}</span> en {METRIC_META[primaryMetric].unit}</p>
+                </div>
+            </section>
+
+            <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Dirección del plan</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                    {(Object.keys(GOAL_DIRECTION_META) as GoalDirection[]).map((direction) => (
+                        <button
+                            key={direction}
+                            onClick={() => setGoalDirection(direction)}
+                            className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                                goalDirection === direction
+                                    ? 'bg-[#006A6A]/10 border-[#006A6A]/40'
+                                    : 'bg-white/70 border-black/[0.08] hover:bg-white'
+                            }`}
+                        >
+                            <p className="text-sm font-black text-[#1D1B20]">{GOAL_DIRECTION_META[direction].title}</p>
+                            <p className="text-xs text-[#49454F] mt-1">{GOAL_DIRECTION_META[direction].subtitle}</p>
+                        </button>
+                    ))}
+                </div>
+            </section>
+
+            <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Metas secundarias</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                    {(Object.keys(METRIC_META) as NutritionGoalMetric[])
+                        .filter((metric) => metric !== primaryMetric)
+                        .map((metric) => {
+                            const active = secondaryMetrics.includes(metric);
+                            return (
+                                <div key={metric} className="rounded-2xl border border-black/[0.08] bg-white p-3">
+                                    <label className="flex items-center gap-2 text-sm font-bold text-[#1D1B20]">
+                                        <input type="checkbox" checked={active} onChange={() => toggleSecondaryMetric(metric)} />
+                                        {METRIC_META[metric].label}
                                     </label>
-                                ))}
-                                <div className="mt-2">
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Otra (opcional)</label>
-                                    <input type="text" value={otherCondition} onChange={e => setOtherCondition(e.target.value)} placeholder="Ej: SOP"
-                                        className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white placeholder-slate-600" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono">Preferencia dietética</h2>
-                            <p className="text-slate-400 text-sm mt-1">Vegano/vegetariano: ajustamos proteínas por biodisponibilidad.</p>
-                            <div className="flex gap-3 mt-4">
-                                {DIET_OPTIONS.map(opt => (
-                                    <button key={opt.id} onClick={() => setDietPreference(opt.id as any)}
-                                        className={`flex-1 p-4 rounded-xl border font-bold transition-all ${dietPreference === opt.id ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-[#E6E0E9] text-slate-400 hover:border-emerald-500/30'
-                                            }`}>
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                );
-            case 2:
-                const trend = weeklyTrendKg ?? 0;
-                const weightNum = weight === '' ? (settings.userVitals?.weight ?? 70) : Number(weight) || 70;
-                const pctWeekly = weightNum > 0 ? (trend / weightNum) * 100 : 0;
-                const trendKgAbs = Math.abs(trend);
-                const isDangerLow = goal === 'lose' && (pctWeekly < -1.2 || trendKgAbs > 1.2);
-                const isDangerHigh = goal === 'gain' && (pctWeekly > 1.5 || trendKgAbs > 1.2);
-                return (
-                    <div className="space-y-8">
-                        <div>
-                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
-                                Desglose
-                                <NutritionTooltip showHelp={showHelp} content="TMB: calorías en reposo. TDEE: TMB × factor actividad ± ajuste objetivo. Las fórmulas Mifflin y Katch calculan el TMB." title="TMB y TDEE" />
-                            </h2>
-                            <div className="bg-slate-900/50 rounded-xl p-4 border border-[#E6E0E9] space-y-2 font-mono text-sm mt-4">
-                                <p className="text-emerald-500 flex items-center gap-1">
-                                    TMB: {bmr != null ? Math.round(bmr) : '—'} kcal
-                                    <NutritionTooltip showHelp={showHelp} content="Tasa Metabólica Basal: calorías que quemas en reposo. Base para calcular tu gasto diario." title="TMB" />
-                                </p>
-                                <p className="text-emerald-500 flex items-center gap-1">
-                                    TDEE: {tdee != null ? tdee : '—'} kcal
-                                    <NutritionTooltip showHelp={showHelp} content="Gasto energético diario total: TMB × factor de actividad. Incluye ejercicio y NEAT." title="TDEE" />
-                                </p>
-                                <p className="text-slate-400 text-xs">Factores Atwater: P=4, C=4, G=9 kcal/g</p>
-                                <button
-                                    onClick={() => setFormulaExpanded(!formulaExpanded)}
-                                    className="flex items-center gap-2 mt-2 text-emerald-500/90 text-xs font-bold hover:text-emerald-500/80"
-                                >
-                                    {formulaExpanded ? <ChevronUpIcon size={14} /> : <ChevronDownIcon size={14} />}
-                                    {formulaExpanded ? 'Ocultar fórmulas' : 'Ver fórmulas'}
-                                </button>
-                                {formulaExpanded && (
-                                    <div className="mt-3 pt-3 border-t border-[#E6E0E9] space-y-2 text-[11px] text-emerald-500/80 font-mono">
-                                        <p>Mifflin-St Jeor: TMB = 10×peso + 6.25×altura − 5×edad + s</p>
-                                        <p>Katch-McArdle: TMB = 370 + (21.6 × LBM)</p>
-                                        <p>Calorías = P×4 + C×4 + G×9</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div>
-                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono flex items-center gap-1">
-                                Edición de macros
-                                <NutritionTooltip showHelp={showHelp} content="Proteínas: 4 kcal/g, esenciales para músculo. Carbohidratos: 4 kcal/g, energía. Grasas: 9 kcal/g, hormonas y saciedad." title="Macros" />
-                            </h2>
-                            {(goal === 'lose' || goal === 'gain') && (
-                                <div className="mt-4 space-y-4">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Modo de tendencia</label>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => setTrendMode('kg_per_week')}
-                                                className={`flex-1 p-3 rounded-xl border font-bold text-sm transition-all ${trendMode === 'kg_per_week' ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-[#E6E0E9] text-slate-400 hover:border-emerald-500/30'
-                                                    }`}
-                                            >
-                                                kg/semana
-                                            </button>
-                                            <button
-                                                onClick={() => setTrendMode('pct_fat_per_week')}
-                                                className={`flex-1 p-3 rounded-xl border font-bold text-sm transition-all ${trendMode === 'pct_fat_per_week' ? 'bg-emerald-500/20 border-emerald-500 text-white' : 'bg-white/5 border-[#E6E0E9] text-slate-400 hover:border-emerald-500/30'
-                                                    }`}
-                                            >
-                                                % grasa/sem
-                                            </button>
-                                        </div>
-                                    </div>
-                                    {trendMode === 'kg_per_week' ? (
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Cambio semanal (kg)</label>
-                                            <select value={weeklyChangeKg} onChange={e => setWeeklyChangeKg(Number(e.target.value))}
-                                                className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white">
-                                                {[0.25, 0.5, 0.75, 1, 1.5, 2].map(v => <option key={v} value={v}>{goal === 'lose' ? `-${v}` : `+${v}`} kg/sem</option>)}
-                                            </select>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Cambio % grasa/semana</label>
-                                            <input
-                                                type="range"
-                                                min={goal === 'lose' ? -0.5 : 0}
-                                                max={goal === 'lose' ? 0 : 0.5}
-                                                step={0.05}
-                                                value={trendValue}
-                                                onChange={e => setTrendValue(Number(e.target.value))}
-                                                className="w-full accent-emerald-500"
-                                            />
-                                            <p className="text-xs text-slate-400 mt-1 font-mono">{trendValue >= 0 ? '+' : ''}{trendValue} %/sem</p>
-                                        </div>
+                                    {active && (
+                                        <input
+                                            type="number"
+                                            value={secondaryValues[metric]}
+                                            onChange={(event) => {
+                                                const value = event.target.value;
+                                                setSecondaryValues((prev) => ({
+                                                    ...prev,
+                                                    [metric]: value === '' ? '' : Number(value),
+                                                }));
+                                            }}
+                                            min={METRIC_META[metric].min}
+                                            max={METRIC_META[metric].max}
+                                            step={METRIC_META[metric].step}
+                                            className="w-full mt-2 rounded-xl border border-black/[0.12] px-3 py-2 text-sm"
+                                        />
                                     )}
                                 </div>
-                            )}
-                            <div className="mt-4">
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Multiplicador salud (0.8–1.2)</label>
-                                <input type="number" value={healthMultiplier} onChange={e => setHealthMultiplier(Number(e.target.value) || 1)} min={0.8} max={1.2} step={0.05}
-                                    className="w-full bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-3 text-white font-mono" />
-                            </div>
-                            <div className="mt-6 space-y-5">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Total diario</span>
-                                    <span className="text-2xl font-black text-white font-mono">{caloriesFromMacros} kcal</span>
-                                </div>
-                                {(() => {
-                                    const pKcal = proteinG * 4;
-                                    const cKcal = carbsG * 4;
-                                    const fKcal = (fatsG === '' ? 0 : Number(fatsG)) * 9;
-                                    const totalKcal = pKcal + cKcal + fKcal || 1;
-                                    const pPct = (pKcal / totalKcal) * 100;
-                                    const cPct = (cKcal / totalKcal) * 100;
-                                    const fPct = (fKcal / totalKcal) * 100;
-                                    return (
-                                        <>
-                                            <div className="h-4 rounded-full overflow-hidden flex bg-white/10">
-                                                <div className="h-full bg-blue-500/80 transition-all" style={{ width: `${pPct}%` }} title={`Proteína ${pPct.toFixed(0)}%`} />
-                                                <div className="h-full bg-green-500/80 transition-all" style={{ width: `${cPct}%` }} title={`Carbos ${cPct.toFixed(0)}%`} />
-                                                <div className="h-full bg-amber-500/80 transition-all" style={{ width: `${fPct}%` }} title={`Grasas ${fPct.toFixed(0)}%`} />
-                                            </div>
-                                            <div className="flex gap-2 text-[10px] font-bold text-slate-500">
-                                                <span className="text-blue-400">P {pPct.toFixed(0)}%</span>
-                                                <span className="text-green-400">C {cPct.toFixed(0)}%</span>
-                                                <span className="text-amber-400">G {fPct.toFixed(0)}%</span>
-                                            </div>
-                                        </>
-                                    );
-                                })()}
-                                <div className="grid gap-4">
-                                    {[
-                                        { label: 'Proteínas', value: proteinG, set: setProteinG, max: 500, color: 'blue', kcalPerG: 4, tooltip: '4 kcal/g. Objetivo típico: 1.6–2.2 g/kg para ganancia muscular.', allowEmpty: false },
-                                        { label: 'Carbohidratos', value: carbsG, set: setCarbsG, max: 800, color: 'green', kcalPerG: 4, tooltip: '4 kcal/g. Principal fuente de energía para entrenamiento.', allowEmpty: false },
-                                        { label: 'Grasas', value: fatsG, set: setFatsG, max: 300, color: 'amber', kcalPerG: 9, tooltip: '9 kcal/g. Esenciales para hormonas y saciedad. Mínimo ~0.5 g/kg.', allowEmpty: true },
-                                    ].map(({ label, value, set, max, color, kcalPerG, tooltip, allowEmpty }) => {
-                                        const numVal = value === '' ? 0 : Number(value);
-                                        const kcal = numVal * kcalPerG;
-                                        const barColor = color === 'blue' ? 'bg-blue-500' : color === 'green' ? 'bg-green-500' : 'bg-amber-500';
-                                        return (
-                                            <div key={label} className="p-4 rounded-xl bg-white/5 border border-[#E6E0E9]">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <span className="text-sm font-bold text-white flex items-center gap-1">{label}<NutritionTooltip showHelp={showHelp} content={tooltip} title={label} /></span>
-                                                    <span className="text-xs font-mono text-slate-400">{kcal} kcal</span>
-                                                </div>
-                                                <div className="h-2 rounded-full bg-white/10 overflow-hidden mb-3">
-                                                    <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${Math.min(100, (numVal / max) * 100)}%` }} />
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="number"
-                                                        value={allowEmpty && value === '' ? '' : value}
-                                                        onChange={e => { const v = e.target.value; if (allowEmpty && v === '') (set as (x: number | '') => void)(''); else (set as (x: number) => void)(Number(v) || 0); }}
-                                                        min={0}
-                                                        max={max}
-                                                        className="flex-1 bg-white/5 border border-[#E6E0E9] rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-emerald-500/50 outline-none"
-                                                    />
-                                                    <span className="text-[10px] text-slate-500">g</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
+                            );
+                        })}
+                </div>
+            </section>
+        </div>
+    );
 
+    const renderStep1 = () => (
+        <div className="space-y-4">
+            <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Datos base obligatorios</p>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Edad</label>
+                        <input type="number" value={age} onChange={(event) => { const value = event.target.value; setAge(value === '' ? '' : Number(value)); }} min={10} max={100} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Estatura (cm)</label>
+                        <input type="number" value={height} onChange={(event) => { const value = event.target.value; setHeight(value === '' ? '' : Number(value)); }} min={120} max={230} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Peso (kg)</label>
+                        <input type="number" value={weight} onChange={(event) => { const value = event.target.value; setWeight(value === '' ? '' : Number(value)); }} min={30} max={260} step={0.1} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Sexo</label>
+                        <select value={gender} onChange={(event) => setGender(event.target.value as any)} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm">
+                            <option value="male">Hombre</option>
+                            <option value="female">Mujer</option>
+                            <option value="transmale">Trans masculino</option>
+                            <option value="transfemale">Trans femenino</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+
+    const renderStep2 = () => (
+        <div className="space-y-4">
+            <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Composición corporal obligatoria</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div className="rounded-2xl border border-black/[0.08] bg-white p-4">
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">% Grasa</label>
+                        <input type="number" value={bodyFat} onChange={(event) => { const value = event.target.value; setBodyFat(value === '' ? '' : Number(value)); setCompositionConfirmed(true); }} min={4} max={55} step={0.1} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                        <select value={bodyFatQuality} onChange={(event) => setBodyFatQuality(event.target.value as any)} className="w-full mt-2 rounded-xl border border-black/[0.12] px-3 py-2 text-xs">
+                            <option value="measured">Dato medido</option>
+                            <option value="estimated">Dato estimado</option>
+                        </select>
+                    </div>
+
+                    <div className="rounded-2xl border border-black/[0.08] bg-white p-4">
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">% Músculo</label>
+                        <input type="number" value={muscleMass} onChange={(event) => { const value = event.target.value; setMuscleMass(value === '' ? '' : Number(value)); setCompositionConfirmed(true); }} min={20} max={60} step={0.1} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                        <select value={muscleMassQuality} onChange={(event) => setMuscleMassQuality(event.target.value as any)} className="w-full mt-2 rounded-xl border border-black/[0.12] px-3 py-2 text-xs">
+                            <option value="measured">Dato medido</option>
+                            <option value="estimated">Dato estimado</option>
+                        </select>
+                    </div>
+                </div>
+
+                {autoEstimatedComposition && (
+                    <div className="mt-4 rounded-2xl border border-[#7D5700]/20 bg-[#7D5700]/10 p-4">
+                        <p className="text-sm font-bold text-[#6B4F00]">Se aplicó estimación asistida. Debes confirmar o editar estos valores para continuar.</p>
+                        <button onClick={() => setCompositionConfirmed(true)} className="mt-3 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-[0.14em] bg-[#7D5700]/20 text-[#6B4F00]">Confirmar estimación</button>
+                    </div>
+                )}
+            </section>
+        </div>
+    );
+    const renderStep3 = () => (
+        <div className="space-y-4">
+            <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Actividad y contexto metabólico</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mt-3">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                        <button
+                            key={level}
+                            onClick={() => setActivityLevel(level)}
+                            className={`rounded-xl border px-2 py-2 text-xs font-black uppercase tracking-[0.12em] ${
+                                activityLevel === level
+                                    ? 'bg-[#006A6A]/10 border-[#006A6A]/40 text-[#005353]'
+                                    : 'bg-white border-black/[0.08] text-[#49454F]'
+                            }`}
+                        >
+                            L{level}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="mt-4 flex items-center gap-2">
+                    <input
+                        id="advanced-activity"
+                        type="checkbox"
+                        checked={useAdvancedActivity}
+                        onChange={(event) => setUseAdvancedActivity(event.target.checked)}
+                    />
+                    <label htmlFor="advanced-activity" className="text-sm text-[#1D1B20]">Ajuste avanzado de actividad</label>
+                </div>
+
+                {useAdvancedActivity && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
                         <div>
-                            <h2 className="text-lg font-black text-white uppercase tracking-tight font-mono">Tendencia</h2>
-                            <div className="bg-slate-900/50 rounded-xl p-4 border border-[#E6E0E9] mt-4 space-y-3">
-                                {tdee != null && (
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-slate-400">Calorías objetivo</span>
-                                        <span className="font-mono font-bold text-emerald-500">{tdee} kcal/día</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-400">Calorías según tus macros</span>
-                                    <span className="font-mono font-bold text-white">{caloriesFromMacros} kcal/día</span>
-                                </div>
-                                <p className="text-sm text-slate-400">Con tus macros actuales:</p>
-                                <p className="text-2xl font-black font-mono text-white">{trend >= 0 ? '+' : ''}{trend.toFixed(2)} kg/sem</p>
-                                <p className="text-xs text-slate-500">({pctWeekly >= 0 ? '+' : ''}{pctWeekly.toFixed(2)}% del peso corporal)</p>
-                                {(goal === 'lose' || goal === 'gain') && tdee != null && Math.abs(caloriesFromMacros - tdee) > 50 && (
-                                    <p className="text-xs text-emerald-500/90 mt-2">
-                                        Ajusta macros para acercarte a {tdee} kcal/día ({trendMode === 'kg_per_week' ? `target ${goal === 'lose' ? '-' : '+'}${weeklyChangeKg} kg/sem` : `target ${trendValue >= 0 ? '+' : ''}${trendValue} % grasa/sem`}).
-                                    </p>
-                                )}
-                                {estimatedEndDate && (
-                                    <p className="text-xs text-emerald-500/90 mt-2 font-mono">
-                                        Fecha estimada para alcanzar meta: {estimatedEndDate}
-                                    </p>
-                                )}
-                            </div>
-                            {caloriesAlert && (
-                                <div className="p-4 rounded-xl border mt-4 bg-red-950/30 border-red-500/50">
-                                    <p className="text-sm font-bold text-white">{caloriesAlert}</p>
-                                </div>
-                            )}
-                            {(isDangerLow || isDangerHigh) && (
-                                <div className={`p-4 rounded-xl border mt-4 ${isDangerLow ? 'bg-red-950/30 border-red-500/50' : 'bg-amber-950/30 border-amber-500/50'}`}>
-                                    <p className="text-sm font-bold text-white">
-                                        {isDangerLow ? 'Ritmo muy agresivo: más de 1.2 kg/sem puede afectar masa muscular.' : 'Ritmo muy alto: más de 1.2 kg/sem suele acumular más grasa que músculo.'}
-                                    </p>
-                                    <p className="text-xs text-slate-400 mt-1">Considera reducir el cambio semanal o ajustar calorías.</p>
-                                </div>
-                            )}
-                            <p className="text-sm text-slate-400 mt-4">Revisa y guarda. Podrás editar todo después en el editor de plan.</p>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Días/semana</label>
+                            <input type="number" value={activityDaysPerWeek} onChange={(event) => setActivityDaysPerWeek(Number(event.target.value) || 0)} min={0} max={7} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Horas activas/día</label>
+                            <input type="number" value={activityHoursPerDay} onChange={(event) => setActivityHoursPerDay(Number(event.target.value) || 0)} min={0} max={24} step={0.5} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Factor personalizado</label>
+                            <input type="number" value={customActivityFactor} onChange={(event) => { const value = event.target.value; setCustomActivityFactor(value === '' ? '' : Number(value)); }} min={1} max={2} step={0.01} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
                         </div>
                     </div>
-                );
-            default:
-                return null;
-        }
+                )}
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Método de cálculo</label>
+                        <select value={formula} onChange={(event) => setFormula(event.target.value as any)} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm">
+                            <option value="mifflin">Mifflin-St Jeor</option>
+                            <option value="harris">Harris-Benedict</option>
+                            <option value="katch">Katch-McArdle</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Preferencia dietaria</label>
+                        <select value={dietPreference} onChange={(event) => setDietPreference(event.target.value as any)} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm">
+                            {DIET_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Ritmo de objetivo</p>
+                    <div className="flex gap-2 mt-2">
+                        <button onClick={() => setTrendMode('kg_per_week')} className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase ${trendMode === 'kg_per_week' ? 'bg-[#006A6A]/10 text-[#005353]' : 'bg-black/[0.06] text-[#49454F]'}`}>kg/semana</button>
+                        <button onClick={() => setTrendMode('pct_fat_per_week')} className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase ${trendMode === 'pct_fat_per_week' ? 'bg-[#006A6A]/10 text-[#005353]' : 'bg-black/[0.06] text-[#49454F]'}`}>% grasa/sem</button>
+                    </div>
+
+                    {trendMode === 'kg_per_week' ? (
+                        <div className="mt-3">
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Cambio semanal (kg)</label>
+                            <input type="number" value={weeklyChangeKg} onChange={(event) => setWeeklyChangeKg(Math.abs(Number(event.target.value) || 0))} min={0.1} max={2} step={0.05} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                        </div>
+                    ) : (
+                        <div className="mt-3">
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Cambio % grasa/semana</label>
+                            <input type="number" value={bodyFatTrendPct} onChange={(event) => setBodyFatTrendPct(Math.abs(Number(event.target.value) || 0))} min={0.05} max={1} step={0.05} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                        </div>
+                    )}
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Factor de salud</label>
+                        <input type="number" value={healthMultiplier} onChange={(event) => setHealthMultiplier(Number(event.target.value) || 1)} min={0.8} max={1.2} step={0.01} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                    </div>
+                    <div className="flex items-center gap-2 pt-6">
+                        <input id="connect-auge" type="checkbox" checked={connectAuge} onChange={(event) => setConnectAuge(event.target.checked)} />
+                        <label htmlFor="connect-auge" className="text-sm text-[#1D1B20]">Integrar nutrición con batería AUGE</label>
+                    </div>
+                </div>
+
+                <div className="mt-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F] mb-2">Condiciones metabólicas</p>
+                    <div className="flex flex-wrap gap-2">
+                        {METABOLIC_OPTIONS.map((condition) => {
+                            const active = metabolicConditions.includes(condition);
+                            return (
+                                <button
+                                    key={condition}
+                                    onClick={() => {
+                                        setMetabolicConditions((prev) => active ? prev.filter((item) => item !== condition) : [...prev, condition]);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-full text-xs font-bold border ${active ? 'bg-[#006A6A]/10 border-[#006A6A]/30 text-[#005353]' : 'bg-white border-black/[0.12] text-[#49454F]'}`}
+                                >
+                                    {condition}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+
+    const renderStep4 = () => (
+        <div className="space-y-4">
+            <section className="rounded-3xl bg-white/70 border border-black/[0.05] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Cálculo final y overrides</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                    <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">BMR</p><p className="text-lg font-black text-[#1D1B20] mt-1">{bmr != null ? Math.round(bmr) : '—'} kcal</p></div>
+                    <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">TDEE</p><p className="text-lg font-black text-[#1D1B20] mt-1">{tdee != null ? Math.round(tdee) : '—'} kcal</p></div>
+                    <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">Calorías objetivo</p><p className="text-lg font-black text-[#1D1B20] mt-1">{Math.round(calorieTarget)} kcal</p></div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-[#1D1B20]"><input type="checkbox" checked={manualCalorieOverride} onChange={(event) => { const checked = event.target.checked; setManualCalorieOverride(checked); if (!checked) setManualCalories(''); }} />Override manual de calorías</label>
+                    {manualCalorieOverride && (
+                        <input type="number" value={manualCalories} onChange={(event) => { const value = event.target.value; setManualCalories(value === '' ? '' : Number(value)); }} min={800} max={6000} className="w-full mt-2 rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                    )}
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-[#1D1B20]"><input type="checkbox" checked={manualMacros} onChange={(event) => setManualMacros(event.target.checked)} />Editar macros manualmente</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                        <div><label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Proteína (g)</label><input type="number" value={proteinGoal} onChange={(event) => setProteinGoal(Number(event.target.value) || 0)} disabled={!manualMacros} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm disabled:opacity-60" /></div>
+                        <div><label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Carbohidratos (g)</label><input type="number" value={carbsGoal} onChange={(event) => setCarbsGoal(Number(event.target.value) || 0)} disabled={!manualMacros} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm disabled:opacity-60" /></div>
+                        <div><label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Grasas (g)</label><input type="number" value={fatsGoal} onChange={(event) => setFatsGoal(Number(event.target.value) || 0)} disabled={!manualMacros} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm disabled:opacity-60" /></div>
+                    </div>
+                    <p className="text-xs text-[#49454F] mt-2">Macros totalizan {Math.round(macroCalories)} kcal</p>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Proyección de meta</p>
+                    <p className="text-sm text-[#1D1B20] mt-1">ETA estimada: <span className="font-black">{estimatedEndDate ? new Date(`${estimatedEndDate}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sin ETA'}</span></p>
+                </div>
+
+                {riskFlags.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Alertas de riesgo</p>
+                        {riskFlags.map((flag) => (
+                            <div key={flag.id} className={`rounded-xl border px-3 py-2 text-sm font-semibold ${getRiskClasses(flag.severity)}`}>
+                                <div className="flex items-center gap-2"><AlertTriangleIcon size={14} />{flag.message}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {needsExplicitOverride && !hasHardStop && (
+                    <label className="mt-4 flex items-start gap-2 text-sm text-[#1D1B20]"><input type="checkbox" checked={overrideAcknowledged} onChange={(event) => setOverrideAcknowledged(event.target.checked)} />Confirmo que revisé las alertas y deseo guardar el plan igualmente.</label>
+                )}
+
+                {hasHardStop && (
+                    <div className="mt-4 rounded-2xl border border-[#B3261E]/35 bg-[#B3261E]/12 px-4 py-3 text-sm font-bold text-[#8C1D18]">Existen riesgos extremos. Ajusta objetivo, ritmo o calorías para continuar.</div>
+                )}
+            </section>
+        </div>
+    );
+
+    const renderContent = () => {
+        if (step === 0) return renderStep0();
+        if (step === 1) return renderStep1();
+        if (step === 2) return renderStep2();
+        if (step === 3) return renderStep3();
+        return renderStep4();
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden safe-area-root">
-            <div className="relative z-10 flex-1 flex flex-col min-h-0">
-                <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-8 pb-28 custom-scrollbar">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex items-center gap-3 mb-8">
-                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] font-mono shrink-0">
-                                Paso {step + 1} de {TOTAL_STEPS}
-                            </span>
-                            <WizardStepper currentStep={step} totalSteps={TOTAL_STEPS} className="flex-1 justify-center" variant="emerald" />
-                            <button
-                                type="button"
-                                onClick={() => setShowHelp((h) => !h)}
-                                aria-label={showHelp ? 'Ocultar ayuda' : 'Mostrar ayuda con tooltips'}
-                                aria-pressed={showHelp}
-                                className={`text-[10px] font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-[#050505] rounded px-2 py-1 ${showHelp ? 'text-emerald-500' : 'text-slate-500 hover:text-slate-400'}`}
-                            >
-                                ¿Ayuda?
-                            </button>
-                        </div>
-                        <div key={step} className="animate-fade-in">{renderStep()}</div>
-                    </div>
+        <div className="min-h-full flex flex-col bg-[var(--md-sys-color-surface)]">
+            {renderHeader()}
+
+            <div ref={scrollRef} className="flex-1 overflow-y-auto">
+                <div className="max-w-4xl mx-auto px-4 py-4 pb-28">{renderContent()}</div>
+            </div>
+
+            <div className="sticky bottom-0 z-20 bg-[var(--md-sys-color-surface)]/90 backdrop-blur-xl border-t border-black/[0.05]">
+                <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+                    <button onClick={() => setStep((prev) => Math.max(0, prev - 1))} disabled={step === 0} className="rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] border border-black/[0.15] text-[#49454F] disabled:opacity-50">Atrás</button>
+                    <button onClick={handleNext} className="rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-[0.14em] bg-[var(--md-sys-color-primary)] text-white">{step === TOTAL_STEPS - 1 ? 'Confirmar plan' : 'Continuar'}</button>
                 </div>
-                {step === TOTAL_STEPS - 1 && !isValid && (
-                    <p className="absolute bottom-24 right-6 left-6 text-center text-xs text-slate-500">Completa altura, peso, edad y género para guardar.</p>
-                )}
-                <WizardFABs
-                    onBack={step > 0 ? () => setStep((s) => s - 1) : undefined}
-                    onNext={step < TOTAL_STEPS - 1 ? () => setStep((s) => s + 1) : handleFinish}
-                    isLast={step === TOTAL_STEPS - 1}
-                    disabled={step === TOTAL_STEPS - 1 && !isValid}
-                    variant="emerald"
-                />
             </div>
         </div>
     );

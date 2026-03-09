@@ -81,24 +81,24 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
 
     const containerStyle = inline
         ? "flex-1 flex flex-col p-4 pt-2 bg-transparent"
-        : "fixed inset-0 z-[110] bg-white/60 backdrop-blur-3xl overflow-y-auto p-6 animate-fade-in";
+        : "fixed inset-0 z-[110] bg-[var(--md-sys-color-surface)] overflow-y-auto p-6 animate-fade-in";
 
     return (
         <div className={containerStyle}>
             {/* ── Toolbar Superior ── */}
             <div className="flex items-center justify-between mb-8 gap-4 px-2">
-                <div className="flex flex-col gap-2">
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Estructura</h2>
-                    <div className="flex items-center p-1 bg-zinc-200/30 backdrop-blur-md border border-black/[0.05] rounded-2xl shadow-sm">
+                <div className="flex flex-col gap-1">
+                    <h2 className="text-[10px] font-black uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] opacity-60">Estructura</h2>
+                    <div className="flex items-center p-1 bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl shadow-sm">
                         <button
                             onClick={() => update(p => { p.blockLabel = 'bloque'; })}
-                            className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${blockLabel === 'bloque' ? 'bg-white text-black shadow-md' : 'text-zinc-400'}`}
+                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${blockLabel === 'bloque' ? 'bg-white text-[var(--md-sys-color-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}
                         >
                             Bloques
                         </button>
                         <button
                             onClick={() => update(p => { p.blockLabel = 'mesociclo'; })}
-                            className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${blockLabel === 'mesociclo' ? 'bg-white text-black shadow-md' : 'text-zinc-400'}`}
+                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${blockLabel === 'mesociclo' ? 'bg-white text-[var(--md-sys-color-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}
                         >
                             Mesociclos
                         </button>
@@ -141,7 +141,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                 return (
                                     <div
                                         key={block.id}
-                                        className={`group relative flex flex-col rounded-[2.5rem] border transition-all duration-300 shadow-[0_15px_40px_rgba(0,0,0,0.06)] overflow-hidden ${isSelected ? 'border-primary/30 bg-white/90 backdrop-blur-3xl ring-4 ring-primary/5 scale-[1.01]' : 'border-black/[0.03] bg-white/50 backdrop-blur-2xl hover:bg-white/70 hover:scale-[1.005]'}`}
+                                        className={`group relative flex flex-col rounded-[2.5rem] border transition-all duration-300 shadow-xl overflow-hidden ${isSelected ? 'border-[var(--md-sys-color-primary)]/50 bg-[var(--md-sys-color-surface-container-high)] ring-4 ring-[var(--md-sys-color-primary)]/5' : 'border-[var(--md-sys-color-outline-variant)] bg-white hover:border-[var(--md-sys-color-primary)]/30'}`}
                                     >
                                         {/* Left color bar */}
                                         <div className="absolute left-0 top-0 bottom-0 w-2.5" style={{ backgroundColor: color }} />
@@ -184,19 +184,19 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                 const pctFilled = (filledWeeks / meso.weeks.length) * 100;
 
                                                 return (
-                                                    <div key={meso.id} className="relative pl-6 border-l-2 border-black/[0.05] py-1">
+                                                    <div key={meso.id} className="relative pl-6 border-l-2 border-[var(--md-sys-color-outline-variant)] py-1">
                                                         <div className="flex items-center justify-between gap-4 mb-3">
                                                             <div className="flex-1 min-w-0 flex items-center gap-3">
                                                                 <input
                                                                     type="text"
                                                                     value={meso.name}
                                                                     onChange={(e) => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx].name = e.target.value; })}
-                                                                    className="bg-transparent text-[11px] font-black uppercase tracking-widest text-[#1D1B20] w-full border-none p-0 focus:ring-0 outline-none"
+                                                                    className="bg-transparent text-xs font-black uppercase tracking-wider text-[var(--md-sys-color-on-surface)] w-full border-none p-0 focus:ring-0 outline-none"
                                                                 />
                                                                 <select
                                                                     value={meso.goal}
                                                                     onChange={(e) => update(p => { p.macrocycles[macroIdx].blocks![blockIdx].mesocycles[mesoIdx].goal = e.target.value as any; })}
-                                                                    className="bg-black/[0.03] backdrop-blur-sm border-none text-[8px] font-black uppercase tracking-[0.2em] text-blue-600 rounded-lg px-2.5 py-1.5 focus:ring-0 outline-none ring-1 ring-black/[0.02]"
+                                                                    className="bg-[var(--md-sys-color-surface-container-high)] border-none text-[9px] font-black uppercase tracking-widest text-[var(--md-sys-color-primary)] rounded-lg px-2 py-1.5 focus:ring-0 outline-none ring-1 ring-[var(--md-sys-color-outline-variant)]"
                                                                 >
                                                                     {GOAL_OPTIONS.map(g => <option key={g} value={g} className="bg-white text-black font-bold uppercase">{g}</option>)}
                                                                 </select>
@@ -268,9 +268,9 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                                         weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }]
                                                     });
                                                 })}
-                                                className="w-full py-5 rounded-[2rem] border border-dashed border-black/[0.1] text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 hover:bg-black/[0.02] hover:text-black hover:border-black/20 transition-all flex items-center justify-center gap-2"
+                                                className="w-full py-5 rounded-[2rem] border-2 border-dashed border-[var(--md-sys-color-outline-variant)] text-[10px] font-black uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-transparent transition-all flex items-center justify-center gap-2 shadow-sm"
                                             >
-                                                <PlusIcon size={14} /> Añadir Fase
+                                                <PlusIcon size={16} /> Añadir Fase de {blockLabel}
                                             </button>
                                         </div>
                                     </div>
@@ -297,12 +297,12 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                                         });
                                     }
                                 }}
-                                className="w-full py-10 rounded-[3.5rem] border-2 border-dashed border-black/[0.05] group hover:bg-black/[0.02] hover:border-black/10 transition-all flex flex-col items-center justify-center gap-4 bg-white/20 backdrop-blur-sm"
+                                className="w-full py-10 rounded-[3.5rem] border-4 border-dashed border-[var(--md-sys-color-outline-variant)] group hover:bg-[var(--md-sys-color-primary-container)] hover:border-transparent transition-all flex flex-col items-center justify-center gap-4 bg-white/40"
                             >
-                                <div className="w-14 h-14 rounded-full bg-black/[0.03] flex items-center justify-center text-zinc-400 group-hover:bg-black group-hover:text-white transition-all shadow-sm">
-                                    <PlusIcon size={24} />
+                                <div className="w-14 h-14 rounded-full bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] group-hover:bg-[var(--md-sys-color-primary)] group-hover:text-white transition-all shadow-md">
+                                    <PlusIcon size={28} />
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 group-hover:text-black">Crear {blockLabel}</span>
+                                <span className="text-[11px] font-black uppercase tracking-[0.4em] text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)]">Crear {blockLabel}</span>
                             </button>
                         </div>
                     </div>

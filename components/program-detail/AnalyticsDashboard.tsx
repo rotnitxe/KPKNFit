@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Program, Session, ProgramWeek, ExerciseMuscleInfo, Settings, PostSessionFeedback } from '../../types';
 import { ActivityIcon, DumbbellIcon, XIcon, TargetIcon, ChevronDownIcon, StarIcon } from '../icons';
 import { WorkoutVolumeAnalysis } from '../WorkoutVolumeAnalysis';
@@ -78,7 +78,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     const [showRecalibrationModal, setShowRecalibrationModal] = useState(false);
     const [recalibrationSuggestions, setRecalibrationSuggestions] = useState<VolumeSuggestion[]>([]);
     const [isRecalibrating, setIsRecalibrating] = useState(false);
-    const [activeCarouselTab, setActiveCarouselTab] = useState<'bodymap' | 'volume'>('bodymap');
 
     const suggestRecalibration = shouldSuggestRecalibration(settings, postSessionFeedback);
 
@@ -207,188 +206,177 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         >
             <motion.div variants={itemVariants} className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-2">Perspectiva Global</motion.div>
 
-            {/* ── Analytics Carousel (Body Map & Volume) ── */}
-            <motion.section variants={itemVariants} className="bg-white/70 backdrop-blur-3xl rounded-[48px] p-2 shadow-[0_32px_64px_rgba(0,0,0,0.06)] border border-white/50 overflow-hidden lg:max-w-4xl lg:mx-auto w-full">
-                {/* Carousel Tabs */}
-                <div className="flex justify-center p-4">
-                    <div className="flex bg-zinc-100/80 backdrop-blur-xl rounded-full p-1 w-full max-w-[280px] shadow-inner relative">
-                        <motion.div
-                            animate={{ x: activeCarouselTab === 'bodymap' ? '0%' : '100%' }}
-                            transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                            className="absolute inset-y-1 left-1 w-[calc(50%-4px)] bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/[0.03]"
+            {/* ── Body Map ── */}
+            {activeWidgets.includes('bodymap') && (
+                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03] overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl rounded-full -mr-16 -mt-16" />
+                    <h3 className="text-sm font-black text-black uppercase tracking-tight mb-8">Mapa de Volumen</h3>
+                    <div className="flex flex-col gap-8 items-center bg-black/[0.02] rounded-[24px] p-6 border border-black/[0.03]">
+                        <CaupolicanBody
+                            data={visualizerData as any}
+                            isPowerlifting={program.mode === 'powerlifting' || program.mode === 'powerbuilding'}
+                            focusedMuscle={selectedMusclePos?.muscle ?? focusedMuscle}
+                            discomforts={programDiscomforts}
+                            onMuscleClick={(muscle, x, y) => {
+                                setSelectedMusclePos(prev => prev?.muscle === muscle ? null : { muscle, x: x ?? 0, y: y ?? 0 });
+                                setFocusedMuscle(muscle);
+                            }}
+                            onBodyBackgroundClick={() => {
+                                setSelectedMusclePos(null);
+                                setFocusedMuscle(null);
+                            }}
                         />
-                        <button
-                            onClick={() => setActiveCarouselTab('bodymap')}
-                            className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest relative z-10 transition-colors ${activeCarouselTab === 'bodymap' ? 'text-black' : 'text-zinc-400'}`}
-                        >
-                            Composición
-                        </button>
-                        <button
-                            onClick={() => setActiveCarouselTab('volume')}
-                            className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest relative z-10 transition-colors ${activeCarouselTab === 'volume' ? 'text-black' : 'text-zinc-400'}`}
-                        >
-                            Volumen
-                        </button>
+                        <MuscleStatsPanel
+                            selectedMuscle={selectedMusclePos?.muscle ?? null}
+                            data={visualizerData ?? []}
+                            program={program}
+                            settings={settings}
+                            onClose={() => {
+                                setSelectedMusclePos(null);
+                                setFocusedMuscle(null);
+                            }}
+                        />
                     </div>
-                </div>
+                    {programDiscomforts.length > 0 && (
+                        <div className="mt-8 flex flex-wrap justify-center gap-2">
+                            {programDiscomforts.slice(0, 5).map((disc, idx) => (
+                                <span key={idx} className="text-[10px] font-black uppercase tracking-widest bg-red-50 border border-red-100 px-4 py-2 rounded-full text-red-600">
+                                    {disc.name} <span className="opacity-50 ml-1">{disc.count}x</span>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </motion.section>
+            )}
 
-                {/* Carousel Content */}
-                <div className="p-4 pt-0">
-                    <AnimatePresence mode="wait">
-                        {activeCarouselTab === 'bodymap' ? (
-                            <motion.div
-                                key="bodymap"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="flex flex-col gap-6 items-center"
-                            >
-                                <div className="w-full bg-zinc-50/50 rounded-[32px] p-6 border border-black/[0.02]">
-                                    <CaupolicanBody
-                                        data={visualizerData as any}
-                                        isPowerlifting={program.mode === 'powerlifting' || program.mode === 'powerbuilding'}
-                                        focusedMuscle={selectedMusclePos?.muscle ?? focusedMuscle}
-                                        discomforts={programDiscomforts}
-                                        onMuscleClick={(muscle, x, y) => {
-                                            setSelectedMusclePos(prev => prev?.muscle === muscle ? null : { muscle, x: x ?? 0, y: y ?? 0 });
-                                            setFocusedMuscle(muscle);
-                                        }}
-                                        onBodyBackgroundClick={() => {
-                                            setSelectedMusclePos(null);
-                                            setFocusedMuscle(null);
-                                        }}
-                                    />
-                                    <MuscleStatsPanel
-                                        selectedMuscle={selectedMusclePos?.muscle ?? null}
-                                        data={visualizerData ?? []}
-                                        program={program}
-                                        settings={settings}
-                                        onClose={() => {
-                                            setSelectedMusclePos(null);
-                                            setFocusedMuscle(null);
-                                        }}
-                                    />
+            {/* ── Volume Analysis ── */}
+            {activeWidgets.includes('volume') && (
+                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
+                    {suggestRecalibration && program.volumeSystem === 'kpnk' && (
+                        <button
+                            onClick={handleRecalibrateClick}
+                            disabled={isRecalibrating}
+                            className="w-full mb-8 py-5 px-6 rounded-[24px] bg-[#0061A4] text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-lg shadow-[#0061A4]/20 active:scale-[0.98]"
+                        >
+                            <TargetIcon size={18} />
+                            {isRecalibrating ? 'Calculando sugerencias…' : 'KPKN sugiere revisión'}
+                        </button>
+                    )}
+                    <div className="flex flex-col gap-6 mb-8">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-black text-black uppercase tracking-tight">Volumen Semanal</h3>
+                            <div className="w-10 h-10 rounded-full bg-black/[0.03] flex items-center justify-center">
+                                <ActivityIcon size={18} className="text-black/40" />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                            <div className="relative flex-1 min-w-[180px]">
+                                <select
+                                    value={program.volumeSystem ?? settings?.volumeSystem ?? 'kpnk'}
+                                    onChange={(e) => {
+                                        const sys = e.target.value as 'israetel' | 'kpnk' | 'manual';
+                                        if (onUpdateProgram && sys === 'israetel') {
+                                            onUpdateProgram({ ...program, volumeSystem: 'israetel', volumeRecommendations: getIsraetelVolumeRecommendations(), volumeAlertsEnabled: program.volumeAlertsEnabled ?? true });
+                                            addToast?.('Guía Israetel aplicada.', 'success');
+                                        } else if (onUpdateProgram && sys === 'manual') {
+                                            onUpdateProgram({ ...program, volumeSystem: 'manual', volumeRecommendations: getIsraetelVolumeRecommendations().map(r => ({ ...r })), volumeAlertsEnabled: program.volumeAlertsEnabled ?? true });
+                                            setShowManualEditor(true);
+                                            addToast?.('Modo Manual activado.', 'success');
+                                        } else if (sys === 'kpnk') {
+                                            setShowCalibrationWizard(true);
+                                        } else if (!onUpdateProgram) {
+                                            setSettings?.({ volumeSystem: sys as any });
+                                        }
+                                    }}
+                                    className="w-full h-14 text-[11px] font-black uppercase tracking-widest bg-black/[0.03] border-none rounded-2xl px-5 text-black appearance-none focus:ring-2 focus:ring-black/5 outline-none transition-all"
+                                >
+                                    <option value="israetel">Israetel</option>
+                                    <option value="kpnk">KPKN Personalizado</option>
+                                    <option value="manual">Manual</option>
+                                </select>
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-30">
+                                    <ChevronDownIcon size={14} />
                                 </div>
-                                {programDiscomforts.length > 0 && (
-                                    <div className="flex flex-wrap justify-center gap-2 pb-4">
-                                        {programDiscomforts.slice(0, 3).map((disc, idx) => (
-                                            <span key={idx} className="text-[9px] font-black uppercase tracking-widest bg-red-50 border border-red-100 px-4 py-2 rounded-full text-red-600">
-                                                {disc.name} <span className="opacity-50 ml-1">{disc.count}x</span>
-                                            </span>
+                            </div>
+
+                            {program.volumeSystem === 'kpnk' && (
+                                <button
+                                    onClick={handleRecalibrateClick}
+                                    disabled={isRecalibrating}
+                                    className="h-14 px-6 rounded-2xl border border-black/5 text-[10px] font-black uppercase tracking-widest text-black/60 hover:text-black hover:bg-black/5 transition-all disabled:opacity-50"
+                                >
+                                    Re-calibrar
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {showManualEditor && program.volumeSystem === 'manual' && onUpdateProgram && (
+                        <div className="mb-8 p-6 bg-black/[0.02] rounded-[24px] border border-black/5 space-y-4">
+                            {(program.volumeRecommendations ?? []).map((rec) => (
+                                <div key={rec.muscleGroup} className="flex flex-wrap items-center gap-4 p-4 bg-white rounded-2xl shadow-sm border border-black/[0.03]">
+                                    <span className="text-[10px] font-black text-black w-24 uppercase tracking-tight">{rec.muscleGroup}</span>
+                                    <div className="flex gap-2">
+                                        {['min', 'obj', 'max'].map((type) => (
+                                            <div key={type} className="flex flex-col items-center gap-1">
+                                                <input
+                                                    type="number"
+                                                    value={type === 'min' ? rec.minEffectiveVolume : type === 'obj' ? Math.round((rec.minEffectiveVolume + rec.maxAdaptiveVolume) / 2) : rec.maxRecoverableVolume}
+                                                    onChange={(e) => {
+                                                        const v = parseInt(e.target.value, 10) || 0;
+                                                        const next = (program.volumeRecommendations ?? []).map(r => {
+                                                            if (r.muscleGroup !== rec.muscleGroup) return r;
+                                                            if (type === 'min') return { ...r, minEffectiveVolume: v };
+                                                            if (type === 'max') return { ...r, maxRecoverableVolume: v };
+                                                            return { ...r, maxAdaptiveVolume: Math.max(r.minEffectiveVolume, 2 * v - r.minEffectiveVolume) };
+                                                        });
+                                                        onUpdateProgram({ ...program, volumeRecommendations: next });
+                                                    }}
+                                                    className="w-12 h-10 bg-black/[0.03] rounded-lg text-[11px] font-black text-center focus:ring-1 focus:ring-black/10 outline-none"
+                                                />
+                                                <span className="text-[8px] font-black uppercase opacity-20">{type}</span>
+                                            </div>
                                         ))}
                                     </div>
-                                )}
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="volume"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
-                            >
-                                {/* Volume System Selector - Liquid Glass */}
-                                <div className="flex flex-col gap-4 bg-zinc-50/50 rounded-[32px] p-6 border border-black/[0.02]">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Sistema de Volumen</span>
-                                            <span className="text-xs font-bold text-zinc-600 mt-0.5">Define cómo se calculan tus objetivos</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            {(['israetel', 'kpnk', 'manual'] as const).map(sys => (
-                                                <button
-                                                    key={sys}
-                                                    onClick={() => {
-                                                        if (onUpdateProgram && sys === 'israetel') {
-                                                            onUpdateProgram({ ...program, volumeSystem: 'israetel', volumeRecommendations: getIsraetelVolumeRecommendations(), volumeAlertsEnabled: program.volumeAlertsEnabled ?? true });
-                                                            addToast?.('Guía Israetel aplicada.', 'success');
-                                                        } else if (onUpdateProgram && sys === 'manual') {
-                                                            onUpdateProgram({ ...program, volumeSystem: 'manual', volumeRecommendations: getIsraetelVolumeRecommendations().map(r => ({ ...r })), volumeAlertsEnabled: program.volumeAlertsEnabled ?? true });
-                                                            setShowManualEditor(true);
-                                                            addToast?.('Modo Manual activado.', 'success');
-                                                        } else if (sys === 'kpnk') {
-                                                            setShowCalibrationWizard(true);
-                                                        }
-                                                    }}
-                                                    className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${program.volumeSystem === sys ? 'bg-black text-white shadow-lg' : 'bg-white text-zinc-400 border border-black/[0.03]'}`}
-                                                >
-                                                    {sys === 'kpnk' ? 'KPKN' : sys}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {suggestRecalibration && program.volumeSystem === 'kpnk' && (
-                                        <button
-                                            onClick={handleRecalibrateClick}
-                                            disabled={isRecalibrating}
-                                            className="w-full py-4 px-6 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-blue-500/20 active:scale-[0.98]"
-                                        >
-                                            <TargetIcon size={16} />
-                                            {isRecalibrating ? 'Calculando...' : 'KPKN sugiere revisión'}
-                                        </button>
-                                    )}
-
-                                    {showManualEditor && program.volumeSystem === 'manual' && onUpdateProgram && (
-                                        <div className="pt-4 border-t border-black/[0.03] space-y-3">
-                                            {(program.volumeRecommendations ?? []).slice(0, 5).map((rec) => (
-                                                <div key={rec.muscleGroup} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-black/[0.03]">
-                                                    <span className="text-[10px] font-black text-black w-20 uppercase tracking-tight truncate">{rec.muscleGroup}</span>
-                                                    <div className="flex-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden flex">
-                                                        <div className="h-full bg-blue-500/20" style={{ width: '33%' }} />
-                                                        <div className="h-full bg-blue-500/40" style={{ width: '33%' }} />
-                                                    </div>
-                                                    <div className="flex gap-1.5">
-                                                        <input
-                                                            type="number"
-                                                            value={Math.round((rec.minEffectiveVolume + rec.maxAdaptiveVolume) / 2)}
-                                                            onChange={(e) => {
-                                                                const v = parseInt(e.target.value, 10) || 0;
-                                                                // Simple update logic
-                                                            }}
-                                                            className="w-10 h-8 bg-zinc-50 rounded-lg text-[10px] font-black text-center focus:ring-1 focus:ring-blue-500 outline-none"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            <button onClick={() => setShowManualEditor(false)} className="w-full py-2 text-[9px] font-black uppercase tracking-widest text-zinc-300">Ver menos</button>
-                                        </div>
-                                    )}
                                 </div>
+                            ))}
+                        </div>
+                    )}
 
-                                <WorkoutVolumeAnalysis
-                                    program={program}
-                                    sessions={displayedSessions}
-                                    history={historyData}
-                                    isOnline={isOnline}
-                                    settings={settings}
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </motion.section>
+                    {showCalibrationWizard && (
+                        <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
+                            <AthleteProfilingWizard
+                                inline
+                                onComplete={(score) => {
+                                    if (onUpdateProgram) {
+                                        onUpdateProgram({ ...program, volumeSystem: 'kpnk', volumeRecommendations: getKpnkVolumeRecommendations(score, settings, 'Acumulación'), volumeAlertsEnabled: program.volumeAlertsEnabled ?? true, athleteProfileScore: score });
+                                    }
+                                    setSettings?.({ athleteScore: score, volumeSystem: 'kpnk' });
+                                    setShowCalibrationWizard(false);
+                                    addToast?.('Calibración guardada.', 'success');
+                                }}
+                                onCancel={() => setShowCalibrationWizard(false)}
+                            />
+                        </div>
+                    )}
 
-            {showCalibrationWizard && (
-                <motion.div variants={itemVariants} className="mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
-                    <AthleteProfilingWizard
-                        inline
-                        onComplete={(score) => {
-                            if (onUpdateProgram) {
-                                onUpdateProgram({ ...program, volumeSystem: 'kpnk', volumeRecommendations: getKpnkVolumeRecommendations(score, settings, 'Acumulación'), volumeAlertsEnabled: program.volumeAlertsEnabled ?? true, athleteProfileScore: score });
-                            }
-                            setSettings?.({ athleteScore: score, volumeSystem: 'kpnk' });
-                            setShowCalibrationWizard(false);
-                            addToast?.('Calibración guardada.', 'success');
-                        }}
-                        onCancel={() => setShowCalibrationWizard(false)}
+                    <WorkoutVolumeAnalysis
+                        program={program}
+                        sessions={displayedSessions}
+                        history={historyData}
+                        isOnline={isOnline}
+                        settings={settings}
                     />
-                </motion.div>
+                    <div className="mt-8 pt-8 border-t border-black/[0.03]">
+                        <VolumeCalibrationHistoryWidget history={settings?.volumeCalibrationHistory} />
+                    </div>
+                </motion.section>
             )}
 
             {/* ── Strength ── */}
             {activeWidgets.includes('strength') && (
-                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 w-full">
+                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
                     <h3 className="text-sm font-black text-black uppercase tracking-tight mb-8">Fuerza Relativa</h3>
                     <RelativeStrengthAndBasicsWidget displayedSessions={displayedSessions} />
                 </motion.section>
@@ -396,8 +384,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── 1RM Progress ── */}
             {activeWidgets.includes('star1rm') && (
-                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 relative overflow-hidden w-full">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/[0.03] blur-[80px] rounded-full -mr-24 -mt-24 pointer-events-none" />
+                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-3xl rounded-full -mr-16 -mt-16" />
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                             <StarIcon size={20} filled className="text-yellow-500" />
@@ -448,9 +436,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── AUGE Banister ── */}
             {activeWidgets.includes('banister') && adaptiveCache.banister && (
-                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 w-full">
+                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
                     <div className="mb-8">
-                        <h3 className="text-sm font-black text-black uppercase tracking-tight mb-2">AUGE — Estado Físico vs Fatiga</h3>
+                        <h3 className="text-sm font-black text-black uppercase tracking-tight mb-2">AUGE — Fitness vs Fatiga</h3>
                         <p className="text-[10px] font-black text-black/40 uppercase tracking-widest leading-relaxed">
                             {adaptiveCache.banister.verdict || 'Análisis de carga activa'}
                         </p>
@@ -463,7 +451,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── Recovery ── */}
             {activeWidgets.includes('recovery') && recoveryData.length > 0 && (
-                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 w-full">
+                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
                     <div className="flex items-center justify-between mb-8">
                         <h3 className="text-sm font-black text-black uppercase tracking-tight">Recuperación</h3>
                         <div className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border border-black/5 ${confidenceLabel === 'Alta' ? 'bg-green-50 text-green-600' : confidenceLabel === 'Media' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600'
@@ -502,7 +490,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── History ── */}
             {activeWidgets.includes('history') && (
-                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 w-full">
+                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
                     <h3 className="text-sm font-black text-black uppercase tracking-tight mb-8">Historial</h3>
                     <ExerciseHistoryWidget program={program} history={historyData} />
                 </motion.section>

@@ -62,26 +62,26 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
     return (
         <>
             {/* Backdrop M3 */}
-            <div className={`fixed inset-0 z-[101] bg-black/20 backdrop-blur-sm transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+            <div className={`fixed inset-0 z-[101] bg-[var(--md-sys-color-scrim)] backdrop-blur-sm transition-opacity ${isOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
 
             {/* M3 Bottom Sheet Container */}
-            <div className={`fixed bottom-0 left-0 right-0 z-[102] w-full max-h-[90vh] bg-white/70 backdrop-blur-3xl rounded-t-[32px] flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-2xl ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+            <div className={`fixed bottom-0 left-0 right-0 z-[102] w-full max-h-[90vh] bg-[var(--md-sys-color-surface-container-low)] rounded-t-[28px] flex flex-col transition-transform duration-300 ease-out shadow-2xl ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}>
                 {/* Drag Handle Indicator */}
                 <div className="w-full flex justify-center pt-4 pb-2 shrink-0">
-                    <div className="w-8 h-1 rounded-full bg-black/10 opacity-80" />
+                    <div className="w-8 h-1 rounded-full bg-[var(--md-sys-color-outline-variant)] opacity-80" />
                 </div>
 
                 {/* Header M3 */}
                 <div className="px-6 py-2 flex items-center justify-between shrink-0">
                     <div>
-                        <h2 className="text-[14px] font-black uppercase tracking-[0.2em] text-[#1D1B20]">
-                            {step === 'gallery' ? 'Galería de Splits' : 'Configurar'}
+                        <h2 className="text-title-lg font-bold text-[var(--md-sys-color-on-surface)]">
+                            {step === 'gallery' ? 'Cambiar Split' : 'Configurar Split'}
                         </h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
-                            {step === 'gallery' ? 'Selecciona una arquitectura base' : selectedSplit?.name}
+                        <p className="text-body-md text-[var(--md-sys-color-on-surface-variant)] mt-0.5">
+                            {step === 'gallery' ? 'Selecciona una plantilla base' : selectedSplit?.name}
                         </p>
                     </div>
-                    <button onClick={onClose} aria-label="Cerrar" className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 hover:bg-black/5 transition-colors">
+                    <button onClick={onClose} aria-label="Cerrar" className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
                         <XIcon size={20} />
                     </button>
                 </div>
@@ -91,13 +91,13 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                         {/* Search M3 */}
                         <div className="px-6 py-3 shrink-0">
                             <div className="relative">
-                                <SearchIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                <SearchIcon size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--md-sys-color-on-surface-variant)]" />
                                 <input
                                     type="text"
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
-                                    placeholder="BUSCAR ARQUITECTURA..."
-                                    className="w-full bg-black/[0.03] rounded-[20px] pl-12 pr-4 py-3.5 text-[11px] font-black uppercase tracking-widest text-[#1D1B20] placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    placeholder="Buscar split..."
+                                    className="w-full bg-[var(--md-sys-color-surface-container-high)] rounded-[28px] pl-12 pr-4 py-3.5 text-body-lg text-[var(--md-sys-color-on-surface)] placeholder-[var(--md-sys-color-on-surface-variant)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] transition-shadow"
                                 />
                             </div>
                         </div>
@@ -109,9 +109,9 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                     <button
                                         key={tag}
                                         onClick={() => setFilter(tag)}
-                                        className={`px-4 py-1.5 rounded-xl border shrink-0 whitespace-nowrap text-[9px] font-black uppercase tracking-[0.15em] transition-all ${filter === tag
-                                            ? 'bg-black text-white border-transparent shadow-lg'
-                                            : 'bg-white/40 border-black/[0.05] text-zinc-400 hover:text-black hover:bg-white/60'
+                                        className={`px-4 py-1.5 rounded-lg border shrink-0 whitespace-nowrap text-label-lg font-medium transition-all ${filter === tag
+                                            ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent'
+                                            : 'bg-transparent text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]'
                                             }`}
                                     >
                                         {tag}
@@ -129,29 +129,29 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                     <button
                                         key={split.id}
                                         onClick={() => handleSelectSplit(split)}
-                                        className={`w-full text-left p-4 rounded-2xl border transition-all ${isCurrent
-                                            ? 'bg-blue-600 border-transparent shadow-xl shadow-blue-500/10'
-                                            : 'bg-white/40 border-black/[0.03] hover:bg-white/60 hover:border-black/5'
+                                        className={`w-full text-left p-4 rounded-xl border transition-all ${isCurrent
+                                            ? 'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)]'
+                                            : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'
                                             }`}
                                     >
                                         <div className="flex items-start justify-between gap-3 mb-2">
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                                                    <span className={`text-[12px] font-black uppercase tracking-tight truncate ${isCurrent ? 'text-white' : 'text-[#1D1B20]'}`}>
+                                                    <span className={`text-title-md font-bold truncate ${isCurrent ? 'text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface)]'}`}>
                                                         {split.name}
                                                     </span>
                                                     {isCurrent && (
-                                                        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-white/20 text-white shrink-0">
+                                                        <span className="text-label-sm font-bold uppercase px-2 py-0.5 rounded-md bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shrink-0">
                                                             ACTUAL
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className={`text-[10px] font-medium leading-relaxed line-clamp-2 ${isCurrent ? 'text-white/70' : 'text-zinc-500'}`}>
+                                                <p className={`text-body-sm line-clamp-2 ${isCurrent ? 'text-[var(--md-sys-color-on-primary-container)]/80' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>
                                                     {split.description}
                                                 </p>
                                             </div>
-                                            <span className={`text-[12px] font-black shrink-0 ${isCurrent ? 'text-white' : 'text-zinc-300'}`}>
-                                                {trainingDays}D
+                                            <span className={`text-title-md font-bold shrink-0 ${isCurrent ? 'text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>
+                                                {trainingDays}d
                                             </span>
                                         </div>
                                         <div className="flex gap-1 mt-3">
@@ -159,8 +159,8 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                                 <div
                                                     key={i}
                                                     className={`flex-1 h-1.5 rounded-full ${day.toLowerCase() === 'descanso'
-                                                        ? 'bg-black/5'
-                                                        : isCurrent ? 'bg-white/60' : 'bg-blue-500/60'
+                                                        ? 'bg-[var(--md-sys-color-surface-container-highest)]'
+                                                        : isCurrent ? 'bg-[var(--md-sys-color-primary)]' : 'bg-[var(--md-sys-color-primary)]/60'
                                                         }`}
                                                 />
                                             ))}
@@ -174,10 +174,10 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 py-4 space-y-6">
                         {/* Selected split preview M3 */}
                         {selectedSplit && (
-                            <div className="bg-black/5 rounded-[24px] p-4">
+                            <div className="bg-[var(--md-sys-color-surface-container)] rounded-[16px] p-4">
                                 <div className="flex items-center justify-between mb-4">
-                                    <span className="text-[14px] font-black uppercase tracking-tight text-black">{selectedSplit.name}</span>
-                                    <button onClick={handleBack} className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 transition-colors">
+                                    <span className="text-title-md font-bold text-[var(--md-sys-color-on-surface)]">{selectedSplit.name}</span>
+                                    <button onClick={handleBack} className="text-label-lg font-bold text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)]/80 transition-colors">
                                         Cambiar
                                     </button>
                                 </div>
@@ -187,9 +187,9 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                                         const isRest = day.toLowerCase() === 'descanso';
                                         return (
                                             <div key={i} className="flex-1 text-center">
-                                                <div className="text-[8px] font-black uppercase tracking-widest text-zinc-400 mb-2">{dayLabel.slice(0, 3)}</div>
-                                                <div className={`h-1.5 rounded-full ${isRest ? 'bg-black/5' : 'bg-blue-500'}`} />
-                                                <div className={`text-[9px] mt-1 font-black truncate uppercase ${isRest ? 'text-zinc-300' : 'text-black'}`}>
+                                                <div className="text-body-sm font-medium text-[var(--md-sys-color-on-surface-variant)] mb-2">{dayLabel.slice(0, 3)}</div>
+                                                <div className={`h-1.5 rounded-full ${isRest ? 'bg-[var(--md-sys-color-surface-container-highest)]' : 'bg-[var(--md-sys-color-primary)]'}`} />
+                                                <div className={`text-label-sm mt-1 font-bold truncate ${isRest ? 'text-[var(--md-sys-color-on-surface-variant)]/60' : 'text-[var(--md-sys-color-on-surface)]'}`}>
                                                     {isRest ? '-' : day}
                                                 </div>
                                             </div>
@@ -200,109 +200,109 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
                         )}
 
                         {/* Start day M3 */}
-                        <div className="flex items-center justify-between bg-black/5 rounded-[24px] p-4">
+                        <div className="flex items-center justify-between bg-[var(--md-sys-color-surface-container)] rounded-[16px] p-4">
                             <div>
-                                <span className="text-[12px] font-black text-black block uppercase tracking-tight">Día de Inicio</span>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Define el primer día de tu semana</span>
+                                <span className="text-title-sm font-bold text-[var(--md-sys-color-on-surface)] block">Día de Inicio</span>
+                                <span className="text-body-sm text-[var(--md-sys-color-on-surface-variant)]">Define el primer día de tu semana</span>
                             </div>
                             <div className="relative">
                                 <select
                                     value={startDay}
                                     onChange={e => setStartDay(parseInt(e.target.value))}
-                                    className="appearance-none bg-white border border-black/5 rounded-xl px-4 py-2 pr-8 text-[11px] font-black uppercase tracking-widest text-black focus:border-blue-500 outline-none"
+                                    className="appearance-none bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-lg px-4 py-2 pr-8 text-body-md font-medium text-[var(--md-sys-color-on-surface)] focus:border-[var(--md-sys-color-primary)] outline-none"
                                 >
                                     {DAYS_OF_WEEK.map(d => (
                                         <option key={d.value} value={d.value}>{d.label}</option>
                                     ))}
                                 </select>
-                                <ChevronDownIcon size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400" />
+                                <ChevronDownIcon size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--md-sys-color-on-surface-variant)]" />
                             </div>
                         </div>
 
                         {/* Scope M3 */}
                         <div>
-                            <span className="text-[10px] font-black text-black/40 block mb-3 pl-2 uppercase tracking-[0.2em]">Alcance del cambio</span>
+                            <span className="text-title-sm font-bold text-[var(--md-sys-color-on-surface)] block mb-3 pl-2">Alcance del cambio</span>
                             <div className="space-y-2">
                                 {!isSimpleProgram && (
                                     <button
                                         onClick={() => setScope('week')}
-                                        className={`w-full text-left p-4 rounded-[24px] border transition-all flex items-center gap-4 ${scope === 'week'
-                                            ? 'bg-blue-50 border-blue-100 shadow-sm'
-                                            : 'bg-black/[0.02] border-transparent hover:bg-black/[0.04]'
+                                        className={`w-full text-left p-4 rounded-[16px] border transition-all flex items-center gap-4 ${scope === 'week'
+                                            ? 'bg-[var(--md-sys-color-secondary-container)] border-transparent'
+                                            : 'bg-[var(--md-sys-color-surface-container)] border-transparent hover:bg-[var(--md-sys-color-surface-container-high)]'
                                             }`}
                                     >
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'week' ? 'border-blue-500' : 'border-zinc-300'}`}>
-                                            {scope === 'week' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'week' ? 'border-[var(--md-sys-color-primary)]' : 'border-[var(--md-sys-color-on-surface-variant)]'}`}>
+                                            {scope === 'week' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)]" />}
                                         </div>
                                         <div>
-                                            <span className={`text-[12px] font-black block uppercase tracking-tight ${scope === 'week' ? 'text-blue-900' : 'text-black'}`}>Solo esta semana</span>
-                                            <p className={`text-[9px] font-black uppercase tracking-widest line-clamp-1 ${scope === 'week' ? 'text-blue-500' : 'text-zinc-400'}`}>Las demás semanas no se verán afectadas</p>
+                                            <span className={`text-title-sm font-bold block ${scope === 'week' ? 'text-[var(--md-sys-color-on-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'}`}>Solo esta semana</span>
+                                            <p className={`text-body-sm line-clamp-1 ${scope === 'week' ? 'text-[var(--md-sys-color-on-secondary-container)]/80' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>Las demás semanas no se verán afectadas</p>
                                         </div>
                                     </button>
                                 )}
                                 {!isSimpleProgram && (
                                     <button
                                         onClick={() => setScope('block')}
-                                        className={`w-full text-left p-4 rounded-[24px] border transition-all flex items-center gap-4 ${scope === 'block'
-                                            ? 'bg-blue-50 border-blue-100 shadow-sm'
-                                            : 'bg-black/[0.02] border-transparent hover:bg-black/[0.04]'
+                                        className={`w-full text-left p-4 rounded-[16px] border transition-all flex items-center gap-4 ${scope === 'block'
+                                            ? 'bg-[var(--md-sys-color-secondary-container)] border-transparent'
+                                            : 'bg-[var(--md-sys-color-surface-container)] border-transparent hover:bg-[var(--md-sys-color-surface-container-high)]'
                                             }`}
                                     >
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'block' ? 'border-blue-500' : 'border-zinc-300'}`}>
-                                            {scope === 'block' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'block' ? 'border-[var(--md-sys-color-primary)]' : 'border-[var(--md-sys-color-on-surface-variant)]'}`}>
+                                            {scope === 'block' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)]" />}
                                         </div>
                                         <div>
-                                            <span className={`text-[12px] font-black block uppercase tracking-tight ${scope === 'block' ? 'text-blue-900' : 'text-black'}`}>Todo el bloque</span>
-                                            <p className={`text-[9px] font-black uppercase tracking-widest line-clamp-1 ${scope === 'block' ? 'text-blue-500' : 'text-zinc-400'}`}>Afectar todas las semanas del bloque actual</p>
+                                            <span className={`text-title-sm font-bold block ${scope === 'block' ? 'text-[var(--md-sys-color-on-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'}`}>Todo el bloque</span>
+                                            <p className={`text-body-sm line-clamp-1 ${scope === 'block' ? 'text-[var(--md-sys-color-on-secondary-container)]/80' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>Afectar todas las semanas del bloque actual</p>
                                         </div>
                                     </button>
                                 )}
                                 <button
                                     onClick={() => setScope('program')}
-                                    className={`w-full text-left p-4 rounded-[24px] border transition-all flex items-center gap-4 ${scope === 'program'
-                                        ? 'bg-blue-50 border-blue-100 shadow-sm'
-                                        : 'bg-black/[0.02] border-transparent hover:bg-black/[0.04]'
+                                    className={`w-full text-left p-4 rounded-[16px] border transition-all flex items-center gap-4 ${scope === 'program'
+                                        ? 'bg-[var(--md-sys-color-secondary-container)] border-transparent'
+                                        : 'bg-[var(--md-sys-color-surface-container)] border-transparent hover:bg-[var(--md-sys-color-surface-container-high)]'
                                         }`}
                                 >
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'program' ? 'border-blue-500' : 'border-zinc-300'}`}>
-                                        {scope === 'program' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === 'program' ? 'border-[var(--md-sys-color-primary)]' : 'border-[var(--md-sys-color-on-surface-variant)]'}`}>
+                                        {scope === 'program' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)]" />}
                                     </div>
                                     <div>
-                                        <span className={`text-[12px] font-black block uppercase tracking-tight ${scope === 'program' ? 'text-blue-900' : 'text-black'}`}>{isSimpleProgram ? 'Todo el ciclo' : 'Todo el programa'}</span>
-                                        <p className={`text-[9px] font-black uppercase tracking-widest line-clamp-1 ${scope === 'program' ? 'text-blue-500' : 'text-zinc-400'}`}>Reescribir toda la estructura base</p>
+                                        <span className={`text-title-sm font-bold block ${scope === 'program' ? 'text-[var(--md-sys-color-on-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'}`}>{isSimpleProgram ? 'Todo el ciclo' : 'Todo el programa'}</span>
+                                        <p className={`text-body-sm line-clamp-1 ${scope === 'program' ? 'text-[var(--md-sys-color-on-secondary-container)]/80' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>Reescribir toda la estructura base</p>
                                     </div>
                                 </button>
                             </div>
                         </div>
 
                         {/* Preserve exercises M3 */}
-                        <div className="bg-black/5 rounded-[24px] p-4">
+                        <div className="bg-[var(--md-sys-color-surface-container)] rounded-[16px] p-4">
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-[var(--md-sys-color-error-container)]/50 text-[var(--md-sys-color-error)] flex items-center justify-center shrink-0">
                                     <AlertTriangleIcon size={20} />
                                 </div>
                                 <div className="flex-1">
-                                    <span className="text-[12px] font-black text-black block mb-3 uppercase tracking-tight">Manejo de Ejercicios</span>
+                                    <span className="text-title-sm font-bold text-[var(--md-sys-color-on-surface)] block mb-3">Manejo de Ejercicios</span>
                                     <div className="space-y-2">
                                         <button
                                             onClick={() => setPreserveExercises(true)}
-                                            className={`w-full text-left p-3 rounded-xl border transition-all ${preserveExercises
-                                                ? 'bg-white border-black/5 shadow-sm'
-                                                : 'bg-transparent border-transparent text-zinc-400'
+                                            className={`w-full text-left p-3 rounded-lg border transition-all ${preserveExercises
+                                                ? 'bg-[var(--md-sys-color-secondary-container)] border-transparent'
+                                                : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)]'
                                                 }`}
                                         >
-                                            <span className={`text-[11px] font-black block uppercase tracking-tight ${preserveExercises ? 'text-black' : 'text-zinc-400'}`}>Preservar existentes</span>
-                                            <p className="text-[9px] font-black uppercase tracking-widest mt-0.5 opacity-40 text-black">Intentará reasignar los ejercicios actuales al nuevo split.</p>
+                                            <span className={`text-label-lg font-bold block ${preserveExercises ? 'text-[var(--md-sys-color-on-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'}`}>Preservar existentes</span>
+                                            <p className={`text-body-sm mt-0.5 ${preserveExercises ? 'text-[var(--md-sys-color-on-secondary-container)]/80' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>Intentará reasignar los ejercicios actuales al nuevo split.</p>
                                         </button>
                                         <button
                                             onClick={() => setPreserveExercises(false)}
-                                            className={`w-full text-left p-3 rounded-xl border transition-all ${!preserveExercises
-                                                ? 'bg-white border-black/5 shadow-sm'
-                                                : 'bg-transparent border-transparent text-zinc-400'
+                                            className={`w-full text-left p-3 rounded-lg border transition-all ${!preserveExercises
+                                                ? 'bg-[var(--md-sys-color-error-container)] border-transparent'
+                                                : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)]'
                                                 }`}
                                         >
-                                            <span className={`text-[11px] font-black block uppercase tracking-tight ${!preserveExercises ? 'text-red-500' : 'text-zinc-400'}`}>Empezar en blanco</span>
-                                            <p className="text-[9px] font-black uppercase tracking-widest mt-0.5 opacity-40 text-black">Se borrarán todos los ejercicios programados.</p>
+                                            <span className={`text-label-lg font-bold block ${!preserveExercises ? 'text-[var(--md-sys-color-on-error-container)]' : 'text-[var(--md-sys-color-on-surface)]'}`}>Empezar en blanco</span>
+                                            <p className={`text-body-sm mt-0.5 ${!preserveExercises ? 'text-[var(--md-sys-color-on-error-container)]/80' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>Se borrarán todos los ejercicios programados.</p>
                                         </button>
                                     </div>
                                 </div>
@@ -313,16 +313,16 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
 
                 {/* Footer M3 */}
                 {step === 'scope' && (
-                    <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-white flex gap-3 shrink-0">
+                    <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-[var(--md-sys-color-surface-container-low)] flex gap-3 shrink-0">
                         <button
                             onClick={handleBack}
-                            className="flex-1 py-4 px-6 rounded-2xl border border-black/5 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-black/5 transition-colors"
+                            className="flex-1 py-3 px-6 rounded-full border border-[var(--md-sys-color-outline)] text-label-large font-bold text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/10 transition-colors"
                         >
                             Atrás
                         </button>
                         <button
                             onClick={handleApply}
-                            className="flex-1 py-4 px-6 rounded-2xl bg-black text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-colors shadow-lg shadow-black/10"
+                            className="flex-1 py-3 px-6 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-label-large font-bold hover:brightness-110 transition-colors shadow-sm"
                         >
                             Aplicar
                         </button>

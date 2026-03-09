@@ -11,6 +11,7 @@ const defaultSettings: Settings = {
     hasSeenSessionEditorTour: false,
     hasSeenKPKNTour: false,
     hasSeenNutritionWizard: false,
+    nutritionWizardVersion: 1,
     hasDismissedNutritionSetup: false,
     hasSeenGeneralWizard: false,
     hasPrecalibratedBattery: false,
@@ -138,3 +139,4 @@ export const useSettingsStore = create<SettingsStoreState>()(
         }
     )
 );
+

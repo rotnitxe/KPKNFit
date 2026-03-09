@@ -13,9 +13,9 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_bench_press_tng', name: 'Press de Banca (Táctil / Touch and Go)', alias: 'Bench Press', description: 'Ejercicio fundamental para el desarrollo del pectoral, hombros y tríceps, realizado de forma continua sin pausa en el pecho.',
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Pectorales', role: 'secondary', activation: 0.6 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
-      { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.2 }
+      { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.2 }
     ],
     subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 4, technicalDifficulty: 6, transferability: 8, injuryRisk: { level: 7, details: 'Hombros (impingement), codos.' }, isHallOfFame: true,
@@ -24,7 +24,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_bench_press_paused', name: 'Press de Banca (Pausado)', description: 'Variante con pausa en el pecho. Elimina el reflejo de estiramiento.',
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.4 }
     ],
     subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior', variantOf: 'db_bench_press_tng',
@@ -33,7 +33,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_incline_bench_press', name: 'Press de Banca Inclinado', description: 'Enfatiza la porción clavicular (superior) del pectoral.',
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 }
     ],
     subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Básico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
@@ -42,7 +42,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_dumbbell_bench_press', name: 'Press de Banca con Mancuernas', description: 'Mayor rango de movimiento y estabilización que la barra.',
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.3 }
     ],
     subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
@@ -51,7 +51,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_incline_dumbbell_press', name: 'Press Inclinado con Mancuernas', description: 'Enfatiza el pectoral superior con mayor libertad de movimiento.',
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.3 }
     ],
     subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
@@ -60,7 +60,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_dips', name: 'Fondos en Paralelas', description: 'Ejercicio compuesto para pectoral inferior y tríceps.',
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.8 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.8 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 }
     ],
     subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
@@ -69,7 +69,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_push_up', name: 'Flexiones de Brazos', description: 'Ejercicio de peso corporal fundamental.',
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 }
     ],
     subMuscleGroup: 'Pectoral', category: 'Resistencia', type: 'Básico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
@@ -78,7 +78,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_cable_crossover', name: 'Cruces de Poleas', description: 'Tensión constante en el pectoral, ideal para bombeo.',
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 }
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 }
     ],
     subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Polea', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 3, technicalDifficulty: 4, efc: 1.8, cnc: 1.5, ssc: 0.0
@@ -107,7 +107,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     id: 'db_barbell_row', name: 'Remo con Barra', description: 'Constructor de densidad de espalda.',
     involvedMuscles: [
       { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Dorsales', role: 'secondary', activation: 0.8 },
-      { muscle: 'Trapecio', role: 'secondary', activation: 0.7 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.8 },
+      { muscle: 'Trapecio', role: 'secondary', activation: 0.7 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.8 },
       { muscle: 'Isquiosurales', role: 'stabilizer', activation: 0.5 }
     ],
     subMuscleGroup: 'Dorsales', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
@@ -134,7 +134,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     id: 'db_seated_cable_row', name: 'Remo Sentado en Polea', description: 'Tirón horizontal para densidad de espalda media.',
     involvedMuscles: [
       { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'primary', activation: 1.0 },
-      { muscle: 'Dorsales', role: 'secondary', activation: 0.8 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.4 }
+      { muscle: 'Dorsales', role: 'secondary', activation: 0.8 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.4 }
     ],
     subMuscleGroup: 'Dorsales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Polea', force: 'Tirón', bodyPart: 'upper', chain: 'posterior',
     setupTime: 2, technicalDifficulty: 4, efc: 3.0, cnc: 2.5, ssc: 0.5
@@ -155,7 +155,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     id: 'db_dumbbell_shoulder_press', name: 'Press de Hombros (Mancuernas)', description: 'Press vertical con mayor libertad de movimiento.',
     involvedMuscles: [
       { muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Lateral', role: 'secondary', activation: 0.6 },
-      { muscle: 'Tríceps', role: 'secondary', activation: 0.7 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.3 }
+      { muscle: 'Tríceps', role: 'secondary', activation: 0.7 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.3 }
     ],
     subMuscleGroup: 'Deltoides Anterior', category: 'Hipertrofia', type: 'Básico', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
     setupTime: 2, technicalDifficulty: 6, efc: 3.2, cnc: 3.0, ssc: 1.2
@@ -225,7 +225,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_squat_high_bar', name: 'Sentadilla Trasera Barra Alta', alias: 'High Bar Squat', description: 'La barra descansa sobre los trapecios. Permite un torso más vertical y enfatiza los cuádriceps.',
     involvedMuscles: [
-      { muscle: 'Cuádriceps', role: 'primary', activation: 1.0 }, { muscle: 'Glúteos', role: 'secondary', activation: 0.6 },
+      { muscle: 'Cuádriceps', role: 'primary', activation: 1.0 }, { muscle: 'Glúteo Mayor', role: 'secondary', activation: 0.6 },
       { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.4 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.3 }
     ],
     subMuscleGroup: 'Cuádriceps', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'anterior',
@@ -234,7 +234,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_squat_low_bar', name: 'Sentadilla Trasera Barra Baja', alias: 'Low Bar Squat', description: 'La barra descansa sobre los deltoides posteriores. Mayor inclinación del torso, recluta más la cadena posterior.',
     involvedMuscles: [
-      { muscle: 'Cuádriceps', role: 'primary', activation: 1.0 }, { muscle: 'Glúteos', role: 'primary', activation: 1.0 },
+      { muscle: 'Cuádriceps', role: 'primary', activation: 1.0 }, { muscle: 'Glúteo Mayor', role: 'primary', activation: 1.0 },
       { muscle: 'Isquiosurales', role: 'secondary', activation: 0.5 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }
     ],
     subMuscleGroup: 'Glúteos', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'posterior',
@@ -252,7 +252,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
   {
     id: 'db_buffalo_squat', name: 'Sentadilla Buffalo', description: 'Barra curva que reduce el estrés en los hombros y bíceps, permitiendo mantener altas cargas.',
     involvedMuscles: [
-      { muscle: 'Cuádriceps', role: 'primary', activation: 1.0 }, { muscle: 'Glúteos', role: 'primary', activation: 1.0 },
+      { muscle: 'Cuádriceps', role: 'primary', activation: 1.0 }, { muscle: 'Glúteo Mayor', role: 'primary', activation: 1.0 },
       { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 }
     ],
     subMuscleGroup: 'Piernas', category: 'Fuerza', type: 'Básico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'full',
@@ -812,7 +812,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     type: 'Básico', category: 'Fuerza', equipment: 'Barra', force: 'Bisagra',
     efc: 4.8, cnc: 5.0, ssc: 2.0,
     involvedMuscles: [
-      { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 },
+      { muscle: 'Espalda Baja', role: 'primary', activation: 1.0 },
       { muscle: 'Glúteos', role: 'primary', activation: 1.0 },
       { muscle: 'Isquiosurales', role: 'secondary', activation: 0.6 },
       { muscle: 'Bíceps', role: 'stabilizer', activation: 0.3 },
@@ -839,7 +839,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     efc: 3.8, cnc: 4.0, ssc: 1.8,
     involvedMuscles: [
       { muscle: 'Abdominales', role: 'primary', activation: 1.0 },
-      { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 },
+      { muscle: 'Espalda Baja', role: 'primary', activation: 1.0 },
       { muscle: 'Trapecio', role: 'secondary', activation: 0.6 },
       { muscle: 'Bíceps', role: 'stabilizer', activation: 0.3 }
     ]
@@ -855,7 +855,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     type: 'Aislamiento', category: 'Hipertrofia', equipment: 'Polea', force: 'Empuje',
     efc: 2.0, cnc: 1.5, ssc: 0.0,
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 },
       { muscle: 'Abdominales', role: 'stabilizer', activation: 0.3 }
     ]
@@ -867,7 +867,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     type: 'Aislamiento', category: 'Hipertrofia', equipment: 'Polea', force: 'Empuje',
     efc: 2.0, cnc: 1.5, ssc: 0.0,
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }
     ]
   },
@@ -914,7 +914,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     type: 'Básico', category: 'Hipertrofia', equipment: 'Máquina', force: 'Empuje',
     efc: 3.2, cnc: 2.2, ssc: 0.1,
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }
     ]
@@ -953,7 +953,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     type: 'Básico', category: 'Fuerza', equipment: 'Peso Corporal', force: 'Empuje',
     efc: 4.2, cnc: 4.0, ssc: 0.5,
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'primary', activation: 1.0 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
       { muscle: 'Abdominales', role: 'stabilizer', activation: 0.3 }
@@ -966,7 +966,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     type: 'Accesorio', category: 'Hipertrofia', equipment: 'Otro', force: 'Empuje',
     efc: 3.8, cnc: 4.0, ssc: 0.2,
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'secondary', activation: 0.6 },
       { muscle: 'Deltoides Anterior', role: 'stabilizer', activation: 0.5 },
       { muscle: 'Abdominales', role: 'stabilizer', activation: 0.4 }
@@ -994,7 +994,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     efc: 2.5, cnc: 2.5, ssc: 0.1,
     involvedMuscles: [
       { muscle: 'Tríceps', role: 'primary', activation: 1.0 },
-      { muscle: 'Pectorales', role: 'secondary', activation: 0.4 }
+      { muscle: 'Pectoral', role: 'secondary', activation: 0.4 }
     ]
   },
   {
@@ -1058,7 +1058,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     efc: 2.8, cnc: 1.5, ssc: 0.0,
     involvedMuscles: [
       { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
-      { muscle: 'Pectorales', role: 'secondary', activation: 0.4 },
+      { muscle: 'Pectoral', role: 'secondary', activation: 0.4 },
       { muscle: 'Tríceps', role: 'stabilizer', activation: 0.3 }
     ]
   },
@@ -1113,7 +1113,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     type: 'Básico', category: 'Hipertrofia', equipment: 'Barra', force: 'Empuje',
     efc: 3.8, cnc: 3.5, ssc: 0.0,
     involvedMuscles: [
-      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
+      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
       { muscle: 'Tríceps', role: 'primary', activation: 1.0 },
       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }
     ]
@@ -1127,7 +1127,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     involvedMuscles: [
       { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
       { muscle: 'Trapecio', role: 'primary', activation: 1.0 },
-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.7 },
+      { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.7 },
       { muscle: 'Bíceps', role: 'secondary', activation: 0.4 }
     ]
   },
@@ -1140,7 +1140,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
     involvedMuscles: [
       { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 },
       { muscle: 'Glúteos', role: 'primary', activation: 1.0 },
-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.4 }
+      { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.4 }
     ]
   },
   {

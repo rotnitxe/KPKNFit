@@ -205,7 +205,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     // ─── Render ───
     return (
-        <div className="fixed inset-0 z-[100] flex flex-col min-h-0 bg-[#FEF7FF] text-zinc-900 overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex flex-col min-h-0 bg-[#FEF7FF] text-zinc-900 safe-area-root">
             {/* Un único scroll: Hero + Tabs + Contenido */}
             <div className="flex-1 w-full min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#FEF7FF]">
                 <CompactHeroBanner
@@ -223,25 +223,25 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     trainingDaysCount={trainingDaysCount}
                 />
 
-                {/* Tabs: Estructura | Analíticas (iOS-inspired Slim Segmented Control) */}
-                <div className="flex justify-center px-4 py-6 sticky top-0 z-[50] bg-[#FEF7FF]/60 backdrop-blur-xl">
-                    <div className="flex bg-black/[0.03] backdrop-blur-3xl border border-black/[0.05] rounded-full p-1 w-full max-w-[340px] shadow-[0_8px_32px_rgba(0,0,0,0.04)] relative overflow-hidden">
+                {/* Tabs: Estructura | Analíticas (Liquid Glass Segmented control) */}
+                <div className="flex justify-center px-6 py-8">
+                    <div className="flex bg-black/[0.03] backdrop-blur-md border border-black/[0.05] rounded-[24px] p-1.5 w-full shadow-sm relative overflow-hidden">
                         {/* Animated Background Slider */}
                         <motion.div
                             animate={{ x: activeTab === 'training' ? '0%' : '100%' }}
-                            transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                            className="absolute inset-y-1 left-1 w-[calc(50%-4px)] bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/[0.03]"
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="absolute inset-y-1.5 left-1.5 w-[calc(50%-6px)] bg-white rounded-[18px] shadow-md border border-black/[0.03]"
                         />
 
                         <button
                             onClick={() => setActiveTab('training')}
-                            className={`flex-1 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all relative z-10 ${activeTab === 'training' ? 'text-black' : 'text-zinc-400 hover:text-zinc-500'}`}
+                            className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative z-10 ${activeTab === 'training' ? 'text-black' : 'text-black/30 hover:text-black/50'}`}
                         >
                             Estructura
                         </button>
                         <button
                             onClick={() => setActiveTab('analytics')}
-                            className={`flex-1 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all relative z-10 ${activeTab === 'analytics' ? 'text-black' : 'text-zinc-400 hover:text-zinc-500'}`}
+                            className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative z-10 ${activeTab === 'analytics' ? 'text-black' : 'text-black/30 hover:text-black/50'}`}
                         >
                             Analíticas
                         </button>
@@ -262,27 +262,24 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 className="flex-1 w-full"
                             >
                                 <div className="px-6 pb-4 flex flex-col gap-3">
-                                    <div className="flex items-center gap-3 px-2 mb-1">
-                                        <div className="h-[1px] flex-1 bg-black/[0.05]" />
-                                        <span className="text-[9px] font-black uppercase tracking-[0.25em] text-zinc-400">Panel de Control</span>
-                                        <div className="h-[1px] flex-1 bg-black/[0.05]" />
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={() => setIsStructureDrawerOpen(true)}
-                                            className="flex-1 h-14 rounded-3xl border border-black/[0.05] bg-white/60 backdrop-blur-lg text-[9px] font-black uppercase tracking-[0.18em] shadow-lg shadow-black/5 hover:shadow-xl hover:bg-white/80 transition-all flex flex-col justify-center items-center gap-1 text-black active:scale-[0.95]"
-                                        >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
-                                            Macrocycle
-                                        </button>
-                                        <button
-                                            onClick={() => setIsSplitChangerOpen(true)}
-                                            className="flex-1 h-14 rounded-3xl bg-[#0061A4]/90 backdrop-blur-lg text-white text-[9px] font-black uppercase tracking-[0.18em] shadow-lg shadow-[#0061A4]/20 hover:shadow-xl hover:brightness-110 transition-all flex flex-col justify-center items-center gap-1 active:scale-[0.95]"
-                                        >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-80"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
-                                            Change Split
-                                        </button>
-                                    </div>
+                                    <button
+                                        onClick={() => setIsStructureDrawerOpen(true)}
+                                        className="w-full h-14 rounded-3xl border border-black/[0.05] bg-white text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-black/5 hover:shadow-xl transition-all flex justify-center items-center gap-3 text-black active:scale-[0.98]"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-black/[0.03] flex items-center justify-center">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
+                                        </div>
+                                        Editar Macrociclos
+                                    </button>
+                                    <button
+                                        onClick={() => setIsSplitChangerOpen(true)}
+                                        className="w-full h-14 rounded-3xl bg-[#0061A4] text-white text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-[#0061A4]/20 hover:shadow-xl hover:brightness-110 transition-all flex justify-center items-center gap-3 active:scale-[0.98]"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+                                        </div>
+                                        Cambiar Split
+                                    </button>
                                 </div>
 
                                 <ProgramStructureTab
@@ -296,8 +293,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                     onAddSession={() => handleAddSession(program.id, 0, 0, selectedWeekId || '')}
                                     onDeleteSession={onDeleteSessionHandler}
                                     onUpdateProgram={handleUpdateProgram}
-                                    onEditMacrocycle={() => setIsStructureDrawerOpen(true)}
-                                    onChangeSplit={() => setIsSplitChangerOpen(true)}
                                 />
                                 <div className="h-[max(120px,calc(100px+env(safe-area-inset-bottom)))]" />
                             </motion.div>
