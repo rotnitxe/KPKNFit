@@ -9,6 +9,7 @@ import {
   SearchIcon,
   SparklesIcon,
   ClipboardListIcon,
+  RulerIcon,
 } from './icons';
 import { motion } from 'framer-motion';
 
@@ -225,6 +226,14 @@ const WikiHomeView: React.FC = () => {
           onClick={() => navigateTo('kpkn', { tab: 'listas' })}
           icon={<ClipboardListIcon size={24} />}
           delay={0.25}
+        />
+        <WikiSectionCard
+          title="Palitos Biomecánicos"
+          subtitle="Leverages & IK"
+          accentColor="bg-[#E0F2FE] text-sky-700"
+          onClick={() => navigateTo('wikilab-biomechanics')}
+          icon={<RulerIcon size={24} />}
+          delay={0.3}
         />
       </section>
 

@@ -266,3 +266,57 @@ export const DropletsIcon: React.FC<IconProps> = ({ size = 20, className = '', s
         <path d="M17 16.3c2.2 0 4-1.8 4-4 0-3.3-4-6-4-6s-4 2.7-4 6c0 2.2 1.8 4 4 4z" />
     </svg>
 );
+
+export const UserIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+    </svg>
+);
+
+export const FoodIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <path d="M18 8c0-2.5-2-4-4-4s-4 1.5-4 4c0 1.5.5 2.5 1 3.5V20h6v-8.5c.5-1 1-2 1-3.5z" />
+        <path d="M8 20v-4" />
+        <path d="M4 20v-8" />
+    </svg>
+);
+
+export const LayoutIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+        <line x1="3" x2="21" y1="9" y2="9" />
+        <line x1="9" x2="9" y1="21" y2="9" />
+    </svg>
+);
+
+export const TimerIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <line x1="10" x2="14" y1="2" y2="2" />
+        <line x1="12" x2="15" y1="14" y2="11" />
+        <circle cx="12" cy="14" r="8" />
+    </svg>
+);
+
+export const FlagIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+        <line x1="4" x2="4" y1="22" y2="15" />
+    </svg>
+);
+
+export const ShieldIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+);
+
+export const SparklesIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+        <path d="M5 3v4" />
+        <path d="M9 5H5" />
+        <path d="M19 17v4" />
+        <path d="M15 19h4" />
+    </svg>
+);

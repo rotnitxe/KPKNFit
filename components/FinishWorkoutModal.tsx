@@ -90,7 +90,7 @@ export const buildShareCardDataFromLog = (log: { date: string; duration?: number
 
 const MAX_EXERCISES_IN_SHARE = 14;
 
-export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, exerciseSummaries, preview }) => {
+export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, difficulty, pump, exerciseSummaries, preview }) => {
   const displayed = exerciseSummaries.slice(0, MAX_EXERCISES_IN_SHARE);
   const restCount = exerciseSummaries.length - MAX_EXERCISES_IN_SHARE;
 
@@ -98,68 +98,100 @@ export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> =
     ? 'relative w-[540px] h-[960px] flex items-center justify-center font-sans overflow-hidden'
     : 'fixed w-[540px] h-[960px] flex items-center justify-center font-sans overflow-hidden pointer-events-none';
   const captureStyle: React.CSSProperties = preview ? {} : { left: 0, top: 0, zIndex: -1 };
+
   return (
     <div id={preview ? undefined : 'workout-summary-share-card'} className={wrapperClass} style={preview ? undefined : captureStyle}>
-      {/* Fondo del frame (gradiente sutil) */}
-      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.08)_0%,transparent_70%)]" />
+      {/* Dynamic Background with depth */}
+      <div className="absolute inset-0 bg-[#0f0f11]" />
+      <div className="absolute inset-0 opacity-40 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
 
-      {/* Tarjeta centrada con bordes redondeados */}
-      <div className="relative w-[480px] h-[860px] rounded-[28px] overflow-hidden border border-white/[0.12] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_25px_50px_-12px_rgba(0,0,0,0.5)] flex flex-col bg-[#FEF7FF]">
-        <div className="absolute inset-0 z-0 opacity-30 mix-blend-luminosity scale-110 -translate-y-8" style={{ overflow: 'hidden' }}>
+      {/* Decorative Orbs */}
+      <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-[var(--m3-primary)]/20 blur-[120px]" />
+      <div className="absolute bottom-[5%] left-[-20%] w-[500px] h-[500px] rounded-full bg-[var(--m3-tertiary)]/15 blur-[140px]" />
+
+      {/* Main Glass Card */}
+      <div className="relative w-[480px] h-[860px] rounded-[48px] overflow-hidden border border-white/10 shadow-2xl flex flex-col"
+        style={{
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(40px)',
+          WebkitBackdropFilter: 'blur(40px)',
+          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px -12px rgba(0,0,0,0.5)'
+        }}>
+
+        {/* Subtle texture in glass */}
+        <div className="absolute inset-0 z-0 opacity-10 mix-blend-soft-light pointer-events-none">
           <CaupolicanBackground />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/50 to-zinc-950 z-0" />
-        <div className="absolute inset-0 opacity-[0.12] mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
 
-        <div className="relative z-10 flex flex-col h-full p-5 box-border text-white" style={{ minHeight: 0 }}>
-          {/* Header */}
-          <div className="flex justify-between items-center shrink-0 mb-2">
-            <div>
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block">Sesión de entrenamiento</span>
-              <span className="text-sm font-bold text-white">{new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+        <div className="relative z-10 flex flex-col h-full p-8 text-white">
+          {/* Top Brand Header */}
+          <div className="flex justify-between items-start mb-8">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black text-[var(--m3-primary)] uppercase tracking-[0.3em] block">KPKN FIT</span>
+              <h1 className="text-2xl font-black tracking-tight leading-none text-white">Workout Summary</h1>
+              <p className="text-xs font-medium text-white/50">{new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
             </div>
-            <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center p-1.5 shrink-0 shadow-lg">
-              <img src="/caupolican-icon.svg" alt="" className="w-full h-full object-contain" loading="eager" decoding="sync" aria-hidden />
+            <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center p-2.5 backdrop-blur-md">
+              <img src="/caupolican-icon.svg" alt="logo" className="w-full h-full object-contain" />
             </div>
           </div>
 
-          {/* Ejercicios */}
-          <div className="flex-1 min-h-0 flex flex-col py-2">
-            {displayed.length > 0 ? (
-              <div className="space-y-0.5 flex-1 min-h-0" style={{ overflow: 'hidden' }}>
-                {displayed.map((ex, i) => (
-                  <div key={i} className="flex justify-between gap-2 text-[10px] leading-tight py-0.5">
-                    <span className="font-bold text-white flex-1 min-w-0 truncate">{ex.name}</span>
-                    <span className="text-cyan-400/90 font-mono shrink-0 text-right">{ex.line}</span>
-                  </div>
-                ))}
-                {restCount > 0 && (
-                  <div className="text-[9px] text-white/50 pt-1">+{restCount} más</div>
-                )}
+          {/* Core Stats Row */}
+          <div className="grid grid-cols-3 gap-3 mb-8">
+            {[
+              { label: 'Tiempo', value: duration, unit: 'min', icon: <ClockIcon size={14} /> },
+              { label: 'Dificultad', value: difficulty, unit: '/10', icon: <FlameIcon size={14} /> },
+              { label: 'Pump', value: pump, unit: '/10', icon: <ActivityIcon size={14} /> }
+            ].map((s, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center">
+                <div className="text-white/40 mb-2">{s.icon}</div>
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-xl font-black text-white">{s.value}</span>
+                  <span className="text-[8px] font-bold text-white/30 uppercase">{s.unit}</span>
+                </div>
+                <span className="text-[8px] font-bold uppercase tracking-wider text-white/40 mt-1">{s.label}</span>
               </div>
-            ) : (
-              <div className="flex items-center justify-center flex-1 min-h-[80px]">
-                <span className="text-white/40 text-xs">Ejercicios de la sesión</span>
+            ))}
+          </div>
+
+          {/* Exercise List - More elegant typography */}
+          <div className="flex-1 min-h-0 py-2">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-[1px] flex-1 bg-white/10" />
+              <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Ejercicios</span>
+              <div className="h-[1px] flex-1 bg-white/10" />
+            </div>
+
+            <div className="space-y-2 overflow-hidden">
+              {displayed.map((ex, i) => (
+                <div key={i} className="flex flex-col gap-0.5 group">
+                  <div className="flex justify-between items-baseline gap-4">
+                    <span className="text-[11px] font-bold text-white/90 truncate">{ex.name}</span>
+                    <div className="h-[1px] flex-1 border-b border-dashed border-white/10" />
+                    <span className="text-[10px] font-black text-[var(--m3-primary)]/80 tracking-tight shrink-0">{ex.line}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {restCount > 0 && (
+              <div className="mt-4 flex justify-center">
+                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-white/40 uppercase tracking-widest">+{restCount} ejercicios más</span>
               </div>
             )}
-            <div className="h-0.5 w-full mt-2 rounded-full bg-gradient-to-r from-red-500 to-cyan-500 shrink-0" />
           </div>
 
-          {/* Minutos + footer */}
-          <div className="shrink-0 space-y-2 pt-2">
-            <div className="bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-2.5 flex items-center justify-center gap-2">
-              <ClockIcon size={18} className="text-white/50 shrink-0" />
-              <span className="text-xl font-black text-white">{duration}</span>
-              <span className="text-[9px] text-[#49454F] font-bold uppercase shrink-0">min</span>
-            </div>
-            <p className="text-[9px] font-black text-white/40 uppercase tracking-widest text-center">Registra tus entrenamientos con KPKN</p>
+          {/* Bottom Footer */}
+          <div className="mt-auto pt-8 flex flex-col items-center">
+            <div className="w-12 h-1 rounded-full bg-gradient-to-r from-[var(--m3-primary)] to-[var(--m3-tertiary)] mb-4 opacity-50" />
+            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.4em] mb-1">UNLEASH YOUR POTENTIAL</p>
+            <p className="text-[8px] text-white/20 font-medium">kpkn-fit.app</p>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
 
 const MUSCLE_LABEL_MAP: Record<string, string> = {
   'Tríceps': 'Tríceps', 'Bíceps': 'Bíceps', 'Pectorales': 'Pectorales', 'Dorsales': 'Dorsales',

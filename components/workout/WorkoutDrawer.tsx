@@ -30,15 +30,13 @@ const WorkoutDrawer: React.FC<WorkoutDrawerProps> = ({
         aria-hidden="true"
       />
       <div
-        className="fixed bottom-0 left-0 right-0 z-[100000] liquid-glass-panel flex flex-col animate-slide-up pb-[env(safe-area-inset-bottom,0px)] rounded-t-[32px] border-t border-[var(--md-sys-color-outline-variant)]/50"
+        className="fixed bottom-0 left-0 right-0 z-[100000] liquid-glass-panel flex flex-col animate-slide-up pb-[env(safe-area-inset-bottom,0px)] rounded-t-[40px] border-t border-white/10"
         style={{
           maxHeight: height,
-          background:
-            'linear-gradient(160deg, rgba(254,247,255,0.88) 0%, rgba(247,242,250,0.82) 100%)',
-          backdropFilter: 'blur(28px) saturate(140%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(140%)',
-          boxShadow:
-            '0 -18px 42px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.52)',
+          background: 'linear-gradient(180deg, rgba(28, 27, 31, 0.9) 0%, rgba(15, 15, 15, 0.98) 100%)',
+          backdropFilter: 'blur(30px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(30px) saturate(160%)',
+          boxShadow: '0 -20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
         }}
       >
         <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-[var(--md-sys-color-outline-variant)]/35">

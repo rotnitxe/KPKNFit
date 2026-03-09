@@ -25,6 +25,7 @@ const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => rootRoute, path: '/log-hub', ...outlet() }),
     createRoute({ getParentRoute: () => rootRoute, path: '/achievements', ...outlet() }),
     createRoute({ getParentRoute: () => rootRoute, path: '/kpkn', ...outlet() }),
+    createRoute({ getParentRoute: () => rootRoute, path: '/wiki-home/biomechanics', ...outlet() }),
     createRoute({ getParentRoute: () => rootRoute, path: '/kpkn/exercise/$exerciseId', ...outlet() }),
     createRoute({ getParentRoute: () => rootRoute, path: '/kpkn/muscle/$muscleGroupId', ...outlet() }),
     createRoute({ getParentRoute: () => rootRoute, path: '/kpkn/joint/$jointId', ...outlet() }),
@@ -59,3 +60,4 @@ declare module '@tanstack/react-router' {
         router: typeof router;
     }
 }
+

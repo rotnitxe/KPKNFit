@@ -99,6 +99,7 @@ export type View =
     | 'tendon-detail'
     | 'movement-pattern-detail'
     | 'wiki-home'
+    | 'wikilab-biomechanics'
     | 'nutrition'
     | 'food-detail'
     | 'session-detail'
@@ -1700,6 +1701,7 @@ export const WorkoutLogSchema = z.object({
     photo: z.string().optional(),
     caloriesBurned: z.number().optional(),
 });
+
 
 
 

@@ -655,7 +655,7 @@ const SetDetails: React.FC<{
 
             <GhostSetInfo exerciseId={(exercise.exerciseDbId || exercise.id) as string} setIndex={setIndex} history={history} settings={settings} />
 
-            {showFailureWarning && <div className="mx-2 mb-2 bg-cyber-danger/20 border border-cyber-danger/50 p-3 rounded-xl animate-fade-in relative z-10 text-center"><h4 className="text-cyber-danger font-bold text-sm mb-1">¿Fallo Anticipado?</h4><div className="flex gap-2"><button onClick={() => setShowFailureWarning(false)} className="flex-1 py-2 bg-slate-800 rounded text-xs font-bold">Corregir</button><button onClick={() => onLogSet()} className="flex-1 py-2 bg-cyber-danger rounded text-xs font-bold text-white">Sí, Guardar</button></div></div>}
+            {showFailureWarning && <div className="mx-2 mb-2 bg-red-500/10 border border-red-500/40 p-3 rounded-xl animate-fade-in relative z-10 text-center"><h4 className="text-red-500 font-bold text-sm mb-1">¿Fallo Anticipado?</h4><div className="flex gap-2"><button onClick={() => setShowFailureWarning(false)} className="flex-1 py-2 bg-slate-800 rounded text-xs font-bold">Corregir</button><button onClick={() => onLogSet()} className="flex-1 py-2 bg-red-500 rounded text-xs font-bold text-white">Sí, Guardar</button></div></div>}
 
             <div className="space-y-4 px-2">
                 <div className="flex justify-between items-center text-xs px-1 mb-1">
@@ -834,7 +834,7 @@ const SetDetails: React.FC<{
                         <p className="text-sm text-slate-300 text-center mb-4">No se pudo completar ninguna repetición. ¿Cuál fue la causa?</p>
                         <div className="space-y-2">
                             <Button onClick={() => handleFailedSet('Dolor / Lesión')} variant="danger" className="w-full">Dolor / Molestia</Button>
-                            <Button onClick={() => handleFailedSet('Peso Excesivo')} variant="secondary" className="w-full text-cyber-danger">Carga Excesiva</Button>
+                            <Button onClick={() => handleFailedSet('Peso Excesivo')} variant="secondary" className="w-full text-red-500">Carga Excesiva</Button>
                             <Button onClick={() => handleFailedSet('Fallo Técnico')} variant="secondary" className="w-full">Fallo Técnico</Button>
                         </div>
                     </div>

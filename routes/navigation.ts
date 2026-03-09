@@ -38,6 +38,7 @@ export function viewToPath(view: View, data?: any): string {
         case 'log-hub': return '/log-hub';
         case 'achievements': return '/achievements';
         case 'kpkn': return '/kpkn';
+        case 'wikilab-biomechanics': return '/wiki-home/biomechanics';
         case 'exercise-detail': return `/kpkn/exercise/${data?.exerciseId || '_'}`;
         case 'muscle-group-detail': return `/kpkn/muscle/${data?.muscleGroupId || '_'}`;
         case 'joint-detail': return `/kpkn/joint/${data?.jointId || '_'}`;
@@ -81,3 +82,4 @@ export function routerBack() {
         window.history.back();
     }
 }
+
