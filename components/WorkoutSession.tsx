@@ -1690,9 +1690,9 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
             <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative bg-[var(--md-sys-color-surface-container)]">
                 {displayParts.map((part: any, partIndex: number) => (
-                    <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group [&>summary]:hidden">
-                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({ ...prev, [part.id]: !prev[part.id] })); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none bg-[#252525]">
-                            <div className="flex items-center gap-3"><h3 className="text-sm font-medium uppercase tracking-wide text-[#a3a3a3]">{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-[#737373] transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
+                    <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group">
+                        <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({ ...prev, [part.id]: !prev[part.id] })); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none bg-[var(--md-sys-color-surface-container-high)] rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
+                            <div className="flex items-center gap-3"><h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-primary)]">{part.name || 'Sesión'}</h3></div><ChevronRightIcon className={`text-[var(--md-sys-color-on-surface-variant)] transition-transform ${collapsedParts[part.id] ? '' : 'rotate-90'}`} size={16} />
                         </summary>
                         <div className="space-y-4 relative pl-0 pr-0 w-full">
                             {part.exercises.map((ex: Exercise) => {
@@ -1708,7 +1708,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                             open={isActive || true}
                                             className={`set-card-details w-full overflow-visible transition-all duration-500 !border-0 !shadow-none !bg-transparent ${isFocused ? 'z-40 ring-2 ring-white/30' : ''}`}
                                         >
-                                            <summary className="set-card-summary p-3 flex flex-col items-stretch hidden" onClick={() => handleHeaderClick(ex.id)}>
+                                            <summary className="set-card-summary p-3 flex flex-col items-stretch" onClick={() => handleHeaderClick(ex.id)}>
                                                 <div className="flex items-center justify-between gap-3 w-full">
                                                     <div className="flex items-center gap-3 min-w-0 flex-1">
                                                         <div className={`w-8 h-8 flex items-center justify-center font-medium text-lg flex-shrink-0 bg-[#252525] text-[#a3a3a3]`}>
@@ -1880,86 +1880,88 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 </WorkoutDrawer>
             )}
 
-            {numpadState && (() => {
-                const raw = setInputs[numpadState.setId];
-                const ex = allExercises.find(e => e.id === numpadState.exerciseId);
-                const isTimeMode = ex?.trainingMode === 'time';
-                const side = numpadState.side ?? (ex?.isUnilateral ? 'left' as const : undefined);
-                const base = raw && side && 'left' in raw ? (raw as UnilateralSetInputs)[side] : (raw as SetInputState);
+            <AnimatePresence>
+                {numpadState && (() => {
+                    const raw = setInputs[numpadState.setId];
+                    const ex = allExercises.find(e => e.id === numpadState.exerciseId);
+                    const isTimeMode = ex?.trainingMode === 'time';
+                    const side = numpadState.side;
+                    const base: SetInputState = (raw && !('left' in raw)) ? (raw as SetInputState) : (raw as UnilateralSetInputs)?.[side || 'left'] || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, duration: '', partialReps: '' };
 
-                let currentValue = '';
-                if (base) {
-                    if (numpadState.field === 'dropSetWeight' && numpadState.dropSetIndex != null && base.dropSets?.[numpadState.dropSetIndex])
-                        currentValue = base.dropSets[numpadState.dropSetIndex].weight === 0 ? '' : String(base.dropSets[numpadState.dropSetIndex].weight);
-                    else if (numpadState.field === 'dropSetReps' && numpadState.dropSetIndex != null && base.dropSets?.[numpadState.dropSetIndex])
-                        currentValue = base.dropSets[numpadState.dropSetIndex].reps === 0 ? '' : String(base.dropSets[numpadState.dropSetIndex].reps);
-                    else if (numpadState.field === 'restPauseRestTime' && numpadState.restPauseIndex != null && base.restPauses?.[numpadState.restPauseIndex])
-                        currentValue = base.restPauses[numpadState.restPauseIndex].restTime === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].restTime);
-                    else if (numpadState.field === 'restPauseReps' && numpadState.restPauseIndex != null && base.restPauses?.[numpadState.restPauseIndex])
-                        currentValue = base.restPauses[numpadState.restPauseIndex].reps === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].reps);
-                    else {
-                        const ef = numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field;
-                        if (['weight', 'reps', 'duration', 'partialReps', 'rpe', 'rir'].includes(ef))
-                            currentValue = String(base[ef as keyof SetInputState] ?? '');
+                    let currentValue = '';
+                    if (base) {
+                        if (numpadState.field === 'dropSetWeight' && numpadState.dropSetIndex != null && base.dropSets?.[numpadState.dropSetIndex])
+                            currentValue = base.dropSets[numpadState.dropSetIndex].weight === 0 ? '' : String(base.dropSets[numpadState.dropSetIndex].weight);
+                        else if (numpadState.field === 'dropSetReps' && numpadState.dropSetIndex != null && base.dropSets?.[numpadState.dropSetIndex])
+                            currentValue = base.dropSets[numpadState.dropSetIndex].reps === 0 ? '' : String(base.dropSets[numpadState.dropSetIndex].reps);
+                        else if (numpadState.field === 'restPauseRestTime' && numpadState.restPauseIndex != null && base.restPauses?.[numpadState.restPauseIndex])
+                            currentValue = base.restPauses[numpadState.restPauseIndex].restTime === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].restTime);
+                        else if (numpadState.field === 'restPauseReps' && numpadState.restPauseIndex != null && base.restPauses?.[numpadState.restPauseIndex])
+                            currentValue = base.restPauses[numpadState.restPauseIndex].reps === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].reps);
+                        else {
+                            const ef = numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field;
+                            if (['weight', 'reps', 'duration', 'partialReps', 'rpe', 'rir'].includes(ef))
+                                currentValue = String(base[ef as keyof SetInputState] ?? '');
+                        }
                     }
-                }
 
-                const handleNumpadChange = (v: string) => {
-                    if (numpadState.field === 'dropSetWeight' && numpadState.dropSetIndex != null) {
-                        const arr = [...(base?.dropSets || [])];
-                        if (!arr[numpadState.dropSetIndex]) arr[numpadState.dropSetIndex] = { weight: 0, reps: 0 };
-                        arr[numpadState.dropSetIndex] = { ...arr[numpadState.dropSetIndex], weight: v === '' ? 0 : parseFloat(v) || 0 };
-                        handleSetInputChange(numpadState.setId, 'dropSets', arr, side);
-                    } else if (numpadState.field === 'dropSetReps' && numpadState.dropSetIndex != null) {
-                        const arr = [...(base?.dropSets || [])];
-                        if (!arr[numpadState.dropSetIndex]) arr[numpadState.dropSetIndex] = { weight: 0, reps: 0 };
-                        arr[numpadState.dropSetIndex] = { ...arr[numpadState.dropSetIndex], reps: v === '' ? 0 : parseInt(v, 10) || 0 };
-                        handleSetInputChange(numpadState.setId, 'dropSets', arr, side);
-                    } else if (numpadState.field === 'restPauseRestTime' && numpadState.restPauseIndex != null) {
-                        const arr = [...(base?.restPauses || [])];
-                        if (!arr[numpadState.restPauseIndex]) arr[numpadState.restPauseIndex] = { restTime: 15, reps: 0 };
-                        arr[numpadState.restPauseIndex] = { ...arr[numpadState.restPauseIndex], restTime: v === '' ? 0 : parseInt(v, 10) || 0 };
-                        handleSetInputChange(numpadState.setId, 'restPauses', arr, side);
-                    } else if (numpadState.field === 'restPauseReps' && numpadState.restPauseIndex != null) {
-                        const arr = [...(base?.restPauses || [])];
-                        if (!arr[numpadState.restPauseIndex]) arr[numpadState.restPauseIndex] = { restTime: 15, reps: 0 };
-                        arr[numpadState.restPauseIndex] = { ...arr[numpadState.restPauseIndex], reps: v === '' ? 0 : parseInt(v, 10) || 0 };
-                        handleSetInputChange(numpadState.setId, 'restPauses', arr, side);
-                    } else {
-                        const ef = (numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field) as keyof SetInputState;
-                        handleSetInputChange(numpadState.setId, ef, v, side);
-                        if (numpadState.field === 'partialReps' && parseFloat(v) > 0)
-                            handleSetInputChange(numpadState.setId, 'isPartial', true, side);
-                    }
-                };
+                    const handleNumpadChange = (v: string) => {
+                        if (numpadState.field === 'dropSetWeight' && numpadState.dropSetIndex != null) {
+                            const arr = [...(base?.dropSets || [])];
+                            if (!arr[numpadState.dropSetIndex]) arr[numpadState.dropSetIndex] = { weight: 0, reps: 0 };
+                            arr[numpadState.dropSetIndex] = { ...arr[numpadState.dropSetIndex], weight: v === '' ? 0 : parseFloat(v) || 0 };
+                            handleSetInputChange(numpadState.setId, 'dropSets', arr, side);
+                        } else if (numpadState.field === 'dropSetReps' && numpadState.dropSetIndex != null) {
+                            const arr = [...(base?.dropSets || [])];
+                            if (!arr[numpadState.dropSetIndex]) arr[numpadState.dropSetIndex] = { weight: 0, reps: 0 };
+                            arr[numpadState.dropSetIndex] = { ...arr[numpadState.dropSetIndex], reps: v === '' ? 0 : parseInt(v, 10) || 0 };
+                            handleSetInputChange(numpadState.setId, 'dropSets', arr, side);
+                        } else if (numpadState.field === 'restPauseRestTime' && numpadState.restPauseIndex != null) {
+                            const arr = [...(base?.restPauses || [])];
+                            if (!arr[numpadState.restPauseIndex]) arr[numpadState.restPauseIndex] = { restTime: 15, reps: 0 };
+                            arr[numpadState.restPauseIndex] = { ...arr[numpadState.restPauseIndex], restTime: v === '' ? 0 : parseInt(v, 10) || 0 };
+                            handleSetInputChange(numpadState.setId, 'restPauses', arr, side);
+                        } else if (numpadState.field === 'restPauseReps' && numpadState.restPauseIndex != null) {
+                            const arr = [...(base?.restPauses || [])];
+                            if (!arr[numpadState.restPauseIndex]) arr[numpadState.restPauseIndex] = { restTime: 15, reps: 0 };
+                            arr[numpadState.restPauseIndex] = { ...arr[numpadState.restPauseIndex], reps: v === '' ? 0 : parseInt(v, 10) || 0 };
+                            handleSetInputChange(numpadState.setId, 'restPauses', arr, side);
+                        } else {
+                            const ef = (numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field) as keyof SetInputState;
+                            handleSetInputChange(numpadState.setId, ef, v, side);
+                            if (numpadState.field === 'partialReps' && parseFloat(v) > 0)
+                                handleSetInputChange(numpadState.setId, 'isPartial', true, side);
+                        }
+                    };
 
-                const isDecimal = ['weight', 'rpe', 'dropSetWeight'].includes(numpadState.field);
-                const labels: Record<string, string> = {
-                    weight: `Kg (${settings.weightUnit})`,
-                    reps: 'Reps',
-                    partialReps: 'Parciales',
-                    duration: 'Seg',
-                    rpe: 'RPE',
-                    rir: 'RIR',
-                    dropSetWeight: `Kg`,
-                    dropSetReps: 'Reps',
-                    restPauseRestTime: 's',
-                    restPauseReps: 'Reps',
-                };
-                return (
-                    <NumpadOverlay
-                        value={currentValue}
-                        onChange={handleNumpadChange}
-                        onClose={() => setNumpadState(null)}
-                        onNext={settings.sessionAutoAdvanceFields !== false && numpadState.field === 'weight'
-                            ? () => setNumpadState({ ...numpadState, field: 'reps' })
-                            : undefined}
-                        mode={isDecimal ? 'decimal' : 'integer'}
-                        label={labels[numpadState.field] ?? numpadState.field}
-                        showNextButton={numpadState.field === 'weight'}
-                    />
-                );
-            })()}
+                    const isDecimal = ['weight', 'rpe', 'dropSetWeight'].includes(numpadState.field);
+                    const labels: Record<string, string> = {
+                        weight: `Carga del Set (${settings.weightUnit})`,
+                        reps: 'Repeticiones Reales',
+                        partialReps: 'Repeticiones Parciales',
+                        duration: 'Tiempo Bajo Tensión (s)',
+                        rpe: 'RPE Prescrito',
+                        rir: 'RIR Estimado',
+                        dropSetWeight: `Carga Dropset (${settings.weightUnit})`,
+                        dropSetReps: 'Reps Dropset',
+                        restPauseRestTime: 'Descanso RP (s)',
+                        restPauseReps: 'Reps Rest-Pause',
+                    };
+                    return (
+                        <NumpadOverlay
+                            value={currentValue}
+                            onChange={handleNumpadChange}
+                            onClose={() => setNumpadState(null)}
+                            onNext={settings.sessionAutoAdvanceFields !== false && numpadState.field === 'weight'
+                                ? () => setNumpadState({ ...numpadState, field: 'reps' })
+                                : undefined}
+                            mode={isDecimal ? 'decimal' : 'integer'}
+                            label={labels[numpadState.field] ?? numpadState.field}
+                            showNextButton={numpadState.field === 'weight'}
+                        />
+                    );
+                })()}
+            </AnimatePresence>
 
             {showReadiness && (
                 <ReadinessSheet
