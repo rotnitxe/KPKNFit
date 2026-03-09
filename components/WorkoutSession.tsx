@@ -27,6 +27,7 @@ import ExerciseCardContextMenu from './workout/ExerciseCardContextMenu';
 import { InCardTimer } from './workout/InCardTimer';
 import { SetTimerButton } from './workout/SetTimerButton';
 import { useKeyboardOverlayMode } from '../hooks/useKeyboardOverlayMode';
+import ReadinessSheet from './workout/ReadinessSheet';
 
 // --- ENHANCED GOAL PROGRESS OVERLAY (STABLE & ELEGANT) ---
 const GoalProgressOverlay: React.FC<{
@@ -1151,7 +1152,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 {/* Action Chips */}
                 <div className="flex flex-wrap gap-2 mb-6">
                     <button
-                        onClick={(e) => { e.stopPropagation(); setShowHistoryModal(exercise.exerciseDbId as string); }}
+                        onClick={(e) => { e.stopPropagation(); setHistoryModalExercise(exercise); }}
                         className="m3-chip bg-white/5 text-white/60 hover:bg-white/10"
                     >
                         <TrophyIcon size={14} className="mr-2" /> Historial
@@ -1166,9 +1167,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 {/* Sets Section */}
                 <div className="space-y-4">
                     {exercise.sets.map((set, sIdx) => {
-                        const setId = `${exercise.id}-set-${sIdx}`;
-                        const logData = ongoingWorkout?.completedSets?.[setId];
-                        const isLogged = !!logData;
+                        const setId = set.id;
+                        const isLogged = !!completedSets[setId];
 
                         return (
                             <div key={setId} className="relative">
@@ -1179,12 +1179,12 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                     setIndex={sIdx}
                                     setId={setId}
                                     settings={settings}
-                                    inputs={ongoingWorkout?.unilateralSetInputs?.[setId] || { reps: '', weight: '', rpe: '', rir: '', partialReps: '' }}
-                                    onInputChange={(f, v, s) => handleSetInputChange(setId, f, v, s)}
-                                    onLogSet={() => handleLogSet(exercise, sIdx)}
+                                    inputs={setInputs[setId] || { reps: '', weight: '', rpe: '', rir: '', partialReps: '' }}
+                                    onInputChange={(f, v, s) => handleSetInputChange(setId, f as keyof SetInputState, v, s)}
+                                    onLogSet={() => handleLogSet(exercise, set)}
                                     isLogged={isLogged}
                                     history={history}
-                                    onOpenNumpad={(opts) => setNumpadState({ ...opts, setId, exerciseId: exercise.id })}
+                                    onOpenNumpad={(opts) => setNumpadState({ ...opts, setId, exerciseId: exercise.id } as any)}
                                     addToast={addToast}
                                 />
                             </div>
