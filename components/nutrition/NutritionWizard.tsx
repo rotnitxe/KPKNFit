@@ -45,9 +45,9 @@ const METRIC_META: Record<NutritionGoalMetric, { label: string; unit: string; mi
 };
 
 const GOAL_DIRECTION_META: Record<GoalDirection, { title: string; subtitle: string }> = {
-    lose: { title: 'Definición', subtitle: 'Déficit controlado y preservación muscular' },
-    maintain: { title: 'Mantención', subtitle: 'Equilibrio para sostener composición corporal' },
-    gain: { title: 'Volumen limpio', subtitle: 'Superávit moderado para ganar masa muscular' },
+    lose: { title: 'Definición', subtitle: 'Reduciremos grasa de forma segura y sostenible' },
+    maintain: { title: 'Mantención', subtitle: 'Mantendremos tu composición corporal estable' },
+    gain: { title: 'Volumen limpio', subtitle: 'Subiremos masa muscular con control y progresión' },
 };
 
 const DIET_OPTIONS = [
@@ -132,6 +132,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     const [carbsGoal, setCarbsGoal] = useState<number>(settings.dailyCarbGoal ?? 220);
     const [fatsGoal, setFatsGoal] = useState<number>(settings.dailyFatGoal ?? 70);
     const [overrideAcknowledged, setOverrideAcknowledged] = useState(false);
+    const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
     const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
 
     useEffect(() => {
@@ -409,7 +410,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 addToast('Confirma o edita la composición corporal antes de continuar.', 'danger');
                 return;
             }
-            addToast('Faltan datos obligatorios en este paso.', 'danger');
+            addToast('Completa los datos de este paso para continuar.', 'danger');
             return;
         }
 
@@ -548,7 +549,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         <div className="sticky top-0 z-20 backdrop-blur-xl bg-[var(--md-sys-color-surface)]/85 border-b border-black/[0.05]">
             <div style={{ paddingLeft: layout.pagePadX, paddingRight: layout.pagePadX, paddingTop: layout.headerPadY, paddingBottom: layout.headerPadY }}>
                 <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#49454F]">Configurar plan de alimentación</p>
-                <h2 className="font-black text-[#1D1B20] mt-1" style={{ fontSize: layout.headerTitleSize }}>Wizard Clínico v2</h2>
+                <h2 className="font-black text-[#1D1B20] mt-1" style={{ fontSize: layout.headerTitleSize }}>Asistente de plan nutricional</h2>
                 <div className="grid grid-cols-5 mt-4" style={{ gap: layout.stepGap }}>
                     {Array.from({ length: TOTAL_STEPS }).map((_, index) => (
                         <div key={index} className="space-y-1">
@@ -732,7 +733,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
                 {autoEstimatedComposition && (
                     <div className="mt-4 rounded-2xl border border-[#7D5700]/20 bg-[#7D5700]/10 p-4">
-                        <p className="text-sm font-bold text-[#6B4F00]">Se aplicó estimación asistida. Debes confirmar o editar estos valores para continuar.</p>
+                        <p className="text-sm font-bold text-[#6B4F00]">Te sugerimos una estimación inicial para ayudarte a partir. Revísala y confírmala antes de continuar.</p>
                         <button onClick={() => setCompositionConfirmed(true)} className="mt-3 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-[0.14em] bg-[#7D5700]/20 text-[#6B4F00]">Confirmar estimación</button>
                     </div>
                 )}
@@ -742,20 +743,27 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     const renderStep3 = () => (
         <div className="space-y-4">
             <section className={sectionClass} style={{ borderRadius: layout.sectionRadius, padding: layout.sectionPadding }}>
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Actividad y contexto metabólico</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Actividad y estilo de alimentación</p>
+                <p className="text-sm text-[#49454F] mt-1">Ajustamos tu plan según tu semana real, no según un escenario ideal.</p>
 
                 <div className="grid grid-cols-1 gap-2 mt-3">
-                    {[1, 2, 3, 4, 5].map((level) => (
+                    {[
+                        { level: 1, label: 'Muy baja actividad' },
+                        { level: 2, label: 'Actividad ligera' },
+                        { level: 3, label: 'Actividad moderada' },
+                        { level: 4, label: 'Actividad alta' },
+                        { level: 5, label: 'Actividad muy alta' },
+                    ].map((item) => (
                         <button
-                            key={level}
-                            onClick={() => setActivityLevel(level)}
-                            className={`rounded-xl border px-2 py-2 text-xs font-black uppercase tracking-[0.12em] ${
-                                activityLevel === level
+                            key={item.level}
+                            onClick={() => setActivityLevel(item.level)}
+                            className={`rounded-xl border px-3 py-2.5 text-left text-xs font-black uppercase tracking-[0.12em] ${
+                                activityLevel === item.level
                                     ? 'bg-[#006A6A]/10 border-[#006A6A]/40 text-[#005353]'
                                     : 'bg-white border-black/[0.08] text-[#49454F]'
                             }`}
                         >
-                            L{level}
+                            {item.label}
                         </button>
                     ))}
                 </div>
@@ -767,21 +775,21 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         checked={useAdvancedActivity}
                         onChange={(event) => setUseAdvancedActivity(event.target.checked)}
                     />
-                    <label htmlFor="advanced-activity" className="text-sm text-[#1D1B20]">Ajuste avanzado de actividad</label>
+                    <label htmlFor="advanced-activity" className="text-sm text-[#1D1B20]">Quiero ajustar mi actividad con más detalle</label>
                 </div>
 
                 {useAdvancedActivity && (
                     <div className="grid grid-cols-1 gap-3 mt-3">
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Días/semana</label>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Días activos por semana</label>
                             <input type="number" value={activityDaysPerWeek} onChange={(event) => setActivityDaysPerWeek(Number(event.target.value) || 0)} min={0} max={7} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
                         </div>
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Horas activas/día</label>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Horas activas por día</label>
                             <input type="number" value={activityHoursPerDay} onChange={(event) => setActivityHoursPerDay(Number(event.target.value) || 0)} min={0} max={24} step={0.5} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
                         </div>
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Factor personalizado</label>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Factor personalizado (opcional)</label>
                             <input type="number" value={customActivityFactor} onChange={(event) => { const value = event.target.value; setCustomActivityFactor(value === '' ? '' : Number(value)); }} min={1} max={2} step={0.01} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
                         </div>
                     </div>
@@ -789,15 +797,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
                 <div className="mt-4 grid grid-cols-1 gap-3">
                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Método de cálculo</label>
-                        <select value={formula} onChange={(event) => setFormula(event.target.value as any)} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm">
-                            <option value="mifflin">Mifflin-St Jeor</option>
-                            <option value="harris">Harris-Benedict</option>
-                            <option value="katch">Katch-McArdle</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Preferencia dietaria</label>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Preferencia alimentaria</label>
                         <select value={dietPreference} onChange={(event) => setDietPreference(event.target.value as any)} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm">
                             {DIET_OPTIONS.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -807,7 +807,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Ritmo de objetivo</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Ritmo de progreso deseado</p>
                     <div className="flex gap-2 mt-2">
                         <button onClick={() => setTrendMode('kg_per_week')} className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase ${trendMode === 'kg_per_week' ? 'bg-[#006A6A]/10 text-[#005353]' : 'bg-black/[0.06] text-[#49454F]'}`}>kg/semana</button>
                         <button onClick={() => setTrendMode('pct_fat_per_week')} className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase ${trendMode === 'pct_fat_per_week' ? 'bg-[#006A6A]/10 text-[#005353]' : 'bg-black/[0.06] text-[#49454F]'}`}>% grasa/sem</button>
@@ -826,19 +826,8 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                     )}
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 gap-3">
-                    <div>
-                        <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Factor de salud</label>
-                        <input type="number" value={healthMultiplier} onChange={(event) => setHealthMultiplier(Number(event.target.value) || 1)} min={0.8} max={1.2} step={0.01} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
-                    </div>
-                    <div className="flex items-center gap-2 pt-6">
-                        <input id="connect-auge" type="checkbox" checked={connectAuge} onChange={(event) => setConnectAuge(event.target.checked)} />
-                        <label htmlFor="connect-auge" className="text-sm text-[#1D1B20]">Integrar nutrición con batería AUGE</label>
-                    </div>
-                </div>
-
                 <div className="mt-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F] mb-2">Condiciones metabólicas</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F] mb-2">Condiciones metabólicas (opcional)</p>
                     <div className="flex flex-wrap gap-2">
                         {METABOLIC_OPTIONS.map((condition) => {
                             const active = metabolicConditions.includes(condition);
@@ -856,6 +845,11 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                         })}
                     </div>
                 </div>
+
+                <div className="mt-4 flex items-center gap-2">
+                    <input id="connect-auge" type="checkbox" checked={connectAuge} onChange={(event) => setConnectAuge(event.target.checked)} />
+                    <label htmlFor="connect-auge" className="text-sm text-[#1D1B20]">Vincular nutrición con el sistema AUGE</label>
+                </div>
             </section>
         </div>
     );
@@ -863,22 +857,23 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     const renderStep4 = () => (
         <div className="space-y-4">
             <section className={sectionClass} style={{ borderRadius: layout.sectionRadius, padding: layout.sectionPadding }}>
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Cálculo final y overrides</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Resumen final y seguridad</p>
+                <p className="text-sm text-[#49454F] mt-1">Revisa tu plan y, si quieres, ajusta manualmente antes de activarlo.</p>
+
                 <div className="grid grid-cols-1 gap-2 mt-3">
-                    <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">BMR</p><p className="text-lg font-black text-[#1D1B20] mt-1">{bmr != null ? Math.round(bmr) : '—'} kcal</p></div>
-                    <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">TDEE</p><p className="text-lg font-black text-[#1D1B20] mt-1">{tdee != null ? Math.round(tdee) : '—'} kcal</p></div>
                     <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">Calorías objetivo</p><p className="text-lg font-black text-[#1D1B20] mt-1">{Math.round(calorieTarget)} kcal</p></div>
+                    <div className="rounded-2xl bg-white border border-black/[0.08] px-3 py-3"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">Macros diarios</p><p className="text-sm font-black text-[#1D1B20] mt-1">P {proteinGoal}g · C {carbsGoal}g · G {fatsGoal}g</p></div>
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-[#1D1B20]"><input type="checkbox" checked={manualCalorieOverride} onChange={(event) => { const checked = event.target.checked; setManualCalorieOverride(checked); if (!checked) setManualCalories(''); }} />Override manual de calorías</label>
+                    <label className="flex items-center gap-2 text-sm font-semibold text-[#1D1B20]"><input type="checkbox" checked={manualCalorieOverride} onChange={(event) => { const checked = event.target.checked; setManualCalorieOverride(checked); if (!checked) setManualCalories(''); }} />Ajustar calorías manualmente</label>
                     {manualCalorieOverride && (
                         <input type="number" value={manualCalories} onChange={(event) => { const value = event.target.value; setManualCalories(value === '' ? '' : Number(value)); }} min={800} max={6000} className="w-full mt-2 rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
                     )}
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-[#1D1B20]"><input type="checkbox" checked={manualMacros} onChange={(event) => setManualMacros(event.target.checked)} />Editar macros manualmente</label>
+                    <label className="flex items-center gap-2 text-sm font-semibold text-[#1D1B20]"><input type="checkbox" checked={manualMacros} onChange={(event) => setManualMacros(event.target.checked)} />Ajustar macros manualmente</label>
                     <div className="grid grid-cols-1 gap-3 mt-3">
                         <div><label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Proteína (g)</label><input type="number" value={proteinGoal} onChange={(event) => setProteinGoal(Number(event.target.value) || 0)} disabled={!manualMacros} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm disabled:opacity-60" /></div>
                         <div><label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Carbohidratos (g)</label><input type="number" value={carbsGoal} onChange={(event) => setCarbsGoal(Number(event.target.value) || 0)} disabled={!manualMacros} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm disabled:opacity-60" /></div>
@@ -887,6 +882,31 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                     <p className="text-xs text-[#49454F] mt-2">Macros totalizan {Math.round(macroCalories)} kcal</p>
                 </div>
 
+                <button onClick={() => setShowTechnicalDetails((prev) => !prev)} className="mt-4 w-full rounded-xl border border-black/[0.12] px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#49454F]">
+                    {showTechnicalDetails ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos'}
+                </button>
+
+                {showTechnicalDetails && (
+                    <div className="mt-3 rounded-2xl border border-black/[0.08] bg-white p-4 space-y-3">
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Método de cálculo</label>
+                            <select value={formula} onChange={(event) => setFormula(event.target.value as any)} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm">
+                                <option value="mifflin">Mifflin-St Jeor</option>
+                                <option value="harris">Harris-Benedict</option>
+                                <option value="katch">Katch-McArdle</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-[#49454F] mb-1">Factor de salud</label>
+                            <input type="number" value={healthMultiplier} onChange={(event) => setHealthMultiplier(Number(event.target.value) || 1)} min={0.8} max={1.2} step={0.01} className="w-full rounded-xl border border-black/[0.12] px-3 py-2.5 text-sm" />
+                        </div>
+                        <div className="grid grid-cols-1 gap-2">
+                            <div className="rounded-xl border border-black/[0.08] px-3 py-2"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">BMR</p><p className="text-sm font-black text-[#1D1B20] mt-0.5">{bmr != null ? Math.round(bmr) : '—'} kcal</p></div>
+                            <div className="rounded-xl border border-black/[0.08] px-3 py-2"><p className="text-[10px] uppercase font-black tracking-[0.14em] text-[#49454F]">TDEE</p><p className="text-sm font-black text-[#1D1B20] mt-0.5">{tdee != null ? Math.round(tdee) : '—'} kcal</p></div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="mt-4 rounded-2xl border border-black/[0.08] bg-white p-4">
                     <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Proyección de meta</p>
                     <p className="text-sm text-[#1D1B20] mt-1">ETA estimada: <span className="font-black">{estimatedEndDate ? new Date(`${estimatedEndDate}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sin ETA'}</span></p>
@@ -894,7 +914,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
                 {riskFlags.length > 0 && (
                     <div className="mt-4 space-y-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Alertas de riesgo</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Alertas de seguridad</p>
                         {riskFlags.map((flag) => (
                             <div key={flag.id} className={`rounded-xl border px-3 py-2 text-sm font-semibold ${getRiskClasses(flag.severity)}`}>
                                 <div className="flex items-center gap-2"><AlertTriangleIcon size={14} />{flag.message}</div>
@@ -904,11 +924,11 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
                 )}
 
                 {needsExplicitOverride && !hasHardStop && (
-                    <label className="mt-4 flex items-start gap-2 text-sm text-[#1D1B20]"><input type="checkbox" checked={overrideAcknowledged} onChange={(event) => setOverrideAcknowledged(event.target.checked)} />Confirmo que revisé las alertas y deseo guardar el plan igualmente.</label>
+                    <label className="mt-4 flex items-start gap-2 text-sm text-[#1D1B20]"><input type="checkbox" checked={overrideAcknowledged} onChange={(event) => setOverrideAcknowledged(event.target.checked)} />Entiendo las alertas y quiero guardar este plan igualmente.</label>
                 )}
 
                 {hasHardStop && (
-                    <div className="mt-4 rounded-2xl border border-[#B3261E]/35 bg-[#B3261E]/12 px-4 py-3 text-sm font-bold text-[#8C1D18]">Existen riesgos extremos. Ajusta objetivo, ritmo o calorías para continuar.</div>
+                    <div className="mt-4 rounded-2xl border border-[#B3261E]/35 bg-[#B3261E]/12 px-4 py-3 text-sm font-bold text-[#8C1D18]">Hay un riesgo alto. Ajusta objetivo, ritmo o calorías para continuar.</div>
                 )}
             </section>
         </div>
@@ -939,4 +959,5 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         </div>
     );
 };
+
 

@@ -1,10 +1,11 @@
 // components/MuscleCategoryView.tsx
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { ChevronRightIcon, PencilIcon } from './icons';
 import MuscleGroupEditorModal from './MuscleGroupEditorModal';
-import { MuscleGroupInfo, MuscleSubGroup } from '../types';
+import { MuscleSubGroup } from '../types';
 import Button from './ui/Button';
+import { motion } from 'framer-motion';
 
 interface MuscleCategoryViewProps {
     categoryName: string;
@@ -20,12 +21,12 @@ const MuscleCategoryView: React.FC<MuscleCategoryViewProps> = ({ categoryName })
         return muscleGroupData.find(m => m.id === mainMuscleId);
     }, [categoryName, muscleGroupData]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (categoryInfo?.coverImage) {
             setCurrentBackgroundOverride({
                 type: 'image',
                 value: categoryInfo.coverImage,
-                style: { blur: 16, brightness: 0.4 }
+                style: { blur: 24, brightness: 0.3 }
             });
         } else {
              setCurrentBackgroundOverride(undefined);
@@ -37,31 +38,30 @@ const MuscleCategoryView: React.FC<MuscleCategoryViewProps> = ({ categoryName })
         return muscleHierarchy.bodyPartHierarchy[categoryName] || [];
     }, [categoryName, muscleHierarchy]);
 
-    const renderMuscleItem = (muscle: MuscleSubGroup) => {
-        if (typeof muscle === 'string') {
-            const muscleGroupId = muscle.toLowerCase().replace(/\s+/g, '-');
-            return (
-                 <div key={muscle} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId })} className="p-4 flex justify-between items-center cursor-pointer list-none hover:bg-slate-800/50 rounded-lg transition-colors glass-card">
-                    <h2 className="text-xl font-bold text-primary-color">{muscle}</h2>
-                    <ChevronRightIcon className="text-slate-500" />
-                </div>
-            );
-        } else {
-            // Músculo con porciones/cabezas: solo mostramos el padre; las porciones están en su página dedicada
-            const parentMuscle = Object.keys(muscle)[0];
-            const parentMuscleGroupId = parentMuscle.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '');
+    const renderMuscleItem = (muscle: MuscleSubGroup, index: number) => {
+        const isString = typeof muscle === 'string';
+        const name = isString ? muscle : Object.keys(muscle)[0];
+        const muscleGroupId = name.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '');
 
-            return (
-                <div key={parentMuscle} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: parentMuscleGroupId })} className="p-4 flex justify-between items-center cursor-pointer list-none hover:bg-slate-800/50 rounded-lg transition-colors glass-card">
-                    <h2 className="text-xl font-bold text-primary-color">{parentMuscle}</h2>
-                    <ChevronRightIcon className="text-slate-500" />
+        return (
+            <motion.div 
+                key={name} 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                onClick={() => navigateTo('muscle-group-detail', { muscleGroupId })} 
+                className="p-5 flex justify-between items-center cursor-pointer rounded-[24px] bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-white/10 transition-all active:scale-[0.99] group"
+            >
+                <h2 className="text-lg font-bold text-white/90 group-hover:text-purple-400 transition-colors tracking-tight">{name}</h2>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white/20 group-hover:text-purple-400 group-hover:translate-x-1 transition-all">
+                    <ChevronRightIcon size={20} />
                 </div>
-            );
-        }
+            </motion.div>
+        );
     };
 
     return (
-        <div className="tab-bar-safe-area animate-fade-in min-h-screen">
+        <div className="min-h-screen flex flex-col bg-transparent overflow-x-hidden relative pb-32">
              {isEditorOpen && categoryInfo && (
                 <MuscleGroupEditorModal
                     isOpen={isEditorOpen}
@@ -69,27 +69,37 @@ const MuscleCategoryView: React.FC<MuscleCategoryViewProps> = ({ categoryName })
                     muscleGroup={categoryInfo}
                 />
             )}
-            <header className="relative h-48 -mx-4">
-                {categoryInfo?.coverImage && <img src={categoryInfo.coverImage} alt={categoryName} className="w-full h-full object-cover" />}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-                 <div className="absolute top-2 right-2 flex gap-2">
-                    {categoryInfo && <Button onClick={() => setIsEditorOpen(true)} variant="secondary" className="!text-xs !py-1"><PencilIcon size={14}/> Editar Página</Button>}
-                     <Button onClick={() => openMuscleListEditor(categoryName, 'bodyPart')} variant="secondary" className="!text-xs !py-1"><PencilIcon size={14}/> Editar Grupo</Button>
+            
+            <header className="relative pt-12 pb-8 px-6">
+                 <div className="absolute top-4 right-6 flex gap-2 z-20">
+                    {categoryInfo && (
+                        <button onClick={() => setIsEditorOpen(true)} className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-colors flex items-center gap-2">
+                            <PencilIcon size={12}/> Info
+                        </button>
+                    )}
+                     <button onClick={() => openMuscleListEditor(categoryName, 'bodyPart')} className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-colors flex items-center gap-2">
+                         <PencilIcon size={12}/> Lista
+                     </button>
                 </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                    <h1 className="text-4xl font-bold text-white">{categoryName}</h1>
+                <div className="relative z-10 mt-8">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-2 block">Zona Anatómica</span>
+                    <h1 className="text-5xl font-black text-white tracking-tighter leading-none">{categoryName}</h1>
                 </div>
             </header>
             
-            <div className="space-y-4 mt-6">
+            <div className="relative z-10 px-6 space-y-4">
                  {categoryInfo && (
-                    <div className="glass-card-nested p-4 mb-6">
-                        <p className="text-sm text-slate-300 mb-2">{categoryInfo.description}</p>
-                        <p className="text-sm text-slate-400 italic">{categoryInfo.importance.movement}</p>
-                    </div>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 rounded-[32px] bg-white/5 backdrop-blur-2xl border border-white/10 mb-8 shadow-2xl">
+                        <p className="text-sm text-white/70 leading-relaxed mb-4">{categoryInfo.description}</p>
+                        <div className="px-4 py-3 rounded-2xl bg-purple-500/10 border border-purple-500/20">
+                            <p className="text-[11px] font-medium text-purple-200 leading-snug"><span className="font-black text-purple-400 uppercase tracking-widest block mb-1">Biomecánica</span>{categoryInfo.importance.movement}</p>
+                        </div>
+                    </motion.div>
                  )}
 
-                {muscleGroups.map(muscle => renderMuscleItem(muscle))}
+                <div className="space-y-3">
+                    {muscleGroups.map((muscle, idx) => renderMuscleItem(muscle, idx))}
+                </div>
             </div>
         </div>
     );

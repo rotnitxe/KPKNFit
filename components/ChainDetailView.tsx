@@ -5,19 +5,22 @@ import { ExerciseMuscleInfo } from '../types';
 import { ChevronRightIcon, PencilIcon } from './icons';
 import Button from './ui/Button';
 import MuscleListEditorModal from './MuscleListEditorModal';
+import { motion } from 'framer-motion';
 
 const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ exercise }) => {
     const { navigateTo } = useAppDispatch();
     return (
         <div
             onClick={() => navigateTo('exercise-detail', { exerciseId: exercise.id })}
-            className="p-3 flex justify-between items-center cursor-pointer list-none hover:bg-slate-800/50 rounded-lg transition-colors"
+            className="p-4 flex justify-between items-center cursor-pointer rounded-[20px] bg-white/[0.02] border border-white/5 hover:bg-white/[0.08] hover:border-white/10 transition-all group"
         >
             <div>
-                <h3 className="font-semibold text-white text-md">{exercise.name}</h3>
-                <p className="text-xs text-slate-400">{exercise.type} • {exercise.equipment}</p>
+                <h3 className="font-bold text-white/90 text-sm group-hover:text-sky-400 transition-colors">{exercise.name}</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">{exercise.type} • {exercise.equipment}</p>
             </div>
-            <ChevronRightIcon className="text-slate-500" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white/20 group-hover:text-sky-400 group-hover:translate-x-1 transition-all">
+                <ChevronRightIcon size={18} />
+            </div>
         </div>
     );
 });
@@ -114,66 +117,80 @@ const ChainDetailView: React.FC<ChainDetailViewProps> = ({ chainId }) => {
 
     if (chainId === 'Core') {
         return (
-            <div className="tab-bar-safe-area animate-fade-in min-h-screen">
-                <header className="mb-6 flex justify-between items-center">
-                    <h1 className="text-4xl font-bold text-white">{chainId}</h1>
-                     <Button onClick={() => openMuscleListEditor(chainId, 'special')} variant="secondary" className="!text-xs !py-1"><PencilIcon size={14}/> Editar</Button>
-                </header>
-                 <div className="space-y-4">
-                    <div className="glass-card-nested p-4 mb-6">
-                        <p className="text-sm text-slate-300 mb-2">{info.description}</p>
-                        <p className="text-sm text-slate-400 italic">{info.importance}</p>
+            <div className="min-h-screen flex flex-col bg-transparent overflow-x-hidden relative pb-32">
+                <header className="relative pt-12 pb-8 px-6 flex justify-between items-end">
+                    <div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-sky-400 mb-2 block">Cadena Cinética</span>
+                        <h1 className="text-5xl font-black text-white tracking-tighter leading-none">{chainId}</h1>
                     </div>
-                    {coreStructure.map(section => (
-                        <details key={section.title} className="glass-card !p-0" open>
-                            <summary className="p-4 cursor-pointer list-none flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-primary-color">{section.title}</h2>
-                                <ChevronRightIcon className="details-arrow transition-transform" />
+                     <button onClick={() => openMuscleListEditor(chainId, 'special')} className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-colors flex items-center gap-2">
+                         <PencilIcon size={12}/> Editar
+                     </button>
+                </header>
+                 <div className="relative z-10 px-6 space-y-6">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 rounded-[32px] bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl">
+                        <p className="text-sm text-white/70 leading-relaxed mb-4">{info.description}</p>
+                        <div className="px-4 py-3 rounded-2xl bg-sky-500/10 border border-sky-500/20">
+                            <p className="text-[11px] font-medium text-sky-200 leading-snug"><span className="font-black text-sky-400 uppercase tracking-widest block mb-1">Importancia</span>{info.importance}</p>
+                        </div>
+                    </motion.div>
+
+                    {coreStructure.map((section, idx) => (
+                        <motion.details key={section.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} className="rounded-[32px] bg-white/5 border border-white/10 overflow-hidden group" open>
+                            <summary className="p-5 cursor-pointer list-none flex justify-between items-center outline-none">
+                                <h2 className="text-lg font-black text-white/90 tracking-tight">{section.title}</h2>
+                                <ChevronRightIcon className="text-white/40 group-open:rotate-90 transition-transform" />
                             </summary>
-                            <div className="border-t border-slate-700/50 p-2 space-y-1">
+                            <div className="px-3 pb-3 space-y-2">
                                 {section.muscles.map(muscleName => {
                                     const muscleId = muscleName.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '');
                                     return (
-                                        <div key={muscleId} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: muscleId })} className="p-3 flex justify-between items-center cursor-pointer list-none hover:bg-slate-800/50 rounded-lg transition-colors">
-                                            <h3 className="font-semibold text-white text-md">{muscleName}</h3>
-                                            <ChevronRightIcon className="text-slate-500" />
+                                        <div key={muscleId} onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: muscleId })} className="p-4 flex justify-between items-center cursor-pointer rounded-[20px] bg-white/[0.03] hover:bg-white/[0.08] transition-colors">
+                                            <h3 className="font-bold text-white/80 text-sm">{muscleName}</h3>
+                                            <ChevronRightIcon className="text-sky-400/50" size={16} />
                                         </div>
                                     )
                                 })}
                             </div>
-                        </details>
+                        </motion.details>
                     ))}
                  </div>
             </div>
         );
     }
 
-
     return (
-        <div className="tab-bar-safe-area animate-fade-in min-h-screen">
-            <header className="mb-6 flex justify-between items-center">
-                <h1 className="text-4xl font-bold text-white">{chainId}</h1>
-                 <Button onClick={() => openMuscleListEditor(chainId, 'special')} variant="secondary" className="!text-xs !py-1"><PencilIcon size={14}/> Editar</Button>
-            </header>
-            
-            <div className="space-y-4">
-                 <div className="glass-card-nested p-4 mb-6">
-                    <p className="text-sm text-slate-300 mb-2">{info.description}</p>
-                    <p className="text-sm text-slate-400 italic">{info.importance}</p>
+        <div className="min-h-screen flex flex-col bg-transparent overflow-x-hidden relative pb-32">
+            <header className="relative pt-12 pb-8 px-6 flex justify-between items-end">
+                <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-sky-400 mb-2 block">Cadena Cinética</span>
+                    <h1 className="text-5xl font-black text-white tracking-tighter leading-none">{chainId}</h1>
                 </div>
-            
-                {sortedMuscleGroups.map(muscle => (
-                    <details key={muscle} className="glass-card !p-0" open>
-                        <summary className="p-4 cursor-pointer list-none flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-primary-color">{muscle}</h2>
-                            <ChevronRightIcon className="details-arrow transition-transform" />
+                 <button onClick={() => openMuscleListEditor(chainId, 'special')} className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-colors flex items-center gap-2">
+                     <PencilIcon size={12}/> Editar
+                 </button>
+            </header>
+
+            <div className="relative z-10 px-6 space-y-6">
+                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 rounded-[32px] bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl">
+                    <p className="text-sm text-white/70 leading-relaxed mb-4">{info.description}</p>
+                    <div className="px-4 py-3 rounded-2xl bg-sky-500/10 border border-sky-500/20">
+                        <p className="text-[11px] font-medium text-sky-200 leading-snug"><span className="font-black text-sky-400 uppercase tracking-widest block mb-1">Importancia</span>{info.importance}</p>
+                    </div>
+                </motion.div>
+
+                {sortedMuscleGroups.map((muscle, idx) => (
+                    <motion.details key={muscle} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} className="rounded-[32px] bg-white/5 border border-white/10 overflow-hidden group" open>
+                        <summary className="p-5 cursor-pointer list-none flex justify-between items-center outline-none">
+                            <h2 className="text-lg font-black text-white/90 tracking-tight">{muscle}</h2>
+                            <ChevronRightIcon className="text-white/40 group-open:rotate-90 transition-transform" />
                         </summary>
-                        <div className="border-t border-slate-700/50 p-2 space-y-1">
+                        <div className="px-3 pb-3 space-y-2">
                             {exercisesByMuscle[muscle].map(ex => (
                                 <ExerciseItem key={ex.id} exercise={ex} />
                             ))}
                         </div>
-                    </details>
+                    </motion.details>
                 ))}
             </div>
         </div>

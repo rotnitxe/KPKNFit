@@ -2,6 +2,7 @@
 import React from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { ChevronRightIcon, DumbbellIcon } from './icons';
+import { motion } from 'framer-motion';
 
 interface MovementPatternDetailViewProps {
   movementPatternId: string;
@@ -52,86 +53,83 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
   }
 
   return (
-    <div className="tab-bar-safe-area animate-fade-in bg-[#FEF7FF] min-h-screen">
-      <header className="relative h-32 -mx-4 bg-gradient-to-b from-cyber-cyan/20 to-[#0a0a0a] border-b border-cyber-cyan/20">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <span className="text-cyber-cyan/90 text-[10px] font-mono font-black uppercase tracking-widest">Patrón de Movimiento</span>
-          <h1 className="text-3xl font-bold font-mono text-white mt-1">{pattern.name}</h1>
-        </div>
+    <div className="min-h-screen flex flex-col bg-transparent overflow-x-hidden relative pb-32">
+      <header className="relative pt-12 pb-8 px-6">
+        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2 block">Patrón Biomecánico</span>
+        <h1 className="text-5xl font-black text-white tracking-tighter leading-none">{pattern.name}</h1>
       </header>
 
-      <div className="space-y-6 mt-6 px-4">
-        <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
-          <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Descripción</h3>
-          <p className="text-slate-300 text-sm">{pattern.description}</p>
-        </div>
+      <div className="relative z-10 px-6 space-y-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 rounded-[32px] bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl">
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Descripción</h3>
+          <p className="text-sm text-white/70 leading-relaxed">{pattern.description}</p>
+        </motion.div>
 
         {(pattern.forceTypes?.length || 0) > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
-            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-2">Tipos de Fuerza</h3>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-6 rounded-[32px] bg-white/5 border border-white/10">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Vectores de Fuerza</h3>
             <div className="flex flex-wrap gap-2">
               {pattern.forceTypes.map((f, i) => (
-                <span key={i} className="px-2 py-1 bg-[#0d0d0d] border border-cyber-cyan/20 rounded-lg text-[10px] font-mono text-slate-300">{f}</span>
+                <span key={i} className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-400">{f}</span>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {relatedMuscles.length > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
-            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Músculos principales</h3>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-6 rounded-[32px] bg-white/5 border border-white/10">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Motores Principales</h3>
             <div className="space-y-2">
               {relatedMuscles.map(m => (
                 <div
                   key={m.id}
                   onClick={() => navigateTo('muscle-group-detail', { muscleGroupId: m.id })}
-                  className="p-4 flex justify-between items-center rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
+                  className="p-4 flex justify-between items-center rounded-[20px] bg-white/[0.03] hover:bg-white/[0.08] cursor-pointer transition-all group"
                 >
-                  <span className="font-mono font-semibold text-slate-200 text-sm">{m.name}</span>
-                  <ChevronRightIcon className="text-slate-500" size={16} />
+                  <span className="font-bold text-white/90 text-sm">{m.name}</span>
+                  <ChevronRightIcon className="text-white/20 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" size={18} />
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {relatedJoints.length > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
-            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3">Articulaciones principales</h3>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-6 rounded-[32px] bg-white/5 border border-white/10">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Ejes Articulares</h3>
             <div className="space-y-2">
               {relatedJoints.map(j => j && (
                 <div
                   key={j.id}
                   onClick={() => navigateTo('joint-detail', { jointId: j.id })}
-                  className="p-4 flex justify-between items-center rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
+                  className="p-4 flex justify-between items-center rounded-[20px] bg-white/[0.03] hover:bg-white/[0.08] cursor-pointer transition-all group"
                 >
-                  <span className="font-mono font-semibold text-slate-200 text-sm">{j.name}</span>
-                  <ChevronRightIcon className="text-slate-500" size={16} />
+                  <span className="font-bold text-white/90 text-sm">{j.name}</span>
+                  <ChevronRightIcon className="text-white/20 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" size={18} />
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {exampleExercises.length > 0 && (
-          <div className="p-4 rounded-xl border border-cyber-cyan/20 bg-[#FEF7FF]">
-            <h3 className="text-[10px] font-mono font-black uppercase tracking-widest text-cyber-cyan/90 mb-3 flex items-center gap-2">
-              <DumbbellIcon size={14} /> Ejercicios de ejemplo
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="p-6 rounded-[32px] bg-white/5 border border-white/10">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-3 flex items-center gap-2">
+              <DumbbellIcon size={14} /> Ejercicios Core
             </h3>
             <div className="space-y-2">
               {exampleExercises.map(ex => ex && (
                 <div
                   key={ex.id}
                   onClick={() => navigateTo('exercise-detail', { exerciseId: ex.id })}
-                  className="p-4 flex justify-between items-center rounded-xl bg-[#FEF7FF] border border-cyber-cyan/20 hover:border-cyber-cyan/40 cursor-pointer transition-all"
+                  className="p-4 flex justify-between items-center rounded-[20px] bg-emerald-500/5 hover:bg-emerald-500/10 cursor-pointer transition-all border border-emerald-500/10 group"
                 >
-                  <span className="font-mono font-semibold text-slate-200 text-sm">{ex.name}</span>
-                  <ChevronRightIcon className="text-slate-500" size={16} />
+                  <span className="font-bold text-white/90 text-sm">{ex.name}</span>
+                  <ChevronRightIcon className="text-emerald-400/50 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" size={18} />
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

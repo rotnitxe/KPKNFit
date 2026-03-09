@@ -158,12 +158,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
         return 0;
     }, [activeProgramState, program]);
 
-    const trainingDaysCount = useMemo(() => {
-        if (!displayedSessions.length) return 0;
-        const days = new Set(displayedSessions.map(s => s.dayOfWeek));
-        return days.size;
-    }, [displayedSessions]);
-
     // ─── Effects ───
     useEffect(() => {
         if (roadmapBlocks.length > 0 && (!selectedBlockId || !roadmapBlocks.find(b => b.id === selectedBlockId))) {
@@ -219,9 +213,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     onUpdateProgram={handleUpdateProgram}
                     currentWeekIndex={currentWeekIndex}
                     totalWeeks={totalWeeks}
-                    totalAdherence={totalAdherence}
-                    trainingDaysCount={trainingDaysCount}
-                />
+                    totalAdherence={totalAdherence}                />
 
                 {/* Tabs: Estructura | Analíticas (Liquid Glass Segmented control) */}
                 <div className="flex justify-center px-6 py-8">
@@ -587,3 +579,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 };
 
 export default ProgramDetail;
+
+
+
+
+
