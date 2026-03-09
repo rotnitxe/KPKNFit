@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { hapticImpact, ImpactStyle } from '../../services/hapticsService';
 
 export interface NumpadOverlayProps {
@@ -12,6 +12,11 @@ export interface NumpadOverlayProps {
     showNextButton?: boolean;
 }
 
+/**
+ * NumpadOverlay - Puente al teclado nativo del sistema.
+ * Diseñado para aparecer en la parte superior del viewport para evitar el traslape 
+ * del teclado virtual (overlaysContent: true) y mantener la vista estable.
+ */
 const NumpadOverlay: React.FC<NumpadOverlayProps> = ({
     value,
     onChange,
@@ -21,108 +26,131 @@ const NumpadOverlay: React.FC<NumpadOverlayProps> = ({
     label,
     showNextButton = true,
 }) => {
-    const handleKey = (key: string) => {
-        hapticImpact(ImpactStyle.Light);
-        if (key === '⌫') {
-            onChange(value.slice(0, -1));
-            return;
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        // Enfoque inmediato para disparar el teclado nativo
+        const timer = setTimeout(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+                // Opcional: seleccionar texto para facilitar edición rápida
+                inputRef.current.select();
+            }
+        }, 150);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let v = e.target.value.replace(',', '.'); // Normalizar coma decimal
+
+        if (mode === 'integer') {
+            v = v.replace(/[^0-9]/g, '');
+        } else {
+            v = v.replace(/[^0-9.]/g, '');
+            // Evitar múltiples puntos
+            const parts = v.split('.');
+            if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
         }
-        if (key === '.' && mode === 'integer') return;
-        if (key === '.' && value.includes('.')) return;
-        if (key === '.' && value === '') {
-            onChange('0.');
-            return;
-        }
-        onChange(value + key);
+        onChange(v);
     };
 
-    const applyQuick = (add: string) => {
-        hapticImpact(ImpactStyle.Medium);
-        const n = parseFloat(value || '0');
-        const v = parseFloat(add);
-        onChange(String(n + v));
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            hapticImpact(ImpactStyle.Medium);
+            if (onNext) onNext();
+            else onClose();
+        }
+        if (e.key === 'Escape') onClose();
     };
-
-    const digits: string[][] = [['7', '8', '9'], ['4', '5', '6'], ['1', '2', '3'], ['.', '0', '⌫']];
-    if (mode === 'integer') digits[3] = ['', '0', '⌫'];
-
-    const showQuickLoad = mode === 'decimal';
 
     return (
-        <div className="fixed inset-0 z-[200] flex flex-col justify-end">
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={onClose}
-                className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
-            />
-            <motion.div
-                initial={{ translateY: '100%' }}
-                animate={{ translateY: 0 }}
-                exit={{ translateY: '100%' }}
-                transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-                className="relative liquid-glass-panel px-6 pt-5 pb-[max(1.5rem, env(safe-area-inset-bottom))] rounded-t-[40px] border-t border-white/10"
-                style={{
-                    background: 'linear-gradient(180deg, rgba(28, 27, 31, 0.9) 0%, rgba(15, 15, 15, 0.98) 100%)',
-                    backdropFilter: 'blur(30px) saturate(160%)',
-                    WebkitBackdropFilter: 'blur(30px) saturate(160%)',
-                }}
-                onClick={e => e.stopPropagation()}
-            >
-                {/* Handle */}
-                <div className="self-center w-12 h-1.5 bg-white/10 rounded-full mb-6 mx-auto" />
+        <AnimatePresence>
+            <div className="fixed inset-0 z-[1000000] flex flex-col justify-start pt-[12vh] px-6 pointer-events-none">
+                {/* Backdrop oscuro con blur para enfocar el input */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-xl pointer-events-auto"
+                    onClick={onClose}
+                />
 
-                <div className="flex items-center justify-between mb-4">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">{label}</span>
-                    <button type="button" onClick={onClose} className="text-[var(--m3-primary)] text-[10px] font-bold uppercase tracking-widest py-1 px-3 bg-[var(--m3-primary)]/10 rounded-full">Listo</button>
-                </div>
-
-                <div className="flex justify-end items-baseline gap-2 mb-6 pr-2">
-                    <span className="text-4xl font-black text-white tabular-nums tracking-tighter">
-                        {value || '0'}
-                    </span>
-                    {mode === 'decimal' && <span className="text-sm font-bold text-white/30 uppercase tracking-widest">Kg</span>}
-                </div>
-
-                {showQuickLoad && (
-                    <div className="flex gap-2.5 mb-6">
-                        {[1.25, 2.5, 5, 10].map((n) => (
-                            <button key={n} type="button" onClick={() => applyQuick(String(n))} className="workout-pressable flex-1 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/90 font-bold text-xs hover:bg-white/10 active:scale-[0.98] transition-all">
-                                +{n}
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                <div className="grid grid-cols-3 gap-3 w-full max-w-sm mx-auto mb-6">
-                    {digits.flat().map((k, i) => (
+                <motion.div
+                    initial={{ opacity: 0, y: -40, scale: 0.92 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                    className="relative z-10 w-full max-w-sm mx-auto liquid-glass-panel p-6 rounded-[32px] border border-white/10 shadow-2xl pointer-events-auto overflow-hidden"
+                    style={{
+                        background: 'linear-gradient(180deg, rgba(35, 35, 40, 0.95) 0%, rgba(20, 20, 25, 0.98) 100%)',
+                    }}
+                    onClick={e => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-5">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--m3-primary)]">Entrada de datos</span>
+                            <span className="text-[14px] font-bold text-white/90">{label}</span>
+                        </div>
                         <button
-                            key={i}
-                            type="button"
-                            onClick={() => k && handleKey(k)}
-                            className={`workout-pressable aspect-[1.4/1] rounded-2xl flex items-center justify-center font-black text-xl transition-all border ${!k ? 'opacity-0 pointer-events-none' :
-                                k === '⌫' ? 'bg-white/5 border-white/10 text-white/60' :
-                                    'bg-white/5 border-white/10 text-white/90 hover:border-white/30'
-                                }`}
+                            onClick={onClose}
+                            className="workout-pressable h-10 w-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/40"
                         >
-                            {k}
+                            ✕
                         </button>
-                    ))}
-                </div>
+                    </div>
 
-                <div className="flex gap-3 mt-2">
-                    {showNextButton && onNext && (
-                        <button type="button" onClick={onNext} className="workout-pressable flex-1 h-14 rounded-full bg-white/5 border border-white/10 text-white/60 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] transition-all">
-                            Siguiente
+                    {/* Input Area */}
+                    <div className="relative mb-8">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            inputMode={mode === 'decimal' ? 'decimal' : 'numeric'}
+                            value={value}
+                            onChange={handleInput}
+                            onKeyDown={handleKeyDown}
+                            placeholder="0"
+                            className="w-full bg-transparent border-none text-6xl font-black text-white p-0 focus:ring-0 tabular-nums placeholder-white/5 text-center"
+                            autoFocus
+                        />
+                        {mode === 'decimal' && (
+                            <span className="absolute right-2 bottom-3 text-xs font-black text-[var(--m3-primary)]/40 uppercase tracking-widest">Kg</span>
+                        )}
+
+                        {/* Indicador de foco dinámico */}
+                        <motion.div
+                            layoutId="activeInputLine"
+                            className="w-full h-1 bg-gradient-to-r from-transparent via-[var(--m3-primary)] to-transparent rounded-full mt-3 blur-[1px]"
+                        />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                        {showNextButton && onNext && (
+                            <button
+                                onClick={() => { hapticImpact(ImpactStyle.Light); onNext(); }}
+                                className="flex-1 h-14 rounded-full bg-white/5 border border-white/10 text-white font-bold text-[11px] uppercase tracking-[0.2em] active:scale-95 transition-transform"
+                            >
+                                Sig.
+                            </button>
+                        )}
+                        <button
+                            onClick={() => { hapticImpact(ImpactStyle.Medium); onClose(); }}
+                            className="flex-[2] h-14 rounded-full bg-[var(--m3-primary)] text-[var(--m3-on-primary)] font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-[var(--m3-primary)]/20 active:scale-95 transition-transform"
+                        >
+                            Confirmar
                         </button>
+                    </div>
+
+                    {/* Quick Suggestions (opcional, manteniendo sutileza) */}
+                    {mode === 'decimal' && (
+                        <div className="mt-6 flex justify-center gap-4 text-white/20 text-[9px] font-bold uppercase tracking-widest">
+                            <span>Sugerencia: {label.includes('Kg') ? 'Usa punto (.) para decimales' : ''}</span>
+                        </div>
                     )}
-                    <button type="button" onClick={onClose} className="workout-pressable flex-[2] h-14 rounded-full bg-[var(--m3-primary)] text-[var(--m3-on-primary)] font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] transition-all shadow-lg shadow-[var(--m3-primary)]/10">
-                        Confirmar
-                    </button>
-                </div>
-            </motion.div>
-        </div>
+                </motion.div>
+            </div>
+        </AnimatePresence>
     );
 };
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Capacitor } from '@capacitor/core';
 import { requestPermissions, setupNotificationChannels } from '../services/notificationService';
 import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, ExerciseSet, WarmupSetDefinition, SessionBackground, OngoingSetData, SetInputState, UnilateralSetInputs, DropSetData, RestPauseData, ExerciseMuscleInfo, Program, Settings, PlanDeviation, CoverStyle, ToastData } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
 import Button from './ui/Button';
 import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons';
 import { playSound, preloadSounds, configureAudioSession } from '../services/soundService';
