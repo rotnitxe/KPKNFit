@@ -1,6 +1,6 @@
 // components/Home.tsx
 import React, { useState, useMemo, useCallback } from 'react';
-import { useAppState } from '../contexts/AppContext';
+import { useAppState, useAppDispatch } from '../contexts/AppContext';
 import { WorkoutLog, Program, Session } from '../types';
 import { TodaySessionItem } from './home/SessionTodayCard';
 import { HomeCardsSection } from './home/HomeCardsSection';
@@ -13,6 +13,7 @@ import Button from './ui/Button';
 // ─── Inline ViewModel (since separate file was not found) ───────────────────
 function useHomeViewModel(onNavigate: (view: any, data?: any) => void, onNavigateToCard: (view: any) => void) {
     const state = useAppState();
+    const { handleStartWorkout: startWorkout } = useAppDispatch();
     const [isStartWorkoutModalOpen, setIsStartWorkoutModalOpen] = useState(false);
 
     const activeProgram = useMemo(() =>
@@ -70,9 +71,9 @@ function useHomeViewModel(onNavigate: (view: any, data?: any) => void, onNavigat
         });
     }, [activeProgram, state.activeProgramState, state.ongoingWorkout, state.history]);
 
-    const handleStartWorkout = useCallback((session: Session, program: Program, _?: any, ctx?: any) => {
-        onNavigate('log-workout', { programId: program.id, sessionId: session.id, ...ctx });
-    }, [onNavigate]);
+    const handleStartWorkout = useCallback((session: Session, program: Program, weekVariant?: 'A' | 'B' | 'C' | 'D', ctx?: any) => {
+        startWorkout(session, program, weekVariant, ctx);
+    }, [startWorkout]);
 
     const handleCardNav = useCallback((cardType: string) => {
         onNavigateToCard(cardType);
