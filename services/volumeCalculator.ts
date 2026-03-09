@@ -56,17 +56,17 @@ export const calculateWeeklyVolume = (
         // Lógica Sheiko: NL Mensual -> Semanal
         // Intermedio (Score < 15): 1000-1300 NL/mes -> ~250-325 NL/semana
         // Avanzado (Score >= 15): 1300-2500 NL/mes -> ~325-625 NL/semana
-        
+
         const isAdvanced = profileLevel === 'Advanced';
         const minMonthlyNL = isAdvanced ? 1300 : 1000;
         const maxMonthlyNL = isAdvanced ? 2500 : 1300;
 
         // Ajuste por Fase (En Peaking el volumen baja drásticamente)
         const phaseFactor = PHASE_FACTORS[phase] || 1.0;
-        
+
         const weeklyMin = Math.round((minMonthlyNL / 4) * phaseFactor);
         const weeklyMax = Math.round((maxMonthlyNL / 4) * phaseFactor);
-        
+
         return {
             minSets: weeklyMin,
             maxSets: weeklyMax,
@@ -77,7 +77,7 @@ export const calculateWeeklyVolume = (
     }
 
     // === MOTOR A: HIPERTROFIA / ESTÉTICA (Módulo 2.1 y 5) ===
-    
+
     // PASO 1: Determinar Capacidad Base (CB)
     // Informe: Score < 15 -> 10-14 series | Score > 15 -> 14-22 series
     let baseMin = 10;
@@ -122,7 +122,7 @@ export const calculateWeeklyVolume = (
  * En régimen de déficit: límites reducidos (~80%) para proteger masa muscular.
  */
 export const validateSessionVolume = (
-    setsInSession: number, 
+    setsInSession: number,
     muscleGroup: string,
     options?: { deficitRegime?: boolean }
 ): { isValid: boolean; message?: string } => {
@@ -140,7 +140,7 @@ export const validateSessionVolume = (
                 : `⚠️ Volumen Basura: ${setsInSession} series de ${muscleGroup} en una sesión excede el límite productivo (${maxSets}). Considera dividir en 2 días.`
         };
     }
-    
+
     if (setsInSession >= warnSets) {
         return {
             isValid: true,
@@ -185,24 +185,24 @@ export const calculateVolumeAdjustment = (
     muscle: string,
     feedbackHistory: PostSessionFeedback[]
 ): { factor: number; suggestion: string; status: 'recovery_debt' | 'optimal' | 'undertraining' } => {
-    
+
     if (!feedbackHistory || feedbackHistory.length === 0) {
         return { factor: 1.0, suggestion: '', status: 'optimal' };
     }
 
     // 1. Filtrar feedback relevante para este músculo
     const muscleLogs = feedbackHistory.filter(log => log.feedback && log.feedback[muscle]);
-    
+
     if (muscleLogs.length === 0) {
         return { factor: 1.0, suggestion: '', status: 'optimal' };
     }
 
     // 2. Calcular promedios recientes (últimas 3 sesiones disponibles)
     const recentLogs = muscleLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
-    
+
     let totalDoms = 0;
     let totalStrength = 0;
-    
+
     recentLogs.forEach(log => {
         const data = log.feedback[muscle];
         totalDoms += data.doms; // 1 (Nada) a 5 (Extremo)
@@ -213,7 +213,7 @@ export const calculateVolumeAdjustment = (
     const avgStrength = totalStrength / recentLogs.length;
 
     // 3. Reglas de Ajuste (KPKN Algorithm Módulo 6)
-    
+
     // CASO A: Sobrecarga / Daño excesivo (DOMS > 3.5 o Fuerza < 5)
     if (avgDoms >= 3.5 || avgStrength <= 5) {
         return {
@@ -249,78 +249,79 @@ export const calculateVolumeAdjustment = (
  * - Espalda: Separada en Amplitud (Dorsal) y Densidad (Trapecio/Espalda Alta).
  * - Brazos: Estrictamente separados.
  */
+/**
+ * Convierte nombres anatómicos en los 15 Grupos Canónicos de KPKN.
+ * Módulo de Sincronización de Datos (Crucial para Analytics y Body Map).
+ */
 export const normalizeMuscleGroup = (specificMuscle: string): string => {
-    const lower = specificMuscle.toLowerCase().trim();
+    const lower = specificMuscle.toLowerCase().trim()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Quitar acentos
 
-    // --- 1. HOMBROS (Separación por Cabezas - CRÍTICO PARA ESTÉTICA) ---
-    if (lower.includes('posterior') && (lower.includes('deltoides') || lower.includes('hombro'))) {
-        return 'Deltoides Posterior';
-    }
-    if ((lower.includes('lateral') || lower.includes('medio')) && (lower.includes('deltoides') || lower.includes('hombro'))) {
-        return 'Deltoides Lateral';
-    }
-    if ((lower.includes('anterior') || lower.includes('frontal')) && (lower.includes('deltoides') || lower.includes('hombro'))) {
-        return 'Deltoides Anterior';
-    }
-    // Si solo dice "Hombro" o "Deltoides" sin especificar (ej: Press Militar compuesto)
-    if (lower.includes('deltoides') || lower.includes('hombro')) {
-        return 'Deltoides Anterior'; // Asumimos Anterior por defecto en compuestos de empuje, o podrías usar 'Hombros (General)'
+    // --- 1. PECHO / PECTORALES ---
+    if (lower.includes('pectoral') || lower.includes('pecho')) {
+        return 'Pectorales';
     }
 
-    // --- 2. ESPALDA (Separación Amplitud vs Densidad) ---
-    // Trapecio y Espalda Alta (Densidad)
-    if (lower.includes('trapecio') || lower.includes('romboides') || lower.includes('espinal') || lower.includes('alta')) {
-        return 'Trapecio';
-    }
-    // Dorsal/Dorsales (Amplitud - sin porciones)
-    if (lower.includes('dorsal') || lower.includes('dorsales') || lower.includes('lat') || lower.includes('redondo') || lower.includes('romboides')) {
+    // --- 2. ESPALDA / DORSALES ---
+    if (lower.includes('dorsal') || lower.includes('lat') || lower.includes('redondo mayor') || lower.includes('espalda')) {
+        // Excluimos "Espalda Baja" aquí para tratarla por separado si es necesario, 
+        // pero el canon usa "Erectores Espinales" para la baja.
+        if (lower.includes('baja') || lower.includes('lumbar')) return 'Erectores Espinales';
         return 'Dorsales';
     }
-    // Espalda Baja (Salud/Core)
-    if (lower.includes('erector') || lower.includes('lumbar') || lower.includes('baja')) {
-        return 'Espalda Baja';
-    }
-    // Fallback genérico de espalda
-    if (lower.includes('espalda')) {
-        return 'Dorsales'; // Por defecto a amplitud
+
+    // --- 3. TRAPECIO ---
+    if (lower.includes('trapecio') || lower.includes('romboides')) {
+        return 'Trapecio';
     }
 
-    // --- 3. BRAZOS (Separación Estricta) ---
-    if (lower.includes('tríceps') || lower.includes('triceps')) {
+    // --- 4. HOMBROS / DELTOIDES ---
+    if (lower.includes('deltoide') || lower.includes('hombro') || lower.includes('manguito rotador') || lower.includes('supraespinoso')) {
+        return 'Deltoides';
+    }
+
+    // --- 5. BRAZOS (Bíceps, Tríceps, Antebrazo) ---
+    if (lower.includes('tricep')) {
         return 'Tríceps';
     }
-    // Bíceps (Excluyendo femoral)
-    if ((lower.includes('bíceps') || lower.includes('biceps') || lower.includes('braquial')) && !lower.includes('femoral')) {
+    if ((lower.includes('bicep') || lower.includes('braquial') || lower.includes('coracobraquial')) && !lower.includes('femoral')) {
         return 'Bíceps';
     }
-    if (lower.includes('antebrazo')) {
+    if (lower.includes('antebrazo') || lower.includes('braquiorradial') || lower.includes('pronador') || lower.includes('supinador')) {
         return 'Antebrazo';
     }
 
-    // --- 4. PIERNA (Mantenemos la lógica que ya funcionaba) ---
-    if (lower.includes('femoral') || lower.includes('semitendinoso') || lower.includes('semimembranoso') || lower.includes('isquio')) {
-        return 'Isquiosurales';
-    }
-    if (lower.includes('cuádriceps') || lower.includes('cuadriceps') || lower.includes('recto femoral') || lower.includes('vasto')) {
+    // --- 6. PIERNA (Cuádriceps, Isquios, Glúteos, Aductores, Pantorrillas) ---
+    if (lower.includes('cuadricep') || lower.includes('vasto') || lower.includes('recto femoral')) {
         return 'Cuádriceps';
     }
-    if (lower.includes('glúteo') || lower.includes('gluteo') || lower.includes('tensor de la fascia lata')) {
+    if (lower.includes('isquio') || lower.includes('femoral') || lower.includes('semitendinoso') || lower.includes('semimembranoso')) {
+        return 'Isquiosurales';
+    }
+    if (lower.includes('gluteo') || lower.includes('tensor de la fascia lata') || lower.includes('piriforme')) {
         return 'Glúteos';
     }
-    if (lower.includes('adductor') || lower.includes('pectíneo') || lower.includes('pectineo')) {
+    if (lower.includes('aductor') || lower.includes('pectineo') || lower.includes('gracil')) {
         return 'Aductores';
     }
-    if (lower.includes('gemelo') || lower.includes('sóleo') || lower.includes('soleo') || lower.includes('pantorrilla')) {
-        return 'Gemelos';
+    if (lower.includes('gemelo') || lower.includes('soleo') || lower.includes('pantorrilla') || lower.includes('gastrocnemio') || lower.includes('tibial')) {
+        return 'Pantorrillas';
     }
 
-    // --- 5. CORE / OTROS ---
-    if (lower.includes('pectoral') || lower.includes('pecho')) return 'Pectoral';
-    if (lower.includes('abdominal') || lower.includes('oblicuo') || lower.includes('core')) return 'Abdominales';
+    // --- 7. CORE / ABDOMEN / ERECTORES ---
+    if (lower.includes('erector') || lower.includes('multificos') || lower.includes('cuadrado lumbar') || lower.includes('espinal')) {
+        return 'Erectores Espinales';
+    }
+    if (lower.includes('abdomen') || lower.includes('abdominal') || lower.includes('oblicuo') || lower.includes('recto abdominal') || lower.includes('transverso')) {
+        return 'Abdomen';
+    }
+    if (lower.includes('core')) {
+        return 'Core';
+    }
 
-    // Fallback final: Capitalizar nombre original
-    return specificMuscle.charAt(0).toUpperCase() + specificMuscle.slice(1);
-    
+    // --- FALLBACK CANONIZADO ---
+    // Si no encaja en nada específico pero conocemos el origen, intentamos mapear a General o Core
+    return 'Core'; // Por defecto, si es un músculo del tronco, a Core.
 };
 
 // --- LA NUEVA CALCULADORA MAESTRA DE VOLUMEN UNIFICADO ---
@@ -343,21 +344,21 @@ export const calculateUnifiedMuscleVolume = (
 
     sessions.forEach(session => {
         if (!session) return;
-        
-        const allExercises = session.parts && session.parts.length > 0 
-            ? session.parts.flatMap(p => p.exercises || []) 
+
+        const allExercises = session.parts && session.parts.length > 0
+            ? session.parts.flatMap(p => p.exercises || [])
             : (session.exercises || []);
 
         allExercises.forEach(exercise => {
             if (!exercise || !exercise.sets) return;
 
-            const validSetsCount = exercise.sets.filter(set => 
+            const validSetsCount = exercise.sets.filter(set =>
                 set && !set.isIneffective && ((set.completedReps ?? set.targetReps ?? 0) > 0 || (set.weight ?? 0) > 0)
             ).length;
 
             if (validSetsCount > 0) {
                 const dbInfo = findExercise(exIndex, exercise.exerciseDbId, exercise.name);
-                
+
                 // Si el ejercicio tiene músculos definidos en la BD o guardados en la propia sesión histórica
                 const involvedMuscles = dbInfo?.involvedMuscles || (exercise as any).targetMuscles || [];
 
@@ -369,7 +370,7 @@ export const calculateUnifiedMuscleVolume = (
                         if (!m || !m.muscle) return;
                         const muscleName = normalizeMuscleGroup(m.muscle); // Usamos tu propio normalizador
                         const multiplier = MUSCLE_ROLE_MULTIPLIERS[m.role as MuscleRole] || 0.5;
-                        
+
                         const currentMax = uniqueMuscleMultipliers.get(muscleName) || 0;
                         if (multiplier > currentMax) {
                             uniqueMuscleMultipliers.set(muscleName, multiplier);
@@ -401,24 +402,24 @@ export const calculateUnifiedMuscleVolume = (
 import { INITIAL_MUSCLE_GROUP_DATA } from '../data/initialMuscleGroupDatabase';
 
 const MUSCLE_AGGREGATION_MAP: Record<string, string[]> = {
-    'Cuádriceps': ['cuádriceps', 'vasto-lateral', 'vasto-medial', 'recto-femoral'],
-    'Isquiosurales': ['isquiosurales', 'bíceps-femoral', 'semitendinoso', 'semimembranoso'],
-    'Glúteos': ['glúteos', 'glúteo-mayor', 'glúteo-medio', 'glúteo-menor'],
-    'Pectoral': ['pectoral', 'pectoral-superior', 'pectoral-medio', 'pectoral-inferior'],
-    'Bíceps': ['bíceps', 'cabeza-larga-bíceps', 'cabeza-corta-bíceps', 'braquial', 'braquiorradial'],
-    'Tríceps': ['tríceps', 'cabeza-larga-tríceps', 'cabeza-lateral-tríceps', 'cabeza-medial-tríceps'],
+    'Cuádriceps': ['cuadriceps', 'vasto-lateral', 'vasto-medial', 'recto-femoral'],
+    'Isquiosurales': ['isquiosurales', 'biceps-femoral', 'semitendinoso', 'semimembranoso'],
+    'Glúteos': ['gluteos', 'gluteo-mayor', 'gluteo-medio', 'gluteo-menor'],
+    'Pectorales': ['pectoral', 'pectoral-superior', 'pectoral-medio', 'pectoral-inferior'],
+    'Bíceps': ['biceps', 'cabeza-larga-biceps', 'cabeza-corta-biceps', 'braquial', 'braquiorradial'],
+    'Tríceps': ['triceps', 'cabeza-larga-triceps', 'cabeza-lateral-triceps', 'cabeza-medial-triceps'],
     'Dorsales': ['espalda', 'dorsal-ancho', 'redondo-mayor'],
     'Trapecio': ['trapecio', 'trapecio-superior', 'trapecio-medio', 'trapecio-inferior', 'romboides'],
-    'Espalda Baja': ['erectores-espinales', 'multífidos', 'cuadrado-lumbar'],
+    'Erectores Espinales': ['erectores-espinales', 'multifidos', 'cuadrado-lumbar', 'espalda-baja'],
     'Abdomen': ['abdomen', 'recto-abdominal', 'oblicuos', 'transverso-abdominal', 'core'],
-    'Pantorrillas': ['pantorrillas', 'gastrocnemio', 'sóleo'],
+    'Pantorrillas': ['pantorrillas', 'gastrocnemio', 'soleo', 'gemelos'],
+    'Deltoides': ['deltoides', 'deltoides-anterior', 'deltoides-lateral', 'deltoides-posterior', 'hombros'],
+    'Aductores': ['aductores', 'pectineo', 'gracil'],
+    'Antebrazo': ['antebrazo', 'braquiorradial', 'flexores-muneca'],
 };
 
-const STANDALONE_DISPLAY_NAMES: Record<string, string> = {
-    'Deltoides Anterior': 'deltoides-anterior',
-    'Deltoides Lateral': 'deltoides-lateral',
-    'Deltoides Posterior': 'deltoides-posterior',
-};
+// No necesitamos STANDALONE_DISPLAY_NAMES si usamos el canon estrictamente
+const STANDALONE_DISPLAY_NAMES: Record<string, string> = {};
 
 function parseVolumeString(s: string): { min: number; max: number } {
     if (!s || s === 'N/A') return { min: 0, max: 20 };
@@ -548,11 +549,11 @@ export const getVolumeThresholdsForMuscle = (
     };
 };
 
-/** Lista de grupos musculares para volumen (display) */
+/** Lista de grupos musculares para volumen (display) - Estrictamente Canónicos */
 export const VOLUME_DISPLAY_MUSCLES = [
-    'Cuádriceps', 'Isquiosurales', 'Glúteos', 'Pectoral', 'Bíceps', 'Tríceps',
-    'Dorsales', 'Trapecio', 'Espalda Baja', 'Abdomen', 'Pantorrillas',
-    'Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior',
+    'Pectorales', 'Dorsales', 'Trapecio', 'Deltoides', 'Tríceps', 'Bíceps',
+    'Antebrazo', 'Abdomen', 'Cuádriceps', 'Isquiosurales', 'Glúteos',
+    'Aductores', 'Pantorrillas', 'Core', 'Erectores Espinales',
 ] as const;
 
 /**

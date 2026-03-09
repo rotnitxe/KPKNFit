@@ -200,9 +200,9 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const parsed = useMemo(() => parseMealDescription(description), [description]);
     const isAppendixMode = displayMode === 'appendix';
     const sheetContainerClass = isAppendixMode
-        ? 'relative w-full max-h-[72vh] rounded-[32px] border border-white/30 bg-white/90 shadow-2xl'
-        : 'fixed inset-x-0 bottom-0 z-[2001] bg-[#F7F7F7] rounded-t-[40px] shadow-2xl h-[90vh]';
-    const scrollAreaClass = `flex-1 overflow-y-auto px-6 space-y-6 custom-scrollbar ${isAppendixMode ? 'max-h-[65vh] pb-32' : 'pb-48 pt-4'}`;
+        ? 'relative mx-auto w-full max-w-[380px] rounded-[32px] border border-white/40 bg-white/95 shadow-2xl backdrop-blur flex flex-col overflow-hidden'
+        : 'fixed inset-x-0 bottom-0 z-[2001] bg-[#F7F7F7] rounded-t-[40px] shadow-2xl h-[90vh] flex flex-col';
+    const scrollAreaClass = `flex-1 overflow-y-auto space-y-5 ${isAppendixMode ? 'px-4 py-5 max-h-[66vh]' : 'px-6 pb-48 pt-4'} custom-scrollbar`;
 
     useEffect(() => {
         if (!isOpen) return;
@@ -548,7 +548,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                         className={`${sheetContainerClass} overflow-hidden flex flex-col`}
                     >
-                        {displayMode === 'drawer' && (
+                        {displayMode === 'drawer' ? (
                             <div className="px-6 pt-8 pb-4 flex justify-between items-center">
                                 <div>
                                     <h3 className="text-[10px] font-black text-[#49454F]/40 uppercase tracking-[0.2em] mb-1 font-['Roboto']">Registro rapido</h3>
@@ -556,6 +556,16 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 </div>
                                 <button onClick={onClose} className="w-10 h-10 bg-black/5 rounded-full hover:bg-black/10 transition-colors flex items-center justify-center">
                                     <XIcon size={20} className="text-[#49454F]" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="px-4 pt-5 pb-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#49454F]/60">Registro rápido</p>
+                                    <p className="text-[16px] font-black text-[#1C1B1F] uppercase tracking-[0.25em]">Comida</p>
+                                </div>
+                                <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 text-[#49454F]/70 flex items-center justify-center transition hover:bg-slate-200">
+                                    <XIcon size={16} />
                                 </button>
                             </div>
                         )}

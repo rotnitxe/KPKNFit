@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Program } from '../../types';
-import { ChevronDownIcon, EditIcon, PlayIcon } from '../icons';
+import { ChevronLeftIcon, EditIcon, PlayIcon, PauseIcon, SettingsIcon, CheckCircleIcon, SlidersIcon } from '../icons';
 
 interface CompactHeroBannerProps {
     program: Program;
@@ -23,11 +24,14 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
     totalAdherence, trainingDaysCount,
 }) => {
     const [modeDropdownOpen, setModeDropdownOpen] = useState(false);
+    const [focusDropdownOpen, setFocusDropdownOpen] = useState(false);
     const modeRef = useRef<HTMLDivElement>(null);
+    const focusRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (modeRef.current && !modeRef.current.contains(e.target as Node)) setModeDropdownOpen(false);
+            if (focusRef.current && !focusRef.current.contains(e.target as Node)) setFocusDropdownOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -35,93 +39,217 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
 
     const modeLabel = program.mode === 'powerlifting' ? 'Powerlifting' : program.mode === 'powerbuilding' ? 'Powerbuilding' : 'Hipertrofia';
 
-    return (
-        <div className="relative w-full shrink-0 min-h-[120px] sm:min-h-[128px]" style={{ backgroundColor: '#FEF7FF' }}>
-            {/* Background opcional: imagen difuminada */}
-            {program.coverImage && (
-                <>
-                    <img src={program.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" style={{ filter: 'blur(24px)' }} />
-                    <div className="absolute inset-0 bg-[#FEF7FF]/85" />
-                </>
-            )}
+    const getFocusLabel = (phase?: string) => {
+        switch (phase) {
+            case 'accumulation': return 'Hipertrofia';
+            case 'transformation': return 'Fuerza';
+            case 'realization': return 'Peaking';
+            default: return 'Fuerza';
+        }
+    };
 
-            {/* Content - header compacto estilo Tú */}
-            <div className="relative z-10 h-full flex flex-col gap-2.5 px-4 sm:px-6 py-3" style={{ paddingTop: 'max(28px, env(safe-area-inset-top, 0px))' }}>
-                {/* Fila 1: Top App Bar */}
-                <div className="flex items-center justify-between shrink-0 h-16">
-                    <div className="flex items-center gap-4">
-                        <button onClick={onBack} className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+    return (
+        <div className="relative w-full overflow-visible flex flex-col items-center">
+            {/* ── Liquid Glass Hero Container ── */}
+            <div className="relative w-full aspect-[16/9] overflow-hidden shadow-2xl shadow-black/10 rounded-b-[48px]">
+                {/* Background Image / Gradient */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={program.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="absolute inset-0"
+                    >
+                        {program.coverImage ? (
+                            <img src={program.coverImage} className="w-full h-full object-cover" alt="Cover" />
+                        ) : (
+                            <div className="absolute inset-0 bg-gradient-to-tr from-[#1C1B1F] via-[#49454F] to-[#ECE6F0]" />
+                        )}
+                        {/* Glass Overlays */}
+                        <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    </motion.div>
+                </AnimatePresence>
+
+                {/* Top Navigation Bar (Floating) */}
+                <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-30" style={{ paddingTop: 'max(24px, env(safe-area-inset-top, 0px))' }}>
+                    <button
+                        onClick={onBack}
+                        className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-90 transition-all"
+                    >
+                        <ChevronLeftIcon size={24} />
+                    </button>
+
+                    <div className="flex gap-2">
+                        <div className="relative" ref={modeRef}>
+                            <button
+                                onClick={() => setModeDropdownOpen(!modeDropdownOpen)}
+                                className="h-11 px-5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-between text-white active:scale-95 transition-all shadow-lg shadow-black/20"
+                            >
+                                <span className="text-[10px] font-black uppercase tracking-widest truncate mr-2">{modeLabel}</span>
+                                <ChevronLeftIcon size={14} className="-rotate-90 opacity-50" />
+                            </button>
+
+                            <AnimatePresence>
+                                {modeDropdownOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="absolute top-full right-0 mt-3 z-50 py-2 rounded-2xl bg-white/95 backdrop-blur-2xl border border-white/20 shadow-2xl min-w-[180px] overflow-hidden"
+                                    >
+                                        {(['hypertrophy', 'powerlifting', 'powerbuilding'] as const).map(m => (
+                                            <button
+                                                key={m}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (onUpdateProgram) {
+                                                        const updated = JSON.parse(JSON.stringify(program));
+                                                        updated.mode = m;
+                                                        onUpdateProgram(updated);
+                                                    }
+                                                    setModeDropdownOpen(false);
+                                                }}
+                                                className={`w-full px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${program.mode === m ? 'bg-black text-white' : 'text-black/60 hover:bg-black/5'}`}
+                                            >
+                                                {m === 'hypertrophy' ? 'Hipertrofia' : m === 'powerlifting' ? 'Powerlifting' : 'Powerbuilding'}
+                                            </button>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        <button
+                            onClick={onEdit}
+                            className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-90 transition-all shadow-lg shadow-black/20"
+                        >
+                            <SlidersIcon size={20} />
                         </button>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="relative" ref={modeRef}>
-                            <button onClick={() => setModeDropdownOpen(!modeDropdownOpen)} className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors relative">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
-                            </button>
-                            {modeDropdownOpen && (
-                                <div className="absolute top-full right-0 mt-1 z-50 py-2 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-lg min-w-[160px] bg-[var(--md-sys-color-surface-container-high)]">
-                                    {(['hypertrophy', 'powerlifting', 'powerbuilding'] as const).map(m => (
+                </div>
+
+                {/* Hero Content */}
+                <div className="absolute inset-x-0 bottom-0 p-8 pt-24 flex justify-between items-end z-20">
+                    <div className="flex flex-col gap-2 flex-1 pr-6">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="flex flex-wrap gap-2 mb-1"
+                        >
+                            <div className={`px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest flex items-center gap-2 ${isActive ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : isPaused ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-white/10 text-white/60 border-white/20'}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse outline outline-4 outline-emerald-400/20' : isPaused ? 'bg-amber-400' : 'bg-white/40'}`} />
+                                {isActive ? 'Activo' : isPaused ? 'Pausado' : 'Borrador'}
+                            </div>
+                            {totalAdherence > 0 && (
+                                <div className="px-4 py-1.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 backdrop-blur-md">
+                                    <CheckCircleIcon size={12} />
+                                    {totalAdherence}% Adherencia
+                                </div>
+                            )}
+                        </motion.div>
+
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-white text-5xl sm:text-6xl font-black leading-[0.85] tracking-tighter"
+                        >
+                            {program.name}
+                        </motion.h1>
+
+                        <motion.p
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="text-white/80 text-[13px] font-bold uppercase tracking-[0.05em] mt-3 max-w-[90%] leading-snug line-clamp-2"
+                        >
+                            {program.description || "Sin descripción proporcionada"}
+                        </motion.p>
+                    </div>
+
+                    {/* Circular Action Button - Premium Glass Style */}
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={isActive ? onPause : onStart}
+                        className={`w-24 h-24 rounded-full flex items-center justify-center shadow-2xl relative shrink-0 transition-colors border-[6px] border-white/10 overflow-hidden ${isActive ? 'bg-white/20 text-white backdrop-blur-2xl' : 'bg-white text-black'}`}
+                    >
+                        {isActive && !isPaused ? (
+                            <div className="flex gap-2">
+                                <div className="w-2 h-8 bg-current rounded-full" />
+                                <div className="w-2 h-8 bg-current rounded-full" />
+                            </div>
+                        ) : (
+                            <PlayIcon size={40} className="ml-2" fill="currentColor" />
+                        )}
+
+                        {/* Pulsing ring if active */}
+                        {isActive && (
+                            <div className="absolute inset-0 rounded-full border-4 border-emerald-400/50 animate-[ping_3s_infinite]" />
+                        )}
+                    </motion.button>
+                </div>
+            </div>
+
+            {/* ── Secondary Stats Bar (Compact & Serious Liquid Glass) ── */}
+            <div className="w-full px-4 -mt-10 z-30">
+                <div className="w-full bg-white/80 backdrop-blur-3xl rounded-[32px] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50 flex items-stretch divide-x divide-black/[0.03]">
+                    {/* Stats Sections */}
+                    <div className="flex-1 flex flex-col items-center py-3.5">
+                        <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-[0.25em] mb-0.5">Semana</span>
+                        <div className="flex items-baseline gap-0.5">
+                            <span className="text-base font-black text-[#1D1B20] leading-none">{currentWeekIndex + 1}</span>
+                            <span className="text-[9px] font-bold text-zinc-300 uppercase leading-none">/ {totalWeeks}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col items-center py-3.5">
+                        <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-[0.25em] mb-0.5">Frecuencia</span>
+                        <span className="text-base font-black text-[#1D1B20] leading-none">{trainingDaysCount}D</span>
+                    </div>
+
+                    {/* Editable Focus Field */}
+                    <div className="flex-1 relative" ref={focusRef}>
+                        <button
+                            onClick={() => setFocusDropdownOpen(!focusDropdownOpen)}
+                            className="w-full h-full flex flex-col items-center py-3.5 hover:bg-black/[0.01] transition-colors rounded-r-[24px] group"
+                        >
+                            <span className="text-[7.5px] font-black text-zinc-400 uppercase tracking-[0.25em] mb-0.5">Enfoque</span>
+                            <div className="flex items-center gap-1">
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.15em]">{getFocusLabel(program.trainingPhase)}</span>
+                                <ChevronLeftIcon size={10} className="-rotate-90 text-zinc-300 group-hover:text-blue-400 transition-colors" />
+                            </div>
+                        </button>
+
+                        <AnimatePresence>
+                            {focusDropdownOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    className="absolute bottom-full right-0 mb-3 z-50 py-2 rounded-2xl bg-white/95 backdrop-blur-2xl border border-black/5 shadow-2xl min-w-[160px] overflow-hidden"
+                                >
+                                    {(['accumulation', 'transformation', 'realization'] as const).map(p => (
                                         <button
-                                            key={m}
+                                            key={p}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 if (onUpdateProgram) {
                                                     const updated = JSON.parse(JSON.stringify(program));
-                                                    updated.mode = m;
+                                                    updated.trainingPhase = p;
                                                     onUpdateProgram(updated);
                                                 }
-                                                setModeDropdownOpen(false);
+                                                setFocusDropdownOpen(false);
                                             }}
-                                            className={`w-full px-4 py-3 text-left text-sm transition-colors ${program.mode === m ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-variant)]'}`}
+                                            className={`w-full px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${program.trainingPhase === p ? 'bg-blue-600 text-white' : 'text-zinc-600 hover:bg-black/5'}`}
                                         >
-                                            {m === 'hypertrophy' ? 'Hipertrofia' : m === 'powerlifting' ? 'Powerlifting' : 'Powerbuilding'}
+                                            {getFocusLabel(p)}
                                         </button>
                                     ))}
-                                </div>
+                                </motion.div>
                             )}
-                        </div>
-                        <button onClick={onEdit} className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-                        </button>
+                        </AnimatePresence>
                     </div>
-                </div>
-
-                {/* Fila 2: Título y Subtítulo */}
-                <div className="flex flex-col px-4 mt-2">
-                    <h1 className="text-[32px] font-normal leading-tight tracking-tight text-[var(--md-sys-color-on-surface)]">
-                        {program.name}
-                    </h1>
-                    <p className="text-sm mt-1 text-[var(--md-sys-color-on-surface-variant)]">
-                        {program.description || `${modeLabel} ${totalWeeks > 0 ? ` - ${totalWeeks} semanas` : ''}`}
-                    </p>
-                </div>
-
-                {/* Fila 3: Assistive Chips */}
-                <div className="flex items-center gap-2 px-4 mt-4 overflow-x-auto custom-scrollbar pb-2">
-                    <div className="flex items-center gap-2 px-3 h-8 rounded-lg bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] shrink-0">
-                        {isActive && <span className="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)]" />}
-                        {isPaused && <span className="w-2 h-2 rounded-full bg-[var(--md-sys-color-tertiary)]" />}
-                        {!isActive && !isPaused && <span className="w-2 h-2 rounded-full bg-[var(--md-sys-color-outline)]" />}
-                        <span className="text-sm font-medium text-[var(--md-sys-color-on-surface)]">
-                            {isActive ? 'Activo' : isPaused ? 'Pausado' : 'Borrador'}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 px-3 h-8 rounded-lg bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] shrink-0">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--md-sys-color-primary)]"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M7 7h10" /><path d="M7 12h10" /><path d="M7 17h10" /></svg>
-                        <span className="text-sm font-medium text-[var(--md-sys-color-on-surface)]">
-                            {modeLabel}
-                        </span>
-                    </div>
-
-                    {totalAdherence > 0 && (
-                        <div className="flex items-center gap-2 px-3 h-8 rounded-lg bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] shrink-0">
-                            <span className="text-sm font-medium text-[var(--md-sys-color-on-surface)]">
-                                {totalAdherence}% adherencia
-                            </span>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

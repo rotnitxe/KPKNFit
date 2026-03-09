@@ -9,6 +9,8 @@ interface ProgramStructureTabProps {
     onDeleteSession?: (sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     currentWeekId?: string;
     onUpdateProgram?: (program: Program) => void;
+    onEditMacrocycle?: () => void;
+    onChangeSplit?: () => void;
 }
 
 const DAYS_OF_WEEK = [
@@ -27,7 +29,9 @@ export const ProgramStructureTab: React.FC<ProgramStructureTabProps> = ({
     onAddSession,
     onDeleteSession,
     currentWeekId,
-    onUpdateProgram
+    onUpdateProgram,
+    onEditMacrocycle,
+    onChangeSplit
 }) => {
     // We'll flatten the structure to just find the current week's sessions for now
     const currentWeekSessions = React.useMemo(() => {
@@ -96,7 +100,32 @@ export const ProgramStructureTab: React.FC<ProgramStructureTabProps> = ({
     };
 
     return (
-        <div className="flex flex-col gap-5 p-4 bg-[#FEF7FF] pb-[max(120px,calc(100px+env(safe-area-inset-bottom)))]">
+        <div className="flex flex-col gap-6 p-4 bg-[#FEF7FF] pb-[max(120px,calc(100px+env(safe-area-inset-bottom)))]">
+            {/* ── Structure Toolbox (Horizontal Layout) ── */}
+            <div className="flex flex-col gap-3 px-2">
+                <div className="flex items-center gap-3">
+                    <div className="h-[1px] flex-1 bg-black/[0.05]" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Herramientas</span>
+                    <div className="h-[1px] flex-1 bg-black/[0.05]" />
+                </div>
+                <div className="flex gap-3">
+                    <button
+                        onClick={onEditMacrocycle}
+                        className="flex-1 h-14 rounded-3xl bg-white/60 backdrop-blur-xl border border-black/[0.05] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 hover:text-zinc-900 active:scale-95 transition-all hover:bg-white/80"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                        Estructura
+                    </button>
+                    <button
+                        onClick={onChangeSplit}
+                        className="flex-1 h-14 rounded-3xl bg-zinc-900 border border-zinc-800 shadow-[0_12px_40px_rgba(0,0,0,0.15)] flex flex-col justify-center items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/50 hover:text-white active:scale-95 transition-all hover:brightness-110"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-30"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="M7 21h10" /><path d="M12 3v18" /><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" /></svg>
+                        Split
+                    </button>
+                </div>
+            </div>
+
             {DAYS_OF_WEEK.map((day) => {
                 const daySessions = currentWeekSessions.filter(s => s.dayOfWeek === day.id);
 
@@ -105,18 +134,18 @@ export const ProgramStructureTab: React.FC<ProgramStructureTabProps> = ({
                         key={day.id}
                         onDragOver={handleSessionDragOver}
                         onDrop={(e) => handleSessionDrop(e, day.id)}
-                        className="bg-white rounded-[28px] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] border border-[#ECE6F0]/50 transition-all duration-300"
+                        className="group"
                     >
                         {/* Day Header */}
-                        <div className="flex items-center justify-between mb-5">
-                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[#1D1B20]/60">
+                        <div className="flex items-center justify-between px-2 mb-3">
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[#1D1B20]/40">
                                 {day.name}
                             </h3>
                             <button
                                 onClick={onAddSession}
-                                className="w-10 h-10 rounded-full flex items-center justify-center bg-[#ECE6F0] text-[#1D1B20] hover:bg-[#D3E3FD] transition-colors"
+                                className="w-8 h-8 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-400 hover:bg-blue-50 hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100"
                             >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                             </button>
                         </div>
 
@@ -128,42 +157,56 @@ export const ProgramStructureTab: React.FC<ProgramStructureTabProps> = ({
                                     draggable
                                     onDragStart={(e) => handleSessionDragStart(e, session.id)}
                                     className={`
-                                        flex items-center justify-between p-4 rounded-2xl border border-[#ECE6F0] bg-[#FEF7FF]/50 transition-all duration-300
-                                        ${draggedSessionId === session.id ? 'opacity-30 scale-95 border-blue-500' : 'opacity-100 hover:border-[#D3E3FD] hover:bg-white'}
-                                        cursor-grab active:cursor-grabbing
-                                    `}
+                                                relative overflow-hidden rounded-[32px] p-6 shadow-xl border transition-all duration-300
+                                                ${draggedSessionId === session.id ? 'opacity-30 scale-95 border-blue-500' : 'opacity-100 hover:scale-[1.01] hover:shadow-2xl'}
+                                                ${session.exercises?.length ? 'bg-white border-black/[0.03]' : 'bg-white/40 backdrop-blur-md border-black/[0.02]'}
+                                                cursor-grab active:cursor-grabbing
+                                            `}
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm border border-[#ECE6F0] text-[#004A77]">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6.5 6.5 11 11" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" /></svg>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <h4 className="text-sm font-black text-[#1D1B20]">{session.name || "Sesión"}</h4>
-                                            <div className="flex items-center gap-1.5 opacity-50 mt-0.5">
-                                                <div className="w-1 h-1 rounded-full bg-current" />
-                                                <p className="text-[10px] font-bold uppercase tracking-wider">{session.exercises?.length || 0} Ejercicios</p>
+                                    {/* Subtle Gradient Glow for Sessions with Exercises */}
+                                    {session.exercises?.length > 0 && (
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/[0.03] blur-3xl -mr-16 -mt-16 rounded-full" />
+                                    )}
+
+                                    <div className="flex items-center justify-between relative z-10">
+                                        <div className="flex items-center gap-4">
+                                            {/* Icon with Dynamic Background */}
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border transition-colors ${session.exercises?.length ? 'bg-blue-600 text-white border-blue-400' : 'bg-zinc-50 text-zinc-300 border-zinc-100'}`}>
+                                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6.5 6.5 11 11" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" /></svg>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <h4 className="text-base font-black text-[#1D1B20] tracking-tight">{session.name || "Sesión"}</h4>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${session.exercises?.length ? 'bg-blue-100 text-blue-700' : 'bg-zinc-100 text-zinc-500'}`}>
+                                                        {session.exercises?.length || 0} Ejercicios
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onEditSession && onEditSession(session.id); }}
-                                            className="w-10 h-10 rounded-full flex items-center justify-center text-[#1D1B20]/40 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                                        >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); setSessionToDelete(session.id); }}
-                                            className="w-10 h-10 rounded-full flex items-center justify-center text-[#1D1B20]/40 hover:text-red-500 hover:bg-red-50 transition-all"
-                                        >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
-                                        </button>
+
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onEditSession && onEditSession(session.id); }}
+                                                className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-300 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-90"
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setSessionToDelete(session.id); }}
+                                                className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90"
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                             {daySessions.length === 0 && (
-                                <div className="py-6 text-center border-2 border-dashed border-[#ECE6F0] rounded-2xl flex flex-col items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#1D1B20]/30 italic">Descanso o sin programar</p>
+                                <div
+                                    onClick={onAddSession}
+                                    className="py-6 rounded-[28px] border-2 border-dashed border-zinc-100 bg-zinc-50/50 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-zinc-50 hover:border-zinc-200 transition-all"
+                                >
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">Descanso</p>
                                 </div>
                             )}
                         </div>

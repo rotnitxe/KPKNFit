@@ -19,6 +19,42 @@ export interface CalorieGoalConfig {
     activityHoursPerDay?: number;
 }
 
+export type NutritionGoalMetric = 'weight' | 'bodyFat' | 'muscleMass';
+export type NutritionRiskSeverity = 'info' | 'warning' | 'danger';
+export type NutritionTrendStatus = 'on_track' | 'behind' | 'ahead' | 'unknown';
+
+export interface NutritionGoal {
+    metric: NutritionGoalMetric;
+    value: number;
+    label: string;
+    unit: string;
+    priority: 'primary' | 'secondary';
+}
+
+export interface NutritionRiskFlag {
+    id: string;
+    code: string;
+    severity: NutritionRiskSeverity;
+    message: string;
+    hardStop?: boolean;
+}
+
+export interface NutritionCalculationSnapshot {
+    formula: CalorieGoalConfig['formula'];
+    activityFactor: number;
+    bmr: number | null;
+    tdee: number | null;
+    calorieTarget: number;
+    generatedAt: string;
+}
+
+export interface NutritionProjection {
+    etaDate: string | null;
+    trendStatus: NutritionTrendStatus;
+    weeklyDelta: number | null;
+    confidence: number;
+}
+
 // --- NUEVO: Tipos para el Algoritmo KPKN (Informe v3) ---
 export interface AthleteProfileScore {
     technicalScore: 1 | 2 | 3;
@@ -155,6 +191,7 @@ export interface Settings {
     hasSeenSessionEditorTour: boolean;
     hasSeenKPKNTour: boolean;
     hasSeenNutritionWizard?: boolean;
+    nutritionWizardVersion?: number;
     hasDismissedNutritionSetup?: boolean;
     hasSeenGeneralWizard?: boolean;
     hasPrecalibratedBattery?: boolean;
@@ -802,10 +839,13 @@ export interface BodyProgressLog {
     weight?: number;
     bodyFatPercentage?: number;
     muscleMassPercentage?: number;
+    bodyFatQuality?: 'measured' | 'estimated';
+    muscleMassQuality?: 'measured' | 'estimated';
     measurements?: Record<string, number>;
     photos?: string[];
     aiInsight?: string;
 }
+
 
 /** Plan de nutrición (equivalente a Program en entrenamiento) */
 export interface NutritionPlan {
@@ -820,7 +860,13 @@ export interface NutritionPlan {
     calorieGoalConfig: CalorieGoalConfig;
     isActive: boolean;
     createdAt: string;
+    primaryGoal?: NutritionGoal;
+    secondaryGoals?: NutritionGoal[];
+    calculationSnapshot?: NutritionCalculationSnapshot;
+    riskFlags?: NutritionRiskFlag[];
+    projection?: NutritionProjection;
 }
+
 
 export type PortionPreset = 'small' | 'medium' | 'large' | 'extra';
 
@@ -1653,3 +1699,6 @@ export const WorkoutLogSchema = z.object({
     photo: z.string().optional(),
     caloriesBurned: z.number().optional(),
 });
+
+
+

@@ -720,40 +720,41 @@ export const App: React.FC = () => {
                         }}
                     >
                         {/* Food Appendix */}
+                        <div className="absolute inset-0 flex justify-center items-end pointer-events-none">
+                            <div
+                                className={`pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isFoodAppendixOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4'}`}
+                            >
+                                <RegisterFoodDrawer
+                                    isOpen={isFoodAppendixOpen}
+                                    onClose={() => {
+                                        setIsNutritionLogModalOpen(false);
+                                        setFoodRegistrationMode('drawer');
+                                    }}
+                                    onSave={(log) => {
+                                        handleSaveNutritionLog(log);
+                                        setIsNutritionLogModalOpen(false);
+                                        setFoodRegistrationMode('drawer');
+                                    }}
+                                    settings={settings}
+                                    displayMode="appendix"
+                                />
+                            </div>
+                        </div>
+
+                        {/* SubTabBar extension */}
                         <div
                             className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                                        ${isNutritionLogModalOpen && foodRegistrationMode === 'appendix' ? 'max-h-[85vh] opacity-100 pt-2' : 'max-h-0 opacity-0 pt-0'}`}
-                        >
-                                    <RegisterFoodDrawer
-                                        isOpen={isFoodAppendixOpen}
-                                        onClose={() => {
-                                            setIsNutritionLogModalOpen(false);
-                                            setFoodRegistrationMode('drawer');
-                                        }}
-                                        onSave={(log) => {
-                                            handleSaveNutritionLog(log);
-                                            setIsNutritionLogModalOpen(false);
-                                            setFoodRegistrationMode('drawer');
-                                        }}
-                                        settings={settings}
-                                        displayMode="appendix"
-                                    />
-                                </div>
-
-                                {/* SubTabBar extension */}
-                                <div
-                                    className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                                         ${subTabBarContext ? 'max-h-24 opacity-100 pt-3' : 'max-h-0 opacity-0 pt-0'}`}
-                                >
-                                    <SubTabBar
-                                        context={subTabBarContext}
-                                        isActive={!!subTabBarContext}
-                                        viewingExerciseId={viewingExerciseId}
-                                        onEditExercisePress={tabBarActions.onEditExercisePress}
-                                        onFoodAppendixPress={toggleFoodAppendix}
-                                        isFoodAppendixOpen={isFoodAppendixOpen}
-                                    />
-                                </div>
+                        >
+                            <SubTabBar
+                                context={subTabBarContext}
+                                isActive={!!subTabBarContext}
+                                viewingExerciseId={viewingExerciseId}
+                                onEditExercisePress={tabBarActions.onEditExercisePress}
+                                onFoodAppendixPress={toggleFoodAppendix}
+                                isFoodAppendixOpen={isFoodAppendixOpen}
+                            />
+                        </div>
                         {/* Main TabBar base */}
                         <div className="h-[68px] shrink-0 w-full">
                             <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext || (isNutritionLogModalOpen && foodRegistrationMode === 'appendix')} workoutViewMode="carousel" />

@@ -83,87 +83,92 @@ export const CaupolicanBody: React.FC<{
 
     return (
         <div className="flex flex-col items-center w-full">
-            <div className="relative w-full max-w-[260px] aspect-[1/2.2] overflow-hidden flex items-center justify-center">
+            <div className="relative w-full max-w-[280px] aspect-[1/2.1] overflow-hidden flex items-center justify-center rounded-[40px]">
 
-                <div className="absolute top-2 z-40 bg-white/80 backdrop-blur-md p-1 rounded-full border border-[#ECE6F0] flex shadow-lg">
-                    <button onClick={() => setView('front')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${view === 'front' ? 'bg-blue-600 text-white shadow-md' : 'text-[#49454F] hover:text-zinc-900'}`}>Anterior</button>
-                    <button onClick={() => setView('back')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${view === 'back' ? 'bg-blue-600 text-white shadow-md' : 'text-[#49454F] hover:text-zinc-900'}`}>Posterior</button>
+                {/* Background Shadow/Glow */}
+                <div className="absolute inset-x-8 inset-y-12 bg-black/[0.02] blur-3xl rounded-full" />
+
+                <div className="absolute top-4 z-40 bg-white/20 backdrop-blur-xl p-1 rounded-full border border-white/30 flex shadow-xl">
+                    <button
+                        onClick={() => setView('front')}
+                        className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${view === 'front' ? 'bg-white text-black shadow-lg scale-105' : 'text-black/40 hover:text-black/60'}`}
+                    >
+                        Front
+                    </button>
+                    <button
+                        onClick={() => setView('back')}
+                        className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${view === 'back' ? 'bg-white text-black shadow-lg scale-105' : 'text-black/40 hover:text-black/60'}`}
+                    >
+                        Back
+                    </button>
                 </div>
 
                 {/* CONTENEDOR 3D */}
-                <div className="absolute inset-0 z-20 pointer-events-none mt-4" style={{ perspective: '1200px' }}>
+                <div className="absolute inset-0 z-20 pointer-events-none mt-2" style={{ perspective: '2000px' }}>
                     <div
-                        className="relative w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.175,0.885,0.32,1.1)]"
+                        className="relative w-full h-full transition-transform duration-[1000ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                         style={{ transformStyle: 'preserve-3d', transform: view === 'front' ? 'rotateY(0deg)' : 'rotateY(180deg)' }}
                     >
                         {/* --- CARA FRONTAL --- */}
-                        <div className="absolute inset-0 w-full h-full bg-white overflow-hidden" style={{ backfaceVisibility: 'hidden', transform: 'translateZ(1px)' }}>
-                            <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-                                <div className="absolute top-[2%] w-[26%] h-[18%] bg-[#ECE6F0] rounded-[40px]"></div>
-                                <div className="absolute top-[15%] w-[46%] h-[45%] bg-[#ECE6F0] rounded-[40px]"></div>
-                                <div className="absolute top-[20%] w-[96%] h-[50%] bg-[#ECE6F0] rounded-[30px]"></div>
-                                <div className="absolute top-[50%] w-[52%] h-[30%] bg-[#ECE6F0] rounded-[30px]"></div>
-                                <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-[#ECE6F0] rounded-[20px]"></div>
-                            </div>
-                            {/* Silueta del cuerpo primero (z-10) */}
-                            <div className="absolute inset-0 z-10 p-8 flex items-center justify-center opacity-100 scale-95 pointer-events-none"><CaupolicanA /></div>
-                            {/* Zonas de calor ENCIMA de la silueta para que sean visibles */}
+                        <div className="absolute inset-0 w-full h-full overflow-hidden flex items-center justify-center" style={{ backfaceVisibility: 'hidden', transform: 'translateZ(1px)' }}>
+                            {/* PNG Silhouette */}
+                            <img
+                                src="/caupolican-front.png"
+                                alt="Caupolican Front"
+                                className="absolute inset-0 w-full h-full object-contain p-4 opacity-90 transition-opacity duration-700"
+                            />
+
+                            {/* Zonas de calor ENCIMA de la silueta */}
                             <div
                                 className="absolute inset-0 z-20 p-8 cursor-default pointer-events-auto"
                                 onClick={onBodyBackgroundClick ?? undefined}
                                 role="presentation"
                             >
-                                <HeatZone top={22} left={32} width={15} height={6} muscle="Pectoral" />
-                                <HeatZone top={22} left={53} width={15} height={6} muscle="Pectoral" />
-                                <HeatZone top={34} left={42} width={16} height={12} muscle="Abdomen" />
-                                <HeatZone top={50} left={28} width={15} height={15} muscle="Cuádriceps" />
-                                <HeatZone top={50} left={57} width={15} height={15} muscle="Cuádriceps" />
-                                <HeatZone top={20} left={12} width={10} height={10} muscle="Deltoides" />
-                                <HeatZone top={20} left={78} width={10} height={10} muscle="Deltoides" />
-                                <HeatZone top={32} left={15} width={10} height={12} muscle="Bíceps" />
-                                <HeatZone top={32} left={75} width={10} height={12} muscle="Bíceps" />
-                                <HeatZone top={45} left={12} width={10} height={14} muscle="Antebrazo" />
-                                <HeatZone top={45} left={78} width={10} height={14} muscle="Antebrazo" />
+                                <HeatZone top={24} left={32} width={14} height={5} muscle="Pectorales" />
+                                <HeatZone top={24} left={54} width={14} height={5} muscle="Pectorales" />
+                                <HeatZone top={36} left={42} width={16} height={10} muscle="Abdomen" />
+                                <HeatZone top={52} left={28} width={15} height={13} muscle="Cuádriceps" />
+                                <HeatZone top={52} left={57} width={15} height={13} muscle="Cuádriceps" />
+                                <HeatZone top={22} left={14} width={9} height={9} muscle="Deltoides" />
+                                <HeatZone top={22} left={77} width={9} height={9} muscle="Deltoides" />
+                                <HeatZone top={34} left={16} width={9} height={10} muscle="Bíceps" />
+                                <HeatZone top={34} left={75} width={9} height={10} muscle="Bíceps" />
+                                <HeatZone top={46} left={12} width={10} height={12} muscle="Antebrazo" />
+                                <HeatZone top={46} left={78} width={10} height={12} muscle="Antebrazo" />
                             </div>
                             <div className="absolute inset-0 z-[25] p-8 pointer-events-none">{renderDiscomforts('front')}</div>
-
-                            <div className="absolute inset-0 z-30 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.03)]" />
                         </div>
 
                         {/* --- CARA POSTERIOR --- */}
-                        <div className="absolute inset-0 w-full h-full bg-white overflow-hidden" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg) translateZ(1px)' }}>
-                            <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-                                <div className="absolute top-[2%] w-[26%] h-[18%] bg-[#ECE6F0] rounded-[40px]"></div>
-                                <div className="absolute top-[15%] w-[46%] h-[45%] bg-[#ECE6F0] rounded-[40px]"></div>
-                                <div className="absolute top-[20%] w-[96%] h-[50%] bg-[#ECE6F0] rounded-[30px]"></div>
-                                <div className="absolute top-[50%] w-[52%] h-[30%] bg-[#ECE6F0] rounded-[30px]"></div>
-                                <div className="absolute bottom-[-2%] w-[70%] h-[30%] bg-[#ECE6F0] rounded-[20px]"></div>
-                            </div>
-                            {/* Silueta del cuerpo primero (z-10) */}
-                            <div className="absolute inset-0 z-10 p-8 flex items-center justify-center opacity-100 scale-95 pointer-events-none"><CaupolicanB /></div>
-                            {/* Zonas de calor ENCIMA de la silueta para que sean visibles */}
+                        <div className="absolute inset-0 w-full h-full overflow-hidden flex items-center justify-center" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg) translateZ(1px)' }}>
+                            {/* PNG Silhouette */}
+                            <img
+                                src="/caupolican-back.png"
+                                alt="Caupolican Back"
+                                className="absolute inset-0 w-full h-full object-contain p-4 opacity-90 transition-opacity duration-700"
+                            />
+
+                            {/* Zonas de calor ENCIMA de la silueta */}
                             <div
                                 className="absolute inset-0 z-20 p-8 cursor-default pointer-events-auto"
                                 onClick={onBodyBackgroundClick ?? undefined}
                                 role="presentation"
                             >
-                                <HeatZone top={26} left={25} width={50} height={18} muscle="Dorsal" />
-                                <HeatZone top={16} left={45} width={10} height={8} muscle="Trapecio" />
-                                <HeatZone top={42} left={42} width={16} height={8} muscle="Espalda Baja" />
-                                <HeatZone top={50} left={32} width={14} height={10} muscle="Glúteos" />
-                                <HeatZone top={50} left={54} width={14} height={10} muscle="Glúteos" />
-                                <HeatZone top={68} left={25} width={15} height={15} muscle="Isquiosurales" />
-                                <HeatZone top={68} left={60} width={15} height={15} muscle="Isquiosurales" />
-                                <HeatZone top={78} left={28} width={12} height={14} muscle="Gemelos" />
-                                <HeatZone top={78} left={60} width={12} height={14} muscle="Gemelos" />
-                                <HeatZone top={32} left={14} width={10} height={14} muscle="Tríceps" />
-                                <HeatZone top={32} left={76} width={10} height={14} muscle="Tríceps" />
-                                <HeatZone top={20} left={12} width={10} height={10} muscle="Deltoides" />
-                                <HeatZone top={20} left={78} width={10} height={10} muscle="Deltoides" />
+                                <HeatZone top={28} left={25} width={50} height={16} muscle="Dorsales" />
+                                <HeatZone top={18} left={45} width={10} height={7} muscle="Trapecio" />
+                                <HeatZone top={44} left={42} width={16} height={7} muscle="Erectores Espinales" />
+                                <HeatZone top={52} left={32} width={14} height={9} muscle="Glúteos" />
+                                <HeatZone top={52} left={54} width={14} height={9} muscle="Glúteos" />
+                                <HeatZone top={70} left={25} width={15} height={13} muscle="Isquiosurales" />
+                                <HeatZone top={70} left={60} width={15} height={13} muscle="Isquiosurales" />
+                                <HeatZone top={80} left={28} width={12} height={12} muscle="Pantorrillas" />
+                                <HeatZone top={80} left={60} width={12} height={12} muscle="Pantorrillas" />
+                                <HeatZone top={34} left={15} width={10} height={12} muscle="Tríceps" />
+                                <HeatZone top={34} left={75} width={10} height={12} muscle="Tríceps" />
+                                <HeatZone top={22} left={14} width={9} height={9} muscle="Deltoides" />
+                                <HeatZone top={22} left={77} width={9} height={9} muscle="Deltoides" />
                             </div>
                             <div className="absolute inset-0 z-[25] p-8 pointer-events-none">{renderDiscomforts('back')}</div>
-
-                            <div className="absolute inset-0 z-30 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.03)]" />
                         </div>
 
                     </div>

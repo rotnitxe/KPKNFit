@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Program, Session, ProgramWeek } from '../types';
 import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon, TrashIcon } from './icons';
 import { useAppContext } from '../contexts/AppContext';
@@ -204,9 +205,9 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     // ─── Render ───
     return (
-        <div className="fixed inset-0 z-[100] flex flex-col min-h-0 bg-[#FEF7FF] text-zinc-900 safe-area-root items-center">
-            {/* Un único scroll: Hero + Tabs + Contenido (max-w-md para Mobile First) */}
-            <div className="flex-1 w-full max-w-md min-h-0 overflow-y-auto custom-scrollbar bg-[#FEF7FF]">
+        <div className="fixed inset-0 z-[100] flex flex-col min-h-0 bg-[#FEF7FF] text-zinc-900 overflow-hidden">
+            {/* Un único scroll: Hero + Tabs + Contenido */}
+            <div className="flex-1 w-full min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#FEF7FF]">
                 <CompactHeroBanner
                     program={program}
                     isActive={!!isActiveProgram}
@@ -222,95 +223,121 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     trainingDaysCount={trainingDaysCount}
                 />
 
-                {/* Tabs: Estructura | Analíticas (M3 Segmented Button) */}
-                <div className="flex justify-center py-6 border-b border-[#ECE6F0] bg-[#FEF7FF]">
-                    <div className="flex bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-1.5 w-[calc(100%-48px)] shadow-sm">
+                {/* Tabs: Estructura | Analíticas (iOS-inspired Slim Segmented Control) */}
+                <div className="flex justify-center px-4 py-6 sticky top-0 z-[50] bg-[#FEF7FF]/60 backdrop-blur-xl">
+                    <div className="flex bg-black/[0.03] backdrop-blur-3xl border border-black/[0.05] rounded-full p-1 w-full max-w-[340px] shadow-[0_8px_32px_rgba(0,0,0,0.04)] relative overflow-hidden">
+                        {/* Animated Background Slider */}
+                        <motion.div
+                            animate={{ x: activeTab === 'training' ? '0%' : '100%' }}
+                            transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                            className="absolute inset-y-1 left-1 w-[calc(50%-4px)] bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/[0.03]"
+                        />
+
                         <button
                             onClick={() => setActiveTab('training')}
-                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'training'
-                                ? 'bg-white text-[var(--md-sys-color-primary)] shadow-md'
-                                : 'text-black/60 hover:text-black'
-                                }`}
+                            className={`flex-1 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all relative z-10 ${activeTab === 'training' ? 'text-black' : 'text-zinc-400 hover:text-zinc-500'}`}
                         >
-                            <span className="flex items-center justify-center gap-2">
-                                {activeTab === 'training' && <div className="w-1 h-1 rounded-full bg-[var(--md-sys-color-primary)]" />}
-                                Estructura
-                            </span>
+                            Estructura
                         </button>
                         <button
                             onClick={() => setActiveTab('analytics')}
-                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'analytics'
-                                ? 'bg-white text-[var(--md-sys-color-primary)] shadow-md'
-                                : 'text-black/60 hover:text-black'
-                                }`}
+                            className={`flex-1 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all relative z-10 ${activeTab === 'analytics' ? 'text-black' : 'text-zinc-400 hover:text-zinc-500'}`}
                         >
-                            <span className="flex items-center justify-center gap-2">
-                                {activeTab === 'analytics' && <div className="w-1 h-1 rounded-full bg-[var(--md-sys-color-primary)]" />}
-                                Analíticas
-                            </span>
+                            Analíticas
                         </button>
                     </div>
                 </div>
 
                 {/* Contenido: Training y/o Analytics */}
-                <div className="flex flex-col min-h-0 bg-[#FEF7FF]">
+                <div className="flex flex-col min-h-0 min-w-0">
                     {/* Training panel */}
-                    <div className={`flex-1 w-full ${activeTab !== 'training' ? 'hidden' : ''}`} style={{ minWidth: 0 }}>
-                        <div className="p-4 flex flex-col gap-2">
-                            <button
-                                onClick={() => setIsStructureDrawerOpen(true)}
-                                className="w-full py-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-white text-[11px] font-black uppercase tracking-widest shadow-lg hover:shadow-xl transition-all flex justify-center items-center gap-2 text-black active:scale-[0.98]"
+                    <AnimatePresence mode="wait">
+                        {activeTab === 'training' && (
+                            <motion.div
+                                key="training-panel"
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                transition={{ duration: 0.2 }}
+                                className="flex-1 w-full"
                             >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
-                                Editar Macrociclos / Fases
-                            </button>
-                            <button
-                                onClick={() => setIsSplitChangerOpen(true)}
-                                className="w-full py-4 rounded-2xl border border-[var(--md-sys-color-primary)]/20 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-[11px] font-black uppercase tracking-widest shadow-lg hover:shadow-xl transition-all flex justify-center items-center gap-2 active:scale-[0.98]"
-                            >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
-                                Cambiar Split de Entrenamiento
-                            </button>
-                        </div>
-                        <ProgramStructureTab
-                            program={program}
-                            history={history}
-                            currentWeekId={selectedWeekId || undefined}
-                            onEditSession={(sessionId) => {
-                                const dummySession = { id: sessionId } as any;
-                                onEditSessionClick(dummySession);
-                            }}
-                            onAddSession={() => handleAddSession(program.id, 0, 0, selectedWeekId || '')}
-                            onDeleteSession={onDeleteSessionHandler}
-                            onUpdateProgram={handleUpdateProgram}
-                        />
-                        <div className="h-[max(120px,calc(100px+env(safe-area-inset-bottom)))]" />
-                    </div>
+                                <div className="px-6 pb-4 flex flex-col gap-3">
+                                    <div className="flex items-center gap-3 px-2 mb-1">
+                                        <div className="h-[1px] flex-1 bg-black/[0.05]" />
+                                        <span className="text-[9px] font-black uppercase tracking-[0.25em] text-zinc-400">Panel de Control</span>
+                                        <div className="h-[1px] flex-1 bg-black/[0.05]" />
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => setIsStructureDrawerOpen(true)}
+                                            className="flex-1 h-14 rounded-3xl border border-black/[0.05] bg-white/60 backdrop-blur-lg text-[9px] font-black uppercase tracking-[0.18em] shadow-lg shadow-black/5 hover:shadow-xl hover:bg-white/80 transition-all flex flex-col justify-center items-center gap-1 text-black active:scale-[0.95]"
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
+                                            Macrocycle
+                                        </button>
+                                        <button
+                                            onClick={() => setIsSplitChangerOpen(true)}
+                                            className="flex-1 h-14 rounded-3xl bg-[#0061A4]/90 backdrop-blur-lg text-white text-[9px] font-black uppercase tracking-[0.18em] shadow-lg shadow-[#0061A4]/20 hover:shadow-xl hover:brightness-110 transition-all flex flex-col justify-center items-center gap-1 active:scale-[0.95]"
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-80"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+                                            Change Split
+                                        </button>
+                                    </div>
+                                </div>
 
-                    {/* Analytics panel */}
-                    <div className={`flex-1 w-full bg-[#FEF7FF] ${activeTab !== 'analytics' ? 'hidden' : ''}`}>
-                        <AnalyticsDashboard
-                            program={program}
-                            history={history}
-                            settings={settings}
-                            isOnline={isOnline}
-                            isActive={!!isActiveProgram}
-                            currentWeeks={currentWeeks}
-                            selectedWeekId={selectedWeekId}
-                            onSelectWeek={setSelectedWeekId}
-                            visualizerData={visualizerData}
-                            displayedSessions={displayedSessions}
-                            totalAdherence={totalAdherence}
-                            weeklyAdherence={weeklyAdherence}
-                            programDiscomforts={programDiscomforts}
-                            adaptiveCache={adaptiveCache}
-                            exerciseList={exerciseList}
-                            setSettings={setSettings}
-                            onUpdateProgram={handleUpdateProgram}
-                            addToast={addToast}
-                            postSessionFeedback={postSessionFeedback}
-                        />
-                    </div>
+                                <ProgramStructureTab
+                                    program={program}
+                                    history={history}
+                                    currentWeekId={selectedWeekId || undefined}
+                                    onEditSession={(sessionId) => {
+                                        const dummySession = { id: sessionId } as any;
+                                        onEditSessionClick(dummySession);
+                                    }}
+                                    onAddSession={() => handleAddSession(program.id, 0, 0, selectedWeekId || '')}
+                                    onDeleteSession={onDeleteSessionHandler}
+                                    onUpdateProgram={handleUpdateProgram}
+                                    onEditMacrocycle={() => setIsStructureDrawerOpen(true)}
+                                    onChangeSplit={() => setIsSplitChangerOpen(true)}
+                                />
+                                <div className="h-[max(120px,calc(100px+env(safe-area-inset-bottom)))]" />
+                            </motion.div>
+                        )}
+
+                        {/* Analytics panel */}
+                        {activeTab === 'analytics' && (
+                            <motion.div
+                                key="analytics-panel"
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                transition={{ duration: 0.2 }}
+                                className="flex-1 w-full"
+                            >
+                                <AnalyticsDashboard
+                                    program={program}
+                                    history={history}
+                                    settings={settings}
+                                    isOnline={isOnline}
+                                    isActive={!!isActiveProgram}
+                                    currentWeeks={currentWeeks}
+                                    selectedWeekId={selectedWeekId}
+                                    onSelectWeek={setSelectedWeekId}
+                                    visualizerData={visualizerData}
+                                    displayedSessions={displayedSessions}
+                                    totalAdherence={totalAdherence}
+                                    weeklyAdherence={weeklyAdherence}
+                                    programDiscomforts={programDiscomforts}
+                                    adaptiveCache={adaptiveCache}
+                                    exerciseList={exerciseList}
+                                    setSettings={setSettings}
+                                    onUpdateProgram={handleUpdateProgram}
+                                    addToast={addToast}
+                                    postSessionFeedback={postSessionFeedback}
+                                />
+                                <div className="h-[max(120px,calc(100px+env(safe-area-inset-bottom)))]" />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
 
