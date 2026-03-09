@@ -22,6 +22,7 @@ import { useNutritionStore } from '../stores/nutritionStore';
 import { useWellbeingStore } from '../stores/wellbeingStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { useUIStore } from '../stores/uiStore';
+import { useAuthStore } from '../stores/authStore';
 
 // --- Legacy hooks (still needed for cross-cutting concerns) ---
 import useAchievements from '../hooks/useAchievements';
@@ -69,6 +70,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { exerciseList, exercisePlaylists, muscleGroupData, muscleHierarchy, setExerciseList, setExercisePlaylists, setMuscleGroupData, setMuscleHierarchy, addOrUpdateCustomExercise } = useExerciseStore();
 
     const ui = useUIStore();
+    const { isAuthenticated, initialize: initAuth } = useAuthStore();
 
     // Hydration check
     const isSettingsHydrated = useSettingsStore(s => s._hasHydrated);
@@ -101,6 +103,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // ═══════════════════════════════════════════════════════════
     // 3. EFFECTS
     // ═══════════════════════════════════════════════════════════
+    useEffect(() => {
+        initAuth();
+    }, [initAuth]);
+
     const e2eSeedRan = useRef(false);
     useEffect(() => {
         if (!isAppLoading && shouldSeedE2E() && programs.length === 0 && !e2eSeedRan.current) {
@@ -1140,7 +1146,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         view: ui.view, historyStack: ui.historyStack, programs, history, skippedLogs, settings, bodyProgress,
         nutritionLogs, waterLogs, pantryItems, tasks, exercisePlaylists, muscleGroupData, muscleHierarchy,
         jointDatabase: JOINT_DATABASE, tendonDatabase: TENDON_DATABASE, movementPatternDatabase: MOVEMENT_PATTERN_DATABASE,
-        exerciseList, foodDatabase, unlockedAchievements, isOnline: ui.isOnline, isAppLoading,
+        exerciseList, foodDatabase, unlockedAchievements, isOnline: ui.isOnline, isAppLoading, isAuthenticated,
         installPromptEvent: ui.installPromptEvent, drive, toasts: ui.toasts, bodyLabAnalysis,
         biomechanicalData, biomechanicalAnalysis, syncQueue, aiNutritionPlan, nutritionPlans, activeNutritionPlanId, activeProgramState,
         onExerciseCreated: ui.onExerciseCreated, pendingQuestionnaires, postSessionFeedback,

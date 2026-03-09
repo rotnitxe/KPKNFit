@@ -15,6 +15,9 @@ interface AuthStoreState {
     initialize: () => Promise<void>;
     signInWithGoogle: () => Promise<void>;
     signInWithApple: () => Promise<void>;
+    signInWithOAuth: (provider: 'google' | 'apple' | 'github') => Promise<void>;
+    signIn: (email: string, password: string) => Promise<{ error: any }>;
+    signUp: (email: string, password: string) => Promise<{ error: any }>;
     signOut: () => Promise<void>;
 }
 
@@ -47,20 +50,30 @@ export const useAuthStore = create<AuthStoreState>()((set, get) => ({
         }
     },
 
-    signInWithGoogle: async () => {
+    signInWithOAuth: async (provider: 'google' | 'apple' | 'github') => {
         const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
+            provider,
             options: { redirectTo: window.location.origin },
         });
         if (error) throw error;
     },
 
+    signInWithGoogle: async () => {
+        await get().signInWithOAuth('google');
+    },
+
     signInWithApple: async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'apple',
-            options: { redirectTo: window.location.origin },
-        });
-        if (error) throw error;
+        await get().signInWithOAuth('apple');
+    },
+
+    signIn: async (email, password) => {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        return { error };
+    },
+
+    signUp: async (email, password) => {
+        const { error } = await supabase.auth.signUp({ email, password });
+        return { error };
     },
 
     signOut: async () => {

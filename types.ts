@@ -69,6 +69,7 @@ export interface AthleteProfileScore {
 }
 
 export type View =
+    | 'auth'
     | 'home'
     | 'programs'
     | 'program-detail'

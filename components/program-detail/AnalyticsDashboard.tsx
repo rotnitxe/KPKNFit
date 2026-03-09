@@ -388,7 +388,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── Strength ── */}
             {activeWidgets.includes('strength') && (
-                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
+                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 w-full">
                     <h3 className="text-sm font-black text-black uppercase tracking-tight mb-8">Fuerza Relativa</h3>
                     <RelativeStrengthAndBasicsWidget displayedSessions={displayedSessions} />
                 </motion.section>
@@ -396,7 +396,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── 1RM Progress ── */}
             {activeWidgets.includes('star1rm') && (
-                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-2xl rounded-[40px] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.04)] border border-white/40相对 overflow-hidden">
+                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 relative overflow-hidden w-full">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/[0.03] blur-[80px] rounded-full -mr-24 -mt-24 pointer-events-none" />
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
@@ -448,9 +448,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── AUGE Banister ── */}
             {activeWidgets.includes('banister') && adaptiveCache.banister && (
-                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
+                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 w-full">
                     <div className="mb-8">
-                        <h3 className="text-sm font-black text-black uppercase tracking-tight mb-2">AUGE — Fitness vs Fatiga</h3>
+                        <h3 className="text-sm font-black text-black uppercase tracking-tight mb-2">AUGE — Estado Físico vs Fatiga</h3>
                         <p className="text-[10px] font-black text-black/40 uppercase tracking-widest leading-relaxed">
                             {adaptiveCache.banister.verdict || 'Análisis de carga activa'}
                         </p>
@@ -463,7 +463,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── Recovery ── */}
             {activeWidgets.includes('recovery') && recoveryData.length > 0 && (
-                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
+                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 w-full">
                     <div className="flex items-center justify-between mb-8">
                         <h3 className="text-sm font-black text-black uppercase tracking-tight">Recuperación</h3>
                         <div className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border border-black/5 ${confidenceLabel === 'Alta' ? 'bg-green-50 text-green-600' : confidenceLabel === 'Media' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600'
@@ -502,7 +502,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* ── History ── */}
             {activeWidgets.includes('history') && (
-                <motion.section variants={itemVariants} className="bg-white rounded-[32px] p-8 shadow-xl shadow-black/5 border border-black/[0.03]">
+                <motion.section variants={itemVariants} className="bg-white/80 backdrop-blur-3xl rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white/50 w-full">
                     <h3 className="text-sm font-black text-black uppercase tracking-tight mb-8">Historial</h3>
                     <ExerciseHistoryWidget program={program} history={historyData} />
                 </motion.section>

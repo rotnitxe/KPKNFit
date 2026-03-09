@@ -257,70 +257,22 @@ export const normalizeMuscleGroup = (specificMuscle: string): string => {
     const lower = specificMuscle.toLowerCase().trim()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Quitar acentos
 
-    // --- 1. PECHO / PECTORALES ---
-    if (lower.includes('pectoral') || lower.includes('pecho')) {
-        return 'Pectorales';
-    }
+    if (lower.includes('pectoral') || lower.includes('pecho')) return 'Pectorales';
+    if (lower.includes('dorsal') || lower.includes('lat') || lower.includes('redondo mayor') || lower.includes('espalda ancha') || (lower.includes('espalda') && !lower.includes('baja') && !lower.includes('lumbar'))) return 'Dorsales';
+    if (lower.includes('trapecio') || lower.includes('romboides')) return 'Trapecio';
+    if (lower.includes('deltoide') || lower.includes('hombro') || lower.includes('manguito rotador') || lower.includes('supraespinoso')) return 'Deltoides';
+    if (lower.includes('tricep')) return 'Tríceps';
+    if ((lower.includes('bicep') || lower.includes('braquial') || lower.includes('coracobraquial')) && !lower.includes('femoral') && !lower.includes('pierna')) return 'Bíceps';
+    if (lower.includes('antebrazo') || lower.includes('braquiorradial') || lower.includes('pronador') || lower.includes('supinador')) return 'Antebrazo';
+    if (lower.includes('cuadricep') || lower.includes('vasto') || lower.includes('recto femoral')) return 'Cuádriceps';
+    if (lower.includes('isquio') || lower.includes('femoral') || lower.includes('semitendinoso') || lower.includes('semimembranoso')) return 'Isquiosurales';
+    if (lower.includes('gluteo') || lower.includes('tensor de la fascia lata') || lower.includes('piriforme')) return 'Glúteos';
+    if (lower.includes('aductor') || lower.includes('pectineo') || lower.includes('gracil')) return 'Aductores';
+    if (lower.includes('gemelo') || lower.includes('soleo') || lower.includes('pantorrilla') || lower.includes('gastrocnemio') || lower.includes('tibial')) return 'Pantorrillas';
+    if (lower.includes('erector') || lower.includes('multificos') || lower.includes('cuadrado lumbar') || lower.includes('espinal') || lower.includes('lumbar') || lower.includes('baja')) return 'Erectores Espinales';
+    if (lower.includes('abdomen') || lower.includes('abdominal') || lower.includes('oblicuo') || lower.includes('recto abdominal') || lower.includes('transverso')) return 'Abdomen';
+    if (lower.includes('core')) return 'Core';
 
-    // --- 2. ESPALDA / DORSALES ---
-    if (lower.includes('dorsal') || lower.includes('lat') || lower.includes('redondo mayor') || lower.includes('espalda')) {
-        // Excluimos "Espalda Baja" aquí para tratarla por separado si es necesario, 
-        // pero el canon usa "Erectores Espinales" para la baja.
-        if (lower.includes('baja') || lower.includes('lumbar')) return 'Erectores Espinales';
-        return 'Dorsales';
-    }
-
-    // --- 3. TRAPECIO ---
-    if (lower.includes('trapecio') || lower.includes('romboides')) {
-        return 'Trapecio';
-    }
-
-    // --- 4. HOMBROS / DELTOIDES ---
-    if (lower.includes('deltoide') || lower.includes('hombro') || lower.includes('manguito rotador') || lower.includes('supraespinoso')) {
-        return 'Deltoides';
-    }
-
-    // --- 5. BRAZOS (Bíceps, Tríceps, Antebrazo) ---
-    if (lower.includes('tricep')) {
-        return 'Tríceps';
-    }
-    if ((lower.includes('bicep') || lower.includes('braquial') || lower.includes('coracobraquial')) && !lower.includes('femoral')) {
-        return 'Bíceps';
-    }
-    if (lower.includes('antebrazo') || lower.includes('braquiorradial') || lower.includes('pronador') || lower.includes('supinador')) {
-        return 'Antebrazo';
-    }
-
-    // --- 6. PIERNA (Cuádriceps, Isquios, Glúteos, Aductores, Pantorrillas) ---
-    if (lower.includes('cuadricep') || lower.includes('vasto') || lower.includes('recto femoral')) {
-        return 'Cuádriceps';
-    }
-    if (lower.includes('isquio') || lower.includes('femoral') || lower.includes('semitendinoso') || lower.includes('semimembranoso')) {
-        return 'Isquiosurales';
-    }
-    if (lower.includes('gluteo') || lower.includes('tensor de la fascia lata') || lower.includes('piriforme')) {
-        return 'Glúteos';
-    }
-    if (lower.includes('aductor') || lower.includes('pectineo') || lower.includes('gracil')) {
-        return 'Aductores';
-    }
-    if (lower.includes('gemelo') || lower.includes('soleo') || lower.includes('pantorrilla') || lower.includes('gastrocnemio') || lower.includes('tibial')) {
-        return 'Pantorrillas';
-    }
-
-    // --- 7. CORE / ABDOMEN / ERECTORES ---
-    if (lower.includes('erector') || lower.includes('multificos') || lower.includes('cuadrado lumbar') || lower.includes('espinal')) {
-        return 'Erectores Espinales';
-    }
-    if (lower.includes('abdomen') || lower.includes('abdominal') || lower.includes('oblicuo') || lower.includes('recto abdominal') || lower.includes('transverso')) {
-        return 'Abdomen';
-    }
-    if (lower.includes('core')) {
-        return 'Core';
-    }
-
-    // --- FALLBACK CANONIZADO ---
-    // Si no encaja en nada específico pero conocemos el origen, intentamos mapear a General o Core
     return 'Core'; // Por defecto, si es un músculo del tronco, a Core.
 };
 
@@ -403,19 +355,20 @@ import { INITIAL_MUSCLE_GROUP_DATA } from '../data/initialMuscleGroupDatabase';
 
 const MUSCLE_AGGREGATION_MAP: Record<string, string[]> = {
     'Cuádriceps': ['cuadriceps', 'vasto-lateral', 'vasto-medial', 'recto-femoral'],
-    'Isquiosurales': ['isquiosurales', 'biceps-femoral', 'semitendinoso', 'semimembranoso'],
-    'Glúteos': ['gluteos', 'gluteo-mayor', 'gluteo-medio', 'gluteo-menor'],
-    'Pectorales': ['pectoral', 'pectoral-superior', 'pectoral-medio', 'pectoral-inferior'],
-    'Bíceps': ['biceps', 'cabeza-larga-biceps', 'cabeza-corta-biceps', 'braquial', 'braquiorradial'],
+    'Isquiosurales': ['isquiosurales', 'biceps-femoral', 'semitendinoso', 'semimembranoso', 'isquio', 'femoral'],
+    'Glúteos': ['gluteos', 'gluteo-mayor', 'gluteo-medio', 'gluteo-menor', 'tensor-de-la-fascia-lata', 'piriforme'],
+    'Pectorales': ['pectoral', 'pecho', 'pectoral-superior', 'pectoral-medio', 'pectoral-inferior'],
+    'Bíceps': ['biceps', 'cabeza-larga-biceps', 'cabeza-corta-biceps', 'braquial', 'coracobraquial'],
     'Tríceps': ['triceps', 'cabeza-larga-triceps', 'cabeza-lateral-triceps', 'cabeza-medial-triceps'],
-    'Dorsales': ['espalda', 'dorsal-ancho', 'redondo-mayor'],
+    'Dorsales': ['espalda', 'dorsal-ancho', 'redondo-mayor', 'lat'],
     'Trapecio': ['trapecio', 'trapecio-superior', 'trapecio-medio', 'trapecio-inferior', 'romboides'],
-    'Erectores Espinales': ['erectores-espinales', 'multifidos', 'cuadrado-lumbar', 'espalda-baja'],
-    'Abdomen': ['abdomen', 'recto-abdominal', 'oblicuos', 'transverso-abdominal', 'core'],
-    'Pantorrillas': ['pantorrillas', 'gastrocnemio', 'soleo', 'gemelos'],
-    'Deltoides': ['deltoides', 'deltoides-anterior', 'deltoides-lateral', 'deltoides-posterior', 'hombros'],
-    'Aductores': ['aductores', 'pectineo', 'gracil'],
-    'Antebrazo': ['antebrazo', 'braquiorradial', 'flexores-muneca'],
+    'Erectores Espinales': ['erectores-espinales', 'multifidos', 'cuadrado-lumbar', 'espalda-baja', 'lumbar', 'espinal'],
+    'Abdomen': ['abdomen', 'abdominal', 'recto-abdominal', 'oblicuos', 'transverso', 'transverso-abdominal'],
+    'Core': ['core'],
+    'Pantorrillas': ['pantorrillas', 'gastrocnemio', 'soleo', 'gemelos', 'tibial', 'gemelo'],
+    'Deltoides': ['deltoides', 'deltoides-anterior', 'deltoides-lateral', 'deltoides-posterior', 'hombros', 'hombro', 'supraespinoso', 'manguito-rotador'],
+    'Aductores': ['aductores', 'pectineo', 'gracil', 'aductor'],
+    'Antebrazo': ['antebrazo', 'braquiorradial', 'flexores-muneca', 'pronador', 'supinador'],
 };
 
 // No necesitamos STANDALONE_DISPLAY_NAMES si usamos el canon estrictamente

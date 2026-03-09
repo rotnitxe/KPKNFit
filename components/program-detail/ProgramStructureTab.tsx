@@ -111,16 +111,16 @@ export const ProgramStructureTab: React.FC<ProgramStructureTabProps> = ({
                 <div className="flex gap-3">
                     <button
                         onClick={onEditMacrocycle}
-                        className="flex-1 h-14 rounded-3xl bg-white/60 backdrop-blur-xl border border-black/[0.05] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 hover:text-zinc-900 active:scale-95 transition-all hover:bg-white/80"
+                        className="flex-1 h-14 rounded-[20px] bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_16px_rgba(0,0,0,0.03)] flex flex-col justify-center items-center gap-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-600 hover:text-black active:scale-95 transition-all"
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                         Estructura
                     </button>
                     <button
                         onClick={onChangeSplit}
-                        className="flex-1 h-14 rounded-3xl bg-zinc-900 border border-zinc-800 shadow-[0_12px_40px_rgba(0,0,0,0.15)] flex flex-col justify-center items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/50 hover:text-white active:scale-95 transition-all hover:brightness-110"
+                        className="flex-1 h-14 rounded-[20px] bg-gradient-to-br from-zinc-800 to-black border border-zinc-700 shadow-[0_8px_16px_rgba(0,0,0,0.15)] flex flex-col justify-center items-center gap-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-white/80 hover:text-white active:scale-95 transition-all"
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-30"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="M7 21h10" /><path d="M12 3v18" /><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" /></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-80"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="M7 21h10" /><path d="M12 3v18" /><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" /></svg>
                         Split
                     </button>
                 </div>
@@ -137,47 +137,47 @@ export const ProgramStructureTab: React.FC<ProgramStructureTabProps> = ({
                         className="group"
                     >
                         {/* Day Header */}
-                        <div className="flex items-center justify-between px-2 mb-3">
+                        <div className="flex items-center justify-between px-2 mb-2">
                             <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[#1D1B20]/40">
                                 {day.name}
                             </h3>
                             <button
                                 onClick={onAddSession}
-                                className="w-8 h-8 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-400 hover:bg-blue-50 hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100"
+                                className="w-6 h-6 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-400 hover:bg-blue-50 hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100"
                             >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                             </button>
                         </div>
 
                         {/* Sessions List */}
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-2.5">
                             {daySessions.map(session => (
                                 <div
                                     key={session.id}
                                     draggable
                                     onDragStart={(e) => handleSessionDragStart(e, session.id)}
                                     className={`
-                                                relative overflow-hidden rounded-[32px] p-6 shadow-xl border transition-all duration-300
-                                                ${draggedSessionId === session.id ? 'opacity-30 scale-95 border-blue-500' : 'opacity-100 hover:scale-[1.01] hover:shadow-2xl'}
-                                                ${session.exercises?.length ? 'bg-white border-black/[0.03]' : 'bg-white/40 backdrop-blur-md border-black/[0.02]'}
+                                                relative overflow-hidden rounded-[24px] p-4 shadow-sm border transition-all duration-300
+                                                ${draggedSessionId === session.id ? 'opacity-30 scale-95 border-blue-500' : 'opacity-100 hover:scale-[1.01] hover:shadow-md'}
+                                                ${session.exercises?.length ? 'bg-gradient-to-br from-white to-zinc-50 border-white/80' : 'bg-white/40 backdrop-blur-md border-black/[0.02]'}
                                                 cursor-grab active:cursor-grabbing
                                             `}
                                 >
                                     {/* Subtle Gradient Glow for Sessions with Exercises */}
                                     {session.exercises?.length > 0 && (
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/[0.03] blur-3xl -mr-16 -mt-16 rounded-full" />
+                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-transparent pointer-events-none" />
                                     )}
 
                                     <div className="flex items-center justify-between relative z-10">
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-3">
                                             {/* Icon with Dynamic Background */}
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border transition-colors ${session.exercises?.length ? 'bg-blue-600 text-white border-blue-400' : 'bg-zinc-50 text-zinc-300 border-zinc-100'}`}>
-                                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6.5 6.5 11 11" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" /></svg>
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border transition-colors ${session.exercises?.length ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-400' : 'bg-zinc-100 text-zinc-400 border-zinc-200'}`}>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6.5 6.5 11 11" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" /></svg>
                                             </div>
                                             <div className="flex flex-col">
-                                                <h4 className="text-base font-black text-[#1D1B20] tracking-tight">{session.name || "Sesión"}</h4>
+                                                <h4 className="text-sm font-black text-[#1D1B20] tracking-tight">{session.name || "Sesión"}</h4>
                                                 <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${session.exercises?.length ? 'bg-blue-100 text-blue-700' : 'bg-zinc-100 text-zinc-500'}`}>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider ${session.exercises?.length ? 'bg-blue-100/50 text-blue-700' : 'bg-zinc-100 text-zinc-500'}`}>
                                                         {session.exercises?.length || 0} Ejercicios
                                                     </span>
                                                 </div>
@@ -187,15 +187,15 @@ export const ProgramStructureTab: React.FC<ProgramStructureTabProps> = ({
                                         <div className="flex items-center gap-1">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onEditSession && onEditSession(session.id); }}
-                                                className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-300 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-90"
+                                                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-90"
                                             >
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setSessionToDelete(session.id); }}
-                                                className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90"
+                                                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90"
                                             >
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
                                             </button>
                                         </div>
                                     </div>
@@ -204,9 +204,9 @@ export const ProgramStructureTab: React.FC<ProgramStructureTabProps> = ({
                             {daySessions.length === 0 && (
                                 <div
                                     onClick={onAddSession}
-                                    className="py-6 rounded-[28px] border-2 border-dashed border-zinc-100 bg-zinc-50/50 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-zinc-50 hover:border-zinc-200 transition-all"
+                                    className="py-4 rounded-[20px] border-2 border-dashed border-zinc-200/50 bg-white/30 flex flex-col items-center justify-center cursor-pointer hover:bg-white/50 hover:border-zinc-300 transition-all"
                                 >
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">Descanso</p>
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">Descanso</p>
                                 </div>
                             )}
                         </div>
