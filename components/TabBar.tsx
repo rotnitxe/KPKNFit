@@ -59,13 +59,13 @@ const NavButton: React.FC<{
 const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions, isSubTabBarActive }) => {
     const { activeProgramState, navigateTo } = useAppContext();
 
-    const forceTabs = ['home', 'programs', 'nutrition', 'kpkn'];
+    const forceTabs = ['home', 'programs', 'nutrition', 'wiki-home'];
 
     const TAB_CONFIG: Record<string, { icon: React.FC<any>, label: string, view: View, isTextIcon?: boolean }> = {
         'home': { icon: RingIcon, label: 'Tú', view: 'home' },
         'programs': { icon: DumbbellIcon, label: 'Entrenar', view: 'programs' },
         'nutrition': { icon: PlateIcon, label: 'Nutrición', view: 'nutrition' },
-        'kpkn': { icon: WikiLabIcon, label: 'WikiLab', view: 'kpkn', isTextIcon: true },
+        'wiki-home': { icon: WikiLabIcon, label: 'WikiLab', view: 'wiki-home', isTextIcon: true },
     };
 
     const handleNavClick = (view: View) => {
@@ -130,7 +130,7 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions,
                     const config = TAB_CONFIG[tabKey];
                     let isActive = false;
                     if (tabKey === 'nutrition') isActive = ['nutrition', 'body-progress', 'food-database', 'food-detail', 'smart-meal-planner'].includes(activeView);
-                    if (tabKey === 'kpkn') isActive = ['kpkn', 'exercise-database', 'ai-art-studio', 'body-lab', 'mobility-lab', 'training-purpose', 'muscle-category', 'chain-detail'].includes(activeView) || (activeView.endsWith('-detail') && !activeView.startsWith('program-'));
+                    if (tabKey === 'wiki-home') isActive = ['wiki-home', 'kpkn', 'exercise-database', 'ai-art-studio', 'body-lab', 'mobility-lab', 'training-purpose', 'muscle-category', 'chain-detail', 'exercise-detail', 'muscle-group-detail', 'joint-detail', 'tendon-detail', 'movement-pattern-detail', 'body-part-detail'].includes(activeView) || (activeView.endsWith('-detail') && !activeView.startsWith('program-'));
 
                     return (
                         <NavButton

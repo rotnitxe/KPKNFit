@@ -200,55 +200,87 @@ const HeaderAccordion: React.FC<{
         }
     };
 
+    const controlBase = 'h-[40px] px-4 rounded-full border text-[14px] font-medium transition-all inline-flex items-center justify-center gap-2';
+
     return (
         <div className="w-full mb-2">
-            <div className="flex gap-2 mb-2 px-2">
+            <div className="flex gap-2 mb-2 px-1">
                 <button
                     onClick={() => toggleSection('tags')}
-                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-medium py-1.5 transition-all ${expandedSection === 'tags' ? 'bg-[#3f3f3f] text-white' : 'bg-[#252525] text-[#a3a3a3] hover:bg-[#3f3f3f] hover:text-white'}`}
+                    className={`${controlBase} flex-1 ${expandedSection === 'tags'
+                        ? 'bg-[var(--md-sys-color-secondary-container)] border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-secondary-container)]'
+                        : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-outline)]'}`}
                 >
-                    <BodyIcon size={12} /> {selectedTag && selectedTag !== 'Base' ? selectedTag : 'Etiquetas'} {expandedSection === 'tags' ? <ChevronRightIcon className="-rotate-90" size={12} /> : <ChevronRightIcon className="rotate-90" size={12} />}
+                    <BodyIcon size={14} /> {selectedTag && selectedTag !== 'Base' ? selectedTag : 'Etiquetas'} {expandedSection === 'tags' ? <ChevronRightIcon className="-rotate-90" size={12} /> : <ChevronRightIcon className="rotate-90" size={12} />}
                 </button>
                 <button
                     onClick={() => toggleSection('setup')}
-                    className={`flex-1 flex items-center justify-center gap-1 text-[10px] uppercase font-medium py-1.5 transition-all ${expandedSection === 'setup' ? 'bg-[#3f3f3f] text-white' : 'bg-[#252525] text-[#a3a3a3] hover:bg-[#3f3f3f] hover:text-white'}`}
+                    className={`${controlBase} flex-1 ${expandedSection === 'setup'
+                        ? 'bg-[var(--md-sys-color-secondary-container)] border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-secondary-container)]'
+                        : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-outline)]'}`}
                 >
-                    <SettingsIcon size={12} /> Setup {expandedSection === 'setup' ? <ChevronRightIcon className="-rotate-90" size={12} /> : <ChevronRightIcon className="rotate-90" size={12} />}
+                    <SettingsIcon size={14} /> Setup {expandedSection === 'setup' ? <ChevronRightIcon className="-rotate-90" size={12} /> : <ChevronRightIcon className="rotate-90" size={12} />}
                 </button>
             </div>
 
             {expandedSection === 'tags' && (
-                <div className="animate-fade-in bg-[#252525] p-3">
+                <div className="animate-fade-in bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-[16px] p-3">
                     <div className="flex flex-wrap gap-2 mb-3">
                         {tags.map(tag => (
-                            <button key={tag} onClick={() => { onTagChange(tag); setExpandedSection(null); }} className={`px-3 py-1.5 text-[10px] font-medium transition-all ${selectedTag === tag ? 'bg-white text-[#1a1a1a]' : 'bg-[#1a1a1a] text-[#a3a3a3] hover:bg-[#3f3f3f] hover:text-white'}`}>{tag}</button>
+                            <button
+                                key={tag}
+                                onClick={() => { onTagChange(tag); setExpandedSection(null); }}
+                                className={`h-[32px] px-3 rounded-full border text-[12px] font-medium transition-all ${selectedTag === tag
+                                    ? 'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary-container)]'
+                                    : 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-outline)]'}`}
+                            >
+                                {tag}
+                            </button>
                         ))}
                     </div>
                     {isEditingTag ? (
                         <div className="flex gap-2 items-center mt-2 animate-fade-in">
-                            <input type="text" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="Nueva..." className="flex-1 bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" autoFocus />
-                            <button onClick={handleCreateTag} className="px-2 py-1.5 bg-white text-[#1a1a1a] text-[10px] font-medium"><CheckIcon size={14} /></button>
-                            <button onClick={() => setIsEditingTag(false)} className="px-2 py-1.5 bg-[#3f3f3f] text-[#a3a3a3] text-[10px] font-medium"><XCircleIcon size={14} /></button>
+                            <input
+                                type="text"
+                                value={newTagName}
+                                onChange={(e) => setNewTagName(e.target.value)}
+                                placeholder="Nueva etiqueta"
+                                className="flex-1 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-[12px] px-3 py-2 text-sm text-[var(--md-sys-color-on-surface)] outline-none"
+                                autoFocus
+                            />
+                            <button onClick={handleCreateTag} className="h-[40px] px-3 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]"><CheckIcon size={14} /></button>
+                            <button onClick={() => setIsEditingTag(false)} className="h-[40px] px-3 rounded-full bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]"><XCircleIcon size={14} /></button>
                         </div>
                     ) : (
-                        <button onClick={() => setIsEditingTag(true)} className="w-full py-2 text-[#a3a3a3] text-[10px] hover:text-white flex items-center justify-center gap-1"><PlusIcon size={10} /> Crear Nueva Etiqueta</button>
+                        <button onClick={() => setIsEditingTag(true)} className="w-full h-[40px] rounded-full border border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] text-[12px] hover:border-[var(--md-sys-color-outline)] flex items-center justify-center gap-1">
+                            <PlusIcon size={12} /> Crear nueva etiqueta
+                        </button>
                     )}
                 </div>
             )}
 
             {expandedSection === 'setup' && (
-                <div className="animate-fade-in bg-[#252525] p-3 space-y-3">
+                <div className="animate-fade-in bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-[16px] p-3 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
-                        <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Asiento</label><input type="text" value={localDetails.seatPosition || ''} onChange={e => setLocalDetails({ ...localDetails, seatPosition: e.target.value })} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" /></div>
-                        <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Pines</label><input type="text" value={localDetails.pinPosition || ''} onChange={e => setLocalDetails({ ...localDetails, pinPosition: e.target.value })} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" /></div>
+                        <div>
+                            <label className="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-medium uppercase block mb-1">Asiento</label>
+                            <input type="text" value={localDetails.seatPosition || ''} onChange={e => setLocalDetails({ ...localDetails, seatPosition: e.target.value })} className="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-[12px] px-3 py-2 text-sm text-[var(--md-sys-color-on-surface)] outline-none" />
+                        </div>
+                        <div>
+                            <label className="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-medium uppercase block mb-1">Pines</label>
+                            <input type="text" value={localDetails.pinPosition || ''} onChange={e => setLocalDetails({ ...localDetails, pinPosition: e.target.value })} className="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-[12px] px-3 py-2 text-sm text-[var(--md-sys-color-on-surface)] outline-none" />
+                        </div>
                     </div>
-                    <div><label className="text-[9px] text-[#a3a3a3] font-medium uppercase block mb-1">Notas</label><textarea value={localDetails.equipmentNotes || ''} onChange={e => setLocalDetails({ ...localDetails, equipmentNotes: e.target.value })} rows={2} className="w-full bg-[#1a1a1a] px-2 py-1.5 text-xs text-white outline-none placeholder-[#737373]" /></div>
-                    <button onClick={handleSaveSetup} className="w-full py-2 text-[10px] uppercase font-medium bg-white text-[#1a1a1a]">Guardar Setup</button>
+                    <div>
+                        <label className="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-medium uppercase block mb-1">Notas</label>
+                        <textarea value={localDetails.equipmentNotes || ''} onChange={e => setLocalDetails({ ...localDetails, equipmentNotes: e.target.value })} rows={2} className="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-[12px] px-3 py-2 text-sm text-[var(--md-sys-color-on-surface)] outline-none" />
+                    </div>
+                    <button onClick={handleSaveSetup} className="w-full h-[40px] rounded-full text-[12px] uppercase font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">Guardar setup</button>
                 </div>
             )}
         </div>
     );
-}
+};
 
 const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -270,6 +302,7 @@ const WorkoutHeader: React.FC<{
 }> = React.memo(({ sessionName, activePartName, activePartColor, isResting, onFinishPress, onFinishLongPress, restTimerRemaining, elapsedSeconds, completedSetsCount, totalSetsCount }) => {
     const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const longPressFiredRef = React.useRef(false);
+
     const handlePointerDown = () => {
         longPressFiredRef.current = false;
         if (!onFinishLongPress) return;
@@ -279,12 +312,14 @@ const WorkoutHeader: React.FC<{
             onFinishLongPress();
         }, 500);
     };
+
     const handlePointerUp = () => {
         if (longPressTimerRef.current) {
             clearTimeout(longPressTimerRef.current);
             longPressTimerRef.current = null;
         }
     };
+
     const handleClick = (e: React.MouseEvent) => {
         if (longPressFiredRef.current) {
             e.preventDefault();
@@ -298,43 +333,60 @@ const WorkoutHeader: React.FC<{
         ? Math.round((completedSetsCount / totalSetsCount) * 100) : 0;
 
     return (
-        <div className="sticky top-0 z-30 bg-[#2a2a2a] h-auto min-h-[90px]">
-            <div className="flex flex-col px-4 py-3 gap-3">
-                <div className="w-full">
-                    <h2 className="font-semibold text-white text-lg leading-tight break-words">{sessionName}</h2>
-                    {activePartName && (
-                        <span className="text-[9px] font-medium uppercase tracking-wide mt-0.5 block text-[#a3a3a3]">{isResting ? 'DESCANSO' : activePartName}</span>
-                    )}
-                </div>
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="sticky top-0 z-40 w-full liquid-glass border-b border-white/5 pb-2">
+            <div className="flex flex-col px-6 pt-8 pb-4">
+                {/* Status Bar Space (Mock) */}
+                {showReadiness && (
+                    <ReadinessSheet
+                        isOpen={showReadiness}
+                        onClose={() => setShowReadiness(false)}
+                        onStartWorkout={(data) => {
+                            setReadinessData(data);
+                            setShowReadiness(false);
+                            hapticImpact(ImpactStyle.Heavy);
+                        }}
+                    />
+                )}
+                <div className="h-6 w-full flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[12px] font-bold text-white/90 tabular-nums">{elapsedSeconds != null ? formatTime(elapsedSeconds) : '00:00'}</span>
                         {restTimerRemaining != null && restTimerRemaining > 0 && (
-                            <span className="text-xs font-medium text-[#1a1a1a] bg-white px-2 py-1 tabular-nums">{formatTime(restTimerRemaining)}</span>
-                        )}
-                        {elapsedSeconds != null && (
-                            <span className="text-[10px] text-[#a3a3a3] tabular-nums">{formatTime(elapsedSeconds)}</span>
-                        )}
-                        {completedSetsCount != null && totalSetsCount != null && totalSetsCount > 0 && (
-                            <div className="flex-1 min-w-[80px] max-w-[120px]">
-                                <div className="h-1 bg-[#404040] overflow-hidden">
-                                    <div className="h-full bg-[#737373] transition-all duration-300" style={{ width: `${progressPercent}%` }} />
-                                </div>
-                                <span className="text-[9px] text-[#a3a3a3]">{completedSetsCount}/{totalSetsCount}</span>
+                            <div className="flex items-center gap-1 bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+                                <ClockIcon size={10} />
+                                <span className="text-[10px] font-black tabular-nums">{formatTime(restTimerRemaining)}</span>
                             </div>
                         )}
                     </div>
-                    {onFinishPress && (
-                        <button
-                            onPointerDown={handlePointerDown}
-                            onPointerUp={handlePointerUp}
-                            onPointerLeave={handlePointerUp}
-                            onClick={handleClick}
-                            className="min-w-[44px] min-h-[44px] p-2.5 bg-white text-[#1a1a1a] flex items-center justify-center"
-                            title="Finalizar sesión (mantener para más opciones)"
-                        >
-                            <CheckCircleIcon size={20} strokeWidth={2.5} />
-                        </button>
-                    )}
+                    <div className="flex items-center gap-2 text-white/40">
+                        <ActivityIcon size={14} />
+                        <div className="w-[18px] h-[9px] border border-white/30 rounded-[2px] relative">
+                            <div className="absolute left-0.5 top-0.5 bottom-0.5 bg-white/60 rounded-[1px]" style={{ width: '12px' }} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex justify-between items-end gap-4 min-h-[48px]">
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-m3-headline text-white truncate">{sessionName}</h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-m3-primary/80">
+                                {isResting ? 'Descanso Activo' : (activePartName || 'Sesión en curso')}
+                            </span>
+                            <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden max-w-[120px]">
+                                <div className="h-full bg-m3-primary transition-all duration-500 shadow-[0_0_8px_rgba(208,188,255,0.4)]" style={{ width: `${progressPercent}%` }} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        onPointerDown={handlePointerDown}
+                        onPointerUp={handlePointerUp}
+                        onPointerLeave={handlePointerUp}
+                        onClick={handleClick}
+                        className="w-14 h-14 rounded-full bg-m3-primary text-m3-on-primary flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                    >
+                        <CheckCircleIcon size={28} strokeWidth={2.5} />
+                    </button>
                 </div>
             </div>
         </div>
@@ -573,7 +625,7 @@ const SetDetails: React.FC<{
                     <button type="button" onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Rest-Pause</button>
                 </div>
                 {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
-                    <div className="p-2 bg-slate-900/50 border border-white/5 rounded-lg space-y-2 text-xs">
+                    <div className="p-2 bg-slate-900/50 border border-[var(--md-sys-color-outline-variant)]/40 rounded-lg space-y-2 text-xs">
                         {(safeInputs.dropSets || []).map((ds, i) => (
                             <div key={`ds-${i}`} className="flex gap-1.5 items-center">
                                 <span className="text-[9px] text-slate-400 w-10 shrink-0">Dropset</span>
@@ -736,7 +788,7 @@ const SetDetails: React.FC<{
                     <button type="button" onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-[#a3a3a3] hover:text-white">+ Rest-Pause {(safeInputs.restPauses?.length || 0) > 0 && <span className="text-[#737373]">({(safeInputs.restPauses?.length || 0)})</span>}</button>
                 </div>
                 {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
-                    <div className="mx-2 mt-2 p-3 bg-slate-900/50 border border-white/5 rounded-xl space-y-3 animate-fade-in">
+                    <div className="mx-2 mt-2 p-3 bg-slate-900/50 border border-[var(--md-sys-color-outline-variant)]/40 rounded-xl space-y-3 animate-fade-in">
                         {(safeInputs.dropSets || []).map((ds, i) => (
                             <div key={`ds-${i}`} className="flex gap-1.5 items-center">
                                 <span className="text-[9px] font-mono text-slate-400 w-12 shrink-0">Dropset</span>
@@ -878,6 +930,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const [setCardAnimations, setSetCardAnimations] = useState<Record<string, string | null>>({});
 
     const [starGoalProgress, setStarGoalProgress] = useState<{ exerciseId: string; current: number; goal: number; unit: string } | null>(null);
+    const [showReadiness, setShowReadiness] = useState(true);
+    const [readinessData, setReadinessData] = useState<any>(null);
     const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null);
     const [sessionNotes, setSessionNotes] = useState<string>((ongoingWorkout as any)?.sessionNotes || '');
     const [showNotesDrawer, setShowNotesDrawer] = useState(false);
@@ -1071,6 +1125,75 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         const part = renderExercises.find((p: any) => p.exercises?.some((e: any) => e.id === activeExerciseId));
         return part || null;
     }, [activeExerciseId, renderExercises]);
+
+    const renderExerciseCard = (exercise: Exercise, index: number) => {
+        const info = exerciseList.find(e => e.id === exercise.exerciseDbId);
+        const isActive = activeExerciseId === exercise.id;
+
+        return (
+            <div
+                key={exercise.id}
+                className={`mb-6 m3-card liquid-glass transition-all duration-300 ${isActive ? 'ring-2 ring-m3-primary/40' : 'opacity-90'}`}
+                onClick={() => setActiveExerciseId(exercise.id)}
+            >
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                        <h3 className="text-m3-title text-white flex items-center gap-2">
+                            {exercise.name}
+                            {exercise.isUnilateral && <span className="text-[10px] bg-m3-tertiary/20 text-m3-tertiary px-1.5 py-0.5 rounded font-black">UNI</span>}
+                        </h3>
+                        <p className="text-[10px] text-m3-on-surface-variant uppercase tracking-widest font-bold mt-1">
+                            {info?.category || 'Ejercicio'} • {exercise.trainingMode === 'time' ? 'Tiempo' : 'Repeticiones'}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Action Chips */}
+                <div className="flex flex-wrap gap-2 mb-6">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setShowHistoryModal(exercise.exerciseDbId as string); }}
+                        className="m3-chip bg-white/5 text-white/60 hover:bg-white/10"
+                    >
+                        <TrophyIcon size={14} className="mr-2" /> Historial
+                    </button>
+                    {info?.videos && info.videos.length > 0 && (
+                        <button className="m3-chip bg-white/5 text-white/60 hover:bg-white/10">
+                            <PlayIcon size={14} className="mr-2" /> Video
+                        </button>
+                    )}
+                </div>
+
+                {/* Sets Section */}
+                <div className="space-y-4">
+                    {exercise.sets.map((set, sIdx) => {
+                        const setId = `${exercise.id}-set-${sIdx}`;
+                        const logData = ongoingWorkout?.completedSets?.[setId];
+                        const isLogged = !!logData;
+
+                        return (
+                            <div key={setId} className="relative">
+                                <SetDetails
+                                    exercise={exercise}
+                                    exerciseInfo={info}
+                                    set={set}
+                                    setIndex={sIdx}
+                                    setId={setId}
+                                    settings={settings}
+                                    inputs={ongoingWorkout?.unilateralSetInputs?.[setId] || { reps: '', weight: '', rpe: '', rir: '', partialReps: '' }}
+                                    onInputChange={(f, v, s) => handleSetInputChange(setId, f, v, s)}
+                                    onLogSet={() => handleLogSet(exercise, sIdx)}
+                                    isLogged={isLogged}
+                                    history={history}
+                                    onOpenNumpad={(opts) => setNumpadState({ ...opts, setId, exerciseId: exercise.id })}
+                                    addToast={addToast}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
 
     // Blindaje Maestro: Previene colapsos si un ejercicio desaparece de la lista en tiempo real
     useEffect(() => {
@@ -1462,7 +1585,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     };
 
     return (
-        <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)] bg-[#1a1a1a]">
+        <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)] bg-[var(--md-sys-color-surface-container)]">
             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} fullPage allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
             {activeSetId?.startsWith('warmup-') && (() => {
                 const exId = activeSetId.replace('warmup-', '');
@@ -1575,7 +1698,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 onCancel={() => { if (window.confirm('¿Cancelar sesión? Se perderán los datos no guardados.')) onCancel(); }}
             />
 
-            <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative">
+            <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative bg-[var(--md-sys-color-surface-container)]">
                 {displayParts.map((part: any, partIndex: number) => (
                     <details key={part.id || partIndex} open={!collapsedParts[part.id]} className="group [&>summary]:hidden">
                         <summary onClick={(e) => { e.preventDefault(); setCollapsedParts(prev => ({ ...prev, [part.id]: !prev[part.id] })); }} className="flex items-center justify-between mb-4 px-3 py-2 cursor-pointer list-none bg-[#252525]">
@@ -1612,11 +1735,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                 </div>
                                             </summary>
                                             <div className="set-card-content !border-none !p-3 space-y-2 relative !p-3 sm:!p-4 !max-w-none w-full">
-                                                <div className="mb-4 flex items-center justify-between">
-                                                    <h3 className="text-lg font-bold text-white truncate">{ex.name}</h3>
-                                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1.5 text-[#737373] hover:text-white shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Historial"><ClockIcon size={18} /></button>
+                                                <div className="mb-4 flex items-center justify-between pb-2 border-b border-[var(--md-sys-color-outline-variant)]/40">
+                                                    <h3 className="text-[16px] font-medium text-[var(--md-sys-color-on-surface)] truncate">{ex.name}</h3>
+                                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1.5 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Historial"><ClockIcon size={18} /></button>
                                                 </div>
-                                                {pr && <div className="p-2 text-center text-sm bg-[#252525] text-[#a3a3a3]"><p className="font-medium flex items-center justify-center gap-2"><TrophyIcon size={16} /> {pr.prString}</p></div>}
+                                                {pr && <div className="p-2 text-center text-sm rounded-[12px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]"><p className="font-medium flex items-center justify-center gap-2"><TrophyIcon size={16} /> {pr.prString}</p></div>}
 
                                                 <HeaderAccordion
                                                     exercise={ex}
@@ -1632,7 +1755,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                             <div className="px-3 py-2 border-b border-slate-600/30 flex items-center justify-between">
                                                                 <div className="flex items-center gap-2">
                                                                     <FlameIcon size={16} className="text-slate-400" />
-                                                                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Series de aproximación</span>
+                                                                    <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">Series de aproximación</span>
                                                                 </div>
                                                                 <span className="text-[9px] font-mono text-slate-500">{ex.warmupSets!.length} series</span>
                                                             </div>
@@ -1656,12 +1779,12 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                             </div>
                                                         </div>
                                                     )}
-                                                    <div className="overflow-hidden rounded-none border-0 border-t border-white/5 bg-transparent">
-                                                        <div className="px-2 py-1 border-b border-white/5 flex items-center gap-2">
-                                                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Series efectivas</span>
+                                                    <div className="overflow-hidden rounded-[12px] border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]">
+                                                        <div className="px-3 py-2 border-b border-[var(--md-sys-color-outline-variant)]/50 flex items-center gap-2">
+                                                            <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">Series efectivas</span>
                                                         </div>
                                                         <div className="session-table w-full" data-tabular="true">
-                                                            <div className="flex items-center gap-2 px-2 py-1.5 border-b border-white/5 text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">
+                                                            <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[var(--md-sys-color-outline-variant)]/50 text-[11px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">
                                                                 <span className="w-8 text-center">Set</span>
                                                                 <span className="flex-1 min-w-[60px] text-center">Kg</span>
                                                                 <span className="flex-1 min-w-[56px] text-center">Reps</span>
@@ -1680,17 +1803,17 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                 const placeholderKg = suggestedKg != null ? String(suggestedKg) : (ghost?.weight ? String(ghost.weight) : '');
                                                                 const placeholderReps = ghost?.reps ? String(ghost.reps) : (set.targetReps ? String(set.targetReps) : '');
                                                                 return (
-                                                                    <div key={setId} className="border-b border-white/5">
+                                                                    <div key={setId} className="border-b border-[var(--md-sys-color-outline-variant)]/40">
                                                                         <div className={`flex items-center gap-2 px-2 py-2 ${rowClass} transition-colors`} style={{ minHeight: rowMinH }} onClick={() => { if (isCompleted || !isActiveRow) { setActiveExerciseId(ex.id); setActiveSetId(setId); } }}>
-                                                                            <span className="w-8 text-center text-xs font-mono font-bold text-slate-500 tabular-nums">{setIndex + 1}</span>
+                                                                            <span className="w-8 text-center text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums">{setIndex + 1}</span>
                                                                             <div className="flex-1 min-w-[60px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), field: 'weight', exerciseId: ex.id }); }} role="button" tabIndex={0}>
-                                                                                <span className={`w-full max-w-[72px] text-center text-sm font-mono py-1 tabular-nums block ${safeInputsRow.weight ? 'text-white' : 'text-slate-500'}`}>{safeInputsRow.weight || placeholderKg || '—'}</span>
+                                                                                <span className="w-full max-w-[72px] text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)]">{safeInputsRow.weight || placeholderKg || '—'}</span>
                                                                             </div>
                                                                             <div className="flex-1 min-w-[56px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), field: 'reps', exerciseId: ex.id }); }} role="button" tabIndex={0}>
-                                                                                <span className={`w-full max-w-[56px] text-center text-sm font-mono py-1 tabular-nums block ${(ex.trainingMode === 'time' ? safeInputsRow.duration : safeInputsRow.reps) ? 'text-white' : 'text-slate-500'}`}>{ex.trainingMode === 'time' ? (safeInputsRow.duration || placeholderReps || '—') : (safeInputsRow.reps || placeholderReps || '—')}</span>
+                                                                                <span className="w-full max-w-[56px] text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)]">{ex.trainingMode === 'time' ? (safeInputsRow.duration || placeholderReps || '—') : (safeInputsRow.reps || placeholderReps || '—')}</span>
                                                                             </div>
                                                                             <div className="w-10 flex justify-center" onClick={e => e.stopPropagation()}>
-                                                                                <button type="button" onClick={() => handleLogSet(ex, set, false)} className={`min-w-[44px] min-h-[44px] w-10 h-10 rounded-lg border flex items-center justify-center transition-all ${isCompleted ? 'border-amber-500/40 bg-amber-950/30 text-amber-400' : 'border-white/10 bg-transparent text-slate-500 hover:border-amber-500/30 hover:text-amber-400'}`}>
+                                                                                <button type="button" onClick={() => handleLogSet(ex, set, false)} data-completed={isCompleted ? "true" : "false"} className={`session-check-action min-w-[44px] min-h-[44px] w-10 h-10 rounded-full border flex items-center justify-center transition-all ${isCompleted ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'border-[var(--md-sys-color-outline-variant)] bg-transparent text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-on-surface)]'}`}>
                                                                                     <CheckCircleIcon size={18} />
                                                                                 </button>
                                                                             </div>
@@ -1705,10 +1828,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                             })}
                                                         </div>
                                                     </div>
-                                                    <div id={`feedback-card-${ex.id}`} className="overflow-hidden border-t border-[#252525] bg-[#252525]">
-                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-[#2a2a2a] transition-colors min-h-[48px]">
+                                                    <div id={`feedback-card-${ex.id}`} className="overflow-hidden border-t border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)]">
+                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-black/[0.03] transition-colors min-h-[48px]">
                                                             <ActivityIcon size={24} className="text-[#a3a3a3]" />
-                                                            <span className="text-[10px] font-medium uppercase tracking-wide text-[#a3a3a3]">Feedback Post-Ejercicio</span>
+                                                            <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">Feedback Post-Ejercicio</span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1723,13 +1846,13 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             </div>
 
             {/* Carrusel de tarjetas + acciones */}
-            <div className="fixed left-0 right-0 bottom-0 z-20 bg-[#1a1a1a] pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col">
+            <div className="fixed left-0 right-0 bottom-0 z-20 liquid-glass-panel pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col border-t border-[var(--md-sys-color-outline-variant)]/40" style={{ background: 'linear-gradient(180deg, rgba(254,247,255,0.86) 0%, rgba(247,242,250,0.92) 100%)', backdropFilter: 'blur(22px) saturate(140%)', WebkitBackdropFilter: 'blur(22px) saturate(140%)' }}>
                 {/* Acciones rápidas: 90s y Notas */}
                 <div className="flex justify-center gap-2 px-4 py-2 shrink-0">
-                    <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide min-h-[44px]">
+                    <button onClick={() => handleStartRest(90, 'Descanso')} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[11px] font-semibold uppercase tracking-wide min-h-[44px]">
                         <ClockIcon size={14} /> 90s
                     </button>
-                    <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-[#1a1a1a] text-[10px] font-medium uppercase tracking-wide min-h-[44px]">
+                    <button onClick={() => setShowNotesDrawer(true)} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[11px] font-semibold uppercase tracking-wide min-h-[44px]">
                         <PencilIcon size={14} /> Notas
                     </button>
                 </div>
@@ -1761,8 +1884,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             {showNotesDrawer && (
                 <WorkoutDrawer isOpen={true} onClose={() => setShowNotesDrawer(false)} title="Notas de Sesión" height="50vh">
                     <div className="p-5">
-                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full bg-white p-4 text-[#1a1a1a] text-sm placeholder-[#737373] outline-none" />
-                        <p className="text-[9px] text-[#525252] mt-2">Se incluirán al finalizar la sesión.</p>
+                        <textarea value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} placeholder="Notas rápidas durante el entrenamiento..." rows={6} className="w-full rounded-[12px] bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] p-4 text-[var(--md-sys-color-on-surface)] text-sm placeholder:text-[var(--md-sys-color-on-surface-variant)] outline-none" />
+                        <p className="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-2">Se incluirán al finalizar la sesión.</p>
                     </div>
                 </WorkoutDrawer>
             )}
@@ -1850,3 +1973,5 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         </div>
     );
 };
+
+

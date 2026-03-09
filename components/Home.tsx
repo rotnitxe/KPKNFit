@@ -225,7 +225,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                                 <span className="text-xs font-medium text-[#49454F] opacity-60 text-left leading-snug">Federaciones, historial y competiciones.</span>
                             </div>
                         </button>
-                        <button onClick={() => onNavigate('wiki-lab' as any)} className="bg-white/50 backdrop-blur-xl p-5 rounded-[36px] border border-black/[0.02] flex items-center gap-6 active:scale-[0.98] transition-all shadow-sm">
+                        <button onClick={() => onNavigate('wiki-home' as any)} className="bg-white/50 backdrop-blur-xl p-5 rounded-[36px] border border-black/[0.02] flex items-center gap-6 active:scale-[0.98] transition-all shadow-sm">
                             <div className="w-16 h-16 rounded-[24px] bg-[#ECE6F0] flex items-center justify-center flex-shrink-0">
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#49454F]/50"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
                             </div>

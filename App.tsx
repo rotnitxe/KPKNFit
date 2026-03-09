@@ -59,6 +59,7 @@ const LogHub = React.lazy(() => import('./components/LogHub'));
 const AchievementsView = React.lazy(() => import('./components/AchievementsView'));
 const LogWorkoutView = React.lazy(() => import('./components/LogWorkoutView'));
 const KPKNView = React.lazy(() => import('./components/KPKNView'));
+const WikiHomeView = React.lazy(() => import('./components/WikiHomeView'));
 const ExerciseDetailView = React.lazy(() => import('./components/ExerciseDetailView').then(m => ({ default: m.ExerciseDetailView })));
 const MuscleGroupDetailView = React.lazy(() => import('./components/MuscleGroupDetailView'));
 const BodyPartDetailView = React.lazy(() => import('./components/BodyPartDetailView'));
@@ -583,6 +584,7 @@ export const App: React.FC = () => {
                 return null;
             }
             case 'kpkn': return <KPKNView />;
+            case 'wiki-home': return <WikiHomeView />;
             case 'ai-art-studio': return <Suspense fallback={<ViewFallback />}><AIArtStudioView /></Suspense>;
             case 'body-lab': return <Suspense fallback={<ViewFallback />}><BodyLabView /></Suspense>;
             case 'mobility-lab': return <Suspense fallback={<ViewFallback />}><MobilityLabView /></Suspense>;

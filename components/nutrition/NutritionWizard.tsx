@@ -163,7 +163,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         [isCompactPhone, isPlusPhone]
     );
 
-    const sectionClass = 'bg-white/70 border border-black/[0.05]';
+    const sectionClass = 'bg-white/90 border border-black/[0.08] shadow-[0_14px_40px_-32px_rgba(0,0,0,0.5)]';
 
     useEffect(() => {
         if (step !== 2) return;
@@ -546,7 +546,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     };
 
     const renderHeader = () => (
-        <div className="sticky top-0 z-20 backdrop-blur-xl bg-[var(--md-sys-color-surface)]/85 border-b border-black/[0.05]">
+        <div className="sticky top-0 z-20 backdrop-blur-2xl bg-white/95 border-b border-black/[0.08] shadow-lg">
             <div style={{ paddingLeft: layout.pagePadX, paddingRight: layout.pagePadX, paddingTop: layout.headerPadY, paddingBottom: layout.headerPadY }}>
                 <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#49454F]">Configurar plan de alimentación</p>
                 <h2 className="font-black text-[#1D1B20] mt-1" style={{ fontSize: layout.headerTitleSize }}>Asistente de plan nutricional</h2>
@@ -943,7 +943,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
     };
 
     return (
-        <div className="min-h-full flex flex-col bg-[var(--md-sys-color-surface)]">
+        <div className="min-h-full flex flex-col bg-gradient-to-b from-[var(--md-sys-color-surface)] via-white to-white relative overflow-hidden">
             {renderHeader()}
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto">

@@ -104,10 +104,116 @@
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.08); }
 }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* Scroll flexible: momentum en móvil, overscroll natural */
+.custom-scrollbar,
+.scroll-flexible {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+}
+@keyframes expand-down {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 500px; }
+}
+.animate-expand { animation: expand-down 0.2s ease-out; }
+@keyframes pulse-cyan {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,240,255,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(0,240,255,0); }
+}
+.animate-pulse-cyan { animation: pulse-cyan 2s ease-in-out infinite; }
+@keyframes zoom-slow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
 .animate-zoom-slow { animation: zoom-slow 12s ease-in-out infinite; }
 
-/* Removed Tactical Overlays */
+/* --- Material 3 & Liquid Glass Design Tokens --- */
+:root {
+  /* M3 Primary Palette (Lavender/Purple) */
+  --m3-primary: #D0BCFF;
+  --m3-on-primary: #381E72;
+  --m3-primary-container: #4F378B;
+  --m3-on-primary-container: #EADDFF;
+  
+  --m3-secondary: #CCC2DC;
+  --m3-on-secondary: #332D41;
+  --m3-secondary-container: #4A4458;
+  --m3-on-secondary-container: #E8DEF8;
+  
+  --m3-tertiary: #EFB8C8;
+  --m3-on-tertiary: #492532;
+  --m3-tertiary-container: #633B48;
+  --m3-on-tertiary-container: #FFD8E4;
 
+  --m3-surface: #1C1B1F;
+  --m3-on-surface: #E6E1E5;
+  --m3-surface-variant: #49454F;
+  --m3-on-surface-variant: #CAC4D0;
+  --m3-outline: #938F99;
+  
+  /* Liquid Glass Specials */
+  --glass-bg: rgba(28, 27, 31, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-blur: 24px;
+}
+
+.m3-card {
+  background: var(--m3-surface-variant);
+  border-radius: 28px;
+  padding: 16px;
+  border: 1px solid var(--glass-border);
+}
+
+.liquid-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.m3-chip {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--m3-outline);
+}
+
+.m3-chip-filled {
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  border: none;
+}
+
+.text-m3-headline {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-m3-title {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.text-m3-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
 
 /* --- Session card & tabular numbers --- */
 .session-card-base {
@@ -146,22 +252,6 @@
 .font-tabular {
     font-variant-numeric: tabular-nums;
 }
-/* Global: numbers in inputs and data cells use tabular-nums */
-[data-tabular="true"],
-input[type="number"],
-.session-table input {
-    font-variant-numeric: tabular-nums;
-}
-
-/* Footer seguro para wizards (Android barra de navegación) */
-.wizard-safe-footer {
-    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
-}
-
-/* Removed Nerdium configuration */
-
-
-
 
 
 
