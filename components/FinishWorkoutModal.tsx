@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { TacticalModal } from './ui/TacticalOverlays';
 import WorkoutDrawer from './workout/WorkoutDrawer';
 import { DISCOMFORT_DATABASE } from '../data/discomfortList';
-import { CheckCircleIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, ClockIcon, FlameIcon, ChevronDownIcon, ChevronRightIcon, SearchIcon } from './icons';
+import { CheckCircleIcon, ZapIcon, BrainIcon, ActivityIcon, LinkIcon, ClockIcon, FlameIcon, ChevronDownIcon, ChevronRightIcon, SearchIcon, TrophyIcon, AlertTriangleIcon } from './icons';
 import { useAppDispatch, useAppState } from '../contexts/AppContext';
 import { shareElementAsImage } from '../services/shareService';
 import CaupolicanBackground from './social/CaupolicanBackground';
@@ -91,74 +91,74 @@ export const buildShareCardDataFromLog = (log: { date: string; duration?: number
 const MAX_EXERCISES_IN_SHARE = 14;
 
 export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, exerciseSummaries, preview }) => {
-    const displayed = exerciseSummaries.slice(0, MAX_EXERCISES_IN_SHARE);
-    const restCount = exerciseSummaries.length - MAX_EXERCISES_IN_SHARE;
+  const displayed = exerciseSummaries.slice(0, MAX_EXERCISES_IN_SHARE);
+  const restCount = exerciseSummaries.length - MAX_EXERCISES_IN_SHARE;
 
-    const wrapperClass = preview
-        ? 'relative w-[540px] h-[960px] flex items-center justify-center font-sans overflow-hidden'
-        : 'fixed w-[540px] h-[960px] flex items-center justify-center font-sans overflow-hidden pointer-events-none';
-    const captureStyle: React.CSSProperties = preview ? {} : { left: 0, top: 0, zIndex: -1 };
-    return (
-        <div id={preview ? undefined : 'workout-summary-share-card'} className={wrapperClass} style={preview ? undefined : captureStyle}>
-            {/* Fondo del frame (gradiente sutil) */}
-            <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.08)_0%,transparent_70%)]" />
+  const wrapperClass = preview
+    ? 'relative w-[540px] h-[960px] flex items-center justify-center font-sans overflow-hidden'
+    : 'fixed w-[540px] h-[960px] flex items-center justify-center font-sans overflow-hidden pointer-events-none';
+  const captureStyle: React.CSSProperties = preview ? {} : { left: 0, top: 0, zIndex: -1 };
+  return (
+    <div id={preview ? undefined : 'workout-summary-share-card'} className={wrapperClass} style={preview ? undefined : captureStyle}>
+      {/* Fondo del frame (gradiente sutil) */}
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.08)_0%,transparent_70%)]" />
 
-            {/* Tarjeta centrada con bordes redondeados */}
-            <div className="relative w-[480px] h-[860px] rounded-[28px] overflow-hidden border border-white/[0.12] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_25px_50px_-12px_rgba(0,0,0,0.5)] flex flex-col bg-[#FEF7FF]">
-                <div className="absolute inset-0 z-0 opacity-30 mix-blend-luminosity scale-110 -translate-y-8" style={{ overflow: 'hidden' }}>
-                    <CaupolicanBackground />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/50 to-zinc-950 z-0" />
-                <div className="absolute inset-0 opacity-[0.12] mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-
-                <div className="relative z-10 flex flex-col h-full p-5 box-border text-white" style={{ minHeight: 0 }}>
-                    {/* Header */}
-                    <div className="flex justify-between items-center shrink-0 mb-2">
-                        <div>
-                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block">Sesión de entrenamiento</span>
-                            <span className="text-sm font-bold text-white">{new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                        </div>
-                        <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center p-1.5 shrink-0 shadow-lg">
-                            <img src="/caupolican-icon.svg" alt="" className="w-full h-full object-contain" loading="eager" decoding="sync" aria-hidden />
-                        </div>
-                    </div>
-
-                    {/* Ejercicios */}
-                    <div className="flex-1 min-h-0 flex flex-col py-2">
-                        {displayed.length > 0 ? (
-                            <div className="space-y-0.5 flex-1 min-h-0" style={{ overflow: 'hidden' }}>
-                                {displayed.map((ex, i) => (
-                                    <div key={i} className="flex justify-between gap-2 text-[10px] leading-tight py-0.5">
-                                        <span className="font-bold text-white flex-1 min-w-0 truncate">{ex.name}</span>
-                                        <span className="text-cyan-400/90 font-mono shrink-0 text-right">{ex.line}</span>
-                                    </div>
-                                ))}
-                                {restCount > 0 && (
-                                    <div className="text-[9px] text-white/50 pt-1">+{restCount} más</div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center flex-1 min-h-[80px]">
-                                <span className="text-white/40 text-xs">Ejercicios de la sesión</span>
-                            </div>
-                        )}
-                        <div className="h-0.5 w-full mt-2 rounded-full bg-gradient-to-r from-red-500 to-cyan-500 shrink-0" />
-                    </div>
-
-                    {/* Minutos + footer */}
-                    <div className="shrink-0 space-y-2 pt-2">
-                        <div className="bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-2.5 flex items-center justify-center gap-2">
-                            <ClockIcon size={18} className="text-white/50 shrink-0" />
-                            <span className="text-xl font-black text-white">{duration}</span>
-                            <span className="text-[9px] text-[#49454F] font-bold uppercase shrink-0">min</span>
-                        </div>
-                        <p className="text-[9px] font-black text-white/40 uppercase tracking-widest text-center">Registra tus entrenamientos con KPKN</p>
-                    </div>
-                </div>
-            </div>
+      {/* Tarjeta centrada con bordes redondeados */}
+      <div className="relative w-[480px] h-[860px] rounded-[28px] overflow-hidden border border-white/[0.12] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_25px_50px_-12px_rgba(0,0,0,0.5)] flex flex-col bg-[#FEF7FF]">
+        <div className="absolute inset-0 z-0 opacity-30 mix-blend-luminosity scale-110 -translate-y-8" style={{ overflow: 'hidden' }}>
+          <CaupolicanBackground />
         </div>
-    );
+        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/50 to-zinc-950 z-0" />
+        <div className="absolute inset-0 opacity-[0.12] mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+
+        <div className="relative z-10 flex flex-col h-full p-5 box-border text-white" style={{ minHeight: 0 }}>
+          {/* Header */}
+          <div className="flex justify-between items-center shrink-0 mb-2">
+            <div>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest block">Sesión de entrenamiento</span>
+              <span className="text-sm font-bold text-white">{new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+            </div>
+            <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center p-1.5 shrink-0 shadow-lg">
+              <img src="/caupolican-icon.svg" alt="" className="w-full h-full object-contain" loading="eager" decoding="sync" aria-hidden />
+            </div>
+          </div>
+
+          {/* Ejercicios */}
+          <div className="flex-1 min-h-0 flex flex-col py-2">
+            {displayed.length > 0 ? (
+              <div className="space-y-0.5 flex-1 min-h-0" style={{ overflow: 'hidden' }}>
+                {displayed.map((ex, i) => (
+                  <div key={i} className="flex justify-between gap-2 text-[10px] leading-tight py-0.5">
+                    <span className="font-bold text-white flex-1 min-w-0 truncate">{ex.name}</span>
+                    <span className="text-cyan-400/90 font-mono shrink-0 text-right">{ex.line}</span>
+                  </div>
+                ))}
+                {restCount > 0 && (
+                  <div className="text-[9px] text-white/50 pt-1">+{restCount} más</div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center flex-1 min-h-[80px]">
+                <span className="text-white/40 text-xs">Ejercicios de la sesión</span>
+              </div>
+            )}
+            <div className="h-0.5 w-full mt-2 rounded-full bg-gradient-to-r from-red-500 to-cyan-500 shrink-0" />
+          </div>
+
+          {/* Minutos + footer */}
+          <div className="shrink-0 space-y-2 pt-2">
+            <div className="bg-white/5 border border-[#E6E0E9] rounded-xl px-4 py-2.5 flex items-center justify-center gap-2">
+              <ClockIcon size={18} className="text-white/50 shrink-0" />
+              <span className="text-xl font-black text-white">{duration}</span>
+              <span className="text-[9px] text-[#49454F] font-bold uppercase shrink-0">min</span>
+            </div>
+            <p className="text-[9px] font-black text-white/40 uppercase tracking-widest text-center">Registra tus entrenamientos con KPKN</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const MUSCLE_LABEL_MAP: Record<string, string> = {
@@ -176,9 +176,8 @@ const PointSelector: React.FC<{ value: number; onChange: (v: number) => void; la
           key={v}
           type="button"
           onClick={() => onChange(v)}
-          className={`w-7 h-7 rounded-full border transition-colors text-[10px] font-medium ${
-            value === v ? 'bg-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-on-surface-variant)] text-white' : 'bg-white border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-on-surface-variant)]'
-          }`}
+          className={`w-7 h-7 rounded-full border transition-colors text-[10px] font-medium ${value === v ? 'bg-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-on-surface-variant)] text-white' : 'bg-white border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-on-surface-variant)]'
+            }`}
           aria-label={`${v} de 10`}
         >
           {v}
@@ -262,7 +261,6 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
         const dataRaw = completedSets[String(set.id)];
         if (!dataRaw) return;
         const data = dataRaw as { left?: any; right?: any } & Record<string, unknown>;
-        // Soporta formato { left, right } o plano { reps, weight, rpe, rir }
         const primary = ex.isUnilateral
           ? (data?.left || data?.right)
           : (data?.left ?? (data?.left === undefined && data?.right === undefined ? data : undefined));
@@ -317,10 +315,6 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
 
   const fatigueLevel = Math.min(10, Math.max(1, Math.round(generalBattery / 10)));
   const mentalClarity = Math.min(10, Math.max(1, Math.round((100 - spinalBattery) / 10)));
-  const avgMuscle = musclesWithEffectiveSets.length > 0
-    ? musclesWithEffectiveSets.reduce((a, m) => a + (muscleBatteries[m] ?? 50), 0) / musclesWithEffectiveSets.length
-    : 50;
-  const pumpMapped = Math.min(10, Math.max(1, Math.round(avgMuscle / 10)));
 
   const handleFinishAttempt = () => {
     if (fatigueLevel >= 8 && mentalClarity <= 3) {
@@ -340,7 +334,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
     const muscleBatteriesToPass = musclesWithEffectiveSets.length > 0
       ? Object.fromEntries(musclesWithEffectiveSets.map(m => [m, muscleBatteries[m] ?? 50]))
       : undefined;
-    onFinish(notes, selectedDiscomforts, fatigueLevel, mentalClarity, durationNum, logDate, undefined, [], focus, pumpMapped, environmentTags, sessionDifficulty, planAdherenceTags, muscleBatteriesToPass);
+    onFinish(notes, selectedDiscomforts, fatigueLevel, mentalClarity, durationNum, logDate, undefined, [], focus, pump, environmentTags, sessionDifficulty, planAdherenceTags, muscleBatteriesToPass);
   };
 
   const filteredDiscomforts = useMemo(() => {
@@ -354,224 +348,304 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
   const toggleDiscomfort = (name: string) => {
     setSelectedDiscomforts(prev => prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name]);
   };
-  
+
   const handleAcceptDeload = () => {
-      addToast("Se ha programado una sesión de descanso activo para tu próximo entrenamiento.", "suggestion");
-      executeFinish();
+    addToast("Se ha programado una sesión de descanso activo para tu próximo entrenamiento.", "suggestion");
+    executeFinish();
   }
-  
+
   const handleShare = async () => {
-      setIsSharing(true);
-      await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'Registra tus entrenamientos con KPKN. #KPKN #Fitness');
-      setIsSharing(false);
+    setIsSharing(true);
+    await shareElementAsImage('workout-summary-share-card', '¡Entrenamiento Terminado!', 'Registra tus entrenamientos con KPKN. #KPKN #Fitness');
+    setIsSharing(false);
   }
 
   const toggleTag = (tag: string, state: string[], setState: React.Dispatch<React.SetStateAction<string[]>>) => {
     setState(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
 
-  const useFullPage = fullPage ?? asDrawer;
-
-  const TagGroup: React.FC<{title:string; tags: string[]; selected: string[]; onToggle: (tag:string) => void;}> = ({title, tags, selected, onToggle}) => (
-      <div>
-        <label className={`block text-[10px] font-semibold uppercase tracking-wide mb-2 ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan/80 font-mono font-black tracking-widest'}`}>{title}</label>
-        <div className="flex flex-wrap gap-2">
-            {tags.map(tag => (
-                <button key={tag} onClick={() => onToggle(tag)} className={`px-3 py-1.5 text-[10px] font-medium border transition-all ${useFullPage ? (selected.includes(tag) ? 'bg-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-on-surface-variant)] text-white' : 'bg-white border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-on-surface-variant)]') : (selected.includes(tag) ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan font-mono font-bold uppercase rounded-lg' : 'bg-slate-900/80 border-slate-700 text-slate-500 hover:border-cyber-cyan/30 hover:text-slate-400 font-mono font-bold uppercase rounded-lg')}`}>
-                    {tag}
-                </button>
-            ))}
-        </div>
+  const TagGroup: React.FC<{ title: string; tags: string[]; selected: string[]; onToggle: (tag: string) => void; }> = ({ title, tags, selected, onToggle }) => (
+    <div className="space-y-3">
+      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--md-sys-color-on-surface-variant)] px-1">{title}</label>
+      <div className="flex flex-wrap gap-2">
+        {tags.map(tag => (
+          <button
+            key={tag}
+            onClick={() => onToggle(tag)}
+            className={`px-4 py-2 rounded-full text-[12px] font-medium transition-all border ${selected.includes(tag)
+              ? 'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary-container)]'
+              : 'bg-white/50 border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)]'
+              }`}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
     </div>
   );
 
-  /** Selector de batería: puntos 1-10 → 10%-100% */
   const BatteryPointSelector: React.FC<{ label: string; value: number; onChange: (v: number) => void }> = ({ label, value, onChange }) => {
     const point = Math.min(10, Math.max(1, Math.round(value / 10)));
     return (
-      <div>
-        <label className="block text-[10px] font-semibold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wide mb-1">{label}</label>
-        <PointSelector value={point} onChange={(v) => onChange(v * 10)} labels={['10%', '100%']} />
+      <div className="space-y-2">
+        <label className="block text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider px-1">{label}</label>
+        <PointSelector value={point} onChange={(v) => onChange(v * 10)} labels={['Mínimo', 'Máximo']} />
       </div>
     );
   };
 
   const title = showRecoverySuggestion ? "Recuperación Prioritaria" : "Finalizar Sesión";
+
   const content = (
-    <>
-      {/* Tarjeta para compartir: off-screen, el wrapper tiene el id para html2canvas */}
+    <div className="space-y-6 pb-20">
+      {/* Off-screen share card */}
       <div id="workout-summary-share-card" className="fixed -left-[9999px] top-0 w-[540px] h-[960px] pointer-events-none overflow-hidden">
-        <WorkoutShareCard 
+        <WorkoutShareCard
           preview
-          date={logDate} 
-          duration={durationInMinutes || '--'} 
-          difficulty={sessionDifficulty} 
+          date={logDate}
+          duration={durationInMinutes || '--'}
+          difficulty={sessionDifficulty}
           pump={pump}
           exerciseSummaries={shareCardExerciseSummaries}
         />
       </div>
 
       {!showRecoverySuggestion ? (
-        <div className={`space-y-5 p-4 ${useFullPage ? 'bg-[#e5e5e5]' : 'bg-[#0a0c10]'}`}>
-            {/* Resumen compacto */}
-            <div className={`flex items-center justify-between gap-4 p-4 ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl bg-slate-950/80 border border-cyber-cyan/20'}`}>
-                <div>
-                    <span className={`text-[9px] font-semibold uppercase tracking-wide block ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-black text-cyber-cyan/70 tracking-widest'}`}>Sesión Completada</span>
-                    <span className={`text-lg font-semibold ${useFullPage ? 'text-[var(--md-sys-color-on-surface)]' : 'font-mono font-black text-white'}`}>{new Date(logDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                </div>
-                <div className={`flex items-center gap-3 font-medium ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan font-mono font-bold'}`}>
-                    <span>{durationInMinutes || '--'} min</span>
-                    <span className={useFullPage ? 'text-[var(--md-sys-color-outline-variant)]' : 'text-slate-600'}>|</span>
-                    <span>Nivel {sessionDifficulty}</span>
-                </div>
+        <>
+          {/* Quick Summary Card */}
+          <div className="liquid-glass-panel p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--md-sys-color-primary)] block mb-1">Resumen de Sesión</span>
+                <h2 className="text-xl font-bold text-[var(--md-sys-color-on-surface)]">{new Date(logDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</h2>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center text-[var(--md-sys-color-on-secondary-container)]">
+                <TrophyIcon size={24} />
+              </div>
             </div>
 
-            {/* Duración y fecha */}
             <div className="grid grid-cols-2 gap-3">
-                <div className={`overflow-hidden ${useFullPage ? 'border border-[var(--md-sys-color-outline-variant)] bg-white' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80'}`}>
-                    <label className={`block px-3 pt-2 text-[9px] font-semibold uppercase ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-bold text-slate-500'}`}>Duración (min)</label>
-                    <input type="number" value={durationInMinutes} onChange={(e) => setDurationInMinutes(e.target.value)} className={`w-full pb-3 px-3 text-lg font-medium focus:outline-none focus:ring-0 border-none ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] [color-scheme:light]' : 'bg-slate-950/50 text-white font-mono font-bold [color-scheme:dark]'}`} placeholder="60" />
+              <div className="bg-white/40 border border-[var(--md-sys-color-outline-variant)]/30 rounded-2xl p-3">
+                <span className="text-[9px] font-bold uppercase text-[var(--md-sys-color-on-surface-variant)] block mb-1">Duración</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={durationInMinutes}
+                    onChange={(e) => setDurationInMinutes(e.target.value)}
+                    className="bg-transparent border-none p-0 text-xl font-bold w-16 focus:ring-0 outline-none text-[var(--md-sys-color-on-surface)]"
+                    placeholder="60"
+                  />
+                  <span className="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)]">min</span>
                 </div>
-                <div className={`overflow-hidden ${useFullPage ? 'border border-[var(--md-sys-color-outline-variant)] bg-white' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/80'}`}>
-                    <label className={`block px-3 pt-2 text-[9px] font-semibold uppercase ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-bold text-slate-500'}`}>Fecha</label>
-                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className={`w-full pb-3 px-3 text-sm font-medium focus:outline-none focus:ring-0 border-none ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] [color-scheme:light]' : 'bg-slate-950/50 text-white font-mono font-bold [color-scheme:dark]'}`} />
-                </div>
-            </div>
-            
-            {/* Baterías AUGE: selectores de puntos 1–10 */}
-            <div className={`p-4 space-y-5 ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
-                <p className={`text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono text-slate-500'}`}>Batería consumida (1–10)</p>
-                <BatteryPointSelector label="1. Estado general" value={generalBattery} onChange={setGeneralBattery} />
-                
-                <div>
-                    <button type="button" onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)} className={`w-full flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide mb-2 py-1 ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-bold text-slate-400'}`}>
-                        <span>2. Músculos trabajados</span>
-                        {muscleAccordionOpen ? <ChevronDownIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan'} /> : <ChevronRightIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan'} />}
-                    </button>
-                    {muscleAccordionOpen && musclesWithEffectiveSets.length > 0 && (
-                        <div className={`space-y-3 mt-3 animate-fade-in pl-2 ${useFullPage ? 'border-l-2 border-[var(--md-sys-color-outline-variant)]' : 'border-l-2 border-cyber-cyan/20'}`}>
-                            {musclesWithEffectiveSets.map(m => (
-                                <BatteryPointSelector key={m} label={MUSCLE_LABEL_MAP[m] || m} value={muscleBatteries[m] ?? 50} onChange={(v) => setMuscleBatteries(prev => ({ ...prev, [m]: v }))} />
-                            ))}
-                        </div>
-                    )}
-                    {muscleAccordionOpen && musclesWithEffectiveSets.length === 0 && (
-                        <p className={`text-[10px] ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-slate-600 font-mono'}`}>No hay músculos con series efectivas.</p>
-                    )}
-                </div>
-
-                <BatteryPointSelector label="3. Columna" value={spinalBattery} onChange={setSpinalBattery} />
-            </div>
-
-            <div className="space-y-4 pt-1">
-                <div className={`overflow-hidden ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
-                    <button type="button" onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)} className={`w-full flex items-center justify-between px-4 py-3 text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[#f5f5f5]' : 'font-mono font-bold text-slate-400 hover:text-cyber-cyan/90'}`}>
-                        <span>¿Tuviste alguna molestia?</span>
-                        {showDiscomfortSearch ? <ChevronDownIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)] shrink-0' : 'text-cyber-cyan shrink-0'} /> : <ChevronRightIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)] shrink-0' : 'text-cyber-cyan shrink-0'} />}
-                    </button>
-                    {showDiscomfortSearch && (
-                        <div className={`animate-fade-in space-y-3 px-4 pb-4 pt-3 border-t ${useFullPage ? 'border-[#d4d4d4]' : 'border-cyber-cyan/10'}`}>
-                            <div className={`flex items-center gap-2 p-2 ${useFullPage ? 'bg-[#f5f5f5] border border-[var(--md-sys-color-outline-variant)]' : 'bg-slate-900/80 rounded-lg border border-cyber-cyan/20'}`}>
-                                <SearchIcon size={14} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)] shrink-0' : 'text-cyber-cyan/60 shrink-0'} />
-                                <input type="text" value={discomfortSearchQuery} onChange={(e) => setDiscomfortSearchQuery(e.target.value)} placeholder="Describe tu molestia o busca..." className={`bg-transparent border-none text-sm w-full focus:ring-0 focus:outline-none ${useFullPage ? 'text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-outline-variant)]' : 'text-white placeholder-slate-500'}`} />
-                            </div>
-                            <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-2">
-                                {filteredDiscomforts.map(d => (
-                                    <button key={d.id} type="button" onClick={() => toggleDiscomfort(d.name)} className={`w-full text-left p-3 border transition-all ${useFullPage ? (selectedDiscomforts.includes(d.name) ? 'bg-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-on-surface-variant)] text-white' : 'bg-white border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-on-surface-variant)]') : (selectedDiscomforts.includes(d.name) ? 'rounded-lg bg-cyber-cyan/20 border-cyber-cyan/50' : 'rounded-lg bg-slate-800/50 border-cyber-cyan/10 hover:border-cyber-cyan/30')}`}>
-                                        <span className="font-semibold text-sm">{d.name}</span>
-                                        <p className={`text-[10px] mt-1 ${useFullPage ? (selectedDiscomforts.includes(d.name) ? 'text-white/80' : 'text-[var(--md-sys-color-on-surface-variant)]') : 'text-slate-400'}`}>{d.description}</p>
-                                    </button>
-                                ))}
-                            </div>
-                            {selectedDiscomforts.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                    {selectedDiscomforts.map(name => (
-                                        <span key={name} className={`px-2 py-0.5 text-[10px] font-medium flex items-center gap-1 inline-flex ${useFullPage ? 'bg-[var(--md-sys-color-on-surface-variant)] text-white' : 'rounded-full bg-cyber-cyan/30 text-cyber-cyan font-bold'}`}>{name} <button type="button" onClick={() => toggleDiscomfort(name)} className={useFullPage ? 'opacity-80 hover:opacity-100' : 'ml-1 opacity-70 hover:text-white'}>×</button></span>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-                <div className={`p-4 space-y-4 ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
-                    <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
-                    <TagGroup title="Adherencia" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
-                </div>
-            </div>
-            
-            <div className={`overflow-hidden ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'rounded-xl border border-cyber-cyan/20 bg-slate-950/60'}`}>
-              <label className={`block px-3 pt-3 text-[10px] font-semibold uppercase tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'font-mono font-bold text-slate-500'}`}>Notas del Diario</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="¿Algo que destacar hoy?" className={`w-full px-3 pb-3 pt-1 text-sm focus:outline-none focus:ring-0 border-none resize-none ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-outline-variant)]' : 'font-mono bg-transparent text-white placeholder-slate-500'}`} />
-            </div>
-            <div className={`flex gap-2 pt-4 border-t ${useFullPage ? 'border-[var(--md-sys-color-outline-variant)]' : 'border-cyber-cyan/20'}`}>
-                <button onClick={handleShare} disabled={isSharing} className={`flex-1 py-4 font-semibold uppercase tracking-wide flex items-center justify-center gap-2 ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] hover:bg-[#f5f5f5] disabled:opacity-50' : '!border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80 transition-all font-mono'}`}>
-                    {isSharing ? (
-                        <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-[var(--md-sys-color-on-surface-variant)] border-t-[var(--md-sys-color-on-surface)] rounded-full animate-spin"></div>
-                            <span className={`text-[10px] tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan/90'}`}>Compartiendo...</span>
-                        </div>
-                    ) : (
-                        <><LinkIcon size={18} className={useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan/80'}/> <span className={`text-[11px] tracking-wide ${useFullPage ? 'text-[var(--md-sys-color-on-surface)]' : 'text-cyber-cyan/90'}`}>Compartir</span></>
-                    )}
-                </button>
-                <button onClick={handleFinishAttempt} className={`flex-[2] py-4 text-base font-semibold uppercase tracking-wide flex items-center justify-center gap-2 ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]' : '!bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black tracking-widest shadow-[0_0_20px_rgba(0,240,255,0.3)]'}`}>
-                    <CheckCircleIcon size={20}/> Finalizar sesión
-                </button>
-            </div>
-        </div>
-      ) : (
-          <div className={`space-y-6 p-4 animate-fade-in ${useFullPage ? 'bg-[#e5e5e5]' : 'bg-[#0a0c10] rounded-xl'}`}>
-              <div className={`p-4 text-center ${useFullPage ? 'bg-white border border-[var(--md-sys-color-outline-variant)]' : 'bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-xl'}`}>
-                <ActivityIcon size={40} className={`mx-auto mb-2 ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-cyber-cyan'}`} />
-                <h4 className={`text-lg font-bold uppercase tracking-wider ${useFullPage ? 'text-[var(--md-sys-color-on-surface)]' : 'text-cyber-cyan font-mono'}`}>Señales de Fatiga Acumulada</h4>
-                <p className={`text-sm mt-1 ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-slate-400 font-mono'}`}>Tu nivel de fatiga ({fatigueLevel}) y claridad mental ({mentalClarity}) sugieren que necesitas un descanso para evitar el sobreentrenamiento.</p>
               </div>
-
-              <div className="space-y-3">
-                  <p className={`text-sm text-center italic ${useFullPage ? 'text-[var(--md-sys-color-on-surface-variant)]' : 'text-slate-300 font-mono'}`}>"He detectado que tu sistema nervioso está bajo estrés. ¿Insertamos una sesión de descarga mañana?"</p>
-                  
-                  <button onClick={handleAcceptDeload} className={`w-full py-4 flex items-center justify-center gap-2 font-semibold uppercase tracking-wide ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]' : '!bg-cyber-cyan !text-black !border-cyber-cyan hover:!bg-cyber-cyan/90 font-mono font-black tracking-widest'}`}>
-                    <ZapIcon size={20}/> Sí, programar Descarga / Descanso Activo
-                  </button>
-                  
-                  <button onClick={executeFinish} className={`w-full py-4 flex items-center justify-center gap-2 font-semibold uppercase tracking-wide ${useFullPage ? 'bg-white text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]' : '!border-cyber-cyan/30 hover:!border-cyber-cyan/50 !bg-slate-900/80'}`}>
-                    <BrainIcon size={20}/> No, seguiré con mi programa habitual
-                  </button>
+              <div className="bg-white/40 border border-[var(--md-sys-color-outline-variant)]/30 rounded-2xl p-3">
+                <span className="text-[9px] font-bold uppercase text-[var(--md-sys-color-on-surface-variant)] block mb-1">Dificultad</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-[var(--md-sys-color-on-surface)]">{sessionDifficulty}</span>
+                  <span className="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)]">/ 10</span>
+                </div>
               </div>
+            </div>
           </div>
+
+          {/* AUGE Subjective metrics */}
+          <div className="liquid-glass-panel p-5 space-y-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-1 h-4 bg-[var(--md-sys-color-primary)] rounded-full" />
+              <h3 className="text-sm font-bold text-[var(--md-sys-color-on-surface)] uppercase tracking-wider">Métricas de Recuperación</h3>
+            </div>
+
+            <BatteryPointSelector label="1. Fatiga General" value={generalBattery} onChange={setGeneralBattery} />
+            <BatteryPointSelector label="2. Stress Percibido" value={spinalBattery} onChange={setSpinalBattery} />
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setMuscleAccordionOpen(!muscleAccordionOpen)}
+                className="w-full flex items-center justify-between p-4 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)]/50 transition-all active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-3">
+                  <ActivityIcon size={20} className="text-[var(--md-sys-color-primary)]" />
+                  <span className="text-sm font-bold text-[var(--md-sys-color-on-surface)]">Puntaje por Músculo</span>
+                </div>
+                {muscleAccordionOpen ? <ChevronDownIcon size={18} /> : <ChevronRightIcon size={18} />}
+              </button>
+
+              {muscleAccordionOpen && (
+                <div className="mt-4 space-y-6 pl-4 animate-fade-in">
+                  {musclesWithEffectiveSets.length > 0 ? (
+                    musclesWithEffectiveSets.map(m => (
+                      <BatteryPointSelector key={m} label={MUSCLE_LABEL_MAP[m] || m} value={muscleBatteries[m] ?? 50} onChange={(v) => setMuscleBatteries(prev => ({ ...prev, [m]: v }))} />
+                    ))
+                  ) : (
+                    <p className="text-xs text-[var(--md-sys-color-on-surface-variant)] italic">No se detectaron series efectivas suficientes.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Context & Tags */}
+          <div className="liquid-glass-panel p-5 space-y-8">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-1 h-4 bg-[var(--md-sys-color-secondary)] rounded-full" />
+              <h3 className="text-sm font-bold text-[var(--md-sys-color-on-surface)] uppercase tracking-wider">Contexto de la Sesión</h3>
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--md-sys-color-on-surface-variant)] px-1">Percepción subjetiva</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <span className="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-medium text-center block">Foco</span>
+                  <PointSelector value={focus} onChange={setFocus} />
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-medium text-center block">Pump</span>
+                  <PointSelector value={pump} onChange={setPump} />
+                </div>
+              </div>
+            </div>
+
+            <TagGroup title="Entorno" tags={ENVIRONMENT_TAGS} selected={environmentTags} onToggle={(tag) => toggleTag(tag, environmentTags, setEnvironmentTags)} />
+            <TagGroup title="Adherencia al Plan" tags={PLAN_ADHERENCE_TAGS} selected={planAdherenceTags} onToggle={(tag) => toggleTag(tag, planAdherenceTags, setPlanAdherenceTags)} />
+
+            {/* Discomforts */}
+            <div className="space-y-4 pt-2">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--md-sys-color-on-surface-variant)] px-1">Molestias o Dolores</label>
+              <button
+                type="button"
+                onClick={() => setShowDiscomfortSearch(!showDiscomfortSearch)}
+                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${selectedDiscomforts.length > 0
+                  ? 'bg-[var(--md-sys-color-error-container)] border-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error-container)]'
+                  : 'bg-white/50 border-[var(--md-sys-color-outline-variant)]'
+                  }`}
+              >
+                <span className="text-sm font-bold">{selectedDiscomforts.length > 0 ? `${selectedDiscomforts.length} Molestias registradas` : '¿Alguna molestia física?'}</span>
+                {showDiscomfortSearch ? <ChevronDownIcon size={18} /> : <SearchIcon size={18} />}
+              </button>
+
+              {showDiscomfortSearch && (
+                <div className="animate-fade-in space-y-4 pt-2">
+                  <div className="flex items-center gap-3 px-4 py-2 border border-[var(--md-sys-color-outline-variant)] rounded-full bg-white/60">
+                    <SearchIcon size={16} className="text-[var(--md-sys-color-on-surface-variant)]" />
+                    <input
+                      type="text"
+                      value={discomfortSearchQuery}
+                      onChange={(e) => setDiscomfortSearchQuery(e.target.value)}
+                      placeholder="Buscar síntoma..."
+                      className="bg-transparent border-none text-sm w-full outline-none"
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+                    {filteredDiscomforts.map(d => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => toggleDiscomfort(d.name)}
+                        className={`w-full text-left p-3 rounded-2xl border transition-all ${selectedDiscomforts.includes(d.name)
+                          ? 'bg-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)] text-white'
+                          : 'bg-white/40 border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)]'
+                          }`}
+                      >
+                        <span className="font-bold text-sm block">{d.name}</span>
+                        <p className={`text-[10px] mt-0.5 ${selectedDiscomforts.includes(d.name) ? 'text-white/80' : 'text-[var(--md-sys-color-on-surface-variant)]'}`}>{d.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Journal Notes */}
+            <div className="space-y-3">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--md-sys-color-on-surface-variant)] px-1">Notas del Diario</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                placeholder="Cuéntanos cómo te sentiste hoy..."
+                className="w-full liquid-glass-panel p-4 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/20 border-none resize-none bg-white/60 text-[var(--md-sys-color-on-surface)]"
+              />
+            </div>
+          </div>
+
+          {/* Bottom Actions */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 liquid-glass-panel border-t border-white/10 flex gap-3 z-50 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <button
+              onClick={handleShare}
+              disabled={isSharing}
+              className="h-14 px-6 rounded-full bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] font-bold flex items-center justify-center gap-2 border border-[var(--md-sys-color-outline-variant)]/40 active:scale-95 transition-all disabled:opacity-50"
+            >
+              {isSharing ? <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : <LinkIcon size={20} />}
+              <span className="text-[13px] uppercase tracking-wider">Compartir</span>
+            </button>
+            <button
+              onClick={handleFinishAttempt}
+              className="flex-1 h-14 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-black text-[13px] uppercase tracking-[0.1em] flex items-center justify-center gap-2 shadow-lg shadow-[var(--md-sys-color-primary)]/20 active:scale-95 transition-all"
+            >
+              <CheckCircleIcon size={22} />
+              Finalizar Entrenamiento
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="liquid-glass-panel p-6 space-y-8 animate-fade-in text-center">
+          <div className="space-y-4">
+            <div className="w-20 h-20 rounded-full bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-error)] flex items-center justify-center mx-auto mb-2">
+              <AlertTriangleIcon size={40} />
+            </div>
+            <h2 className="text-2xl font-black text-[var(--md-sys-color-on-surface)]">Fatiga Crítica Detectada</h2>
+            <p className="text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed">
+              Tu sistema indica una fatiga de <strong>{fatigueLevel}/10</strong> y una claridad mental de <strong>{mentalClarity}/10</strong>.
+              Continuar con este ritmo podría llevarte al sobreentrenamiento.
+            </p>
+          </div>
+
+          <div className="bg-[var(--md-sys-color-secondary-container)]/30 p-5 rounded-3xl border border-[var(--md-sys-color-secondary-container)]">
+            <p className="text-sm text-[var(--md-sys-color-on-secondary-container)] italic font-medium">
+              "He analizado tus señales. Sugiero programar una descarga mañana para asegurar una recuperación óptima."
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleAcceptDeload}
+              className="w-full h-14 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+            >
+              <ZapIcon size={20} /> Programar Descanso Activo
+            </button>
+
+            <button
+              onClick={executeFinish}
+              className="w-full h-14 rounded-full border border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-white/10 active:scale-95 transition-all"
+            >
+              Ignorar sugerencia y finalizar
+            </button>
+          </div>
+        </div>
       )}
-    </>
+    </div>
   );
 
   if (!isOpen) return null;
 
-  if (useFullPage) {
-    return (
-      <div className="fixed inset-0 z-[100000] flex flex-col bg-[var(--md-sys-color-surface-container)] animate-fade-in">
-        <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-[var(--md-sys-color-outline-variant)]/50" style={{ background: 'linear-gradient(160deg, rgba(254,247,255,0.92) 0%, rgba(247,242,250,0.88) 100%)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-          <h3 className="text-[10px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface)]">{title}</h3>
-          <button onClick={onClose} className="p-2 -mr-2 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors" aria-label="Cerrar">
-            <span className="text-xl leading-none">×</span>
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto min-h-0 pb-8 px-4 pt-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+  return (
+    <div className="fixed inset-0 z-[10000] flex flex-col bg-[var(--md-sys-color-surface-container)] animate-fade-in">
+      <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-white/5 liquid-glass-panel">
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--md-sys-color-on-surface-variant)]">{title}</span>
+        <button
+          onClick={onClose}
+          className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] active:scale-90 transition-transform"
+        >
+          <span className="text-2xl leading-none">×</span>
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 pt-4 custom-scrollbar">
+        <div className="max-w-md mx-auto">
           {content}
         </div>
       </div>
-    );
-  }
-
-  if (asDrawer) {
-    return (
-      <WorkoutDrawer isOpen={isOpen} onClose={onClose} title={title} height="90vh">
-        <div className="p-5 overflow-y-auto max-h-[85vh]">{content}</div>
-      </WorkoutDrawer>
-    );
-  }
-  return (
-    <TacticalModal isOpen={isOpen} onClose={onClose} title={title} className="!bg-[#FEF7FF] !border-cyber-cyan/20">
-      {content}
-    </TacticalModal>
+    </div>
   );
 };
 

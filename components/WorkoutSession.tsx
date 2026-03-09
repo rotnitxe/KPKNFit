@@ -337,17 +337,6 @@ const WorkoutHeader: React.FC<{
         <div className="sticky top-0 z-40 w-full liquid-glass border-b border-white/5 pb-2">
             <div className="flex flex-col px-6 pt-8 pb-4">
                 {/* Status Bar Space (Mock) */}
-                {showReadiness && (
-                    <ReadinessSheet
-                        isOpen={showReadiness}
-                        onClose={() => setShowReadiness(false)}
-                        onStartWorkout={(data) => {
-                            setReadinessData(data);
-                            setShowReadiness(false);
-                            hapticImpact(ImpactStyle.Heavy);
-                        }}
-                    />
-                )}
                 <div className="h-6 w-full flex justify-between items-center mb-2">
                     <div className="flex items-center gap-1.5">
                         <span className="text-[12px] font-bold text-white/90 tabular-nums">{elapsedSeconds != null ? formatTime(elapsedSeconds) : '00:00'}</span>
@@ -1970,6 +1959,18 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     />
                 );
             })()}
+
+            {showReadiness && (
+                <ReadinessSheet
+                    isOpen={showReadiness}
+                    onClose={() => setShowReadiness(false)}
+                    onStartWorkout={(data) => {
+                        setReadinessData(data);
+                        setShowReadiness(false);
+                        hapticImpact(ImpactStyle.Heavy);
+                    }}
+                />
+            )}
         </div>
     );
 };
