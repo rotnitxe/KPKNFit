@@ -602,17 +602,55 @@ const SetDetails: React.FC<{
                         <button data-active={safeInputs.performanceMode === 'failed'} onClick={() => handlePerformanceModeChange('failed')} className="flex-1 py-1.5 rounded-full border text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 min-h-[36px]"><AlertTriangleIcon size={10} /> Fallido</button>
                     </div>
                 )}
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                    {/* Weight Input */}
+                    {!isBodyweight ? (
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] px-1">Peso ({settings.weightUnit})</label>
+                            <div className="flex items-center rounded-xl bg-white/60 border border-[var(--md-sys-color-outline-variant)]/60 px-3 py-2 min-h-[48px]">
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={safeInputs.weight || ''}
+                                    onChange={e => onInputChange('weight', e.target.value.replace(',', '.').replace(/[^0-9.]/g, ''), isUnilateral ? activeSide : undefined)}
+                                    className="w-full bg-transparent border-none text-center font-black text-xl text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0 tabular-nums"
+                                    placeholder="0"
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] px-1">Peso</label>
+                            <div className="flex items-center justify-center rounded-xl bg-white/40 border border-[var(--md-sys-color-outline-variant)]/40 px-3 py-2 min-h-[48px] text-[10px] font-bold uppercase text-[var(--md-sys-color-on-surface-variant)] opacity-50">Autocarga</div>
+                        </div>
+                    )}
+                    {/* Reps/Duration Input */}
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] px-1">{isTimeMode ? 'Segundos' : 'Repes'}</label>
+                        <div className="flex items-center rounded-xl bg-white/60 border border-[var(--md-sys-color-outline-variant)]/60 px-3 py-2 min-h-[48px]">
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                value={isTimeMode ? safeInputs.duration || '' : (repInputMode === 'standard' ? safeInputs.reps : safeInputs.partialReps) || ''}
+                                onChange={e => onInputChange(isTimeMode ? 'duration' : (repInputMode === 'standard' ? 'reps' : 'partialReps'), e.target.value.replace(/[^0-9]/g, ''), isUnilateral ? activeSide : undefined)}
+                                className="w-full bg-transparent border-none text-center font-black text-xl text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0 tabular-nums"
+                                placeholder="0"
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {safeInputs.performanceMode === 'target' && (
                     <div className="flex justify-center">
                         {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? (
                             <div className={`flex items-center rounded-lg p-1.5 border w-28 justify-between transition-colors ${intensityContainerClass}`}>
                                 <span className="text-[var(--md-sys-color-on-surface-variant)] font-bold text-xs uppercase px-2">RIR</span>
-                                <input type="number" step="1" value={safeInputs.rir} onChange={e => onInputChange('rir', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
+                                <input type="text" inputMode="numeric" value={safeInputs.rir || ''} onChange={e => onInputChange('rir', e.target.value.replace(/[^0-9]/g, ''), isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
                             </div>
                         ) : (
                             <div className={`flex items-center rounded-lg p-1.5 border w-28 justify-between transition-colors ${intensityContainerClass}`}>
                                 <span className="text-[var(--md-sys-color-on-surface-variant)] font-bold text-xs uppercase px-2">RPE</span>
-                                <input type="number" step="0.5" value={safeInputs.rpe} onChange={e => onInputChange('rpe', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
+                                <input type="text" inputMode="decimal" value={safeInputs.rpe || ''} onChange={e => onInputChange('rpe', e.target.value.replace(',', '.').replace(/[^0-9.]/g, ''), isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
                             </div>
                         )}
                     </div>
@@ -754,14 +792,15 @@ const SetDetails: React.FC<{
                         <div className="relative flex-1 py-1 flex items-center justify-center min-w-0">
                             <input
                                 type="text"
-                                inputMode={isTimeMode ? 'numeric' : 'numeric'}
-                                value={isTimeMode ? safeInputs.duration || '0' : (repInputMode === 'standard' ? safeInputs.reps : safeInputs.partialReps) || '0'}
+                                inputMode="numeric"
+                                value={isTimeMode ? safeInputs.duration || '' : (repInputMode === 'standard' ? safeInputs.reps : safeInputs.partialReps) || ''}
                                 onChange={(e) => {
                                     const val = e.target.value.replace(/[^0-9]/g, '');
                                     onInputChange(isTimeMode ? 'duration' : (repInputMode === 'standard' ? 'reps' : 'partialReps'), val, isUnilateral ? activeSide : undefined);
                                 }}
                                 className="w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 text-inherit placeholder-white/20 min-w-0 truncate font-mono"
                                 style={{ fontFamily: 'ui-monospace, monospace' }}
+                                placeholder="0"
                             />
                             {debt !== 0 && !isTimeMode && repInputMode === 'standard' && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}</span>}
                             {debt !== 0 && isTimeMode && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}s</span>}
@@ -787,13 +826,14 @@ const SetDetails: React.FC<{
                                     <input
                                         type="text"
                                         inputMode="decimal"
-                                        value={safeInputs.weight || '0'}
+                                        value={safeInputs.weight || ''}
                                         onChange={(e) => {
                                             const val = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
                                             onInputChange('weight', val, isUnilateral ? activeSide : undefined);
                                         }}
                                         className={`w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 min-w-0 truncate font-mono ${isWeightWarning ? 'text-red-400' : 'text-white'}`}
                                         style={{ fontFamily: 'ui-monospace, monospace' }}
+                                        placeholder="0"
                                     />
                                     {isWeightWarning && <AlertTriangleIcon size={12} className="absolute top-1 right-2 text-red-500 animate-pulse" />}
                                 </div>
@@ -1991,10 +2031,26 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                         <div className={`flex items-center gap-2 px-2 py-2 ${rowClass} transition-colors`} style={{ minHeight: rowMinH }} onClick={() => { if (isCompleted || !isActiveRow) { setActiveExerciseId(ex.id); setActiveSetId(setId); } }}>
                                                                             <span className="w-8 text-center text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums">{setIndex + 1}</span>
                                                                             <div className="flex-1 min-w-[60px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); const cardEl = document.getElementById(`set-card-${setId}`); if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} role="button" tabIndex={0}>
-                                                                                <span className="w-full max-w-[72px] text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)]">{safeInputsRow.weight || placeholderKg || '—'}</span>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    inputMode="decimal"
+                                                                                    value={safeInputsRow.weight || ''}
+                                                                                    placeholder={placeholderKg || '—'}
+                                                                                    onChange={e => handleSetInputChange(String(setId), 'weight', e.target.value.replace(',', '.').replace(/[^0-9.]/g, ''), ex.isUnilateral ? 'left' : undefined)}
+                                                                                    onClick={e => e.stopPropagation()}
+                                                                                    className="w-full max-w-[72px] bg-transparent border-none text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0"
+                                                                                />
                                                                             </div>
                                                                             <div className="flex-1 min-w-[56px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); const cardEl = document.getElementById(`set-card-${setId}`); if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} role="button" tabIndex={0}>
-                                                                                <span className="w-full max-w-[56px] text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)]">{ex.trainingMode === 'time' ? (safeInputsRow.duration || placeholderReps || '—') : (safeInputsRow.reps || placeholderReps || '—')}</span>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    inputMode="numeric"
+                                                                                    value={ex.trainingMode === 'time' ? (safeInputsRow.duration || '') : (safeInputsRow.reps || '')}
+                                                                                    placeholder={placeholderReps || '—'}
+                                                                                    onChange={e => handleSetInputChange(String(setId), ex.trainingMode === 'time' ? 'duration' : 'reps', e.target.value.replace(/[^0-9]/g, ''), ex.isUnilateral ? 'left' : undefined)}
+                                                                                    onClick={e => e.stopPropagation()}
+                                                                                    className="w-full max-w-[56px] bg-transparent border-none text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0"
+                                                                                />
                                                                             </div>
                                                                             <div className="w-10 flex justify-center" onClick={e => e.stopPropagation()}>
                                                                                 <button type="button" onClick={() => handleLogSet(ex, set, false)} data-completed={isCompleted ? "true" : "false"} className={`session-check-action min-w-[44px] min-h-[44px] w-10 h-10 rounded-full border flex items-center justify-center transition-all ${isCompleted ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'border-[var(--md-sys-color-outline-variant)] bg-transparent text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-on-surface)]'}`}>
