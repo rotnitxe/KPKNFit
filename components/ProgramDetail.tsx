@@ -341,18 +341,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 transition={{ duration: 0.2 }}
                                 className="flex-1 w-full"
                             >
-                                {/* Subtabs de Analíticas */}
-                                <SubTabs
-                                    tabs={[
-                                        { label: 'Volumen', value: 'volumen' },
-                                        { label: 'Progreso', value: 'progreso' },
-                                        { label: 'Historiales', value: 'historiales' }
-                                    ]}
-                                    activeTab={analyticsSubTab}
-                                    onChange={(tab) => setAnalyticsSubTab(tab as AnalyticsSubTab)}
-                                    variant="analytics"
-                                />
-
                                 {/* Vista de Volumen */}
                                 {analyticsSubTab === 'volumen' && (
                                     <VolumeView
