@@ -13,6 +13,7 @@
 
 import * as webllm from '@mlc-ai/web-llm';
 import { ModelManager } from './ModelManager';
+import { searchInDatabase } from './FoodSearchIntegration';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TIPOS
@@ -53,24 +54,24 @@ export interface ModelConfig {
 const MODEL_CONFIGS: Record<DeviceTier, ModelConfig> = {
     high: {
         path: './models/qwen2.5-1.5b-instruct-q4_k_m.gguf',
+        contextLength: 2048, // Más contexto para descripciones largas
+        temperature: 0.4, // Un poco más creativo
+        top_p: 0.85,
+        max_tokens: 512, // Respuestas más completas
+    },
+    medium: {
+        path: './models/qwen2.5-1.5b-instruct-q4_k_m.gguf',
+        contextLength: 1536, // Contexto generoso
+        temperature: 0.4,
+        top_p: 0.85,
+        max_tokens: 384,
+    },
+    low: {
+        path: './models/qwen2.5-1.5b-instruct-q4_k_m.gguf', // ¡Incluso gama baja puede usar IA!
         contextLength: 1024,
         temperature: 0.3,
         top_p: 0.8,
         max_tokens: 256,
-    },
-    medium: {
-        path: './models/qwen2.5-1.5b-instruct-q4_k_m.gguf',
-        contextLength: 512,
-        temperature: 0.3,
-        top_p: 0.8,
-        max_tokens: 256,
-    },
-    low: {
-        path: '', // Sin IA
-        contextLength: 0,
-        temperature: 0,
-        top_p: 0,
-        max_tokens: 0,
     },
 };
 
@@ -343,17 +344,25 @@ class FoodAIService {
         const hasWebGPU = await FoodAIService.hasWebGPUSupport();
         const cores = navigator.hardwareConcurrency || 4;
 
-        // High: 8GB+ RAM, WebGPU, 6+ cores
-        if (memory >= 8 && hasWebGPU && cores >= 6) {
+        // Con Qwen2.5-1.5B (1GB), somos mucho menos restrictivos
+        
+        // High: 6GB+ RAM, WebGPU → IA sin límites
+        if (memory >= 6 && hasWebGPU) {
             return 'high';
         }
 
-        // Medium: 6GB+ RAM, WebGPU, 4+ cores
-        if (memory >= 6 && hasWebGPU && cores >= 4) {
+        // Medium: 4GB+ RAM, WebGPU → IA con contexto generoso
+        if (memory >= 4 && hasWebGPU) {
             return 'medium';
         }
 
-        // Low: menos de 6GB o sin WebGPU
+        // Low: Cualquier dispositivo con WebGPU → IA con contexto reducido
+        // ¡Incluso gama baja puede usar el modelo de 1GB!
+        if (hasWebGPU) {
+            return 'low';
+        }
+
+        // Sin WebGPU → fallback sin IA
         return 'low';
     }
 
@@ -440,9 +449,10 @@ class FoodAIService {
     scheduleUnload(): void {
         if (this.idleTimeout) clearTimeout(this.idleTimeout);
         
+        // 10 minutos de inactividad antes de descargar (más tiempo = más rápido para uso frecuente)
         this.idleTimeout = setTimeout(() => {
             this.unloadModel();
-        }, 3 * 60 * 1000); // 3 minutos de inactividad
+        }, 10 * 60 * 1000);
     }
 
     // ─── ANÁLISIS DE COMIDA (FALLBACK ESCALONADO) ───────────────────────────
@@ -482,7 +492,7 @@ class FoodAIService {
             }
         }
 
-        // ─── NIVEL 4: IA (2-3s, 2GB RAM) - ÚLTIMO RECURSO ────────────────────
+        // ─── NIVEL 4: IA (2-5s, 2GB RAM) - ÚLTIMO RECURSO ────────────────────
         const shouldUseAI = options?.forceAI || options?.useAI || this.preProcessor.shouldUseAI(normalizedInput);
         
         if (!shouldUseAI) {
@@ -493,11 +503,9 @@ class FoodAIService {
         // Detectar tier del dispositivo
         this.currentTier = await FoodAIService.detectDeviceTier();
         
-        if (this.currentTier === 'low') {
-            console.log('⚠️ Dispositivo gama baja, sin IA');
-            return this.getBasicEstimate(normalizedInput);
-        }
-
+        // NOTA: Con Qwen2.5-1.5B (1GB), TODOS los dispositivos con WebGPU pueden usar IA
+        // Solo fallback si no hay WebGPU
+        
         // Mostrar indicador de carga
         this.onLoadingStart?.();
 
@@ -650,59 +658,24 @@ Output: {"foodName":"arroz con pollo","category":"carbohidrato","nutrition":{"ca
 
     // ─── BÚSQUEDA EN BD LOCAL ────────────────────────────────────────────────
     private async searchDatabase(input: string): Promise<FoodAnalysisResult | null> {
-        // Integración con foodSearchService.ts existente
-        // Por ahora, implementación básica con keywords
-        const keywords: Record<string, Partial<FoodAnalysisResult>> = {
-            'pollo': { 
-                foodName: 'pollo',
-                category: 'proteina_animal',
-                nutrition: { calories: 165, protein: 31, carbs: 0, fats: 3.6, fiber: 0 },
-                confidence: 0.8,
-                matchedItemId: 'usda_chicken',
-            },
-            'arroz': { 
-                foodName: 'arroz blanco',
-                category: 'carbohidrato',
-                nutrition: { calories: 130, protein: 2.7, carbs: 28, fats: 0.3, fiber: 0.4 },
-                confidence: 0.8,
-                matchedItemId: 'usda_rice',
-            },
-            'huevo': { 
-                foodName: 'huevo',
-                category: 'proteina_animal',
-                nutrition: { calories: 155, protein: 13, carbs: 1.1, fats: 11, fiber: 0 },
-                confidence: 0.8,
-                matchedItemId: 'usda_egg',
-            },
-            'pan': { 
-                foodName: 'pan blanco',
-                category: 'carbohidrato',
-                nutrition: { calories: 265, protein: 9, carbs: 49, fats: 3.2, fiber: 2.7 },
-                confidence: 0.75,
-                matchedItemId: 'usda_bread',
-            },
-            'leche': { 
-                foodName: 'leche entera',
-                category: 'proteina_animal',
-                nutrition: { calories: 61, protein: 3.2, carbs: 4.8, fats: 3.3, fiber: 0 },
-                confidence: 0.8,
-                matchedItemId: 'usda_milk',
-            },
-        };
-
-        const inputLower = input.toLowerCase();
+        // Usar la integración con foodSearchService.ts existente
+        const result = await searchInDatabase(input);
         
-        for (const [keyword, data] of Object.entries(keywords)) {
-            if (inputLower.includes(keyword)) {
-                return {
-                    ...data,
-                    source: 'database',
-                    warnings: [],
-                } as FoodAnalysisResult;
-            }
+        if (!result) {
+            return null;
         }
-
-        return null;
+        
+        console.log('✅ BD match:', result.foodName, '(confidence:', result.confidence, ')');
+        
+        return {
+            foodName: result.foodName,
+            category: result.category,
+            nutrition: result.nutrition,
+            confidence: result.confidence,
+            source: 'database',
+            matchedItemId: result.matchedItemId,
+            warnings: [],
+        };
     }
 
     // ─── FALLBACK BÁSICO ─────────────────────────────────────────────────────

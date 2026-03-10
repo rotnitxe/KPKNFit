@@ -19,4 +19,9 @@ build/
 ios/
 android/
 .superdesign
-public/models/
+# public/models/ excepto .gitkeep
+public/models/*
+!public/models/.gitkeep
+# www/models/ excepto modelo Qwen
+www/models/*
+!www/models/qwen2.5-1.5b-instruct-q4_k_m.gguf

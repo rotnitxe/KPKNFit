@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppState } from '../contexts/AppContext';
 import type { BodyProgressLog, NutritionLog, NutritionRiskFlag } from '../types';
 import { getDatePartFromString, getLocalDateString } from '../utils/dateUtils';
-import { NutritionPlanEditorModal, NutritionWizard, useNutritionStats } from './nutrition';
+import { NutritionPlanEditorModal, NutritionWizard, useNutritionStats, FoodLoggerUnified } from './nutrition';
 import { BodyProgressSheet } from './BodyProgressSheet';
 import {
     AlertTriangleIcon,
@@ -569,6 +569,39 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
         addToast('Registro eliminado.', 'success');
     };
 
+    // Handler para FoodLoggerUnified
+    const handleFoodRegistered = (result: {
+        foodName: string;
+        nutrition: {
+            calories: number | null;
+            protein: number | null;
+            carbs: number | null;
+            fats: number | null;
+            fiber: number | null;
+        };
+        category: string;
+        confidence: number;
+    }) => {
+        const newLog: NutritionLog = {
+            id: crypto.randomUUID(),
+            date: toIsoAtNoon(selectedDate),
+            mealType: 'snack', // Por defecto, el usuario puede editar después
+            foods: [{
+                id: crypto.randomUUID(),
+                foodName: result.foodName,
+                calories: result.nutrition.calories || 0,
+                protein: result.nutrition.protein || 0,
+                carbs: result.nutrition.carbs || 0,
+                fats: result.nutrition.fats || 0,
+                fiber: result.nutrition.fiber || 0,
+            }],
+            status: 'consumed',
+        };
+        
+        setNutritionLogs((prev) => [...prev, newLog]);
+        addToast(`${result.foodName} registrado`, 'success');
+    };
+
     const handleDuplicateLog = (log: NutritionLog) => {
         const duplicated: NutritionLog = {
             ...log,
@@ -808,6 +841,11 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                 </div>
             ) : (
                 <>
+                    {/* Food Logger Unified - Nuevo sistema de registro con IA */}
+                    <div style={{ paddingLeft: layout.pagePadX, paddingRight: layout.pagePadX, paddingTop: 16 }}>
+                        <FoodLoggerUnified onFoodRegistered={handleFoodRegistered} />
+                    </div>
+                
                     <div style={{ paddingLeft: layout.pagePadX, paddingRight: layout.pagePadX, paddingTop: 4, paddingBottom: 10 }}>
                         <div className="w-full flex gap-2 rounded-2xl p-1 bg-[var(--md-sys-color-surface-container-low)] border border-black/[0.03]">
                             <button

@@ -1,6 +1,6 @@
 import React from 'react';
 import { FoodAnalysisResult } from '../../services/FoodAI';
-import { SparklesIcon, DatabaseIcon, LightningIcon, AlertTriangleIcon } from '../icons';
+import { SparklesIcon, DatabaseIcon, ZapIcon, AlertTriangleIcon } from '../icons';
 
 interface NutritionPreviewProps {
     result: FoodAnalysisResult;
@@ -36,7 +36,7 @@ const NutritionPreview: React.FC<NutritionPreviewProps> = ({ result }) => {
                 };
             case 'heuristic':
                 return {
-                    icon: <LightningIcon size={14} className="text-amber-600" />,
+                    icon: <ZapIcon size={14} className="text-amber-600" />,
                     label: 'Heurística',
                     description: 'Alimento común conocido',
                     bg: 'bg-amber-50',

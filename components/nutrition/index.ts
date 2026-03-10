@@ -8,3 +8,4 @@ export { NutritionPlanLanding } from './NutritionPlanLanding';
 export { NutritionSetupModal } from './NutritionSetupModal';
 export { NutritionTooltip } from './NutritionTooltip';
 export { NutritionPlanEditorModal } from './NutritionPlanEditorModal';
+export { FoodLoggerUnified } from './FoodLoggerUnified';
