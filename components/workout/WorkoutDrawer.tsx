@@ -25,18 +25,15 @@ const WorkoutDrawer: React.FC<WorkoutDrawerProps> = ({
   const content = (
     <>
       <div
-        className="fixed inset-0 z-[99999] bg-black/35 backdrop-blur-[6px] animate-fade-in"
+        className="workout-modal-backdrop fixed inset-0 z-[99999] animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className="fixed bottom-0 left-0 right-0 z-[100000] liquid-glass-panel flex flex-col animate-slide-up pb-[env(safe-area-inset-bottom,0px)] rounded-t-[40px] border-t border-white/10"
+        className="fixed bottom-0 left-0 right-0 z-[100000] liquid-glass-panel flex flex-col animate-slide-up pb-[env(safe-area-inset-bottom,0px)] rounded-t-[40px] border-t border-white/75"
         style={{
           maxHeight: height,
-          background: 'linear-gradient(180deg, rgba(28, 27, 31, 0.9) 0%, rgba(15, 15, 15, 0.98) 100%)',
-          backdropFilter: 'blur(30px) saturate(160%)',
-          WebkitBackdropFilter: 'blur(30px) saturate(160%)',
-          boxShadow: '0 -20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+          boxShadow: '0 -20px 40px rgba(66,48,23,0.14), inset 0 1px 0 rgba(255,255,255,0.5)',
         }}
       >
         <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-[var(--md-sys-color-outline-variant)]/35">
@@ -62,4 +59,3 @@ const WorkoutDrawer: React.FC<WorkoutDrawerProps> = ({
 };
 
 export default WorkoutDrawer;
-

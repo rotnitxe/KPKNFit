@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircleIcon, XIcon, StarIcon, ActivityIcon, InfoIcon } from '../icons';
+import { CheckCircleIcon, ActivityIcon, StarIcon, InfoIcon } from '../icons';
 import { hapticImpact, ImpactStyle } from '../../services/hapticsService';
 
 export interface PostExerciseFeedback {
@@ -24,12 +24,27 @@ interface PostExerciseDrawerProps {
   };
 }
 
+const RPE_DESCRIPTIONS: Record<number, string> = {
+  1: 'Muy facil',
+  5: 'Moderado',
+  8: 'Exigente',
+  10: 'Fallo',
+};
+
+const MOOD_LABELS: Record<number, string> = {
+  1: 'Drenado',
+  2: 'Tenso',
+  3: 'Estable',
+  4: 'Con energia',
+  5: 'Imparable',
+};
+
 const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
   isOpen,
   onClose,
   exerciseName,
   onSave,
-  stats = { sets: 3, reps: 12, weight: 100, unit: 'kg' }
+  stats = { sets: 3, reps: 12, weight: 100, unit: 'kg' },
 }) => {
   const [technicalQuality, setTechnicalQuality] = useState(8);
   const [rpe, setRpe] = useState<number | null>(null);
@@ -42,24 +57,9 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
       perceivedFatigue: rpe || 5,
       discomforts: [],
       jointLoad: 5,
-      mood
+      mood,
     });
     onClose();
-  };
-
-  const RPE_DESCRIPTIONS: Record<number, string> = {
-    1: "Muy Fácil",
-    5: "Moderado",
-    8: "Exigente",
-    10: "Fallo"
-  };
-
-  const MOOD_LABELS: Record<number, string> = {
-    1: "Agotado",
-    2: "Cansado",
-    3: "Bien",
-    4: "Enérgico",
-    5: "Imparable"
   };
 
   if (!isOpen) return null;
@@ -72,7 +72,7 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/60 backdrop-blur-[4px]"
+          className="workout-modal-backdrop absolute inset-0"
         />
 
         <motion.div
@@ -80,90 +80,167 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
           animate={{ translateY: 0 }}
           exit={{ translateY: '100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-          className="relative w-full max-w-lg liquid-glass rounded-t-[40px] overflow-hidden"
-          style={{
-            background: 'linear-gradient(180deg, rgba(28, 27, 31, 0.85) 0%, rgba(15, 15, 15, 0.95) 100%)',
-            borderTop: '1px solid rgba(255,255,255,0.15)'
-          }}
+          className="relative w-full max-w-lg liquid-glass-panel overflow-hidden rounded-t-[40px] border-t border-white/70"
         >
-          <div className="flex flex-col p-6 pb-12">
-            <div className="self-center w-12 h-1.5 bg-white/10 rounded-full mb-8" />
+          <div className="flex flex-col gap-5 p-5 pb-10">
+            <div className="mx-auto h-1.5 w-14 rounded-full bg-[var(--md-sys-color-outline-variant)]" />
 
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--m3-primary-container)]/30 border border-[var(--m3-primary)]/20 mb-3">
-                <ActivityIcon size={14} className="text-[var(--m3-primary)]" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--m3-primary)]">Feedback de Ejercicio</span>
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-[var(--md-sys-color-secondary-container)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--md-sys-color-on-secondary-container)]">
+                <ActivityIcon size={14} />
+                Feedback de ejercicio
               </div>
-              <h2 className="text-2xl font-black text-white">{exerciseName}</h2>
+              <h2 className="mt-3 text-[28px] font-medium tracking-[-0.03em] text-[var(--md-sys-color-on-surface)]">
+                {exerciseName}
+              </h2>
+              <p className="mt-1 text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
+                Cierra el bloque con una lectura rapida de ejecucion, esfuerzo y sensacion general.
+              </p>
             </div>
 
-            {/* Premium Stats Grid */}
-            <div className="grid grid-cols-3 gap-2 mb-10">
+            <div className="grid grid-cols-3 gap-3">
               {[
                 { label: 'Series', value: stats.sets, unit: '' },
                 { label: 'Reps', value: stats.reps, unit: '' },
-                { label: 'Carga', value: stats.weight, unit: stats.unit }
-              ].map((stat, i) => (
-                <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">{stat.label}</span>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-xl font-black text-white">{stat.value}</span>
-                    {stat.unit && <span className="text-[10px] font-medium text-white/50">{stat.unit}</span>}
+                { label: 'Carga', value: stats.weight, unit: stats.unit },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-[24px] border border-white/70 bg-white/55 p-4 text-center shadow-[0_10px_24px_rgba(80,58,23,0.08)]">
+                  <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--md-sys-color-on-surface-variant)]">
+                    {stat.label}
+                  </span>
+                  <div className="mt-2 flex items-baseline justify-center gap-1">
+                    <span className="text-[26px] font-medium tracking-[-0.03em] text-[var(--md-sys-color-on-surface)]">
+                      {stat.value}
+                    </span>
+                    {stat.unit ? (
+                      <span className="text-[11px] font-semibold uppercase text-[var(--md-sys-color-on-surface-variant)]">
+                        {stat.unit}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* RPE Interaction */}
-            <div className="mb-10">
-              <div className="flex items-center justify-between mb-4 px-1">
-                <label className="text-xs font-bold uppercase tracking-widest text-white/60">Esfuerzo Percibido (RPE)</label>
-                <span className="text-xs font-bold text-[var(--m3-primary)]">{rpe ? RPE_DESCRIPTIONS[rpe] || `Nivel ${rpe}` : 'Selecciona'}</span>
+            <div className="rounded-[28px] border border-white/70 bg-white/50 p-4 shadow-[0_10px_24px_rgba(80,58,23,0.08)]">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-surface-variant)]">
+                    Esfuerzo percibido
+                  </span>
+                  <p className="mt-1 text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
+                    {rpe ? RPE_DESCRIPTIONS[rpe] || `Nivel ${rpe}` : 'Selecciona el punto que mejor represente la serie.'}
+                  </p>
+                </div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
+                  <InfoIcon size={18} />
+                </div>
               </div>
-              <div className="flex justify-between gap-1.5">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => (
+
+              <div className="grid grid-cols-5 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
                   <button
-                    key={v}
-                    onClick={() => { hapticImpact(ImpactStyle.Light); setRpe(v); }}
-                    className={`flex-1 aspect-square rounded-xl flex items-center justify-center font-black text-sm transition-all border ${rpe === v
-                      ? 'bg-[var(--m3-primary)] border-[var(--m3-primary)] text-[var(--m3-on-primary)] shadow-lg shadow-[var(--m3-primary)]/20'
-                      : 'bg-white/5 border-white/10 text-white/40 hover:border-white/30'
-                      }`}
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      hapticImpact(ImpactStyle.Light);
+                      setRpe(value);
+                    }}
+                    className={`min-h-[46px] rounded-[18px] border text-sm font-semibold transition-all ${
+                      rpe === value
+                        ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shadow-[0_10px_20px_rgba(122,93,32,0.12)]'
+                        : 'border-[var(--md-sys-color-outline-variant)] bg-white/70 text-[var(--md-sys-color-on-surface-variant)]'
+                    }`}
                   >
-                    {v}
+                    {value}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Emotional Feedback */}
-            <div className="mb-12">
-              <label className="text-xs font-bold uppercase tracking-widest text-white/60 mb-6 block text-center">Estado de Ánimo</label>
-              <div className="flex justify-between items-center px-4">
-                {[1, 2, 3, 4, 5].map(v => (
-                  <div key={v} className="flex flex-col items-center gap-3">
-                    <button
-                      onClick={() => { hapticImpact(ImpactStyle.Light); setMood(v); }}
-                      className={`text-4xl transition-all duration-300 ${mood === v ? 'scale-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'opacity-30 scale-90 grayscale'
-                        }`}
-                    >
-                      {v === 1 ? '😫' : v === 2 ? '😕' : v === 3 ? '😐' : v === 4 ? '🙂' : '🔥'}
-                    </button>
-                    <span className={`text-[9px] font-bold uppercase transition-opacity duration-300 ${mood === v ? 'opacity-100 text-white' : 'opacity-0'}`}>
-                      {MOOD_LABELS[v]}
-                    </span>
-                  </div>
+            <div className="rounded-[28px] border border-white/70 bg-white/50 p-4 shadow-[0_10px_24px_rgba(80,58,23,0.08)]">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
+                  <StarIcon size={18} />
+                </div>
+                <div>
+                  <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-surface-variant)]">
+                    Calidad tecnica
+                  </span>
+                  <p className="mt-1 text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
+                    {technicalQuality}/10 segun control, estabilidad y limpieza.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-5 gap-2">
+                {[6, 7, 8, 9, 10].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      hapticImpact(ImpactStyle.Light);
+                      setTechnicalQuality(value);
+                    }}
+                    className={`min-h-[46px] rounded-[18px] border text-sm font-semibold transition-all ${
+                      technicalQuality === value
+                        ? 'border-[var(--md-sys-color-tertiary)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] shadow-[0_10px_20px_rgba(47,107,104,0.12)]'
+                        : 'border-[var(--md-sys-color-outline-variant)] bg-white/70 text-[var(--md-sys-color-on-surface-variant)]'
+                    }`}
+                  >
+                    {value}
+                  </button>
                 ))}
               </div>
             </div>
 
-            <button
-              onClick={handleSave}
-              className="w-full h-16 rounded-full bg-[var(--m3-primary)] text-[var(--m3-on-primary)] font-black text-sm uppercase tracking-[0.15em] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl shadow-[var(--m3-primary)]/10"
-            >
-              <CheckCircleIcon size={20} />
-              Guardar y Continuar
-            </button>
+            <div className="rounded-[28px] border border-white/70 bg-white/50 p-4 shadow-[0_10px_24px_rgba(80,58,23,0.08)]">
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-surface-variant)]">
+                Estado al cerrar
+              </span>
+              <div className="mt-3 grid grid-cols-5 gap-2">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      hapticImpact(ImpactStyle.Light);
+                      setMood(value);
+                    }}
+                    className={`min-h-[62px] rounded-[20px] border px-2 py-3 text-center transition-all ${
+                      mood === value
+                        ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shadow-[0_10px_20px_rgba(122,93,32,0.12)]'
+                        : 'border-[var(--md-sys-color-outline-variant)] bg-white/70 text-[var(--md-sys-color-on-surface-variant)]'
+                    }`}
+                  >
+                    <span className="block text-[18px] font-medium leading-none">{value}</span>
+                    <span className="mt-2 block text-[9px] font-semibold uppercase tracking-[0.12em]">
+                      {MOOD_LABELS[value]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={onClose}
+                className="workout-pressable h-14 flex-1 rounded-full border border-[var(--md-sys-color-outline-variant)] bg-white/60 px-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-surface-variant)]"
+              >
+                Omitir
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="workout-pressable h-14 flex-[1.4] rounded-full border border-white/70 bg-[var(--md-sys-color-primary)] px-5 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--md-sys-color-on-primary)] shadow-[0_16px_30px_rgba(122,93,32,0.18)]"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <CheckCircleIcon size={18} />
+                  Guardar y continuar
+                </span>
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -172,5 +249,3 @@ const PostExerciseDrawer: React.FC<PostExerciseDrawerProps> = ({
 };
 
 export default PostExerciseDrawer;
-
-

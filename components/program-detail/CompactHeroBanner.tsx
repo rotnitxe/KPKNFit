@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Program } from '../../types';
-import { ChevronLeftIcon, EditIcon, PlayIcon } from '../icons';
+import { ChevronLeftIcon, EditIcon, PlayIcon, ChevronDownIcon, PaletteIcon } from '../icons';
 
 interface CompactHeroBannerProps {
     program: Program;
@@ -23,13 +23,23 @@ const focusOptions: { value: Program['mode']; label: string }[] = [
     { value: 'hypertrophy', label: 'Estética' },
 ];
 
-const heroGradient = 'linear-gradient(135deg, #6750A4 0%, #D0BCFF 55%, #FEF7FF 100%)';
+const gradientThemes: { id: string; name: string; gradient: string }[] = [
+    { id: 'purple', name: 'Púrpura', gradient: 'linear-gradient(135deg, #6750A4 0%, #D0BCFF 55%, #FEF7FF 100%)' },
+    { id: 'sunset', name: 'Cálido', gradient: 'linear-gradient(135deg, #FF6B35 0%, #FFB347 50%, #FFF3E0 100%)' },
+    { id: 'ocean', name: 'Frío', gradient: 'linear-gradient(135deg, #006994 0%, #4FC3F7 50%, #E1F5FE 100%)' },
+    { id: 'forest', name: 'Bosque', gradient: 'linear-gradient(135deg, #2E5D4B 0%, #66BB6A 50%, #E8F5E9 100%)' },
+    { id: 'midnight', name: 'Oscuro', gradient: 'linear-gradient(135deg, #1A1A2E 0%, #4A4A6A 50%, #2D2D44 100%)' },
+    { id: 'rose', name: 'Rosa', gradient: 'linear-gradient(135deg, #C2185B 0%, #F48FB1 50%, #FCE4EC 100%)' },
+];
 
 const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
     program, isActive, isPaused, onBack, onEdit, onStart, onPause,
     onUpdateProgram, currentWeekIndex, totalWeeks, totalAdherence,
 }) => {
     const [focusMode, setFocusMode] = useState<Program['mode']>(program.mode || 'powerlifting');
+    const [selectedGradient, setSelectedGradient] = useState(gradientThemes[0]);
+    const [showFocusSelector, setShowFocusSelector] = useState(false);
+    const [showThemeSelector, setShowThemeSelector] = useState(false);
 
     useEffect(() => {
         setFocusMode(program.mode || 'powerlifting');
@@ -38,9 +48,15 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
     const handleFocusChange = (mode: Program['mode']) => {
         if (mode === focusMode) return;
         setFocusMode(mode);
+        setShowFocusSelector(false);
         if (onUpdateProgram) {
             onUpdateProgram({ ...program, mode });
         }
+    };
+
+    const handleGradientChange = (gradient: typeof gradientThemes[0]) => {
+        setSelectedGradient(gradient);
+        setShowThemeSelector(false);
     };
 
     const statusLabel = isActive ? 'Activo' : isPaused ? 'Pausado' : 'Borrador';
@@ -48,93 +64,138 @@ const CompactHeroBanner: React.FC<CompactHeroBannerProps> = ({
 
     const statusTone = isActive ? 'bg-emerald-500/20 text-white border border-emerald-500/30' : isPaused ? 'bg-amber-500/20 text-white border border-amber-500/30' : 'bg-white/30 text-white border border-white/40';
 
+    const isDarkTheme = selectedGradient.id === 'midnight';
+    const borderColor = isDarkTheme ? 'border-white/20' : 'border-white/25';
+    const labelColor = isDarkTheme ? 'text-white/60' : 'text-white/70';
+
     return (
-        <div className="relative w-full px-5 pt-5 pb-4">
-            <div className="relative overflow-hidden rounded-[34px] shadow-[0_35px_60px_rgba(17,16,24,0.45)]" style={{ background: heroGradient }}>
-                <div className="absolute inset-0 bg-black/20" />
-                <div className="relative z-10 px-4 py-4">
-                    <div className="flex items-center justify-between">
+        <div className="relative w-full">
+            {/* Hero full-width */}
+            <div className="relative transition-all duration-500" style={{ background: selectedGradient.gradient }}>
+                <div className="absolute inset-0 bg-black/10" />
+                <div className="relative z-10 px-4 pt-5 pb-3">
+                    {/* Nav buttons */}
+                    <div className="flex items-center justify-between mb-3">
                         <button
                             type="button"
                             onClick={onBack}
-                            className="w-10 h-10 rounded-[14px] bg-white/20 border border-white/30 text-white flex items-center justify-center"
+                            className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center backdrop-blur-sm"
                         >
-                            <ChevronLeftIcon size={20} />
+                            <ChevronLeftIcon size={16} />
                         </button>
-                        <button
-                            type="button"
-                            onClick={onEdit}
-                            className="w-10 h-10 rounded-[14px] bg-white/20 border border-white/30 text-white flex items-center justify-center"
-                        >
-                            <EditIcon size={18} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowThemeSelector(!showThemeSelector)}
+                                className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center backdrop-blur-sm"
+                                title="Cambiar tema"
+                            >
+                                <PaletteIcon size={16} />
+                            </button>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-[0.25em] ${statusTone}`}>{statusLabel}</span>
+                            <button
+                                type="button"
+                                onClick={onEdit}
+                                className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center backdrop-blur-sm"
+                            >
+                                <EditIcon size={16} />
+                            </button>
+                        </div>
                     </div>
-                    <div className="mt-3 flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                            <div className="text-[10px] uppercase tracking-[0.35em] text-white/70">Programa</div>
-                            <h1 className="mt-1 text-[22px] font-black leading-tight text-white line-clamp-2">{program.name}</h1>
+
+                    {/* Title and play button */}
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-[20px] font-black leading-tight text-white line-clamp-2">{program.name}</h1>
                             {program.description && (
-                                <p className="mt-1 text-[12px] text-white/70 leading-relaxed line-clamp-2">{program.description}</p>
+                                <p className="mt-1 text-[11px] text-white/80 leading-relaxed line-clamp-2">{program.description}</p>
                             )}
                         </div>
                         <button
                             type="button"
                             onClick={isActive ? onPause : onStart}
-                            className="relative z-20 w-12 h-12 rounded-[16px] bg-white text-black shadow-lg border border-black/10 flex items-center justify-center"
+                            className="w-10 h-10 rounded-full bg-white text-black shadow-lg flex items-center justify-center flex-shrink-0"
                         >
                             {isActive && !isPaused ? (
                                 <div className="flex gap-1">
-                                    <span className="w-1.5 h-6 bg-black rounded-full" />
-                                    <span className="w-1.5 h-6 bg-black rounded-full" />
+                                    <span className="w-1 h-4 bg-black rounded-full" />
+                                    <span className="w-1 h-4 bg-black rounded-full" />
                                 </div>
                             ) : (
-                                <PlayIcon size={18} className="ml-0.5" />
+                                <PlayIcon size={16} className="ml-0.5" />
                             )}
                         </button>
                     </div>
-                    <div className="mt-4 flex items-center gap-3">
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">Estado</span>
-                        <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.35em] ${statusTone}`}>{statusLabel}</span>
-                    </div>
                 </div>
-            </div>
 
-            <div className="z-20 -mt-4 w-full px-1">
-                <div className="rounded-[26px] border border-black/[0.08] bg-white/95 px-4 py-4 shadow-[0_20px_40px_rgba(15,15,15,0.15)]">
-                    <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.4em] text-black/40">
-                        <span>Semana</span>
-                        <span>Adherencia</span>
-                    </div>
-                    <div className="mt-1 flex items-end justify-between">
-                        <div className="text-2xl font-black leading-none text-black">{currentWeekIndex + 1} / {totalWeeks}</div>
-                        <div className="text-2xl font-black leading-none text-black">{adherenceValue}%</div>
-                    </div>
-                    <div className="mt-4 flex flex-col gap-1">
-                        <span className="text-[9px] uppercase tracking-[0.45em] text-black/40">Enfoque</span>
-                        <div className="flex items-stretch gap-2">
-                            {focusOptions.map((option) => (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() => handleFocusChange(option.value)}
-                                    className="relative flex-1 rounded-[18px] border border-black/[0.08] px-2 py-2 text-[11px] font-black uppercase tracking-[0.3em] text-black/60 transition-colors"
-                                >
-                                    {focusMode === option.value && (
-                                        <motion.span
-                                            layoutId="program-focus-indicator"
-                                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                            className="absolute inset-0 rounded-[18px] bg-black"
-                                        />
-                                    )}
-                                    <span className={`relative z-10 ${focusMode === option.value ? 'text-white' : 'text-black/60'}`}>
-                                        {option.label}
-                                    </span>
-                                </button>
-                            ))}
+                {/* KPIs integrados */}
+                <div className="relative z-10 px-4 pb-3">
+                    <div className={`flex items-center gap-3 py-2.5 border-t ${borderColor}`}>
+                        <div className="min-w-0">
+                            <div className={`text-[7px] uppercase tracking-[0.25em] ${labelColor}`}>Semana</div>
+                            <div className="text-base font-black leading-none text-white">{currentWeekIndex + 1} / {totalWeeks}</div>
+                        </div>
+                        <div className="min-w-0">
+                            <div className={`text-[7px] uppercase tracking-[0.25em] ${labelColor}`}>Adherencia</div>
+                            <div className="text-base font-black leading-none text-white">{adherenceValue}%</div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className={`text-[7px] uppercase tracking-[0.25em] ${labelColor} mb-1`}>Enfoque</div>
+                            <button
+                                type="button"
+                                onClick={() => setShowFocusSelector(!showFocusSelector)}
+                                className="flex items-center gap-1.5 rounded-full bg-white/15 border border-white/25 px-2 py-1 backdrop-blur-sm"
+                            >
+                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white truncate max-w-[80px]">
+                                    {focusOptions.find(f => f.value === focusMode)?.label.split(' ')[0]}
+                                </span>
+                                <ChevronDownIcon size={10} className="text-white flex-shrink-0" />
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Focus Selector Dropdown */}
+            {showFocusSelector && (
+                <div className="absolute z-30 left-4 mt-2 bg-white rounded-2xl shadow-xl border border-black/5 overflow-hidden" onClick={() => setShowFocusSelector(false)}>
+                    <div className="px-3 py-2 border-b border-black/5">
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-black/50">Enfoque</span>
+                    </div>
+                    {focusOptions.map((option) => (
+                        <button
+                            key={option.value}
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleFocusChange(option.value); }}
+                            className={`w-full px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.15em] transition-colors border-b border-black/5 last:border-0 ${focusMode === option.value ? 'bg-black text-white' : 'text-black/70 hover:bg-black/5'}`}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Theme Selector Dropdown */}
+            {showThemeSelector && (
+                <div className="absolute z-30 left-4 right-4 mt-1 bg-white rounded-2xl shadow-xl border border-black/5 overflow-hidden" onClick={() => setShowThemeSelector(false)}>
+                    <div className="px-3 py-2 border-b border-black/5">
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/50">Tema</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 p-3">
+                        {gradientThemes.map((theme) => (
+                            <button
+                                key={theme.id}
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); handleGradientChange(theme); }}
+                                className={`relative rounded-xl p-2 text-center transition-all ${selectedGradient.id === theme.id ? 'ring-2 ring-black ring-offset-1' : ''}`}
+                                style={{ background: theme.gradient }}
+                            >
+                                <span className="text-[8px] font-bold text-white drop-shadow-md">{theme.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -22,7 +22,7 @@ const ExerciseCardContextMenu: React.FC<ExerciseCardContextMenuProps> = ({
   return (
     <>
       <div
-        className="fixed inset-0 z-[150] bg-black/20 backdrop-blur-[3px]"
+        className="workout-modal-backdrop fixed inset-0 z-[150]"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -32,13 +32,13 @@ const ExerciseCardContextMenu: React.FC<ExerciseCardContextMenuProps> = ({
           background: 'linear-gradient(160deg, rgba(254,247,255,0.95) 0%, rgba(247,242,250,0.90) 100%)',
           backdropFilter: 'blur(18px) saturate(140%)',
           WebkitBackdropFilter: 'blur(18px) saturate(140%)',
-          boxShadow: '0 20px 35px rgba(0,0,0,0.18)',
+          boxShadow: '0 20px 35px rgba(80,58,23,0.14)',
         }}
       >
         <button
           type="button"
           onClick={() => { onReplace(); onClose(); }}
-          className="workout-pressable w-full flex items-center gap-3 px-4 py-3 text-left text-[var(--md-sys-color-on-surface)] hover:bg-black/[0.03] transition-colors"
+          className="workout-pressable w-full flex items-center gap-3 px-4 py-3 text-left text-[var(--md-sys-color-on-surface)] hover:bg-white/35 transition-colors"
         >
           <SwapIcon size={18} className="text-[var(--md-sys-color-primary)]" />
           <span className="text-sm font-medium">Cambiar ejercicio</span>
@@ -46,7 +46,7 @@ const ExerciseCardContextMenu: React.FC<ExerciseCardContextMenuProps> = ({
         <button
           type="button"
           onClick={() => { onSkip(); onClose(); }}
-          className="workout-pressable w-full flex items-center gap-3 px-4 py-3 text-left text-[var(--md-sys-color-on-surface)] hover:bg-black/[0.03] transition-colors border-t border-[var(--md-sys-color-outline-variant)]/50"
+          className="workout-pressable w-full flex items-center gap-3 px-4 py-3 text-left text-[var(--md-sys-color-on-surface)] hover:bg-white/35 transition-colors border-t border-[var(--md-sys-color-outline-variant)]/50"
         >
           <MinusIcon size={18} className="text-[var(--md-sys-color-on-surface-variant)]" />
           <span className="text-sm font-medium">Omitir</span>

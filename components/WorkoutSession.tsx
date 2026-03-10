@@ -61,18 +61,20 @@ const GoalProgressOverlay: React.FC<{
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6 animate-fade-in pointer-events-auto">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onAnimationComplete} />
-            <div className="relative z-10 w-full max-w-sm overflow-hidden bg-[#0a0a0a] border border-white/10 rounded-lg shadow-xl p-6 text-center animate-fade-in">
-                <h3 className="text-lg font-bold text-white mb-1">
+            <div className="absolute inset-0 workout-modal-backdrop" onClick={onAnimationComplete} />
+            <div className="relative z-10 w-full max-w-sm overflow-hidden rounded-[32px] border border-white/75 liquid-glass-panel p-6 text-center animate-fade-in shadow-[0_24px_48px_rgba(78,56,24,0.18)]">
+                <h3 className="mb-1 text-[24px] font-medium tracking-[-0.03em] text-[var(--md-sys-color-on-surface)]">
                     {isGoalMet ? 'Meta alcanzada' : 'Progreso hacia objetivo'}
                 </h3>
-                <p className="text-sm text-slate-400 mb-4">
+                <p className="mb-4 text-sm text-[var(--md-sys-color-on-surface-variant)]">
                     {current1RM.toFixed(1)}{unit} / {goal1RM}{unit} ({renderProgress.toFixed(0)}%)
                 </p>
-                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden mb-6">
-                    <div className="h-full bg-amber-500/70 rounded-full transition-all duration-500" style={{ width: `${renderProgress}%` }} />
+                <div className="mb-6 h-2 overflow-hidden rounded-full bg-[var(--md-sys-color-secondary-container)]">
+                    <div className="h-full rounded-full bg-[var(--md-sys-color-primary)] transition-all duration-500" style={{ width: `${renderProgress}%` }} />
                 </div>
-                <button onClick={onAnimationComplete} className="w-full py-2.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:bg-white/10 hover:text-white transition-colors">Cerrar</button>
+                <button onClick={onAnimationComplete} className="w-full rounded-full border border-[var(--md-sys-color-outline-variant)] bg-white/60 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-white/80">
+                    Cerrar
+                </button>
             </div>
         </div>
     );
@@ -335,36 +337,36 @@ const WorkoutHeader: React.FC<{
         ? Math.round((completedSetsCount / totalSetsCount) * 100) : 0;
 
     return (
-        <div className="sticky top-0 z-40 w-full liquid-glass border-b border-white/5 pb-2">
+        <div className="workout-session-header sticky top-0 z-40 w-full pb-2">
             <div className="flex flex-col px-6 pt-8 pb-4">
                 {/* Status Bar Space (Mock) */}
                 <div className="h-6 w-full flex justify-between items-center mb-2">
                     <div className="flex items-center gap-1.5">
-                        <span className="text-[12px] font-bold text-white/90 tabular-nums">{elapsedSeconds != null ? formatTime(elapsedSeconds) : '00:00'}</span>
+                        <span className="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] tabular-nums">{elapsedSeconds != null ? formatTime(elapsedSeconds) : '00:00'}</span>
                         {restTimerRemaining != null && restTimerRemaining > 0 && (
-                            <div className="flex items-center gap-1 bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-[var(--md-sys-color-tertiary)]/20 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
                                 <ClockIcon size={10} />
                                 <span className="text-[10px] font-black tabular-nums">{formatTime(restTimerRemaining)}</span>
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-2 text-white/40">
+                    <div className="flex items-center gap-2 text-[var(--md-sys-color-on-surface-variant)]">
                         <ActivityIcon size={14} />
-                        <div className="w-[18px] h-[9px] border border-white/30 rounded-[2px] relative">
-                            <div className="absolute left-0.5 top-0.5 bottom-0.5 bg-white/60 rounded-[1px]" style={{ width: '12px' }} />
+                        <div className="w-[18px] h-[9px] border border-[var(--md-sys-color-outline)] rounded-[2px] relative">
+                            <div className="absolute left-0.5 top-0.5 bottom-0.5 bg-[var(--md-sys-color-primary)] rounded-[1px]" style={{ width: '12px' }} />
                         </div>
                     </div>
                 </div>
 
                 <div className="flex justify-between items-end gap-4 min-h-[48px]">
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-m3-headline text-white truncate">{sessionName}</h1>
+                        <h1 className="text-[32px] leading-[38px] font-medium tracking-[-0.03em] text-[var(--md-sys-color-on-surface)] truncate">{sessionName}</h1>
                         <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-m3-primary/80">
+                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--md-sys-color-primary)]">
                                 {isResting ? 'Descanso Activo' : (activePartName || 'Sesión en curso')}
                             </span>
-                            <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden max-w-[120px]">
-                                <div className="h-full bg-m3-primary transition-all duration-500 shadow-[0_0_8px_rgba(208,188,255,0.4)]" style={{ width: `${progressPercent}%` }} />
+                            <div className="h-1 flex-1 bg-[var(--md-sys-color-secondary-container)] rounded-full overflow-hidden max-w-[120px]">
+                                <div className="h-full bg-[var(--md-sys-color-primary)] transition-all duration-500 shadow-[0_0_8px_rgba(122,93,32,0.24)]" style={{ width: `${progressPercent}%` }} />
                             </div>
                         </div>
                     </div>
@@ -374,7 +376,7 @@ const WorkoutHeader: React.FC<{
                         onPointerUp={handlePointerUp}
                         onPointerLeave={handlePointerUp}
                         onClick={handleClick}
-                        className="w-14 h-14 rounded-full bg-m3-primary text-m3-on-primary flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                        className="w-14 h-14 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border border-white/60 flex items-center justify-center shadow-[0_14px_32px_rgba(122,93,32,0.18)] active:scale-95 transition-transform"
                     >
                         <CheckCircleIcon size={28} strokeWidth={2.5} />
                     </button>
@@ -467,13 +469,19 @@ const SetDetails: React.FC<{
     const currentRPE = safeInputs.rpe ? parseFloat(safeInputs.rpe) : (safeInputs.rir ? 10 - parseFloat(safeInputs.rir) : 0);
     const intensityDiff = currentRPE > 0 ? (currentRPE - targetRPE) : 0;
 
-    const perfColorClass = debt > 0 ? 'text-green-400 border-green-500/50 bg-green-900/10' : debt === 0 ? 'text-blue-400 border-blue-500/50 bg-blue-900/10' : 'text-red-400 border-red-500/50 bg-red-900/10';
-    const inputActiveColor = (repInputMode === 'standard' || isTimeMode) ? perfColorClass : 'text-white border-slate-700 bg-slate-800';
+    const perfColorClass = debt > 0
+        ? 'text-emerald-700 border-emerald-300/80 bg-emerald-100/70'
+        : debt === 0
+            ? 'text-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)]/25 bg-[var(--md-sys-color-primary-container)]/55'
+            : 'text-[var(--md-sys-color-error)] border-[var(--md-sys-color-error)]/25 bg-[var(--md-sys-color-error-container)]/70';
+    const inputActiveColor = (repInputMode === 'standard' || isTimeMode)
+        ? perfColorClass
+        : 'text-[var(--md-sys-color-on-surface)] border-[var(--md-sys-color-outline-variant)] bg-white/60';
 
-    let intensityContainerClass = 'bg-slate-800 border-slate-700';
+    let intensityContainerClass = 'bg-white/70 border-[var(--md-sys-color-outline-variant)]';
     if (safeInputs.performanceMode === 'target' && currentRPE > 0) {
-        if (intensityDiff > 0.5) intensityContainerClass = 'bg-red-900/20 border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.2)]';
-        else if (intensityDiff < -0.5) intensityContainerClass = 'bg-green-900/20 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.2)]';
+        if (intensityDiff > 0.5) intensityContainerClass = 'bg-[var(--md-sys-color-error-container)] border-[var(--md-sys-color-error)]/40 shadow-[0_0_10px_rgba(186,26,26,0.08)]';
+        else if (intensityDiff < -0.5) intensityContainerClass = 'bg-emerald-100/80 border-emerald-300/80 shadow-[0_0_10px_rgba(16,185,129,0.08)]';
     }
 
     const suggestedLoad = useMemo(() => {
@@ -578,64 +586,64 @@ const SetDetails: React.FC<{
 
     if (tableRowMode) {
         return (
-            <div ref={cardRef} className="space-y-3 px-2 py-2 bg-[#0A0B0E]/80 rounded border border-[#2A2D38] animate-fade-in">
+            <div ref={cardRef} className="workout-inline-panel space-y-3 px-3 py-3 animate-fade-in">
                 {isUnilateral && (
-                    <div className="flex bg-slate-800/60 p-1 rounded-lg relative z-10 shrink-0">
-                        <button onClick={() => setActiveSide('left')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all min-h-[36px] ${activeSide === 'left' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'}`}>IZQ</button>
-                        <button onClick={() => setActiveSide('right')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all min-h-[36px] ${activeSide === 'right' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'}`}>DER</button>
+                    <div className="workout-segmented flex relative z-10 shrink-0">
+                        <button data-active={activeSide === 'left'} onClick={() => setActiveSide('left')} className="flex-1 py-1.5 text-xs font-bold rounded-full transition-all min-h-[36px]">IZQ</button>
+                        <button data-active={activeSide === 'right'} onClick={() => setActiveSide('right')} className="flex-1 py-1.5 text-xs font-bold rounded-full transition-all min-h-[36px]">DER</button>
                     </div>
                 )}
                 {set.isAmrap ? (
-                    <div className={`flex justify-center items-center py-2 rounded-lg border w-full ${set.isCalibrator ? 'bg-amber-950/30 border-amber-500/40 text-amber-400' : 'bg-amber-950/20 border-amber-500/30 text-amber-400'}`}>
+                    <div className={`flex justify-center items-center py-2 rounded-[18px] border w-full ${set.isCalibrator ? 'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)]/25 text-[var(--md-sys-color-on-primary-container)]' : 'bg-white/65 border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-primary)]'}`}>
                         <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"><FlameIcon size={12} />{set.isCalibrator ? 'AMRAP Calibrador' : 'AMRAP'}</span>
                     </div>
                 ) : (
-                    <div className="flex justify-center items-center gap-1 p-1 rounded-lg bg-slate-800/40">
-                        <button onClick={() => handlePerformanceModeChange('target')} className={`flex-1 py-1.5 rounded-md border text-[10px] font-bold uppercase transition-all min-h-[36px] ${safeInputs.performanceMode === 'target' ? 'bg-slate-700 border-white/20 text-white' : 'border-transparent text-slate-500 hover:text-white'}`}>{(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? 'RIR' : 'RPE'}</button>
-                        <button onClick={() => handlePerformanceModeChange('failure')} className={`flex-1 py-1.5 rounded-md border text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 min-h-[36px] ${safeInputs.performanceMode === 'failure' ? 'bg-slate-700 border-white/20 text-white' : 'border-transparent text-slate-500 hover:text-white'}`}><FlameIcon size={10} /> Fallo</button>
-                        <button onClick={() => handlePerformanceModeChange('failed')} className={`flex-1 py-1.5 rounded-md border text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 min-h-[36px] ${safeInputs.performanceMode === 'failed' ? 'bg-slate-700 border-white/20 text-white' : 'border-transparent text-slate-500 hover:text-white'}`}><AlertTriangleIcon size={10} /> Fallido</button>
+                    <div className="workout-segmented flex justify-center items-center gap-1">
+                        <button data-active={safeInputs.performanceMode === 'target'} onClick={() => handlePerformanceModeChange('target')} className="flex-1 py-1.5 rounded-full border text-[10px] font-bold uppercase transition-all min-h-[36px]">{(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? 'RIR' : 'RPE'}</button>
+                        <button data-active={safeInputs.performanceMode === 'failure'} onClick={() => handlePerformanceModeChange('failure')} className="flex-1 py-1.5 rounded-full border text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 min-h-[36px]"><FlameIcon size={10} /> Fallo</button>
+                        <button data-active={safeInputs.performanceMode === 'failed'} onClick={() => handlePerformanceModeChange('failed')} className="flex-1 py-1.5 rounded-full border text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 min-h-[36px]"><AlertTriangleIcon size={10} /> Fallido</button>
                     </div>
                 )}
                 {safeInputs.performanceMode === 'target' && (
                     <div className="flex justify-center">
                         {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? (
                             <div className={`flex items-center rounded-lg p-1.5 border w-28 justify-between transition-colors ${intensityContainerClass}`}>
-                                <span className="text-slate-500 font-bold text-xs uppercase px-2">RIR</span>
-                                <input type="number" step="1" value={safeInputs.rir} onChange={e => onInputChange('rir', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
+                                <span className="text-[var(--md-sys-color-on-surface-variant)] font-bold text-xs uppercase px-2">RIR</span>
+                                <input type="number" step="1" value={safeInputs.rir} onChange={e => onInputChange('rir', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
                             </div>
                         ) : (
                             <div className={`flex items-center rounded-lg p-1.5 border w-28 justify-between transition-colors ${intensityContainerClass}`}>
-                                <span className="text-slate-500 font-bold text-xs uppercase px-2">RPE</span>
-                                <input type="number" step="0.5" value={safeInputs.rpe} onChange={e => onInputChange('rpe', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
+                                <span className="text-[var(--md-sys-color-on-surface-variant)] font-bold text-xs uppercase px-2">RPE</span>
+                                <input type="number" step="0.5" value={safeInputs.rpe} onChange={e => onInputChange('rpe', e.target.value, isUnilateral ? activeSide : undefined)} className="w-12 bg-transparent border-none text-center font-bold text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0 text-sm tabular-nums" placeholder="-" />
                             </div>
                         )}
                     </div>
                 )}
                 <div className="flex gap-3 text-[10px] font-bold">
-                    <button type="button" onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Dropset</button>
-                    <button type="button" onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="text-amber-400 hover:underline hover:text-amber-300">+ Rest-Pause</button>
+                    <button type="button" onClick={() => onInputChange('dropSets', [...(safeInputs.dropSets || []), { weight: 0, reps: 0 }], isUnilateral ? activeSide : undefined)} className="workout-link-action">+ Dropset</button>
+                    <button type="button" onClick={() => onInputChange('restPauses', [...(safeInputs.restPauses || []), { restTime: 15, reps: 0 }], isUnilateral ? activeSide : undefined)} className="workout-link-action">+ Rest-Pause</button>
                 </div>
                 {(safeInputs.dropSets?.length || 0) > 0 || (safeInputs.restPauses?.length || 0) > 0 ? (
-                    <div className="p-2 bg-slate-900/50 border border-[var(--md-sys-color-outline-variant)]/40 rounded-lg space-y-2 text-xs">
+                    <div className="p-3 bg-white/50 border border-[var(--md-sys-color-outline-variant)] rounded-[18px] space-y-2 text-xs">
                         {(safeInputs.dropSets || []).map((ds, i) => (
                             <div key={`ds-${i}`} className="flex gap-1.5 items-center">
-                                <span className="text-[9px] text-slate-400 w-10 shrink-0">Dropset</span>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetWeight', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{ds.weight === 0 ? 'Kg' : ds.weight}</button>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetReps', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{ds.reps === 0 ? 'Reps' : ds.reps}</button>
-                                <button type="button" onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 shrink-0" title="Eliminar dropset"><MinusIcon size={12} /></button>
+                                <span className="text-[9px] text-[var(--md-sys-color-on-surface-variant)] w-10 shrink-0">Dropset</span>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetWeight', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0">{ds.weight === 0 ? 'Kg' : ds.weight}</button>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetReps', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0">{ds.reps === 0 ? 'Reps' : ds.reps}</button>
+                                <button type="button" onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-error)] shrink-0" title="Eliminar dropset"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                         {(safeInputs.restPauses || []).map((rp, i) => (
                             <div key={`rp-${i}`} className="flex gap-1.5 items-center">
-                                <span className="text-[9px] text-slate-400 w-10 shrink-0">Rest-Pause</span>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseRestTime', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{rp.restTime === 0 ? 's' : rp.restTime}</button>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseReps', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-[10px] text-white font-mono shrink-0">{rp.reps === 0 ? 'Reps' : rp.reps}</button>
-                                <button type="button" onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 shrink-0" title="Eliminar rest-pause"><MinusIcon size={12} /></button>
+                                <span className="text-[9px] text-[var(--md-sys-color-on-surface-variant)] w-10 shrink-0">Rest-Pause</span>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseRestTime', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0">{rp.restTime === 0 ? 's' : rp.restTime}</button>
+                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseReps', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0">{rp.reps === 0 ? 'Reps' : rp.reps}</button>
+                                <button type="button" onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-error)] shrink-0" title="Eliminar rest-pause"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                     </div>
                 ) : null}
-                <Button onClick={() => handleLogAttempt()} className="w-full !py-2.5 !text-xs !font-black uppercase tracking-widest">
+                <Button onClick={() => handleLogAttempt()} className="w-full !py-3 !text-xs !font-black uppercase tracking-widest !rounded-full !bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)] !border !border-white/60">
                     {isLogged ? 'ACTUALIZAR SERIE' : set.isAmrap ? 'GUARDAR AMRAP' : 'GUARDAR SERIE'}
                 </Button>
             </div>
@@ -907,6 +915,13 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         };
     }, []);
 
+    useEffect(() => {
+        document.body.classList.add('workout-theme-active');
+        return () => {
+            document.body.classList.remove('workout-theme-active');
+        };
+    }, []);
+
     const [isSkippingRest, setIsSkippingRest] = useState(false); // CANDADO DE SEGURIDAD
     const [currentSession, setCurrentSession] = useState<Session>(ongoingWorkout?.session || session);
     const [startTime] = useState(ongoingWorkout?.startTime || Date.now());
@@ -921,7 +936,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const [setCardAnimations, setSetCardAnimations] = useState<Record<string, string | null>>({});
 
     const [starGoalProgress, setStarGoalProgress] = useState<{ exerciseId: string; current: number; goal: number; unit: string } | null>(null);
-    const [showReadiness, setShowReadiness] = useState(true);
+    const [showReadiness, setShowReadiness] = useState(false);
     const [readinessData, setReadinessData] = useState<any>(null);
     const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null);
     const [sessionNotes, setSessionNotes] = useState<string>((ongoingWorkout as any)?.sessionNotes || '');
@@ -1166,12 +1181,12 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 <div className="flex flex-wrap gap-2 mb-6">
                     <button
                         onClick={(e) => { e.stopPropagation(); setHistoryModalExercise(exercise); }}
-                        className="m3-chip bg-white/5 text-white/60 hover:bg-white/10"
+                        className="m3-chip border border-[var(--md-sys-color-outline-variant)] bg-white/60 text-[var(--md-sys-color-on-surface-variant)] hover:bg-white/85"
                     >
                         <TrophyIcon size={14} className="mr-2" /> Historial
                     </button>
                     {info?.videos && info.videos.length > 0 && (
-                        <button className="m3-chip bg-white/5 text-white/60 hover:bg-white/10">
+                        <button className="m3-chip border border-[var(--md-sys-color-outline-variant)] bg-white/60 text-[var(--md-sys-color-on-surface-variant)] hover:bg-white/85">
                             <PlayIcon size={14} className="mr-2" /> Video
                         </button>
                     )}
@@ -1598,7 +1613,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     };
 
     return (
-        <div className="tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)] bg-[var(--md-sys-color-surface-container,#1A1C24)]" style={{ backgroundColor: 'var(--md-sys-color-surface-container, #1A1C24)' }}>
+        <div className="workout-session-shell tab-bar-safe-area flex flex-col min-h-[calc(100vh-1rem)]">
             <FinishWorkoutModal isOpen={isFinishModalOpen} onClose={() => setIsFinishModalOpen(false)} onFinish={handleFinishSession} initialDurationInSeconds={duration} initialNotes={sessionNotes} initialDiscomforts={[...new Set(Object.values(exerciseFeedback).flatMap((f: any) => f.discomforts || []))]} initialBatteries={(() => { const arr = Object.values(exerciseFeedback).map((f: any) => f.perceivedFatigue).filter((v): v is number => typeof v === 'number'); if (arr.length === 0) return undefined; const avg = arr.reduce((a, b) => a + b, 0) / arr.length; return { general: Math.round(avg * 10) }; })()} fullPage allExercises={allExercises} completedSets={completedSets} exerciseList={exerciseList} />
             {activeSetId?.startsWith('warmup-') && (() => {
                 const exId = activeSetId.replace('warmup-', '');
@@ -1711,7 +1726,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 onCancel={() => { if (window.confirm('¿Cancelar sesión? Se perderán los datos no guardados.')) onCancel(); }}
             />
 
-            <div className="mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative" style={{ backgroundColor: 'var(--md-sys-color-surface-container, #1A1C24)' }}>
+            <div className="workout-session-scroll mt-2 flex-1 min-h-0 overflow-y-auto pb-36 px-2 w-full max-w-none relative">
                 {showEmptySessionState && (
                     <div className="mx-2 mt-4 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] p-5 text-center">
                         <AlertTriangleIcon size={22} className="mx-auto mb-3 text-[var(--md-sys-color-on-surface-variant)]" />
@@ -1723,7 +1738,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                             <button
                                 type="button"
                                 onClick={() => window.location.reload()}
-                                className="min-h-[44px] rounded-full border border-[var(--md-sys-color-outline)] px-4 text-[12px] font-semibold text-[var(--md-sys-color-on-surface)] transition-colors hover:bg-black/10"
+                                className="min-h-[44px] rounded-full border border-[var(--md-sys-color-outline)] bg-white/60 px-4 text-[12px] font-semibold text-[var(--md-sys-color-on-surface)] transition-colors hover:bg-white/80"
                             >
                                 Reintentar
                             </button>
@@ -1759,16 +1774,21 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                             <summary className="set-card-summary p-3 flex flex-col items-stretch" onClick={() => handleHeaderClick(ex.id)}>
                                                 <div className="flex items-center justify-between gap-3 w-full">
                                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                        <div className={`w-8 h-8 flex items-center justify-center font-medium text-lg flex-shrink-0 text-[#a3a3a3]`} style={{ backgroundColor: 'var(--bg-badge, #252525)' }}>
+                                                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[var(--md-sys-color-outline-variant)] bg-white/70 text-sm font-semibold text-[var(--md-sys-color-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                                                             {allExercises.findIndex(e => e.id === ex.id) + 1}
                                                         </div>
-                                                        <p className="font-bold text-lg text-white truncate">{ex.name}</p>
+                                                        <div className="min-w-0">
+                                                            <p className="truncate text-[20px] font-medium tracking-[-0.02em] text-[var(--md-sys-color-on-surface)]">{ex.name}</p>
+                                                            <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-surface-variant)]">
+                                                                {(ex.sets?.length ?? 0)} series{ex.restTime ? ` • ${ex.restTime}s descanso` : ''}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1 text-slate-500 hover:text-primary-color">
+                                                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-1 text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-white/60 hover:text-[var(--md-sys-color-on-surface)]">
                                                             <ClockIcon size={20} />
                                                         </button>
-                                                        <ChevronRightIcon className="details-arrow text-slate-400" />
+                                                        <ChevronRightIcon className="details-arrow" />
                                                     </div>
                                                 </div>
                                             </summary>
@@ -1789,13 +1809,13 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                 {/* Series de aproximación (vista separada) + Series efectivas */}
                                                 <div className="space-y-4" ref={(el) => { setsContainerRefs.current[ex.id] = el; }}>
                                                     {hasWarmup && (
-                                                        <div id={`warmup-card-${ex.id}`} className="overflow-hidden rounded-none border-0 border-t border-slate-600/30 bg-slate-800/40">
-                                                            <div className="px-3 py-2 border-b border-slate-600/30 flex items-center justify-between">
+                                                        <div id={`warmup-card-${ex.id}`} className="overflow-hidden rounded-[24px] border border-[var(--md-sys-color-outline-variant)] bg-white/55 shadow-[0_10px_24px_rgba(80,58,23,0.08)]">
+                                                            <div className="flex items-center justify-between border-b border-[var(--md-sys-color-outline-variant)]/50 px-3 py-3">
                                                                 <div className="flex items-center gap-2">
-                                                                    <FlameIcon size={16} className="text-slate-400" />
+                                                                    <FlameIcon size={16} className="text-[var(--md-sys-color-primary)]" />
                                                                     <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">Series de aproximación</span>
                                                                 </div>
-                                                                <span className="text-[9px] font-mono text-slate-500">{ex.warmupSets!.length} series</span>
+                                                                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--md-sys-color-on-surface-variant)]">{ex.warmupSets!.length} series</span>
                                                             </div>
                                                             <div className="p-3 space-y-2">
                                                                 {(ex.warmupSets as WarmupSetDefinition[]).map((wSet, wi) => {
@@ -1803,15 +1823,15 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                     const baseW = consolidatedWeights[ex.id] ?? suggested ?? 0;
                                                                     const calcKg = baseW > 0 ? roundWeight((baseW * wSet.percentageOfWorkingWeight) / 100, settings.weightUnit) : '—';
                                                                     return (
-                                                                        <div key={wSet.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/20 border border-slate-600/20 text-left">
-                                                                            <span className="text-xs font-mono font-bold text-slate-400 w-6">{wi + 1}</span>
-                                                                            <span className="text-[10px] font-mono text-slate-400">{wSet.percentageOfWorkingWeight}%</span>
-                                                                            <span className="text-sm font-mono font-bold text-white tabular-nums">{calcKg}{typeof calcKg === 'number' ? settings.weightUnit : ''}</span>
-                                                                            <span className="text-sm font-mono font-bold text-slate-300 tabular-nums">{wSet.targetReps} reps</span>
+                                                                        <div key={wSet.id} className="flex items-center justify-between rounded-[18px] border border-[var(--md-sys-color-outline-variant)] bg-white/65 px-3 py-2.5 text-left">
+                                                                            <span className="w-7 text-xs font-semibold text-[var(--md-sys-color-primary)]">{wi + 1}</span>
+                                                                            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--md-sys-color-on-surface-variant)]">{wSet.percentageOfWorkingWeight}%</span>
+                                                                            <span className="text-sm font-semibold tabular-nums text-[var(--md-sys-color-on-surface)]">{calcKg}{typeof calcKg === 'number' ? settings.weightUnit : ''}</span>
+                                                                            <span className="text-sm font-semibold tabular-nums text-[var(--md-sys-color-on-surface)]">{wSet.targetReps} reps</span>
                                                                         </div>
                                                                     );
                                                                 })}
-                                                                <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`warmup-${ex.id}`); }} className="w-full py-2.5 mt-1 rounded-lg border border-slate-600/40 text-slate-400 hover:bg-slate-700/30 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors min-h-[44px]">
+                                                                <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`warmup-${ex.id}`); }} className="mt-1 min-h-[44px] w-full rounded-full border border-white/75 bg-[var(--md-sys-color-secondary-container)] py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-secondary-container)] shadow-[0_10px_20px_rgba(80,58,23,0.08)] transition-colors">
                                                                     Iniciar aproximación
                                                                 </button>
                                                             </div>
@@ -1867,8 +1887,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                         </div>
                                                     </div>
                                                     <div id={`feedback-card-${ex.id}`} className="overflow-hidden border-t border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)]">
-                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="w-full p-4 flex flex-col items-center justify-center gap-2 hover:bg-black/[0.03] transition-colors min-h-[48px]">
-                                                            <ActivityIcon size={24} className="text-[#a3a3a3]" />
+                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="flex min-h-[64px] w-full flex-col items-center justify-center gap-2 p-4 transition-colors hover:bg-white/50">
+                                                            <ActivityIcon size={24} className="text-[var(--md-sys-color-primary)]" />
                                                             <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">Feedback Post-Ejercicio</span>
                                                         </button>
                                                     </div>
@@ -1884,13 +1904,13 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             </div>
 
             {/* Carrusel de tarjetas + acciones */}
-            <div className="fixed left-0 right-0 bottom-0 z-20 liquid-glass-panel pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col border-t border-[var(--md-sys-color-outline-variant)]/40" style={{ background: 'linear-gradient(180deg, rgba(26,28,36,0.95) 0%, rgba(26,28,36,0.98) 100%)', backdropFilter: 'blur(22px) saturate(140%)', WebkitBackdropFilter: 'blur(22px) saturate(140%)', borderColor: 'var(--md-sys-color-outline-variant, rgba(255,255,255,0.1))' }}>
+            <div className="workout-bottom-dock fixed left-0 right-0 bottom-0 z-20 liquid-glass-panel pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col border-t border-[var(--md-sys-color-outline-variant)]/40">
                 {/* Acciones rápidas: 90s y Notas */}
                 <div className="flex justify-center gap-2 px-4 py-2 shrink-0">
-                    <button onClick={() => handleStartRest(90, 'Descanso')} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] text-[11px] font-semibold uppercase tracking-wide min-h-[44px]" style={{ backgroundColor: 'var(--md-sys-color-secondary-container, rgba(255,123,0,0.2))', color: 'var(--md-sys-color-on-secondary-container, #FF7B00)' }}>
+                    <button onClick={() => handleStartRest(90, 'Descanso')} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] text-[11px] font-semibold uppercase tracking-wide min-h-[44px] border border-white/60 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shadow-[0_10px_20px_rgba(112,91,69,0.08)]">
                         <ClockIcon size={14} /> 90s
                     </button>
-                    <button onClick={() => setShowNotesDrawer(true)} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] text-[11px] font-semibold uppercase tracking-wide min-h-[44px]" style={{ backgroundColor: 'var(--md-sys-color-secondary-container, rgba(255,123,0,0.2))', color: 'var(--md-sys-color-on-secondary-container, #FF7B00)' }}>
+                    <button onClick={() => setShowNotesDrawer(true)} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] text-[11px] font-semibold uppercase tracking-wide min-h-[44px] border border-white/60 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shadow-[0_10px_20px_rgba(112,91,69,0.08)]">
                         <PencilIcon size={14} /> Notas
                     </button>
                 </div>
@@ -2025,5 +2045,3 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         </div>
     );
 };
-
-

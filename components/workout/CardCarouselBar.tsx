@@ -266,14 +266,17 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
             left: dragPosition.x,
             top: dragPosition.y,
             transform: 'translate(-50%, -50%)',
-            width: 186,
+            width: 208,
           }}
         >
-          <div className="scale-105 origin-center rounded-[12px] border border-[var(--md-sys-color-outline)] bg-[var(--md-sys-color-secondary-container)] px-4 py-3 shadow-[0_14px_30px_rgba(0,0,0,0.2)]">
-            <span className="block text-[14px] leading-5 font-medium text-[var(--md-sys-color-on-surface)] line-clamp-2">
+          <div className="scale-105 origin-center rounded-[28px] border border-white/80 bg-[var(--md-sys-color-secondary-container)] px-4 py-4 shadow-[0_20px_40px_rgba(80,58,23,0.16)]">
+            <span className="block text-[16px] leading-5 font-medium tracking-[-0.02em] text-[var(--md-sys-color-on-surface)] line-clamp-2">
               {draggedItem.exercises.length > 1
                 ? draggedItem.exercises.map(e => e.name).join(' • ')
                 : draggedItem.exercises[0]?.name ?? ''}
+            </span>
+            <span className="mt-1 block text-[12px] text-[var(--md-sys-color-on-surface-variant)]">
+              Mantener para reordenar
             </span>
           </div>
         </div>

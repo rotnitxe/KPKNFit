@@ -12,7 +12,12 @@ import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdapti
 import CompactHeroBanner from './program-detail/CompactHeroBanner';
 import ProgramStructureTab from './program-detail/ProgramStructureTab';
 import TrainingCalendarGrid from './program-detail/TrainingCalendarGrid';
-import AnalyticsDashboard from './program-detail/AnalyticsDashboard';
+import SubTabs, { StructureSubTab, AnalyticsSubTab } from './program-detail/SubTabs';
+import WeekView from './program-detail/WeekView';
+import MacrocycleView from './program-detail/MacrocycleView';
+import VolumeView from './program-detail/VolumeView';
+import ProgressView from './program-detail/ProgressView';
+import HistoryView from './program-detail/HistoryView';
 
 interface ProgramDetailProps {
     program: Program;
@@ -41,6 +46,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     // ─── State ───
     const [activeTab, setActiveTab] = useState<'training' | 'analytics'>('training');
+    const [structureSubTab, setStructureSubTab] = useState<StructureSubTab>('semana');
+    const [analyticsSubTab, setAnalyticsSubTab] = useState<AnalyticsSubTab>('volumen');
     const [isSplitChangerOpen, setIsSplitChangerOpen] = useState(false);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
@@ -216,24 +223,24 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     totalAdherence={totalAdherence}                />
 
                 {/* Tabs: Estructura | Analíticas (Liquid Glass Segmented control) */}
-                <div className="flex justify-center px-6 py-8">
-                    <div className="flex bg-black/[0.03] backdrop-blur-md border border-black/[0.05] rounded-[24px] p-1.5 w-full shadow-sm relative overflow-hidden">
+                <div className="px-4 -mt-3 mb-3">
+                    <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md border border-black/[0.06] rounded-2xl p-1.5 w-full shadow-[0_4px_12px_rgba(0,0,0,0.04)] relative">
                         {/* Animated Background Slider */}
                         <motion.div
                             animate={{ x: activeTab === 'training' ? '0%' : '100%' }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            className="absolute inset-y-1.5 left-1.5 w-[calc(50%-6px)] bg-white rounded-[18px] shadow-md border border-black/[0.03]"
+                            className="absolute inset-y-1.5 left-1.5 w-[calc(50%-6px)] bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-black/[0.04]"
                         />
 
                         <button
                             onClick={() => setActiveTab('training')}
-                            className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative z-10 ${activeTab === 'training' ? 'text-black' : 'text-black/30 hover:text-black/50'}`}
+                            className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-[0.25em] transition-all relative z-10 ${activeTab === 'training' ? 'text-black' : 'text-black/40 hover:text-black/60'}`}
                         >
                             Estructura
                         </button>
                         <button
                             onClick={() => setActiveTab('analytics')}
-                            className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative z-10 ${activeTab === 'analytics' ? 'text-black' : 'text-black/30 hover:text-black/50'}`}
+                            className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-[0.25em] transition-all relative z-10 ${activeTab === 'analytics' ? 'text-black' : 'text-black/40 hover:text-black/60'}`}
                         >
                             Analíticas
                         </button>
@@ -253,39 +260,47 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 transition={{ duration: 0.2 }}
                                 className="flex-1 w-full"
                             >
-                                <div className="px-6 pb-4 flex flex-col gap-3">
-                                    <button
-                                        onClick={() => setIsStructureDrawerOpen(true)}
-                                        className="w-full h-14 rounded-3xl border border-black/[0.05] bg-white text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-black/5 hover:shadow-xl transition-all flex justify-center items-center gap-3 text-black active:scale-[0.98]"
-                                    >
-                                        <div className="w-8 h-8 rounded-full bg-black/[0.03] flex items-center justify-center">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
-                                        </div>
-                                        Editar Macrociclos
-                                    </button>
-                                    <button
-                                        onClick={() => setIsSplitChangerOpen(true)}
-                                        className="w-full h-14 rounded-3xl bg-[#0061A4] text-white text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-[#0061A4]/20 hover:shadow-xl hover:brightness-110 transition-all flex justify-center items-center gap-3 active:scale-[0.98]"
-                                    >
-                                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
-                                        </div>
-                                        Cambiar Split
-                                    </button>
-                                </div>
-
-                                <ProgramStructureTab
-                                    program={program}
-                                    history={history}
-                                    currentWeekId={selectedWeekId || undefined}
-                                    onEditSession={(sessionId) => {
-                                        const dummySession = { id: sessionId } as any;
-                                        onEditSessionClick(dummySession);
-                                    }}
-                                    onAddSession={() => handleAddSession(program.id, 0, 0, selectedWeekId || '')}
-                                    onDeleteSession={onDeleteSessionHandler}
-                                    onUpdateProgram={handleUpdateProgram}
+                                {/* Subtabs de Estructura */}
+                                <SubTabs
+                                    tabs={[
+                                        { label: 'Semana', value: 'semana' },
+                                        { label: 'Macrociclo', value: 'macrociclo' }
+                                    ]}
+                                    activeTab={structureSubTab}
+                                    onChange={(tab) => setStructureSubTab(tab as StructureSubTab)}
+                                    variant="structure"
                                 />
+
+                                {/* Vista de Semana */}
+                                {structureSubTab === 'semana' && (
+                                    <WeekView
+                                        program={program}
+                                        selectedWeekId={selectedWeekId}
+                                        onSelectWeek={setSelectedWeekId}
+                                        currentWeekId={activeProgramState?.currentWeekId}
+                                        onEditSession={(sessionId) => {
+                                            const dummySession = { id: sessionId } as any;
+                                            onEditSessionClick(dummySession);
+                                        }}
+                                        onAddSession={() => handleAddSession(program.id, 0, 0, selectedWeekId || '')}
+                                        onDeleteSession={onDeleteSessionHandler}
+                                        onStartWorkout={handleStartWorkout}
+                                    />
+                                )}
+
+                                {/* Vista de Macrociclo */}
+                                {structureSubTab === 'macrociclo' && (
+                                    <div className="px-4">
+                                        <MacrocycleView
+                                            program={program}
+                                            onEditWeek={(week, macroIndex, mesoIndex, weekIndex) => {
+                                                setEditingWeekInfo({ macroIndex, blockIndex: 0, mesoIndex, weekIndex, week, isSimple: isCyclic });
+                                            }}
+                                            onUpdateProgram={handleUpdateProgram}
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="h-[max(120px,calc(100px+env(safe-area-inset-bottom)))]" />
                             </motion.div>
                         )}
@@ -300,27 +315,60 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 transition={{ duration: 0.2 }}
                                 className="flex-1 w-full"
                             >
-                                <AnalyticsDashboard
-                                    program={program}
-                                    history={history}
-                                    settings={settings}
-                                    isOnline={isOnline}
-                                    isActive={!!isActiveProgram}
-                                    currentWeeks={currentWeeks}
-                                    selectedWeekId={selectedWeekId}
-                                    onSelectWeek={setSelectedWeekId}
-                                    visualizerData={visualizerData}
-                                    displayedSessions={displayedSessions}
-                                    totalAdherence={totalAdherence}
-                                    weeklyAdherence={weeklyAdherence}
-                                    programDiscomforts={programDiscomforts}
-                                    adaptiveCache={adaptiveCache}
-                                    exerciseList={exerciseList}
-                                    setSettings={setSettings}
-                                    onUpdateProgram={handleUpdateProgram}
-                                    addToast={addToast}
-                                    postSessionFeedback={postSessionFeedback}
+                                {/* Subtabs de Analíticas */}
+                                <SubTabs
+                                    tabs={[
+                                        { label: 'Volumen', value: 'volumen' },
+                                        { label: 'Progreso', value: 'progreso' },
+                                        { label: 'Historiales', value: 'historiales' }
+                                    ]}
+                                    activeTab={analyticsSubTab}
+                                    onChange={(tab) => setAnalyticsSubTab(tab as AnalyticsSubTab)}
+                                    variant="analytics"
                                 />
+
+                                {/* Vista de Volumen */}
+                                {analyticsSubTab === 'volumen' && (
+                                    <VolumeView
+                                        program={program}
+                                        history={history}
+                                        settings={settings}
+                                        isOnline={isOnline}
+                                        isActive={!!isActiveProgram}
+                                        currentWeeks={currentWeeks}
+                                        selectedWeekId={selectedWeekId || null}
+                                        onSelectWeek={setSelectedWeekId}
+                                        visualizerData={visualizerData}
+                                        displayedSessions={displayedSessions}
+                                        totalAdherence={totalAdherence}
+                                        weeklyAdherence={weeklyAdherence}
+                                        programDiscomforts={programDiscomforts}
+                                        adaptiveCache={adaptiveCache}
+                                        exerciseList={exerciseList}
+                                        setSettings={setSettings}
+                                        onUpdateProgram={handleUpdateProgram}
+                                        addToast={addToast}
+                                        postSessionFeedback={postSessionFeedback}
+                                    />
+                                )}
+
+                                {/* Vista de Progreso */}
+                                {analyticsSubTab === 'progreso' && (
+                                    <ProgressView
+                                        program={program}
+                                        history={history}
+                                        settings={settings}
+                                    />
+                                )}
+
+                                {/* Vista de Historiales */}
+                                {analyticsSubTab === 'historiales' && (
+                                    <HistoryView
+                                        program={program}
+                                        history={history}
+                                    />
+                                )}
+
                                 <div className="h-[max(120px,calc(100px+env(safe-area-inset-bottom)))]" />
                             </motion.div>
                         )}

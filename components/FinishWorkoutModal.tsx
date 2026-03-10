@@ -602,7 +602,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
           </div>
 
           {/* Bottom Actions */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 liquid-glass-panel border-t border-white/10 flex gap-3 z-50 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="fixed bottom-0 left-0 right-0 z-50 flex gap-3 border-t border-white/75 liquid-glass-panel p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <button
               onClick={handleShare}
               disabled={isSharing}
@@ -649,7 +649,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
 
             <button
               onClick={executeFinish}
-              className="w-full h-14 rounded-full border border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-white/10 active:scale-95 transition-all"
+              className="w-full h-14 rounded-full border border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-white/60 active:scale-95 transition-all"
             >
               Ignorar sugerencia y finalizar
             </button>
@@ -663,11 +663,11 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
 
   return (
     <div className="fixed inset-0 z-[10000] flex flex-col bg-[var(--md-sys-color-surface-container)] animate-fade-in">
-      <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-white/5 liquid-glass-panel">
+      <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-white/75 liquid-glass-panel">
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--md-sys-color-on-surface-variant)]">{title}</span>
         <button
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] active:scale-90 transition-transform"
+          className="w-10 h-10 rounded-full border border-[var(--md-sys-color-outline-variant)] bg-white/65 flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] active:scale-90 transition-transform"
         >
           <span className="text-2xl leading-none">×</span>
         </button>
@@ -682,4 +682,3 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
 };
 
 export default FinishWorkoutModal;
-
