@@ -355,10 +355,10 @@ const DayView: React.FC<DayViewProps> = ({
                                                 e.stopPropagation();
                                                 onAddSession?.(day.id);
                                             }}
-                                            className="py-8 text-center border-2 border-dashed border-zinc-200 rounded-2xl cursor-pointer hover:border-purple-300 hover:bg-purple-50/30 transition-colors"
+                                            className="py-5 px-4 text-center border-2 border-dashed border-zinc-200 rounded-2xl cursor-pointer hover:border-purple-300 hover:bg-purple-50/30 transition-colors"
                                         >
-                                            <PlusIcon size={24} className="mx-auto text-zinc-300 mb-2" />
-                                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                                            <PlusIcon size={20} className="mx-auto text-zinc-400 mb-1" />
+                                            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em]">
                                                 Añadir sesión
                                             </p>
                                         </div>

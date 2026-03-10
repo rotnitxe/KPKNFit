@@ -1,7 +1,7 @@
 // components/TabBar.tsx
 // Android Material 3–style bottom navigation
 
-import React from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { View, TabBarActions } from '../types';
 import { DumbbellIcon, PlusIcon, RingIcon, PlateIcon, WikiLabIcon, KpknLogoIcon } from './icons';
 import { WorkoutSessionActionBar, WorkoutCarouselPlaceholderBar, EditorActionBar } from './ContextualActionBars';
@@ -16,7 +16,7 @@ interface TabBarProps {
     workoutViewMode?: 'carousel' | 'list';
 }
 
-const NavButton: React.FC<{
+const IconNavButton: React.FC<{
     icon: React.FC<any>;
     isActive: boolean;
     onClick: () => void;
@@ -28,36 +28,44 @@ const NavButton: React.FC<{
         data-testid={testId}
         onClick={onClick}
         aria-label={label}
-        className="relative flex flex-col items-center justify-center flex-1 h-full gap-1 min-w-0 outline-none active:scale-95 transition-all duration-300 cursor-pointer group"
+        type="button"
+        className={`flex items-center justify-center w-12 h-12 rounded-full transition duration-300 ${isActive
+            ? 'bg-[var(--md-sys-color-secondary-container)] shadow-[0_6px_12px_rgba(0,0,0,0.18)]'
+            : 'hover:bg-[var(--md-sys-color-on-surface)]/[0.12]'
+            }`}
     >
-        {/* Active Indicator (Material 3 Pill) */}
-        <div
-            className={`flex items-center justify-center w-14 h-8 rounded-full transition-all duration-400 ${isActive
-                ? 'bg-[var(--md-sys-color-secondary-container)] shadow-sm'
-                : 'bg-transparent group-hover:bg-[var(--md-sys-color-on-surface)]/[0.08]'
-                }`}
-        >
-            {isTextIcon ? (
-                <Icon size={20} className={isActive ? 'text-[var(--md-sys-color-on-secondary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)]'} />
-            ) : (
-                <Icon
-                    size={22}
-                    className={isActive ? 'text-[var(--md-sys-color-on-secondary-container)] fill-current' : 'text-[var(--md-sys-color-on-surface-variant)]'}
-                    strokeWidth={isActive ? 2.5 : 2}
-                />
-            )}
-        </div>
-        <span
-            className={`text-[10px] font-black uppercase tracking-widest transition-colors duration-300 truncate max-w-full px-1 ${isActive ? 'text-[var(--md-sys-color-on-surface)]' : 'text-[var(--md-sys-color-on-surface-variant)]/70'
-                }`}
-        >
-            {label}
-        </span>
+        {isTextIcon ? (
+            <Icon size={20} className={isActive ? 'text-[var(--md-sys-color-on-secondary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)]'} />
+        ) : (
+            <Icon
+                size={20}
+                className={isActive ? 'text-[var(--md-sys-color-on-secondary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)]'}
+                strokeWidth={isActive ? 2.5 : 2}
+            />
+        )}
     </button>
 );
 
-const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions, isSubTabBarActive }) => {
+const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions }) => {
     const { activeProgramState, navigateTo } = useAppContext();
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), []);
+    const startLongPress = useCallback(() => {
+        if (longPressTimerRef.current) return;
+        longPressTimerRef.current = setTimeout(() => {
+            toggleCollapse();
+            longPressTimerRef.current = null;
+        }, 600);
+    }, [toggleCollapse]);
+    const cancelLongPress = useCallback(() => {
+        if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+        }
+    }, []);
+    useEffect(() => () => cancelLongPress(), [cancelLongPress]);
 
     const forceTabs = ['home', 'programs', 'nutrition', 'wiki-home'];
 
@@ -86,8 +94,9 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions,
             aria-label="Navegación principal"
             className="relative flex w-full h-full items-center justify-between px-2 bg-transparent"
         >
-            <div className="flex flex-1 items-center justify-around h-full">
-                {leftTabs.map(tabKey => {
+            {!isCollapsed && (
+                <div className="flex flex-1 items-center justify-around h-full">
+                    {leftTabs.map(tabKey => {
                     const config = TAB_CONFIG[tabKey];
                     let isActive = false;
                     if (tabKey === 'home') isActive = activeView === 'home' || activeView === 'home-card-page';
@@ -104,24 +113,29 @@ const PrimeNextTabBar: React.FC<TabBarProps> = ({ activeView, navigate, actions,
                             isTextIcon={config.isTextIcon}
                         />
                     );
-                })}
-            </div>
+                    })}
+                </div>
+            )}
 
-            <div className="flex items-center justify-center px-3">
+            <div className={`flex items-center justify-center ${isCollapsed ? 'flex-1' : 'px-3'}`}>
                 <button
                     data-testid="nav-plus"
                     aria-label="Menu principal"
+                    type="button"
                     onClick={actions.onLogPress}
-                    className={`flex items-center justify-center active:scale-95 transition-all duration-400 relative
-                                ${isSubTabBarActive ? 'drop-shadow-[0_0_15px_rgba(var(--md-sys-color-primary-rgb),0.5)]' : ''}`}
+                    onPointerDown={startLongPress}
+                    onPointerUp={cancelLongPress}
+                    onPointerLeave={cancelLongPress}
+                    onPointerCancel={cancelLongPress}
+                    className={`flex items-center justify-center w-16 h-16 rounded-full transition-all duration-300 ${isCollapsed
+                        ? 'bg-[var(--md-sys-color-primary)] shadow-[0_18px_44px_rgba(0,0,0,0.35)]'
+                        : 'bg-white/0 hover:bg-[var(--md-sys-color-primary)]/[0.16] border border-white/0'
+                        }`}
                 >
                     <KpknLogoIcon
-                        size={isSubTabBarActive ? 54 : 48}
-                        className={`transition-all duration-500 ${isSubTabBarActive ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-primary)]/80 saturate-[0.8]'}`}
+                        size={isCollapsed ? 60 : 52}
+                        className={isCollapsed ? 'text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-primary)]/90'}
                     />
-                    {isSubTabBarActive && (
-                        <div className="absolute inset-0 bg-[var(--md-sys-color-primary)]/20 blur-2xl rounded-full scale-150 animate-pulse -z-10" />
-                    )}
                 </button>
             </div>
 

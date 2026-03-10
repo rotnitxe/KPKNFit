@@ -8,11 +8,11 @@ import {
     SetInputState,
     WorkoutLog,
     OngoingSetData
-} from '../../types';
-import { calculateWeightFrom1RM, roundWeight } from '../../utils/calculations';
-import { calculateSpinalScore } from '../../services/auge';
-import { hapticImpact, hapticNotification, ImpactStyle, NotificationType } from '../../services/hapticsService';
-import Button from '../ui/Button';
+} from '../../../types';
+import { calculateWeightFrom1RM, roundWeight } from '../../../utils/calculations';
+import { calculateSpinalScore } from '../../../services/auge';
+import { hapticImpact, hapticNotification, ImpactStyle, NotificationType } from '../../../services/hapticsService';
+import Button from '../../ui/Button';
 import {
     FlameIcon,
     AlertTriangleIcon,
@@ -22,9 +22,9 @@ import {
     MinusIcon,
     PlusIcon,
     BodyIcon
-} from '../icons';
-import { SetTimerButton } from './SetTimerButton';
-import TacticalModal from '../ui/TacticalModal';
+} from '../../icons';
+import { SetTimerButton } from '../SetTimerButton';
+import TacticalModal from '../../ui/TacticalModal';
 import { GhostSetInfo } from './GhostSetInfo';
 
 interface SetDetailsProps {

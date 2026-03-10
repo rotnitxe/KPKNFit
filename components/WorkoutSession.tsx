@@ -8,7 +8,7 @@ import Button from './ui/Button';
 import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons';
 import { playSound, preloadSounds, configureAudioSession } from '../services/soundService';
 import { hapticImpact, ImpactStyle, hapticNotification, NotificationType } from '../services/hapticsService';
-import { calculateWeightFrom1RM, roundWeight } from '../utils/calculations';
+import { calculateWeightFrom1RM, roundWeight, getWeightSuggestionForSet } from '../utils/calculations';
 import { useAppDispatch, useAppState, useAppContext } from '../contexts/AppContext';
 import { calculateSpinalScore, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain, getDynamicAugeMetrics } from '../services/auge';
 import { normalizeMuscleGroup } from '../services/volumeCalculator';
@@ -19,6 +19,28 @@ import ExerciseHistoryModal from './ExerciseHistoryModal';
 import { AdvancedExercisePickerModal } from './AdvancedExercisePickerModal';
 import TacticalModal from './ui/TacticalModal';
 import { SetDetails } from './workout/SetDetails';
+
+/** Simple Brzycki 1RM estimation */
+function calculateBrzycki1RM(weight: number, reps: number): number {
+    if (reps <= 0) return 0;
+    if (reps === 1) return weight;
+    return weight / (1.0278 - (0.0278 * reps));
+}
+
+/** Returns last completed weight/reps for this exercise and set index (ghost = "última vez"). */
+function getGhostForSet(exerciseId: string, setIndex: number, history: WorkoutLog[]): { weight: number; reps: number; rpe?: number } | null {
+    for (let i = history.length - 1; i >= 0; i--) {
+        const log = history[i];
+        const completedEx = log.completedExercises.find(ex => ex.exerciseDbId === exerciseId || ex.exerciseId === exerciseId);
+        if (completedEx && completedEx.sets[setIndex]) {
+            const s = completedEx.sets[setIndex];
+            if ((s.completedReps != null && s.completedReps > 0) || (s.weight != null && s.weight > 0)) {
+                return { weight: Number(s.weight) || 0, reps: Number(s.completedReps) || 0, rpe: s.completedRPE };
+            }
+        }
+    }
+    return null;
+}
 import WarmupDrawer from './workout/WarmupDrawer';
 import PostExerciseDrawer from './workout/PostExerciseDrawer';
 import WorkoutDrawer from './workout/WorkoutDrawer';
@@ -975,7 +997,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
             // --- AMRAP CALIBRADOR: Actualizar sessionAdjusted1RMs para ejercicios del mismo músculo ---
             if (isCalibrator && primaryData.weight && primaryData.reps && primaryData.reps > 0) {
-                const newE1RM = calculateBrzycki1RM(primaryData.weight, primaryData.reps, true);
+                const newE1RM = calculateBrzycki1RM(primaryData.weight, primaryData.reps);
                 if (newE1RM > 0) {
                     const conservative1RM = newE1RM * 0.95; // Factor conservador para siguientes ejercicios
                     const exInfo = exerciseList.find(e => e.id === exercise.exerciseDbId || e.name === exercise.name);
@@ -1296,21 +1318,21 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                 const hasWarmup = ex.warmupSets && ex.warmupSets.length > 0;
 
                                 return (
-                                    <div key={ex.id} className="relative transition-all duration-500 w-full max-w-none" id={`exercise-card-${ex.id}`}>
+                                    <div key={ex.id} className="relative transition-all duration-700 w-full max-w-none" id={`exercise-card-${ex.id}`}>
                                         <details
                                             open={isActive || true}
-                                            className={`set-card-details w-full overflow-visible transition-all duration-500 !border-0 !shadow-none !bg-transparent ${isFocused ? 'z-40 ring-2 ring-white/30' : ''}`}
+                                            className={`set-card-details w-full overflow-visible transition-all duration-700 !border-0 !shadow-none !bg-transparent ${isFocused ? 'z-40 ring-4 ring-primary/20 scale-[1.02]' : ''}`}
                                         >
-                                            <summary className="set-card-summary p-3 flex flex-col items-stretch" onClick={() => handleHeaderClick(ex.id)}>
-                                                <div className="flex items-center justify-between gap-3 w-full">
-                                                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[var(--md-sys-color-outline-variant)] bg-white/70 text-sm font-semibold text-[var(--md-sys-color-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                                            <summary className="set-card-summary p-4 flex flex-col items-stretch bg-white/40 backdrop-blur-xl rounded-[32px] border border-white/50 shadow-xl shadow-black/5 hover:bg-white/60 active:scale-[0.98] transition-all mb-4" onClick={() => handleHeaderClick(ex.id)}>
+                                                <div className="flex items-center justify-between gap-4 w-full">
+                                                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                                                        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[18px] border border-white/80 bg-white/90 text-sm font-black text-primary shadow-sm">
                                                             {allExercises.findIndex(e => e.id === ex.id) + 1}
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="truncate text-[20px] font-medium tracking-[-0.02em] text-[var(--md-sys-color-on-surface)]">{ex.name}</p>
-                                                            <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-surface-variant)]">
-                                                                {(ex.sets?.length ?? 0)} series{ex.restTime ? ` • ${ex.restTime}s descanso` : ''}
+                                                            <p className="truncate text-xl font-black tracking-tight text-black">{ex.name}</p>
+                                                            <p className="mt-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-black/30">
+                                                                {(ex.sets?.length ?? 0)} SERIES{ex.restTime ? ` • ${ex.restTime}S DESC` : ''}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -1322,120 +1344,120 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                     </div>
                                                 </div>
                                             </summary>
-                                            <div className="set-card-content !border-none !p-3 space-y-2 relative !p-3 sm:!p-4 !max-w-none w-full">
-                                                <div className="mb-4 flex items-center justify-between pb-2 border-b border-[var(--md-sys-color-outline-variant)]/40">
-                                                    <h3 className="text-[16px] font-medium text-[var(--md-sys-color-on-surface)] truncate">{ex.name}</h3>
-                                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryModalExercise(ex); }} className="p-1.5 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center" title="Historial"><ClockIcon size={18} /></button>
+                                            <div className="set-card-content !border-none !p-0 space-y-4 relative w-full mb-8">
+                                                {pr && <div className="mx-4 p-3 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl bg-primary/5 text-primary border border-primary/10 flex items-center justify-center gap-2"><TrophyIcon size={14} /> {pr.prString}</div>}
+
+                                                <div className="px-4">
+                                                    <HeaderAccordion
+                                                        exercise={ex}
+                                                        exerciseInfo={exInfo}
+                                                        selectedTag={selectedTags[ex.id]}
+                                                        onTagChange={(tag) => setSelectedTags(prev => ({ ...prev, [ex.id]: tag }))}
+                                                    />
                                                 </div>
-                                                {pr && <div className="p-2 text-center text-sm rounded-[12px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]"><p className="font-medium flex items-center justify-center gap-2"><TrophyIcon size={16} /> {pr.prString}</p></div>}
 
-                                                <HeaderAccordion
-                                                    exercise={ex}
-                                                    exerciseInfo={exInfo}
-                                                    selectedTag={selectedTags[ex.id]}
-                                                    onTagChange={(tag) => setSelectedTags(prev => ({ ...prev, [ex.id]: tag }))}
-                                                />
-
-                                                {/* Series de aproximación (vista separada) + Series efectivas */}
-                                                <div className="space-y-4" ref={(el) => { setsContainerRefs.current[ex.id] = el; }}>
+                                                <div className="space-y-6" ref={(el) => { setsContainerRefs.current[ex.id] = el; }}>
                                                     {hasWarmup && (
-                                                        <div id={`warmup-card-${ex.id}`} className="overflow-hidden rounded-[24px] border border-[var(--md-sys-color-outline-variant)] bg-white/55 shadow-[0_10px_24px_rgba(80,58,23,0.08)]">
-                                                            <div className="flex items-center justify-between border-b border-[var(--md-sys-color-outline-variant)]/50 px-3 py-3">
+                                                        <div id={`warmup-card-${ex.id}`} className="mx-4 overflow-hidden rounded-[28px] border border-white/50 bg-white/40 backdrop-blur-md shadow-xl shadow-black/5">
+                                                            <div className="flex items-center justify-between border-b border-black/5 px-4 py-4">
                                                                 <div className="flex items-center gap-2">
-                                                                    <FlameIcon size={16} className="text-[var(--md-sys-color-primary)]" />
-                                                                    <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">Series de aproximación</span>
+                                                                    <FlameIcon size={14} className="text-primary" />
+                                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">Series de aproximación</span>
                                                                 </div>
-                                                                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--md-sys-color-on-surface-variant)]">{ex.warmupSets!.length} series</span>
+                                                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-primary/40">{ex.warmupSets!.length} SERIES</span>
                                                             </div>
-                                                            <div className="p-3 space-y-2">
+                                                            <div className="p-4 space-y-2">
                                                                 {(ex.warmupSets as WarmupSetDefinition[]).map((wSet, wi) => {
                                                                     const suggested = (ex.sets?.length ?? 0) > 0 ? getWeightSuggestionForSet(ex, exInfo, 0, [], settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id]) : undefined;
                                                                     const baseW = consolidatedWeights[ex.id] ?? suggested ?? 0;
                                                                     const calcKg = baseW > 0 ? roundWeight((baseW * wSet.percentageOfWorkingWeight) / 100, settings.weightUnit) : '—';
                                                                     return (
-                                                                        <div key={wSet.id} className="flex items-center justify-between rounded-[18px] border border-[var(--md-sys-color-outline-variant)] bg-white/65 px-3 py-2.5 text-left">
-                                                                            <span className="w-7 text-xs font-semibold text-[var(--md-sys-color-primary)]">{wi + 1}</span>
-                                                                            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--md-sys-color-on-surface-variant)]">{wSet.percentageOfWorkingWeight}%</span>
-                                                                            <span className="text-sm font-semibold tabular-nums text-[var(--md-sys-color-on-surface)]">{calcKg}{typeof calcKg === 'number' ? settings.weightUnit : ''}</span>
-                                                                            <span className="text-sm font-semibold tabular-nums text-[var(--md-sys-color-on-surface)]">{wSet.targetReps} reps</span>
+                                                                        <div key={wSet.id} className="flex items-center justify-between rounded-[20px] border border-white/50 bg-white/60 px-4 py-3 shadow-sm">
+                                                                            <span className="w-8 text-xs font-black text-primary">{wi + 1}</span>
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-black/30">{wSet.percentageOfWorkingWeight}%</span>
+                                                                            <span className="text-sm font-black tabular-nums text-black">{calcKg}{typeof calcKg === 'number' ? settings.weightUnit : ''}</span>
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-black/60">{wSet.targetReps} REPS</span>
                                                                         </div>
                                                                     );
                                                                 })}
-                                                                <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`warmup-${ex.id}`); }} className="mt-1 min-h-[44px] w-full rounded-full border border-white/75 bg-[var(--md-sys-color-secondary-container)] py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-secondary-container)] shadow-[0_10px_20px_rgba(80,58,23,0.08)] transition-colors">
-                                                                    Iniciar aproximación
+                                                                <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`warmup-${ex.id}`); }} className="mt-2 min-h-[52px] w-full rounded-[24px] bg-primary/10 text-primary border border-primary/5 py-3 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/5 transition-all active:scale-[0.98]">
+                                                                    INICIAR CALENTAMIENTO
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     )}
-                                                    <div className="overflow-hidden rounded-[12px] border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]">
-                                                        <div className="px-3 py-2 border-b border-[var(--md-sys-color-outline-variant)]/50 flex items-center gap-2">
-                                                            <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">Series efectivas</span>
-                                                        </div>
-                                                        <div className="session-table w-full" data-tabular="true">
-                                                            <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[var(--md-sys-color-outline-variant)]/50 text-[11px] font-semibold uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">
-                                                                <span className="w-8 text-center">Set</span>
-                                                                <span className="flex-1 min-w-[60px] text-center">Kg</span>
-                                                                <span className="flex-1 min-w-[56px] text-center">Reps</span>
-                                                                <span className="w-10" />
-                                                            </div>
-                                                            {ex.sets.map((set: ExerciseSet, setIndex) => {
-                                                                const setId = set.id;
-                                                                const isCompleted = !!completedSets[String(setId)];
-                                                                const isActiveRow = activeExerciseId === ex.id && activeSetId === setId;
-                                                                const inputsRaw = setInputs[String(setId)];
-                                                                const safeInputsRow: SetInputState = inputsRaw && !('left' in inputsRaw) ? (inputsRaw as SetInputState) : (inputsRaw as UnilateralSetInputs)?.left || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, duration: '', partialReps: '' };
-                                                                const rowClass = isCompleted ? 'session-row-completed' : isActiveRow ? 'session-row-active' : 'session-row-pending';
-                                                                const rowMinH = settings.sessionCompactView ? 40 : 48;
-                                                                const ghost = getGhostForSet((ex.exerciseDbId || ex.id) as string, setIndex, history);
-                                                                const suggestedKg = getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number; machineBrand?: string } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id]);
-                                                                const placeholderKg = suggestedKg != null ? String(suggestedKg) : (ghost?.weight ? String(ghost.weight) : '');
-                                                                const placeholderReps = ghost?.reps ? String(ghost.reps) : (set.targetReps ? String(set.targetReps) : '');
-                                                                return (
-                                                                    <div key={setId} className="border-b border-[var(--md-sys-color-outline-variant)]/40">
-                                                                        <div className={`flex items-center gap-2 px-2 py-2 ${rowClass} transition-colors`} style={{ minHeight: rowMinH }} onClick={() => { if (isCompleted || !isActiveRow) { setActiveExerciseId(ex.id); setActiveSetId(setId); } }}>
-                                                                            <span className="w-8 text-center text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums">{setIndex + 1}</span>
-                                                                            <div className="flex-1 min-w-[60px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); const cardEl = document.getElementById(`set-card-${setId}`); if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} role="button" tabIndex={0}>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    inputMode="decimal"
-                                                                                    value={safeInputsRow.weight || ''}
-                                                                                    placeholder={placeholderKg || '—'}
-                                                                                    onChange={e => handleSetInputChange(String(setId), 'weight', e.target.value.replace(',', '.').replace(/[^0-9.]/g, ''), ex.isUnilateral ? 'left' : undefined)}
-                                                                                    onClick={e => e.stopPropagation()}
-                                                                                    className="w-full max-w-[72px] bg-transparent border-none text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0"
-                                                                                />
+
+                                                    {/* Series efectivas CAROUSEL SECTION */}
+                                                    <div className="relative group/carousel">
+                                                        <div className="mx-4 overflow-hidden rounded-[28px] border border-white/50 bg-white/40 backdrop-blur-md shadow-lg shadow-black/5">
+                                                            <div className="session-table w-full" data-tabular="true">
+                                                                <div className="flex items-center gap-2 px-4 py-3 border-b border-black/5 text-[9px] font-black uppercase tracking-[0.2em] text-black/30">
+                                                                    <span className="w-8 text-center text-primary/40">SET</span>
+                                                                    <span className="flex-1 min-w-[60px] text-center">KG</span>
+                                                                    <span className="flex-1 min-w-[56px] text-center">REPS</span>
+                                                                    <span className="w-10" />
+                                                                </div>
+                                                                {ex.sets.map((set: ExerciseSet, setIndex) => {
+                                                                    const setId = set.id;
+                                                                    const isCompleted = !!completedSets[String(setId)];
+                                                                    const isActiveRow = activeExerciseId === ex.id && activeSetId === setId;
+                                                                    const inputsRaw = setInputs[String(setId)];
+                                                                    const safeInputsRow = (ex.isUnilateral ? (inputsRaw as UnilateralSetInputs)?.left : (inputsRaw as SetInputState)) || { weight: '', reps: '', duration: '' };
+                                                                    const placeholder = getGhostForSet(ex.exerciseDbId || ex.id, setIndex, history);
+                                                                    const placeholderKg = placeholder?.weight;
+                                                                    const placeholderReps = placeholder?.reps;
+                                                                    return (
+                                                                        <div key={setId} className={`session-table-row transition-all duration-300 ${isActiveRow ? 'bg-white/40' : 'hover:bg-white/20'}`}>
+                                                                            <div className={`flex items-center gap-2 px-4 py-3 border-b border-black/[0.03] last:border-0 ${isCompleted ? 'opacity-40' : ''}`}>
+                                                                                <span className="w-8 text-center text-[10px] font-black text-black/20 tabular-nums">{setIndex + 1}</span>
+                                                                                <div className="flex-1 min-w-[60px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); }} role="button" tabIndex={0}>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        inputMode="decimal"
+                                                                                        value={safeInputsRow.weight || ''}
+                                                                                        placeholder={placeholderKg?.toString() || '—'}
+                                                                                        onChange={e => handleSetInputChange(String(setId), 'weight', e.target.value.replace(',', '.').replace(/[^0-9.]/g, ''), ex.isUnilateral ? 'left' : undefined)}
+                                                                                        onClick={e => e.stopPropagation()}
+                                                                                        className="w-full max-w-[72px] bg-transparent border-none text-center text-sm font-black py-1 tabular-nums block text-black focus:ring-0 p-0"
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="flex-1 min-w-[56px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); }} role="button" tabIndex={0}>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        inputMode="numeric"
+                                                                                        value={ex.trainingMode === 'time' ? (safeInputsRow.duration || '') : (safeInputsRow.reps || '')}
+                                                                                        placeholder={placeholderReps?.toString() || '—'}
+                                                                                        onChange={e => handleSetInputChange(String(setId), ex.trainingMode === 'time' ? 'duration' : 'reps', e.target.value.replace(/[^0-9]/g, ''), ex.isUnilateral ? 'left' : undefined)}
+                                                                                        onClick={e => e.stopPropagation()}
+                                                                                        className="w-full max-w-[56px] bg-transparent border-none text-center text-sm font-black py-1 tabular-nums block text-black focus:ring-0 p-0"
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="w-10 flex justify-center" onClick={e => e.stopPropagation()}>
+                                                                                    <button type="button" onClick={() => handleLogSet(ex, set, false)} className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'border-primary bg-primary text-white scale-90' : 'border-black/5 bg-white shadow-sm text-black/10 hover:border-black/10'}`}>
+                                                                                        <CheckCircleIcon size={16} />
+                                                                                    </button>
+                                                                                </div>
                                                                             </div>
-                                                                            <div className="flex-1 min-w-[56px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); const cardEl = document.getElementById(`set-card-${setId}`); if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} role="button" tabIndex={0}>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    inputMode="numeric"
-                                                                                    value={ex.trainingMode === 'time' ? (safeInputsRow.duration || '') : (safeInputsRow.reps || '')}
-                                                                                    placeholder={placeholderReps || '—'}
-                                                                                    onChange={e => handleSetInputChange(String(setId), ex.trainingMode === 'time' ? 'duration' : 'reps', e.target.value.replace(/[^0-9]/g, ''), ex.isUnilateral ? 'left' : undefined)}
-                                                                                    onClick={e => e.stopPropagation()}
-                                                                                    className="w-full max-w-[56px] bg-transparent border-none text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)] focus:ring-0 p-0"
-                                                                                />
-                                                                            </div>
-                                                                            <div className="w-10 flex justify-center" onClick={e => e.stopPropagation()}>
-                                                                                <button type="button" onClick={() => handleLogSet(ex, set, false)} data-completed={isCompleted ? "true" : "false"} className={`session-check-action min-w-[44px] min-h-[44px] w-10 h-10 rounded-full border flex items-center justify-center transition-all ${isCompleted ? 'border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'border-[var(--md-sys-color-outline-variant)] bg-transparent text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-on-surface)]'}`}>
-                                                                                    <CheckCircleIcon size={18} />
-                                                                                </button>
-                                                                            </div>
+                                                                            {isActiveRow && (
+                                                                                <div id={`set-card-${setId}`} className="px-2 pb-3 animate-fade-in">
+                                                                                    <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as any; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} />
+                                                                                </div>
+                                                                            )}
                                                                         </div>
-                                                                        {isActiveRow && (
-                                                                            <div id={`set-card-${setId}`} className="px-2 pb-2">
-                                                                                <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number; machineBrand?: string } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} />
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })}
+                                                                    );
+                                                                })}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div id={`feedback-card-${ex.id}`} className="overflow-hidden border-t border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)]">
-                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="flex min-h-[64px] w-full flex-col items-center justify-center gap-2 p-4 transition-colors hover:bg-white/50">
-                                                            <ActivityIcon size={24} className="text-[var(--md-sys-color-primary)]" />
-                                                            <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--md-sys-color-on-surface-variant)]">Feedback Post-Ejercicio</span>
+                                                    <div id={`feedback-card-${ex.id}`} className="mx-4 overflow-hidden bg-white/40 border border-white/50 rounded-[24px] shadow-lg shadow-black/5">
+                                                        <button onClick={() => { setActiveExerciseId(ex.id); setActiveSetId(`feedback-${ex.id}`); }} className="flex min-h-[60px] w-full items-center justify-between px-6 py-4 transition-all active:scale-[0.98]">
+                                                            <div className="flex items-center gap-3">
+                                                                <ActivityIcon size={18} className="text-primary" />
+                                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black">Feedback Post-Ejercicio</span>
+                                                            </div>
+                                                            <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-black/20"></div>
+                                                            </div>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1450,17 +1472,16 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             </div>
 
             {/* Carrusel de tarjetas + acciones */}
-            <div className="workout-bottom-dock fixed left-0 right-0 bottom-0 z-20 liquid-glass-panel pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col border-t border-[var(--md-sys-color-outline-variant)]/40">
-                {/* Acciones rápidas: 90s y Notas */}
-                <div className="flex justify-center gap-2 px-4 py-2 shrink-0">
-                    <button onClick={() => handleStartRest(90, 'Descanso')} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] text-[11px] font-semibold uppercase tracking-wide min-h-[44px] border border-white/60 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shadow-[0_10px_20px_rgba(112,91,69,0.08)]">
-                        <ClockIcon size={14} /> 90s
+            <div className="workout-bottom-dock fixed left-0 right-0 bottom-0 z-20 pb-[max(1rem, env(safe-area-inset-bottom))] flex flex-col pointer-events-none">
+                <div className="flex justify-center gap-3 px-6 py-4 shrink-0 pointer-events-auto">
+                    <button onClick={() => handleStartRest(90, 'Descanso')} className="flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] min-h-[48px] border border-white/80 bg-white/60 backdrop-blur-xl text-black shadow-xl shadow-black/5 transition-all active:scale-[0.95]">
+                        <ClockIcon size={14} className="text-primary" /> 90S
                     </button>
-                    <button onClick={() => setShowNotesDrawer(true)} className="workout-pressable flex items-center gap-1.5 px-4 py-2.5 rounded-[999px] text-[11px] font-semibold uppercase tracking-wide min-h-[44px] border border-white/60 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shadow-[0_10px_20px_rgba(112,91,69,0.08)]">
-                        <PencilIcon size={14} /> Notas
+                    <button onClick={() => setShowNotesDrawer(true)} className="flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] min-h-[48px] border border-white/80 bg-white/60 backdrop-blur-xl text-black shadow-xl shadow-black/5 transition-all active:scale-[0.95]">
+                        <PencilIcon size={14} className="text-primary" /> NOTAS
                     </button>
                 </div>
-                <div className="shrink-0">
+                <div className="shrink-0 pointer-events-auto bg-white/80 backdrop-blur-2xl border-t border-white/50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-[40px]">
                     <CardCarouselBar
                         items={carouselItems}
                         activeExerciseId={activeExerciseId}

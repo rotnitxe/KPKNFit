@@ -315,15 +315,9 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 {/* Vista de Macrociclo */}
                                 {structureSubTab === 'macrociclo' && (
                                     <div className="px-4">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400">Vista General</h3>
-                                            <button
-                                                onClick={() => setIsMacrocycleEditorOpen(true)}
-                                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[8px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all shadow-lg"
-                                            >
-                                                <EditIcon size={14} />
-                                                Editor Avanzado
-                                            </button>
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400">Editor de Macrociclo</h3>
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-[0.25em]">Toca cualquier semana para editar sin pasos adicionales.</p>
                                         </div>
                                         <MacrocycleView
                                             program={program}
@@ -658,6 +652,9 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 };
 
 export default ProgramDetail;
+
+
+
 
 
 

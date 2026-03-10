@@ -74,17 +74,61 @@ const getViewportWidth = (): number => {
     return window.innerWidth || 390;
 };
 
+// Curved text component for ring labels
+const CurvedText: React.FC<{
+    text: string;
+    radius: number;
+    angle: number;
+    color: string;
+    position: 'top' | 'bottom';
+    size: number;
+}> = ({ text, radius, angle, color, position, size }) => {
+    const chars = text.split('');
+    const charAngle = angle / Math.max(1, chars.length - 1);
+    const startAngle = position === 'top' ? -angle / 2 : 180 + (angle / 2) - (charAngle * (chars.length - 1));
+
+    return (
+        <g>
+            {chars.map((char, i) => {
+                const currentAngle = startAngle + charAngle * i;
+                const rad = (currentAngle * Math.PI) / 180;
+                const x = (size / 2) + radius * Math.cos(rad);
+                const y = (size / 2) + radius * Math.sin(rad);
+                const rotation = position === 'top' ? currentAngle + 90 : currentAngle - 90;
+
+                return (
+                    <text
+                        key={i}
+                        x={x}
+                        y={y}
+                        fill={color}
+                        fontSize={position === 'top' ? 10 : 9}
+                        fontWeight="800"
+                        textAnchor="middle"
+                        dominantBaseline={position === 'top' ? 'alphabetic' : 'hanging'}
+                        transform={`rotate(${rotation} ${x} ${y})`}
+                        style={{ textTransform: 'uppercase', letterSpacing: '0.15em' }}
+                    >
+                        {char}
+                    </text>
+                );
+            })}
+        </g>
+    );
+};
+
 const MacroRingStack: React.FC<{
     caloriesPct: number;
     proteinPct: number;
     carbsPct: number;
     fatsPct: number;
     size?: number;
-}> = ({ caloriesPct, proteinPct, carbsPct, fatsPct, size = 136 }) => {
-    const stroke = Math.max(6, Math.round(size * 0.052));
-    const spacing = Math.max(3, Math.round(size * 0.018));
+    showLabels?: boolean;
+}> = ({ caloriesPct, proteinPct, carbsPct, fatsPct, size = 160, showLabels = true }) => {
+    const stroke = Math.max(14, Math.round(size * 0.065));
+    const spacing = Math.max(2, Math.round(size * 0.012));
 
-    const outer = size / 2 - stroke;
+    const outer = size / 2 - stroke / 2;
     const midOuter = outer - stroke - spacing;
     const midInner = midOuter - stroke - spacing;
     const inner = midInner - stroke - spacing;
@@ -101,7 +145,14 @@ const MacroRingStack: React.FC<{
                         <feGaussianBlur in="SourceGraphic" stdDeviation="1.25" />
                     </filter>
                 </defs>
-                <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={stroke} />
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="rgba(0,0,0,0.06)"
+                    strokeWidth={stroke}
+                />
                 <circle
                     cx={size / 2}
                     cy={size / 2}
@@ -120,6 +171,11 @@ const MacroRingStack: React.FC<{
         );
     };
 
+    const textRadiusOuter = outer + stroke / 2 - 2;
+    const textRadiusMidOuter = midOuter;
+    const textRadiusMidInner = midInner;
+    const textRadiusInner = inner - stroke / 2 + 2;
+
     return (
         <div className="relative shrink-0" style={{ width: size, height: size }}>
             <div className="absolute -left-12 top-7 w-20 h-20 rounded-full blur-3xl" style={{ background: 'rgba(101,85,143,0.18)' }} />
@@ -131,13 +187,174 @@ const MacroRingStack: React.FC<{
                 {renderRing(midOuter, proteinPct, MACRO_COLORS.protein, 'prot')}
                 {renderRing(midInner, carbsPct, MACRO_COLORS.carbs, 'carb')}
                 {renderRing(inner, fatsPct, MACRO_COLORS.fats, 'fat')}
+
+                {showLabels && (
+                    <>
+                        <CurvedText
+                            text="CALORÍAS"
+                            radius={textRadiusOuter}
+                            angle={100}
+                            color="#ffffff"
+                            position="top"
+                            size={size}
+                        />
+                        <CurvedText
+                            text="PROTEÍNA"
+                            radius={textRadiusMidOuter}
+                            angle={85}
+                            color="#ffffff"
+                            position="top"
+                            size={size}
+                        />
+                        <CurvedText
+                            text="CARBS"
+                            radius={textRadiusMidInner}
+                            angle={70}
+                            color="#ffffff"
+                            position="top"
+                            size={size}
+                        />
+                        <CurvedText
+                            text="GRASAS"
+                            radius={textRadiusInner}
+                            angle={55}
+                            color="#ffffff"
+                            position="top"
+                            size={size}
+                        />
+                    </>
+                )}
             </svg>
 
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#49454F]">Macros</p>
-                <p className="text-[12px] font-black text-[#1D1B20]">P/C/G</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]">Macros</p>
+                <p className="text-[13px] font-black text-[#1D1B20]">P / C / G</p>
             </div>
         </div>
+    );
+};
+
+// Hero Header Component with goal display and babushka rings
+const HeroHeader: React.FC<{
+    primaryGoalCard: { metric: string; label: string; unit: string; current: number; goal: number };
+    latestLog: BodyProgressLog | null;
+    settings: any;
+    macroRingPct: { calories: number; protein: number; carbs: number; fats: number };
+    ringSize: number;
+    onAdjustPlan: () => void;
+    onCreatePlan: () => void;
+    hasActivePlan: boolean;
+    selectedDate: string;
+}> = ({
+    primaryGoalCard,
+    latestLog,
+    settings,
+    macroRingPct,
+    ringSize,
+    onAdjustPlan,
+    onCreatePlan,
+    hasActivePlan,
+    selectedDate,
+}) => {
+    const goalLabel = primaryGoalCard.label;
+    const goalValue = primaryGoalCard.goal;
+    const currentUnit = primaryGoalCard.unit;
+
+    // Get the last recorded value that matches the goal metric
+    const lastRecordedValue = primaryGoalCard.current;
+
+    return (
+        <header className="relative overflow-hidden rounded-[36px] border border-black/[0.04] bg-gradient-to-br from-white/95 via-white/85 to-white/75 shadow-[0_8px_80px_-30px_rgba(0,0,0,0.4)]">
+            {/* Ambient glow effects */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute -top-8 -left-8 w-[220px] h-[220px] rounded-full bg-[#B3261E]/20 blur-[80px]" />
+                <div className="absolute top-12 right-[-50px] w-[240px] h-[240px] rounded-full bg-[#006A6A]/20 blur-[100px]" />
+                <div className="absolute bottom-[-40px] left-1/2 -translate-x-1/2 w-[280px] h-[280px] rounded-full bg-[#6750A4]/15 blur-[120px]" />
+            </div>
+
+            <div className="relative px-5 py-5">
+                {/* Top bar: title and action button */}
+                <div className="flex items-center justify-between gap-3 mb-4">
+                    <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#49454F]">
+                            {new Date(`${selectedDate}T00:00:00`).toLocaleDateString('es-ES', {
+                                weekday: 'long',
+                                day: 'numeric',
+                                month: 'long',
+                            })}
+                        </p>
+                        <h1 className="text-[22px] font-black leading-tight tracking-tight text-[#1D1B20] mt-0.5">
+                            Tu Progreso
+                        </h1>
+                    </div>
+                    {hasActivePlan ? (
+                        <button
+                            onClick={onAdjustPlan}
+                            className="px-4 py-2.5 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-black/[0.06] text-[9px] font-black uppercase tracking-[0.16em] text-[#1D1B20] hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors"
+                        >
+                            Ajustar
+                        </button>
+                    ) : (
+                        <button
+                            onClick={onCreatePlan}
+                            className="px-4 py-2.5 rounded-2xl bg-[var(--md-sys-color-primary)] text-white text-[9px] font-black uppercase tracking-[0.16em] shadow-md hover:shadow-lg transition-shadow"
+                        >
+                            Crear plan
+                        </button>
+                    )}
+                </div>
+
+                {/* Main content: Left side (goal) + Right side (rings) */}
+                <div className="grid grid-cols-[1.05fr,1.1fr] gap-4 items-center">
+                    {/* Left side: Goal display */}
+                    <div className="rounded-[28px] border border-black/[0.05] bg-white/80 p-4 flex flex-col justify-center">
+                        {/* Goal label */}
+                        <div className="flex items-center gap-1.5 mb-2">
+                            <div className="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)]" />
+                            <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[#49454F]">
+                                Objetivo: {goalLabel}
+                            </span>
+                        </div>
+
+                        {/* Goal value - large prominent number */}
+                        <div className="flex items-baseline gap-2 mb-3">
+                            <span className="text-[42px] font-black leading-none text-[#1D1B20]">
+                                {goalValue.toFixed(1)}
+                            </span>
+                            <span className="text-[13px] font-bold text-[#49454F]">{currentUnit}</span>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="h-px w-full bg-gradient-to-r from-black/[0.08] to-transparent mb-3" />
+
+                        {/* Last recorded value */}
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#6B4F00]">
+                                Último registro
+                            </span>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mt-1">
+                            <span className="text-[26px] font-black leading-none text-[#1D1B20]">
+                                {lastRecordedValue.toFixed(1)}
+                            </span>
+                            <span className="text-[11px] font-bold text-[#49454F]">{currentUnit}</span>
+                        </div>
+                    </div>
+
+                    {/* Right side: Babushka rings */}
+                    <div className="flex items-center justify-center">
+                        <MacroRingStack
+                            caloriesPct={macroRingPct.calories}
+                            proteinPct={macroRingPct.protein}
+                            carbsPct={macroRingPct.carbs}
+                            fatsPct={macroRingPct.fats}
+                            size={ringSize}
+                            showLabels={true}
+                        />
+                    </div>
+                </div>
+            </div>
+        </header>
     );
 };
 
@@ -658,118 +875,17 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                     paddingBottom: layout.topBottomPad,
                 }}
             >
-                <header
-                    className="relative overflow-hidden rounded-[32px] border border-black/[0.04] bg-gradient-to-b from-white/90 to-white/70 shadow-[0_6px_60px_-26px_rgba(0,0,0,0.35)]"
-                    style={{ minHeight: 200 }}
-                >
-                    <div className="pointer-events-none absolute inset-0">
-                        <div className="absolute -top-6 -left-6 w-[200px] h-[200px] rounded-full bg-[#B3261E]/20 blur-[70px]" />
-                        <div className="absolute top-10 right-[-40px] w-[220px] h-[220px] rounded-full bg-[#006A6A]/20 blur-[90px]" />
-                        <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 w-[260px] h-[260px] rounded-full bg-[#6750A4]/15 blur-[120px]" />
-                    </div>
-
-                    <div
-                        className="relative"
-                        style={{
-                            paddingLeft: layout.headerPadX,
-                            paddingRight: layout.headerPadX,
-                            paddingTop: layout.headerTop,
-                            paddingBottom: layout.headerBottom,
-                        }}
-                    >
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F]">Progreso físico y alimentación</p>
-                                <h1 className="text-[26px] font-black leading-tight tracking-tight text-[#1D1B20] mt-1">Nutrición y progreso físico</h1>
-                                <p className="text-[11px] text-[#49454F] mt-1">
-                                    {new Date(`${selectedDate}T00:00:00`).toLocaleDateString('es-ES', {
-                                        weekday: 'long',
-                                        day: 'numeric',
-                                        month: 'long',
-                                    })}
-                                </p>
-                            </div>
-                            {hasActivePlan ? (
-                                <button
-                                    onClick={() => setIsGoalModalOpen(true)}
-                                    className="px-3.5 py-2 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-black/[0.06] text-[10px] font-black uppercase tracking-[0.16em] text-[#1D1B20]"
-                                >
-                                    Ajustar plan
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => setShowWizard(true)}
-                                    className="px-3.5 py-2 rounded-2xl bg-[var(--md-sys-color-primary)] text-white text-[10px] font-black uppercase tracking-[0.16em]"
-                                >
-                                    Crear plan
-                                </button>
-                            )}
-                        </div>
-
-                        <div className="mt-4 grid gap-3 lg:grid-cols-[1.05fr,0.95fr]">
-                            <div className="rounded-[28px] border border-black/[0.05] bg-white/75 p-3.5 space-y-3">
-                                <div className="flex justify-between items-baseline">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Calorías</span>
-                                    <span className="text-[12px] font-black text-[#1D1B20] tabular-nums">
-                                        {Math.round(dailyCalories)} / {calorieGoal > 0 ? Math.round(calorieGoal) : '--'} kcal
-                                    </span>
-                                </div>
-                                <div className="h-2 bg-black/5 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full rounded-full transition-all duration-700"
-                                        style={{
-                                            width: `${Math.min(100, calorieGoal > 0 ? (dailyCalories / calorieGoal) * 100 : 0)}%`,
-                                            background: MACRO_COLORS.calories,
-                                        }}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    {macroBarData.map((macro) => (
-                                        <div key={macro.key}>
-                                            <div className="flex justify-between text-[10px] mb-1">
-                                                <span className="font-black uppercase tracking-[0.13em] text-[#49454F]">{macro.key}</span>
-                                                <span className="font-semibold text-[#1D1B20] tabular-nums">
-                                                    {macro.value}g / {macro.goal}g
-                                                </span>
-                                            </div>
-                                            <div className="h-1.5 bg-black/[0.05] rounded-full overflow-hidden">
-                                                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, (macro.value / macro.goal) * 100)}%`, background: macro.color }} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="rounded-[28px] border border-black/[0.05] bg-white/75 p-3.5 flex flex-col items-center gap-2">
-                                    <MacroRingStack
-                                        caloriesPct={macroRingPct.calories}
-                                        proteinPct={macroRingPct.protein}
-                                        carbsPct={macroRingPct.carbs}
-                                        fatsPct={macroRingPct.fats}
-                                        size={layout.ringSize}
-                                    />
-                                    <div className="text-xs font-black uppercase tracking-[0.18em] text-[#49454F] text-center">
-                                        {primaryGoalCard.label} · {primaryGoalCard.current.toFixed(1)} {primaryGoalCard.unit}
-                                    </div>
-                                </div>
-                                <div className="rounded-[28px] border border-black/[0.05] bg-white/75 p-3.5 space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#49454F]">Meta y tendencia</p>
-                                    <p className="text-sm font-black text-[#1D1B20]">
-                                        Objetivo: {primaryGoalCard.goal.toFixed(1)} {primaryGoalCard.unit}
-                                    </p>
-                                    {sevenDayTrend ? (
-                                        <p className="text-[12px] text-[#1D1B20]">
-                                            +{sevenDayTrend.weeklyDelta.toFixed(2)} {sevenDayTrend.unit} / 7 días
-                                        </p>
-                                    ) : (
-                                        <p className="text-[12px] text-[#49454F]">Sigue registrando para ver la tendencia.</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </header>
+                <HeroHeader
+                    primaryGoalCard={primaryGoalCard}
+                    latestLog={latestLog}
+                    settings={settings}
+                    macroRingPct={macroRingPct}
+                    ringSize={layout.ringSize}
+                    onAdjustPlan={() => setIsGoalModalOpen(true)}
+                    onCreatePlan={() => setShowWizard(true)}
+                    hasActivePlan={hasActivePlan}
+                    selectedDate={selectedDate}
+                />
 
                 <div className="px-4 py-3 border-t border-black/[0.05] bg-white/60 flex flex-wrap items-center gap-2.5">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${trendBadge.classes}`}>
