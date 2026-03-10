@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Program, Session, ProgramWeek } from '../types';
 import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon, TrashIcon, EditIcon } from './icons';
@@ -10,7 +10,7 @@ import StructureDrawer from './program-detail/StructureDrawer';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 
 import CompactHeroBanner from './program-detail/CompactHeroBanner';
-import SubTabs, { StructureSubTab, AnalyticsSubTab } from './program-detail/SubTabs';
+import type { StructureSubTab, AnalyticsSubTab } from './program-detail/SubTabs';
 import WeekView from './program-detail/WeekView';
 import MacrocycleView from './program-detail/MacrocycleView';
 import VolumeView from './program-detail/VolumeView';
@@ -50,6 +50,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
     const [activeTab, setActiveTab] = useState<'training' | 'analytics'>('training');
     const [structureSubTab, setStructureSubTab] = useState<StructureSubTab>('semana');
     const [analyticsSubTab, setAnalyticsSubTab] = useState<AnalyticsSubTab>('volumen');
+    const prevStructureTabRef = useRef<StructureSubTab>('semana');
     const [isSplitChangerOpen, setIsSplitChangerOpen] = useState(false);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
@@ -189,6 +190,16 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
         }
     }, [program.id]);
 
+    useEffect(() => {
+        if (structureSubTab === 'split' && prevStructureTabRef.current !== 'split') {
+            setIsSplitChangerOpen(true);
+        }
+        if (structureSubTab !== 'split' && prevStructureTabRef.current === 'split') {
+            setIsSplitChangerOpen(false);
+        }
+        prevStructureTabRef.current = structureSubTab;
+    }, [structureSubTab]);
+
     // ─── Handlers ───
     const handleProgramEdit = useCallback(() => handleEditProgram(program.id), [handleEditProgram, program.id]);
 
@@ -285,20 +296,17 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 {structureSubTab === 'split' && (
                                     <div className="px-4">
                                         <div className="bg-white rounded-3xl border border-zinc-200/60 p-6 shadow-sm">
-                                            <div className="text-center py-8">
-                                                <CalendarIcon className="mx-auto text-purple-400 mb-3" size={48} />
+                                            <div className="text-center space-y-3 py-6">
+                                                <CalendarIcon className="mx-auto text-purple-400" size={40} />
                                                 <h3 className="text-lg font-black text-zinc-900 uppercase tracking-tight mb-2">
                                                     Gestor de Splits
                                                 </h3>
-                                                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-6">
+                                                <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
                                                     Selecciona y aplica splits predefinidos o personalizados
                                                 </p>
-                                                <button
-                                                    onClick={() => setIsSplitChangerOpen(true)}
-                                                    className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[9px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all shadow-lg"
-                                                >
-                                                    Abrir Galería de Splits
-                                                </button>
+                                                <p className="text-[11px] text-zinc-500 leading-relaxed uppercase tracking-[0.2em]">
+                                                    El panel lateral se mantiene abierto autom�ticamente para que elijas tu plantilla sin pasos extra.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -650,6 +658,8 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 };
 
 export default ProgramDetail;
+
+
 
 
 
