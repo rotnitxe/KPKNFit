@@ -58,6 +58,7 @@ export function calculateArticularBatteries(
     knee: makeInitialState(),
     hip: makeInitialState(),
     ankle: makeInitialState(),
+    cervical: makeInitialState(),
   };
 
   for (const id of Object.keys(result) as ArticularBatteryId[]) {
@@ -71,6 +72,7 @@ export function calculateArticularBatteries(
     knee: 0,
     hip: 0,
     ankle: 0,
+    cervical: 0,
   };
 
   for (const log of relevantLogs) {
@@ -83,6 +85,7 @@ export function calculateArticularBatteries(
       knee: 0,
       hip: 0,
       ankle: 0,
+      cervical: 0,
     };
 
     for (const ex of log.completedExercises) {
@@ -177,5 +180,38 @@ export const MUSCLE_TO_ARTICULAR_BATTERIES: Record<string, ArticularBatteryId[]>
   'trapecio': ['shoulder'],
   'espalda baja': ['hip'],
 };
+
+delete MUSCLE_TO_ARTICULAR_BATTERIES['deltoides-anterior'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['deltoides-lateral'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['deltoides-posterior'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['pectorales'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['dorsales'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['bÇðceps'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['trÇðceps'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['cuÇ­driceps'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['isquiosurales'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['glÇ§teos'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['pantorrillas'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['antebrazo'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['trapecio'];
+delete MUSCLE_TO_ARTICULAR_BATTERIES['espalda baja'];
+
+Object.assign(MUSCLE_TO_ARTICULAR_BATTERIES, {
+  'Deltoides Anterior': ['shoulder'],
+  'Deltoides Lateral': ['shoulder'],
+  'Deltoides Posterior': ['shoulder'],
+  'Pectorales': ['shoulder'],
+  'Dorsales': ['shoulder'],
+  'Bíceps': ['shoulder', 'elbow'],
+  'Tríceps': ['elbow'],
+  'Cuádriceps': ['knee', 'hip'],
+  'Isquiosurales': ['knee', 'hip'],
+  'Glúteos': ['hip'],
+  'Pantorrillas': ['ankle'],
+  'Antebrazo': ['elbow'],
+  'Trapecio': ['shoulder', 'cervical'],
+  'Aductores': ['hip'],
+  'Cuello': ['cervical'],
+} satisfies Record<string, ArticularBatteryId[]>);
 
 export { ARTICULAR_BATTERIES };

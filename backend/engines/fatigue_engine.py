@@ -161,6 +161,13 @@ def calculate_set_battery_drain(
     if isinstance(set_data, ExerciseSet):
         set_data = set_data.model_dump()
 
+    if set_data.get("type") == "warmup" or set_data.get("isIneffective"):
+        return {
+            "muscularDrainPct": 0.0,
+            "cnsDrainPct": 0.0,
+            "spinalDrainPct": 0.0,
+        }
+
     auge = get_dynamic_auge_metrics(info, set_data.get("exerciseName") or (info.name if info else None))
     rpe = _get_effective_rpe(set_data)
     reps = set_data.get("completedReps") or set_data.get("targetReps") or set_data.get("reps") or 10
@@ -207,8 +214,22 @@ def calculate_set_battery_drain(
     else:
         rest_factor = 1.0
 
-    raw_musc = auge["efc"] * reps_musc * intensity_mult * junk_mult * rest_factor * junk_from_partials * 8.0
-    raw_cns = auge["cnc"] * reps_cns * intensity_mult * rest_factor * 6.0
+    cns_rest_factor = 1.0
+    if rest_time <= 45:
+        cns_rest_factor = 1.15
+    elif rest_time >= 180:
+        cns_rest_factor = 0.92
+
+    advanced_technique_neural = (
+        1
+        + len(set_data.get("restPauses") or []) * 0.05
+        + len(set_data.get("dropSets") or []) * 0.04
+        + (0.03 if partial_reps > 0 else 0.0)
+    )
+    compound_neural = 1.15 if is_compound else 0.72
+
+    raw_musc = auge["efc"] * reps_musc * intensity_mult * junk_mult * rest_factor * junk_from_partials * 7.2
+    raw_cns = auge["cnc"] * reps_cns * intensity_mult * cns_rest_factor * compound_neural * advanced_technique_neural * 3.4
     weight_factor = (set_data.get("weight") or 0) * 0.05 if set_data.get("weight") else auge["efc"] * 2.0
     raw_spinal = auge["ssc"] * reps_spine * intensity_mult * weight_factor * 4.0
 
@@ -235,7 +256,7 @@ def calculate_predicted_session_drain(
 
     for ex in (exercises or []):
         info = idx.find(ex.exerciseDbId, ex.name)
-        primary_muscle = "General"
+        primary_muscle = "Core"
         if info:
             pm = next((m for m in info.involvedMuscles if m.role.value == "primary"), None)
             if pm:
@@ -284,7 +305,7 @@ def calculate_completed_session_stress(
 
     for ex in completed_exercises:
         info = idx.find(ex.exerciseDbId, ex.exerciseName)
-        primary = "General"
+        primary = "Core"
         if info:
             pm = next((m for m in info.involvedMuscles if m.role.value == "primary"), None)
             if pm:

@@ -117,6 +117,23 @@ const PORTION_PATTERNS: { pattern: RegExp; preset: PortionPreset }[] = [
     { pattern: /\bmedio\s+plato\b/i, preset: 'small' },
 ];
 
+function normalizeLookupText(text: string): string {
+    return text
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase()
+        .replace(/\s*\([^)]*\)\s*/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function getFoodLookupSurfaces(food: (typeof FOOD_DATABASE)[number]): string[] {
+    return [
+        food.name,
+        ...(food.searchAliases || []),
+    ].map(normalizeLookupText);
+}
+
 
 function extractPortionFromFragment(text: string): { portion: PortionPreset; cleaned: string } {
     let cleaned = text;
@@ -168,9 +185,11 @@ function extractReferenceFromFragment(text: string): { grams?: number; quantity:
 
         const canonical = resolveToCanonical(afterDim);
         const food = FOOD_DATABASE.find(f =>
-            f.name.toLowerCase().replace(/\s+con\s+/gi, ' c/ ') === canonical.toLowerCase() ||
-            f.name.toLowerCase().includes(canonical.toLowerCase()) ||
-            canonical.toLowerCase().includes(f.name.toLowerCase().replace(/\s+con\s+/gi, ' c/ '))
+            getFoodLookupSurfaces(f).some(surface =>
+                surface === normalizeLookupText(canonical) ||
+                surface.includes(normalizeLookupText(canonical)) ||
+                normalizeLookupText(canonical).includes(surface)
+            )
         );
         const foodType = food ? getFoodTypeForPortion(food) : 'mixed';
         const gramsPerUnit = getGramsForReference(ref, foodType);
@@ -260,22 +279,10 @@ function extractCompositionModifiers(text: string): { modifiers?: ParsedMealItem
 }
 
 function matchesKnownFoodName(term: string): boolean {
-    const normalizedTerm = term
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .toLowerCase()
-        .replace(/\s+/g, ' ')
-        .trim();
+    const normalizedTerm = normalizeLookupText(term);
 
     return FOOD_DATABASE.some(food => {
-        const normalizedName = food.name
-            .normalize('NFD')
-            .replace(/\p{Diacritic}/gu, '')
-            .toLowerCase()
-            .replace(/\s*\([^)]*\)\s*/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-        return normalizedName === normalizedTerm;
+        return getFoodLookupSurfaces(food).some(surface => surface === normalizedTerm);
     });
 }
 

@@ -27,7 +27,7 @@ MUSCLE_PROFILE_MAP: dict[str, str] = {
     "pectorales": "medium", "dorsales": "medium", "hombros": "medium",
     "trapecio": "medium", "aductores": "medium", "core": "medium",
     "cuádriceps": "slow", "glúteos": "slow",
-    "isquiosurales": "heavy", "espalda baja": "heavy", "erectores espinales": "heavy",
+    "isquiosurales": "heavy", "espalda baja": "heavy", "erectores espinales": "heavy", "cuello": "medium",
 }
 
 ATHLETE_CAPACITY_FLOORS: dict[str, int] = {
@@ -48,6 +48,7 @@ MUSCLE_CATEGORY_MAP: dict[str, list[str]] = {
     "pantorrillas": ["pantorrilla", "gemelo", "gastrocnemio", "sóleo", "soleo", "calves"],
     "abdomen": ["abdomen", "abdominal", "oblicuo", "recto abdominal", "core", "transverso", "abs"],
     "espalda baja": ["erector", "espinal", "lumbar", "espalda baja", "cuadrado lumbar", "lower back"],
+    "cuello": ["cuello", "cervical", "neck"],
 }
 
 _clamp = lambda v, lo, hi: min(hi, max(lo, v))
@@ -338,12 +339,12 @@ def calculate_systemic_fatigue(
 
         dur = log.duration or 0
         if dur > 75 * 60:
-            session_cns *= 1.15
+            session_cns *= 1.08
         if dur > 90 * 60:
-            session_cns *= 1.25
+            session_cns *= 1.15
         cns_load += session_cns * recency
 
-    gym_fatigue = _clamp((cns_load / 4000) * 100, 0, 100)
+    gym_fatigue = _clamp(cns_load, 0, 100)
 
     sleep_penalty = 0.0
     if not settings or getattr(settings.algorithmSettings, "augeEnableSleepTracking", True):

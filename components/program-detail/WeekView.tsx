@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Program, Session, ProgramWeek } from '../../types';
 import { useAppContext } from '../../contexts/AppContext';
-import WeekRoadmap from './WeekRoadmap';
 import { DumbbellIcon, PlayIcon, EditIcon, TrashIcon } from '../icons';
 
 interface WeekViewProps {
@@ -67,46 +66,22 @@ const WeekView: React.FC<WeekViewProps> = ({
 
     return (
         <div className="pb-6">
-            {/* Roadmap de navegación */}
-            <WeekRoadmap
-                program={program}
-                selectedWeekId={selectedWeekId}
-                onSelectWeek={onSelectWeek}
-                currentWeekId={currentWeekId}
-            />
-
             {/* Header de la semana */}
-            <div className="mt-4 px-4">
-                <div className="bg-gradient-to-br from-zinc-50 to-white rounded-3xl border border-zinc-200/60 p-4 shadow-sm">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-lg font-black text-zinc-900">
-                                {selectedWeek.name || `Semana ${selectedWeek.id.slice(-2)}`}
-                            </h3>
-                            <p className="text-[11px] text-zinc-500 mt-0.5">
-                                {selectedWeek.sessions.length} sesiones programadas
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-2xl font-black text-zinc-900">{weekAdherence}%</div>
-                            <div className="text-[9px] uppercase tracking-[0.2em] text-zinc-400">Completada</div>
-                        </div>
-                    </div>
-                    
-                    {/* Barra de progreso */}
-                    <div className="mt-3 h-2 bg-zinc-100 rounded-full overflow-hidden">
-                        <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${weekAdherence}%` }}
-                            transition={{ duration: 0.5, ease: 'easeOut' }}
-                            className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full"
-                        />
+            <div className="mt-0 px-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-black text-zinc-900">
+                            {selectedWeek.name || `Semana ${selectedWeek.id.slice(-2)}`}
+                        </h3>
+                        <p className="text-[11px] text-zinc-500 mt-0.5">
+                            {selectedWeek.sessions.length} sesiones programadas
+                        </p>
                     </div>
                 </div>
             </div>
 
             {/* Lista de sesiones */}
-            <div className="mt-4 px-4">
+            <div className="mt-3 px-4">
                 <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 mb-3">
                     Sesiones
                 </h4>

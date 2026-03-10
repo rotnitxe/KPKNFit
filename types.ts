@@ -244,6 +244,10 @@ export interface Settings {
         deepseek?: string;
         usda?: string;
     };
+    nutritionDescriptionMode?: 'auto' | 'rules' | 'local-ai';
+    nutritionUseOnlineApis?: boolean;
+    nutritionUseLocalAI?: boolean;
+    nutritionLocalModel?: string;
     aiTemperature: number; // 0.0 a 1.0 (Creatividad)
     aiMaxTokens: number;
     aiVoice: string;
@@ -595,7 +599,7 @@ export type CanonicalMuscle =
     | 'Pectorales' | 'Dorsales' | 'Trapecio' | 'Deltoides'
     | 'Tríceps' | 'Bíceps' | 'Antebrazo' | 'Abdomen'
     | 'Cuádriceps' | 'Isquiosurales' | 'Glúteos' | 'Aductores' | 'Pantorrillas'
-    | 'Core' | 'Erectores Espinales';
+    | 'Core' | 'Erectores Espinales' | 'Cuello';
 
 export interface ExerciseMuscleInfo {
     id: string;
@@ -967,6 +971,8 @@ export interface FoodItem {
     id: string;
     name: string;
     brand?: string;
+    category?: string;
+    subcategory?: string;
     servingSize: number;
     servingUnit?: string;
     unit: string;
@@ -981,6 +987,8 @@ export interface FoodItem {
     proteinQuality?: { completeness: string; details: string };
     micronutrients?: { name: string; amount: number; unit: string }[];
     aiNotes?: string;
+    tags?: string[];
+    searchAliases?: string[];
     /** Si el alimento crudo/seco cambia de peso al cocinar. Factor: peso_cocido/peso_crudo (shrinks ~0.75) o peso_seco/peso_cocido (expands ~0.25) */
     cookingBehavior?: CookingBehavior;
     cookingWeightFactor?: number;

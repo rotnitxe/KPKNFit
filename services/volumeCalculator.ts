@@ -2,6 +2,7 @@
 import { AthleteProfileScore, Settings, Mesocycle, Session, ExerciseMuscleInfo, MuscleRole, WorkoutLog, Program } from '../types';
 import type { VolumeRecommendation as ProgramVolumeRec } from '../types';
 import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
+import { getMuscleDisplayId, normalizeCanonicalMuscle } from '../utils/canonicalMuscles';
 
 // === CONSTANTES DEL INFORME (Módulos 4 y 5) ===
 const PHASE_FACTORS: Record<string, number> = {
@@ -249,7 +250,12 @@ export const calculateVolumeAdjustment = (
  * - Espalda: Separada en Amplitud (Dorsal) y Densidad (Trapecio/Espalda Alta).
  * - Brazos: Estrictamente separados.
  */
-export const normalizeMuscleGroup = (specificMuscle: string): string => {
+export const normalizeMuscleGroup = (specificMuscle: string, emphasis?: string): string => {
+    if (!specificMuscle) return '';
+
+    const canonicalDisplay = getMuscleDisplayId(specificMuscle, emphasis);
+    if (canonicalDisplay) return canonicalDisplay;
+
     const lower = specificMuscle.toLowerCase().trim();
 
     // --- 1. HOMBROS (Separación por Cabezas - CRÍTICO PARA ESTÉTICA) ---
@@ -269,7 +275,7 @@ export const normalizeMuscleGroup = (specificMuscle: string): string => {
 
     // --- 2. ESPALDA (Separación Amplitud vs Densidad) ---
     // Trapecio y Espalda Alta (Densidad)
-    if (lower.includes('trapecio') || lower.includes('romboides') || lower.includes('espinal') || lower.includes('alta')) {
+    if (lower.includes('trapecio') || lower.includes('romboides') || lower.includes('alta')) {
         return 'Trapecio';
     }
     // Dorsal/Dorsales (Amplitud - sin porciones)
@@ -278,7 +284,7 @@ export const normalizeMuscleGroup = (specificMuscle: string): string => {
     }
     // Espalda Baja (Salud/Core)
     if (lower.includes('erector') || lower.includes('lumbar') || lower.includes('baja')) {
-        return 'Espalda Baja';
+        return 'Erectores Espinales';
     }
     // Fallback genérico de espalda
     if (lower.includes('espalda')) {
@@ -311,12 +317,16 @@ export const normalizeMuscleGroup = (specificMuscle: string): string => {
         return 'Aductores';
     }
     if (lower.includes('gemelo') || lower.includes('sóleo') || lower.includes('soleo') || lower.includes('pantorrilla')) {
-        return 'Gemelos';
+        return 'Pantorrillas';
+    }
+
+    if (lower.includes('cuello') || lower.includes('cervical') || lower.includes('neck')) {
+        return 'Cuello';
     }
 
     // --- 5. CORE / OTROS ---
-    if (lower.includes('pectoral') || lower.includes('pecho')) return 'Pectoral';
-    if (lower.includes('abdominal') || lower.includes('oblicuo') || lower.includes('core')) return 'Abdominales';
+    if (lower.includes('pectoral') || lower.includes('pecho')) return 'Pectorales';
+    if (lower.includes('abdominal') || lower.includes('oblicuo') || lower.includes('core')) return 'Abdomen';
 
     // Fallback final: Capitalizar nombre original
     return specificMuscle.charAt(0).toUpperCase() + specificMuscle.slice(1);
@@ -367,7 +377,7 @@ export const calculateUnifiedMuscleVolume = (
 
                     involvedMuscles.forEach((m: any) => {
                         if (!m || !m.muscle) return;
-                        const muscleName = normalizeMuscleGroup(m.muscle); // Usamos tu propio normalizador
+                        const muscleName = normalizeMuscleGroup(m.muscle, m.emphasis); // Usamos tu propio normalizador
                         const multiplier = MUSCLE_ROLE_MULTIPLIERS[m.role as MuscleRole] || 0.5;
 
                         const currentMax = uniqueMuscleMultipliers.get(muscleName) || 0;
@@ -404,12 +414,13 @@ const MUSCLE_AGGREGATION_MAP: Record<string, string[]> = {
     'Cuádriceps': ['cuádriceps', 'vasto-lateral', 'vasto-medial', 'recto-femoral'],
     'Isquiosurales': ['isquiosurales', 'bíceps-femoral', 'semitendinoso', 'semimembranoso'],
     'Glúteos': ['glúteos', 'glúteo-mayor', 'glúteo-medio', 'glúteo-menor'],
-    'Pectoral': ['pectoral', 'pectoral-superior', 'pectoral-medio', 'pectoral-inferior'],
+    'Pectorales': ['pectoral', 'pectoral-superior', 'pectoral-medio', 'pectoral-inferior'],
     'Bíceps': ['bíceps', 'cabeza-larga-bíceps', 'cabeza-corta-bíceps', 'braquial', 'braquiorradial'],
     'Tríceps': ['tríceps', 'cabeza-larga-tríceps', 'cabeza-lateral-tríceps', 'cabeza-medial-tríceps'],
     'Dorsales': ['espalda', 'dorsal-ancho', 'redondo-mayor'],
     'Trapecio': ['trapecio', 'trapecio-superior', 'trapecio-medio', 'trapecio-inferior', 'romboides'],
     'Espalda Baja': ['erectores-espinales', 'multífidos', 'cuadrado-lumbar'],
+    'Erectores Espinales': ['erectores-espinales', 'multifidos', 'cuadrado-lumbar'],
     'Abdomen': ['abdomen', 'recto-abdominal', 'oblicuos', 'transverso-abdominal', 'core'],
     'Pantorrillas': ['pantorrillas', 'gastrocnemio', 'sóleo'],
 };
@@ -560,7 +571,19 @@ export const VOLUME_DISPLAY_MUSCLES = [
  * Usa INITIAL_MUSCLE_GROUP_DATA (MEV, MAV, MRV).
  */
 export const getIsraetelVolumeRecommendations = (): ProgramVolumeRec[] => {
-    return VOLUME_DISPLAY_MUSCLES.map(muscle => {
+    const displayMuscles = [
+        'CuÇ­driceps', 'Isquiosurales', 'GlÇ§teos', 'Pectorales', 'BÇðceps', 'TrÇðceps',
+        'Dorsales', 'Trapecio', 'Erectores Espinales', 'Abdomen', 'Pantorrillas',
+        'Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior',
+    ] as const;
+    const canonicalDisplayMuscles = [
+        'Cuadriceps', 'Isquiosurales', 'Gluteos', 'Pectorales', 'Biceps', 'Triceps',
+        'Dorsales', 'Trapecio', 'Erectores Espinales', 'Abdomen', 'Pantorrillas',
+        'Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior',
+    ] as const;
+    void displayMuscles;
+
+    return canonicalDisplayMuscles.map(muscle => {
         const th = getVolumeThresholdsForMuscle(muscle, { phase: 'Acumulación' });
         return {
             muscleGroup: muscle,

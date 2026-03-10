@@ -60,11 +60,11 @@ const ReadinessCheckModal: React.FC<ReadinessCheckModalProps> = ({ isOpen, onClo
         if (banister?.systems?.muscular) {
             const perf = banister.systems.muscular.performance;
             if (perf.length > 0) {
-                const latest = perf[perf.length - 1];
-                if (latest > 0.7) score = 5;
-                else if (latest > 0.4) score = 4;
-                else if (latest > 0.1) score = 3;
-                else if (latest > -0.2) score = 2;
+                const latest = perf[0];
+                if (latest >= 104) score = 5;
+                else if (latest >= 101) score = 4;
+                else if (latest >= 97) score = 3;
+                else if (latest >= 93) score = 2;
                 else score = 1;
             }
         }

@@ -7,6 +7,7 @@ import Button from './ui/Button';
 import { SaveIcon, PlusIcon, XIcon, ActivityIcon } from './icons';
 import { useAppContext } from '../contexts/AppContext';
 import ToggleSwitch from './ui/ToggleSwitch';
+import { getMuscleDisplayId, normalizeCanonicalMuscle, normalizeInvolvedMuscles } from '../utils/canonicalMuscles';
 
 interface CustomExerciseEditorModalProps {
   isOpen: boolean;
@@ -16,6 +17,34 @@ interface CustomExerciseEditorModalProps {
   existingExercise?: ExerciseMuscleInfo;
   preFilledName?: string;
 }
+
+const LOWERCASE_TITLE_WORDS = new Set([
+  'a', 'al', 'con', 'contra', 'de', 'del', 'desde', 'e', 'el', 'en', 'entre',
+  'hacia', 'la', 'las', 'los', 'o', 'para', 'por', 'sin', 'sobre', 'tras', 'u',
+  'un', 'una', 'y',
+]);
+
+const toExerciseTitleCase = (value: string): string => {
+  return value
+    .trim()
+    .split(/\s+/)
+    .map((word, index) => {
+      const match = word.match(/^([([{"'¿¡]*)(.*?)([)\]},"'.:;!?]*)$/);
+      const prefix = match?.[1] || '';
+      const core = match?.[2] || '';
+      const suffix = match?.[3] || '';
+      if (!core) return word;
+      if (/^[A-Z0-9-]+$/.test(core)) return `${prefix}${core}${suffix}`;
+
+      const lower = core.toLowerCase();
+      const formatted = index > 0 && LOWERCASE_TITLE_WORDS.has(lower)
+        ? lower
+        : `${lower.charAt(0).toUpperCase()}${lower.slice(1)}`;
+
+      return `${prefix}${formatted}${suffix}`;
+    })
+    .join(' ');
+};
 
 const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ isOpen, onClose, onSave, existingExercise, preFilledName }) => {
   const { addToast, exerciseList } = useAppContext();
@@ -33,7 +62,9 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
     if (isOpen) {
         setIsVisible(true);
         if(existingExercise) {
-            setExercise(JSON.parse(JSON.stringify(existingExercise)));
+            const cloned = JSON.parse(JSON.stringify(existingExercise));
+            cloned.involvedMuscles = normalizeInvolvedMuscles(cloned.involvedMuscles || []);
+            setExercise(cloned);
         } else {
             setExercise({
                 id: crypto.randomUUID(), name: preFilledName || '', description: '', involvedMuscles: [],
@@ -109,7 +140,15 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
             case 'Tirón': muscles = [{ muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Bíceps', role: 'secondary', activation: 0.5 }]; break;
             case 'Anti-Extensión': case 'Flexión': muscles = [{ muscle: 'Abdomen', role: 'primary', activation: 1.0 }]; break;
         }
-        if (muscles.length > 0) handleChange('involvedMuscles', muscles);
+        if (muscles.length > 0) {
+            const normalizedDefaults = muscles.map((entry) => {
+                if (newForce === 'Empuje' && entry.muscle === 'Deltoides' && !entry.emphasis) {
+                    return { ...entry, emphasis: 'anterior' };
+                }
+                return entry;
+            });
+            handleChange('involvedMuscles', normalizeInvolvedMuscles(normalizedDefaults));
+        }
     }
   };
 
@@ -117,7 +156,15 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
     const updatedInvolved = [...(exercise.involvedMuscles || [])];
     const target = updatedInvolved[index];
     if (field === 'muscle') {
-        target.muscle = value;
+        if (!value) {
+            target.muscle = '';
+            delete target.emphasis;
+        } else {
+            const normalized = normalizeCanonicalMuscle(value);
+            target.muscle = normalized.muscle;
+            if (normalized.emphasis) target.emphasis = normalized.emphasis;
+            else delete target.emphasis;
+        }
     } else if (field === 'role') {
         target.role = value as any;
         target.activation = value === 'primary' ? 1.0 : (value === 'secondary' ? 0.5 : 0.0);
@@ -147,7 +194,11 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
         return;
     }
     
-    const finalExercise = { ...exercise };
+    const finalExercise = {
+        ...exercise,
+        name: toExerciseTitleCase(exercise.name),
+        involvedMuscles: normalizeInvolvedMuscles(exercise.involvedMuscles || []),
+    };
     if (finalExercise.efc === undefined) finalExercise.efc = Number(predictedAuge.efc.toFixed(1));
     if (finalExercise.cnc === undefined) finalExercise.cnc = Number(predictedAuge.cnc.toFixed(1));
     if (finalExercise.ssc === undefined) finalExercise.ssc = Number(predictedAuge.ssc.toFixed(1));
@@ -157,8 +208,13 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
   };
 
   const muscleOptions = useMemo(() => {
-    const allMuscles = new Set(exerciseList.flatMap(ex => ex.involvedMuscles?.map(m => m.muscle) || []));
-    MUSCLE_GROUPS.forEach(m => allMuscles.add(m));
+    const allMuscles = new Set<string>();
+    exerciseList.forEach((dbExercise) => {
+      (dbExercise.involvedMuscles || []).forEach((m) => allMuscles.add(getMuscleDisplayId(m.muscle, m.emphasis)));
+    });
+    MUSCLE_GROUPS.forEach((m) => {
+      if (m !== 'Todos') allMuscles.add(getMuscleDisplayId(m));
+    });
     allMuscles.delete('Todos');
     return Array.from(allMuscles).filter(Boolean).sort();
   }, [exerciseList]);
@@ -306,7 +362,7 @@ const CustomExerciseEditorModal: React.FC<CustomExerciseEditorModalProps> = ({ i
                     <div className="space-y-2">
                         {exercise.involvedMuscles.map((inv, idx) => (
                             <div key={idx} className="flex items-center gap-2 bg-[#FEF7FF] p-2 rounded-xl border border-cyber-cyan/20">
-                                <select value={inv.muscle} onChange={e => handleInvolvedMuscleChange(idx, 'muscle', e.target.value)} className="flex-grow text-xs bg-transparent border-none font-bold text-white outline-none">
+                                <select value={inv.muscle ? getMuscleDisplayId(inv.muscle, inv.emphasis) : ''} onChange={e => handleInvolvedMuscleChange(idx, 'muscle', e.target.value)} className="flex-grow text-xs bg-transparent border-none font-bold text-white outline-none">
                                     <option value="" className="text-[#49454F]">Músculo...</option>
                                     {muscleOptions.map(m => <option key={m} value={m} className="bg-[#ECE6F0] text-white">{m}</option>)}
                                 </select>

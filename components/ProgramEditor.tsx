@@ -1069,7 +1069,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
                     exInfo.involvedMuscles.forEach(muscleData => {
                         let parentMuscle = muscleData.muscle;
                         try {
-                            parentMuscle = normalizeMuscleGroup(muscleData.muscle);
+                            parentMuscle = normalizeMuscleGroup(muscleData.muscle, muscleData.emphasis);
                         } catch (e) {
                             // Si falla la normalización, usamos el nombre original capitalizado
                             parentMuscle = muscleData.muscle.charAt(0).toUpperCase() + muscleData.muscle.slice(1);

@@ -2,9 +2,10 @@
 // Drawer lateral para registrar comida con resolucion guiada.
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionInput, CookingMethod, PortionPreset, ParsedMealItem } from '../../types';
+import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionInput, CookingMethod, PortionPreset, ParsedMealItem, ParsedMealDescription } from '../../types';
 import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
 import { AlchemyEngine } from '../../services/alchemyEngine';
+import { parseFreeFormNutrition } from '../../services/aiNutritionParser';
 import {
     searchFoods,
     rememberFoodResolution,
@@ -171,6 +172,21 @@ function makeDescriptionTag(item: ParsedMealItem | null, fallbackText?: string):
     };
 }
 
+function buildParsedSignature(parsed: ParsedMealDescription): string {
+    return parsed.items
+        .map(item => JSON.stringify({
+            tag: item.tag,
+            quantity: item.quantity,
+            amountGrams: item.amountGrams ?? null,
+            portion: item.portion ?? null,
+            brandHint: item.brandHint ?? null,
+            cookingMethod: item.cookingMethod ?? null,
+            subItems: item.subItems?.map(subItem => subItem.tag) ?? [],
+        }))
+        .sort()
+        .join('|');
+}
+
 export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     isOpen,
     onClose,
@@ -197,7 +213,6 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const resolutionRequestRef = useRef(0);
     const searchRequestRef = useRef(0);
 
-    const parsed = useMemo(() => parseMealDescription(description), [description]);
     const isAppendixMode = displayMode === 'appendix';
     const sheetContainerClass = isAppendixMode
         ? 'relative mx-auto w-full max-w-[380px] rounded-[32px] border border-white/40 bg-white/95 shadow-2xl backdrop-blur flex flex-col overflow-hidden'
@@ -365,21 +380,38 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const parseAndSetTags = useCallback(async () => {
         const requestId = ++resolutionRequestRef.current;
         const preserved = tagItems.filter(tag => tag.origin !== 'description');
+        const trimmedDescription = description.trim();
 
-        if (!description.trim()) {
+        if (!trimmedDescription) {
             setTagItems(preserved);
             return;
         }
 
-        const descriptionTags = parsed.items.length > 0
-            ? parsed.items.map(item => makeDescriptionTag(item))
-            : [makeDescriptionTag(null, description.trim())];
+        const fastParsed = parseMealDescription(trimmedDescription);
+        const fastSignature = buildParsedSignature(fastParsed);
+        const descriptionTags = fastParsed.items.length > 0
+            ? fastParsed.items.map(item => makeDescriptionTag(item))
+            : [makeDescriptionTag(null, trimmedDescription)];
 
         setExpandedTagKey(null);
         setTagItems([...descriptionTags, ...preserved]);
 
         await Promise.all(descriptionTags.map(tag => resolveDescriptionTag(tag, requestId)));
-    }, [description, parsed, resolveDescriptionTag, tagItems]);
+
+        const refinedParsed = await parseFreeFormNutrition(trimmedDescription, settings);
+        if (requestId !== resolutionRequestRef.current) return;
+
+        const refinedSignature = buildParsedSignature(refinedParsed);
+        if (refinedSignature === fastSignature) return;
+
+        const refinedTags = refinedParsed.items.length > 0
+            ? refinedParsed.items.map(item => makeDescriptionTag(item))
+            : [makeDescriptionTag(null, trimmedDescription)];
+
+        setExpandedTagKey(null);
+        setTagItems([...refinedTags, ...preserved]);
+        await Promise.all(refinedTags.map(tag => resolveDescriptionTag(tag, requestId)));
+    }, [description, resolveDescriptionTag, settings, tagItems]);
 
     useEffect(() => {
         if (!isOpen || activeTab === 'templates') return;

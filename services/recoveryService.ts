@@ -1,11 +1,13 @@
 
 import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog, NutritionLog } from '../types';
 import { computeNutritionRecoveryMultiplier } from './nutritionRecoveryService';
-import { calculateSetStress, getDynamicAugeMetrics, WEEKLY_CNS_FATIGUE_REFERENCE, isSetEffective } from './fatigueService';
+import { calculateSetStress, isSetEffective, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from './fatigueService';
 import { buildExerciseIndex, findExercise, findExerciseWithFallback, ExerciseIndex } from '../utils/exerciseIndex';
 import { inferInvolvedMuscles } from '../data/inferMusclesFromName';
 import { getLocalDateString } from '../utils/dateUtils';
 import { calculateArticularBatteries } from './tendonRecoveryService';
+import { getCachedAdaptiveData } from './augeAdaptiveService';
+import { getMuscleDisplayId, matchesMuscleTarget, normalizeCanonicalMuscle } from '../utils/canonicalMuscles';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
 
@@ -21,7 +23,7 @@ const MUSCLE_PROFILE_MAP: Record<string, string> = {
     'Pantorrillas': 'fast', 'Abdomen': 'fast', 'Antebrazo': 'fast',
     'Pectorales': 'medium', 'Dorsales': 'medium', 'Hombros': 'medium', 'Trapecio': 'medium',
     'Cuádriceps': 'slow', 'Glúteos': 'slow', 'Aductores': 'medium',
-    'Isquiosurales': 'heavy', 'Erectores Espinales': 'heavy', 'Core': 'medium'
+    'Isquiosurales': 'heavy', 'Erectores Espinales': 'heavy', 'Core': 'medium', 'Cuello': 'medium'
 };
 
 const ATHLETE_CAPACITY_FLOORS: Record<string, number> = {
@@ -52,6 +54,47 @@ const safeExp = (val: number): number => {
     return isNaN(res) || !isFinite(res) ? 0 : res;
 };
 
+const transformFatigueToPercent = (value: number, scale: number): number => {
+    if (!Number.isFinite(value)) return 0;
+    if (scale <= 0) return 0;
+    const normalized = Math.max(0, value);
+    const percent = 100 * (1 - safeExp(-normalized / scale));
+    return clamp(percent, 0, 100);
+};
+
+const normalizeLookupKey = (value: string | undefined | null): string => {
+    return (value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+};
+
+const shouldCountFatigueSet = (set: any): boolean => {
+    return !!set && !(set.type === 'warmup' || set.isIneffective) && isSetEffective(set);
+};
+
+const getAdaptiveRecoveryHours = (muscleName: string): number | null => {
+    const adaptiveCache = getCachedAdaptiveData();
+    const normalizedTarget = normalizeLookupKey(muscleName);
+    const canonicalTarget = normalizeLookupKey(normalizeCanonicalMuscle(muscleName).muscle);
+
+    for (const [key, value] of Object.entries(adaptiveCache.personalizedRecoveryHours || {})) {
+        const normalizedKey = normalizeLookupKey(key);
+        if (normalizedKey === normalizedTarget || normalizedKey === canonicalTarget) {
+            return typeof value === 'number' && value > 0 ? value : null;
+        }
+    }
+
+    return null;
+};
+
+const getAdaptiveSystemBiasCorrection = (system: 'cns' | 'muscular' | 'spinal'): number => {
+    const adaptiveCache = getCachedAdaptiveData();
+    const value = adaptiveCache.selfImprovement?.suggested_adjustments?.[`${system}_bias_correction`];
+    return typeof value === 'number' ? value : 0;
+};
+
 // Mapa de normalización para agrupar variantes anatómicas
 const MUSCLE_CATEGORY_MAP: Record<string, string[]> = {
     'Pectorales': ['pectoral', 'pecho'],
@@ -68,18 +111,16 @@ const MUSCLE_CATEGORY_MAP: Record<string, string[]> = {
     'Pantorrillas': ['pantorrilla', 'gemelo', 'gastrocnemio', 'sóleo', 'soleo', 'calves'],
     'Abdomen': ['abdomen', 'abdominal', 'oblicuo', 'recto abdominal', 'core', 'transverso', 'abs', 'flexores de cadera', 'iliopsoas'],
     'Trapecio': ['trapecio'],
-    'Erectores Espinales': ['erector', 'espinal', 'lumbar', 'espalda baja', 'cuadrado lumbar', 'lower back']
+    'Erectores Espinales': ['erector', 'espinal', 'lumbar', 'espalda baja', 'cuadrado lumbar', 'lower back'],
+    'Cuello': ['cuello', 'cervical', 'neck']
 };
 
-const isMuscleInGroup = (specificMuscle: string, targetCategory: string): boolean => {
-    const specific = specificMuscle.toLowerCase();
-    const target = targetCategory.toLowerCase();
-    if (specific === target) return true;
-    const keywords = MUSCLE_CATEGORY_MAP[target];
-    if (keywords) {
-        return keywords.some(k => specific.includes(k));
-    }
-    return specific.includes(target) || target.includes(specific);
+const isMuscleInGroup = (specificMuscle: string, targetCategory: string, specificEmphasis?: string): boolean => {
+    if (!specificMuscle || !targetCategory) return false;
+    if (matchesMuscleTarget(specificMuscle, targetCategory, specificEmphasis)) return true;
+
+    const specificDisplay = getMuscleDisplayId(specificMuscle, specificEmphasis);
+    return normalizeLookupKey(specificDisplay) === normalizeLookupKey(targetCategory);
 };
 
 // --- 1. CAPACIDAD DE TRABAJO DINÁMICA CON SUELO DE SEGURIDAD ---
@@ -104,10 +145,13 @@ const calculateUserWorkCapacity = (history: WorkoutLog[], muscleName: string, ex
             if (!info) return;
 
             // Verificar si el músculo participó en el ejercicio
-            const involvement = info.involvedMuscles.find(m => isMuscleInGroup(m.muscle, muscleName));
+            const involvement = info.involvedMuscles.find(m => isMuscleInGroup(m.muscle, muscleName, m.emphasis));
             if (involvement) {
                 // Sumar estrés ponderado por participación
-                const stress = ex.sets.reduce((acc, s) => acc + calculateSetStress(s, info, 90), 0);
+                const stress = ex.sets.reduce((acc, s) => {
+                    if (!shouldCountFatigueSet(s)) return acc;
+                    return acc + calculateSetStress(s, info, (ex as any).restTime || 90);
+                }, 0);
                 totalStress += (stress * (involvement.activation ?? 1));
             }
         });
@@ -146,12 +190,12 @@ export const calculateMuscleBattery = (
     // 2. Determinar Perfil de Recuperación (Half-Life diferenciado)
     let profileKey = 'medium';
     for (const [key, val] of Object.entries(MUSCLE_PROFILE_MAP)) {
-        if (isMuscleInGroup(key, muscleName)) {
+        if (isMuscleInGroup(muscleName, key)) {
             profileKey = val;
             break;
         }
     }
-    const baseRecoveryTime = RECOVERY_PROFILES[profileKey];
+    const baseRecoveryTime = clamp(getAdaptiveRecoveryHours(muscleName) ?? RECOVERY_PROFILES[profileKey], 18, 144);
 
     // 3. SISTEMA AUGE: Ajuste por Factores de Estilo de Vida (Wellness)
     // Nota: En AUGE, el multiplicador AUMENTA el tiempo de recuperación (penalización)
@@ -230,12 +274,12 @@ export const calculateMuscleBattery = (
             const involvedMuscles = info?.involvedMuscles ?? inferInvolvedMuscles(ex.exerciseName ?? '', (ex as any).equipment ?? '', 'Otro', 'upper');
 
             for (const muscleInvolvement of involvedMuscles) {
-                if (!isMuscleInGroup(muscleInvolvement.muscle, muscleName)) continue;
+                const emphasis = 'emphasis' in muscleInvolvement ? muscleInvolvement.emphasis : undefined;
+                if (!isMuscleInGroup(muscleInvolvement.muscle, muscleName, emphasis)) continue;
 
                 const rawStress = ex.sets.reduce((acc, s) => {
-                    if ((s as any).type === 'warmup' || (s as any).isIneffective) return acc;
-                    if (!isSetEffective(s)) return acc;
-                    return acc + calculateSetStress(s, info ?? undefined, 90);
+                    if (!shouldCountFatigueSet(s)) return acc;
+                    return acc + calculateSetStress(s, info ?? undefined, (ex as any).restTime || 90);
                 }, 0);
 
                 let roleMultiplier = 0.0;
@@ -250,7 +294,7 @@ export const calculateMuscleBattery = (
                 sessionMuscleStress += (rawStress * roleMultiplier * activationFactor);
 
                 if (hoursSince <= 168 && (muscleInvolvement.role === 'primary' || (muscleInvolvement.role === 'secondary' && activationFactor > 0.6))) {
-                    effectiveSetsCount += ex.sets.filter((s: any) => !(s.type === 'warmup' || s.isIneffective) && isSetEffective(s)).length;
+                    effectiveSetsCount += ex.sets.filter((s: any) => shouldCountFatigueSet(s)).length;
                 }
             }
         });
@@ -265,9 +309,10 @@ export const calculateMuscleBattery = (
         }
     });
 
-    // Calcular batería base matemática
-    let batteryPercentage = 100 - (accumulatedFatigue / muscleCapacity * 100);
-    batteryPercentage = clamp(batteryPercentage, 0, 100);
+    // Calcular batería base matemática con curva logarítmica para evitar saturaciones
+    const rawFatiguePercent = (accumulatedFatigue / muscleCapacity) * 100;
+    const fatiguePenalty = transformFatigueToPercent(rawFatiguePercent, Math.max(30, muscleCapacity * 0.35));
+    let batteryPercentage = clamp(100 - fatiguePenalty, 0, 100);
 
     // --- 5. CARGA DE FONDO (BACKGROUND LOAD) ---
     // Si la vida diaria es exigente, el "100%" nunca es realmente 100%.
@@ -409,6 +454,7 @@ export const calculateMuscleBattery = (
 export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: SleepLog[], dailyWellbeingLogs: DailyWellbeingLog[], exerciseList: ExerciseMuscleInfo[], settings?: Settings) => {
     const now = Date.now();
     const exIndex = buildExerciseIndex(exerciseList);
+    const tanks = calculatePersonalizedBatteryTanks(settings || {});
     const last7DaysLogs = history.filter(l => (now - new Date(l.date).getTime()) < 7 * 24 * 3600 * 1000);
 
     let cnsLoad = 0;
@@ -418,33 +464,35 @@ export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: Sleep
         const recencyMultiplier = Math.max(0.1, Math.exp(-0.4 * daysAgo));
 
         let sessionCNS = 0;
+        const muscleVolumeMap: Record<string, number> = {};
         log.completedExercises.forEach(ex => {
             const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
-            const { cnc } = getDynamicAugeMetrics(info, ex.exerciseName);
+            const primaryEntry = info?.involvedMuscles?.find(m => m.role === 'primary');
+            const primaryMuscle = primaryEntry
+                ? getMuscleDisplayId(primaryEntry.muscle, primaryEntry.emphasis)
+                : 'Core';
+            let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
 
             ex.sets.forEach(s => {
-                const stress = calculateSetStress(s, info, 90);
+                if (!shouldCountFatigueSet(s)) return;
+                accumulatedSets += 1;
+                const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, (ex as any).restTime || 90);
                 // SISTEMA AUGE: Convertimos la escala CNC (1-5) en un ratio multiplicador (0.2 a 1.0)
-                const sncRatio = cnc / 5.0;
+                sessionCNS += drain.cnsDrainPct;
 
                 // Cargas supra-máximas (>90% 1RM) aumentan la fuga del CNC drásticamente
-                let loadMultiplier = 1.0;
-                if (info?.calculated1RM && s.weight) {
-                    if ((s.weight / info.calculated1RM) >= 0.90) loadMultiplier = 1.3;
-                }
-
-                sessionCNS += (stress * sncRatio * loadMultiplier);
             });
+            muscleVolumeMap[primaryMuscle] = accumulatedSets;
         });
 
         // Duración: >75 min empieza a liberar cortisol exponencialmente
-        if ((log.duration || 0) > 75 * 60) sessionCNS *= 1.15;
-        if ((log.duration || 0) > 90 * 60) sessionCNS *= 1.25;
+        if ((log.duration || 0) > 75 * 60) sessionCNS *= 1.08;
+        if ((log.duration || 0) > 90 * 60) sessionCNS *= 1.15;
 
         cnsLoad += sessionCNS * recencyMultiplier;
     });
 
-    const normalizedGymFatigue = clamp((cnsLoad / WEEKLY_CNS_FATIGUE_REFERENCE) * 100, 0, 100);
+    const normalizedGymFatigue = clamp(cnsLoad, 0, 100);
 
     let sleepPenalty = 0;
 
@@ -484,7 +532,7 @@ export const calculateSystemicFatigue = (history: WorkoutLog[], sleepLogs: Sleep
     }
 
     // 4. Fusión Final
-    const totalFatigue = normalizedGymFatigue + sleepPenalty + lifeStressPenalty;
+    const totalFatigue = normalizedGymFatigue + sleepPenalty + lifeStressPenalty - getAdaptiveSystemBiasCorrection('cns');
 
     // Invertir para mostrar "Batería" (Energía restante)
     const cnsBattery = clamp(100 - totalFatigue, 0, 100);
@@ -660,8 +708,6 @@ export const calculateSleepRecommendations = (
     };
 };
 
-import { calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from './fatigueService';
-
 export interface BatteryAuditLog { icon: string; label: string; val: number | string; type: 'workout' | 'penalty' | 'bonus' | 'info'; }
 
 /**
@@ -688,6 +734,14 @@ export const calculateGlobalBatteries = (
     const todayStr = getLocalDateString();
     const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
     const recentWellbeing = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
+    const adaptiveCache = getCachedAdaptiveData();
+    const adaptiveRecoverySamples = Object.values(adaptiveCache.personalizedRecoveryHours || {}).filter((value): value is number => typeof value === 'number' && value > 0);
+
+    if (adaptiveRecoverySamples.length > 0) {
+        const adaptiveMeanRecovery = adaptiveRecoverySamples.reduce((acc, value) => acc + value, 0) / adaptiveRecoverySamples.length;
+        muscHalfLife = clamp((muscHalfLife * 0.6) + (adaptiveMeanRecovery * 0.4), 24, 96);
+        auditLogs.muscular.push({ icon: 'ðŸ§ª', label: 'Curva Bayesiana Personal', val: Math.round(muscHalfLife), type: 'info' });
+    }
 
     // 1. MODULADOR DE NUTRICIÓN (Afecta la recarga Muscular)
     if (settings?.algorithmSettings?.augeEnableNutritionTracking !== false) {
@@ -743,15 +797,24 @@ export const calculateGlobalBatteries = (
     recentLogs.forEach(log => {
         let logCns = 0, logMusc = 0, logSpinal = 0;
         const hoursAgo = (now - new Date(log.date).getTime()) / 3600000;
+        const muscleVolumeMap: Record<string, number> = {};
 
         log.completedExercises.forEach(ex => {
             const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
-            ex.sets.forEach((s, idx) => {
-                const drain = calculateSetBatteryDrain(s, info, tanks, idx, 90);
+            const primaryEntry = info?.involvedMuscles?.find(m => m.role === 'primary');
+            const primaryMuscle = primaryEntry
+                ? getMuscleDisplayId(primaryEntry.muscle, primaryEntry.emphasis)
+                : 'Core';
+            let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
+            ex.sets.forEach((s) => {
+                if (!shouldCountFatigueSet(s)) return;
+                accumulatedSets += 1;
+                const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, (ex as any).restTime || 90);
                 logCns += drain.cnsDrainPct;
                 logMusc += drain.muscularDrainPct;
                 logSpinal += drain.spinalDrainPct;
             });
+            muscleVolumeMap[primaryMuscle] = accumulatedSets;
         });
 
         // Aplicamos la tasa de recarga (Decaimiento Exponencial) basado en cuánto tiempo pasó
@@ -786,16 +849,24 @@ export const calculateGlobalBatteries = (
         spinalDelta *= calibDecay;
     }
 
+    cnsDelta += getAdaptiveSystemBiasCorrection('cns');
+    muscDelta += getAdaptiveSystemBiasCorrection('muscular');
+    spinalDelta += getAdaptiveSystemBiasCorrection('spinal');
+
     if (Math.abs(cnsDelta) > 1) auditLogs.cns.push({ icon: '🧠', label: 'Auto-Calibración (Tú)', val: Math.round(cnsDelta) > 0 ? `+${Math.round(cnsDelta)}` : Math.round(cnsDelta), type: cnsDelta > 0 ? 'bonus' : 'penalty' });
     if (Math.abs(muscDelta) > 1) auditLogs.muscular.push({ icon: '🧠', label: 'Auto-Calibración (Tú)', val: Math.round(muscDelta) > 0 ? `+${Math.round(muscDelta)}` : Math.round(muscDelta), type: muscDelta > 0 ? 'bonus' : 'penalty' });
     if (Math.abs(spinalDelta) > 1) auditLogs.spinal.push({ icon: '🧠', label: 'Auto-Calibración (Tú)', val: Math.round(spinalDelta) > 0 ? `+${Math.round(spinalDelta)}` : Math.round(spinalDelta), type: spinalDelta > 0 ? 'bonus' : 'penalty' });
 
     // 5. CÁLCULO FINAL (100% - Daño Acumulado)
-    const finalCns = Math.min(100, Math.max(0, 100 - cnsFatigue - cnsPenalty + cnsDelta));
+    const cnsFatiguePct = transformFatigueToPercent(cnsFatigue, 65);
+    const muscFatiguePct = transformFatigueToPercent(muscFatigue, 80);
+    const spinalFatiguePct = transformFatigueToPercent(spinalFatigue, 110);
+
+    const finalCns = clamp(100 - cnsFatiguePct - cnsPenalty + cnsDelta, 0, 100);
     // La batería muscular global en el motor v3.1 ahora es un "tanque sistémico" pero 
     // en la UI se promediará con los músculos para coherencia.
-    const finalMusc = Math.min(100, Math.max(0, 100 - muscFatigue + muscDelta));
-    const finalSpinal = Math.min(100, Math.max(0, 100 - spinalFatigue + spinalDelta));
+    const finalMusc = clamp(100 - muscFatiguePct + muscDelta, 0, 100);
+    const finalSpinal = clamp(100 - spinalFatiguePct + spinalDelta, 0, 100);
 
     // 6. VEREDICTO EXPERTO AUGE
     let verdict = "Todos tus sistemas están óptimos. Es un buen día para buscar récords personales (PRs).";
@@ -806,6 +877,11 @@ export const calculateGlobalBatteries = (
 
     // 7. BATERÍAS ARTICULARES (tendones y articulaciones)
     const articularBatteries = calculateArticularBatteries(history, exerciseList, undefined, settings);
+    const articularScores = Object.values(articularBatteries).map(state => state.recoveryScore);
+    const articularAverage = articularScores.length
+        ? Math.round(articularScores.reduce((sum, score) => sum + score, 0) / articularScores.length)
+        : 100;
+    const muscleArticularBlend = Math.round((Math.round(finalMusc) + articularAverage) / 2);
 
     return {
         cns: Math.round(finalCns),
@@ -814,6 +890,8 @@ export const calculateGlobalBatteries = (
         auditLogs,
         verdict,
         articularBatteries,
+        articularAverage,
+        muscleArticularBlend,
     };
 };
 
@@ -837,6 +915,7 @@ export const ACCORDION_MUSCLES: { id: string; label: string; isDeltoidPortion?: 
     { id: 'Core', label: 'Core' },
     { id: 'Erectores Espinales', label: 'Erectores Espinales' },
     { id: 'Aductores', label: 'Aductores' },
+    { id: 'Cuello', label: 'Cuello' },
 ];
 
 export const getPerMuscleBatteries = (

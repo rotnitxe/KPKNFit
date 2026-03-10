@@ -1,7 +1,9 @@
 // data/foodDatabase.ts
 import { FoodItem } from '../types';
+import { FOOD_DATABASE_EXPANSION } from './foodDatabaseExpansion';
+import { enrichFoodCatalog } from './foodTaxonomy';
 
-export const FOOD_DATABASE: FoodItem[] = [
+const BASE_FOOD_DATABASE: FoodItem[] = [
     // --- Alimentos Genéricos ---
     { id: 'gen001', name: 'Manzana', servingSize: 100, unit: 'g', calories: 52, protein: 0.3, carbs: 14, fats: 0.2 },
     { id: 'gen002', name: 'Plátano', servingSize: 100, unit: 'g', calories: 89, protein: 1.1, carbs: 23, fats: 0.3 },
@@ -189,4 +191,57 @@ export const FOOD_DATABASE: FoodItem[] = [
     { id: 'meal007', name: 'Empanada de Pino (horno)', brand: 'Comida', servingSize: 200, unit: 'g', calories: 450, protein: 18, carbs: 40, fats: 25 },
     { id: 'meal008', name: 'Pizza (1 trozo)', brand: 'Comida', servingSize: 150, unit: 'g', calories: 350, protein: 15, carbs: 40, fats: 15 },
     { id: 'meal009', name: 'Sushi (8 piezas California Roll)', brand: 'Comida', servingSize: 250, unit: 'g', calories: 300, protein: 10, carbs: 55, fats: 5 },
+    // --- Más Frutas y Verduras ---
+    { id: 'gen091', name: 'Mandarina', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 53, protein: 0.8, carbs: 13.3, fats: 0.3, micronutrients: [{ name: 'Vitamina C', amount: 26.7, unit: 'mg' }] },
+    { id: 'gen092', name: 'Cereza', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 50, protein: 1, carbs: 12, fats: 0.3, micronutrients: [{ name: 'Vitamina C', amount: 7, unit: 'mg' }] },
+    { id: 'gen093', name: 'Pimiento Verde', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 20, protein: 0.9, carbs: 4.6, fats: 0.2, micronutrients: [{ name: 'Vitamina C', amount: 80.4, unit: 'mg' }] },
+    { id: 'gen094', name: 'Calabacín (Zapallo Italiano)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 17, protein: 1.2, carbs: 3.1, fats: 0.3 },
+    { id: 'gen095', name: 'Apio', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 16, protein: 0.7, carbs: 3, fats: 0.2 },
+    { id: 'gen096', name: 'Espárrago', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 20, protein: 2.2, carbs: 3.9, fats: 0.1 },
+
+    // --- Más Carnes y Pescados ---
+    { id: 'gen097', name: 'Carne Molida 80/20 (cocida)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 254, protein: 24, carbs: 0, fats: 17 },
+    { id: 'gen098', name: 'Pavo Molido (cocido)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 208, protein: 27, carbs: 0, fats: 10 },
+    { id: 'gen099', name: 'Atún fresco (crudo)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 144, protein: 23, carbs: 0, fats: 4.9, cookingBehavior: 'shrinks', cookingWeightFactor: 0.8 },
+    { id: 'gen100', name: 'Trucha (cocida)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 190, protein: 26, carbs: 0, fats: 8 },
+    
+    // --- Más Lácteos y Huevos ---
+    { id: 'gen101', name: 'Queso Parmesano', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 431, protein: 38, carbs: 4.1, fats: 29 },
+    { id: 'gen102', name: 'Yema de Huevo', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 322, protein: 16, carbs: 3.6, fats: 27 },
+    { id: 'gen103', name: 'Leche de Almendras (sin azúcar)', brand: 'Genérico', servingSize: 100, unit: 'ml', calories: 15, protein: 0.5, carbs: 0.3, fats: 1.2 },
+    { id: 'gen104', name: 'Leche de Soya', brand: 'Genérico', servingSize: 100, unit: 'ml', calories: 33, protein: 3.3, carbs: 1.8, fats: 1.5 },
+    
+    // --- Más Cereales y Legumbres ---
+    { id: 'gen105', name: 'Lentejas Rojas (cocidas)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 116, protein: 9, carbs: 20, fats: 0.4 },
+    { id: 'gen106', name: 'Pan Pita Integral', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 262, protein: 9.8, carbs: 53, fats: 1.7 },
+    { id: 'gen107', name: 'Mijo (cocido)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 119, protein: 3.5, carbs: 23, fats: 1 },
+    
+    // --- Snacks y Extras ---
+    { id: 'gen108', name: 'Aceitunas', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 115, protein: 0.8, carbs: 6.3, fats: 10.7 },
+    { id: 'gen109', name: 'Pistachos', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 562, protein: 20, carbs: 28, fats: 45 },
+    { id: 'gen110', name: 'Palomitas de Maíz (sin aceite)', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 387, protein: 13, carbs: 78, fats: 4.5 },
+    { id: 'gen111', name: 'Chocolate Negro 70%', brand: 'Genérico', servingSize: 100, unit: 'g', calories: 598, protein: 7.8, carbs: 46, fats: 43 },
+    
+    // --- Más Chilenos ---
+    { id: 'cl067', name: 'Choripán', brand: 'Comida', servingSize: 200, unit: 'g', calories: 600, protein: 20, carbs: 45, fats: 35 },
+    { id: 'cl068', name: 'Humitas', brand: 'Comida', servingSize: 200, unit: 'g', calories: 350, protein: 10, carbs: 45, fats: 15 },
+    { id: 'cl069', name: 'Paila Marina', brand: 'Comida', servingSize: 500, unit: 'g', calories: 380, protein: 45, carbs: 15, fats: 12 },
+    { id: 'cl070', name: 'Mote con Huesillo', brand: 'Comida', servingSize: 300, unit: 'ml', calories: 250, protein: 3, carbs: 60, fats: 0.5 },
+    { id: 'cl071', name: 'Empanada de Queso (frita)', brand: 'Comida', servingSize: 150, unit: 'g', calories: 480, protein: 12, carbs: 35, fats: 30 },
+    { id: 'cl072', name: 'Sopaipilla', brand: 'Comida', servingSize: 100, unit: 'g', calories: 300, protein: 5, carbs: 30, fats: 18 },
+    { id: 'cl073', name: 'Jugo Watts Naranja', brand: 'Watts', servingSize: 200, unit: 'ml', calories: 95, protein: 0, carbs: 24, fats: 0 },
+    { id: 'cl074', name: 'Cerveza Lager', brand: 'Cristal', servingSize: 350, unit: 'ml', calories: 140, protein: 1.5, carbs: 11, fats: 0 },
+    { id: 'cl075', name: 'Vino Tinto', brand: 'Genérico', servingSize: 150, unit: 'ml', calories: 125, protein: 0.1, carbs: 4, fats: 0 },
+    { id: 'cl076', name: 'Piscola', brand: 'Comida', servingSize: 250, unit: 'ml', calories: 200, protein: 0, carbs: 20, fats: 0 },
+    { id: 'cl077', name: 'Pan de Pascua', brand: 'Comida', servingSize: 100, unit: 'g', calories: 350, protein: 5, carbs: 55, fats: 12 },
+    
+    // --- Más Fast Food Global ---
+    { id: 'meal010', name: 'Hamburguesa con Queso (Fast Food)', brand: 'Comida', servingSize: 115, unit: 'g', calories: 300, protein: 15, carbs: 33, fats: 12 },
+    { id: 'meal011', name: 'Papas Fritas (Fast Food, medianas)', brand: 'Comida', servingSize: 117, unit: 'g', calories: 365, protein: 4, carbs: 48, fats: 17 },
+    { id: 'meal012', name: 'Burrito de Pollo', brand: 'Comida', servingSize: 250, unit: 'g', calories: 450, protein: 25, carbs: 50, fats: 15 },
 ];
+
+export const FOOD_DATABASE: FoodItem[] = enrichFoodCatalog([
+    ...BASE_FOOD_DATABASE,
+    ...FOOD_DATABASE_EXPANSION,
+]);

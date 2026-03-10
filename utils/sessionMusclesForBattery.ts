@@ -1,38 +1,9 @@
-// utils/sessionMusclesForBattery.ts
-// Mapea músculos de la sesión a IDs del acordeón para lookup de baterías
+// Mapea mÇ§sculos principales de la sesiÇün a las baterÇðas reales del acordeÇün.
 
 import { Session, Exercise, ExerciseMuscleInfo } from '../types';
 import { buildExerciseIndex, findExercise } from './exerciseIndex';
 import { ACCORDION_MUSCLES } from '../services/recoveryService';
-
-// Keywords por accordion id (orden: más específico primero). Evitar 'lateral' y 'medio' sueltos: mapean mal Glúteo Medio, Vasto Lateral, etc.
-const MUSCLE_TO_ACCORDION: { id: string; keywords: string[] }[] = [
-    { id: 'deltoides-anterior', keywords: ['deltoides anterior', 'deltoide anterior'] },
-    { id: 'deltoides-lateral', keywords: ['deltoides lateral', 'deltoide lateral'] },
-    { id: 'deltoides-posterior', keywords: ['deltoides posterior', 'deltoide posterior'] },
-    { id: 'pectorales', keywords: ['pectoral', 'pecho'] },
-    { id: 'dorsales', keywords: ['dorsal', 'dorsales', 'redondo', 'lats', 'romboides'] },
-    { id: 'bíceps', keywords: ['bíceps', 'biceps', 'braquial', 'braquiorradial'] },
-    { id: 'tríceps', keywords: ['tríceps', 'triceps'] },
-    { id: 'cuádriceps', keywords: ['cuádriceps', 'cuadriceps', 'recto femoral', 'vasto'] },
-    { id: 'isquiosurales', keywords: ['isquiosurales', 'isquiotibiales', 'bíceps femoral', 'semitendinoso', 'semimembranoso', 'femoral'] },
-    { id: 'glúteos', keywords: ['glúteo', 'gluteo'] },
-    { id: 'pantorrillas', keywords: ['pantorrilla', 'gemelo', 'gastrocnemio', 'sóleo'] },
-    { id: 'abdomen', keywords: ['abdomen', 'abdominal', 'oblicuo', 'recto abdominal', 'transverso'] },
-    { id: 'trapecio', keywords: ['trapecio'] },
-    { id: 'espalda baja', keywords: ['erector', 'espinal', 'lumbar', 'espalda baja', 'cuadrado lumbar'] },
-    { id: 'core', keywords: ['core'] },
-    { id: 'aductores', keywords: ['aductor'] },
-    { id: 'antebrazo', keywords: ['antebrazo', 'flexores', 'extensores'] },
-];
-
-function muscleToAccordionId(muscle: string): string | null {
-    const m = muscle.toLowerCase();
-    for (const { id, keywords } of MUSCLE_TO_ACCORDION) {
-        if (keywords.some(k => m.includes(k))) return id;
-    }
-    return null;
-}
+import { getExercisePrimaryDisplayMuscles } from './canonicalMuscles';
 
 export interface SessionMuscleForBattery {
     id: string;
@@ -58,14 +29,14 @@ export function getSessionMusclesWithBatteries(
     for (const ex of allExercises) {
         const info = findExercise(exIndex, ex.exerciseDbId ?? ex.exerciseId, ex.name);
         if (!info?.involvedMuscles?.length) continue;
-        for (const { muscle, role } of info.involvedMuscles) {
-            if (role !== 'primary') continue;
-            const accordionId = muscleToAccordionId(muscle);
-            if (!accordionId || seen.has(accordionId)) continue;
-            seen.add(accordionId);
-            const label = ACCORDION_MUSCLES.find(a => a.id === accordionId)?.label ?? accordionId;
-            const battery = perMuscleBatteries[accordionId] ?? 100;
-            result.push({ id: accordionId, label, battery });
+
+        for (const muscleId of getExercisePrimaryDisplayMuscles(info)) {
+            if (seen.has(muscleId)) continue;
+            seen.add(muscleId);
+
+            const label = ACCORDION_MUSCLES.find(a => a.id === muscleId)?.label ?? muscleId;
+            const battery = perMuscleBatteries[muscleId] ?? 100;
+            result.push({ id: muscleId, label, battery });
         }
     }
 

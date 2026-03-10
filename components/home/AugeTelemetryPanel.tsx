@@ -580,3 +580,13 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
     );
 };
 
+const fakeStructuralGroupIndex = MUSCLE_GROUPS.findIndex((group) => group.label === 'Tendones y Articulaciones');
+if (fakeStructuralGroupIndex >= 0) {
+    MUSCLE_GROUPS.splice(fakeStructuralGroupIndex, 1, { label: 'Cuello', ids: ['Cuello'] });
+}
+
+LABEL_MAP['cuello'] = 'Cuello';
+delete LABEL_MAP['rodillas'];
+delete LABEL_MAP['manguito rotador'];
+delete LABEL_MAP['codos'];
+delete LABEL_MAP['caderas'];

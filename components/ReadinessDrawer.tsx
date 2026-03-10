@@ -10,7 +10,7 @@ import {
   getConfidenceColor,
 } from '../services/augeAdaptiveService';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
-import { calculateGlobalBatteriesAsync, getPerMuscleBatteries } from '../services/auge';
+import { calculateGlobalBatteriesAsync, getPerMuscleBatteries, getStructuralReadinessForMuscles, type StructuralReadinessBreakdown } from '../services/auge';
 import { getSessionMusclesWithBatteries } from '../utils/sessionMusclesForBattery';
 import { getSessionArticularBatteries } from '../utils/sessionArticularBatteries';
 import { getTendonImbalanceAlerts, getTendonCompensationSuggestions } from '../services/tendonAlertsService';
@@ -113,17 +113,51 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
     return getSessionArticularBatteries(normalizedSession, exerciseList, batteries.articularBatteries);
   }, [pendingWorkout, exerciseList, batteries?.articularBatteries]);
 
+  const sessionStructural = useMemo<StructuralReadinessBreakdown[]>(() => {
+    if (sessionMuscles.length === 0) return [];
+    if (!batteries?.articularBatteries) {
+      return sessionMuscles.map((muscle) => ({
+        muscleId: muscle.id,
+        muscleLabel: muscle.label,
+        muscleBattery: muscle.battery,
+        articularBattery: muscle.battery,
+        combinedBattery: muscle.battery,
+        limitingBattery: muscle.battery,
+        relatedArticularIds: [],
+        relatedArticularLabels: [],
+      }));
+    }
+
+    return getStructuralReadinessForMuscles(
+      Object.fromEntries(sessionMuscles.map((muscle) => [muscle.id, muscle.battery])),
+      batteries.articularBatteries,
+      sessionMuscles.map((muscle) => muscle.id)
+    );
+  }, [sessionMuscles, batteries?.articularBatteries]);
+
   const tendonImbalanceAlerts = useMemo(() => {
     if (!batteries?.articularBatteries || !Object.keys(perMuscle).length) return [];
-    const muscleIds = sessionMuscles.map((m) => m.id);
+    const muscleIds = sessionStructural.map((m) => m.muscleId);
     return getTendonImbalanceAlerts(perMuscle, batteries.articularBatteries, muscleIds);
-  }, [batteries?.articularBatteries, perMuscle, sessionMuscles]);
+  }, [batteries?.articularBatteries, perMuscle, sessionStructural]);
 
   const tendonCompensations = useMemo(() => {
     if (!batteries?.articularBatteries) return [];
     const articularIds = sessionArticular.map((a) => a.id);
     return getTendonCompensationSuggestions(batteries.articularBatteries, articularIds);
   }, [batteries?.articularBatteries, sessionArticular]);
+
+  const sessionStructuralAverages = useMemo(() => {
+    if (sessionStructural.length === 0) {
+      return { muscle: 100, articular: 100, combined: 100 };
+    }
+
+    return {
+      muscle: Math.round(sessionStructural.reduce((sum, item) => sum + item.muscleBattery, 0) / sessionStructural.length),
+      articular: Math.round(sessionStructural.reduce((sum, item) => sum + item.articularBattery, 0) / sessionStructural.length),
+      combined: Math.round(sessionStructural.reduce((sum, item) => sum + item.combinedBattery, 0) / sessionStructural.length),
+    };
+  }, [sessionStructural]);
 
   useEffect(() => {
     if (!isOpen || !history) return;
@@ -177,7 +211,13 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
       timestamp: now,
       system: 'readiness',
       predicted_value: 3,
-      context: { precision: precisionScale, observations: adaptiveCache.totalObservations },
+      context: {
+        precision: precisionScale,
+        observations: adaptiveCache.totalObservations,
+        muscle_battery: sessionStructuralAverages.muscle,
+        articular_battery: sessionStructuralAverages.articular,
+        combined_readiness: sessionStructuralAverages.combined,
+      },
     });
     queueOutcome({
       prediction_id: predId,
@@ -397,31 +437,36 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
           </div>
         )}
 
-        {sessionMuscles.length > 0 && (
+        {sessionStructural.length > 0 && (
           <div className="liquid-glass-panel rounded-[32px] border border-white/70 p-5 shadow-[0_16px_34px_rgba(80,58,23,0.12)]">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--md-sys-color-on-surface-variant)]">
               Musculos del dia
             </span>
             <p className="mt-1 text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
-              Confirma si la lectura muscular coincide con lo que sientes ahora mismo.
+              Mostramos musculo, tejido y media combinada para no dar luz verde falsa cuando la articulacion sigue atrasada.
             </p>
 
             <div className="mt-4 space-y-2">
-              {sessionMuscles.map((muscle) => (
-                <div key={muscle.id} className="rounded-[22px] border border-[var(--md-sys-color-outline-variant)] bg-white/60 p-3 shadow-[0_8px_16px_rgba(80,58,23,0.05)]">
+              {sessionStructural.map((muscle) => (
+                <div key={muscle.muscleId} className="rounded-[22px] border border-[var(--md-sys-color-outline-variant)] bg-white/60 p-3 shadow-[0_8px_16px_rgba(80,58,23,0.05)]">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <span className="block text-[14px] font-medium text-[var(--md-sys-color-on-surface)]">{muscle.label}</span>
+                      <span className="block text-[14px] font-medium text-[var(--md-sys-color-on-surface)]">{muscle.muscleLabel}</span>
                       <span className="mt-1 block text-[11px] uppercase tracking-[0.14em] text-[var(--md-sys-color-on-surface-variant)]">
-                        {muscle.battery}% disponible
+                        M {muscle.muscleBattery}% | T {muscle.articularBattery}% | C {muscle.combinedBattery}%
                       </span>
+                      {muscle.relatedArticularLabels.length > 0 && (
+                        <span className="mt-1 block text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
+                          Tejido relacionado: {muscle.relatedArticularLabels.join(', ')}
+                        </span>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => setMuscleFeedback((feedback) => ({ ...feedback, [muscle.id]: true }))}
+                        onClick={() => setMuscleFeedback((feedback) => ({ ...feedback, [muscle.muscleId]: true }))}
                         className={`min-h-[40px] rounded-full px-3 text-[11px] font-semibold uppercase tracking-[0.14em] transition-all ${
-                          muscleFeedback[muscle.id] === true
+                          muscleFeedback[muscle.muscleId] === true
                             ? 'border border-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
                             : 'border border-[var(--md-sys-color-outline-variant)] bg-white/70 text-[var(--md-sys-color-on-surface-variant)]'
                         }`}
@@ -430,9 +475,9 @@ const ReadinessDrawer: React.FC<ReadinessDrawerProps> = ({ isOpen, onClose, onCo
                       </button>
                       <button
                         type="button"
-                        onClick={() => setMuscleFeedback((feedback) => ({ ...feedback, [muscle.id]: false }))}
+                        onClick={() => setMuscleFeedback((feedback) => ({ ...feedback, [muscle.muscleId]: false }))}
                         className={`min-h-[40px] rounded-full px-3 text-[11px] font-semibold uppercase tracking-[0.14em] transition-all ${
-                          muscleFeedback[muscle.id] === false
+                          muscleFeedback[muscle.muscleId] === false
                             ? 'border border-[var(--md-sys-color-error)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'
                             : 'border border-[var(--md-sys-color-outline-variant)] bg-white/70 text-[var(--md-sys-color-on-surface-variant)]'
                         }`}

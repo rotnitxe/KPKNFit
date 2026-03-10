@@ -3,12 +3,18 @@
 // Fuente única para WikiLab, buscadores y motor de volumen/fatiga.
 
 import { ExerciseMuscleInfo } from '../types';
+import { normalizeCanonicalMuscle } from '../utils/canonicalMuscles';
 
 /** Parse 'Muscle:emphasis' → { muscle, emphasis? } */
 function parseMuscle(m: string): { muscle: string; emphasis?: string } {
   const idx = m.indexOf(':');
   if (idx === -1) return { muscle: m };
   return { muscle: m.substring(0, idx), emphasis: m.substring(idx + 1) };
+}
+
+function normalizeParsedMuscle(m: string): { muscle: string; emphasis?: string } {
+  const parsed = parseMuscle(m);
+  return normalizeCanonicalMuscle(parsed.muscle, parsed.emphasis);
 }
 
 function mk(
@@ -30,9 +36,9 @@ function mk(
   bodyPart: 'upper' | 'lower' | 'full' = 'lower'
 ): ExerciseMuscleInfo {
   const involvedMuscles: ExerciseMuscleInfo['involvedMuscles'] = [
-    ...primary.map((m) => { const p = parseMuscle(m); return { muscle: p.muscle, role: 'primary' as const, activation: 1.0, ...(p.emphasis ? { emphasis: p.emphasis } : {}) }; }),
-    ...secondary.map((m) => { const p = parseMuscle(m); return { muscle: p.muscle, role: 'secondary' as const, activation: 0.5, ...(p.emphasis ? { emphasis: p.emphasis } : {}) }; }),
-    ...stabilizer.map((m) => { const p = parseMuscle(m); return { muscle: p.muscle, role: 'stabilizer' as const, activation: 0.4, ...(p.emphasis ? { emphasis: p.emphasis } : {}) }; }),
+    ...primary.map((m) => { const p = normalizeParsedMuscle(m); return { muscle: p.muscle, role: 'primary' as const, activation: 1.0, ...(p.emphasis ? { emphasis: p.emphasis } : {}) }; }),
+    ...secondary.map((m) => { const p = normalizeParsedMuscle(m); return { muscle: p.muscle, role: 'secondary' as const, activation: 0.5, ...(p.emphasis ? { emphasis: p.emphasis } : {}) }; }),
+    ...stabilizer.map((m) => { const p = normalizeParsedMuscle(m); return { muscle: p.muscle, role: 'stabilizer' as const, activation: 0.4, ...(p.emphasis ? { emphasis: p.emphasis } : {}) }; }),
   ];
   const chain: 'anterior' | 'posterior' | 'full' =
     bodyPart === 'upper'
@@ -43,7 +49,7 @@ function mk(
     name,
     description: desc,
     involvedMuscles,
-    subMuscleGroup: subMuscleGroup ?? parseMuscle(primary[0]).muscle,
+    subMuscleGroup: subMuscleGroup ?? normalizeParsedMuscle(primary[0]).muscle,
     category,
     type,
     equipment,
@@ -1470,6 +1476,37 @@ export const LOWER_BODY_EXERCISES: ExerciseMuscleInfo[] = [
   ),
 ];
 
+const FULL_EXERCISE_LIST: ExerciseMuscleInfo[] = LOWER_BODY_EXERCISES;
+
+const remapExerciseTargets = (
+  exerciseId: string,
+  primary: string[],
+  secondary: string[] = [],
+  stabilizers: string[] = [],
+  subMuscleGroup = primary[0]?.split(':')[0] || 'Cuello'
+) => {
+  const exercise = FULL_EXERCISE_LIST.find((entry) => entry.id === exerciseId);
+  if (!exercise) return;
+
+  exercise.involvedMuscles = [
+    ...primary.map((muscle) => ({ ...normalizeParsedMuscle(muscle), role: 'primary' as const, activation: 1 })),
+    ...secondary.map((muscle) => ({ ...normalizeParsedMuscle(muscle), role: 'secondary' as const, activation: 0.5 })),
+    ...stabilizers.map((muscle) => ({ ...normalizeParsedMuscle(muscle), role: 'stabilizer' as const, activation: 0.35 })),
+  ];
+  exercise.subMuscleGroup = subMuscleGroup;
+};
+
+remapExerciseTargets('ultimo_flexion_cuello_arnes', ['Cuello'], ['Trapecio'], ['Core']);
+remapExerciseTargets('ultimo_extension_cuello_arnes', ['Cuello'], ['Trapecio'], ['Core']);
+remapExerciseTargets('ultimo_flexion_cuello_isometrica', ['Cuello'], ['Trapecio'], ['Core']);
+remapExerciseTargets('ultimo_rotacion_cuello_banda', ['Cuello'], ['Trapecio'], ['Core']);
+
+FULL_EXERCISE_LIST.push(
+  mk('nuevo_extension_cuello_isometrica', 'Extensión de Cuello Isométrica Contra Resistencia', 'Extensión cervical isométrica con resistencia manual o banda. Cuello.', 'Banda', 'Aislamiento', 'Estabilidad', 'Extensión', 1.5, 1.5, 1.0, 1.0, ['Cuello'], ['Trapecio'], ['Core'], 'Cuello', 'upper'),
+  mk('nuevo_flexion_lateral_cuello_banda', 'Flexión Lateral de Cuello con Banda', 'Inclinación lateral cervical contra banda. Cuello.', 'Banda', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.3, 1.4, 0.8, 1.0, ['Cuello'], ['Trapecio'], ['Core'], 'Cuello', 'upper'),
+  mk('nuevo_lateralizacion_cuello_arnes', 'Flexión Lateral de Cuello con Arnés', 'Trabajo unilateral de cuello con arnés. Cuello.', 'Arnés', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.4, 1.3, 0.8, 1.1, ['Cuello'], ['Trapecio'], ['Core'], 'Cuello', 'upper')
+);
+
 // ========== TREN SUPERIOR (fuente: TREN SUPERIOR.pdf) ==========
 
 export const UPPER_BODY_EXERCISES: ExerciseMuscleInfo[] = [
@@ -2033,7 +2070,7 @@ export const UPPER_BODY_EXERCISES: ExerciseMuscleInfo[] = [
   ),
   mk(
     'tren_superior_press_tras_nuca_barra',
-    'Press tras Nuca con Barra',
+    'Press Tras Nuca con Barra',
     'Press con barra detrás de la nuca. Mayor implicación del deltoides medio. Requiere buena movilidad.',
     'Barra',
     'Accesorio',
@@ -2289,7 +2326,7 @@ export const UPPER_BODY_EXERCISES: ExerciseMuscleInfo[] = [
   ),
   mk(
     'tren_superior_jalon_tras_nuca',
-    'Jalón tras Nuca en Polea',
+    'Jalón Tras Nuca en Polea',
     'Jalón llevando la barra detrás de la nuca. Mayor énfasis en dorsal. Requiere buena movilidad.',
     'Polea',
     'Accesorio',
@@ -3228,7 +3265,7 @@ export const UPPER_BODY_EXERCISES: ExerciseMuscleInfo[] = [
   ),
   mk(
     'tren_superior_extension_tras_nuca_polea_baja',
-    'Extensión tras Nuca en Polea Baja',
+    'Extensión Tras Nuca en Polea Baja',
     'Extensiones tras nuca con polea baja. Rango de movimiento único.',
     'Polea',
     'Accesorio',
@@ -3243,7 +3280,7 @@ export const UPPER_BODY_EXERCISES: ExerciseMuscleInfo[] = [
   ),
   mk(
     'tren_superior_extension_tras_nuca_mancuerna',
-    'Extensión tras Nuca con una Mancuerna',
+    'Extensión Tras Nuca con una Mancuerna',
     'Extensiones tras nuca con mancuerna a dos manos.',
     'Mancuerna',
     'Accesorio',
@@ -3258,7 +3295,7 @@ export const UPPER_BODY_EXERCISES: ExerciseMuscleInfo[] = [
   ),
   mk(
     'tren_superior_extension_tras_nuca_unilateral',
-    'Extensión tras Nuca Unilateral',
+    'Extensión Tras Nuca Unilateral',
     'Extensiones tras nuca a una mano. Trabajo unilateral del tríceps.',
     'Mancuerna',
     'Accesorio',
@@ -3452,9 +3489,9 @@ export const ULTIMO_LOTE_EXERCISES: ExerciseMuscleInfo[] = [
   mk('ultimo_flexiones_diamante_pared', 'Flexiones Diamante en Pared', 'Flexiones diamante contra pared. Tríceps y pectoral.', 'Peso Corporal', 'Aislamiento', 'Resistencia', 'Empuje', 1.2, 1.0, 0.0, 1.0, ['Tríceps', 'Pectorales'], ['Deltoides:anterior'], ['Core'], 'Tríceps', 'upper'),
   mk('ultimo_paseo_camarero', 'Paseo del Camarero', 'Caminar con mancuerna sobre el hombro. Estabilidad.', 'Mancuerna', 'Accesorio', 'Estabilidad', 'Otro', 3.0, 3.5, 1.0, 2.0, ['Deltoides:anterior', 'Core'], ['Trapecio'], ['Tríceps'], 'Core', 'full'),
   mk('ultimo_marcha_overhead_unilateral', 'Marcha Overhead Unilateral', 'Caminar con kettlebell overhead. Estabilidad.', 'Kettlebell', 'Accesorio', 'Estabilidad', 'Otro', 3.5, 3.8, 1.2, 2.2, ['Deltoides:anterior', 'Core'], ['Trapecio'], ['Tríceps'], 'Core', 'full'),
-  mk('ultimo_rotacion_externa_polea', 'Rotación Externa de Hombro en Polea Baja', 'Rotación externa para manguito. Movilidad.', 'Polea', 'Aislamiento', 'Movilidad', 'Rotación', 1.2, 1.5, 0.0, 1.2, [], ['Deltoides:posterior'], [], 'Deltoides', 'upper'),
-  mk('ultimo_rotacion_interna_polea', 'Rotación Interna de Hombro en Polea Baja', 'Rotación interna para manguito. Movilidad.', 'Polea', 'Aislamiento', 'Movilidad', 'Rotación', 1.2, 1.5, 0.0, 1.2, [], ['Pectorales'], [], 'Deltoides', 'upper'),
-  mk('ultimo_flexion_cuello_arnes', 'Flexión de Cuello con Arnés', 'Flexión cervical con arnés. Cuello.', 'Arnés', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.5, 1.2, 0.5, 1.2, [], [], [], 'Trapecio', 'upper'),
+  mk('ultimo_rotacion_externa_polea', 'Rotación Externa de Hombro en Polea Baja', 'Rotación externa para manguito. Movilidad.', 'Polea', 'Aislamiento', 'Movilidad', 'Rotación', 1.2, 1.5, 0.0, 1.2, ['Deltoides:posterior'], [], [], 'Deltoides', 'upper'),
+  mk('ultimo_rotacion_interna_polea', 'Rotación Interna de Hombro en Polea Baja', 'Rotación interna para manguito. Movilidad.', 'Polea', 'Aislamiento', 'Movilidad', 'Rotación', 1.2, 1.5, 0.0, 1.2, ['Pectorales'], [], [], 'Deltoides', 'upper'),
+  mk('ultimo_flexion_cuello_arnes', 'Flexión de Cuello con Arnés', 'Flexión cervical con arnés. Cuello.', 'Arnés', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.5, 1.2, 0.5, 1.2, ['Trapecio'], [], ['Core'], 'Trapecio', 'upper'),
   mk('ultimo_extension_cuello_arnes', 'Extensión de Cuello con Arnés', 'Extensión cervical con arnés. Cuello y trapecio.', 'Arnés', 'Aislamiento', 'Hipertrofia', 'Extensión', 1.5, 1.2, 0.5, 1.2, ['Trapecio'], [], [], 'Trapecio', 'upper'),
   mk('ultimo_encogimientos_tras_nuca', 'Encogimientos de Hombros por Detrás', 'Shrugs con barra tras nuca. Trapecio.', 'Barra', 'Aislamiento', 'Hipertrofia', 'Empuje', 2.4, 2.0, 1.2, 1.8, ['Trapecio'], [], ['Core', 'Antebrazo'], 'Trapecio', 'upper'),
   mk('ultimo_curl_muneca_tras_espalda', 'Curl de Muñeca por Detrás de la Espalda', 'Flexión de muñeca con barra tras espalda. Antebrazo.', 'Barra', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.2, 1.0, 0.0, 1.2, ['Antebrazo'], [], [], 'Antebrazo', 'upper'),
@@ -3516,7 +3553,7 @@ export const ULTIMO_LOTE_EXERCISES: ExerciseMuscleInfo[] = [
   mk('ultimo_curl_gironda', 'Curl Gironda (Perfect Curl)', 'Curl con técnica Gironda. Bíceps.', 'Barra', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.8, 1.6, 0.2, 1.8, ['Bíceps'], ['Bíceps:braquial'], ['Core'], 'Bíceps', 'upper'),
   mk('ultimo_curl_dual_polea_espalda', 'Curl Dual en Polea Baja de Espaldas', 'Curl de espaldas a la polea. Máximo estiramiento.', 'Polea', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.6, 1.4, 0.0, 2.0, ['Bíceps'], ['Bíceps:braquial'], ['Core'], 'Bíceps', 'upper'),
   mk('ultimo_curl_crucifijo_polea', 'Curl Crucifijo en Polea Alta', 'Curl con poleas altas. Cabeza corta del bíceps.', 'Polea', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.6, 1.5, 0.1, 1.6, ['Bíceps'], ['Bíceps:braquial'], ['Core'], 'Bíceps', 'upper'),
-  mk('ultimo_waiter_curl', "Waiter's Curl (disco o mancuerna por el plato)", 'Curl sosteniendo por el disco. Braquiorradial.', 'Mancuerna', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.5, 1.2, 0.1, 1.5, ['Bíceps'], ['Antebrazo'], ['Core'], 'Antebrazo', 'upper'),
+  mk('ultimo_waiter_curl', "Waiter's Curl (Disco o Mancuerna por el Plato)", 'Curl sosteniendo por el disco. Braquiorradial.', 'Mancuerna', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.5, 1.2, 0.1, 1.5, ['Bíceps'], ['Antebrazo'], ['Core'], 'Antebrazo', 'upper'),
   mk('ultimo_curl_apoyado_pecho_banco', 'Curl Apoyado en el Pecho en Banco Inclinado', 'Curl con brazos apoyados en banco. Bíceps.', 'Mancuerna', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.5, 1.2, 0.0, 1.5, ['Bíceps'], ['Bíceps:braquial'], [], 'Bíceps', 'upper'),
   mk('ultimo_curl_concentrado_aire', 'Curl Concentrado al Aire (Estilo Arnold)', 'Curl concentrado sin apoyo. Bíceps.', 'Mancuerna', 'Aislamiento', 'Hipertrofia', 'Flexión', 1.6, 1.4, 0.4, 1.4, ['Bíceps'], ['Bíceps:braquial'], ['Core', 'Antebrazo'], 'Bíceps', 'upper'),
   mk('ultimo_curl_biceps_toalla', 'Curl de Bíceps con Toalla', 'Curl con agarre en toalla. Fuerza de agarre.', 'Kettlebell', 'Aislamiento', 'Fuerza', 'Flexión', 2.0, 1.8, 0.0, 2.2, ['Bíceps'], ['Antebrazo'], ['Core'], 'Bíceps', 'upper'),
@@ -3562,12 +3599,12 @@ export const ULTIMO_LOTE_EXERCISES: ExerciseMuscleInfo[] = [
   mk('ultimo_jerk_tijera', 'Jerk en Tijera (Split Jerk)', 'Jerk con salto a tijera. Potencia.', 'Barra', 'Básico', 'Potencia', 'Empuje', 4.5, 4.8, 1.5, 4.0, ['Cuádriceps', 'Deltoides:anterior'], ['Tríceps', 'Glúteos:mayor'], ['Core'], 'Deltoides', 'full'),
   mk('ultimo_tiron_arrancada', 'Tirón de Arrancada (Snatch Pull)', 'Tirón de arrancada. Fuerza de tracción.', 'Barra', 'Accesorio', 'Fuerza', 'Salto', 4.2, 4.5, 1.5, 3.0, ['Glúteos:mayor', 'Trapecio'], ['Isquiosurales', 'Cuádriceps'], ['Core'], 'Glúteos', 'full'),
   mk('ultimo_tiron_envion', 'Tirón de Envión (Clean Pull)', 'Tirón de clean. Fuerza de tracción.', 'Barra', 'Accesorio', 'Fuerza', 'Salto', 4.2, 4.5, 1.6, 3.0, ['Glúteos:mayor', 'Trapecio'], ['Isquiosurales', 'Cuádriceps'], ['Core'], 'Glúteos', 'full'),
-  mk('ultimo_sotts_press', 'Sotts Press (Press tras Nuca en Sentadilla Profunda)', 'OHP en sentadilla profunda. Movilidad.', 'Barra', 'Accesorio', 'Movilidad', 'Empuje', 3.8, 4.5, 1.5, 3.5, ['Deltoides:anterior', 'Deltoides:medio'], ['Tríceps'], ['Core', 'Cuádriceps'], 'Deltoides', 'full'),
+  mk('ultimo_sotts_press', 'Sotts Press (Press Tras Nuca en Sentadilla Profunda)', 'OHP en sentadilla profunda. Movilidad.', 'Barra', 'Accesorio', 'Movilidad', 'Empuje', 3.8, 4.5, 1.5, 3.5, ['Deltoides:anterior', 'Deltoides:medio'], ['Tríceps'], ['Core', 'Cuádriceps'], 'Deltoides', 'full'),
   mk('ultimo_sentadilla_zombie', 'Sentadilla Zombie (Frontal con Brazos Extendidos)', 'Front squat con brazos al frente. Estabilidad.', 'Barra', 'Accesorio', 'Estabilidad', 'Sentadilla', 4.0, 4.2, 1.8, 2.5, ['Cuádriceps'], ['Glúteos:mayor'], ['Core', 'Deltoides:anterior'], 'Cuádriceps', 'lower'),
   mk('ultimo_snatch_balance', 'Caída de Arrancada (Snatch Balance)', 'Snatch balance. Potencia.', 'Barra', 'Accesorio', 'Potencia', 'Sentadilla', 4.2, 4.8, 1.5, 4.5, ['Cuádriceps', 'Deltoides:anterior'], ['Tríceps'], ['Core'], 'Cuádriceps', 'full'),
   mk('ultimo_peso_muerto_zercher_suelo', 'Peso Muerto Zercher Desde el Suelo', 'Deadlift Zercher. Glúteos e isquios.', 'Barra', 'Básico', 'Fuerza', 'Bisagra', 4.8, 4.5, 2.0, 2.8, ['Glúteos:mayor', 'Isquiosurales'], ['Cuádriceps', 'Bíceps'], ['Core'], 'Glúteos', 'lower'),
   mk('ultimo_dominadas_toalla', 'Dominadas con Toalla (Grip Pull-ups)', 'Dominadas agarrando toalla. Fuerza de agarre.', 'Toalla', 'Accesorio', 'Fuerza', 'Tirón', 4.2, 4.0, 0.2, 2.5, ['Dorsales', 'Antebrazo'], ['Bíceps'], ['Core'], 'Dorsales', 'upper'),
-  mk('ultimo_puente_luchador', 'Puente de luchador isométrico (Wrestler\'s Bridge)', 'Puente cervical. Cuello y estabilidad.', 'Peso Corporal', 'Accesorio', 'Estabilidad', 'Extensión', 2.5, 3.0, 2.5, 2.0, [], ['Glúteos:mayor'], ['Core'], 'Trapecio', 'upper'),
+  mk('ultimo_puente_luchador', 'Puente de Luchador Isométrico (Wrestler\'s Bridge)', 'Puente cervical. Cuello y estabilidad.', 'Peso Corporal', 'Accesorio', 'Estabilidad', 'Extensión', 2.5, 3.0, 2.5, 2.0, ['Trapecio'], ['Erectores Espinales', 'Glúteos:mayor'], ['Core'], 'Trapecio', 'upper'),
   mk('ultimo_flexiones_hindu', 'Flexiones Hindú (Dive Bombers)', 'Flexiones con arco. Pectoral y hombros.', 'Peso Corporal', 'Accesorio', 'Resistencia', 'Empuje', 2.5, 2.5, 0.4, 2.0, ['Pectorales', 'Deltoides:anterior'], ['Tríceps'], ['Core'], 'Pectorales', 'upper'),
   mk('ultimo_sentadilla_hindu', 'Sentadilla Hindú', 'Sentadilla con talones elevados y brazos dinámicos. Cuádriceps.', 'Peso Corporal', 'Accesorio', 'Resistencia', 'Sentadilla', 2.8, 2.5, 0.2, 2.5, ['Cuádriceps'], ['Pantorrillas:gastrocnemio'], ['Core'], 'Cuádriceps', 'lower'),
   mk('ultimo_giro_cadera_saco_bulgaro', 'Giro de Cadera con Saco Búlgaro (Spin)', 'Rotación con saco. Core y potencia.', 'Saco de arena', 'Accesorio', 'Potencia', 'Rotación', 3.8, 4.0, 1.0, 2.8, ['Core', 'Deltoides:anterior'], ['Antebrazo'], ['Glúteos:mayor', 'Cuádriceps'], 'Core', 'full'),
@@ -3582,8 +3619,8 @@ export const ULTIMO_LOTE_EXERCISES: ExerciseMuscleInfo[] = [
   mk('ultimo_sprints_trineo', 'Sprints Resistidos con Trineo', 'Sprint con trineo. Potencia de piernas.', 'Trineo', 'Básico', 'Potencia', 'Salto', 4.5, 4.5, 0.5, 3.5, ['Cuádriceps', 'Glúteos:mayor'], ['Pantorrillas:gastrocnemio'], ['Core'], 'Cuádriceps', 'lower'),
   mk('ultimo_battle_ropes', 'Ondas con Cuerdas de Batalla (Battle Ropes)', 'Battle ropes. Resistencia de hombros y core.', 'Cuerdas', 'Accesorio', 'Resistencia', 'Tirón', 3.5, 3.2, 0.4, 2.0, ['Deltoides:anterior', 'Core'], ['Dorsales'], ['Cuádriceps'], 'Deltoides', 'full'),
   mk('ultimo_rope_pull', 'Tirón de Cuerda Pesada Sentado (Rope Pull)', 'Tirar cuerda sentado. Dorsal y antebrazo.', 'Otro', 'Accesorio', 'Fuerza', 'Tirón', 3.5, 3.0, 0.5, 2.0, ['Dorsales', 'Antebrazo'], ['Bíceps', 'Dorsales'], ['Core'], 'Dorsales', 'upper'),
-  mk('ultimo_flexion_cuello_isometrica', 'Flexión de Cuello Isométrica Contra Resistencia', 'Flexión cervical isométrica. Cuello.', 'Banda', 'Aislamiento', 'Estabilidad', 'Flexión', 1.5, 1.5, 1.0, 1.0, [], [], ['Core'], 'Trapecio', 'upper'),
-  mk('ultimo_rotacion_cuello_banda', 'Rotación de Cuello con Banda Elástica', 'Rotación cervical con banda. Cuello.', 'Banda', 'Aislamiento', 'Resistencia', 'Rotación', 1.2, 1.5, 1.0, 1.0, [], [], [], 'Trapecio', 'upper'),
+  mk('ultimo_flexion_cuello_isometrica', 'Flexión de Cuello Isométrica Contra Resistencia', 'Flexión cervical isométrica. Cuello.', 'Banda', 'Aislamiento', 'Estabilidad', 'Flexión', 1.5, 1.5, 1.0, 1.0, ['Trapecio'], [], ['Core'], 'Trapecio', 'upper'),
+  mk('ultimo_rotacion_cuello_banda', 'Rotación de Cuello con Banda Elástica', 'Rotación cervical con banda. Cuello.', 'Banda', 'Aislamiento', 'Resistencia', 'Rotación', 1.2, 1.5, 1.0, 1.0, ['Trapecio'], [], ['Core'], 'Trapecio', 'upper'),
   mk('ultimo_remo_pendlay_eje', 'Remo Pendlay con Eje (Axle Pendlay Row)', 'Pendlay row con axle. Dorsal.', 'Eje', 'Básico', 'Fuerza', 'Tirón', 4.2, 4.2, 1.5, 2.8, ['Dorsales'], ['Antebrazo', 'Bíceps'], ['Core'], 'Dorsales', 'upper'),
   mk('ultimo_zancadas_saco_hombro', 'Zancadas con Saco de Arena al Hombro Asimétrico', 'Zancadas con sandbag. Estabilidad.', 'Saco de arena', 'Accesorio', 'Estabilidad', 'Sentadilla', 3.8, 4.0, 1.2, 2.5, ['Cuádriceps', 'Glúteos:mayor'], ['Glúteos:medio'], ['Core'], 'Cuádriceps', 'lower'),
   mk('ultimo_peso_muerto_neumaticos', 'Peso Muerto con Neumáticos (Silver Dollar Deadlift)', 'Deadlift supramáximo con neumáticos. Glúteos.', 'Neumático', 'Básico', 'Fuerza', 'Bisagra', 5.0, 4.8, 2.0, 3.0, ['Glúteos:mayor', 'Isquiosurales'], ['Trapecio'], ['Core', 'Antebrazo'], 'Glúteos', 'lower'),

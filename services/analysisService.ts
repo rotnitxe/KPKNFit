@@ -7,6 +7,7 @@ import { isSetEffective, calculateCompletedSessionStress, HYPERTROPHY_ROLE_MULTI
 const MUSCLE_ROLE_MULTIPLIERS = HYPERTROPHY_ROLE_MULTIPLIERS ?? { primary: 1.0, secondary: 0.5, stabilizer: 0, neutralizer: 0 };
 import { buildExerciseIndex, findExercise } from '../utils/exerciseIndex';
 import { getLocalDateString, getDatePartFromString, parseDateStringAsLocal } from '../utils/dateUtils';
+import { getMuscleDisplayId } from '../utils/canonicalMuscles';
 
 const createChildToParentMap = (hierarchy: MuscleHierarchy): Map<string, string> => {
     const map = new Map<string, string>();
@@ -40,7 +41,7 @@ export const calculateAverageVolumeForWeeks = (
     const allMuscleTotals: Record<string, { totalVol: number, direct: Map<string, number>, indirect: Map<string, {sets: number, act: number}>, freqDirect: number, freqIndirect: number }> = {};
     const childToParentMap = createChildToParentMap(muscleHierarchy);
     
-    const getDisplayGroup = (muscle: string) => childToParentMap.get(muscle) || muscle;
+    const getDisplayGroup = (muscle: string) => getMuscleDisplayId(childToParentMap.get(muscle) || muscle) || 'Core';
 
     weeks.forEach(week => {
         week.sessions.forEach(session => {

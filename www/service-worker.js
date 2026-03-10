@@ -62,15 +62,23 @@ self.addEventListener('fetch', event => {
     event.respondWith(
         caches.open(CACHE_NAME).then(cache => {
             return cache.match(event.request).then(cachedResponse => {
-                const fetchPromise = fetch(event.request).then(networkResponse => {
-                    if (networkResponse && networkResponse.ok) {
-                        cache.put(event.request, networkResponse.clone());
-                    }
-                    return networkResponse;
-                });
+                const fetchPromise = fetch(event.request)
+                    .then(networkResponse => {
+                        if (networkResponse && networkResponse.ok) {
+                            cache.put(event.request, networkResponse.clone());
+                        }
+                        return networkResponse;
+                    })
+                    .catch(fetchError => {
+                        console.warn('Fetch failed, returning cached response:', fetchError);
+                        return cachedResponse;
+                    });
 
                 return cachedResponse || fetchPromise;
             });
+        }).catch(cacheError => {
+            console.warn('Cache access failed:', cacheError);
+            return fetch(event.request);
         })
     );
 });

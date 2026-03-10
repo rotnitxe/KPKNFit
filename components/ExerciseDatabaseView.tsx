@@ -87,7 +87,7 @@ const ExerciseDatabaseView: React.FC = () => {
       const muscleMatch =
         muscleFilter === 'All' ||
         muscleFilter === 'Todos' ||
-        ex.involvedMuscles.some((m) => m.role === 'primary' && normalizeMuscleGroup(m.muscle) === muscleFilter);
+        ex.involvedMuscles.some((m) => m.role === 'primary' && normalizeMuscleGroup(m.muscle, m.emphasis) === muscleFilter);
       const categoryMatch = categoryFilter === 'All' || ex.category === categoryFilter;
       const equipmentMatch = equipmentFilter === 'All' || ex.equipment === equipmentFilter;
       const typeMatch = typeFilter === 'All' || ex.type === typeFilter;

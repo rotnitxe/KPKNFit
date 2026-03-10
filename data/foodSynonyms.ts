@@ -1,4 +1,5 @@
 // data/foodSynonyms.ts
+import { FOOD_SYNONYMS_EXPANSION } from './foodSynonymsExpansion';
 // Sinónimos para el parser de descripciones de comida
 // Formato: canonical name -> [alias1, alias2, ...]
 
@@ -68,6 +69,7 @@ export const FOOD_SYNONYMS: Record<string, string[]> = {
     'lasaña de carne': ['lasaña', 'lasagna', 'lasagna de carne'],
     'sopa de lentejas': ['sopa lentejas'],
     'ensalada césar c/ pollo': ['ensalada cesar', 'cesar c/ pollo', 'ensalada cesar con pollo'],
+    ...FOOD_SYNONYMS_EXPANSION,
 };
 
 /**

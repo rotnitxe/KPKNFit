@@ -1,11 +1,11 @@
-// services/foodSearchService.ts
-// Busqueda unificada: foodDatabase local + Open Food Facts + USDA FoodData Central.
-// Incluye ranking, confianza, trazabilidad y memoria de resolucion aprendida.
-
 import type { FoodItem, Settings } from '../types';
 import { FOOD_DATABASE } from '../data/foodDatabase';
+import { buildFoodSearchText, enrichFoodItem } from '../data/foodTaxonomy';
+import { getNutritionConnectivity } from './nutritionConnectivityService';
 
-const STOPWORDS = new Set(['de', 'y', 'la', 'el', 'en', 'a', 'al', 'del', 'los', 'las', 'un', 'una', 'por', 'para']);
+const STOPWORDS = new Set([
+    'de', 'y', 'la', 'el', 'en', 'a', 'al', 'del', 'los', 'las', 'un', 'una', 'por', 'para',
+]);
 const FUZZY_THRESHOLD = 0.55;
 const MIN_CANDIDATE_SCORE = 0.2;
 const HIGH_CONFIDENCE_SCORE = 0.82;
@@ -13,13 +13,16 @@ const MEDIUM_CONFIDENCE_SCORE = 0.62;
 const SAFE_AUTOSELECT_GAP = 0.14;
 const API_TIMEOUT_MS = 4000;
 const ONLINE_QUERY_MIN_CHARS = 4;
-
 const CACHE_KEY = 'kpkn-food-search-cache';
 const CACHE_MAX_ENTRIES = 150;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-
 const LEARNED_RESOLUTIONS_KEY = 'kpkn-food-resolution-memory';
 const LEARNED_MAX_ENTRIES = 250;
+const OFF_OFFLINE_URL = '/data/openFoodFactsOffline.json';
+const USDA_OFFLINE_URL = '/data/usdaFoodsOffline.json';
+const USDA_OFFLINE_FALLBACK_URL = '/data/usdaFoundationFoods.json';
+const OFFLINE_LIMIT = 15;
+const LOCAL_FOODS = FOOD_DATABASE.map(enrichFoodItem);
 
 export type SearchMatchType = 'exact' | 'partial' | 'fuzzy';
 export type SearchConfidence = 'high' | 'medium' | 'low';
@@ -48,15 +51,8 @@ export interface SearchFoodsResult {
     decisionReason?: string;
 }
 
-interface CacheEntry {
+interface CacheEntry extends SearchFoodsResult {
     query: string;
-    results: FoodItem[];
-    candidates: SearchFoodCandidate[];
-    matchType: SearchMatchType;
-    bestScore?: number;
-    bestConfidence: SearchConfidence;
-    canAutoSelect: boolean;
-    decisionReason?: string;
     ts: number;
 }
 
@@ -65,6 +61,19 @@ interface LearnedResolution {
     canonicalId: string;
     ts: number;
     count: number;
+}
+
+interface IndexedEntry<T> {
+    raw: T;
+    food: FoodItem;
+    surface: string;
+    canonicalId: string;
+    tokens: string[];
+}
+
+interface IndexedCatalog<T> {
+    entries: IndexedEntry<T>[];
+    tokenIndex: Map<string, number[]>;
 }
 
 const OFF_MICRO_MAP: Record<string, { name: string; unit: string }> = {
@@ -80,7 +89,7 @@ const OFF_MICRO_MAP: Record<string, { name: string; unit: string }> = {
     'potassium_100g': { name: 'Potasio', unit: 'mg' },
 };
 
-const USDA_MICRO_MAP: { pattern: RegExp; name: string; unit: string }[] = [
+const USDA_MICRO_MAP = [
     { pattern: /\biron\b/i, name: 'Hierro', unit: 'mg' },
     { pattern: /\bcalcium\b/i, name: 'Calcio', unit: 'mg' },
     { pattern: /\bsodium\b/i, name: 'Sodio', unit: 'mg' },
@@ -93,47 +102,59 @@ const USDA_MICRO_MAP: { pattern: RegExp; name: string; unit: string }[] = [
     { pattern: /\bpotassium\b/i, name: 'Potasio', unit: 'mg' },
 ];
 
-function hasLocalStorage(): boolean {
-    return typeof localStorage !== 'undefined';
-}
+let preloadStarted = false;
+let localIndex: IndexedCatalog<FoodItem> | null = null;
+let offOfflineCache: any[] | null = null;
+let offOfflineIndex: IndexedCatalog<any> | null = null;
+let usdaOfflineCache: any[] | null = null;
+let usdaOfflineIndex: IndexedCatalog<any> | null = null;
 
-function readLocalStorage(key: string): string | null {
-    if (!hasLocalStorage()) return null;
+const unique = (values: (string | undefined | null)[]) => [
+    ...new Set(
+        values
+            .filter((value): value is string => Boolean(value))
+            .map(value => value.trim())
+            .filter(Boolean)
+    ),
+];
+
+const hasLocalStorage = () => typeof localStorage !== 'undefined';
+
+const readLocalStorage = (key: string) => {
     try {
-        return localStorage.getItem(key);
-    } catch (_) {
+        return hasLocalStorage() ? localStorage.getItem(key) : null;
+    } catch {
         return null;
     }
-}
+};
 
-function writeLocalStorage(key: string, value: string): void {
-    if (!hasLocalStorage()) return;
+const writeLocalStorage = (key: string, value: string) => {
     try {
-        localStorage.setItem(key, value);
-    } catch (_) {
-        /* ignore */
+        if (hasLocalStorage()) {
+            localStorage.setItem(key, value);
+        }
+    } catch {
+        // ignore storage failures
     }
-}
+};
 
-function removeLocalStorage(key: string): void {
-    if (!hasLocalStorage()) return;
+const removeLocalStorage = (key: string) => {
     try {
-        localStorage.removeItem(key);
-    } catch (_) {
-        /* ignore */
+        if (hasLocalStorage()) {
+            localStorage.removeItem(key);
+        }
+    } catch {
+        // ignore storage failures
     }
-}
+};
 
 async function fetchWithTimeout(url: string, timeoutMs = API_TIMEOUT_MS): Promise<Response> {
     const ctrl = new AbortController();
     const id = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-        const res = await fetch(url, { signal: ctrl.signal });
+        return await fetch(url, { signal: ctrl.signal });
+    } finally {
         clearTimeout(id);
-        return res;
-    } catch (error) {
-        clearTimeout(id);
-        throw error;
     }
 }
 
@@ -147,13 +168,11 @@ function normalizeQueryForSearch(query: string): string {
 }
 
 function normalizeFoodNameForMatch(name: string): string {
-    return (name || '')
-        .replace(/\s+con\s+/gi, ' c/ ')
-        .toLowerCase();
+    return (name || '').replace(/\s+con\s+/gi, ' c/ ').toLowerCase();
 }
 
 function normalizeFoodName(name: string): string {
-    return name
+    return (name || '')
         .normalize('NFD')
         .replace(/\p{Diacritic}/gu, '')
         .toLowerCase()
@@ -195,49 +214,84 @@ function getSourceKind(id: string): SearchSource {
 
 function getSourcePriority(id: string): number {
     if (id.startsWith('usda-')) return 3;
-    if (id.startsWith('gen') || id.startsWith('cl') || id.startsWith('int') || id.startsWith('meal')) return 2;
     if (id.startsWith('off-')) return 1;
     return 2;
 }
 
-let FOOD_TOKEN_INDEX: Map<string, FoodItem[]> | null = null;
+function cleanRemoteTag(tag: string): string {
+    return tag.replace(/^[a-z]{2}:/i, '').replace(/[_-]+/g, ' ').trim();
+}
 
-function buildFoodTokenIndex(): Map<string, FoodItem[]> {
-    if (FOOD_TOKEN_INDEX) return FOOD_TOKEN_INDEX;
+function buildIndexedCatalog<T>(records: T[], mapper: (raw: T) => FoodItem): IndexedCatalog<T> {
+    const entries = records.map(raw => {
+        const food = enrichFoodItem(mapper(raw));
+        const surface = normalizeFoodName(buildFoodSearchText(food));
+        const tokens = [...getTokens(surface)];
+        return {
+            raw,
+            food,
+            surface,
+            canonicalId: getCanonicalFoodId(food),
+            tokens,
+        };
+    });
 
-    const index = new Map<string, FoodItem[]>();
-    for (const food of FOOD_DATABASE) {
-        const tokens = getTokens(getCanonicalFoodId(food));
-        for (const token of tokens) {
-            const existing = index.get(token) ?? [];
-            if (!existing.includes(food)) existing.push(food);
-            index.set(token, existing);
-        }
+    const tokenIndex = new Map<string, number[]>();
+    entries.forEach((entry, index) => {
+        entry.tokens.forEach(token => {
+            tokenIndex.set(token, [...(tokenIndex.get(token) || []), index]);
+        });
+    });
+
+    return { entries, tokenIndex };
+}
+
+function getLocalCatalog(): IndexedCatalog<FoodItem> {
+    if (!localIndex) {
+        localIndex = buildIndexedCatalog(LOCAL_FOODS, food => food);
+    }
+    return localIndex;
+}
+
+function fuzzyScore(query: string, surface: string): number {
+    const normalizedQuery = normalizeFoodName(normalizeQueryForSearch(query));
+    const normalizedSurface = normalizeFoodName(surface);
+    if (!normalizedQuery || !normalizedSurface) {
+        return 0;
     }
 
-    FOOD_TOKEN_INDEX = index;
-    return index;
+    const queryTokens = getTokens(normalizedQuery);
+    const surfaceTokens = getTokens(normalizedSurface);
+    if (queryTokens.size === 0) {
+        return normalizedSurface.includes(normalizedQuery) ? 0.9 : 0;
+    }
+
+    const overlap = [...queryTokens].filter(token => surfaceTokens.has(token)).length;
+    const union = new Set([...queryTokens, ...surfaceTokens]).size;
+    const coverage = overlap / queryTokens.size;
+    const jaccard = union > 0 ? overlap / union : 0;
+
+    if (normalizedSurface.includes(normalizedQuery) || normalizedQuery.includes(normalizedSurface)) {
+        return Math.max((jaccard * 0.5) + (coverage * 0.5), 0.85);
+    }
+
+    return (jaccard * 0.5) + (coverage * 0.5);
 }
 
 function foodItemFromOFF(product: any): FoodItem {
     const nutriments = product.nutriments || {};
-    const kcal100 = nutriments['energy-kcal_100g']
+    const kcal100 =
+        nutriments['energy-kcal_100g']
         ?? nutriments['energy-kcal']
         ?? (nutriments['energy_100g'] ? nutriments['energy_100g'] / 4.184 : 0);
-    const micronutrients: { name: string; amount: number; unit: string }[] = [];
 
-    for (const [key, meta] of Object.entries(OFF_MICRO_MAP)) {
-        const value = nutriments[key];
-        if (typeof value === 'number' && value > 0) {
-            micronutrients.push({
-                name: meta.name,
-                amount: Math.round(value * 10) / 10,
-                unit: meta.unit,
-            });
-        }
-    }
+    const micronutrients = Object.entries(OFF_MICRO_MAP).flatMap(([key, meta]) => (
+        typeof nutriments[key] === 'number' && nutriments[key] > 0
+            ? [{ name: meta.name, amount: Math.round(nutriments[key] * 10) / 10, unit: meta.unit }]
+            : []
+    ));
 
-    return {
+    return enrichFoodItem({
         id: `off-${product.code || product.id || crypto.randomUUID()}`,
         name: product.product_name || product.product_name_es || 'Sin nombre',
         brand: product.brands,
@@ -256,8 +310,18 @@ function foodItemFromOFF(product: any): FoodItem {
             polyunsaturated: nutriments['polyunsaturated-fat_100g'] ?? 0,
             trans: nutriments['trans-fat_100g'] ?? 0,
         } : undefined,
-        micronutrients: micronutrients.length > 0 ? micronutrients : undefined,
-    };
+        micronutrients: micronutrients.length ? micronutrients : undefined,
+        tags: unique([
+            ...(product.categories_tags || []).map(cleanRemoteTag),
+            ...(product.labels_tags || []).map(cleanRemoteTag),
+        ]),
+        searchAliases: unique([
+            product.product_name_es,
+            product.generic_name,
+            product.generic_name_es,
+            product.abbreviated_product_name,
+        ]),
+    });
 }
 
 function foodItemFromUSDA(food: any): FoodItem {
@@ -268,6 +332,7 @@ function foodItemFromUSDA(food: any): FoodItem {
 
         if (name.includes('energy') && (unit.includes('kcal') || !unit.includes('kj'))) acc.calories = value;
         else if (name.includes('energy') && !acc.calories) acc.calories = value;
+
         if (name.includes('protein')) acc.protein = value;
         if (name.includes('carbohydrate') && !name.includes('fiber')) acc.carbs = value;
         if (name.includes('total lipid') || name === 'fat') acc.fats = value;
@@ -275,25 +340,24 @@ function foodItemFromUSDA(food: any): FoodItem {
         if (name.includes('fatty acids, total trans')) acc.trans = value;
 
         return acc;
-    }, { calories: 0, protein: 0, carbs: 0, fats: 0, saturated: 0, trans: 0 } as Record<string, number>);
+    }, {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fats: 0,
+        saturated: 0,
+        trans: 0,
+    });
 
-    const micronutrients: { name: string; amount: number; unit: string }[] = [];
-    for (const nutrient of food.foodNutrients || []) {
+    const micronutrients = (food.foodNutrients || []).flatMap((nutrient: any) => {
         const rawName = (nutrient.nutrientName || nutrient.nutrient?.name) || '';
         const value = nutrient.value ?? nutrient.amount ?? nutrient.median ?? 0;
-        if (typeof value !== 'number' || value <= 0) continue;
-
-        for (const entry of USDA_MICRO_MAP) {
-            if (entry.pattern.test(rawName)) {
-                micronutrients.push({
-                    name: entry.name,
-                    amount: Math.round(value * 10) / 10,
-                    unit: entry.unit,
-                });
-                break;
-            }
+        if (typeof value !== 'number' || value <= 0) {
+            return [];
         }
-    }
+        const match = USDA_MICRO_MAP.find(entry => entry.pattern.test(rawName));
+        return match ? [{ name: match.name, amount: Math.round(value * 10) / 10, unit: match.unit }] : [];
+    });
 
     const item: FoodItem = {
         id: `usda-${food.fdcId || food.id || crypto.randomUUID()}`,
@@ -307,9 +371,21 @@ function foodItemFromUSDA(food: any): FoodItem {
         carbs: Math.round(nutrients.carbs * 10) / 10 || 0,
         fats: Math.round(nutrients.fats * 10) / 10 || 0,
         isCustom: false,
+        searchAliases: unique([
+            food.additionalDescriptions,
+            food.lowercaseDescription,
+            food.shortDescription,
+        ]),
+        tags: unique([
+            typeof food.foodCategory === 'string'
+                ? cleanRemoteTag(food.foodCategory)
+                : cleanRemoteTag(food.foodCategory?.description || ''),
+            cleanRemoteTag(food.foodClass || ''),
+            cleanRemoteTag(food.dataType || ''),
+        ]),
     };
 
-    if (nutrients.saturated != null && nutrients.saturated > 0) {
+    if (nutrients.saturated > 0) {
         item.fatBreakdown = {
             saturated: nutrients.saturated,
             monounsaturated: 0,
@@ -317,78 +393,70 @@ function foodItemFromUSDA(food: any): FoodItem {
             trans: nutrients.trans ?? 0,
         };
     }
-
-    if (micronutrients.length > 0) item.micronutrients = micronutrients;
-    return item;
-}
-
-function fuzzyScore(query: string, foodName: string): number {
-    const queryNormalized = normalizeFoodName(normalizeQueryForSearch(query));
-    const foodNormalized = normalizeFoodName(normalizeFoodNameForMatch(foodName));
-    if (!queryNormalized || !foodNormalized) return 0;
-
-    const queryTokens = getTokens(queryNormalized);
-    const foodTokens = getTokens(foodNormalized);
-    if (queryTokens.size === 0) return foodNormalized.includes(queryNormalized) ? 0.9 : 0;
-
-    const overlap = [...queryTokens].filter(token => foodTokens.has(token)).length;
-    const union = new Set([...queryTokens, ...foodTokens]).size;
-    const jaccard = union > 0 ? overlap / union : 0;
-    const coverage = overlap / queryTokens.size;
-    const score = jaccard * 0.5 + coverage * 0.5;
-
-    if (foodNormalized.includes(queryNormalized) || queryNormalized.includes(foodNormalized)) {
-        return Math.max(score, 0.85);
+    if (micronutrients.length) {
+        item.micronutrients = micronutrients;
     }
 
-    return score;
+    return enrichFoodItem(item);
 }
 
-function searchLocalWithMatch(query: string): { results: FoodItem[]; matchType: SearchMatchType } {
+function searchCatalog<T>(
+    query: string,
+    catalog: IndexedCatalog<T>,
+    limit = OFFLINE_LIMIT
+): { results: FoodItem[]; matchType: SearchMatchType } {
     const normalizedQuery = normalizeQueryForSearch(query);
     if (!normalizedQuery || !hasSignificantQuery(normalizedQuery)) {
         return { results: [], matchType: 'exact' };
     }
 
     const searchTerms = getSignificantQueryTokens(normalizedQuery);
-    const index = buildFoodTokenIndex();
-    const candidateSet = new Set<FoodItem>();
+    const candidateIndexes = new Set<number>();
+    searchTerms.forEach(term => {
+        (catalog.tokenIndex.get(term) || []).forEach(index => candidateIndexes.add(index));
+    });
 
-    for (const term of searchTerms) {
-        const matches = index.get(term);
-        if (!matches) continue;
-        for (const food of matches) candidateSet.add(food);
-    }
+    const pool = candidateIndexes.size
+        ? [...candidateIndexes].map(index => catalog.entries[index])
+        : catalog.entries
+            .filter(entry => entry.surface.includes((searchTerms[0] || normalizedQuery).slice(0, 4)))
+            .slice(0, 1200);
 
-    const pool = candidateSet.size > 0 ? [...candidateSet] : FOOD_DATABASE;
-    const directMatches = pool.filter(food => {
-        const name = normalizeFoodNameForMatch(food.name);
-        const brand = (food.brand || '').toLowerCase();
-        return searchTerms.some(term => name.includes(term) || brand.includes(term));
-    }).slice(0, 30);
+    const direct = pool
+        .filter(entry => searchTerms.some(term => entry.surface.includes(term)))
+        .slice(0, limit);
 
-    if (directMatches.length > 0) {
+    if (direct.length) {
         const queryName = normalizeFoodName(normalizedQuery);
-        const hasExact = directMatches.some(food => {
-            const foodName = getCanonicalFoodId(food);
-            return foodName === queryName || foodName.includes(queryName) || queryName.includes(foodName);
-        });
+        const hasExact = direct.some(entry =>
+            entry.canonicalId === queryName
+            || entry.canonicalId.includes(queryName)
+            || queryName.includes(entry.canonicalId)
+        );
 
-        return { results: directMatches, matchType: hasExact ? 'exact' : 'partial' };
+        return {
+            results: direct.map(entry => entry.food),
+            matchType: hasExact ? 'exact' : 'partial',
+        };
     }
 
-    const fuzzyResults = FOOD_DATABASE
-        .map(food => ({ food, score: fuzzyScore(normalizedQuery, food.name) }))
-        .filter(entry => entry.score >= FUZZY_THRESHOLD)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 20)
-        .map(entry => entry.food);
-
-    return { results: fuzzyResults, matchType: 'fuzzy' };
+    return {
+        results: pool
+            .map(entry => ({ entry, score: fuzzyScore(normalizedQuery, entry.surface) }))
+            .filter(entry => entry.score >= FUZZY_THRESHOLD)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, limit)
+            .map(entry => entry.entry.food),
+        matchType: 'fuzzy',
+    };
 }
 
-const OFF_OFFLINE_URL = '/data/openFoodFactsOffline.json';
-let offOfflineCache: any[] | null = null;
+function parseUSDAOfflineData(data: unknown): any[] {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && 'FoundationFoods' in data) return (data as any).FoundationFoods || [];
+    if (data && typeof data === 'object' && 'foods' in data) return (data as any).foods || [];
+    return [];
+}
 
 async function loadOFFOffline(): Promise<any[]> {
     if (offOfflineCache) return offOfflineCache;
@@ -396,80 +464,17 @@ async function loadOFFOffline(): Promise<any[]> {
     const base = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '';
     try {
         const response = await fetch(base + OFF_OFFLINE_URL);
-        if (!response.ok) return [];
-
-        const data = await response.json();
-        const products = Array.isArray(data) ? data : (data?.products || []);
-        if (products.length > 0) offOfflineCache = products;
-        return offOfflineCache ?? [];
-    } catch (_) {
+        const data = response.ok ? await response.json() : [];
+        const products: any[] = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.products)
+                ? data.products
+                : [];
+        offOfflineCache = products;
+        return products;
+    } catch {
         return [];
     }
-}
-
-async function searchOFFOffline(query: string): Promise<FoodItem[]> {
-    const products = await loadOFFOffline();
-    const normalizedQuery = normalizeQueryForSearch(query);
-    if (!normalizedQuery || products.length === 0 || !hasSignificantQuery(normalizedQuery)) return [];
-
-    const searchTerms = getSignificantQueryTokens(normalizedQuery);
-    const normalizedName = (product: any) => normalizeFoodNameForMatch(product.product_name || product.product_name_es || '');
-
-    let matches = products.filter(product =>
-        searchTerms.some(term => normalizedName(product).includes(term))
-    );
-
-    if (matches.length === 0) {
-        matches = products
-            .map(product => ({ product, score: fuzzyScore(normalizedQuery, normalizedName(product)) }))
-            .filter(entry => entry.score >= FUZZY_THRESHOLD)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 15)
-            .map(entry => entry.product);
-    }
-
-    return matches.slice(0, 15).map(product => foodItemFromOFF(product));
-}
-
-async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
-    if (!hasSignificantQuery(query) || query.trim().length < ONLINE_QUERY_MIN_CHARS) return [];
-
-    const searchTerms = getSignificantQueryTokens(query).join(' ') || query.trim();
-    if (!searchTerms) return [];
-
-    try {
-        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerms)}&search_simple=1&json=1&page_size=10`;
-        const response = await fetchWithTimeout(url);
-        const data = await response.json();
-        const products = data.products || [];
-
-        return products
-            .filter((product: any) => product.product_name && (product.nutriments?.['energy-kcal_100g'] != null || product.nutriments?.proteins_100g != null))
-            .map((product: any) => foodItemFromOFF(product))
-            .filter((food: FoodItem) => {
-                const tokens = getSignificantQueryTokens(query);
-                return fuzzyScore(query, food.name) >= FUZZY_THRESHOLD
-                    || tokens.some(token => normalizeFoodName(food.name).includes(token));
-            })
-            .slice(0, 10);
-    } catch (_) {
-        return searchOFFOffline(query);
-    }
-}
-
-const USDA_OFFLINE_URL = '/data/usdaFoodsOffline.json';
-const USDA_OFFLINE_FALLBACK_URL = '/data/usdaFoundationFoods.json';
-let usdaOfflineCache: any[] | null = null;
-
-function parseUSDAOfflineData(data: unknown): any[] {
-    if (Array.isArray(data)) return data;
-    if (data && typeof data === 'object' && 'FoundationFoods' in data) {
-        return (data as { FoundationFoods?: any[] }).FoundationFoods || [];
-    }
-    if (data && typeof data === 'object' && 'foods' in data) {
-        return (data as { foods?: any[] }).foods || [];
-    }
-    return [];
 }
 
 async function loadUSDAOffline(): Promise<any[]> {
@@ -480,15 +485,14 @@ async function loadUSDAOffline(): Promise<any[]> {
         try {
             const response = await fetch(base + url);
             if (!response.ok) continue;
-
             const data = await response.json();
             const foods = parseUSDAOfflineData(data);
-            if (foods.length > 0) {
+            if (foods.length) {
                 usdaOfflineCache = foods;
-                return usdaOfflineCache;
+                return foods;
             }
-        } catch (_) {
-            /* try next url */
+        } catch {
+            // ignore offline source failures
         }
     }
 
@@ -496,28 +500,63 @@ async function loadUSDAOffline(): Promise<any[]> {
     return [];
 }
 
+async function getOFFOfflineCatalog(): Promise<IndexedCatalog<any>> {
+    if (!offOfflineIndex) {
+        offOfflineIndex = buildIndexedCatalog(await loadOFFOffline(), foodItemFromOFF);
+    }
+    return offOfflineIndex;
+}
+
+async function getUSDAOfflineCatalog(): Promise<IndexedCatalog<any>> {
+    if (!usdaOfflineIndex) {
+        usdaOfflineIndex = buildIndexedCatalog(await loadUSDAOffline(), foodItemFromUSDA);
+    }
+    return usdaOfflineIndex;
+}
+
+async function searchOFFOffline(query: string): Promise<FoodItem[]> {
+    return searchCatalog(query, await getOFFOfflineCatalog()).results;
+}
+
 async function searchUSDAOffline(query: string): Promise<FoodItem[]> {
-    const foods = await loadUSDAOffline();
-    const normalizedQuery = normalizeQueryForSearch(query);
-    if (!normalizedQuery || !hasSignificantQuery(normalizedQuery) || foods.length === 0) return [];
+    return searchCatalog(query, await getUSDAOfflineCatalog()).results;
+}
 
-    const searchTerms = getSignificantQueryTokens(normalizedQuery);
-    const normalizedDescription = (food: any) => normalizeFoodNameForMatch(food.description || '');
-
-    let matches = foods.filter(food =>
-        searchTerms.some(term => normalizedDescription(food).includes(term))
-    );
-
-    if (matches.length === 0) {
-        matches = foods
-            .map(food => ({ food, score: fuzzyScore(normalizedQuery, food.description || '') }))
-            .filter(entry => entry.score >= FUZZY_THRESHOLD)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 15)
-            .map(entry => entry.food);
+async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
+    if (!hasSignificantQuery(query) || query.trim().length < ONLINE_QUERY_MIN_CHARS) {
+        return [];
     }
 
-    return matches.slice(0, 15).map(food => foodItemFromUSDA(food));
+    const searchTerms = getSignificantQueryTokens(query).join(' ') || query.trim();
+    try {
+        const fields = [
+            'code',
+            'product_name',
+            'product_name_es',
+            'generic_name',
+            'generic_name_es',
+            'brands',
+            'nutriments',
+            'image_small_url',
+            'image_front_small_url',
+            'categories_tags',
+            'labels_tags',
+        ].join(',');
+        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerms)}&search_simple=1&json=1&page_size=10&fields=${encodeURIComponent(fields)}`;
+        const response = await fetchWithTimeout(url);
+        const data = await response.json();
+        const products = data.products || [];
+
+        return products
+            .filter((product: any) =>
+                product.product_name
+                && (product.nutriments?.['energy-kcal_100g'] != null || product.nutriments?.proteins_100g != null)
+            )
+            .map(foodItemFromOFF)
+            .slice(0, 10);
+    } catch {
+        return searchOFFOffline(query);
+    }
 }
 
 async function searchUSDA(query: string, apiKey: string): Promise<FoodItem[]> {
@@ -527,9 +566,11 @@ async function searchUSDA(query: string, apiKey: string): Promise<FoodItem[]> {
             const response = await fetchWithTimeout(url);
             const data = await response.json();
             const foods = data.foods || [];
-            if (foods.length > 0) return foods.slice(0, 10).map((food: any) => foodItemFromUSDA(food));
-        } catch (_) {
-            /* offline fallback */
+            if (foods.length) {
+                return foods.slice(0, 10).map(foodItemFromUSDA);
+            }
+        } catch {
+            // fallback to offline USDA
         }
     }
 
@@ -538,30 +579,34 @@ async function searchUSDA(query: string, apiKey: string): Promise<FoodItem[]> {
 
 function mergeNutrients(base: FoodItem, fallback: FoodItem): FoodItem {
     const merged = { ...base };
-
     if ((!merged.calories || merged.calories === 0) && fallback.calories) merged.calories = fallback.calories;
     if ((!merged.protein || merged.protein === 0) && fallback.protein) merged.protein = fallback.protein;
     if ((!merged.carbs || merged.carbs === 0) && fallback.carbs) merged.carbs = fallback.carbs;
     if ((!merged.fats || merged.fats === 0) && fallback.fats) merged.fats = fallback.fats;
     if (!merged.fatBreakdown && fallback.fatBreakdown) merged.fatBreakdown = fallback.fatBreakdown;
     if (!merged.micronutrients?.length && fallback.micronutrients?.length) merged.micronutrients = fallback.micronutrients;
-    if (!merged.carbBreakdown && fallback.carbBreakdown) merged.carbBreakdown = fallback.carbBreakdown;
-
+    merged.tags = unique([...(merged.tags || []), ...(fallback.tags || [])]);
+    merged.searchAliases = unique([...(merged.searchAliases || []), ...(fallback.searchAliases || [])]);
+    if (!merged.category && fallback.category) merged.category = fallback.category;
+    if (!merged.subcategory && fallback.subcategory) merged.subcategory = fallback.subcategory;
     return merged;
 }
 
 function areSimilarFoods(a: FoodItem, b: FoodItem): boolean {
     const canonicalA = getCanonicalFoodId(a);
     const canonicalB = getCanonicalFoodId(b);
-    if (canonicalA === canonicalB) return true;
+    if (canonicalA === canonicalB) {
+        return true;
+    }
 
     const tokensA = getTokens(canonicalA);
     const tokensB = getTokens(canonicalB);
-    if (tokensA.size === 0 || tokensB.size === 0) return false;
+    if (!tokensA.size || !tokensB.size) {
+        return false;
+    }
 
     const overlap = [...tokensA].filter(token => tokensB.has(token)).length;
-    const minSize = Math.min(tokensA.size, tokensB.size);
-    return overlap >= Math.ceil(minSize * 0.7);
+    return overlap >= Math.ceil(Math.min(tokensA.size, tokensB.size) * 0.7);
 }
 
 function mergeAndDeduplicate(local: FoodItem[], off: FoodItem[], usda: FoodItem[]): FoodItem[] {
@@ -576,37 +621,39 @@ function mergeAndDeduplicate(local: FoodItem[], off: FoodItem[], usda: FoodItem[
         const best = [...group].sort((a, b) => getSourcePriority(b.id) - getSourcePriority(a.id))[0];
         let merged = { ...best };
 
-        for (const candidate of group) {
-            if (candidate.id !== best.id) merged = mergeNutrients(merged, candidate);
-        }
+        group.forEach(candidate => {
+            if (candidate.id !== best.id) {
+                merged = mergeNutrients(merged, candidate);
+            }
+        });
 
-        result.push(merged);
-        for (const candidate of group) used.add(candidate.id);
+        result.push(enrichFoodItem(merged));
+        group.forEach(candidate => used.add(candidate.id));
     }
 
     return result.slice(0, 30);
 }
 
 function getCache(): Map<string, CacheEntry> {
-    const raw = readLocalStorage(CACHE_KEY);
-    if (!raw) return new Map();
-
     try {
-        const entries = JSON.parse(raw) as [string, CacheEntry][];
-        const map = new Map(entries);
+        const raw = readLocalStorage(CACHE_KEY);
+        if (!raw) return new Map();
+
+        const map = new Map(JSON.parse(raw) as [string, CacheEntry][]);
         const now = Date.now();
         for (const [key, value] of map) {
-            if (now - value.ts > CACHE_TTL_MS) map.delete(key);
+            if (now - value.ts > CACHE_TTL_MS) {
+                map.delete(key);
+            }
         }
         return map;
-    } catch (_) {
+    } catch {
         return new Map();
     }
 }
 
 function setCache(map: Map<string, CacheEntry>): void {
-    const entries = Array.from(map.entries()).slice(-CACHE_MAX_ENTRIES);
-    writeLocalStorage(CACHE_KEY, JSON.stringify(entries));
+    writeLocalStorage(CACHE_KEY, JSON.stringify(Array.from(map.entries()).slice(-CACHE_MAX_ENTRIES)));
 }
 
 function clearSearchCache(): void {
@@ -614,22 +661,23 @@ function clearSearchCache(): void {
 }
 
 function getLearnedResolutions(): Map<string, LearnedResolution> {
-    const raw = readLocalStorage(LEARNED_RESOLUTIONS_KEY);
-    if (!raw) return new Map();
-
     try {
-        const entries = JSON.parse(raw) as [string, LearnedResolution][];
-        return new Map(entries);
-    } catch (_) {
+        const raw = readLocalStorage(LEARNED_RESOLUTIONS_KEY);
+        return raw ? new Map(JSON.parse(raw) as [string, LearnedResolution][]) : new Map();
+    } catch {
         return new Map();
     }
 }
 
 function setLearnedResolutions(map: Map<string, LearnedResolution>): void {
-    const entries = Array.from(map.entries())
-        .sort((a, b) => b[1].ts - a[1].ts)
-        .slice(0, LEARNED_MAX_ENTRIES);
-    writeLocalStorage(LEARNED_RESOLUTIONS_KEY, JSON.stringify(entries));
+    writeLocalStorage(
+        LEARNED_RESOLUTIONS_KEY,
+        JSON.stringify(
+            Array.from(map.entries())
+                .sort((a, b) => b[1].ts - a[1].ts)
+                .slice(0, LEARNED_MAX_ENTRIES)
+        )
+    );
 }
 
 function buildMemoryKey(query: string, brandHint?: string): string {
@@ -639,8 +687,7 @@ function buildMemoryKey(query: string, brandHint?: string): string {
 }
 
 function getLearnedResolution(query: string, brandHint?: string): LearnedResolution | null {
-    const key = buildMemoryKey(query, brandHint);
-    return getLearnedResolutions().get(key) ?? null;
+    return getLearnedResolutions().get(buildMemoryKey(query, brandHint)) ?? null;
 }
 
 export function rememberFoodResolution(query: string, food: FoodItem, brandHint?: string): void {
@@ -680,7 +727,7 @@ function scoreFoodCandidate(
 ): SearchFoodCandidate {
     const queryNormalized = normalizeFoodName(normalizeQueryForSearch(query));
     const canonicalId = getCanonicalFoodId(food);
-    const matchSurface = normalizeFoodName(`${food.name} ${food.brand || ''}`.trim());
+    const matchSurface = normalizeFoodName(buildFoodSearchText(food));
     const foodTokens = getTokens(matchSurface);
     const queryTokens = [...getTokens(queryNormalized)];
     const overlap = queryTokens.filter(token => foodTokens.has(token) || matchSurface.includes(token));
@@ -688,17 +735,12 @@ function scoreFoodCandidate(
     const exactNormalized = queryNormalized.length > 0 && canonicalId === queryNormalized;
     const directPhraseMatch = !exactNormalized
         && queryNormalized.length > 0
-        && (
-            canonicalId.includes(queryNormalized)
-            || queryNormalized.includes(canonicalId)
-            || matchSurface.includes(queryNormalized)
-        );
+        && (canonicalId.includes(queryNormalized) || queryNormalized.includes(canonicalId) || matchSurface.includes(queryNormalized));
     const queryCoverage = queryTokens.length > 0 ? uniqueOverlap.length / queryTokens.length : (directPhraseMatch ? 1 : 0);
     const tokenPrecision = foodTokens.size > 0 ? uniqueOverlap.length / foodTokens.size : 0;
-    const source = getSourceKind(food.id);
     const trace: string[] = [];
-
     let score = 0;
+
     if (exactNormalized) {
         score += 0.54;
         trace.push('exact_name');
@@ -711,21 +753,18 @@ function scoreFoodCandidate(
         score += queryCoverage * 0.28;
         trace.push(`coverage:${queryCoverage.toFixed(2)}`);
     }
-
     if (tokenPrecision > 0) {
         score += tokenPrecision * 0.14;
         trace.push(`precision:${tokenPrecision.toFixed(2)}`);
     }
-
     if (queryTokens.length > 0 && uniqueOverlap.length === queryTokens.length) {
         score += 0.08;
         trace.push('all_query_tokens_present');
     }
-
     if (queryTokens.length > 1 && uniqueOverlap.length < queryTokens.length) {
-        const missingTokens = queryTokens.length - uniqueOverlap.length;
-        score -= missingTokens * 0.14;
-        trace.push(`missing_tokens:${missingTokens}`);
+        const missing = queryTokens.length - uniqueOverlap.length;
+        score -= missing * 0.14;
+        trace.push(`missing_tokens:${missing}`);
     }
 
     let brandMatched = false;
@@ -746,11 +785,6 @@ function scoreFoodCandidate(
         trace.push('brand_in_query');
     }
 
-    if (queryTokens.length > 1 && uniqueOverlap.length === queryTokens.length && brandMatched) {
-        score += 0.18;
-        trace.push('brand_supported_full_coverage');
-    }
-
     const learned = Boolean(
         learnedResolution
         && (food.id === learnedResolution.foodId || canonicalId === learnedResolution.canonicalId)
@@ -760,20 +794,31 @@ function scoreFoodCandidate(
         trace.push('learned_resolution');
     }
 
+    if (food.tags?.length) {
+        score += Math.min(food.tags.length, 4) * 0.01;
+        trace.push('semantic_tags');
+    }
     score += getSourcePriority(food.id) * 0.03;
-    trace.push(`source:${source}`);
-
-    if (food.micronutrients?.length) score += 0.01;
+    trace.push(`source:${getSourceKind(food.id)}`);
+    if (food.micronutrients?.length) {
+        score += 0.01;
+    }
 
     score = Math.max(0, Math.min(1, score));
-    const confidence = classifyCandidateConfidence(score, queryCoverage, exactNormalized, directPhraseMatch, queryTokens.length);
+    const confidence = classifyCandidateConfidence(
+        score,
+        queryCoverage,
+        exactNormalized,
+        directPhraseMatch,
+        queryTokens.length
+    );
 
     return {
         food,
         score: Math.round(score * 1000) / 1000,
         confidence,
         canonicalId,
-        source,
+        source: getSourceKind(food.id),
         trace,
         queryCoverage: Math.round(queryCoverage * 1000) / 1000,
         tokenPrecision: Math.round(tokenPrecision * 1000) / 1000,
@@ -789,16 +834,15 @@ function rankCandidates(
     learnedResolution?: LearnedResolution | null,
     allowLowScores = false
 ): SearchFoodCandidate[] {
-    const candidates = items
+    return items
         .map(item => scoreFoodCandidate(query, item, brandHint, learnedResolution))
         .filter(candidate => allowLowScores || candidate.score >= MIN_CANDIDATE_SCORE)
-        .sort((a, b) => {
-            if (b.score !== a.score) return b.score - a.score;
-            if (b.learned !== a.learned) return Number(b.learned) - Number(a.learned);
-            return getSourcePriority(b.food.id) - getSourcePriority(a.food.id);
-        });
-
-    return candidates.slice(0, 20);
+        .sort((a, b) => (
+            b.score !== a.score
+                ? b.score - a.score
+                : getSourcePriority(b.food.id) - getSourcePriority(a.food.id)
+        ))
+        .slice(0, 20);
 }
 
 function deriveMatchType(candidates: SearchFoodCandidate[]): SearchMatchType {
@@ -809,23 +853,19 @@ function deriveMatchType(candidates: SearchFoodCandidate[]): SearchMatchType {
     return 'fuzzy';
 }
 
-function summarizeCandidates(candidates: SearchFoodCandidate[]): {
-    bestConfidence: SearchConfidence;
-    canAutoSelect: boolean;
-    decisionReason?: string;
-} {
+function summarizeCandidates(candidates: SearchFoodCandidate[]) {
     const best = candidates[0];
     const second = candidates[1];
+
     if (!best) {
         return {
-            bestConfidence: 'low',
+            bestConfidence: 'low' as SearchConfidence,
             canAutoSelect: false,
             decisionReason: 'No se encontraron coincidencias.',
         };
     }
 
     const gap = second ? best.score - second.score : best.score;
-
     if (best.learned && best.score >= 0.68) {
         return {
             bestConfidence: best.confidence,
@@ -833,7 +873,6 @@ function summarizeCandidates(candidates: SearchFoodCandidate[]): {
             decisionReason: 'Coincidencia reforzada por una resolucion aprendida.',
         };
     }
-
     if (best.confidence === 'high' && gap >= 0.08) {
         return {
             bestConfidence: best.confidence,
@@ -841,7 +880,6 @@ function summarizeCandidates(candidates: SearchFoodCandidate[]): {
             decisionReason: 'Coincidencia de alta confianza.',
         };
     }
-
     if (best.confidence === 'medium' && best.queryCoverage >= 1 && gap >= SAFE_AUTOSELECT_GAP) {
         return {
             bestConfidence: best.confidence,
@@ -849,7 +887,6 @@ function summarizeCandidates(candidates: SearchFoodCandidate[]): {
             decisionReason: 'Coincidencia suficientemente diferenciada para autoseleccion.',
         };
     }
-
     if (best.confidence === 'medium') {
         return {
             bestConfidence: best.confidence,
@@ -857,7 +894,6 @@ function summarizeCandidates(candidates: SearchFoodCandidate[]): {
             decisionReason: 'Hay coincidencias plausibles, pero requieren confirmacion.',
         };
     }
-
     return {
         bestConfidence: best.confidence,
         canAutoSelect: false,
@@ -865,13 +901,17 @@ function summarizeCandidates(candidates: SearchFoodCandidate[]): {
     };
 }
 
-let preloadStarted = false;
-
 function ensurePreload(): void {
     if (preloadStarted || typeof window === 'undefined') return;
+
     preloadStarted = true;
-    loadOFFOffline().catch(() => { /* ignore */ });
-    loadUSDAOffline().catch(() => { /* ignore */ });
+    getLocalCatalog();
+    loadOFFOffline().then(() => getOFFOfflineCatalog()).catch(() => {});
+    loadUSDAOffline().then(() => getUSDAOfflineCatalog()).catch(() => {});
+}
+
+function searchLocalWithMatch(query: string) {
+    return searchCatalog(query, getLocalCatalog(), 30);
 }
 
 export async function searchFoods(
@@ -893,9 +933,11 @@ export async function searchFoods(
         };
     }
 
-    const cacheKey = brandHint ? `${normalizedQuery}|${brandHint}` : normalizedQuery;
+    const connectivity = await getNutritionConnectivity(settings);
+    const cacheKey = `${brandHint ? `${normalizedQuery}|${brandHint}` : normalizedQuery}|online:${Number(connectivity.canUseInternetApis)}|usda:${Number(connectivity.canUseUsdaApi)}`;
     const cache = getCache();
     const cached = cache.get(cacheKey);
+
     if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
         return {
             results: cached.results,
@@ -909,7 +951,6 @@ export async function searchFoods(
     }
 
     const learnedResolution = getLearnedResolution(normalizedQuery, brandHint);
-    const usdaKey = settings?.apiKeys?.usda || '';
     const { results: local } = searchLocalWithMatch(normalizedQuery);
     const [offOffline, usdaOffline] = await Promise.all([
         searchOFFOffline(normalizedQuery),
@@ -919,27 +960,31 @@ export async function searchFoods(
     let merged = mergeAndDeduplicate(local, offOffline, usdaOffline);
     let candidates = rankCandidates(normalizedQuery, merged, brandHint, learnedResolution);
 
-    const MIN_OFFLINE_RESULTS = 5;
-    const canQueryOnline = normalizedQuery.length >= ONLINE_QUERY_MIN_CHARS
-        && typeof navigator !== 'undefined'
-        && navigator.onLine;
-
-    if (candidates.length < MIN_OFFLINE_RESULTS && canQueryOnline) {
-        try {
-            const [offOnline, usdaOnline] = await Promise.all([
-                searchOpenFoodFacts(normalizedQuery),
-                searchUSDA(normalizedQuery, usdaKey),
-            ]);
-            merged = mergeAndDeduplicate(local, [...offOffline, ...offOnline], [...usdaOffline, ...usdaOnline]);
-            candidates = rankCandidates(normalizedQuery, merged, brandHint, learnedResolution);
-        } catch (_) {
-            /* keep offline candidates */
-        }
+    if (
+        candidates.length < 5
+        && normalizedQuery.length >= ONLINE_QUERY_MIN_CHARS
+        && connectivity.canUseInternetApis
+    ) {
+        const [offOnline, usdaOnline] = await Promise.all([
+            connectivity.canUseOpenFoodFactsApi
+                ? searchOpenFoodFacts(normalizedQuery)
+                : Promise.resolve([]),
+            connectivity.canUseUsdaApi
+                ? searchUSDA(normalizedQuery, settings?.apiKeys?.usda || '')
+                : Promise.resolve([]),
+        ]);
+        merged = mergeAndDeduplicate(local, [...offOffline, ...offOnline], [...usdaOffline, ...usdaOnline]);
+        candidates = rankCandidates(normalizedQuery, merged, brandHint, learnedResolution);
     }
 
-    if (candidates.length === 0) {
-        const fallbackPool = mergeAndDeduplicate(local, offOffline, usdaOffline);
-        candidates = rankCandidates(normalizedQuery, fallbackPool, brandHint, learnedResolution, true);
+    if (!candidates.length) {
+        candidates = rankCandidates(
+            normalizedQuery,
+            mergeAndDeduplicate(local, offOffline, usdaOffline),
+            brandHint,
+            learnedResolution,
+            true
+        );
     }
 
     const summary = summarizeCandidates(candidates);
@@ -953,19 +998,8 @@ export async function searchFoods(
         decisionReason: summary.decisionReason,
     };
 
-    cache.set(cacheKey, {
-        query: query.trim(),
-        results: result.results,
-        candidates: result.candidates,
-        matchType: result.matchType,
-        bestScore: result.bestScore,
-        bestConfidence: result.bestConfidence,
-        canAutoSelect: result.canAutoSelect,
-        decisionReason: result.decisionReason,
-        ts: Date.now(),
-    });
+    cache.set(cacheKey, { query: query.trim(), ...result, ts: Date.now() });
     setCache(cache);
-
     return result;
 }
 

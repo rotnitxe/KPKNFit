@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export type StructureSubTab = 'semana' | 'macrociclo';
+export type StructureSubTab = 'semana' | 'macrociclo' | 'split';
 export type AnalyticsSubTab = 'volumen' | 'progreso' | 'historiales';
 
 interface SubTabConfig {

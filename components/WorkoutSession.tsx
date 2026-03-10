@@ -1101,8 +1101,9 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
 
         allExercises.forEach(ex => {
             const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
-            const rawMuscle = info?.involvedMuscles.find(m => m.role === 'primary')?.muscle || 'General';
-            const primaryMuscle = normalizeMuscleGroup ? normalizeMuscleGroup(rawMuscle) : rawMuscle;
+            const primaryEntry = info?.involvedMuscles.find(m => m.role === 'primary');
+            const rawMuscle = primaryEntry?.muscle || info?.subMuscleGroup || 'Core';
+            const primaryMuscle = normalizeMuscleGroup ? normalizeMuscleGroup(rawMuscle, primaryEntry?.emphasis) : rawMuscle;
 
             let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
 
@@ -1451,8 +1452,9 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 if (newE1RM > 0) {
                     const conservative1RM = newE1RM * 0.95; // Factor conservador para siguientes ejercicios
                     const exInfo = exerciseList.find(e => e.id === exercise.exerciseDbId || e.name === exercise.name);
-                    const rawMuscle = exInfo?.involvedMuscles?.find(m => m.role === 'primary')?.muscle || 'General';
-                    const calibMuscle = normalizeMuscleGroup(rawMuscle);
+                    const primaryEntry = exInfo?.involvedMuscles?.find(m => m.role === 'primary');
+                    const rawMuscle = primaryEntry?.muscle || exInfo?.subMuscleGroup || 'Core';
+                    const calibMuscle = normalizeMuscleGroup(rawMuscle, primaryEntry?.emphasis);
 
                     setSessionAdjusted1RMs(prev => {
                         const next = { ...prev };
@@ -1461,7 +1463,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                         allExercises.forEach((ex, idx) => {
                             if (idx <= currentIdx) return;
                             const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
-                            const exMuscle = normalizeMuscleGroup(info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle || 'General');
+                            const exPrimary = info?.involvedMuscles?.find(m => m.role === 'primary');
+                            const exMuscle = normalizeMuscleGroup(exPrimary?.muscle || info?.subMuscleGroup || 'Core', exPrimary?.emphasis);
                             if (exMuscle === calibMuscle) next[ex.id] = conservative1RM;
                         });
                         return next;

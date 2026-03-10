@@ -22,6 +22,9 @@ export interface RecoveryObservation {
     sleep_quality?: number;
     nutrition_status?: string;
     stress_level?: number;
+    articular_battery?: number;
+    combined_readiness?: number;
+    joint_id?: string;
 }
 
 export interface FatigueDataPoint {
@@ -33,12 +36,17 @@ export interface FatigueDataPoint {
     age: number;
     is_compound_dominant: boolean;
     observed_fatigue_fraction: number;
+    articular_load?: number;
+    muscle_battery?: number;
+    articular_battery?: number;
+    combined_readiness?: number;
 }
 
 export interface PredictionRecord {
     prediction_id: string;
     timestamp: string;
     muscle?: string;
+    joint?: string;
     system: string;
     predicted_value: number;
     context: Record<string, any>;
@@ -109,6 +117,7 @@ export interface AugeAdaptiveCache {
         recommendations: string[];
         suggested_adjustments: Record<string, number>;
     } | null;
+    banisterHistory: TrainingImpulse[];
     lastSyncTimestamp: string;
 }
 
@@ -120,14 +129,90 @@ interface AdaptiveQueue {
     trainingImpulses: TrainingImpulse[];
 }
 
+const createEmptyQueue = (): AdaptiveQueue => ({
+    recoveryObservations: [],
+    fatigueDataPoints: [],
+    predictions: [],
+    outcomes: [],
+    trainingImpulses: [],
+});
+
+const createEmptyCache = (): AugeAdaptiveCache => ({
+    priors: {},
+    totalObservations: 0,
+    personalizedRecoveryHours: {},
+    confidenceIntervals: {},
+    gpCurve: null,
+    banister: null,
+    selfImprovement: null,
+    banisterHistory: [],
+    lastSyncTimestamp: '',
+});
+
+function normalizeTrainingImpulse(impulse: TrainingImpulse | null | undefined): TrainingImpulse | null {
+    const timestamp = Number(impulse?.timestamp_hours);
+    const total = Number(impulse?.impulse);
+    const cns = Number(impulse?.cns_impulse);
+    const spinal = Number(impulse?.spinal_impulse);
+
+    if (!Number.isFinite(timestamp) || !Number.isFinite(total)) return null;
+
+    return {
+        timestamp_hours: timestamp,
+        impulse: Math.max(0, total),
+        cns_impulse: Number.isFinite(cns) ? Math.max(0, cns) : 0,
+        spinal_impulse: Number.isFinite(spinal) ? Math.max(0, spinal) : 0,
+    };
+}
+
+function getTrainingImpulseKey(impulse: TrainingImpulse): string {
+    return [
+        Math.round(impulse.timestamp_hours * 1000),
+        impulse.impulse.toFixed(4),
+        impulse.cns_impulse.toFixed(4),
+        impulse.spinal_impulse.toFixed(4),
+    ].join('|');
+}
+
+function mergeTrainingHistory(...segments: (TrainingImpulse[] | undefined)[]): TrainingImpulse[] {
+    const merged = new Map<string, TrainingImpulse>();
+
+    segments.flat().forEach((entry) => {
+        const normalized = normalizeTrainingImpulse(entry);
+        if (!normalized) return;
+        merged.set(getTrainingImpulseKey(normalized), normalized);
+    });
+
+    return Array.from(merged.values())
+        .sort((a, b) => a.timestamp_hours - b.timestamp_hours)
+        .slice(-240);
+}
+
+function buildRelativeTrainingHistory(history: TrainingImpulse[]): TrainingImpulse[] {
+    if (history.length === 0) return [];
+    const firstTimestamp = history[0].timestamp_hours;
+
+    return history.map((entry) => ({
+        ...entry,
+        timestamp_hours: Math.max(0, entry.timestamp_hours - firstTimestamp),
+    }));
+}
+
 // ─── Queue Management ───────────────────────────────────────────
 
 function loadQueue(): AdaptiveQueue {
     try {
         const raw = localStorage.getItem(QUEUE_KEY);
-        if (raw) return JSON.parse(raw);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            return {
+                ...createEmptyQueue(),
+                ...parsed,
+                trainingImpulses: mergeTrainingHistory(parsed?.trainingImpulses || []),
+            };
+        }
     } catch { /* corrupt data */ }
-    return { recoveryObservations: [], fatigueDataPoints: [], predictions: [], outcomes: [], trainingImpulses: [] };
+    return createEmptyQueue();
 }
 
 function saveQueue(queue: AdaptiveQueue): void {
@@ -143,18 +228,19 @@ function clearQueue(): void {
 function loadCache(): AugeAdaptiveCache {
     try {
         const raw = localStorage.getItem(CACHE_KEY);
-        if (raw) return JSON.parse(raw);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            return {
+                ...createEmptyCache(),
+                ...parsed,
+                priors: parsed?.priors || {},
+                personalizedRecoveryHours: parsed?.personalizedRecoveryHours || {},
+                confidenceIntervals: parsed?.confidenceIntervals || {},
+                banisterHistory: mergeTrainingHistory(parsed?.banisterHistory || []),
+            };
+        }
     } catch { /* corrupt */ }
-    return {
-        priors: {},
-        totalObservations: 0,
-        personalizedRecoveryHours: {},
-        confidenceIntervals: {},
-        gpCurve: null,
-        banister: null,
-        selfImprovement: null,
-        lastSyncTimestamp: '',
-    };
+    return createEmptyCache();
 }
 
 function saveCache(cache: AugeAdaptiveCache): void {
@@ -189,7 +275,9 @@ export function queueOutcome(outcome: OutcomeRecord): void {
 
 export function queueTrainingImpulse(impulse: TrainingImpulse): void {
     const q = loadQueue();
-    q.trainingImpulses.push(impulse);
+    const normalized = normalizeTrainingImpulse(impulse);
+    if (!normalized) return;
+    q.trainingImpulses = mergeTrainingHistory(q.trainingImpulses, [normalized]);
     saveQueue(q);
 }
 
@@ -224,11 +312,18 @@ export function getQueueSize(): number {
 export async function syncWithBackend(userId: string = 'local'): Promise<AugeAdaptiveCache> {
     const queue = loadQueue();
     const cache = loadCache();
+    const nextQueue: AdaptiveQueue = {
+        recoveryObservations: [...queue.recoveryObservations],
+        fatigueDataPoints: [...queue.fatigueDataPoints],
+        predictions: [...queue.predictions],
+        outcomes: [...queue.outcomes],
+        trainingImpulses: [...queue.trainingImpulses],
+    };
 
     const results = await Promise.allSettled([
         syncRecovery(userId, queue, cache),
         syncFatigue(userId, queue),
-        syncBanister(userId, queue),
+        syncBanister(userId, queue, cache),
         syncSelfImprovement(userId, queue),
     ]);
 
@@ -239,20 +334,26 @@ export async function syncWithBackend(userId: string = 'local'): Promise<AugeAda
         cache.totalObservations = recoveryResult.value.totalObservations;
         cache.personalizedRecoveryHours = recoveryResult.value.personalizedRecoveryHours;
         cache.confidenceIntervals = recoveryResult.value.confidenceIntervals;
+        nextQueue.recoveryObservations = [];
     }
     if (fatigueResult.status === 'fulfilled' && fatigueResult.value) {
         cache.gpCurve = fatigueResult.value;
+        nextQueue.fatigueDataPoints = [];
     }
     if (banisterResult.status === 'fulfilled' && banisterResult.value) {
-        cache.banister = banisterResult.value;
+        cache.banister = banisterResult.value.model;
+        cache.banisterHistory = banisterResult.value.history;
+        nextQueue.trainingImpulses = [];
     }
     if (improvementResult.status === 'fulfilled' && improvementResult.value) {
         cache.selfImprovement = improvementResult.value;
+        nextQueue.predictions = [];
+        nextQueue.outcomes = [];
     }
 
     cache.lastSyncTimestamp = new Date().toISOString();
     saveCache(cache);
-    clearQueue();
+    saveQueue(nextQueue);
 
     return cache;
 }
@@ -311,20 +412,25 @@ async function syncFatigue(userId: string, queue: AdaptiveQueue) {
     return await res.json() as GPFatiguePrediction;
 }
 
-async function syncBanister(userId: string, queue: AdaptiveQueue) {
-    if (queue.trainingImpulses.length === 0) return null;
+async function syncBanister(_userId: string, queue: AdaptiveQueue, cache: AugeAdaptiveCache) {
+    const mergedHistory = mergeTrainingHistory(cache.banisterHistory, queue.trainingImpulses);
+    if (mergedHistory.length === 0) return null;
+    if (queue.trainingImpulses.length === 0 && cache.banister) return null;
 
     const res = await fetch(`${BACKEND_URL}/api/adaptive/banister/auge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            training_history: queue.trainingImpulses,
+            training_history: buildRelativeTrainingHistory(mergedHistory),
             forecast_hours: 168,
         }),
     });
 
     if (!res.ok) throw new Error(`Banister sync failed: ${res.status}`);
-    return await res.json();
+    return {
+        model: await res.json(),
+        history: mergedHistory,
+    };
 }
 
 async function syncSelfImprovement(userId: string, queue: AdaptiveQueue) {

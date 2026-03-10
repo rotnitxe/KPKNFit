@@ -75,6 +75,12 @@ export {
   type TendonImbalanceAlert,
   type TendonCompensationSuggestion,
 } from './tendonAlertsService';
+export {
+  getRelatedArticularBatteryIds,
+  getStructuralReadinessForMuscle,
+  getStructuralReadinessForMuscles,
+  type StructuralReadinessBreakdown,
+} from './structuralReadinessService';
 
 // ─── CONSTANTES CENTRALIZADAS ───────────────────────────────────────────────
 

@@ -29,7 +29,7 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
                 const exerciseFatigueImpacts: Record<string, number> = {};
 
                 ((dbInfo as any).involvedMuscles as any[]).forEach((m) => {
-                    const parentMuscle = normalizeMuscleGroup(m.muscle);
+                    const parentMuscle = normalizeMuscleGroup(m.muscle, m.emphasis);
 
                     const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
                     const fatigueFactor = FATIGUE_ROLE_MULTIPLIERS[m.role] ?? 0;

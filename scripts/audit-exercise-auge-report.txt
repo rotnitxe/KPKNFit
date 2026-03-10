@@ -1,0 +1,97 @@
+Ejercicios auditados: 465
+Musculos usados en involvedMuscles: 15
+Musculos canonicos definidos: 60
+Musculos fuera del canon: 2
+Nombres con casing sospechoso: 0
+Ejercicios sin musculo primario: 0
+
+====================================================================================================
+1. Musculos fuera del canon
+====================================================================================================
+Dorsales | usos=133 | sugerido=Dorsales
+Pectorales | usos=86 | sugerido=Pectorales
+
+====================================================================================================
+2. Inventario de musculos usados
+====================================================================================================
+Abdomen | usos=4
+Aductores | usos=20
+Antebrazo | usos=105
+Bíceps | usos=128
+Core | usos=266
+Cuádriceps | usos=116
+Deltoides | usos=206
+Dorsales | usos=133
+Erectores Espinales | usos=58
+Glúteos | usos=195
+Isquiosurales | usos=89
+Pantorrillas | usos=49
+Pectorales | usos=86
+Trapecio | usos=105
+Tríceps | usos=113
+
+====================================================================================================
+3. Nombres con casing sospechoso
+====================================================================================================
+No se detectaron nombres con palabras mayormente en minuscula fuera de stop words.
+
+====================================================================================================
+3b. Ejercicios sin musculo primario
+====================================================================================================
+No se detectaron ejercicios sin musculo primario.
+
+====================================================================================================
+4. Ejercicios de referencia y su involucramiento
+====================================================================================================
+tren_superior_press_banca_plano_barra | Press de Banca Plano con Barra
+  Pectorales(primary), Deltoides(secondary:anterior), Tríceps(secondary), Bíceps(stabilizer)
+tren_superior_press_hombros_sentado_mancuernas | Press de Hombros Sentado con Mancuernas
+  Deltoides(primary:anterior), Deltoides(primary:medio), Tríceps(secondary), Trapecio(stabilizer)
+tren_superior_elevaciones_laterales_mancuernas | Elevaciones Laterales con Mancuernas
+  Deltoides(primary:medio), Deltoides(secondary:anterior), Trapecio(secondary)
+tren_inferior_sentadilla_barra_alta | Sentadilla Trasera Barra Alta
+  Cuádriceps(primary), Glúteos(primary:mayor), Isquiosurales(secondary), Aductores(secondary), Erectores Espinales(stabilizer), Core(stabilizer)
+tren_inferior_peso_muerto_convencional | Peso Muerto Convencional
+  Glúteos(primary:mayor), Isquiosurales(primary), Cuádriceps(secondary), Dorsales(secondary), Erectores Espinales(stabilizer), Trapecio(stabilizer), Antebrazo(stabilizer), Core(stabilizer)
+tren_inferior_hip_thrust_barra | Hip Thrust con Barra Libre
+  Glúteos(primary:mayor), Isquiosurales(secondary), Cuádriceps(secondary), Erectores Espinales(stabilizer), Core(stabilizer)
+tren_superior_remo_inclinado_prono_barra | Remo Inclinado Prono con Barra
+  Dorsales(primary), Trapecio(primary), Bíceps(secondary), Dorsales(secondary), Erectores Espinales(stabilizer), Deltoides(stabilizer:posterior)
+tren_superior_jalon_pecho_prono | Jalón al Pecho Prono en Polea
+  Dorsales(primary), Bíceps(primary), Dorsales(secondary), Trapecio(secondary), Dorsales(stabilizer), Deltoides(stabilizer:posterior)
+
+====================================================================================================
+5. Drenaje AUGE por serie en ejercicios representativos
+====================================================================================================
+tren_superior_press_banca_plano_barra | Press de Banca Plano con Barra
+  hipertrofia moderada: muscular=6.46% | cns=5.79% | spinal=0.56%
+  fuerza pesada: muscular=4.42% | cns=11.03% | spinal=1.53%
+  bombeo alto reps: muscular=9.05% | cns=2.90% | spinal=0.10%
+tren_superior_press_hombros_sentado_mancuernas | Press de Hombros Sentado con Mancuernas
+  hipertrofia moderada: muscular=5.38% | cns=4.63% | spinal=0.46%
+  fuerza pesada: muscular=3.68% | cns=8.83% | spinal=1.28%
+  bombeo alto reps: muscular=7.54% | cns=2.32% | spinal=0.08%
+tren_superior_elevaciones_laterales_mancuernas | Elevaciones Laterales con Mancuernas
+  hipertrofia moderada: muscular=3.85% | cns=1.99% | spinal=0.28%
+  fuerza pesada: muscular=3.01% | cns=2.53% | spinal=0.05%
+  bombeo alto reps: muscular=5.38% | cns=1.00% | spinal=0.05%
+tren_inferior_sentadilla_barra_alta | Sentadilla Trasera Barra Alta
+  hipertrofia moderada: muscular=6.92% | cns=6.52% | spinal=0.69%
+  fuerza pesada: muscular=4.74% | cns=12.41% | spinal=1.92%
+  bombeo alto reps: muscular=9.69% | cns=3.26% | spinal=0.13%
+tren_inferior_peso_muerto_convencional | Peso Muerto Convencional
+  hipertrofia moderada: muscular=7.69% | cns=7.24% | spinal=0.93%
+  fuerza pesada: muscular=5.26% | cns=13.79% | spinal=2.56%
+  bombeo alto reps: muscular=10.77% | cns=3.62% | spinal=0.17%
+tren_inferior_hip_thrust_barra | Hip Thrust con Barra Libre
+  hipertrofia moderada: muscular=5.85% | cns=5.07% | spinal=0.23%
+  fuerza pesada: muscular=4.00% | cns=9.65% | spinal=0.64%
+  bombeo alto reps: muscular=8.18% | cns=2.53% | spinal=0.04%
+tren_superior_remo_inclinado_prono_barra | Remo Inclinado Prono con Barra
+  hipertrofia moderada: muscular=6.46% | cns=5.79% | spinal=0.56%
+  fuerza pesada: muscular=4.42% | cns=11.03% | spinal=1.53%
+  bombeo alto reps: muscular=9.05% | cns=2.90% | spinal=0.10%
+tren_superior_jalon_pecho_prono | Jalón al Pecho Prono en Polea
+  hipertrofia moderada: muscular=5.85% | cns=5.07% | spinal=0.46%
+  fuerza pesada: muscular=4.00% | cns=9.65% | spinal=1.28%
+  bombeo alto reps: muscular=8.18% | cns=2.53% | spinal=0.08%

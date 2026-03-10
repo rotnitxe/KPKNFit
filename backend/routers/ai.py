@@ -2,7 +2,7 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from engines.ai_engine import generate_content, generate_content_stream
+from engines.ai_engine import generate_content, generate_content_stream, get_provider_status
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -15,6 +15,8 @@ class GenerateRequest(BaseModel):
     jsonMode: bool = False
     temperature: float = 0.7
     maxTokens: int = 4096
+    model: str | None = None
+    host: str | None = None
 
 
 class StreamRequest(BaseModel):
@@ -24,6 +26,8 @@ class StreamRequest(BaseModel):
     messages: list[dict] | None = None
     temperature: float = 0.7
     maxTokens: int = 4096
+    model: str | None = None
+    host: str | None = None
 
 
 @router.post("/generate")
@@ -36,6 +40,8 @@ async def ai_generate(req: GenerateRequest):
         json_mode=req.jsonMode,
         temperature=req.temperature,
         max_tokens=req.maxTokens,
+        model=req.model,
+        host=req.host,
     )
 
 
@@ -49,6 +55,8 @@ async def ai_stream(req: StreamRequest):
             messages=req.messages,
             temperature=req.temperature,
             max_tokens=req.maxTokens,
+            model=req.model,
+            host=req.host,
         ),
         media_type="text/event-stream",
         headers={
@@ -57,3 +65,8 @@ async def ai_stream(req: StreamRequest):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.get("/status")
+async def ai_status():
+    return await get_provider_status()

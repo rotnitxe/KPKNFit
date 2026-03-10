@@ -1,0 +1,179 @@
+# Dataset de Pruebas - Food Logger Unified
+# Descripciones reales de comidas en español chileno/latino
+# Formato: descripcion | foodName_esperado | category_esperada | calories_esperadas
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMIDAS SIMPLES
+# ─────────────────────────────────────────────────────────────────────────────
+
+2 huevos | huevos | proteina_animal | 155
+huevo frito | huevo frito | proteina_animal | 196
+huevo duro | huevo duro | proteina_animal | 155
+pan marraqueta | pan marraqueta | carbohidrato | 275
+pan integral | pan integral | carbohidrato | 250
+arroz blanco | arroz blanco | carbohidrato | 130
+arroz graneado | arroz graneado | carbohidrato | 130
+pollo a la plancha | pollo a la plancha | proteina_animal | 165
+pollo ganso | pollo ganso | proteina_animal | 220
+pescado frito | pescado frito | proteina_animal | 250
+merluza austral | merluza austral | proteina_animal | 105
+salmón a la plancha | salmon a la plancha | proteina_animal | 206
+atun en agua | atun en agua | proteina_animal | 116
+atun en aceite | atun en aceite | proteina_animal | 190
+quesillo | quesillo | proteina_animal | 105
+queso chanco | queso chanco | proteina_animal | 380
+queso mantecoso | queso mantecoso | proteina_animal | 360
+palta | palta | grasa_saludable | 160
+plátano | platano | fruta | 89
+manzana | manzana | fruta | 52
+naranja | naranja | fruta | 47
+papa cocida | papa cocida | carbohidrato | 87
+papa frita | papa frita | grasa_no_saludable | 312
+camote | camote | carbohidrato | 86
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMIDAS COMPUESTAS (PLATOS TÍPICOS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+cazuela de pollo | cazuela de pollo | carbohidrato | 250
+cazuela de vacuno | cazuela de vacuno | carbohidrato | 280
+porotos con riendas | porotos con riendas | carbohidrato | 350
+porotos granados | porotos granados | carbohidrato | 320
+pastel de choclo | pastel de choclo | carbohidrato | 380
+empanada de pino | empanada de pino | carbohidrato | 280
+empanada de queso | empanada de queso | carbohidrato | 250
+completo italiano | completo italiano | carbohidrato | 350
+completo con palta | completo con palta | carbohidrato | 380
+choripán | choripan | carbohidrato | 400
+barros luco | barros luco | carbohidrato | 450
+lomito a lo pobre | lomito a lo pobre | carbohidrato | 550
+churrasco a lo pobre | churrasco a lo pobre | carbohidrato | 520
+tallarines con carne | tallarines con carne | carbohidrato | 400
+tallarines con bolognesa | tallarines con bolognesa | carbohidrato | 380
+arroz con pollo | arroz con pollo | carbohidrato | 350
+arroz con mariscos | arroz con mariscos | carbohidrato | 320
+ceviche de mariscos | ceviche de mariscos | proteina_animal | 180
+ensalada chilena | ensalada chilena | verdura | 80
+ensalada rusa | ensalada rusa | grasa_no_saludable | 250
+vienesas con pure | vienesas con pure | carbohidrato | 380
+papas fritas con huevo | papas fritas con huevo | grasa_no_saludable | 420
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CANTIDADES AMBIGUAS
+# ─────────────────────────────────────────────────────────────────────────────
+
+un plato de arroz | arroz blanco | carbohidrato | 200
+una taza de arroz | arroz blanco | carbohidrato | 130
+un plato de pollo | pollo | proteina_animal | 200
+una taza de café | cafe | bebida | 2
+un vaso de leche | leche | proteina_animal | 120
+un vaso de jugo | jugo de naranja | bebida | 110
+un puñado de almendras | almendras | grasa_saludable | 160
+un puñado de nueces | nueces | grasa_saludable | 180
+una rebanada de pan | pan blanco | carbohidrato | 80
+una rebanada de queso | queso chanco | proteina_animal | 95
+una cucharada de aceite | aceite | grasa_no_saludable | 120
+una cucharadita de azúcar | azucar | carbohidrato | 16
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MODISMOS CHILENOS
+# ─────────────────────────────────────────────────────────────────────────────
+
+once completa | once completa | carbohidrato | 400
+once con marraqueta | once con marraqueta | carbohidrato | 350
+once con palta | once con palta | carbohidrato | 400
+once con huevo | once con huevo | proteina_animal | 350
+once con quesillo | once con quesillo | proteina_animal | 320
+once con jamón y queso | once con jamon y queso | proteina_animal | 380
+desayuno completo | desayuno completo | carbohidrato | 450
+almuerzo ejecutivo | almuerzo ejecutivo | carbohidrato | 500
+menu del dia | menu del dia | carbohidrato | 480
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MARCAS / COMERCIALES
+# ─────────────────────────────────────────────────────────────────────────────
+
+Vivo yogurt frutilla | Vivo yogurt frutilla | proteina_animal | 90
+Sopaval Verduras | Sopaval Verduras | carbohidrato | 35
+Sopaval Crema de zapallo | Sopaval Crema de zapallo | carbohidrato | 40
+Nesquik chocolate | Nesquik chocolate | bebida | 150
+Colacao | Colacao | bebida | 145
+Corn Flakes | Corn Flakes | carbohidrato | 380
+Zucaritas | Zucaritas | carbohidrato | 380
+Froot Loops | Froot Loops | carbohidrato | 390
+Quaker avena | Quaker avena | carbohidrato | 350
+Nutella | Nutella | grasa_no_saludable | 540
+Manjar | manjar | carbohidrato | 310
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ERRORES DE TIPEO (para testear normalización)
+# ─────────────────────────────────────────────────────────────────────────────
+
+huebos revueltos | huevos revueltos | proteina_animal | 180
+arros con pollo | arroz con pollo | carbohidrato | 350
+cafe con leche | cafe con leche | bebida | 60
+te con azucar | te con azucar | bebida | 20
+poyo a la plancha | pollo a la plancha | proteina_animal | 165
+pescado al horno | pescado al horno | proteina_animal | 180
+ensalada de tomate | ensalada de tomate | verdura | 50
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DESCRIPCIONES LARGAS Y COMPLEJAS
+# ─────────────────────────────────────────────────────────────────────────────
+
+2 huevos revueltos con aceite, 1 marraqueta con palta y café con leche sin azúcar | huevos revueltos con marraqueta | carbohidrato | 550
+1 plato de cazuela de pollo con arroz y ensalada chilena | cazuela de pollo | carbohidrato | 400
+Completo italiano con mayonesa, tomate y palta | completo italiano | carbohidrato | 400
+1 taza de arroz con pollo, 1 vaso de jugo de naranja y 1 yogurt | arroz con pollo | carbohidrato | 500
+Ensalada César con pollo, crutones, queso parmesano y aderezo | ensalada cesar con pollo | proteina_animal | 450
+Tallarines al pesto con pollo a la plancha y ensalada mixta | tallarines al pesto con pollo | carbohidrato | 550
+1 empanada de pino, 1 choclo en grano y 1 vaso de vino tinto | empanada de pino | carbohidrato | 500
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BEBIDAS
+# ─────────────────────────────────────────────────────────────────────────────
+
+agua | agua | bebida | 0
+agua mineral | agua mineral | bebida | 0
+café solo | cafe solo | bebida | 2
+café con leche | cafe con leche | bebida | 60
+café americano | cafe americano | bebida | 5
+capuchino | capuchino | bebida | 80
+latte | latte | bebida | 100
+té | te | bebida | 2
+té con limón | te con limon | bebida | 10
+té con leche | te con leche | bebida | 40
+jugo de naranja | jugo de naranja | bebida | 110
+jugo de manzana | jugo de manzana | bebida | 115
+jugo de piña | jugo de pina | bebida | 130
+bebida de cola | bebida de cola | bebida | 140
+bebida de naranja | bebida de naranja | bebida | 150
+cerveza | cerveza | bebida | 45
+vino tinto | vino tinto | bebida | 85
+vino blanco | vino blanco | bebida | 80
+pisco sour | pisco sour | bebida | 180
+terremoto | terremoto | bebida | 200
+
+# ─────────────────────────────────────────────────────────────────────────────
+# POSTRES
+# ─────────────────────────────────────────────────────────────────────────────
+
+flán | flan | carbohidrato | 150
+panqueque con manjar | panqueque con manjar | carbohidrato | 280
+panqueque con dulce de leche | panqueque con dulce de leche | carbohidrato | 300
+kuchen de manzana | kuchen de manzana | carbohidrato | 320
+kuchen de limón | kuchen de limon | carbohidrato | 300
+berlín | berlin | carbohidrato | 350
+dona | dona | carbohidrato | 330
+alfajor | alfajor | carbohidrato | 250
+machacado | machacado | carbohidrato | 280
+calzones rotos | calzones rotos | carbohidrato | 350
+sopaipillas | sopaipillas | carbohidrato | 300
+sopaipillas con chancaca | sopaipillas con chancaca | carbohidrato | 380
+helado de chocolate | helado de chocolate | carbohidrato | 220
+helado de vainilla | helado de vainilla | carbohidrato | 210
+helado de frutilla | helado de frutilla | carbohidrato | 200
+mousse de chocolate | mousse de chocolate | carbohidrato | 250
+mousse de limón | mousse de limon | carbohidrato | 230
+rice pudding | rice pudding | carbohidrato | 180
+arroz con leche | arroz con leche | carbohidrato | 180

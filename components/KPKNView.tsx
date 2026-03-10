@@ -13,6 +13,7 @@ import {
 } from './icons';
 import { useAppState, useAppDispatch, useUIState } from '../contexts/AppContext';
 import { motion } from 'framer-motion';
+import { getExercisePrimaryDisplayMuscles } from '../utils/canonicalMuscles';
 
 type WikiTab = 'exercises' | 'anatomy' | 'patterns';
 
@@ -188,7 +189,7 @@ const KPKNView: React.FC = () => {
                 >
                   <h3 className="font-bold text-[#1D1B20] text-sm truncate">{ex.name}</h3>
                   <p className="text-[9px] text-[#49454F] opacity-50 font-medium mt-0.5 truncate">
-                    {ex.involvedMuscles?.find((m) => m.role === 'primary')?.muscle || ex.subMuscleGroup || 'General'}
+                    {getExercisePrimaryDisplayMuscles(ex)[0] || ex.subMuscleGroup || 'Core'}
                   </p>
                   {(exercise.efc != null || exercise.cnc != null || exercise.ssc != null || exercise.ttc != null) && (
                     <div className="flex gap-1 mt-2 text-[8px] font-bold text-[#49454F] opacity-40">

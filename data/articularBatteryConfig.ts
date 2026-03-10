@@ -5,7 +5,7 @@
 import type { ExerciseMuscleInfo } from '../types';
 import { INITIAL_MUSCLE_GROUP_DATA } from './initialMuscleGroupDatabase';
 
-export type ArticularBatteryId = 'shoulder' | 'elbow' | 'knee' | 'hip' | 'ankle';
+export type ArticularBatteryId = 'shoulder' | 'elbow' | 'knee' | 'hip' | 'ankle' | 'cervical';
 
 export const ARTICULAR_BATTERIES: {
   id: ArticularBatteryId;
@@ -49,6 +49,13 @@ export const ARTICULAR_BATTERIES: {
     jointIds: ['tobillo'],
     tendonIds: ['tendon-aquiles'],
   },
+  {
+    id: 'cervical',
+    label: 'Cuello y Cervical',
+    shortLabel: 'Cuello',
+    jointIds: ['columna-cervical'],
+    tendonIds: [],
+  },
 ];
 
 // Mapeo de nombre de músculo (en involvedMuscles) a id del MuscleGroupInfo
@@ -80,6 +87,19 @@ const ALIASES: Record<string, string> = {
   'aductores': 'aductores', 'cuerpo completo': 'cuádriceps', // fallback para full-body
 };
 
+ALIASES['cuello'] = 'cuello';
+ALIASES['cervical'] = 'cuello';
+
+function normalizeText(value: string | undefined | null): string {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function resolveMuscleId(muscleName: string): string | null {
   const lower = muscleName.toLowerCase().trim();
   if (ALIASES[lower]) return ALIASES[lower];
@@ -107,6 +127,7 @@ export function getArticularBatteriesForExercise(
     knee: 0,
     hip: 0,
     ankle: 0,
+    cervical: 0,
   };
 
   if (!info) return result;
@@ -176,6 +197,25 @@ export function getArticularBatteriesForExercise(
         result.ankle = 0.8;
       }
     }
+  }
+
+  const normalizedName = normalizeText(info.name);
+  const normalizedDescription = normalizeText((info as any).description);
+  const textBlob = `${normalizedName} ${normalizedDescription}`.trim();
+
+  if (
+    textBlob.includes('rotacion externa') ||
+    textBlob.includes('rotacion interna') ||
+    textBlob.includes('manguito') ||
+    textBlob.includes('rotador') ||
+    textBlob.includes('face pull') ||
+    textBlob.includes('cuban press')
+  ) {
+    result.shoulder = Math.max(result.shoulder, textBlob.includes('face pull') ? 0.7 : 1);
+  }
+
+  if (textBlob.includes('cuello') || textBlob.includes('cervical') || textBlob.includes('neck')) {
+    result.cervical = Math.max(result.cervical, 1);
   }
 
   // Normalizar a 0-1

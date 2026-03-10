@@ -11,7 +11,7 @@ export const EXERCISE_LIST: { name: string; primaryMuscles: string[] }[] = FULL_
 
 // Solo grupos unificados (sin porciones: Pectoral Superior, Trapecio Medio, etc.)
 export const MUSCLE_GROUPS = ["Todos", ...Array.from(new Set(FULL_EXERCISE_LIST.flatMap(ex =>
-  ex.involvedMuscles.filter(m => m.role === 'primary').map(m => normalizeMuscleGroup(m.muscle))
+  ex.involvedMuscles.filter(m => m.role === 'primary').map(m => normalizeMuscleGroup(m.muscle, m.emphasis))
 ))).filter(Boolean).sort()];
 
 export const EXERCISE_TYPES = ['All', 'Básico', 'Accesorio', 'Aislamiento'];

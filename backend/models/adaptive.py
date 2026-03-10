@@ -50,6 +50,9 @@ class RecoveryObservation(BaseModel):
     sleep_quality: Optional[float] = None
     nutrition_status: Optional[str] = None
     stress_level: Optional[float] = None
+    articular_battery: Optional[float] = None
+    combined_readiness: Optional[float] = None
+    joint_id: Optional[str] = None
 
 
 class BayesianUpdateRequest(BaseModel):
@@ -84,6 +87,10 @@ class FatigueDataPoint(BaseModel):
     age: float = 25.0
     is_compound_dominant: bool = False
     observed_fatigue_fraction: float
+    articular_load: float = 0.0
+    muscle_battery: float = 100.0
+    articular_battery: float = 100.0
+    combined_readiness: float = 100.0
 
 
 class GPFatigueRequest(BaseModel):
@@ -159,6 +166,7 @@ class PredictionRecord(BaseModel):
     prediction_id: str
     timestamp: str
     muscle: Optional[str] = None
+    joint: Optional[str] = None
     system: str
     predicted_value: float
     context: dict = Field(default_factory=dict)

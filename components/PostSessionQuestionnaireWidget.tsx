@@ -14,6 +14,7 @@ import {
     queueOutcome,
     getConfidenceLabel,
 } from '../services/augeAdaptiveService';
+import { getExercisePrimaryDisplayMuscles } from '../utils/canonicalMuscles';
 
 interface PostSessionQuestionnaireWidgetProps {
     isOpen: boolean;
@@ -39,6 +40,7 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
 
     const adaptiveCache = useMemo(() => getCachedAdaptiveData(), []);
     const confidenceLabel = getConfidenceLabel(adaptiveCache.totalObservations);
+    const normalizeLookupKey = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
     const augePredictions = useMemo(() => {
         const preds: Record<string, number> = {};
@@ -53,7 +55,10 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
     }, [adaptiveCache]);
 
     const getMuscleDomsPrediction = (muscle: string): number => {
-        const recoveryHrs = adaptiveCache.personalizedRecoveryHours[muscle];
+        const recoveryHrsEntry = Object.entries(adaptiveCache.personalizedRecoveryHours || {}).find(
+            ([key]) => normalizeLookupKey(key) === normalizeLookupKey(muscle)
+        );
+        const recoveryHrs = recoveryHrsEntry?.[1];
         if (recoveryHrs && recoveryHrs < 36) return 1;
         if (recoveryHrs && recoveryHrs < 60) return 2;
         if (recoveryHrs && recoveryHrs < 84) return 3;
@@ -62,13 +67,11 @@ export const PostSessionQuestionnaireWidget: React.FC<PostSessionQuestionnaireWi
 
     const initialMuscles = useMemo(() => {
         const log = history.find(h => h.id === questionnaire.logId);
-        if (!log) return ["General"];
+        if (!log) return ["Core"];
         const found = new Set<string>();
         log.completedExercises.forEach(ex => {
             const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.exerciseName);
-            info?.involvedMuscles.forEach(m => {
-                if (m.role === 'primary') found.add(m.muscle);
-            });
+            getExercisePrimaryDisplayMuscles(info || { involvedMuscles: [] }).forEach(m => found.add(m));
         });
         return Array.from(found);
     }, [history, questionnaire.logId, exerciseList]);

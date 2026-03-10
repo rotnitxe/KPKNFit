@@ -72,3 +72,12 @@ export const DISCOMFORT_DATABASE: DiscomfortItem[] = [
 
 /** Lista de nombres para compatibilidad con componentes que esperan string[] */
 export const DISCOMFORT_LIST: string[] = DISCOMFORT_DATABASE.map(d => d.name);
+
+const normalizeDiscomfortDrain = (id: string, musclesToDrain: string[]) => {
+  const entry = DISCOMFORT_DATABASE.find((item) => item.id === id);
+  if (!entry) return;
+  entry.musclesToDrain = musclesToDrain;
+};
+
+normalizeDiscomfortDrain('pinzamiento-hombro', ['Deltoides', 'Trapecio']);
+normalizeDiscomfortDrain('manguito-rotador', ['Deltoides', 'Trapecio']);

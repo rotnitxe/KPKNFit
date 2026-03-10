@@ -13,6 +13,14 @@ export function inferInvolvedMuscles(
   const n = name.toLowerCase();
   const eq = (equipment || '').toLowerCase();
 
+  if (n.includes('cuello') || n.includes('cervical') || n.includes('neck')) {
+    return [
+      { muscle: 'Cuello', role: 'primary', activation: 1.0 },
+      { muscle: 'Trapecio', role: 'secondary', activation: 0.45 },
+      { muscle: 'Core', role: 'stabilizer', activation: 0.25 },
+    ];
+  }
+
   // --- PIERNA: Sentadillas ---
   if (n.includes('sentadilla')) {
     if (n.includes('frontal') || n.includes('front squat')) {

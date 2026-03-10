@@ -179,3 +179,17 @@ export const INITIAL_MUSCLE_GROUP_DATA: MuscleGroupInfo[] = [
         volumeRecommendations: { mev: 'N/A', mav: 'N/A', mrv: 'N/A' },
     },
 ];
+
+INITIAL_MUSCLE_GROUP_DATA.push({
+    id: 'cuello',
+    name: 'Cuello',
+    description: 'Musculatura cervical encargada de la flexiÇün, extensiÇün, rotaciÇün e inclinaciÇün lateral de la cabeza. Su papel principal es mover y estabilizar la columna cervical.',
+    importance: {
+        movement: 'Es clave para deportes de contacto, postura, estabilidad de la cabeza y tolerancia a cargas sobre trapecio y cintura escapular.',
+        health: 'Un cuello fuerte y coordinado mejora la tolerancia cervical y protege la articulaciÇün cervical frente a esfuerzos repetidos.',
+    },
+    volumeRecommendations: { mev: '2-4', mav: '6-10', mrv: '14' },
+    relatedJoints: ['columna-cervical'],
+    relatedTendons: [],
+    movementPatterns: ['flexion', 'extension', 'rotation'],
+});

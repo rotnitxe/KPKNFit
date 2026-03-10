@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Program, Session, ProgramWeek } from '../types';
-import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon, TrashIcon } from './icons';
+import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon, TrashIcon, EditIcon } from './icons';
 import { useAppContext } from '../contexts/AppContext';
 import { calculateUnifiedMuscleVolume } from '../services/volumeCalculator';
 import InteractiveWeekOverlay from './InteractiveWeekOverlay';
@@ -10,14 +10,17 @@ import StructureDrawer from './program-detail/StructureDrawer';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 
 import CompactHeroBanner from './program-detail/CompactHeroBanner';
-import ProgramStructureTab from './program-detail/ProgramStructureTab';
-import TrainingCalendarGrid from './program-detail/TrainingCalendarGrid';
 import SubTabs, { StructureSubTab, AnalyticsSubTab } from './program-detail/SubTabs';
 import WeekView from './program-detail/WeekView';
 import MacrocycleView from './program-detail/MacrocycleView';
 import VolumeView from './program-detail/VolumeView';
 import ProgressView from './program-detail/ProgressView';
 import HistoryView from './program-detail/HistoryView';
+import IntegratedTabs from './program-detail/IntegratedTabs';
+import BlockRoadmap from './program-detail/BlockRoadmap';
+import MacrocycleEditor from './program-detail/MacrocycleEditor';
+import DayView from './program-detail/DayView';
+import SplitChangerDrawer from './program-detail/SplitChangerDrawer';
 
 interface ProgramDetailProps {
     program: Program;
@@ -60,6 +63,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
     const [showSimpleTransition, setShowSimpleTransition] = useState(false);
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const [newEventData, setNewEventData] = useState({ id: '', title: '', repeatEveryXCycles: 1, calculatedWeek: 0, type: '1rm_test' });
+    const [isMacrocycleEditorOpen, setIsMacrocycleEditorOpen] = useState(false);
 
     // ─── Derived data ───
     const isCyclic = useMemo(() =>
@@ -222,30 +226,20 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     totalWeeks={totalWeeks}
                     totalAdherence={totalAdherence}                />
 
-                {/* Tabs: Estructura | Analíticas (Liquid Glass Segmented control) */}
-                <div className="px-4 -mt-3 mb-3">
-                    <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md border border-black/[0.06] rounded-2xl p-1.5 w-full shadow-[0_4px_12px_rgba(0,0,0,0.04)] relative">
-                        {/* Animated Background Slider */}
-                        <motion.div
-                            animate={{ x: activeTab === 'training' ? '0%' : '100%' }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            className="absolute inset-y-1.5 left-1.5 w-[calc(50%-6px)] bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-black/[0.04]"
-                        />
-
-                        <button
-                            onClick={() => setActiveTab('training')}
-                            className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-[0.25em] transition-all relative z-10 ${activeTab === 'training' ? 'text-black' : 'text-black/40 hover:text-black/60'}`}
-                        >
-                            Estructura
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('analytics')}
-                            className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-[0.25em] transition-all relative z-10 ${activeTab === 'analytics' ? 'text-black' : 'text-black/40 hover:text-black/60'}`}
-                        >
-                            Analíticas
-                        </button>
-                    </div>
-                </div>
+                {/* Tabs Integrados - Estructura | Analíticas */}
+                <IntegratedTabs
+                    activeMainTab={activeTab}
+                    onMainTabChange={setActiveTab}
+                    activeSubTab={activeTab === 'training' ? structureSubTab : analyticsSubTab}
+                    onSubTabChange={(tab) => {
+                        if (activeTab === 'training') {
+                            setStructureSubTab(tab as StructureSubTab);
+                        } else {
+                            setAnalyticsSubTab(tab as AnalyticsSubTab);
+                        }
+                    }}
+                    gradientTheme="purple"
+                />
 
                 {/* Contenido: Training y/o Analytics */}
                 <div className="flex flex-col min-h-0 min-w-0">
@@ -260,37 +254,70 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                 transition={{ duration: 0.2 }}
                                 className="flex-1 w-full"
                             >
-                                {/* Subtabs de Estructura */}
-                                <SubTabs
-                                    tabs={[
-                                        { label: 'Semana', value: 'semana' },
-                                        { label: 'Macrociclo', value: 'macrociclo' }
-                                    ]}
-                                    activeTab={structureSubTab}
-                                    onChange={(tab) => setStructureSubTab(tab as StructureSubTab)}
-                                    variant="structure"
+                                {/* Roadmap de Bloques y Semanas */}
+                                <BlockRoadmap
+                                    program={program}
+                                    selectedBlockId={selectedBlockId}
+                                    selectedWeekId={selectedWeekId}
+                                    currentWeekId={activeProgramState?.currentWeekId}
+                                    onSelectBlock={setSelectedBlockId}
+                                    onSelectWeek={setSelectedWeekId}
                                 />
 
                                 {/* Vista de Semana */}
                                 {structureSubTab === 'semana' && (
-                                    <WeekView
+                                    <DayView
                                         program={program}
                                         selectedWeekId={selectedWeekId}
-                                        onSelectWeek={setSelectedWeekId}
                                         currentWeekId={activeProgramState?.currentWeekId}
                                         onEditSession={(sessionId) => {
                                             const dummySession = { id: sessionId } as any;
                                             onEditSessionClick(dummySession);
                                         }}
-                                        onAddSession={() => handleAddSession(program.id, 0, 0, selectedWeekId || '')}
+                                        onAddSession={(dayOfWeek) => handleAddSession(program.id, 0, 0, selectedWeekId || '', dayOfWeek)}
                                         onDeleteSession={onDeleteSessionHandler}
                                         onStartWorkout={handleStartWorkout}
+                                        onUpdateProgram={handleUpdateProgram}
+                                        addToast={addToast}
                                     />
+                                )}
+
+                                {/* Vista de Split */}
+                                {structureSubTab === 'split' && (
+                                    <div className="px-4">
+                                        <div className="bg-white rounded-3xl border border-zinc-200/60 p-6 shadow-sm">
+                                            <div className="text-center py-8">
+                                                <CalendarIcon className="mx-auto text-purple-400 mb-3" size={48} />
+                                                <h3 className="text-lg font-black text-zinc-900 uppercase tracking-tight mb-2">
+                                                    Gestor de Splits
+                                                </h3>
+                                                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-6">
+                                                    Selecciona y aplica splits predefinidos o personalizados
+                                                </p>
+                                                <button
+                                                    onClick={() => setIsSplitChangerOpen(true)}
+                                                    className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[9px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all shadow-lg"
+                                                >
+                                                    Abrir Galería de Splits
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
 
                                 {/* Vista de Macrociclo */}
                                 {structureSubTab === 'macrociclo' && (
                                     <div className="px-4">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400">Vista General</h3>
+                                            <button
+                                                onClick={() => setIsMacrocycleEditorOpen(true)}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[8px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all shadow-lg"
+                                            >
+                                                <EditIcon size={14} />
+                                                Editor Avanzado
+                                            </button>
+                                        </div>
                                         <MacrocycleView
                                             program={program}
                                             onEditWeek={(week, macroIndex, mesoIndex, weekIndex) => {
@@ -621,6 +648,15 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     const week = block?.mesocycles.flatMap(m => m.weeks).find(w => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
                     handleChangeSplit(program.id, split.pattern, split.id, scope, preserveExercises, startDay, block?.id, week?.id);
                 }}
+            />
+
+            {/* Macrocycle Editor Modal */}
+            <MacrocycleEditor
+                program={program}
+                isOpen={isMacrocycleEditorOpen}
+                onClose={() => setIsMacrocycleEditorOpen(false)}
+                onUpdateProgram={handleUpdateProgram}
+                addToast={addToast}
             />
         </div>
     );

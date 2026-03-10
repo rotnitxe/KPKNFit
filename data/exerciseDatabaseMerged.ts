@@ -3,6 +3,7 @@
 // Base de datos única, sin fusión con exerciseDatabase legacy.
 
 import { ExerciseMuscleInfo } from '../types';
+import { normalizeInvolvedMuscles } from '../utils/canonicalMuscles';
 import { LOWER_BODY_EXERCISES, UPPER_BODY_EXERCISES, ULTIMO_LOTE_EXERCISES } from './exerciseDatabaseCentral';
 
 /** Mapa de IDs antiguos (tren inferior) -> IDs nuevos (exerciseDatabaseCentral) para retrocompatibilidad */
@@ -97,6 +98,34 @@ function enrichWithOperationalData(ex: ExerciseMuscleInfo): ExerciseMuscleInfo {
   };
 }
 
+const SMALL_TITLE_WORDS = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'en', 'con', 'por', 'para', 'a', 'al', 'el', 'un', 'una']);
+
+function titleCaseWord(word: string, index: number): string {
+  if (!word) return '';
+const match = word.match(/^([^\\p{L}0-9]*)([\\p{L}0-9]+)(.*)$/u);
+  if (!match) return word;
+  const [, prefix, core, suffix] = match;
+  const lowerCore = core.toLowerCase();
+  if (index > 0 && SMALL_TITLE_WORDS.has(lowerCore)) {
+    return `${prefix}${lowerCore}${suffix}`;
+  }
+  if (core.length > 1 && core === core.toUpperCase()) {
+    return `${prefix}${core}${suffix}`;
+  }
+  const capitalized = lowerCore.charAt(0).toUpperCase() + lowerCore.slice(1);
+  return `${prefix}${capitalized}${suffix}`;
+}
+
+function formatExerciseName(value?: string): string {
+  if (!value) return '';
+  let index = 0;
+  return value.replace(/\S+/g, (word) => {
+    const titled = titleCaseWord(word, index);
+    index += 1;
+    return titled;
+  });
+}
+
 /** Elimina duplicados exactos */
 function removeExactDuplicates(list: ExerciseMuscleInfo[]): ExerciseMuscleInfo[] {
   const seen = new Map<string, ExerciseMuscleInfo>();
@@ -154,4 +183,45 @@ for (const [oldId, newId] of Object.entries(UPPER_BODY_ID_ALIASES)) {
 /** Mapa de IDs de ejercicios eliminados o migrados -> ID canónico para lookups */
 export const EXERCISE_ID_ALIASES: Map<string, string> = fullAliasMap;
 
-export const FULL_EXERCISE_LIST: ExerciseMuscleInfo[] = nameDeduped.map(enrichWithOperationalData);
+const normalizedExerciseList = nameDeduped.map(ex => ({
+  ...ex,
+  name: formatExerciseName(ex.name),
+  involvedMuscles: normalizeInvolvedMuscles(ex.involvedMuscles),
+}));
+
+export const FULL_EXERCISE_LIST: ExerciseMuscleInfo[] = normalizedExerciseList.map(enrichWithOperationalData);
+
+const remapMergedExerciseTargets = (
+  exerciseId: string,
+  involvedMuscles: ExerciseMuscleInfo['involvedMuscles'],
+  subMuscleGroup: string
+) => {
+  const exercise = FULL_EXERCISE_LIST.find((entry) => entry.id === exerciseId);
+  if (!exercise) return;
+  exercise.involvedMuscles = involvedMuscles ?? [];
+  exercise.subMuscleGroup = subMuscleGroup;
+};
+
+remapMergedExerciseTargets('ultimo_flexion_cuello_arnes', [
+  { muscle: 'Cuello', role: 'primary', activation: 1 },
+  { muscle: 'Trapecio', role: 'secondary', activation: 0.5 },
+  { muscle: 'Core', role: 'stabilizer', activation: 0.35 },
+], 'Cuello');
+
+remapMergedExerciseTargets('ultimo_extension_cuello_arnes', [
+  { muscle: 'Cuello', role: 'primary', activation: 1 },
+  { muscle: 'Trapecio', role: 'secondary', activation: 0.5 },
+  { muscle: 'Core', role: 'stabilizer', activation: 0.35 },
+], 'Cuello');
+
+remapMergedExerciseTargets('ultimo_flexion_cuello_isometrica', [
+  { muscle: 'Cuello', role: 'primary', activation: 1 },
+  { muscle: 'Trapecio', role: 'secondary', activation: 0.5 },
+  { muscle: 'Core', role: 'stabilizer', activation: 0.35 },
+], 'Cuello');
+
+remapMergedExerciseTargets('ultimo_rotacion_cuello_banda', [
+  { muscle: 'Cuello', role: 'primary', activation: 1 },
+  { muscle: 'Trapecio', role: 'secondary', activation: 0.5 },
+  { muscle: 'Core', role: 'stabilizer', activation: 0.35 },
+], 'Cuello');

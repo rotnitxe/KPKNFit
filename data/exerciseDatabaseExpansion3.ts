@@ -605,3 +605,47 @@ export const EXERCISE_EXPANSION_LIST_3: ExerciseMuscleInfo[] = [
   { id: 'db_exp3_mq2_db_front_raise', name: 'Frontal Mancuerna', description: 'Elevaciones frontales DB', involvedMuscles: [{ muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }], subMuscleGroup: 'Deltoides Anterior', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior', setupTime: 2, technicalDifficulty: 2, efc: 1.6, cnc: 1.2, ssc: 0 },
   { id: 'db_exp3_mq2_db_bent_lateral', name: 'Lateral Inclinado Mancuerna', description: 'Laterales inclinado DB', involvedMuscles: [{ muscle: 'Deltoides Posterior', role: 'primary', activation: 1.0 }], subMuscleGroup: 'Deltoides Posterior', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Mancuerna', force: 'Tirón', bodyPart: 'upper', chain: 'posterior', setupTime: 3, technicalDifficulty: 4, efc: 1.6, cnc: 1.2, ssc: 0 },
 ];
+
+const remapExpansion3Targets = (
+  exerciseId: string,
+  involvedMuscles: ExerciseMuscleInfo['involvedMuscles'],
+  subMuscleGroup: string,
+  chain?: ExerciseMuscleInfo['chain']
+) => {
+  const exercise = EXERCISE_EXPANSION_LIST_3.find((entry) => entry.id === exerciseId);
+  if (!exercise) return;
+
+  exercise.involvedMuscles = involvedMuscles;
+  exercise.subMuscleGroup = subMuscleGroup;
+  if (chain) exercise.chain = chain;
+};
+
+remapExpansion3Targets(
+  'db_exp3_band_shoulder_ext_rot',
+  [
+    { muscle: 'Deltoides Posterior', role: 'primary', activation: 0.6 },
+    { muscle: 'Trapecio', role: 'secondary', activation: 0.25 },
+  ],
+  'Deltoides Posterior',
+  'posterior'
+);
+
+remapExpansion3Targets(
+  'db_exp3_band_shoulder_int_rot',
+  [
+    { muscle: 'Pectorales', role: 'primary', activation: 0.5 },
+    { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.25 },
+  ],
+  'Pectorales',
+  'anterior'
+);
+
+remapExpansion3Targets(
+  'db_exp3_rehab_wall_slide',
+  [
+    { muscle: 'Trapecio', role: 'primary', activation: 0.4 },
+    { muscle: 'Deltoides Posterior', role: 'secondary', activation: 0.2 },
+  ],
+  'Trapecio',
+  'posterior'
+);

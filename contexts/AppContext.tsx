@@ -834,6 +834,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ? 0.5 * (userFatigue / 10) + 0.3 * (avgPerceivedFatigue / 10) + 0.2 * Math.min(1, sessionStressScore / 100)
             : 0.6 * (userFatigue / 10) + 0.4 * Math.min(1, sessionStressScore / 100);
         const observedFatigueFraction = Math.min(1, Math.max(0, blendedFatigue));
+        const sessionIsoDate = safeCreateISOStringFromDateInput(logDate);
+        const sessionTimestampHours = new Date(sessionIsoDate).getTime() / 3600000;
 
         queueFatigueDataPoint({
             hours_since_session: 0,
@@ -846,7 +848,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             observed_fatigue_fraction: observedFatigueFraction,
         });
         queueTrainingImpulse({
-            timestamp_hours: 0,
+            timestamp_hours: sessionTimestampHours,
             impulse: drainBreakdown.totalStress,
             cns_impulse: drainBreakdown.cnsDrain,
             spinal_impulse: drainBreakdown.spinalDrain,
@@ -878,7 +880,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             id: logId, programId: ongoingWorkout.programId,
             programName: programs.find(p => p.id === ongoingWorkout.programId)?.name || 'Unknown',
             sessionId: ongoingWorkout.session.id, sessionName: ongoingWorkout.session.name,
-            date: safeCreateISOStringFromDateInput(logDate), duration, completedExercises,
+            date: sessionIsoDate, duration, completedExercises,
             notes, discomforts, fatigueLevel: fatigue || 5, mentalClarity: clarity || 5,
             gymName: settings.gymName, photoUri, sessionVariant: ongoingWorkout.activeMode,
             planDeviations, readiness: ongoingWorkout.readiness, focus, pump,

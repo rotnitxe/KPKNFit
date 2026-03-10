@@ -73,6 +73,78 @@ def _banister_ode(t: float, state: np.ndarray, params: BanisterParams, w_func) -
     return [dF, dG]
 
 
+def _normalize_impulses(
+    impulses: list[TrainingImpulse],
+) -> tuple[list[TrainingImpulse], float]:
+    """Sort impulses and shift them to a stable zero-based timeline."""
+    if not impulses:
+        return [], 0.0
+
+    ordered = sorted(impulses, key=lambda imp: imp.timestamp_hours)
+    first_timestamp = float(ordered[0].timestamp_hours)
+    normalized = [
+        TrainingImpulse(
+            timestamp_hours=float(imp.timestamp_hours) - first_timestamp,
+            impulse=float(imp.impulse),
+            cns_impulse=float(getattr(imp, "cns_impulse", 0.0) or 0.0),
+            spinal_impulse=float(getattr(imp, "spinal_impulse", 0.0) or 0.0),
+        )
+        for imp in ordered
+    ]
+    return normalized, float(normalized[-1].timestamp_hours)
+
+
+def _solve_banister_trajectory(
+    impulses: list[TrainingImpulse],
+    params: BanisterParams,
+    forecast_hours: float,
+    dt: float = 1.0,
+) -> dict:
+    """Solve the full Banister trajectory from the first impulse through forecast."""
+    forecast_window = max(float(forecast_hours), 24.0)
+
+    if not impulses:
+        timeline = np.arange(0.0, forecast_window + dt, dt)
+        baseline = np.full_like(timeline, params.p0, dtype=float)
+        zeros = np.zeros_like(timeline, dtype=float)
+        return {
+            "timeline": timeline,
+            "fitness": zeros,
+            "fatigue": zeros,
+            "performance": baseline,
+            "current_index": 0,
+        }
+
+    normalized_impulses, last_impulse_t = _normalize_impulses(impulses)
+    t_end = last_impulse_t + forecast_window
+    t_eval = np.arange(0.0, t_end + dt, dt)
+    if len(t_eval) == 0 or t_eval[-1] < t_end:
+        t_eval = np.append(t_eval, t_end)
+
+    w_func = _build_impulse_function(normalized_impulses)
+
+    sol = solve_ivp(
+        fun=lambda t, y: _banister_ode(t, y, params, w_func),
+        t_span=(0.0, t_end),
+        y0=[0.0, 0.0],
+        t_eval=t_eval,
+        method="RK45",
+        max_step=0.5,
+    )
+
+    performance = params.p0 + params.k1 * sol.y[0] - params.k2 * sol.y[1]
+    current_index = int(np.searchsorted(sol.t, last_impulse_t, side="left"))
+    current_index = min(max(current_index, 0), len(sol.t) - 1)
+
+    return {
+        "timeline": sol.t,
+        "fitness": sol.y[0],
+        "fatigue": sol.y[1],
+        "performance": performance,
+        "current_index": current_index,
+    }
+
+
 def solve_banister(
     impulses: list[TrainingImpulse],
     params: BanisterParams,
@@ -81,63 +153,37 @@ def solve_banister(
 ) -> BanisterResponse:
     """Solve the Banister model forward in time.
 
-    Returns timeline of Fitness, Fatigue, and predicted Performance.
+    Returns the current-to-future timeline of Fitness, Fatigue, and predicted
+    Performance, anchored at the most recent training session.
     """
-    if not impulses:
-        n = int(t_end / dt) + 1
-        timeline = [i * dt for i in range(n)]
-        baseline = [params.p0] * n
-        return BanisterResponse(
-            timeline_hours=timeline,
-            fitness=[0.0] * n,
-            fatigue=[0.0] * n,
-            performance=baseline,
-        )
+    trajectory = _solve_banister_trajectory(impulses, params, t_end, dt=dt)
+    current_index = trajectory["current_index"]
+    full_timeline = trajectory["timeline"]
+    timeline = (full_timeline[current_index:] - full_timeline[current_index]).tolist()
+    fitness = trajectory["fitness"][current_index:].tolist()
+    fatigue = trajectory["fatigue"][current_index:].tolist()
+    performance = trajectory["performance"][current_index:].tolist()
 
-    t_start = min(imp.timestamp_hours for imp in impulses) - 1
-    t_span = (t_start, t_start + t_end)
-    t_eval = np.arange(t_start, t_start + t_end, dt)
+    peak_idx = int(np.argmax(performance)) if performance else 0
+    peak_hour = timeline[peak_idx] if performance else None
 
-    w_func = _build_impulse_function(impulses)
-
-    sol = solve_ivp(
-        fun=lambda t, y: _banister_ode(t, y, params, w_func),
-        t_span=t_span,
-        y0=[0.0, 0.0],
-        t_eval=t_eval,
-        method="RK45",
-        max_step=0.5,
-    )
-
-    fitness = sol.y[0].tolist()
-    fatigue = sol.y[1].tolist()
-    timeline = (sol.t - t_start).tolist()
-
-    performance = [
-        params.p0 + params.k1 * f - params.k2 * g
-        for f, g in zip(fitness, fatigue)
-    ]
-
-    peak_idx = int(np.argmax(performance))
-    peak_hour = timeline[peak_idx] if timeline else None
-
-    last_impulse_t = max(imp.timestamp_hours for imp in impulses)
     optimal_next = None
-    for i, t in enumerate(sol.t.tolist()):
-        if t > last_impulse_t and i > 0:
-            if performance[i] > performance[i - 1] and (
-                i + 1 >= len(performance) or performance[i] >= performance[i + 1]
-            ):
-                optimal_next = timeline[i]
-                break
+    for i, t in enumerate(timeline):
+        if t <= 0 or i == 0:
+            continue
+        prev_perf = performance[i - 1]
+        next_perf = performance[i + 1] if i + 1 < len(performance) else performance[i]
+        if performance[i] >= prev_perf and performance[i] >= next_perf:
+            optimal_next = t
+            break
 
     return BanisterResponse(
         timeline_hours=[round(t, 1) for t in timeline],
         fitness=[round(f, 2) for f in fitness],
         fatigue=[round(f, 2) for f in fatigue],
         performance=[round(p, 1) for p in performance],
-        next_optimal_session_hour=round(optimal_next, 1) if optimal_next else None,
-        predicted_peak_performance_hour=round(peak_hour, 1) if peak_hour else None,
+        next_optimal_session_hour=round(optimal_next, 1) if optimal_next is not None else None,
+        predicted_peak_performance_hour=round(peak_hour, 1) if peak_hour is not None else None,
     )
 
 
@@ -173,15 +219,15 @@ def optimize_banister_params(
         )
 
         try:
-            result = solve_banister(impulses, trial, t_end, dt=1.0)
+            trajectory = _solve_banister_trajectory(impulses, trial, t_end, dt=1.0)
         except Exception:
             return 1e10
 
         predicted = []
         for t_obs in obs_times:
             idx = int(round(t_obs))
-            idx = max(0, min(idx, len(result.performance) - 1))
-            predicted.append(result.performance[idx])
+            idx = max(0, min(idx, len(trajectory["performance"]) - 1))
+            predicted.append(float(trajectory["performance"][idx]))
 
         predicted = np.array(predicted)
         return float(np.sum((predicted - obs_perf) ** 2))
@@ -268,16 +314,15 @@ def solve_auge_banister(
 
     optimal_window = None
     if combined_perf:
-        peak_idx = int(np.argmax(combined_perf))
-        last_impulse = max((imp.timestamp_hours for imp in impulses), default=0)
         timeline = results["muscular"]["timeline_hours"]
-        for i in range(len(timeline)):
-            t = timeline[i] if i < len(timeline) else 0
-            if t > last_impulse and i > 0 and i < len(combined_perf):
-                if combined_perf[i] >= combined_perf[i - 1]:
-                    if i + 1 >= len(combined_perf) or combined_perf[i] >= combined_perf[i + 1]:
-                        optimal_window = timeline[i]
-                        break
+        for i, t in enumerate(timeline):
+            if t <= 0 or i == 0 or i >= len(combined_perf):
+                continue
+            prev_perf = combined_perf[i - 1]
+            next_perf = combined_perf[i + 1] if i + 1 < len(combined_perf) else combined_perf[i]
+            if combined_perf[i] >= prev_perf and combined_perf[i] >= next_perf:
+                optimal_window = timeline[i]
+                break
 
     return {
         "systems": results,
@@ -292,20 +337,36 @@ def _generate_banister_verdict(results: dict, combined: list[float]) -> str:
     if not combined:
         return "Sin datos suficientes para modelar fitness-fatiga."
 
-    current = combined[0] if combined else 100
-    trend = combined[-1] - combined[0] if len(combined) > 1 else 0
+    current = combined[0]
+    peak_future = max(combined)
+    peak_gain = peak_future - current
+    end_trend = combined[-1] - current if len(combined) > 1 else 0
 
-    if current > 105 and trend > 0:
+    return (
+        "Tu fatiga acumulada domina sobre tu fitness. "
+        "Necesitas un deload o reducir frecuencia para que tu cuerpo absorba las adaptaciones."
+    ) if current < 92 else (
+        "Tu curva proyecta una ventana clara de supercompensacion. "
+        "Conviene respetar la recuperacion antes de la siguiente sesion pesada."
+    ) if peak_gain >= 4 else (
+        "Tu rendimiento proyectado sigue descendiendo. "
+        "Acumulas mas fatiga de la que puedes procesar; considera reducir volumen un 30%."
+    ) if end_trend < -4 else (
+        "Tu balance fitness-fatiga es estable. "
+        "Sigue con tu plan actual y ajusta segun el semaforo diario AUGE."
+    )
+
+    if current < 92:
         return (
-            "Tu fitness acumulada supera tu fatiga residual. "
+            "Tu fatiga acumulada domina sobre tu fitness. "
             "Estás en fase de supercompensación — momento ideal para PRs."
         )
-    elif current < 90:
+    elif peak_gain >= 4:
         return (
             "Tu fatiga acumulada domina sobre tu fitness. "
             "Necesitas un deload o reducir frecuencia para que tu cuerpo absorba las adaptaciones."
         )
-    elif trend < -5:
+    elif end_trend < -4:
         return (
             "Tu rendimiento está en tendencia descendente. "
             "Acumulas más fatiga de la que puedes procesar — considera reducir volumen un 30%."

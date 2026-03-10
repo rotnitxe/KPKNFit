@@ -119,7 +119,7 @@ export function calculateSetTendonDrain(
   articularWeights: Record<ArticularBatteryId, number>
 ): Record<ArticularBatteryId, number> {
   const ttc = calculateTTC(info, (set as any).exerciseName as string);
-  if (ttc <= 0) return { shoulder: 0, elbow: 0, knee: 0, hip: 0, ankle: 0 };
+  if (ttc <= 0) return { shoulder: 0, elbow: 0, knee: 0, hip: 0, ankle: 0, cervical: 0 };
 
   const reps = (set as any).completedReps ?? (set as any).targetReps ?? 10;
   const rpe = getEffectiveRPE(set);
@@ -135,6 +135,7 @@ export function calculateSetTendonDrain(
     knee: 0,
     hip: 0,
     ankle: 0,
+    cervical: 0,
   };
 
   const totalWeight = Object.values(articularWeights).reduce((a, b) => a + b, 0) || 1;

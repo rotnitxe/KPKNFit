@@ -2,6 +2,7 @@
 import { ExerciseSet, Session, ExerciseMuscleInfo, CompletedExercise, CompletedSet, Exercise, OngoingSetData } from '../types';
 import { buildExerciseIndex, findExercise, findExerciseWithFallback } from '../utils/exerciseIndex';
 import { inferInvolvedMuscles } from '../data/inferMusclesFromName';
+import { getMuscleDisplayId } from '../utils/canonicalMuscles';
 
 /**
  * Capacidad de referencia semanal para normalización de fatiga SNC (puntos).
@@ -144,6 +145,26 @@ export const calculatePersonalizedBatteryTanks = (settings: any) => {
     };
 };
 
+const getPrimaryDisplayMuscle = (
+    info: ExerciseMuscleInfo | undefined,
+    exerciseName: string,
+    equipment: string = ''
+): string => {
+    const primary = info?.involvedMuscles?.find(m => m.role === 'primary');
+    if (primary) {
+        return getMuscleDisplayId(primary.muscle, primary.emphasis);
+    }
+
+    const inferred = inferInvolvedMuscles(exerciseName ?? '', equipment ?? '', 'Otro', 'upper')[0];
+    return inferred ? getMuscleDisplayId(inferred.muscle, (inferred as any).emphasis) : 'Core';
+};
+
+const shouldSkipCompletedSet = (set: any): boolean => {
+    if (!set) return true;
+    if (set.type === 'warmup' || set.isIneffective) return true;
+    return !isSetEffective(set);
+};
+
 /**
  * --- KPKN ENGINE: SINGLE SOURCE OF TRUTH (Cálculo de Drenaje por Serie) ---
  * Retorna directamente el % exacto de batería que drena una serie individual.
@@ -155,6 +176,14 @@ export const calculateSetBatteryDrain = (
     accumulatedSetsForMuscle: number = 0,
     restTime: number = 90
 ) => {
+    if (set?.type === 'warmup' || set?.isIneffective) {
+        return {
+            muscularDrainPct: 0,
+            cnsDrainPct: 0,
+            spinalDrainPct: 0
+        };
+    }
+
     const auge = getDynamicAugeMetrics(info, set.exerciseName || info?.name);
     const rpe = getEffectiveRPE(set);
     const reps = set.completedReps || set.targetReps || set.reps || 10;
@@ -177,6 +206,12 @@ export const calculateSetBatteryDrain = (
         repsCnsMult = 0.7;   // Menor carga neural
         repsSpineMult = 0.5;
         repsMuscMult = 1.4;  // Altísimo estrés metabólico
+    }
+
+    if (reps >= 12) {
+        repsCnsMult = reps >= 16 ? 0.5 : 0.65;
+        repsSpineMult = reps >= 16 ? 0.45 : 0.6;
+        repsMuscMult = reps >= 16 ? 1.4 : 1.2;
     }
 
     // 2. MULTIPLICADOR EXPONENCIAL POR RPE / RIR
@@ -203,12 +238,21 @@ export const calculateSetBatteryDrain = (
     // 5. PARCIALES = VOLUMEN BASURA (fatiga en desmedro del estímulo)
     // Las reps parciales aumentan fatiga metabólica sin aportar estímulo de fuerza.
     // Penalizan la batería muscular (más drenaje) sin aumentar SNC/espinal proporcionalmente.
+    let cnsRestFactor = 1.0;
+    if (restTime <= 45) cnsRestFactor = 1.15;
+    else if (restTime >= 180) cnsRestFactor = 0.92;
+
     const partialReps = set.partialReps || 0;
     const junkVolumeFromPartials = partialReps > 0 ? 1 + (partialReps * 0.2) : 1; // +20% muscular drain por cada parcial
+    const advancedTechniqueNeuralFactor = 1
+        + ((set.restPauses?.length || 0) * 0.05)
+        + ((set.dropSets?.length || 0) * 0.04)
+        + (partialReps > 0 ? 0.03 : 0);
+    const compoundNeuralFactor = isCompound ? 1.15 : 0.72;
 
     // 6. CÁLCULO DE DAÑO BRUTO
-    const rawMuscular = auge.efc * repsMuscMult * intensityMult * junkVolumeMult * restFactor * junkVolumeFromPartials * 8.0;
-    const rawCns = auge.cnc * repsCnsMult * intensityMult * restFactor * 6.0;
+    const rawMuscular = auge.efc * repsMuscMult * intensityMult * junkVolumeMult * restFactor * junkVolumeFromPartials * 7.2;
+    const rawCns = auge.cnc * repsCnsMult * intensityMult * cnsRestFactor * compoundNeuralFactor * advancedTechniqueNeuralFactor * 3.4;
 
     // El estrés espinal requiere el peso. Si no hay peso, lo estimamos con RPE y EFC.
     const weightFactor = set.weight ? (set.weight * 0.05) : (auge.efc * 2.0);
@@ -240,10 +284,11 @@ export const calculatePredictedSessionDrain = (session: Session, exerciseList: E
 
     exercises?.forEach(ex => {
         const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.name ?? (ex as any).exerciseName);
-        const name = ex.name ?? (ex as any).exerciseName ?? '';
-        const primaryMuscle = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle
-            || inferInvolvedMuscles(name, (ex as any).equipment ?? '', 'Otro', 'upper')[0]?.muscle
-            || 'Core';
+        const primaryMuscle = getPrimaryDisplayMuscle(
+            info,
+            ex.name ?? (ex as any).exerciseName ?? '',
+            (ex as any).equipment ?? ''
+        );
 
         // Contamos cuántas series lleva este músculo ANTES de empezar este ejercicio
         let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
@@ -332,20 +377,18 @@ export const calculateCompletedSessionStress = (
 
     completedExercises.forEach(ex => {
         const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
-        const primaryMuscle = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle
-            || inferInvolvedMuscles(ex.exerciseName ?? '', '', 'Otro', 'upper')[0]?.muscle
-            || 'Core';
+        const primaryMuscle = getPrimaryDisplayMuscle(info, ex.exerciseName ?? '');
 
         let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
 
         ex.sets.forEach((s: any) => {
             // Ignorar series de calentamiento en el cálculo de estrés
-            if (s.type === 'warmup') return;
+            if (shouldSkipCompletedSet(s)) return;
 
             accumulatedSets += 1;
 
             // Calculamos el drenaje individual (asumimos 90s de descanso como fallback)
-            const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, 90);
+            const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, (ex as any).restTime || 90);
 
             // El score total es la suma bruta del desgaste
             totalStress += drain.cnsDrainPct + drain.muscularDrainPct + drain.spinalDrainPct;
@@ -376,15 +419,13 @@ export const calculateCompletedSessionDrainBreakdown = (
 
     completedExercises.forEach(ex => {
         const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
-        const primaryMuscle = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle
-            || inferInvolvedMuscles(ex.exerciseName ?? '', '', 'Otro', 'upper')[0]?.muscle
-            || 'Core';
+        const primaryMuscle = getPrimaryDisplayMuscle(info, ex.exerciseName ?? '');
         let accumulatedSets = muscleVolumeMap[primaryMuscle] || 0;
 
         ex.sets.forEach((s: any) => {
-            if (s.type === 'warmup') return;
+            if (shouldSkipCompletedSet(s)) return;
             accumulatedSets += 1;
-            const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, 90);
+            const drain = calculateSetBatteryDrain(s, info, tanks, accumulatedSets, (ex as any).restTime || 90);
             totalCns += drain.cnsDrainPct;
             totalMuscular += drain.muscularDrainPct;
             totalSpinal += drain.spinalDrainPct;

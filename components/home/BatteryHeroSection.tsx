@@ -9,6 +9,7 @@ import {
     MUSCLE_TO_ARTICULAR_BATTERIES,
     getTendonImbalanceAlerts,
     calculateArticularBatteries,
+    getStructuralReadinessForMuscles,
     type SpinalDrainEntry,
     type ArticularBatteryState,
 } from '../../services/auge';
@@ -274,6 +275,33 @@ export const BatteryHeroSection: React.FC<{ compact?: boolean }> = ({ compact = 
         return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
     }, [perMuscle, batteries]);
 
+    const structuralReadiness = useMemo(() => {
+        if (!articularBatteries || Object.keys(perMuscle).length === 0) return [];
+        return getStructuralReadinessForMuscles(perMuscle, articularBatteries as any);
+    }, [perMuscle, articularBatteries]);
+
+    const structuralAverages = useMemo(() => {
+        if (structuralReadiness.length === 0) {
+            return {
+                muscle: muscularValueTotal,
+                articular: muscularValueTotal,
+                combined: muscularValueTotal,
+            };
+        }
+
+        return {
+            muscle: Math.round(structuralReadiness.reduce((sum, item) => sum + item.muscleBattery, 0) / structuralReadiness.length),
+            articular: Math.round(structuralReadiness.reduce((sum, item) => sum + item.articularBattery, 0) / structuralReadiness.length),
+            combined: Math.round(structuralReadiness.reduce((sum, item) => sum + item.combinedBattery, 0) / structuralReadiness.length),
+        };
+    }, [structuralReadiness, muscularValueTotal]);
+
+    const lowestStructuralReadiness = useMemo(() => {
+        return [...structuralReadiness]
+            .sort((a, b) => a.combinedBattery - b.combinedBattery)
+            .slice(0, 2);
+    }, [structuralReadiness]);
+
     const tendonImbalanceAlerts = useMemo(() => {
         if (!perMuscle || !articularBatteries) return [];
         return getTendonImbalanceAlerts(perMuscle, articularBatteries as any);
@@ -392,6 +420,11 @@ export const BatteryHeroSection: React.FC<{ compact?: boolean }> = ({ compact = 
                                                         <h4 className={`text-lg font-black uppercase tracking-tight ${identity.textClass}`}>{RING_LABELS[id]}</h4>
                                                         <span className={`text-2xl font-black font-mono tracking-tighter ${identity.textClass}`}>{val}%</span>
                                                     </div>
+                                                    {id === 'muscular' && (
+                                                        <p className="mb-2 text-[10px] font-bold text-[#49454F]">
+                                                            M {structuralAverages.muscle}% | T {structuralAverages.articular}% | C {structuralAverages.combined}%
+                                                        </p>
+                                                    )}
 
                                                     <div className="space-y-1.5">
                                                         {id === 'spinal' ? (
@@ -402,10 +435,24 @@ export const BatteryHeroSection: React.FC<{ compact?: boolean }> = ({ compact = 
                                                                 </div>
                                                             ))
                                                         ) : id === 'muscular' ? (
-                                                            Object.entries(perMuscle).sort((a, b) => a[1] - b[1]).slice(0, 2).map(([mid, mval]) => (
-                                                                <div key={mid} className="flex justify-between items-center text-[10px] font-bold text-[#49454F]">
-                                                                    <span className="truncate">{ACCORDION_MUSCLES.find(m => m.id === mid)?.label || mid}</span>
-                                                                    <span className={getStatusColor(mval)}>{mval}%</span>
+                                                            (lowestStructuralReadiness.length > 0
+                                                                ? lowestStructuralReadiness
+                                                                : Object.entries(perMuscle).sort((a, b) => a[1] - b[1]).slice(0, 2).map(([mid, mval]) => ({
+                                                                    muscleId: mid,
+                                                                    muscleLabel: ACCORDION_MUSCLES.find(m => m.id === mid)?.label || mid,
+                                                                    muscleBattery: mval,
+                                                                    articularBattery: mval,
+                                                                    combinedBattery: mval,
+                                                                } as any))
+                                                            ).map((item: any) => (
+                                                                <div key={item.muscleId} className="flex items-start justify-between gap-3 text-[10px] font-bold text-[#49454F]">
+                                                                    <div className="min-w-0">
+                                                                        <span className="block truncate">{item.muscleLabel}</span>
+                                                                        <span className="block text-[9px] font-medium text-[#6b6472]">
+                                                                            M {item.muscleBattery}% | T {item.articularBattery}% | C {item.combinedBattery}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className={getStatusColor(item.combinedBattery)}>{item.combinedBattery}%</span>
                                                                 </div>
                                                             ))
                                                         ) : (
@@ -480,4 +527,3 @@ export const BatteryHeroSection: React.FC<{ compact?: boolean }> = ({ compact = 
         </div>
     );
 };
-

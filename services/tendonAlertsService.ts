@@ -1,8 +1,5 @@
-// services/tendonAlertsService.ts
-// Monitor de desfases músculo-tendón y protocolo de compensación
-
 import type { ArticularBatteryId } from '../data/articularBatteryConfig';
-import { MUSCLE_TO_ARTICULAR_BATTERIES } from './tendonRecoveryService';
+import { getStructuralReadinessForMuscles } from './structuralReadinessService';
 
 const ARTICULAR_LABELS: Record<ArticularBatteryId, string> = {
   shoulder: 'Hombro',
@@ -10,6 +7,7 @@ const ARTICULAR_LABELS: Record<ArticularBatteryId, string> = {
   knee: 'Rodilla',
   hip: 'Cadera',
   ankle: 'Tobillo',
+  cervical: 'Cuello',
 };
 
 export interface TendonImbalanceAlert {
@@ -30,9 +28,6 @@ export interface TendonCompensationSuggestion {
 
 const IMBALANCE_THRESHOLD = 30;
 
-/**
- * Detecta desfases músculo-tendón: Batería_Muscular - Batería_Tendinosa > 30%
- */
 export function getTendonImbalanceAlerts(
   perMuscle: Record<string, number>,
   articularBatteries: Record<ArticularBatteryId, { recoveryScore: number }> | undefined,
@@ -41,41 +36,33 @@ export function getTendonImbalanceAlerts(
   if (!articularBatteries) return [];
 
   const alerts: TendonImbalanceAlert[] = [];
+  const readiness = getStructuralReadinessForMuscles(perMuscle, articularBatteries, sessionMuscleIds);
 
-  for (const [muscleId, articularIds] of Object.entries(MUSCLE_TO_ARTICULAR_BATTERIES)) {
-    if (sessionMuscleIds.length > 0 && !sessionMuscleIds.includes(muscleId)) continue;
+  for (const item of readiness) {
+    for (const articularId of item.relatedArticularIds) {
+      const articularState = articularBatteries[articularId];
+      if (!articularState) continue;
 
-    const muscleBattery = perMuscle[muscleId] ?? 100;
-    const muscleLabel = muscleId.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const articularBattery = articularState.recoveryScore;
+      const gap = item.muscleBattery - articularBattery;
+      if (gap <= IMBALANCE_THRESHOLD) continue;
 
-    for (const aid of articularIds) {
-      const ab = articularBatteries[aid];
-      if (!ab) continue;
-
-      const articularBattery = ab.recoveryScore;
-      const gap = muscleBattery - articularBattery;
-
-      if (gap > IMBALANCE_THRESHOLD) {
-        const articularLabel = ARTICULAR_LABELS[aid];
-        alerts.push({
-          type: articularBattery < 40 ? 'danger' : 'warning',
-          muscleLabel,
-          articularLabel,
-          muscleBattery,
-          articularBattery,
-          gap,
-          message: `Tus músculos (${muscleLabel}) están recuperados (${muscleBattery}%), pero tus tendones de ${articularLabel} aún tienen fatiga (${articularBattery}%). Evita cargas superiores al 80% 1RM o movimientos explosivos hoy para prevenir tendinopatías.`,
-        });
-      }
+      const articularLabel = ARTICULAR_LABELS[articularId];
+      alerts.push({
+        type: articularBattery < 40 ? 'danger' : 'warning',
+        muscleLabel: item.muscleLabel,
+        articularLabel,
+        muscleBattery: item.muscleBattery,
+        articularBattery,
+        gap,
+        message: `Tu lectura muscular de ${item.muscleLabel} va mejor (${item.muscleBattery}%), pero el tejido de ${articularLabel} sigue atrasado (${articularBattery}%). Usa la media combinada antes de subir cargas o meter explosividad hoy.`,
+      });
     }
   }
 
   return alerts;
 }
 
-/**
- * Sugerencias de compensación cuando la batería tendinosa está baja
- */
 export function getTendonCompensationSuggestions(
   articularBatteries: Record<ArticularBatteryId, { recoveryScore: number }> | undefined,
   sessionArticularIds: ArticularBatteryId[] = []
@@ -90,7 +77,7 @@ export function getTendonCompensationSuggestions(
     suggestions.push({
       type: 'nutrition',
       title: 'Soporte nutricional',
-      message: 'Colágeno hidrolizado + Vitamina C 30-60 min antes del entrenamiento puede mejorar la síntesis de colágeno en tendones y acelerar la recuperación (~10%).',
+      message: 'Colageno hidrolizado + Vitamina C 30-60 min antes del entrenamiento puede mejorar la sintesis de colageno en tendones y acelerar la recuperacion (~10%).',
     });
   }
 
@@ -98,8 +85,8 @@ export function getTendonCompensationSuggestions(
   if (veryLowBatteries.length > 0) {
     suggestions.push({
       type: 'biomechanical',
-      title: 'Ajuste biomecánico',
-      message: 'Considera sustituir ejercicios pesados o pliométricos por alternativas isométricas o de bajo TTC (ej. Sentadilla isométrica en pared en lugar de sentadillas pesadas) para no agravar el daño tendinoso.',
+      title: 'Ajuste biomecanico',
+      message: 'Considera sustituir ejercicios pesados o pliometricos por alternativas isometricas o de bajo TTC para no agravar el dano tendinoso.',
     });
   }
 

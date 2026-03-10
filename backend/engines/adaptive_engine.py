@@ -151,6 +151,15 @@ def _derive_implied_recovery_time(obs: RecoveryObservation) -> float | None:
         return None
 
     implied_tau = 2.9957 / k
+    articular_battery = getattr(obs, "articular_battery", None)
+    combined_readiness = getattr(obs, "combined_readiness", None)
+
+    if articular_battery is not None and articular_battery < 70:
+        implied_tau *= 1 + ((70 - articular_battery) / 100.0) * 0.45
+
+    if combined_readiness is not None and combined_readiness < obs.actual_battery:
+        implied_tau *= 1 + ((obs.actual_battery - combined_readiness) / 100.0) * 0.2
+
     return max(6.0, min(200.0, implied_tau))
 
 
@@ -199,6 +208,14 @@ def get_personalized_recovery_time(
     if age > 35:
         mult *= 1 + (age - 35) * 0.01
 
+    articular_battery = context.get("articular_battery")
+    if articular_battery is not None and articular_battery < 70:
+        mult *= 1 + ((70 - articular_battery) / 100.0) * 0.35
+
+    combined_readiness = context.get("combined_readiness")
+    if combined_readiness is not None and combined_readiness < 65:
+        mult *= 1 + ((65 - combined_readiness) / 100.0) * 0.25
+
     return base_tau * max(0.5, mult)
 
 
@@ -239,6 +256,10 @@ def train_gp_fatigue_model(
             dp.stress_level,
             dp.age,
             float(dp.is_compound_dominant),
+            dp.articular_load,
+            dp.muscle_battery,
+            dp.articular_battery,
+            dp.combined_readiness,
         ]
         for dp in training_data
     ])
@@ -285,9 +306,25 @@ def predict_fatigue_curve(
     stress = ctx.get("stress_level", 3.0)
     age = ctx.get("age", 25.0)
     compound = ctx.get("is_compound_dominant", False)
+    articular_load = ctx.get("articular_load", 0.0)
+    muscle_battery = ctx.get("muscle_battery", 100.0)
+    articular_battery = ctx.get("articular_battery", 100.0)
+    combined_readiness = ctx.get("combined_readiness", min(muscle_battery, articular_battery))
 
     X_pred = np.array([
-        [h, session_stress, sleep, nutrition, stress, age, float(compound)]
+        [
+            h,
+            session_stress,
+            sleep,
+            nutrition,
+            stress,
+            age,
+            float(compound),
+            articular_load,
+            muscle_battery,
+            articular_battery,
+            combined_readiness,
+        ]
         for h in prediction_hours
     ])
 
@@ -357,7 +394,7 @@ def _build_prior_gp() -> GaussianProcessRegressor:
                 sleep_mod = 0.75
 
             modified_fatigue = min(1.0, fatigue * sleep_mod)
-            synthetic_X.append([h, stress, sleep, 0.0, 3.0, 25.0, 1.0])
+            synthetic_X.append([h, stress, sleep, 0.0, 3.0, 25.0, 1.0, 0.0, 100.0, 100.0, 100.0])
             synthetic_y.append(modified_fatigue)
 
     X = np.array(synthetic_X)

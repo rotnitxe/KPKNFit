@@ -1,0 +1,74 @@
+• La propuesta se entiende, pero la hoja “Objetivo Confirmado.txt” tiene varias lagunas que convendría cerrar antes de avanzar, especialmente si el modelo va a correr solo localmente y ya elegiste Qwen 2 de 1 GB. Algunas observaciones 
+  clave:
+
+  - El plan elimina totalmente el buscador y los campos manuales (lines 1‑20, 40‑50) pero no explica cómo conservar el fallback de datos cuando la descripción no da un match claro; eso necesita tolerar ediciones manuales y no destruir 
+    el flujo actual ni la capacidad de confirmarlos.
+  - La estrategia de cascada (lines 60‑95) está bien conceptualmente, pero no contrasta con el pipeline existente de búsqueda + taxonomía + heurísticas, y tampoco define cómo se combinan los resultados para alimentar al modelo local.  
+    Además no menciona que el texto pasa por normalización de tokens/alias o qué sucede si la heurística y la IA discrepan.
+  - Falta un paso concreto para manejar la descarga y almacenamiento del GGUF/Qwen 2 en el teléfono (lines 150‑170 hablan de public/models/.gitkeep y MODELOS.md pero no hay detalle de Asset Delivery, verificación de integridad o       
+    eliminación si el usuario libera espacio).
+  - Tampoco hay criterios de rendimiento ni métricas de calidad: ¿qué tan rápido debe confirmar el resultado? ¿cómo se valida que la IA no reubique macros? El plan tampoco contempla tests unitarios o e2e para esa nueva experiencia “un 
+    paso”.
+
+  Si quieres, afino un plan mejorado que:
+
+  1. Describe cómo la cascada se integra con que ya hiciste en services/foodSearchService.ts y aiNutritionParser.ts.
+  2. Añade un paso de descarga/extracto del modelo con Asset Delivery en Android y una verificación CRC.
+  3. Define cómo la IA local (Qwen 2) usa solo candidatos pre‑seleccionados y qué criterios activan el fallback heurístico.
+  4. Incluye tareas de validación (regresiones, UI, tests para la experiencia de “confirmar sin editar”) y entrega de documentación MODELOS.md.
+     ¿Lo quieres?
+
+• Model changed to gpt-5.4 xhigh
+
+• Fast mode set to off
+
+• Fast mode set to on
+
+
+› Dale una nueva vuelta, dame el plan completo mejorado.
+                                                                                                                                                                                                                                           
+
+• El plan original va en la direccion correcta, pero le faltan tres cosas importantes: no romper demasiado pronto el flujo actual, no duplicar servicios que ya existen, y cerrar de verdad la parte movil del modelo local. La version    
+  mejorada seria esta.                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                           
+  Plan Mejorado                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                           
+  1. Mantener el objetivo UX, pero no eliminar el flujo viejo al inicio. El objetivo sigue siendo un solo input descriptivo + preview + confirmar, pero el buscador y la edicion manual no se borran en la fase 1; se ocultan como respaldo
+     hasta que el nuevo flujo demuestre paridad real.                                                                                                                                                                                      
+  2. Reusar la infraestructura ya creada en vez de inventar otra paralela. El nucleo debe construirse sobre foodSearchService.ts:917, aiNutritionParser.ts:86, nutritionConnectivityService.ts:48, foodTaxonomy.ts:106 y el drawer actual  
+  5. Mantener la regla de seguridad principal: los macros vienen de la base, no de la memoria del modelo. El modelo ayuda a entender “que quiso decir el usuario”, pero calorias, proteina, carbs y grasas salen de items existentes o de  
+     heuristicas controladas cuando no hay match exacto.
+  6. La UI final si debe ser simple, pero con recuperacion clara. Pantalla principal: un textarea, un estado de analisis, un preview, Confirmar y Ajustar. Ajustar no debe abrir una pantalla vieja entera, sino un editor breve sobre el  
+     resultado ya propuesto. El usuario no deberia volver a llenar todo desde cero salvo casos extremos.
+  7. La distribucion del modelo debe resolverse en serio para Android. No pondria el modelo en public/models; eso no sirve para el telefono como descarga controlada. Si no quieres pagar servidores, la via correcta es Google Play Asset 
+     Delivery u otro mecanismo de assets on-demand del canal de distribucion. El plan debe incluir descarga bajo demanda, chequeo de espacio libre, reanudacion, checksum, versionado y opcion de borrar el modelo.
+  8. La activacion del modelo debe depender de capacidad real del dispositivo, no solo de una etiqueta low/mid/high. Haría una combinacion de criterios: espacio disponible, RAM aproximada, primera prueba corta de inferencia,
+     temperatura/bateria y tiempo maximo aceptable. Si el telefono no pasa, la app sigue funcionando sin IA local.
+  9. Definir presupuestos de rendimiento antes de programar. Objetivo razonable: match exacto o heuristico en menos de 300-500 ms; resolucion con modelo local en 1.5-3 s en equipos compatibles; si pasa ese limite, cae al flujo
+     determinista. Sin este criterio, el plan queda a medias.
+  10. Implementar por fases y con feature flag. Fase 1: nuevo logger unificado con motor determinista y preview. Fase 2: resolvedor con Qwen local en escritorio/dev para ajustar prompts. Fase 3: runtime movil y descarga del modelo.    
+     Fase 4: rollout parcial. Fase 5: recien ahi retirar componentes viejos si ya no son necesarios.
+  11. Preparar un dataset de prueba antes de cerrar la UX. Necesitas un conjunto de descripciones reales: comidas simples, platos compuestos, marcas, cantidades ambiguas, modismos chilenos, errores de tipeo. Con eso mides acierto,     
+     tiempo y cuantas veces el usuario debe editar.
+  12. Definir criterios de aceptacion que obliguen a cerrar bien el trabajo. Yo usaria: el usuario puede registrar siempre aun sin IA; la IA nunca puede crear items fuera del conjunto recuperado; el flujo nuevo resuelve sin edicion la 
+     mayoria de comidas comunes; y el sistema conserva compatibilidad con el mismo objeto final de registro nutricional.
+
+  Cambios al plan original
+
+  - No borraria FoodSearch.tsx ni la entrada manual en la primera entrega.
+  - No sobrescribiria de inmediato el componente actual; primero pondria el nuevo flujo detras de flag y luego lo promuevo.
+  - No crearia servicios con nombres nuevos que dupliquen logica ya existente.
+  - No trataria “base de datos seleccionable” como UI, pero si mantendria las fuentes de datos internamente.
+  - No pondria la IA como ultimo paso ciego; la pondria como resolvedor acotado por evidencia.
+  - No dejaria la descarga del modelo como una nota en MODELOS.md; eso debe ser parte del sistema.
+
+  Plan final recomendado
+
+  - Producto: un solo input descriptivo, preview automatico, confirmacion rapida, ajuste manual corto.
+  - Motor: reglas + recuperacion local + taxonomia + Qwen local como desambiguador.
+  - Datos: macros siempre desde base local/OFF/USDA offline, nunca desde generacion libre.
+  - Movil: Android first, modelo descargable on-demand sin servidor propio.
+  - Riesgo: rollback inmediato al flujo determinista si el modelo falla, tarda o el dispositivo no da.
+  - Migracion: eliminar componentes viejos solo despues de medir paridad real.
+
+  Este si lo considero un plan completo y ejecutable, sin dejar partes “implicitas”. Si quieres, el siguiente paso es convertir esto en un plan de implementacion por archivos y fases concretas del repo, todavia sin escribir codigo.  

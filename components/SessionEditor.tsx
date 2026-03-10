@@ -129,7 +129,8 @@ const SessionAugeDashboard: React.FC<{
             exercises.forEach(ex => {
                 const info = exerciseList.find((e: any) => e.id === ex.exerciseDbId || e.name === ex.name);
                 if (!info) return;
-                const primaryMuscle = normalizeMuscleGroup(info.involvedMuscles.find((m: any) => m.role === 'primary')?.muscle || 'General');
+                const primaryEntry = info.involvedMuscles.find((m: any) => m.role === 'primary');
+                const primaryMuscle = normalizeMuscleGroup(primaryEntry?.muscle || info.subMuscleGroup || 'Core', primaryEntry?.emphasis);
 
                 const validSets = ex.sets?.filter((s: any) => (s as any).type !== 'warmup') || [];
                 let exFatigueScore = 0;
@@ -155,7 +156,7 @@ const SessionAugeDashboard: React.FC<{
                     const volMult = getEffectiveVolumeMultiplier(set);
 
                     info.involvedMuscles.forEach((m: any) => {
-                        const parent = normalizeMuscleGroup(m.muscle);
+                        const parent = normalizeMuscleGroup(m.muscle, m.emphasis);
                         const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
 
                         const effVol = hyperFactor * volMult;
@@ -1237,7 +1238,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             (ex.sets?.filter((st: any) => (st as any).type !== 'warmup') || []).forEach((set: any) => {
                 const volMult = getEffectiveVolumeMultiplier(set);
                 info.involvedMuscles.forEach((m: any) => {
-                    const parent = normalizeMuscleGroup(m.muscle);
+                    const parent = normalizeMuscleGroup(m.muscle, m.emphasis);
                     const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
                     const effVol = hyperFactor * volMult;
                     const flatVol = hyperFactor;
@@ -1342,7 +1343,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 const volMult = getEffectiveVolumeMultiplier(set);
 
                 info.involvedMuscles.forEach(m => {
-                    const parent = normalizeMuscleGroup(m.muscle);
+                    const parent = normalizeMuscleGroup(m.muscle, m.emphasis);
                     const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
                     const addedVol = hyperFactor * volMult;
                     const limit = limits[parent]?.maxSession || 6;
@@ -1526,8 +1527,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             (s.parts || []).forEach(p => allEx.push(...p.exercises));
             for (const ex of allEx) {
                 const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
-                const primary = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle;
-                const muscle = primary ? normalizeMuscleGroup(primary) : '_unknown';
+                const primary = info?.involvedMuscles?.find(m => m.role === 'primary');
+                const muscle = primary ? normalizeMuscleGroup(primary.muscle, primary.emphasis) : '_unknown';
                 muscleCount[muscle] = (muscleCount[muscle] || 0) + 1;
             }
             const exceeded = Object.entries(muscleCount).find(([, c]) => c > maxExercisesPerMuscle);
@@ -1790,7 +1791,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 rpeCount++;
                 const volMult = getEffectiveVolumeMultiplier(set);
                 info.involvedMuscles.forEach((m: any) => {
-                    const parent = normalizeMuscleGroup(m.muscle);
+                    const parent = normalizeMuscleGroup(m.muscle, m.emphasis);
                     const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
                     const effVol = hyperFactor * volMult;
                     if (!hyperMap[parent]) hyperMap[parent] = { flat: 0, effective: 0 };
@@ -1968,8 +1969,9 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
             (draft.parts || []).forEach(p => {
                 p.exercises.forEach(ex => {
                     const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
-                    const exMuscle = info?.involvedMuscles?.find(m => m.role === 'primary')?.muscle;
-                    const matchesMuscle = muscle && exMuscle && normalizeMuscleGroup(exMuscle) === normalizeMuscleGroup(muscle);
+                    const exPrimary = info?.involvedMuscles?.find(m => m.role === 'primary');
+                    const exMuscle = exPrimary ? normalizeMuscleGroup(exPrimary.muscle, exPrimary.emphasis) : null;
+                    const matchesMuscle = muscle && exMuscle && exMuscle === normalizeMuscleGroup(muscle);
                     if (correctionType === 'reduce_series' && matchesMuscle && ex.sets.length > 1) {
                         ex.sets.pop();
                     } else if (correctionType === 'add_series' && matchesMuscle) {

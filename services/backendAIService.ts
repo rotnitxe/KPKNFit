@@ -14,11 +14,25 @@ interface GenerateRequest {
     jsonMode?: boolean;
     temperature?: number;
     maxTokens?: number;
+    model?: string;
+    host?: string;
 }
 
 interface GenerateResponse {
     text?: string;
     [key: string]: any;
+}
+
+export interface BackendAIStatus {
+    backend: boolean;
+    providers?: {
+        ollama?: {
+            available?: boolean;
+            host?: string;
+            models?: string[];
+            error?: string;
+        };
+    };
 }
 
 export async function generateContent(req: GenerateRequest): Promise<GenerateResponse> {
@@ -28,6 +42,12 @@ export async function generateContent(req: GenerateRequest): Promise<GenerateRes
         body: JSON.stringify(req),
     });
     if (!res.ok) throw new Error(`Backend AI error: ${res.status} ${res.statusText}`);
+    return res.json();
+}
+
+export async function getBackendAIStatus(): Promise<BackendAIStatus> {
+    const res = await fetch(`${BACKEND_URL}/api/ai/status`);
+    if (!res.ok) throw new Error(`Backend AI status error: ${res.status} ${res.statusText}`);
     return res.json();
 }
 

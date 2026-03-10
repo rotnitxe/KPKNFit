@@ -146,7 +146,7 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                         >
                             <span className="text-xs font-bold text-white">{ex.name}</span>
                             <span className="text-[9px] text-[#49454F] ml-2">
-                                {ex.involvedMuscles?.filter(m => m.role === 'primary').map(m => normalizeMuscleGroup(m.muscle)).filter((v, i, a) => a.indexOf(v) === i).join(', ')}
+                                {ex.involvedMuscles?.filter(m => m.role === 'primary').map(m => normalizeMuscleGroup(m.muscle, m.emphasis)).filter((v, i, a) => a.indexOf(v) === i).join(', ')}
                             </span>
                         </button>
                     ))}

@@ -19,3 +19,4 @@ build/
 ios/
 android/
 .superdesign
+public/models/

@@ -85,7 +85,11 @@ const FoodDatabaseView: React.FC = () => {
         const query = searchQuery.toLowerCase();
         const filtered = query ? foodDatabase.filter(food =>
             food.name.toLowerCase().includes(query) ||
-            (food.brand && food.brand.toLowerCase().includes(query))
+            (food.brand && food.brand.toLowerCase().includes(query)) ||
+            (food.category && food.category.toLowerCase().includes(query)) ||
+            (food.subcategory && food.subcategory.toLowerCase().includes(query)) ||
+            food.tags?.some(tag => tag.toLowerCase().includes(query)) ||
+            food.searchAliases?.some(alias => alias.toLowerCase().includes(query))
         ) : foodDatabase;
 
         const categories: Record<string, FoodItem[]> = {
