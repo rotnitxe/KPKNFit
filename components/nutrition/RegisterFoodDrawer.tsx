@@ -93,6 +93,7 @@ interface RegisterFoodDrawerProps {
     initialDate?: string;
     mealType?: NutritionLog['mealType'];
     displayMode?: 'drawer' | 'appendix';
+    showCloseButton?: boolean;
 }
 
 interface SelectedFoodForPortionState {
@@ -195,6 +196,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     initialDate,
     mealType: initialMealType = 'lunch',
     displayMode = 'drawer',
+    showCloseButton = displayMode === 'drawer',
 }) => {
     const { addToast } = useAppDispatch();
     const [description, setDescription] = useState('');
@@ -586,9 +588,11 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                     <h3 className="text-[10px] font-black text-[#49454F]/40 uppercase tracking-[0.2em] mb-1 font-['Roboto']">Registro rapido</h3>
                                     <h2 className="text-[28px] font-black text-[#1C1B1F] tracking-tighter leading-none font-['Roboto']">Registra tu comida</h2>
                                 </div>
-                                <button onClick={onClose} className="w-10 h-10 bg-black/5 rounded-full hover:bg-black/10 transition-colors flex items-center justify-center">
-                                    <XIcon size={20} className="text-[#49454F]" />
-                                </button>
+                                {showCloseButton && (
+                                    <button onClick={onClose} className="w-10 h-10 bg-black/5 rounded-full hover:bg-black/10 transition-colors flex items-center justify-center">
+                                        <XIcon size={20} className="text-[#49454F]" />
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             <div className="px-4 pt-5 pb-3 flex items-center justify-between">
@@ -596,9 +600,11 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                     <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#49454F]/60">Registro rápido</p>
                                     <p className="text-[16px] font-black text-[#1C1B1F] uppercase tracking-[0.25em]">Comida</p>
                                 </div>
-                                <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 text-[#49454F]/70 flex items-center justify-center transition hover:bg-slate-200">
-                                    <XIcon size={16} />
-                                </button>
+                                {showCloseButton && (
+                                    <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 text-[#49454F]/70 flex items-center justify-center transition hover:bg-slate-200">
+                                        <XIcon size={16} />
+                                    </button>
+                                )}
                             </div>
                         )}
 

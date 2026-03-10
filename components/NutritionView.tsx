@@ -158,6 +158,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
         setBodyProgress,
         setNutritionLogs,
         handleSaveBodyLog,
+        handleSaveNutritionLog,
         addToast,
     } = useAppDispatch();
 
@@ -569,37 +570,8 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
         addToast('Registro eliminado.', 'success');
     };
 
-    // Handler para FoodLoggerUnified
-    const handleFoodRegistered = (result: {
-        foodName: string;
-        nutrition: {
-            calories: number | null;
-            protein: number | null;
-            carbs: number | null;
-            fats: number | null;
-            fiber: number | null;
-        };
-        category: string;
-        confidence: number;
-    }) => {
-        const newLog: NutritionLog = {
-            id: crypto.randomUUID(),
-            date: toIsoAtNoon(selectedDate),
-            mealType: 'snack', // Por defecto, el usuario puede editar después
-            foods: [{
-                id: crypto.randomUUID(),
-                foodName: result.foodName,
-                calories: result.nutrition.calories || 0,
-                protein: result.nutrition.protein || 0,
-                carbs: result.nutrition.carbs || 0,
-                fats: result.nutrition.fats || 0,
-                fiber: result.nutrition.fiber || 0,
-            }],
-            status: 'consumed',
-        };
-        
-        setNutritionLogs((prev) => [...prev, newLog]);
-        addToast(`${result.foodName} registrado`, 'success');
+    const handleNutritionLogSaved = (log: NutritionLog) => {
+        handleSaveNutritionLog(log);
     };
 
     const handleDuplicateLog = (log: NutritionLog) => {
@@ -823,13 +795,16 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
 
             {viewState === 'no-plan' ? (
                 <div style={{ paddingLeft: layout.pagePadX, paddingRight: layout.pagePadX, paddingBottom: 24 }}>
+                    <div className="mb-4">
+                        <FoodLoggerUnified initialDate={selectedDate} onLogRegistered={handleNutritionLogSaved} />
+                    </div>
                     <div className="w-full bg-white/60 border border-black/[0.04] p-6 shadow-sm" style={{ borderRadius: layout.headerRadius }}>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F] mb-2">Bienvenido a nutrición</p>
                         <h2 className="text-[24px] font-black leading-tight text-[#1D1B20] mb-2">
                             {isFirstOpenWithoutPlan ? 'Creemos tu plan de alimentación' : 'Activa un plan para continuar'}
                         </h2>
                         <p className="text-sm text-[#49454F]">
-                            Para desbloquear Alimentación y Métricas corporales, primero definimos tu plan en un flujo claro y amigable.
+                            Puedes registrar comidas desde ya. Cuando actives tu plan, también se desbloquearán metas, métricas y seguimiento avanzado.
                         </p>
                         <button
                             onClick={() => setShowWizard(true)}
@@ -843,7 +818,7 @@ const NutritionView: React.FC<NutritionViewProps> = ({ initialTab }) => {
                 <>
                     {/* Food Logger Unified - Nuevo sistema de registro con IA */}
                     <div style={{ paddingLeft: layout.pagePadX, paddingRight: layout.pagePadX, paddingTop: 16 }}>
-                        <FoodLoggerUnified onFoodRegistered={handleFoodRegistered} />
+                        <FoodLoggerUnified initialDate={selectedDate} onLogRegistered={handleNutritionLogSaved} />
                     </div>
                 
                     <div style={{ paddingLeft: layout.pagePadX, paddingRight: layout.pagePadX, paddingTop: 4, paddingBottom: 10 }}>

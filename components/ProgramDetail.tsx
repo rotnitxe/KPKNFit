@@ -20,7 +20,6 @@ import IntegratedTabs from './program-detail/IntegratedTabs';
 import BlockRoadmap from './program-detail/BlockRoadmap';
 import MacrocycleEditor from './program-detail/MacrocycleEditor';
 import DayView from './program-detail/DayView';
-import SplitChangerDrawer from './program-detail/SplitChangerDrawer';
 
 interface ProgramDetailProps {
     program: Program;
@@ -276,7 +275,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                         }}
                                         onAddSession={(dayOfWeek) => handleAddSession(program.id, 0, 0, selectedWeekId || '', dayOfWeek)}
                                         onDeleteSession={onDeleteSessionHandler}
-                                        onStartWorkout={handleStartWorkout}
+                                        onStartWorkout={(session) => handleStartWorkout(session, program)}
                                         onUpdateProgram={handleUpdateProgram}
                                         addToast={addToast}
                                     />
@@ -363,7 +362,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                         isOnline={isOnline}
                                         isActive={!!isActiveProgram}
                                         currentWeeks={currentWeeks}
-                                        selectedWeekId={selectedWeekId || null}
+                                        selectedWeekId={selectedWeekId ?? undefined}
                                         onSelectWeek={setSelectedWeekId}
                                         visualizerData={visualizerData}
                                         displayedSessions={displayedSessions}
@@ -663,7 +662,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 };
 
 export default ProgramDetail;
-
 
 
 

@@ -42,11 +42,19 @@ const MovementPatternDetailView: React.FC<MovementPatternDetailViewProps> = ({ m
     return result;
   }, [pattern?.primaryMuscles, muscleGroupData, muscleHierarchy]);
 
-  const relatedJoints =
-    pattern?.primaryJoints?.map((jId) => jointDatabase?.find((j) => j.id === jId)).filter(Boolean) || [];
+  const relatedJoints = React.useMemo(() => {
+    if (!pattern?.primaryJoints?.length || !jointDatabase) return [];
+    return pattern.primaryJoints
+      .map((jId) => jointDatabase.find((j) => j.id === jId))
+      .filter((j): j is NonNullable<typeof j> => Boolean(j));
+  }, [jointDatabase, pattern?.primaryJoints]);
 
-  const exampleExercises =
-    pattern?.exampleExercises?.map((exId) => exerciseList.find((e) => e.id === exId)).filter(Boolean) || [];
+  const exampleExercises = React.useMemo(() => {
+    if (!pattern?.exampleExercises?.length) return [];
+    return pattern.exampleExercises
+      .map((exId) => exerciseList.find((e) => e.id === exId))
+      .filter((ex): ex is NonNullable<typeof ex> => Boolean(ex));
+  }, [exerciseList, pattern?.exampleExercises]);
 
   if (!pattern) {
     return (

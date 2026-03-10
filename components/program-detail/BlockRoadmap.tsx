@@ -59,7 +59,7 @@ const BlockRoadmap: React.FC<BlockRoadmapProps> = ({
                     meso.weeks.map((week, weekIdx) => {
                         const isCurrent = currentWeekId === week.id;
                         const isSelected = selectedWeekId === week.id;
-                        const hasEvent = week.events && week.events.length > 0;
+                        const hasEvent = Boolean(week.events?.length);
                         
                         return {
                             id: week.id,
@@ -69,7 +69,7 @@ const BlockRoadmap: React.FC<BlockRoadmapProps> = ({
                             isCurrent,
                             isSelected,
                             hasEvent,
-                            eventName: hasEvent ? week.events[0]?.title : undefined,
+                            eventName: hasEvent ? week.events?.[0]?.title : undefined,
                         };
                     })
                 );

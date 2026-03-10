@@ -44,8 +44,8 @@ const WeekRoadmap: React.FC<WeekRoadmapProps> = ({
                         const isSelected = selectedWeekId === week.id;
                         
                         // Check for events
-                        const hasEvent = week.events && week.events.length > 0;
-                        const eventName = hasEvent ? week.events[0]?.title : undefined;
+                        const hasEvent = Boolean(week.events?.length);
+                        const eventName = hasEvent ? week.events?.[0]?.title : undefined;
                         
                         // Check if completed (simplified - would need history data)
                         const isCompleted = globalWeekIndex < (currentWeekId ? globalWeekIndex : 0);

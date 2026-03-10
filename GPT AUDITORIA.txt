@@ -1,0 +1,22 @@
+Hallazgos
+
+[P0] La promesa central “Qwen local funcionando en navegador” no quedó operativa con esta integración. FoodAI.ts (line 415) intenta cargar un .gguf local con engine.reload(config.path), pero WebLLM carga por modelId registrado en appConfig.model_list, y los modelos custom requieren además model_lib; si no existe ese registro, la propia librería lanza ModelNotFoundError. Ver engine.d.ts (line 11), index.js (line 409), index.js (line 8476), index.js (line 11019).
+
+[P0] El informe dice que “los macros nunca los genera la IA”, pero el código hace exactamente eso. FoodAI.ts (line 10) lo afirma; sin embargo FoodAI.ts (line 542) pide a la IA un JSON con calories/protein/carbs/fats/fiber, y FoodAI.ts (line 519) devuelve esos valores al usuario tras validateAndClamp(). La arquitectura descrita en el informe no coincide con la implementación real.
+
+[P1] El registro descriptivo real quedó frágil y en varios casos peor que antes. La nueva “BD local” es temporal y de solo 30 alimentos en FoodSearchIntegration.ts (line 143), ignorando el foodSearchService ya existente y bastante más completo en foodSearchService.ts (line 917). Además, FoodAI.ts (line 476) solo acepta matches > 0.9, así que descripciones normales suelen caer fuera; y la heurística de FoodAI.ts (line 302) hace input.includes(keyword), por lo que una frase con cafe puede terminar clasificada como café solo.
+
+[P1] El soporte Android/Capacitor que el informe da por resuelto no está cerrado. package.json (line 14) no ejecuta download-model, package.json (line 23) no copia el modelo a www/models, y tampoco aplica el alias url que sí usa el build web en package.json (line 22). En limpio, esa ruta no garantiza que el modelo viaje al artefacto móvil.
+
+[P1] La UI nueva no está terminada. El botón “Ajustar” no ajusta nada: solo hace console.log en FoodLoggerUnified.tsx (line 107) y se sigue mostrando como acción real en FoodLoggerUnified.tsx (line 239). Además, el sistema no reemplazó al anterior: el logger “unificado” convive con el FAB legacy en NutritionView.tsx (line 1335), y ni siquiera aparece si no existe un plan activo en NutritionView.tsx (line 824).
+
+[P1] Hay un bug de runtime no resuelto en caché. NutritionPreview.tsx (line 23) usa LightningIcon, pero ese icono no está importado en NutritionPreview.tsx (line 3). El informe lo marca como “resuelto”; el código actual no.
+
+[P2] La validación quedó sobrevendida. npm run build sí pasa, pero npx tsc --noEmit falla y varios errores vienen justo de esta refactorización: export erróneo en index.ts (line 11), icono inexistente en NutritionPreview.tsx (line 23) y tipos inválidos en FoodAI.ts (line 688). O sea: transpila, pero no está sano.
+
+[P2] Los “tests” y la documentación no respaldan lo que el informe afirma. MODELOS.md (line 148) manda ejecutar npm test -- food-logger y npm test -- food-descriptions, pero package.json (line 7) no tiene script test, y no encontré ninguna referencia al dataset tests/datasets/food-descriptions.cl.txt. Además, MODELOS.md (line 28) dice que el modelo ya está incluido en el repo, mientras MODELOS-README.md (line 5) dice lo contrario; MODELOS.md (line 80) habla de 3 minutos y el código usa 10 en FoodAI.ts (line 452).
+
+Veredicto
+No lo considero sólido ni “production-ready”. Sí dejó trabajo visible: UI conectada, script de descarga, modelo en disco, build web pasando y entrada en la vista de nutrición. Pero la pieza clave que vendió, la IA local operativa con Qwen/WebLLM para resolver comidas descriptivas, no quedó funcionando con la pila elegida y además está documentada de forma imprecisa.
+
+A tus preguntas: hizo parte de lo que dijo en cableado y assets, pero no en la premisa técnica central; funciona parcialmente a nivel build/UI, no a nivel IA local confiable; sí omitió detalles críticos; y no, hoy no es una implementación sólida.

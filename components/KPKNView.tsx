@@ -54,8 +54,8 @@ const ExerciseItem: React.FC<{ exercise: ExerciseMuscleInfo }> = React.memo(({ e
 });
 
 const KPKNView: React.FC = () => {
-  const { exerciseList, exercisePlaylists, addOrUpdatePlaylist, deletePlaylist, muscleGroupData, muscleHierarchy, jointDatabase, tendonDatabase, movementPatternDatabase } = useAppState();
-  const { navigateTo } = useAppDispatch();
+  const { exerciseList, exercisePlaylists, muscleGroupData, muscleHierarchy, jointDatabase, tendonDatabase, movementPatternDatabase } = useAppState();
+  const { navigateTo, addOrUpdatePlaylist, deletePlaylist } = useAppDispatch();
   const { activeSubTabs, searchQuery } = useUIState();
 
   const currentTab = activeSubTabs['kpkn'] || 'Explorar';
@@ -191,7 +191,7 @@ const KPKNView: React.FC = () => {
                   <p className="text-[9px] text-[#49454F] opacity-50 font-medium mt-0.5 truncate">
                     {getExercisePrimaryDisplayMuscles(ex)[0] || ex.subMuscleGroup || 'Core'}
                   </p>
-                  {(exercise.efc != null || exercise.cnc != null || exercise.ssc != null || exercise.ttc != null) && (
+                  {(ex.efc != null || ex.cnc != null || ex.ssc != null || ex.ttc != null) && (
                     <div className="flex gap-1 mt-2 text-[8px] font-bold text-[#49454F] opacity-40">
                       {ex.efc != null && <span>EFC:{ex.efc}</span>}
                       {ex.cnc != null && <span>CNC:{ex.cnc}</span>}

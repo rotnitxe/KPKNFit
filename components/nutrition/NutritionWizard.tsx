@@ -7,6 +7,7 @@ import {
     NutritionGoalMetric,
     NutritionPlan,
     NutritionRiskFlag,
+    Settings,
 } from '../../types';
 import { useAppDispatch, useAppState } from '../../contexts/AppContext';
 import { getDatePartFromString, getLocalDateString } from '../../utils/dateUtils';
@@ -230,7 +231,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
         ...(useAdvancedActivity ? { activityDaysPerWeek, activityHoursPerDay } : {}),
     }), [activityDaysPerWeek, activityHoursPerDay, activityLevel, customActivityFactor, formula, goalDirection, healthMultiplier, useAdvancedActivity, weeklyChangeKg]);
 
-    const effectiveSettings = useMemo(() => ({
+    const effectiveSettings = useMemo<Settings>(() => ({
         ...settings,
         userVitals: userVitalsDraft,
         calorieGoalObjective: goalDirection === 'lose' ? 'deficit' : goalDirection === 'gain' ? 'surplus' : 'maintenance',
@@ -325,8 +326,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
             weeks = Math.abs((goal - current) / deltaPerWeek);
         } else {
             const current = muscleMass === '' ? (settings.userVitals?.muscleMassPercentage ?? goal) : Number(muscleMass);
-            const deltaPerWeek = goalDirection === 'lose' ? -0.12 : 0.18;
-            if (deltaPerWeek === 0) return null;
+            const deltaPerWeek: number = goalDirection === 'lose' ? -0.12 : 0.18;
             weeks = Math.abs((goal - current) / deltaPerWeek);
         }
 
@@ -392,7 +392,7 @@ export const NutritionWizard: React.FC<NutritionWizardProps> = ({ onComplete }) 
 
         const secondaryGoals: NutritionGoal[] = secondaryMetrics
             .filter((metric) => metric !== primaryMetric)
-            .map((metric) => ({
+            .map((metric): NutritionGoal => ({
                 metric,
                 value: Number(secondaryValues[metric]),
                 label: METRIC_META[metric].label,

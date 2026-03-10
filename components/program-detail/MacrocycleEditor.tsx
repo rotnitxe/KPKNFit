@@ -8,7 +8,7 @@ interface MacrocycleEditorProps {
     isOpen: boolean;
     onClose: () => void;
     onUpdateProgram: (program: Program) => void;
-    addToast: (message: string, type: 'success' | 'error' | 'info') => void;
+    addToast: (message: string, type?: 'danger' | 'success' | 'achievement' | 'suggestion', title?: string, duration?: number, why?: string) => void;
 }
 
 interface CyclicEvent {
@@ -31,6 +31,37 @@ interface KeyDate {
     dayOfWeek?: number; // 0-6, solo si durationType es 'day'
 }
 
+const toCyclicEvent = (event: NonNullable<Program['events']>[number]): CyclicEvent => ({
+    id: event.id || crypto.randomUUID(),
+    title: event.title,
+    type: (event.type as CyclicEvent['type']) || 'custom',
+    repeatEveryXCycles: event.repeatEveryXCycles || 1,
+    durationType: (event as any).durationType === 'week' ? 'week' : 'day',
+    dayOfWeek: (event as any).dayOfWeek ?? 1,
+    durationWeeks: (event as any).durationWeeks,
+});
+
+const toKeyDate = (event: NonNullable<Program['events']>[number], fallbackWeekIndex: number): KeyDate => ({
+    id: event.id || crypto.randomUUID(),
+    title: event.title,
+    type: (event.type as KeyDate['type']) || 'custom',
+    targetDate: (event as any).targetDate || event.date || new Date().toISOString().split('T')[0],
+    durationType: (event as any).durationType === 'day' ? 'day' : 'week',
+    weekIndex: (event as any).weekIndex ?? event.calculatedWeek ?? fallbackWeekIndex,
+    dayOfWeek: (event as any).dayOfWeek,
+});
+
+const getProgramTotalWeeks = (program: Program): number =>
+    program.macrocycles.reduce(
+        (acc, macro) =>
+            acc +
+            (macro.blocks || []).reduce(
+                (blockAcc, block) => blockAcc + block.mesocycles.reduce((mesoAcc, meso) => mesoAcc + meso.weeks.length, 0),
+                0
+            ),
+        0
+    );
+
 const MacrocycleEditor: React.FC<MacrocycleEditorProps> = ({
     program,
     isOpen,
@@ -39,10 +70,14 @@ const MacrocycleEditor: React.FC<MacrocycleEditorProps> = ({
     addToast,
 }) => {
     // Estado para programas simples (cíclicos)
-    const [cyclicEvents, setCyclicEvents] = useState<CyclicEvent[]>(program.events?.filter((e: any) => e.repeatEveryXCycles) || []);
+    const [cyclicEvents, setCyclicEvents] = useState<CyclicEvent[]>(
+        (program.events || []).filter((event) => event.repeatEveryXCycles).map(toCyclicEvent)
+    );
 
     // Estado para programas avanzados
-    const [keyDates, setKeyDates] = useState<KeyDate[]>(program.events?.filter((e: any) => !e.repeatEveryXCycles) || []);
+    const [keyDates, setKeyDates] = useState<KeyDate[]>(
+        (program.events || []).filter((event) => !event.repeatEveryXCycles).map((event) => toKeyDate(event, getProgramTotalWeeks(program) - 1))
+    );
 
     // Estado para estructura
     const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set(['0']));
@@ -79,11 +114,7 @@ const MacrocycleEditor: React.FC<MacrocycleEditorProps> = ({
 
     // Calcular total de semanas
     const totalWeeks = useMemo(() => {
-        return program.macrocycles.reduce((acc, m) => 
-            acc + (m.blocks || []).reduce((ba, b) => 
-                ba + b.mesocycles.reduce((ma, me) => ma + me.weeks.length, 0), 0
-            ), 0
-        );
+        return getProgramTotalWeeks(program);
     }, [program]);
 
     // Calcular ciclo para programas simples
@@ -91,9 +122,9 @@ const MacrocycleEditor: React.FC<MacrocycleEditorProps> = ({
 
     // Resetear estado cuando cambia el programa
     useEffect(() => {
-        setCyclicEvents(program.events?.filter((e: any) => e.repeatEveryXCycles) || []);
-        setKeyDates(program.events?.filter((e: any) => !e.repeatEveryXCycles) || []);
-    }, [program]);
+        setCyclicEvents((program.events || []).filter((event) => event.repeatEveryXCycles).map(toCyclicEvent));
+        setKeyDates((program.events || []).filter((event) => !event.repeatEveryXCycles).map((event) => toKeyDate(event, totalWeeks - 1)));
+    }, [program, totalWeeks]);
 
     // ─── Handlers para programas simples ───
     const addCyclicEvent = () => {
@@ -173,8 +204,8 @@ const MacrocycleEditor: React.FC<MacrocycleEditorProps> = ({
     };
 
     const deleteBlock = (macroIndex: number, blockIndex: number) => {
-        if (program.macrocycles.length === 1 && program.macrocycles[0].blocks.length <= 2) {
-            addToast('Debe haber al menos 1 bloque', 'error');
+        if (program.macrocycles.length === 1 && (program.macrocycles[0]?.blocks?.length ?? 0) <= 2) {
+            addToast('Debe haber al menos 1 bloque', 'danger');
             return;
         }
         
@@ -200,7 +231,7 @@ const MacrocycleEditor: React.FC<MacrocycleEditorProps> = ({
         const updated = JSON.parse(JSON.stringify(program));
         const meso = updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex];
         if (meso.weeks.length <= 1) {
-            addToast('Cada mesociclo debe tener al menos 1 semana', 'error');
+            addToast('Cada mesociclo debe tener al menos 1 semana', 'danger');
             return;
         }
         meso.weeks.splice(weekIndex, 1);

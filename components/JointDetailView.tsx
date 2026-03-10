@@ -58,8 +58,12 @@ const JointDetailView: React.FC<JointDetailViewProps> = ({ jointId }) => {
     return result;
   }, [joint?.musclesCrossing, muscleGroupData, muscleHierarchy]);
 
-  const relatedTendons =
-    joint?.tendonsRelated?.map((tId) => tendonDatabase?.find((t) => t.id === tId)).filter(Boolean) || [];
+  const relatedTendons = React.useMemo(() => {
+    if (!joint?.tendonsRelated?.length || !tendonDatabase) return [];
+    return joint.tendonsRelated
+      .map((tId) => tendonDatabase.find((t) => t.id === tId))
+      .filter((t): t is NonNullable<typeof t> => Boolean(t));
+  }, [joint?.tendonsRelated, tendonDatabase]);
 
   if (!joint) {
     return (

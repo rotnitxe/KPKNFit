@@ -196,7 +196,7 @@ const CardCarouselBar: React.FC<CardCarouselBarProps> = ({
   return (
     <div
       ref={scrollRef}
-      className={`flex overflow-x-auto gap-3 px-4 py-3 no-scrollbar scroll-smooth select-none ${draggingId ? 'overflow-hidden touch-none' : ''}`}
+      className={`flex overflow-x-auto gap-3 px-4 py-4 no-scrollbar scroll-smooth select-none pb-[max(1rem,env(safe-area-inset-bottom))] ${draggingId ? 'overflow-hidden touch-none' : ''}`}
       style={{
         scrollbarWidth: 'none',
         WebkitOverflowScrolling: 'touch',

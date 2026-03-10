@@ -13,7 +13,7 @@ interface DayViewProps {
     onDeleteSession?: (sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => void;
     onStartWorkout?: (session: Session) => void;
     onUpdateProgram?: (program: Program) => void;
-    addToast?: (message: string, type: 'success' | 'error' | 'info') => void;
+    addToast?: (message: string, type?: 'danger' | 'success' | 'achievement' | 'suggestion', title?: string, duration?: number, why?: string) => void;
 }
 
 const DAYS_OF_WEEK = [

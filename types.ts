@@ -470,6 +470,11 @@ export interface ProgramWeek {
     name: string;
     sessions: Session[];
     variant?: 'A' | 'B' | 'C' | 'D';
+    events?: Array<{
+        id?: string;
+        title: string;
+        type?: string;
+    }>;
 }
 
 export interface Session {
@@ -488,6 +493,13 @@ export interface Session {
     sessionC?: Session;
     sessionD?: Session;
     isMeetDay?: boolean;
+    isMainSession?: boolean;
+    focus?: string;
+    microProgram?: {
+        enabled: boolean;
+        everyXCycles: number;
+        isMainInCycle: boolean;
+    };
     meetBodyweight?: number;
     meetResults?: { placement?: string; total?: number; dots?: number; awards?: string[] };
 }
@@ -1411,6 +1423,7 @@ export interface AppContextState {
     unlockedAchievements: AchievementUnlock[];
     isOnline: boolean;
     isAppLoading: boolean;
+    isAuthenticated: boolean;
     installPromptEvent: any;
     drive: UseGoogleDriveReturn;
     toasts: ToastData[];

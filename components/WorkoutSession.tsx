@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Capacitor } from '@capacitor/core';
 import { requestPermissions, setupNotificationChannels } from '../services/notificationService';
 import { Session, WorkoutLog, CompletedExercise, CompletedSet, Exercise, ExerciseSet, WarmupSetDefinition, SessionBackground, OngoingSetData, SetInputState, UnilateralSetInputs, DropSetData, RestPauseData, ExerciseMuscleInfo, Program, Settings, PlanDeviation, CoverStyle, ToastData } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Button from './ui/Button';
 import { ClockIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, CheckCircleIcon, TrophyIcon, MinusIcon, PlusIcon, MicIcon, MicOffIcon, AlertTriangleIcon, CheckCircleIcon as CheckIcon, XCircleIcon, StarIcon, SparklesIcon, SettingsIcon, ArrowUpIcon, ArrowDownIcon, RefreshCwIcon, BrainIcon, LinkIcon, PlayIcon, PauseIcon, ActivityIcon, InfoIcon, BodyIcon, PencilIcon } from './icons';
 import { playSound, preloadSounds, configureAudioSession } from '../services/soundService';
@@ -21,7 +21,6 @@ import { TacticalModal } from './ui/TacticalOverlays';
 import WarmupDrawer from './workout/WarmupDrawer';
 import PostExerciseDrawer from './workout/PostExerciseDrawer';
 import WorkoutDrawer from './workout/WorkoutDrawer';
-import NumpadOverlay from './workout/NumpadOverlay';
 import { FinishContextBottomSheet } from './workout/FinishContextBottomSheet';
 import CardCarouselBar, { type CarouselItem, type CarouselItemType } from './workout/CardCarouselBar';
 import ExerciseCardContextMenu from './workout/ExerciseCardContextMenu';
@@ -429,8 +428,7 @@ const SetDetails: React.FC<{
     selectedTag?: string;
     tableRowMode?: boolean;
     setId: string;
-    onOpenNumpad: (opts: { field: 'weight' | 'reps' | 'partialReps' | 'duration' | 'rpe' | 'rir' | 'dropSetWeight' | 'dropSetReps' | 'restPauseRestTime' | 'restPauseReps'; dropSetIndex?: number; restPauseIndex?: number; side?: 'left' | 'right' }) => void;
-}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast, suggestedWeight, selectedTag, tableRowMode, setId, onOpenNumpad }) => {
+}> = React.memo(({ exercise, exerciseInfo, set, setIndex, settings, inputs, onInputChange, onLogSet, isLogged, history, currentSession1RM, base1RM, isCalibrated, cardAnimation, addToast, suggestedWeight, selectedTag, tableRowMode, setId }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const el = cardRef.current;
@@ -628,17 +626,65 @@ const SetDetails: React.FC<{
                         {(safeInputs.dropSets || []).map((ds, i) => (
                             <div key={`ds-${i}`} className="flex gap-1.5 items-center">
                                 <span className="text-[9px] text-[var(--md-sys-color-on-surface-variant)] w-10 shrink-0">Dropset</span>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetWeight', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0">{ds.weight === 0 ? 'Kg' : ds.weight}</button>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetReps', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0">{ds.reps === 0 ? 'Reps' : ds.reps}</button>
-                                <button type="button" onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-error)] shrink-0" title="Eliminar dropset"><MinusIcon size={12} /></button>
+                                <input
+                                    type="number"
+                                    inputMode="decimal"
+                                    value={ds.weight === 0 ? '' : ds.weight}
+                                    onChange={(e) => {
+                                        const arr = [...(safeInputs.dropSets || [])];
+                                        if (!arr[i]) arr[i] = { weight: 0, reps: 0 };
+                                        arr[i] = { ...arr[i], weight: parseFloat(e.target.value) || 0 };
+                                        onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined);
+                                    }}
+                                    placeholder="Peso"
+                                    className="w-14 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={ds.reps === 0 ? '' : ds.reps}
+                                    onChange={(e) => {
+                                        const arr = [...(safeInputs.dropSets || [])];
+                                        if (!arr[i]) arr[i] = { weight: 0, reps: 0 };
+                                        arr[i] = { ...arr[i], reps: parseInt(e.target.value) || 0 };
+                                        onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined);
+                                    }}
+                                    placeholder="Reps"
+                                    className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-error)] shrink-0" title="Eliminar dropset"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                         {(safeInputs.restPauses || []).map((rp, i) => (
                             <div key={`rp-${i}`} className="flex gap-1.5 items-center">
                                 <span className="text-[9px] text-[var(--md-sys-color-on-surface-variant)] w-10 shrink-0">Rest-Pause</span>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseRestTime', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0">{rp.restTime === 0 ? 's' : rp.restTime}</button>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseReps', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0">{rp.reps === 0 ? 'Reps' : rp.reps}</button>
-                                <button type="button" onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-error)] shrink-0" title="Eliminar rest-pause"><MinusIcon size={12} /></button>
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={rp.restTime === 0 ? '' : rp.restTime}
+                                    onChange={(e) => {
+                                        const arr = [...(safeInputs.restPauses || [])];
+                                        if (!arr[i]) arr[i] = { restTime: 15, reps: 0 };
+                                        arr[i] = { ...arr[i], restTime: parseInt(e.target.value) || 0 };
+                                        onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined);
+                                    }}
+                                    placeholder="s"
+                                    className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={rp.reps === 0 ? '' : rp.reps}
+                                    onChange={(e) => {
+                                        const arr = [...(safeInputs.restPauses || [])];
+                                        if (!arr[i]) arr[i] = { restTime: 15, reps: 0 };
+                                        arr[i] = { ...arr[i], reps: parseInt(e.target.value) || 0 };
+                                        onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined);
+                                    }}
+                                    placeholder="Reps"
+                                    className="w-10 bg-white border border-[var(--md-sys-color-outline-variant)] rounded px-2 py-1 text-[10px] text-[var(--md-sys-color-on-surface)] font-mono shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-error)] shrink-0" title="Eliminar rest-pause"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                     </div>
@@ -706,9 +752,17 @@ const SetDetails: React.FC<{
                             {isTimeMode ? 'Segundos' : (repInputMode === 'standard' ? 'Reps Reales' : 'Parciales')}
                         </button>
                         <div className="relative flex-1 py-1 flex items-center justify-center min-w-0">
-                            <button type="button" onClick={() => onOpenNumpad({ field: isTimeMode ? 'duration' : (repInputMode === 'standard' ? 'reps' : 'partialReps'), side: isUnilateral ? activeSide : undefined })} className="w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 text-inherit placeholder-white/20 min-w-0 truncate" style={{ fontFamily: 'ui-monospace, monospace' }}>
-                                {isTimeMode ? safeInputs.duration || '0' : (repInputMode === 'standard' ? safeInputs.reps : safeInputs.partialReps) || '0'}
-                            </button>
+                            <input
+                                type="text"
+                                inputMode={isTimeMode ? 'numeric' : 'numeric'}
+                                value={isTimeMode ? safeInputs.duration || '0' : (repInputMode === 'standard' ? safeInputs.reps : safeInputs.partialReps) || '0'}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                    onInputChange(isTimeMode ? 'duration' : (repInputMode === 'standard' ? 'reps' : 'partialReps'), val, isUnilateral ? activeSide : undefined);
+                                }}
+                                className="w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 text-inherit placeholder-white/20 min-w-0 truncate font-mono"
+                                style={{ fontFamily: 'ui-monospace, monospace' }}
+                            />
                             {debt !== 0 && !isTimeMode && repInputMode === 'standard' && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}</span>}
                             {debt !== 0 && isTimeMode && <span className={`absolute top-1 right-2 text-[10px] font-black ${debt > 0 ? 'text-green-400' : 'text-red-400'}`}>{debt > 0 ? '+' : ''}{debt}s</span>}
                         </div>
@@ -730,9 +784,17 @@ const SetDetails: React.FC<{
                                 <div className="flex items-center justify-center gap-1 text-emerald-400"><BodyIcon size={24} /><span className="text-xl font-bold">BW</span></div>
                             ) : (
                                 <div className="relative w-full min-w-0">
-                                    <button type="button" onClick={() => onOpenNumpad({ field: 'weight', side: isUnilateral ? activeSide : undefined })} className={`w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 min-w-0 truncate ${isWeightWarning ? 'text-red-400' : 'text-white'}`} style={{ fontFamily: 'ui-monospace, monospace' }}>
-                                        {safeInputs.weight || '0'}
-                                    </button>
+                                    <input
+                                        type="text"
+                                        inputMode="decimal"
+                                        value={safeInputs.weight || '0'}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+                                            onInputChange('weight', val, isUnilateral ? activeSide : undefined);
+                                        }}
+                                        className={`w-full text-center bg-transparent border-none text-2xl font-black focus:ring-0 p-0 min-w-0 truncate font-mono ${isWeightWarning ? 'text-red-400' : 'text-white'}`}
+                                        style={{ fontFamily: 'ui-monospace, monospace' }}
+                                    />
                                     {isWeightWarning && <AlertTriangleIcon size={12} className="absolute top-1 right-2 text-red-500 animate-pulse" />}
                                 </div>
                             )}
@@ -770,12 +832,27 @@ const SetDetails: React.FC<{
                         {(set.intensityMode === 'rir' || settings.intensityMetric === 'rir') ? (
                             <div className={`flex items-center rounded-lg p-1.5 border w-24 justify-between transition-colors shrink-0 ${intensityContainerClass}`}>
                                 <span className="text-slate-500 font-bold text-[10px] uppercase px-1.5">RIR</span>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'rir', side: isUnilateral ? activeSide : undefined })} className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono">{safeInputs.rir || '—'}</button>
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={safeInputs.rir || ''}
+                                    onChange={(e) => onInputChange('rir', e.target.value, isUnilateral ? activeSide : undefined)}
+                                    className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    placeholder="—"
+                                />
                             </div>
                         ) : (
                             <div className={`flex items-center rounded-lg p-1.5 border w-24 justify-between transition-colors shrink-0 ${intensityContainerClass}`}>
                                 <span className="text-slate-500 font-bold text-[10px] uppercase px-1.5">RPE</span>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'rpe', side: isUnilateral ? activeSide : undefined })} className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono">{safeInputs.rpe || '—'}</button>
+                                <input
+                                    type="number"
+                                    inputMode="decimal"
+                                    step="0.5"
+                                    value={safeInputs.rpe || ''}
+                                    onChange={(e) => onInputChange('rpe', e.target.value, isUnilateral ? activeSide : undefined)}
+                                    className="w-10 bg-transparent border-none text-center font-bold text-white focus:ring-0 p-0 text-base font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    placeholder="—"
+                                />
                             </div>
                         )}
                     </div>
@@ -791,16 +868,64 @@ const SetDetails: React.FC<{
                         {(safeInputs.dropSets || []).map((ds, i) => (
                             <div key={`ds-${i}`} className="flex gap-1.5 items-center">
                                 <span className="text-[9px] font-mono text-slate-400 w-12 shrink-0">Dropset</span>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetWeight', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{ds.weight === 0 ? 'Peso' : ds.weight}</button>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'dropSetReps', dropSetIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{ds.reps === 0 ? 'Reps' : ds.reps}</button>
+                                <input
+                                    type="number"
+                                    inputMode="decimal"
+                                    value={ds.weight === 0 ? '' : ds.weight}
+                                    onChange={(e) => {
+                                        const arr = [...(safeInputs.dropSets || [])];
+                                        if (!arr[i]) arr[i] = { weight: 0, reps: 0 };
+                                        arr[i] = { ...arr[i], weight: parseFloat(e.target.value) || 0 };
+                                        onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined);
+                                    }}
+                                    placeholder="Peso"
+                                    className="w-14 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={ds.reps === 0 ? '' : ds.reps}
+                                    onChange={(e) => {
+                                        const arr = [...(safeInputs.dropSets || [])];
+                                        if (!arr[i]) arr[i] = { weight: 0, reps: 0 };
+                                        arr[i] = { ...arr[i], reps: parseInt(e.target.value) || 0 };
+                                        onInputChange('dropSets', arr, isUnilateral ? activeSide : undefined);
+                                    }}
+                                    placeholder="Reps"
+                                    className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
                                 <button onClick={() => onInputChange('dropSets', (safeInputs.dropSets || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0"><MinusIcon size={12} /></button>
                             </div>
                         ))}
                         {(safeInputs.restPauses || []).map((rp, i) => (
                             <div key={`rp-${i}`} className="flex gap-1.5 items-center">
                                 <span className="text-[9px] font-mono text-slate-400 w-12 shrink-0">Rest-Pause</span>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseRestTime', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{rp.restTime === 0 ? 's' : rp.restTime}</button>
-                                <button type="button" onClick={() => onOpenNumpad({ field: 'restPauseReps', restPauseIndex: i, side: isUnilateral ? activeSide : undefined })} className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0">{rp.reps === 0 ? 'Reps' : rp.reps}</button>
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={rp.restTime === 0 ? '' : rp.restTime}
+                                    onChange={(e) => {
+                                        const arr = [...(safeInputs.restPauses || [])];
+                                        if (!arr[i]) arr[i] = { restTime: 15, reps: 0 };
+                                        arr[i] = { ...arr[i], restTime: parseInt(e.target.value) || 0 };
+                                        onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined);
+                                    }}
+                                    placeholder="s"
+                                    className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={rp.reps === 0 ? '' : rp.reps}
+                                    onChange={(e) => {
+                                        const arr = [...(safeInputs.restPauses || [])];
+                                        if (!arr[i]) arr[i] = { restTime: 15, reps: 0 };
+                                        arr[i] = { ...arr[i], reps: parseInt(e.target.value) || 0 };
+                                        onInputChange('restPauses', arr, isUnilateral ? activeSide : undefined);
+                                    }}
+                                    placeholder="Reps"
+                                    className="w-12 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white font-mono text-center shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
                                 <button onClick={() => onInputChange('restPauses', (safeInputs.restPauses || []).filter((_, j) => j !== i), isUnilateral ? activeSide : undefined)} className="p-1.5 rounded bg-red-900/50 text-red-400 hover:bg-red-800/50 shrink-0"><MinusIcon size={12} /></button>
                             </div>
                         ))}
@@ -941,7 +1066,6 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
     const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null);
     const [sessionNotes, setSessionNotes] = useState<string>((ongoingWorkout as any)?.sessionNotes || '');
     const [showNotesDrawer, setShowNotesDrawer] = useState(false);
-    const [numpadState, setNumpadState] = useState<{ setId: string; field: 'weight' | 'reps' | 'partialReps' | 'duration' | 'rpe' | 'rir' | 'dropSetWeight' | 'dropSetReps' | 'restPauseRestTime' | 'restPauseReps'; exerciseId: string; dropSetIndex?: number; restPauseIndex?: number; side?: 'left' | 'right' } | null>(null);
     const [setTypeOverrides, setSetTypeOverrides] = useState<Record<string, 'W' | 'T' | 'F' | 'D'>>((ongoingWorkout?.setTypeOverrides as any) || {});
     const isFinishingRef = useRef(false);
 
@@ -1213,7 +1337,6 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                     onLogSet={() => handleLogSet(exercise, set)}
                                     isLogged={isLogged}
                                     history={history}
-                                    onOpenNumpad={(opts) => setNumpadState({ ...opts, setId, exerciseId: exercise.id } as any)}
                                     addToast={addToast}
                                 />
                             </div>
@@ -1867,10 +1990,10 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                     <div key={setId} className="border-b border-[var(--md-sys-color-outline-variant)]/40">
                                                                         <div className={`flex items-center gap-2 px-2 py-2 ${rowClass} transition-colors`} style={{ minHeight: rowMinH }} onClick={() => { if (isCompleted || !isActiveRow) { setActiveExerciseId(ex.id); setActiveSetId(setId); } }}>
                                                                             <span className="w-8 text-center text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums">{setIndex + 1}</span>
-                                                                            <div className="flex-1 min-w-[60px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), field: 'weight', exerciseId: ex.id }); }} role="button" tabIndex={0}>
+                                                                            <div className="flex-1 min-w-[60px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); const cardEl = document.getElementById(`set-card-${setId}`); if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} role="button" tabIndex={0}>
                                                                                 <span className="w-full max-w-[72px] text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)]">{safeInputsRow.weight || placeholderKg || '—'}</span>
                                                                             </div>
-                                                                            <div className="flex-1 min-w-[56px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), field: 'reps', exerciseId: ex.id }); }} role="button" tabIndex={0}>
+                                                                            <div className="flex-1 min-w-[56px] flex justify-center" onClick={e => { e.stopPropagation(); setActiveExerciseId(ex.id); setActiveSetId(setId); const cardEl = document.getElementById(`set-card-${setId}`); if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} role="button" tabIndex={0}>
                                                                                 <span className="w-full max-w-[56px] text-center text-sm font-medium py-1 tabular-nums block text-[var(--md-sys-color-on-surface)]">{ex.trainingMode === 'time' ? (safeInputsRow.duration || placeholderReps || '—') : (safeInputsRow.reps || placeholderReps || '—')}</span>
                                                                             </div>
                                                                             <div className="w-10 flex justify-center" onClick={e => e.stopPropagation()}>
@@ -1881,7 +2004,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                         </div>
                                                                         {isActiveRow && (
                                                                             <div id={`set-card-${setId}`} className="px-2 pb-2">
-                                                                                <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number; machineBrand?: string } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} onOpenNumpad={(opts) => { setActiveExerciseId(ex.id); setActiveSetId(setId); setNumpadState({ setId: String(setId), exerciseId: ex.id, ...opts }); }} />
+                                                                                <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as { left?: { weight?: number; reps?: number; machineBrand?: string }; right?: { weight?: number; reps?: number; machineBrand?: string } } | undefined; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d.left; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} />
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -1950,89 +2073,6 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     </div>
                 </WorkoutDrawer>
             )}
-
-            <AnimatePresence>
-                {numpadState && (() => {
-                    const raw = setInputs[numpadState.setId];
-                    const ex = allExercises.find(e => e.id === numpadState.exerciseId);
-                    const isTimeMode = ex?.trainingMode === 'time';
-                    const side = numpadState.side;
-                    const base: SetInputState = (raw && !('left' in raw)) ? (raw as SetInputState) : (raw as UnilateralSetInputs)?.[side || 'left'] || { reps: '', weight: '', rpe: '', rir: '', isFailure: false, duration: '', partialReps: '' };
-
-                    let currentValue = '';
-                    if (base) {
-                        if (numpadState.field === 'dropSetWeight' && numpadState.dropSetIndex != null && base.dropSets?.[numpadState.dropSetIndex])
-                            currentValue = base.dropSets[numpadState.dropSetIndex].weight === 0 ? '' : String(base.dropSets[numpadState.dropSetIndex].weight);
-                        else if (numpadState.field === 'dropSetReps' && numpadState.dropSetIndex != null && base.dropSets?.[numpadState.dropSetIndex])
-                            currentValue = base.dropSets[numpadState.dropSetIndex].reps === 0 ? '' : String(base.dropSets[numpadState.dropSetIndex].reps);
-                        else if (numpadState.field === 'restPauseRestTime' && numpadState.restPauseIndex != null && base.restPauses?.[numpadState.restPauseIndex])
-                            currentValue = base.restPauses[numpadState.restPauseIndex].restTime === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].restTime);
-                        else if (numpadState.field === 'restPauseReps' && numpadState.restPauseIndex != null && base.restPauses?.[numpadState.restPauseIndex])
-                            currentValue = base.restPauses[numpadState.restPauseIndex].reps === 0 ? '' : String(base.restPauses[numpadState.restPauseIndex].reps);
-                        else {
-                            const ef = numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field;
-                            if (['weight', 'reps', 'duration', 'partialReps', 'rpe', 'rir'].includes(ef))
-                                currentValue = String(base[ef as keyof SetInputState] ?? '');
-                        }
-                    }
-
-                    const handleNumpadChange = (v: string) => {
-                        if (numpadState.field === 'dropSetWeight' && numpadState.dropSetIndex != null) {
-                            const arr = [...(base?.dropSets || [])];
-                            if (!arr[numpadState.dropSetIndex]) arr[numpadState.dropSetIndex] = { weight: 0, reps: 0 };
-                            arr[numpadState.dropSetIndex] = { ...arr[numpadState.dropSetIndex], weight: v === '' ? 0 : parseFloat(v) || 0 };
-                            handleSetInputChange(numpadState.setId, 'dropSets', arr, side);
-                        } else if (numpadState.field === 'dropSetReps' && numpadState.dropSetIndex != null) {
-                            const arr = [...(base?.dropSets || [])];
-                            if (!arr[numpadState.dropSetIndex]) arr[numpadState.dropSetIndex] = { weight: 0, reps: 0 };
-                            arr[numpadState.dropSetIndex] = { ...arr[numpadState.dropSetIndex], reps: v === '' ? 0 : parseInt(v, 10) || 0 };
-                            handleSetInputChange(numpadState.setId, 'dropSets', arr, side);
-                        } else if (numpadState.field === 'restPauseRestTime' && numpadState.restPauseIndex != null) {
-                            const arr = [...(base?.restPauses || [])];
-                            if (!arr[numpadState.restPauseIndex]) arr[numpadState.restPauseIndex] = { restTime: 15, reps: 0 };
-                            arr[numpadState.restPauseIndex] = { ...arr[numpadState.restPauseIndex], restTime: v === '' ? 0 : parseInt(v, 10) || 0 };
-                            handleSetInputChange(numpadState.setId, 'restPauses', arr, side);
-                        } else if (numpadState.field === 'restPauseReps' && numpadState.restPauseIndex != null) {
-                            const arr = [...(base?.restPauses || [])];
-                            if (!arr[numpadState.restPauseIndex]) arr[numpadState.restPauseIndex] = { restTime: 15, reps: 0 };
-                            arr[numpadState.restPauseIndex] = { ...arr[numpadState.restPauseIndex], reps: v === '' ? 0 : parseInt(v, 10) || 0 };
-                            handleSetInputChange(numpadState.setId, 'restPauses', arr, side);
-                        } else {
-                            const ef = (numpadState.field === 'reps' && isTimeMode ? 'duration' : numpadState.field) as keyof SetInputState;
-                            handleSetInputChange(numpadState.setId, ef, v, side);
-                            if (numpadState.field === 'partialReps' && parseFloat(v) > 0)
-                                handleSetInputChange(numpadState.setId, 'isPartial', true, side);
-                        }
-                    };
-
-                    const isDecimal = ['weight', 'rpe', 'dropSetWeight'].includes(numpadState.field);
-                    const labels: Record<string, string> = {
-                        weight: `Carga del Set (${settings.weightUnit})`,
-                        reps: 'Repeticiones Reales',
-                        partialReps: 'Repeticiones Parciales',
-                        duration: 'Tiempo Bajo Tensión (s)',
-                        rpe: 'RPE Prescrito',
-                        rir: 'RIR Estimado',
-                        dropSetWeight: `Carga Dropset (${settings.weightUnit})`,
-                        dropSetReps: 'Reps Dropset',
-                        restPauseRestTime: 'Descanso RP (s)',
-                        restPauseReps: 'Reps Rest-Pause',
-                    };
-                    return (
-                        <NumpadOverlay
-                            value={currentValue}
-                            onChange={handleNumpadChange}
-                            onClose={() => setNumpadState(null)}
-                            onNext={settings.sessionAutoAdvanceFields !== false && numpadState.field === 'weight'
-                                ? () => setNumpadState({ ...numpadState, field: 'reps' })
-                                : undefined}
-                            mode={isDecimal ? 'decimal' : 'integer'}
-                            label={labels[numpadState.field] ?? numpadState.field}
-                            showNextButton={numpadState.field === 'weight'}
-                        />
-                    );
-                })()}
-            </AnimatePresence>
 
             {showReadiness && (
                 <ReadinessSheet
