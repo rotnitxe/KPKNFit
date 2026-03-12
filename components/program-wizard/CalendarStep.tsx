@@ -15,14 +15,14 @@ interface CalendarStepProps {
     events: WizardEvent[];
     onAddEvent: (event: WizardEvent) => void;
     onRemoveEvent: (index: number) => void;
-    isCyclic: boolean;
+    isSimple: boolean;
     blockNames?: string[];
     blockDurations?: number[];
     onChangeBlockDuration?: (index: number, duration: number) => void;
 }
 
 const CalendarStep: React.FC<CalendarStepProps> = ({
-    events, onAddEvent, onRemoveEvent, isCyclic,
+    events, onAddEvent, onRemoveEvent, isSimple,
     blockNames, blockDurations, onChangeBlockDuration,
 }) => {
     const [showForm, setShowForm] = useState(false);
@@ -39,8 +39,8 @@ const CalendarStep: React.FC<CalendarStepProps> = ({
             title: formData.title,
             type: formData.type,
             date: new Date().toISOString(),
-            calculatedWeek: isCyclic ? 0 : formData.calculatedWeek,
-            repeatEveryXCycles: isCyclic ? formData.repeatEveryXCycles : undefined,
+            calculatedWeek: isSimple ? 0 : formData.calculatedWeek,
+            repeatEveryXCycles: isSimple ? formData.repeatEveryXCycles : undefined,
         });
         setFormData({ title: '', type: '1rm_test', repeatEveryXCycles: 4, calculatedWeek: 0 });
         setShowForm(false);
@@ -56,7 +56,7 @@ const CalendarStep: React.FC<CalendarStepProps> = ({
             </div>
 
             {/* Block durations (complex only) */}
-            {!isCyclic && blockNames && blockDurations && onChangeBlockDuration && (
+            {!isSimple && blockNames && blockDurations && onChangeBlockDuration && (
                 <div className="bg-[#FEF7FF] border border-[#E6E0E9] rounded-2xl p-4 space-y-3">
                     <h4 className="text-[9px] font-black text-[#49454F] uppercase tracking-widest">Duración de Bloques</h4>
                     <div className="flex gap-1 h-3 rounded-full overflow-hidden mb-3">
@@ -112,7 +112,7 @@ const CalendarStep: React.FC<CalendarStepProps> = ({
                             <div className="flex-1 min-w-0">
                                 <span className="text-[11px] font-bold text-white block truncate">{ev.title}</span>
                                 <span className="text-[9px] text-[#49454F]">
-                                    {isCyclic ? `Cada ${ev.repeatEveryXCycles} ciclos` : `Semana ${ev.calculatedWeek + 1}`}
+                                    {isSimple ? `Cada ${ev.repeatEveryXCycles} ciclos` : `Semana ${ev.calculatedWeek + 1}`}
                                 </span>
                             </div>
                             <button
@@ -150,7 +150,7 @@ const CalendarStep: React.FC<CalendarStepProps> = ({
                             className="w-full bg-black border border-[#E6E0E9] rounded-lg px-3 py-2 text-xs font-bold text-white placeholder-zinc-600 focus:ring-1 focus:ring-white/30"
                         />
                     </div>
-                    {isCyclic ? (
+                    {isSimple ? (
                         <div>
                             <label className="text-[8px] font-black text-[#49454F] uppercase tracking-widest block mb-1">Cada cuántos ciclos</label>
                             <input

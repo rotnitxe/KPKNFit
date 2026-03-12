@@ -166,7 +166,7 @@ const BodyProgressView: React.FC = () => {
             {/* Content */}
             <div className="flex-1 min-h-0 overflow-y-auto">
                 {activeTab === 'registros' && (
-                    <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area pb-24">
+                    <div className="max-w-4xl mx-auto px-4 py-4 pb-24">
                         <button
                             onClick={handleOpenAdd}
                             className="w-full py-4 rounded-xl border border-cyber-copper/50 bg-cyber-copper/20 text-cyber-copper font-bold flex items-center justify-center gap-2 mb-6"
@@ -214,7 +214,7 @@ const BodyProgressView: React.FC = () => {
                     </div>
                 )}
                 {activeTab === 'analytics' && (
-                    <div className="max-w-4xl mx-auto px-4 py-4 tab-bar-safe-area space-y-6 pb-24">
+                    <div className="max-w-4xl mx-auto px-4 py-4 space-y-6 pb-24">
                         <ErrorBoundary><WeightVsTargetChart /></ErrorBoundary>
                         <ErrorBoundary><BodyFatChart /></ErrorBoundary>
                         <ErrorBoundary><MuscleMassChart /></ErrorBoundary>

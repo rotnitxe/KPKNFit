@@ -15,7 +15,7 @@ import { PCEActionModal } from './components/PCEActionModal';
 import { useKPKNTheme } from './utils/theme';
 
 // Import UI Components
-import TabBar from './components/TabBar';
+import TabBar, { TabBarContainer } from './components/TabBar';
 import SubTabBar from './components/SubTabBar';
 import CoachChatModal from './components/CoachChatModal';
 import AppBackground from './components/AppBackground';
@@ -46,6 +46,8 @@ import Home from './components/Home';
 import ProgramsView from './components/ProgramsView';
 import MuscleListEditorModal from './components/MuscleListEditorModal';
 import EditSleepLogModal from './components/EditSleepLogModal';
+import MyProfileView from './components/MyProfileView';
+import MyRingsView from './components/MyRingsView';
 
 // --- Lazy imports (code splitting) ---
 const ProgramDetail = React.lazy(() => import('./components/ProgramDetail'));
@@ -472,14 +474,6 @@ export const App: React.FC = () => {
         onCustomizeFeedPress: () => addToast("No implementado.", "suggestion"),
     }), [handleLogPress, onFinishWorkoutPress, onTimeSaverPress, onModifyPress, onTimersPress, onCancelWorkout, onPauseWorkoutPress, onSaveSessionPress, onAddExercisePress, handleBack, onSaveProgramPress, onSaveLoggedWorkoutPress, onAddCustomExercisePress, onCoachPress, onEditExercisePress, onAnalyzeTechniquePress, onAddToPlaylistPress, addToast]);
 
-    const subTabBarContext = useMemo(() => {
-        if (state.isLogActionSheetOpen) return 'kpkn';
-        if (['kpkn', 'exercise-detail', 'muscle-group-detail', 'body-part-detail', 'chain-detail', 'muscle-category', 'joint-detail', 'tendon-detail', 'movement-pattern-detail'].includes(view)) return 'kpkn';
-        if (['food-database', 'food-detail'].includes(view)) return 'food-database';
-        if (['progress'].includes(view)) return 'progress';
-        return null;
-    }, [view, state.isLogActionSheetOpen]);
-
     const tabBarContext = useMemo(() => {
         if (view === 'workout') return 'workout';
         if (view === 'session-editor') return 'session-editor';
@@ -491,6 +485,9 @@ export const App: React.FC = () => {
     const renderView = useCallback(() => {
         switch (view) {
             case 'home': return <Home onNavigate={handleHomeNavigation} onResumeWorkout={handleResumeWorkout} onEditSleepLog={setEditingSleepLog} onNavigateToCard={handleHomeCardNavigation} />;
+            case 'athlete-id': return <MyProfileView />;
+            case 'my-rings': return <MyRingsView />;
+            case 'settings': return <SettingsComponent settings={settings} onSettingsChange={setSettings} setPrograms={setPrograms} setHistory={setHistory} setSkippedLogs={setSkippedLogs} setBodyProgress={setBodyProgress} setNutritionLogs={setNutritionLogs} drive={drive} installPromptEvent={installPromptEvent} setInstallPromptEvent={setInstallPromptEvent} isOnline={isOnline} />;
             case 'nutrition': return <NutritionView />;
             case 'recovery': return (
                 <div className="pt-[20px] px-4 h-full overflow-y-auto hide-scrollbar tab-bar-safe-area bg-[#F9FAFB]">
@@ -572,7 +569,6 @@ export const App: React.FC = () => {
                     </Suspense>
                 );
             }
-            case 'settings': return <SettingsComponent settings={settings} onSettingsChange={setSettings} setPrograms={setPrograms} setHistory={setHistory} setSkippedLogs={setSkippedLogs} setBodyProgress={setBodyProgress} setNutritionLogs={setNutritionLogs} drive={drive} installPromptEvent={installPromptEvent} setInstallPromptEvent={setInstallPromptEvent} isOnline={isOnline} />;
             case 'coach': return <CoachView programs={programs} history={history} skippedLogs={skippedLogs} settings={settings} bodyProgress={bodyProgress} nutritionLogs={nutritionLogs} isOnline={isOnline} />;
             case 'log-hub': return <LogHub onNavigate={navigateTo} setIsNutritionLogModalOpen={setIsNutritionLogModalOpen} />;
             case 'achievements': return <AchievementsView unlocked={unlockedAchievements} />;
@@ -695,9 +691,7 @@ export const App: React.FC = () => {
                     paddingTop: (view === 'workout' || view === 'home') ? '0' : 'max(56px, calc(env(safe-area-inset-top, 24px) + 16px))',
                     paddingBottom: (view === 'workout' || view === 'session-editor' || view === 'program-editor')
                         ? 'env(safe-area-inset-bottom, 24px)'
-                        : !!subTabBarContext
-                            ? '250px'
-                            : '160px'
+                        : '24px'
                 }}
             >
                 <div className="w-full min-h-full animate-fade-in overflow-visible">
@@ -711,60 +705,17 @@ export const App: React.FC = () => {
 
             {/* TAB BAR (LIQUID GLASS SIN BORDES) */}
             {view !== 'program-editor' && view !== 'session-editor' && view !== 'workout' && (
-                <div
-                    className="fixed bottom-6 left-0 right-0 z-[99999] px-4 pointer-events-none pb-[env(safe-area-inset-bottom,0px)] flex justify-center"
-                >
-                    <div
-                        className="pointer-events-auto relative w-full overflow-visible max-w-[420px] rounded-[32px] flex flex-col p-2 animate-fade-in-up transition-all duration-500"
-                        style={{
-                            background: 'rgba(255, 255, 255, 0.72)',
-                            backdropFilter: 'blur(40px) saturate(160%)',
-                            WebkitBackdropFilter: 'blur(40px) saturate(160%)',
-                            boxShadow: '0 25px 80px -15px rgba(0, 0, 0, 0.4), 0 10px 30px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)'
-                        }}
-                    >
-                        {/* Food Appendix */}
-                        <div className="absolute inset-0 flex justify-center items-end pointer-events-none">
-                            <div
-                                className={`pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isFoodAppendixOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4'}`}
-                            >
-                                <RegisterFoodDrawer
-                                    isOpen={isFoodAppendixOpen}
-                                    onClose={() => {
-                                        setIsNutritionLogModalOpen(false);
-                                        setFoodRegistrationMode('drawer');
-                                    }}
-                                    onSave={(log) => {
-                                        handleSaveNutritionLog(log);
-                                        setIsNutritionLogModalOpen(false);
-                                        setFoodRegistrationMode('drawer');
-                                    }}
-                                    settings={settings}
-                                    displayMode="appendix"
-                                />
-                            </div>
-                        </div>
-
-                        {/* SubTabBar extension */}
-                        <div
-                            className={`w-full overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                                        ${subTabBarContext ? 'max-h-24 opacity-100 pt-3' : 'max-h-0 opacity-0 pt-0'}`}
-                        >
-                            <SubTabBar
-                                context={subTabBarContext}
-                                isActive={!!subTabBarContext}
-                                viewingExerciseId={viewingExerciseId}
-                                onEditExercisePress={tabBarActions.onEditExercisePress}
-                                onFoodAppendixPress={toggleFoodAppendix}
-                                isFoodAppendixOpen={isFoodAppendixOpen}
-                            />
-                        </div>
-                        {/* Main TabBar base */}
-                        <div className="h-[68px] shrink-0 w-full">
-                            <TabBar activeView={view} navigate={(v) => navigateTo(v)} context={tabBarContext} actions={tabBarActions} isSubTabBarActive={!!subTabBarContext || (isNutritionLogModalOpen && foodRegistrationMode === 'appendix')} workoutViewMode="carousel" />
-                        </div>
-                    </div>
-                </div>
+                <TabBarContainer
+                    settings={settings}
+                    tabBarContext={tabBarContext}
+                    tabBarActions={tabBarActions}
+                    activeView={view}
+                    navigateTo={navigateTo}
+                    isFoodAppendixOpen={isFoodAppendixOpen}
+                    setIsNutritionLogModalOpen={setIsNutritionLogModalOpen}
+                    setFoodRegistrationMode={setFoodRegistrationMode}
+                    handleSaveNutritionLog={handleSaveNutritionLog}
+                />
             )}
 
             <div className="fixed left-1/2 -translate-x-1/2 z-[100000] flex flex-col gap-2 items-center pointer-events-none safe-area-toast-top">
@@ -835,4 +786,3 @@ export const App: React.FC = () => {
         </div>
     );
 };
-

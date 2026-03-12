@@ -21,6 +21,7 @@ import { useBodyStore } from '../stores/bodyStore';
 import { useNutritionStore } from '../stores/nutritionStore';
 import { useWellbeingStore } from '../stores/wellbeingStore';
 import { useExerciseStore } from '../stores/exerciseStore';
+import { useMealTemplateStore } from '../stores/mealTemplateStore';
 import { useUIStore } from '../stores/uiStore';
 import { useAuthStore } from '../stores/authStore';
 
@@ -46,6 +47,7 @@ import { JOINT_DATABASE } from '../data/jointDatabase';
 import { TENDON_DATABASE } from '../data/tendonDatabase';
 import { getLocalDateString, dateStringToISOString } from '../utils/dateUtils';
 import { MOVEMENT_PATTERN_DATABASE } from '../data/movementPatternDatabase';
+import { scheduleMigrationSnapshotExport } from '../services/migrationSnapshotService';
 
 const AppStateContext = createContext<AppContextState | undefined>(undefined);
 const AppDispatchContext = createContext<AppContextDispatch | undefined>(undefined);
@@ -68,6 +70,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { nutritionLogs, pantryItems, foodDatabase, aiNutritionPlan, nutritionPlans, activeNutritionPlanId, setNutritionLogs, setPantryItems, setFoodDatabase, setAiNutritionPlan, setNutritionPlans, setActiveNutritionPlanId } = useNutritionStore();
     const { sleepLogs, sleepStartTime, waterLogs, dailyWellbeingLogs, postSessionFeedback, pendingQuestionnaires, recommendationTriggers, tasks, setSleepLogs, setSleepStartTime, setWaterLogs, setDailyWellbeingLogs, setPostSessionFeedback, setPendingQuestionnaires, setRecommendationTriggers, setTasks } = useWellbeingStore();
     const { exerciseList, exercisePlaylists, muscleGroupData, muscleHierarchy, setExerciseList, setExercisePlaylists, setMuscleGroupData, setMuscleHierarchy, addOrUpdateCustomExercise } = useExerciseStore();
+    const { mealTemplates } = useMealTemplateStore();
 
     const ui = useUIStore();
     const { isAuthenticated, initialize: initAuth } = useAuthStore();
@@ -80,6 +83,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const isNutritionHydrated = useNutritionStore(s => s._hasHydrated);
     const isWellbeingHydrated = useWellbeingStore(s => s._hasHydrated);
     const isExerciseHydrated = useExerciseStore(s => s._hasHydrated);
+    const isMealTemplatesHydrated = useMealTemplateStore(s => s._hasHydrated);
 
     const isAppLoading = !isSettingsHydrated || !isProgramsHydrated || !isWorkoutHydrated || !isBodyHydrated || !isNutritionHydrated || !isWellbeingHydrated || !isExerciseHydrated;
 
@@ -143,6 +147,102 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             muscleHierarchy,
         });
     }, [isAppLoading, programs, activeProgramState, history, sleepLogs, dailyWellbeingLogs, nutritionLogs, settings, exerciseList, muscleHierarchy]);
+
+    useEffect(() => {
+        if (isAppLoading) return;
+
+        scheduleMigrationSnapshotExport({
+            hydrated: {
+                settings: isSettingsHydrated,
+                workout: isWorkoutHydrated,
+                nutrition: isNutritionHydrated && isMealTemplatesHydrated,
+                wellbeing: isWellbeingHydrated,
+                exercise: isExerciseHydrated,
+            },
+            payload: {
+                settings,
+                programs: {
+                    programs,
+                    activeProgramState,
+                },
+                workout: {
+                    history,
+                    skippedLogs,
+                    ongoingWorkout,
+                    syncQueue,
+                },
+                nutrition: {
+                    nutritionLogs,
+                    pantryItems,
+                    foodDatabase,
+                    aiNutritionPlan,
+                    nutritionPlans,
+                    activeNutritionPlanId,
+                    mealTemplates,
+                },
+                wellbeing: {
+                    sleepLogs,
+                    sleepStartTime,
+                    waterLogs,
+                    dailyWellbeingLogs,
+                    postSessionFeedback,
+                    pendingQuestionnaires,
+                    recommendationTriggers,
+                    tasks,
+                },
+                body: {
+                    bodyProgress,
+                    bodyLabAnalysis,
+                    biomechanicalData,
+                    biomechanicalAnalysis,
+                },
+                exercise: {
+                    exerciseList,
+                    exercisePlaylists,
+                    muscleGroupData,
+                    muscleHierarchy,
+                },
+            },
+        });
+    }, [
+        isAppLoading,
+        isSettingsHydrated,
+        isWorkoutHydrated,
+        isNutritionHydrated,
+        isMealTemplatesHydrated,
+        isWellbeingHydrated,
+        isExerciseHydrated,
+        settings,
+        programs,
+        activeProgramState,
+        history,
+        skippedLogs,
+        ongoingWorkout,
+        syncQueue,
+        nutritionLogs,
+        pantryItems,
+        foodDatabase,
+        aiNutritionPlan,
+        nutritionPlans,
+        activeNutritionPlanId,
+        mealTemplates,
+        sleepLogs,
+        sleepStartTime,
+        waterLogs,
+        dailyWellbeingLogs,
+        postSessionFeedback,
+        pendingQuestionnaires,
+        recommendationTriggers,
+        tasks,
+        bodyProgress,
+        bodyLabAnalysis,
+        biomechanicalData,
+        biomechanicalAnalysis,
+        exerciseList,
+        exercisePlaylists,
+        muscleGroupData,
+        muscleHierarchy,
+    ]);
 
     // ═══════════════════════════════════════════════════════════
     // 4. CROSS-STORE CALLBACKS

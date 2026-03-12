@@ -35,6 +35,7 @@ interface FinishWorkoutModalProps {
   allExercises?: Exercise[];
   completedSets?: Record<string, { left: any; right: any }>;
   exerciseList?: ExerciseMuscleInfo[];
+  sessionName?: string;
 }
 
 const ENVIRONMENT_TAGS = ["Gimnasio Lleno", "Gimnasio Vacío", "Entrenando con Amigos", "Buena Música", "Distraído", "Con Prisa"];
@@ -42,6 +43,7 @@ const PLAN_ADHERENCE_TAGS = ["Seguí el Plan", "Más Pesado", "Más Ligero", "M�
 
 // --- HIDDEN WORKOUT SHARE CARD ---
 export interface ShareCardData {
+  sessionName?: string;
   date: string;
   duration: string;
   difficulty: number;
@@ -68,7 +70,7 @@ const formatSetIntensity = (set: { weight?: number; completedReps?: number; comp
   return parts.filter(Boolean).join(' ');
 };
 
-export const buildShareCardDataFromLog = (log: { date: string; duration?: number; completedExercises: { exerciseName: string; sets: any[]; useBodyweight?: boolean }[]; sessionDifficulty?: number; pump?: number }, weightUnit: string): ShareCardData => {
+export const buildShareCardDataFromLog = (log: { date: string; sessionName?: string; duration?: number; completedExercises: { exerciseName: string; sets: any[]; useBodyweight?: boolean }[]; sessionDifficulty?: number; pump?: number }, weightUnit: string): ShareCardData => {
   const duration = log.duration != null ? String(Math.round(log.duration / 60)) : '--';
   const exerciseSummaries = (log.completedExercises || []).map(ex => {
     const setsWithData = ex.sets.filter((s: any) => (s.completedReps != null && s.completedReps > 0) || (s.weight != null && s.weight > 0) || ex.useBodyweight);
@@ -80,6 +82,7 @@ export const buildShareCardDataFromLog = (log: { date: string; duration?: number
     return { name: ex.exerciseName, line: line || `${count} series` };
   }).filter(s => s.line || s.name);
   return {
+    sessionName: log.sessionName || 'KPKN Session',
     date: log.date,
     duration,
     difficulty: log.sessionDifficulty ?? 5,
@@ -90,7 +93,7 @@ export const buildShareCardDataFromLog = (log: { date: string; duration?: number
 
 const MAX_EXERCISES_IN_SHARE = 14;
 
-export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ date, duration, difficulty, pump, exerciseSummaries, preview }) => {
+export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> = ({ sessionName, date, duration, difficulty, pump, exerciseSummaries, preview }) => {
   const displayed = exerciseSummaries.slice(0, MAX_EXERCISES_IN_SHARE);
   const restCount = exerciseSummaries.length - MAX_EXERCISES_IN_SHARE;
 
@@ -101,90 +104,86 @@ export const WorkoutShareCard: React.FC<ShareCardData & { preview?: boolean }> =
 
   return (
     <div id={preview ? undefined : 'workout-summary-share-card'} className={wrapperClass} style={preview ? undefined : captureStyle}>
-      {/* Dynamic Background with depth */}
-      <div className="absolute inset-0 bg-[#0f0f11]" />
-      <div className="absolute inset-0 opacity-40 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 bg-[#FDFCFE]" />
+      <div className="absolute inset-0 opacity-[0.12] mix-blend-multiply" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
 
-      {/* Decorative Orbs */}
-      <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-[var(--m3-primary)]/20 blur-[120px]" />
-      <div className="absolute bottom-[5%] left-[-20%] w-[500px] h-[500px] rounded-full bg-[var(--m3-tertiary)]/15 blur-[140px]" />
+      {/* Decorative Blur Orbs */}
+      <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-[#1C1B1F]/5 blur-[100px]" />
+      <div className="absolute bottom-[5%] left-[-20%] w-[500px] h-[500px] rounded-full bg-[#1C1B1F]/5 blur-[100px]" />
 
       {/* Main Glass Card */}
-      <div className="relative w-[480px] h-[860px] rounded-[48px] overflow-hidden border border-white/10 shadow-2xl flex flex-col"
+      <div className="relative w-[480px] h-[860px] rounded-[48px] overflow-hidden shadow-2xl flex flex-col"
         style={{
-          background: 'rgba(255, 255, 255, 0.03)',
+          background: 'rgba(255, 255, 255, 0.75)',
           backdropFilter: 'blur(40px)',
           WebkitBackdropFilter: 'blur(40px)',
-          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px -12px rgba(0,0,0,0.5)'
+          border: '1px solid rgba(0, 0, 0, 0.05)',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.1)'
         }}>
 
-        {/* Subtle texture in glass */}
-        <div className="absolute inset-0 z-0 opacity-10 mix-blend-soft-light pointer-events-none">
-          <CaupolicanBackground />
-        </div>
-
-        <div className="relative z-10 flex flex-col h-full p-8 text-white">
+        <div className="relative z-10 flex flex-col h-full p-10 text-[#1C1B1F]">
           {/* Top Brand Header */}
           <div className="flex justify-between items-start mb-8">
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-[var(--m3-primary)] uppercase tracking-[0.3em] block">KPKN FIT</span>
-              <h1 className="text-2xl font-black tracking-tight leading-none text-white">Workout Summary</h1>
-              <p className="text-xs font-medium text-white/50">{new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-            </div>
-            <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center p-2.5 backdrop-blur-md">
-              <img src="/caupolican-icon.svg" alt="logo" className="w-full h-full object-contain" />
+              <span className="text-[10px] font-black text-[#1C1B1F]/50 uppercase tracking-[0.4em] block">KPKN FIT</span>
+              <h1 className="text-[32px] font-black tracking-tighter leading-none text-[#1C1B1F] drop-shadow-sm">{sessionName || 'Entrenamiento'}</h1>
+              <p className="text-[12px] font-bold text-[#1C1B1F]/40">{new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
             </div>
           </div>
 
           {/* Core Stats Row */}
-          <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="grid grid-cols-3 gap-3 mb-10">
             {[
-              { label: 'Tiempo', value: duration, unit: 'min', icon: <ClockIcon size={14} /> },
-              { label: 'Dificultad', value: difficulty, unit: '/10', icon: <FlameIcon size={14} /> },
-              { label: 'Pump', value: pump, unit: '/10', icon: <ActivityIcon size={14} /> }
+              { label: 'Tiempo', value: duration, unit: 'min', icon: <ClockIcon size={16} /> },
+              { label: 'Dificultad', value: difficulty, unit: '/10', icon: <FlameIcon size={16} /> },
+              { label: 'Pump', value: pump, unit: '/10', icon: <ActivityIcon size={16} /> }
             ].map((s, i) => (
-              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center">
-                <div className="text-white/40 mb-2">{s.icon}</div>
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-xl font-black text-white">{s.value}</span>
-                  <span className="text-[8px] font-bold text-white/30 uppercase">{s.unit}</span>
+              <div key={i} className="bg-white/80 border border-black/[0.03] rounded-[24px] p-4 flex flex-col items-center shadow-sm">
+                <div className="text-[#1C1B1F]/30 mb-2">{s.icon}</div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[26px] font-black text-[#1C1B1F] tracking-tighter">{s.value}</span>
+                  <span className="text-[10px] font-black text-[#1C1B1F]/30 uppercase tracking-widest">{s.unit}</span>
                 </div>
-                <span className="text-[8px] font-bold uppercase tracking-wider text-white/40 mt-1">{s.label}</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-[#1C1B1F]/40 mt-1">{s.label}</span>
               </div>
             ))}
           </div>
 
-          {/* Exercise List - More elegant typography */}
+          {/* Exercise List */}
           <div className="flex-1 min-h-0 py-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-[1px] flex-1 bg-white/10" />
-              <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Ejercicios</span>
-              <div className="h-[1px] flex-1 bg-white/10" />
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-[10px] font-black text-[#1C1B1F]/30 uppercase tracking-[0.25em]">Ejercicios</span>
+              <div className="h-[1px] flex-1 bg-black/5" />
             </div>
 
-            <div className="space-y-2 overflow-hidden">
+            <div className="space-y-4 overflow-hidden">
               {displayed.map((ex, i) => (
-                <div key={i} className="flex flex-col gap-0.5 group">
+                <div key={i} className="flex flex-col gap-1 group">
                   <div className="flex justify-between items-baseline gap-4">
-                    <span className="text-[11px] font-bold text-white/90 truncate">{ex.name}</span>
-                    <div className="h-[1px] flex-1 border-b border-dashed border-white/10" />
-                    <span className="text-[10px] font-black text-[var(--m3-primary)]/80 tracking-tight shrink-0">{ex.line}</span>
+                    <span className="text-[13px] font-bold text-[#1C1B1F]/90 truncate">{ex.name}</span>
+                    <div className="h-[2px] flex-1 border-b-2 border-dotted border-black/10" />
+                    <span className="text-[12px] font-black text-amber-600 tracking-tight shrink-0">{ex.line}</span>
                   </div>
                 </div>
               ))}
             </div>
             {restCount > 0 && (
-              <div className="mt-4 flex justify-center">
-                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-white/40 uppercase tracking-widest">+{restCount} ejercicios más</span>
+              <div className="mt-6 flex justify-center">
+                <span className="px-5 py-2 rounded-full bg-black/5 text-[10px] font-black text-[#1C1B1F]/50 uppercase tracking-widest">+{restCount} ejercicios más</span>
               </div>
             )}
           </div>
 
-          {/* Bottom Footer */}
-          <div className="mt-auto pt-8 flex flex-col items-center">
-            <div className="w-12 h-1 rounded-full bg-gradient-to-r from-[var(--m3-primary)] to-[var(--m3-tertiary)] mb-4 opacity-50" />
-            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.4em] mb-1">UNLEASH YOUR POTENTIAL</p>
-            <p className="text-[8px] text-white/20 font-medium">kpkn-fit.app</p>
+          {/* Bottom Footer with Logo */}
+          <div className="mt-auto pt-8 border-t border-black/5 flex items-end justify-between">
+            <div className="text-left">
+              <p className="text-[11px] font-black text-[#1C1B1F]/80 uppercase tracking-[0.3em] mb-1">UNLEASH YOUR POTENTIAL</p>
+              <p className="text-[9px] text-[#1C1B1F]/40 font-bold tracking-[0.2em]">kpkn-fit.app</p>
+            </div>
+            <div className="w-14 h-14 flex items-center justify-center opacity-90">
+              <img src="/KPKN-LOGO-OFICIAL-black.svg" alt="logo" className="w-full h-full object-contain" />
+            </div>
           </div>
         </div>
       </div>
@@ -225,7 +224,7 @@ const PointSelector: React.FC<{ value: number; onChange: (v: number) => void; la
   </div>
 );
 
-const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, initialDiscomforts = [], initialBatteries, asDrawer, fullPage, allExercises = [], completedSets = {}, exerciseList = [] }) => {
+const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose, onFinish, mode = 'live', improvementIndex, initialDurationInSeconds, initialNotes, initialDiscomforts = [], initialBatteries, asDrawer, fullPage, allExercises = [], completedSets = {}, exerciseList = [], sessionName }) => {
   const { addRecommendationTrigger, addToast } = useAppDispatch();
   const { settings } = useAppState();
   const weightUnit = settings?.weightUnit ?? 'kg';
@@ -434,6 +433,7 @@ const FinishWorkoutModal: React.FC<FinishWorkoutModalProps> = ({ isOpen, onClose
       <div id="workout-summary-share-card" className="fixed -left-[9999px] top-0 w-[540px] h-[960px] pointer-events-none overflow-hidden">
         <WorkoutShareCard
           preview
+          sessionName={sessionName}
           date={logDate}
           duration={durationInMinutes || '--'}
           difficulty={sessionDifficulty}

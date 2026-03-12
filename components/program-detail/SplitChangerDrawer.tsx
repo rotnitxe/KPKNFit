@@ -11,6 +11,7 @@ interface SplitChangerDrawerProps {
     currentSplitId?: string;
     isSimpleProgram?: boolean;
     currentStartDay?: number;
+    displayMode?: 'drawer' | 'inline';
 }
 
 const FILTER_TAGS: (SplitTag | 'Todos')[] = ['Todos', 'Recomendado por KPKN', 'Alta Frecuencia', 'Baja Frecuencia', 'Balanceado', 'Alto Volumen', 'Powerlifting', 'Personalizado'];
@@ -21,7 +22,7 @@ const DAYS_OF_WEEK = [
 ];
 
 const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
-    isOpen, onClose, onApply, currentSplitId, isSimpleProgram, currentStartDay = 1
+    isOpen, onClose, onApply, currentSplitId, isSimpleProgram, currentStartDay = 1, displayMode = 'drawer'
 }) => {
     const [step, setStep] = useState<'gallery' | 'scope'>('gallery');
     const [selectedSplit, setSelectedSplit] = useState<SplitTemplate | null>(null);
@@ -59,31 +60,43 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
 
     if (!isOpen) return null;
 
+    const isInline = displayMode === 'inline';
+
     return (
         <>
-            {/* Backdrop Liquid Glass */}
-            <div className="fixed inset-0 z-[101] bg-black/20 backdrop-blur-md" onClick={onClose} />
+            {/* Backdrop Liquid Glass - solo en modo drawer */}
+            {!isInline && (
+                <div className="fixed inset-0 z-[101] bg-black/20 backdrop-blur-md" onClick={onClose} />
+            )}
 
             {/* Bottom Sheet Liquid Glass Claro */}
-            <div className="fixed bottom-0 left-0 right-0 z-[102] w-full max-h-[90vh] bg-white/90 backdrop-blur-xl rounded-t-[32px] flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.12)]">
-                {/* Drag Handle */}
-                <div className="w-full flex justify-center pt-4 pb-2 shrink-0">
-                    <div className="w-10 h-1.5 rounded-full bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-300 opacity-60" />
-                </div>
+            <div className={`${
+                isInline 
+                    ? 'relative z-auto w-full max-h-none bg-white rounded-[20px] flex flex-col shadow-sm border border-zinc-200' 
+                    : 'fixed bottom-0 left-0 right-0 z-[102] w-full max-h-[90vh] bg-white/90 backdrop-blur-xl rounded-t-[32px] flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.12)]'
+            }`}>
+                {/* Drag Handle - solo en modo drawer */}
+                {!isInline && (
+                    <div className="w-full flex justify-center pt-4 pb-2 shrink-0">
+                        <div className="w-10 h-1.5 rounded-full bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-300 opacity-60" />
+                    </div>
+                )}
 
                 {/* Header */}
-                <div className="px-6 py-3 flex items-center justify-between shrink-0 border-b border-zinc-100">
+                <div className="px-6 py-4 flex items-center justify-between shrink-0 border-b border-zinc-100">
                     <div>
-                        <h2 className="text-xl font-black text-zinc-900 tracking-tight">
+                        <h2 className="text-lg font-black text-zinc-900 tracking-tight">
                             {step === 'gallery' ? 'Cambiar Split' : 'Configurar Split'}
                         </h2>
                         <p className="text-[11px] text-zinc-500 uppercase tracking-widest mt-0.5">
                             {step === 'gallery' ? 'Selecciona una plantilla' : selectedSplit?.name}
                         </p>
                     </div>
-                    <button onClick={onClose} className="w-10 h-10 rounded-full bg-zinc-100 hover:bg-zinc-200 transition-colors flex items-center justify-center">
-                        <XIcon size={18} className="text-zinc-600" />
-                    </button>
+                    {!isInline && (
+                        <button onClick={onClose} className="w-10 h-10 rounded-full bg-zinc-100 hover:bg-zinc-200 transition-colors flex items-center justify-center">
+                            <XIcon size={18} className="text-zinc-600" />
+                        </button>
+                    )}
                 </div>
 
                 {step === 'gallery' ? (
@@ -322,7 +335,7 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
 
                 {/* Footer */}
                 {step === 'scope' && (
-                    <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-white/80 backdrop-blur-xl border-t border-zinc-100 flex gap-3 shrink-0">
+                    <div className={`p-4 ${isInline ? '' : 'pb-[calc(1rem+env(safe-area-inset-bottom))]'} bg-white/80 backdrop-blur-xl border-t border-zinc-100 flex gap-3 shrink-0 ${isInline ? 'rounded-b-[20px]' : ''}`}>
                         <button
                             onClick={handleBack}
                             className="flex-1 py-3.5 px-6 rounded-full border-2 border-zinc-200 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-600 hover:bg-zinc-50 transition-all"
@@ -343,3 +356,4 @@ const SplitChangerDrawer: React.FC<SplitChangerDrawerProps> = ({
 };
 
 export default SplitChangerDrawer;
+export { SplitChangerDrawer };

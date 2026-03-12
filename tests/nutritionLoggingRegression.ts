@@ -16,6 +16,15 @@ async function main() {
     assert.ok(rulesOnly.items.length >= 1, 'El modo rules debe producir al menos un item.');
     assert.equal(rulesOnly.rawDescription, '150g pollo con arroz');
 
+    const deterministicDefault = await parseFreeFormNutrition('arroz con pollo');
+    assert.equal(deterministicDefault.analysisEngine, 'deterministic');
+
+    const protectedComposite = parseMealDescription('arroz con pollo');
+    assert.ok(
+        protectedComposite.items.some((item) => item.tag.toLowerCase().includes('arroz con pollo')),
+        'Los platos compuestos protegidos no deben romperse por el conector "con".'
+    );
+
     const searchResult = await searchFoods('arroz con pollo');
     assert.ok(searchResult.results.length > 0, 'La busqueda local debe devolver resultados.');
     assert.ok(
@@ -24,6 +33,21 @@ async function main() {
             return name.includes('arroz') && name.includes('pollo');
         }),
         'La busqueda debe encontrar una opcion coherente para "arroz con pollo".'
+    );
+
+    const localDishResult = await searchFoods('charquican');
+    assert.ok(
+        localDishResult.results.some((food) => food.name.toLowerCase().includes('charquic')),
+        'La base offline local debe reconocer platos chilenos curados como charquican.'
+    );
+
+    const sandwichResult = await searchFoods('pan con palta y jamon');
+    assert.ok(
+        sandwichResult.results.some((food) => {
+            const name = food.name.toLowerCase();
+            return name.includes('palta') && name.includes('jam');
+        }),
+        'La busqueda debe cubrir combinaciones locales curadas como pan con palta y jamon.'
     );
 
     console.log('Nutrition logging regression checks passed.');

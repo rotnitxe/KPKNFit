@@ -40,9 +40,47 @@ const DayView: React.FC<DayViewProps> = ({
     const { history, activeProgramState } = useAppContext();
     const [draggedSessionId, setDraggedSessionId] = useState<string | null>(null);
     const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1]));
+    const [showWeekSettings, setShowWeekSettings] = useState(false);
 
     // Detectar si es programa simple
     const isSimple = program.structure === 'simple' || (!program.structure && program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
+
+    // Día de inicio de la semana y duración (AHORA DESDE EL PROGRAMA)
+    const startDay = program.startDay ?? 1;
+    const weekDays = program.weekDays ?? 7; // ✅ Ahora lee desde program
+
+    // Generar días de la semana dinámicamente (7-10 días)
+    const getDynamicDays = useMemo(() => {
+        const baseDays = [
+            { id: 1, name: 'Lunes', short: 'Lun' },
+            { id: 2, name: 'Martes', short: 'Mar' },
+            { id: 3, name: 'Miércoles', short: 'Mié' },
+            { id: 4, name: 'Jueves', short: 'Jue' },
+            { id: 5, name: 'Viernes', short: 'Vie' },
+            { id: 6, name: 'Sábado', short: 'Sáb' },
+            { id: 0, name: 'Domingo', short: 'Dom' }
+        ];
+
+        // Rotar según startDay (ej: si startDay=3, comienza el Miércoles)
+        const rotated = [...baseDays.slice(startDay), ...baseDays.slice(0, startDay)];
+        
+        // Tomar los primeros 7 días rotados
+        const week = rotated.slice(0, 7);
+        
+        // Agregar días adicionales si weekDays > 7 (ej: "Lunes 2", "Martes 2")
+        const extraDays = [];
+        for (let i = 7; i < weekDays; i++) {
+            const baseDay = baseDays[i % 7];
+            const cycleNum = Math.floor(i / 7) + 1;
+            extraDays.push({
+                id: i,
+                name: `${baseDay.name} ${cycleNum}`,
+                short: `${baseDay.short}${cycleNum}`
+            });
+        }
+        
+        return [...week, ...extraDays];
+    }, [startDay, weekDays]);
 
     // Encontrar la semana seleccionada
     const selectedWeek: ProgramWeek | null = useMemo(() => {
@@ -58,6 +96,25 @@ const DayView: React.FC<DayViewProps> = ({
         return null;
     }, [program, selectedWeekId]);
 
+    // Índices de macrociclo y mesociclo de la semana seleccionada
+    const selectedWeekContext = useMemo(() => {
+        if (!selectedWeekId) return null;
+        for (let macroIdx = 0; macroIdx < program.macrocycles.length; macroIdx++) {
+            const macro = program.macrocycles[macroIdx];
+            let mesoOffset = 0;
+            for (const block of (macro.blocks || [])) {
+                for (let localMesoIdx = 0; localMesoIdx < block.mesocycles.length; localMesoIdx++) {
+                    const meso = block.mesocycles[localMesoIdx];
+                    if (meso.weeks.find(w => w.id === selectedWeekId)) {
+                        return { macroIndex: macroIdx, mesoIndex: mesoOffset + localMesoIdx };
+                    }
+                }
+                mesoOffset += block.mesocycles.length;
+            }
+        }
+        return null;
+    }, [program, selectedWeekId]);
+
     // Obtener logs de historial
     const weekLogs = useMemo(() => {
         if (!selectedWeek) return [];
@@ -68,11 +125,14 @@ const DayView: React.FC<DayViewProps> = ({
     // Agrupar sesiones por día
     const sessionsByDay = useMemo(() => {
         const grouped: Record<number, Session[]> = {};
-        DAYS_OF_WEEK.forEach(day => {
-            grouped[day.id] = selectedWeek?.sessions.filter(s => s.dayOfWeek === day.id) || [];
+        getDynamicDays.forEach(day => {
+            // Para días 0-6, usar dayOfWeek directo
+            // Para días 7+, mapear al día base (ej: día 7 = Lunes 2 → dayOfWeek 1)
+            const baseDayId = day.id < 7 ? day.id : (day.id % 7);
+            grouped[day.id] = selectedWeek?.sessions.filter(s => s.dayOfWeek === baseDayId) || [];
         });
         return grouped;
-    }, [selectedWeek]);
+    }, [selectedWeek, getDynamicDays]);
 
     // Calcular sesión principal por día (la primera o la marcada como principal)
     const getMainSessionId = (dayId: number): string | undefined => {
@@ -263,7 +323,7 @@ const DayView: React.FC<DayViewProps> = ({
 
     return (
         <div className="pb-6">
-            {/* Header */}
+            {/* Header con configuración de semana */}
             <div className="mt-0 px-4 mb-3">
                 <div className="flex items-center justify-between">
                     <div>
@@ -274,12 +334,48 @@ const DayView: React.FC<DayViewProps> = ({
                             {selectedWeek.sessions.length} sesiones programadas
                         </p>
                     </div>
+                    <div className="flex items-center gap-2">
+                        {/* Botón para configuración de semana */}
+                        <button
+                            onClick={() => setShowWeekSettings(true)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 transition-colors group"
+                            title="Configurar semana (días y duración)"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            <span className="text-[8px] font-black uppercase tracking-[0.15em] text-zinc-600 group-hover:text-zinc-900">
+                                Configurar Semana
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            {/* Modal de configuración de semana */}
+            {showWeekSettings && (
+                <WeekSettingsModal
+                    isOpen={showWeekSettings}
+                    startDay={startDay}
+                    weekDays={weekDays}
+                    onStartDayChange={(day) => {
+                        const updated = { ...program, startDay: day };
+                        onUpdateProgram?.(updated);
+                        addToast?.('Día de inicio actualizado', 'success');
+                    }}
+                    onWeekDaysChange={(days) => {
+                        const updated = { ...program, weekDays: days }; // ✅ Ahora guarda en el programa
+                        onUpdateProgram?.(updated);
+                        addToast?.(`Semana de ${days} días configurada`, 'success');
+                    }}
+                    onClose={() => setShowWeekSettings(false)}
+                />
+            )}
+
             {/* Tarjetas por día */}
             <div className="px-4 space-y-3">
-                {DAYS_OF_WEEK.map((day) => {
+                {getDynamicDays.map((day) => {
                     const daySessions = sessionsByDay[day.id];
                     const isExpanded = expandedDays.has(day.id);
                     const mainSessionId = getMainSessionId(day.id);
@@ -461,7 +557,7 @@ const DayView: React.FC<DayViewProps> = ({
                                                             )}
                                                             {onDeleteSession && (
                                                                 <button
-                                                                    onClick={() => onDeleteSession(session.id, program.id, 0, 0, selectedWeek.id)}
+                                                                    onClick={() => onDeleteSession(session.id, program.id, selectedWeekContext?.macroIndex ?? 0, selectedWeekContext?.mesoIndex ?? 0, selectedWeek.id)}
                                                                     className="w-8 h-8 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors"
                                                                 >
                                                                     <TrashIcon size={14} />
@@ -545,6 +641,99 @@ const DayView: React.FC<DayViewProps> = ({
                     </motion.div>
                 </div>
             )}
+        </div>
+    );
+};
+
+// Modal de configuración de semana
+const WeekSettingsModal: React.FC<{
+    isOpen: boolean;
+    startDay: number;
+    weekDays: number;
+    onStartDayChange: (day: number) => void;
+    onWeekDaysChange: (days: number) => void;
+    onClose: () => void;
+}> = ({ isOpen, startDay, weekDays, onStartDayChange, onWeekDaysChange, onClose }) => {
+    if (!isOpen) return null;
+
+    const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+    return (
+        <div className="fixed inset-0 z-[200] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-white rounded-[2rem] w-full max-w-sm p-6 shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                <button onClick={onClose} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+
+                <div className="text-center mb-6">
+                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-cyan-100 to-blue-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-600">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3 className="text-lg font-black text-zinc-900 uppercase tracking-tight">
+                        Configuración de Semana
+                    </h3>
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">
+                        Personaliza tu semana
+                    </p>
+                </div>
+
+                {/* Día de inicio */}
+                <div className="mb-6">
+                    <label className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 block mb-3">
+                        Día de inicio de semana
+                    </label>
+                    <div className="grid grid-cols-7 gap-1">
+                        {DAYS.map((day, index) => (
+                            <button
+                                key={day}
+                                onClick={() => onStartDayChange(index)}
+                                className={`py-2 rounded-xl text-[8px] font-black transition-all ${
+                                    startDay === index
+                                        ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30'
+                                        : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                                }`}
+                            >
+                                {day.slice(0, 3)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Días de la semana */}
+                <div className="mb-6">
+                    <label className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 block mb-3">
+                        Duración de semana
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                        {[7, 8, 9, 10].map(days => (
+                            <button
+                                key={days}
+                                onClick={() => onWeekDaysChange(days)}
+                                className={`py-3 rounded-xl font-black transition-all ${
+                                    weekDays === days
+                                        ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30'
+                                        : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                                }`}
+                            >
+                                {days} días
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-[8px] text-zinc-400 mt-2 text-center">
+                        {weekDays > 7 ? `Los días adicionales se llamarán "Día X ${Math.floor(weekDays / 7) + 1}"` : 'Semana estándar de 7 días'}
+                    </p>
+                </div>
+
+                <button
+                    onClick={onClose}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-[9px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all shadow-lg"
+                >
+                    Listo
+                </button>
+            </div>
         </div>
     );
 };

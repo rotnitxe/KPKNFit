@@ -25,8 +25,9 @@ const LITERAL_QUANTITIES: Record<string, number> = {
 };
 
 const PROTECTED_ENTITIES = [
-    'arroz con leche', 'pollo con papas', 'pan con queso', 'pan con palta', 'pan con mantequilla',
-    'papas con mayo', 'completo italiano', 'pastel de choclo', 'empanada de pino', 'carne al horno'
+    'arroz con leche', 'arroz con pollo', 'pollo con papas', 'pan con queso', 'pan con palta',
+    'pan con palta y jamon', 'pan con palta y jamón', 'pan con mantequilla', 'papas con mayo',
+    'completo italiano', 'pastel de choclo', 'empanada de pino', 'carne al horno', 'porotos con riendas'
 ];
 
 const KNOWN_BRANDS = [

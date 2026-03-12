@@ -122,7 +122,7 @@ const FoodDatabaseView: React.FC = () => {
     // RENDER: Search Results (Global Search)
     if (searchQuery.length > 0) {
         return (
-            <div className="pt-4 tab-bar-safe-area px-4 max-w-4xl mx-auto animate-fade-in">
+            <div className="pt-4 px-4 max-w-4xl mx-auto animate-fade-in pb-24">
                  <div className="mb-6">
                     <h1 className="text-4xl font-black uppercase tracking-tighter text-white">Alimentos</h1>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Resultados de búsqueda ({categorizedFood.allFiltered.length})</p>
@@ -159,7 +159,7 @@ const FoodDatabaseView: React.FC = () => {
             });
 
         return (
-            <div className="pt-4 tab-bar-safe-area px-4 max-w-4xl mx-auto animate-fade-in">
+            <div className="pt-4 px-4 max-w-4xl mx-auto animate-fade-in pb-24">
                  <header className="flex items-center gap-4 mb-6">
                     <button onClick={() => setSelectedMicronutrient(null)} className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors"><ArrowLeftIcon /></button>
                     <div>
@@ -190,7 +190,7 @@ const FoodDatabaseView: React.FC = () => {
         });
 
         return (
-            <div className="pt-4 tab-bar-safe-area px-4 max-w-4xl mx-auto animate-fade-in">
+            <div className="pt-4 px-4 max-w-4xl mx-auto animate-fade-in pb-24">
                  <header className="flex items-center gap-4 mb-6">
                     <button onClick={() => setSelectedCategory(null)} className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors"><ArrowLeftIcon /></button>
                     <div>
@@ -228,7 +228,7 @@ const FoodDatabaseView: React.FC = () => {
 
     // RENDER: Main Dashboard
     return (
-        <div className="pt-4 tab-bar-safe-area px-4 max-w-4xl mx-auto">
+        <div className="pt-4 px-4 max-w-4xl mx-auto pb-24">
             <div className="mb-6">
                 <h1 className="text-4xl font-black uppercase tracking-tighter text-white">Alimentos</h1>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Base de Datos Nutricional</p>

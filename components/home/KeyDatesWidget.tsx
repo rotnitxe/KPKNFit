@@ -1,5 +1,5 @@
 // components/home/KeyDatesWidget.tsx
-// Fechas clave: countdown (meses, días) o próximo evento cíclico
+// Fechas clave: countdown (meses, días) o próximo loop
 
 import React, { useMemo } from 'react';
 import { useAppState } from '../../contexts/AppContext';
@@ -26,7 +26,7 @@ export const KeyDatesWidget: React.FC<{
     const startDate = activeProgramState?.startDate;
     const targetDate = settings?.userVitals?.targetDate;
 
-    const isCyclic = useMemo(() =>
+    const isSimple = useMemo(() =>
         activeProgram?.structure === 'simple' ||
         (!activeProgram?.structure && (activeProgram?.macrocycles?.length ?? 0) === 1 &&
             ((activeProgram?.macrocycles?.[0]?.blocks?.length ?? 0) <= 1)),
@@ -35,7 +35,7 @@ export const KeyDatesWidget: React.FC<{
     const keyDates = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const items: { title: string; daysLeft: number; dateStr?: string; isCyclic?: boolean }[] = [];
+        const items: { title: string; daysLeft: number; dateStr?: string; isSimple?: boolean }[] = [];
 
         // 1. targetDate de userVitals (meta peso, etc.)
         if (targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
@@ -49,8 +49,8 @@ export const KeyDatesWidget: React.FC<{
 
         if (!activeProgram || !startDate) return items;
 
-        if (isCyclic) {
-            // 2. Programa cíclico: próximo evento cíclico
+        if (isSimple) {
+            // 2. Programa cíclico: próximo loop
             const events = activeProgram.events || [];
             const cycleWeeks = activeProgram.macrocycles?.[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length ?? 4;
             const cycleLengthDays = cycleWeeks * 7;
@@ -70,7 +70,7 @@ export const KeyDatesWidget: React.FC<{
                     items.push({
                         title: ev.title || 'Evento',
                         daysLeft: daysUntilNext,
-                        isCyclic: true,
+                        isSimple: true,
                     });
                 }
             });
@@ -115,7 +115,7 @@ export const KeyDatesWidget: React.FC<{
         }
 
         return items.sort((a, b) => a.daysLeft - b.daysLeft);
-    }, [activeProgram, startDate, isCyclic, targetDate]);
+    }, [activeProgram, startDate, isSimple, targetDate]);
 
     if (keyDates.length === 0) {
         return (

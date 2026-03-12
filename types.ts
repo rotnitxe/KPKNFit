@@ -71,6 +71,8 @@ export interface AthleteProfileScore {
 export type View =
     | 'auth'
     | 'home'
+    | 'athlete-id'
+    | 'my-rings'
     | 'programs'
     | 'program-detail'
     | 'program-editor'
@@ -244,7 +246,8 @@ export interface Settings {
         deepseek?: string;
         usda?: string;
     };
-    nutritionDescriptionMode?: 'auto' | 'rules' | 'local-ai';
+    nutritionDescriptionMode?: 'auto' | 'rules' | 'local-ai' | 'deterministic' | 'assisted';
+    nutritionResolutionMode?: 'deterministic' | 'assisted';
     nutritionUseOnlineApis?: boolean;
     nutritionUseLocalAI?: boolean;
     nutritionLocalModel?: string;
@@ -389,18 +392,15 @@ export interface Program {
     isPublic?: boolean;
     tags?: string[];
     background?: any;
-    events?: {
-        id?: string;
-        title: string;
-        type: string;
-        date: string;
-        endDate?: string;
-        calculatedWeek: number;
-        createMacrocycle?: boolean;
-        repeatEveryXCycles?: number; // Nueva propiedad para eventos cíclicos (Programas Simples)
-        sessions?: Session[]; // Soporte para sesiones exclusivas del evento
-        rules?: { avoidDaysOfWeek?: number[]; avoidEndOfMonth?: boolean; }; // NUEVO: Motor de reglas condicionales
-    }[];
+    events?: ProgramEvent[];
+
+    // ─── Loops (Programas Simples) ───
+    loops?: Loop[];
+    loopState?: {
+        currentCycle: number;
+        postponed?: { loopId: string; fromCycle: number; toCycle: number }[];
+        cancelled?: string[];
+    };
     exerciseGoals?: Record<string, number>;
     /** Objetivos 1RM en kg para sentadilla, banca y peso muerto */
     goals?: { squat1RM?: number; bench1RM?: number; deadlift1RM?: number };
@@ -427,13 +427,15 @@ export interface Program {
     };
     carpeDiemEnabled?: boolean;
     startDay?: number;
+    weekDays?: number; // ✅ NUEVO: Duración de semana (7-10 días)
     selectedSplitId?: string;
+    splitTrialSeen?: boolean; // ✅ NUEVO: Para aviso de "Probar Split"
     isDraft?: boolean;
     lastSavedStep?: number;
     draftData?: {
         selectedSplitId?: string;
         detailedSessions?: Record<number, Session>;
-        wizardEvents?: { id?: string, title: string, type: string, date: string, endDate?: string, calculatedWeek: number, createMacrocycle?: boolean, repeatEveryXCycles?: number }[];
+        wizardEvents?: ProgramEvent[];
         blockSplits?: Record<number, string>;   // <-- AHORA GUARDA EL ID DEL SPLIT
         splitMode?: 'global' | 'per_block';
         startDay?: number;
@@ -456,6 +458,7 @@ export interface Block {
     name: string;
     mesocycles: Mesocycle[];
 }
+export type ProgramBlock = Block;
 
 export interface Mesocycle {
     id: string;
@@ -464,6 +467,7 @@ export interface Mesocycle {
     customGoal?: string;
     weeks: ProgramWeek[];
 }
+export type ProgramMesocycle = Mesocycle;
 
 export interface ProgramWeek {
     id: string;
@@ -475,6 +479,114 @@ export interface ProgramWeek {
         title: string;
         type?: string;
     }>;
+    isLoopWeek?: boolean;
+    loopId?: string;
+}
+
+// ─── Loops: Sistema cíclico para Programas Simples ───
+
+export type LoopType = '1rm_test' | 'deload' | 'competition' | 'custom';
+
+export interface Loop {
+    id: string;
+    title: string;
+    type: LoopType;
+    repeatEveryXLoops: number;
+    durationType: 'day' | 'week';
+    dayOfWeek?: number;
+    durationWeeks?: number;
+    priority?: number;
+    sessions?: Session[];
+    color?: string;
+}
+
+export interface LoopActivation {
+    loopId: string;
+    cycle: number;
+    status: 'scheduled' | 'active' | 'completed' | 'postponed' | 'cancelled';
+    postponedTo?: number;
+}
+
+// ─── ProgramEvent: Eventos genéricos (legacy + Fechas Clave para Avanzados) ───
+
+export interface ProgramEvent {
+    id?: string;
+    title: string;
+    type: string;
+    date: string;
+    endDate?: string;
+    calculatedWeek: number;
+    createMacrocycle?: boolean;
+    /** @deprecated Use loops[] for simple programs instead */
+    repeatEveryXCycles?: number;
+    sessions?: Session[];
+    rules?: { avoidDaysOfWeek?: number[]; avoidEndOfMonth?: boolean; };
+}
+
+// ─── KeyDate: Fechas clave para Programas Avanzados ───
+
+export type KeyDateType = 'competition' | 'exam_week' | 'vacation' | 'custom';
+
+export interface KeyDate {
+    id: string;
+    title: string;
+    type: KeyDateType;
+    targetDate: string;
+    durationType: 'day' | 'week';
+    durationDays?: number;
+    weekIndex?: number;
+    dayOfWeek?: number;
+    sessions?: Session[];
+    truncateWeek?: boolean;
+}
+
+// ─── Templates para Programas Simples ───
+
+export interface LoopTemplate {
+    id: string;
+    name: string;
+    emoji: string;
+    description: string;
+    tags: string[];
+    weeks: number;
+    splitId?: string;
+    loops: Loop[];
+    weekConfigs?: { weekIndex: number; focus?: string; intensityModifier?: number }[];
+}
+
+// ─── Protocolos para Programas Avanzados ───
+
+export type ProtocolId = 'gzcl' | '531' | 'juggernaut' | 'westside' | 'rts' | 'custom';
+
+export interface Protocol {
+    id: string;
+    protocolId: ProtocolId;
+    name: string;
+    emoji: string;
+    description: string;
+    author?: string;
+    tags: string[];
+    sessionCategories: string[];
+    blocks: {
+        name: string;
+        weeks: number;
+        goal: Mesocycle['goal'];
+        intensityRange?: [number, number];
+        volumeModifier?: number;
+    }[];
+    defaultSplit?: string;
+}
+
+// ─── Micro-periodización ───
+
+export interface MicroProgramRule {
+    id: string;
+    scope: 'session' | 'day' | 'week';
+    activateEveryXLoops: number;
+    durationLoops: number;
+    targetSessionIds?: string[];
+    targetDayOfWeek?: number;
+    action: 'swap_main' | 'activate_secondary' | 'deactivate';
 }
 
 export interface Session {
@@ -488,7 +600,7 @@ export interface Session {
     coverStyle?: CoverStyle;
     dayOfWeek?: number;
     scheduleLabel?: string;
-    assignedDays?: number[]; // Transient property for multi-day assignment in Editor
+    assignedDays?: number[];
     sessionB?: Session;
     sessionC?: Session;
     sessionD?: Session;
@@ -499,6 +611,7 @@ export interface Session {
         enabled: boolean;
         everyXCycles: number;
         isMainInCycle: boolean;
+        rules?: MicroProgramRule[];
     };
     meetBodyweight?: number;
     meetResults?: { placement?: string; total?: number; dots?: number; awards?: string[] };
@@ -924,11 +1037,19 @@ export interface ParsedMealItem {
     dimensionalMultiplier?: number;
     subItems?: ParsedMealItem[];
     isGroup?: boolean;
+    analysisSource?: 'rules' | 'database' | 'user-memory' | 'local-ai-estimate' | 'local-heuristic';
+    analysisConfidence?: number;
+    reviewRequired?: boolean;
 }
 
 export interface ParsedMealDescription {
     items: ParsedMealItem[];
     rawDescription: string;
+    overallConfidence?: number;
+    containsEstimatedItems?: boolean;
+    requiresReview?: boolean;
+    analysisEngine?: 'rules' | 'local-ai' | 'local-heuristic' | 'deterministic';
+    modelVersion?: string | null;
 }
 
 export interface LoggedFood {

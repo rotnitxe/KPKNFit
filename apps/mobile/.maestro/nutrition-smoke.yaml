@@ -1,0 +1,13 @@
+appId: com.yourprime.app
+---
+- launchApp
+- tapOn:
+    text: "Nutrición"
+- tapOn:
+    id: "nutrition-example-completos"
+- tapOn:
+    id: "nutrition-analyze-button"
+- assertVisible: "calorías aproximadas"
+- tapOn:
+    id: "nutrition-save-button"
+- assertVisible: "Comida guardada."

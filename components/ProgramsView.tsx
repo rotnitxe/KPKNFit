@@ -81,7 +81,7 @@ const ProgramsView: React.FC<ProgramsViewProps> = ({ programs, onSelectProgram, 
     };
 
     return (
-        <div className="animate-fade-in min-h-screen tab-bar-safe-area pt-4 bg-[#FEF7FF]">
+        <div className="animate-fade-in min-h-screen pt-4 bg-[#FEF7FF] pb-24">
             <div className="max-w-4xl mx-auto px-4">
                 {/* Cabecera */}
                 <div className="flex justify-between items-center mb-10 mt-6">

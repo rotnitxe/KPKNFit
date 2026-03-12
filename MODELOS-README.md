@@ -1,19 +1,24 @@
-# IA local para nutricion
+# Modelos locales KPKN
 
-El frontend ya no descarga ni empaqueta modelos GGUF.
+Para nutricion descriptiva en Android usamos `FunctionGemma 270M` exportado como:
 
-El flujo actual usa:
+- `kpkn-food-fg270m-v1.task`
+- o `kpkn-food-fg270m-v1.litertlm`
 
-- parser por reglas en el cliente
-- busqueda sobre la base de alimentos del proyecto
-- IA local opcional via backend compatible con Ollama
+No se usa GGUF en el WebView.
 
-Comandos utiles:
+Staging rapido:
 
 ```bash
-npm run build
-npm run build:android
-npm run test:nutrition-logging
+npm run local-ai:stage-model -- --src "C:\ruta\al\modelo"
+npm run local-ai:check-model
 ```
 
-Si el backend local no esta disponible, la app hace fallback automatico al parser por reglas.
+Rutas de destino:
+
+- install-time pack: `android/kpknLocalAiPack/src/main/assets/install-time-models/`
+- debug/sideload: `android/app/src/main/assets/models/`
+
+Guia completa:
+
+- `C:\Users\valen\Downloads\kpkn-fit-(beta-test)\docs\local-ai-functiongemma-android.md`

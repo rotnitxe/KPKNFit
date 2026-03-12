@@ -11,9 +11,8 @@ type IconProps = React.SVGProps<SVGSVGElement> & {
 // Replaced IdCardIcon with a more dignified badge style
 export const UserBadgeIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-        <path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" />
-        <path d="M12 12c-4 0-7 2.5-7 6v2h14v-2c0-3.5-3-6-7-6z" />
-        <circle cx="12" cy="12" r="10" strokeOpacity="0.3" strokeWidth="1.5" />
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
     </svg>
 );
 
@@ -43,11 +42,19 @@ export const RingIcon: React.FC<IconProps> = ({ size = 20, className = '', strok
     </svg>
 );
 
+/** Icono Triple Rings entrelazados — para tab Mis RINGS */
+export const TripleRingsIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 1.8, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <circle cx="12" cy="12" r="9" />
+    </svg>
+);
+
 // Rediseñado para mayor simetría y estética profesional
 export const SettingsIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-        <circle cx="12" cy="12" r="3" />
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="12" cy="12" r="1.5" />
     </svg>
 );
 
@@ -111,11 +118,12 @@ export const CheckIcon: React.FC<IconProps> = ({ size = 20, className = '', stro
 export const BodyIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
 export const UtensilsIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Z" /></svg>;
 
-/** Icono plato — para tab Nutrición */
+/** Icono cuchara — para tab Nutrición */
 export const PlateIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-        <circle cx="12" cy="12" r="9" />
-        <circle cx="12" cy="12" r="5" strokeOpacity="0.4" />
+        <circle cx="12" cy="16" r="4" />
+        <path d="M12 12V4" />
+        <path d="M9 4h6" />
     </svg>
 );
 
@@ -308,6 +316,21 @@ export const FlagIcon: React.FC<IconProps> = ({ size = 20, className = '', strok
 export const ShieldIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+);
+
+export const MergeIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <path d="m8 6 4-4 4 4" />
+        <path d="M12 2v10.3a4 4 0 0 1-1.172 2.872L4 22" />
+        <path d="m20 22-5-5" />
+    </svg>
+);
+
+export const CopyIcon: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
     </svg>
 );
 

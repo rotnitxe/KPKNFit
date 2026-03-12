@@ -227,7 +227,7 @@ const SessionEditorModal: React.FC<{
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors"><XIcon size={24} /></button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar bg-gray-50/50 p-5 tab-bar-safe-area">
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-gray-50/50 p-5 pb-24">
                     {currentSession.exercises?.map((ex, i) => (
                         <InlineExerciseRow
                             key={ex.id || `temp-${i}`}
@@ -1799,7 +1799,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 scroll-smooth bg-[#050505] tab-bar-safe-area">
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 scroll-smooth bg-[#050505] pb-24">
                 <div className="max-w-md mx-auto py-8 relative">
 
                     {/* === PASO 0: SELECCIÓN DE ESTRUCTURA Y SPLIT === */}
@@ -2330,7 +2330,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existin
 
                     {!showCompareView ? (
                         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-black">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 tab-bar-safe-area">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-24">
                                 {filteredSplits.map(split => {
                                     const isSelected = compareList.includes(split.id);
                                     return (

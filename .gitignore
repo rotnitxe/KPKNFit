@@ -17,11 +17,51 @@ build/
 
 # Capacitor / Mobile
 ios/
-android/
+/android/
+!/android/
+/android/*
+!/android/settings.gradle
+!/android/app/
+/android/app/*
+!/android/app/build.gradle
+!/android/app/src/
+/android/app/src/*
+!/android/app/src/main/
+/android/app/src/main/*
+!/android/app/src/main/java/
+/android/app/src/main/java/*
+!/android/app/src/main/java/com/
+/android/app/src/main/java/com/*
+!/android/app/src/main/java/com/yourprime/
+/android/app/src/main/java/com/yourprime/*
+!/android/app/src/main/java/com/yourprime/app/
+/android/app/src/main/java/com/yourprime/app/*
+!/android/app/src/main/java/com/yourprime/app/localai/
+!/android/app/src/main/java/com/yourprime/app/localai/LocalAiPlugin.java
+!/android/app/src/main/assets/
+/android/app/src/main/assets/*
+!/android/app/src/main/assets/models/
+!/android/app/src/main/assets/models/README.txt
+!/android/kpknLocalAiPack/
+/android/kpknLocalAiPack/*
+!/android/kpknLocalAiPack/build.gradle
+!/android/kpknLocalAiPack/src/
+/android/kpknLocalAiPack/src/*
+!/android/kpknLocalAiPack/src/main/
+/android/kpknLocalAiPack/src/main/*
+!/android/kpknLocalAiPack/src/main/assets/
+/android/kpknLocalAiPack/src/main/assets/*
+!/android/kpknLocalAiPack/src/main/assets/install-time-models/
+!/android/kpknLocalAiPack/src/main/assets/install-time-models/README.txt
 .superdesign
 # public/models/ excepto .gitkeep
 public/models/*
 !public/models/.gitkeep
-# www/models/ excepto modelo Qwen
+# no volver a empaquetar modelos WebLLM legacy
 www/models/*
-!www/models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+
+# AI Models (avoid Github 100MB limit)
+*.litertlm
+*.tflite
+*.gguf
+*.bin

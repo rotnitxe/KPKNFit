@@ -20,7 +20,7 @@ interface PendingReorder {
 
 interface TrainingCalendarGridProps {
     program: Program;
-    isCyclic: boolean;
+    isSimple: boolean;
     roadmapBlocks: RoadmapBlock[];
     currentWeeks: (ProgramWeek & { mesoIndex: number })[];
     selectedBlockId: string | null;
@@ -46,7 +46,7 @@ interface TrainingCalendarGridProps {
 }
 
 const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
-    program, isCyclic, roadmapBlocks, currentWeeks, selectedBlockId,
+    program, isSimple, roadmapBlocks, currentWeeks, selectedBlockId,
     selectedWeekId, activeBlockId, settings, exerciseList, history,
     onSelectBlock, onSelectWeek, onOpenSplitChanger, onUpdateProgram,
     onEditWeek, onShowAdvancedTransition, onShowSimpleTransition, onOpenEventModal,
@@ -65,7 +65,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
     const touchStartX = useRef<number | null>(null);
     const touchStartY = useRef<number | null>(null);
 
-    const isAdvanced = !isCyclic;
+    const isAdvanced = !isSimple;
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -177,7 +177,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
     }, [program, selectedBlock, selectedWeek]);
 
     const getWeekLabel = (weekIdx: number) => {
-        if (!isCyclic || currentWeeks.length !== 2) return `Semana ${weekIdx + 1}`;
+        if (!isSimple || currentWeeks.length !== 2) return `Semana ${weekIdx + 1}`;
         return weekIdx === 0 ? 'Semana A' : 'Semana B';
     };
 
@@ -217,9 +217,9 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
     const coincidentLabel = useMemo(() => {
         if (cycleLength === 1) return 'esta semana';
         const idx = targetWeekIdx >= 0 ? targetWeekIdx % cycleLength : 0;
-        if (isCyclic && cycleLength === 2) return idx === 0 ? 'todas las Semana A' : 'todas las Semana B';
+        if (isSimple && cycleLength === 2) return idx === 0 ? 'todas las Semana A' : 'todas las Semana B';
         return `todas las Semana ${idx + 1} coincidentes`;
-    }, [cycleLength, targetWeekIdx, isCyclic]);
+    }, [cycleLength, targetWeekIdx, isSimple]);
 
     const navigateWeek = (dir: -1 | 1) => {
         const newIdx = selectedWeekIndex + dir;
@@ -318,7 +318,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
             )}
 
             {/* ── Block selector: chip row for advanced, hidden for simple ── */}
-            {!isCyclic && roadmapBlocks.length > 1 && (
+            {!isSimple && roadmapBlocks.length > 1 && (
                 <div className="px-4 py-2 border-b border-[var(--md-sys-color-outline-variant)]/50 shrink-0 overflow-x-auto no-scrollbar">
                     <div className="flex gap-2">
                         {roadmapBlocks.map(block => (
@@ -515,7 +515,7 @@ const TrainingCalendarGrid: React.FC<TrainingCalendarGridProps> = ({
                         isOpen={true}
                         onClose={() => setMainTab('semanas')}
                         program={program}
-                        isCyclic={isCyclic}
+                        isSimple={isSimple}
                         selectedBlockId={selectedBlockId}
                         selectedWeekId={selectedWeekId}
                         onSelectBlock={onSelectBlock}

@@ -1,9 +1,9 @@
 import type { Settings } from '../types';
+import type { LocalAiDeliveryMode } from './localAiService';
+import { getLocalAiStatus } from './localAiService';
 import { getNetworkStatus } from './networkService';
 
-const BACKEND_URL = (import.meta as any)?.env?.VITE_BACKEND_URL || 'http://localhost:8000';
 const STATUS_TTL_MS = 15_000;
-const REQUEST_TIMEOUT_MS = 1_500;
 
 export interface NutritionConnectivitySnapshot {
     checkedAt: number;
@@ -15,25 +15,16 @@ export interface NutritionConnectivitySnapshot {
     canUseOpenFoodFactsApi: boolean;
     backendReachable: boolean;
     localAiAvailable: boolean;
-    localAiProvider: 'ollama' | null;
+    localAiModelReady: boolean;
+    localAiProvider: 'android-native' | 'web-fallback' | null;
     localAiModel: string | null;
     availableLocalModels: string[];
+    localAiDeliveryMode: LocalAiDeliveryMode | null;
+    localAiLastError?: string | null;
 }
 
 let cachedSnapshot: NutritionConnectivitySnapshot | null = null;
 let lastFingerprint = '';
-
-async function fetchJsonWithTimeout(url: string, timeoutMs = REQUEST_TIMEOUT_MS): Promise<any> {
-    const ctrl = new AbortController();
-    const id = setTimeout(() => ctrl.abort(), timeoutMs);
-    try {
-        const response = await fetch(url, { signal: ctrl.signal });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-    } finally {
-        clearTimeout(id);
-    }
-}
 
 function buildFingerprint(settings?: Settings | null): string {
     return JSON.stringify({
@@ -47,10 +38,11 @@ function buildFingerprint(settings?: Settings | null): string {
 
 export async function getNutritionConnectivity(
     settings?: Settings | null,
-    forceRefresh = false
+    forceRefresh = false,
 ): Promise<NutritionConnectivitySnapshot> {
     const fingerprint = buildFingerprint(settings);
     const now = Date.now();
+
     if (!forceRefresh && cachedSnapshot && fingerprint === lastFingerprint && (now - cachedSnapshot.checkedAt) < STATUS_TTL_MS) {
         return cachedSnapshot;
     }
@@ -58,23 +50,14 @@ export async function getNutritionConnectivity(
     const network = await getNetworkStatus().catch(() => ({ connected: false, connectionType: 'unknown' }));
     const allowOnlineApis = settings?.nutritionUseOnlineApis ?? true;
     const usdaApiConfigured = Boolean(settings?.apiKeys?.usda);
+    const localAiEnabled = settings?.nutritionUseLocalAI ?? true;
+    const localAiStatus = await getLocalAiStatus(forceRefresh).catch(() => null);
 
-    let backendReachable = false;
-    let localAiAvailable = false;
-    let availableLocalModels: string[] = [];
+    const modelVersion = settings?.nutritionLocalModel || localAiStatus?.modelVersion || null;
+    const localAiProvider = localAiStatus?.available
+        ? (localAiStatus.deliveryMode === 'web-fallback' ? 'web-fallback' : 'android-native')
+        : null;
 
-    try {
-        const status = await fetchJsonWithTimeout(`${BACKEND_URL}/api/ai/status`);
-        backendReachable = Boolean(status?.backend);
-        const ollama = status?.providers?.ollama;
-        availableLocalModels = Array.isArray(ollama?.models) ? ollama.models.filter(Boolean) : [];
-        localAiAvailable = Boolean(ollama?.available);
-    } catch (_) {
-        backendReachable = false;
-        localAiAvailable = false;
-    }
-
-    const preferredLocalModel = settings?.nutritionLocalModel || availableLocalModels[0] || null;
     const snapshot: NutritionConnectivitySnapshot = {
         checkedAt: now,
         networkConnected: Boolean(network.connected),
@@ -83,11 +66,14 @@ export async function getNutritionConnectivity(
         usdaApiConfigured,
         canUseUsdaApi: Boolean(network.connected && allowOnlineApis && usdaApiConfigured),
         canUseOpenFoodFactsApi: Boolean(network.connected && allowOnlineApis),
-        backendReachable,
-        localAiAvailable: Boolean(localAiAvailable && (settings?.nutritionUseLocalAI ?? true)),
-        localAiProvider: localAiAvailable ? 'ollama' : null,
-        localAiModel: preferredLocalModel,
-        availableLocalModels,
+        backendReachable: false,
+        localAiAvailable: Boolean(localAiEnabled && localAiStatus?.available),
+        localAiModelReady: Boolean(localAiEnabled && localAiStatus?.modelReady),
+        localAiProvider,
+        localAiModel: modelVersion,
+        availableLocalModels: modelVersion ? [modelVersion] : [],
+        localAiDeliveryMode: localAiStatus?.deliveryMode ?? null,
+        localAiLastError: localAiStatus?.lastError ?? null,
     };
 
     cachedSnapshot = snapshot;

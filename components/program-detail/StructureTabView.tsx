@@ -18,7 +18,7 @@ type NamingMode = 'bloque' | 'mesociclo';
 
 interface StructureTabViewProps {
     program: Program;
-    isCyclic: boolean;
+    isSimple: boolean;
     selectedBlockId: string | null;
     selectedWeekId: string | null;
     onSelectBlock: (id: string) => void;
@@ -34,7 +34,7 @@ interface StructureTabViewProps {
 }
 
 const StructureTabView: React.FC<StructureTabViewProps> = ({
-    program, isCyclic, selectedBlockId, selectedWeekId,
+    program, isSimple, selectedBlockId, selectedWeekId,
     onSelectBlock, onSelectWeek, onUpdateProgram, onEditWeek,
     onShowAdvancedTransition, onShowSimpleTransition, onOpenEventModal,
 }) => {
@@ -86,7 +86,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
     };
 
     const handleAddBlockClick = (macroIdx: number) => {
-        if (isCyclic && blockCount === 1) {
+        if (isSimple && blockCount === 1) {
             setPendingAddBlockMacroIdx(macroIdx);
             setShowAddBlockConfirm(true);
         } else {
@@ -195,7 +195,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
             </div>
 
             {/* ── Global progress bar (advanced only) ── */}
-            {!isCyclic && totalWeeks > 0 && (
+            {!isSimple && totalWeeks > 0 && (
                 <div className="shrink-0 px-4 pb-3">
                     <div className="flex h-2.5 rounded-full overflow-hidden gap-px">
                         {allBlocks.map(block => {
@@ -337,7 +337,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                 >
                                                     <EditIcon size={16} />
                                                 </button>
-                                                {!isCyclic && blockCount > 1 && (
+                                                {!isSimple && blockCount > 1 && (
                                                     <button
                                                         onClick={() => {
                                                             if (window.confirm(`¿Eliminar "${block.name}"? Se perderán todas sus semanas y sesiones.`)) {
@@ -490,7 +490,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                 const isWeekSelected = week.id === selectedWeekId;
 
                                                                 // Check if this is a cyclic event week (for simple programs)
-                                                                const isCyclicEventWeek = isCyclic && events.some(ev =>
+                                                                const isLoopWeek = isSimple && events.some(ev =>
                                                                     ev.repeatEveryXCycles &&
                                                                     ((absIdx + 1) % (ev.repeatEveryXCycles * cycleLength)) === 0
                                                                 );
@@ -499,7 +499,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                     <button
                                                                         key={week.id}
                                                                         onClick={() => { onSelectBlock(block.id); onSelectWeek(week.id); }}
-                                                                        className={`relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-label-sm font-bold uppercase tracking-widest border transition-all ${isCyclicEventWeek
+                                                                        className={`relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-label-sm font-bold uppercase tracking-widest border transition-all ${isLoopWeek
                                                                             ? 'border-dashed'
                                                                             : hasEvent
                                                                                 ? ''
@@ -508,30 +508,30 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                                         style={{
                                                                             backgroundColor: isWeekSelected
                                                                                 ? color
-                                                                                : isCyclicEventWeek
+                                                                                : isLoopWeek
                                                                                     ? 'var(--md-sys-color-tertiary-container)'
                                                                                     : hasEvent
                                                                                         ? 'var(--md-sys-color-secondary-container)'
                                                                                         : 'var(--md-sys-color-surface-container)',
                                                                             borderColor: isWeekSelected
                                                                                 ? color
-                                                                                : isCyclicEventWeek
+                                                                                : isLoopWeek
                                                                                     ? 'var(--md-sys-color-tertiary)'
                                                                                     : hasEvent
                                                                                         ? 'var(--md-sys-color-secondary)'
                                                                                         : 'var(--md-sys-color-outline-variant)',
                                                                             color: isWeekSelected
                                                                                 ? 'white'
-                                                                                : isCyclicEventWeek
+                                                                                : isLoopWeek
                                                                                     ? 'var(--md-sys-color-on-tertiary-container)'
                                                                                     : hasEvent
                                                                                         ? 'var(--md-sys-color-on-secondary-container)'
                                                                                         : 'var(--md-sys-color-on-surface-variant)',
                                                                         }}
-                                                                        title={eventForWeek ? `Evento: ${eventForWeek.title}` : isCyclicEventWeek ? 'Semana evento cíclico' : week.name}
+                                                                        title={eventForWeek ? `Evento: ${eventForWeek.title}` : isLoopWeek ? 'Semana Loop' : week.name}
                                                                     >
-                                                                        {isCyclicEventWeek ? '★' : `S${weekIdx + 1}`}
-                                                                        {(hasEvent || isCyclicEventWeek) && (
+                                                                        {isLoopWeek ? '★' : `S${weekIdx + 1}`}
+                                                                        {(hasEvent || isLoopWeek) && (
                                                                             <CalendarIcon size={12} className="shrink-0" />
                                                                         )}
                                                                         {week.sessions.length > 0 && (
@@ -542,7 +542,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                                             })}
 
                                                             {/* Add cyclic event week chip (simple programs) */}
-                                                            {isCyclic && onUpdateProgram && (
+                                                            {isSimple && onUpdateProgram && (
                                                                 <button
                                                                     onClick={() => onOpenEventModal()}
                                                                     className="px-3 py-1.5 rounded-lg text-label-sm font-bold uppercase tracking-widest border border-dashed border-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-tertiary)] hover:bg-[var(--md-sys-color-tertiary-container)] hover:text-[var(--md-sys-color-on-tertiary-container)] transition-colors"
@@ -630,17 +630,17 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                 {/* ── EventSessionsManager ── */}
                 {onUpdateProgram && (
                     <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--md-sys-color-outline-variant)' }}>
-                        <EventSessionsManager program={program} isCyclic={isCyclic} onUpdateProgram={onUpdateProgram} />
+                        <EventSessionsManager program={program} isSimple={isSimple} onUpdateProgram={onUpdateProgram} />
                     </div>
                 )}
 
                 {/* ── Footer: Transition + Events M3 ── */}
                 <div className="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)] space-y-4">
                     {/* Cyclic events (simple only) */}
-                    {isCyclic && events.length > 0 && (
+                    {isSimple && events.length > 0 && (
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-label-sm font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)]">Eventos cíclicos</span>
+                                <span className="text-label-sm font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)]">Loops</span>
                                 <button onClick={() => onOpenEventModal()} className="text-label-sm font-bold text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary-container)] transition-colors">+ Nuevo</button>
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -660,7 +660,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                     )}
 
                     {/* Transition button M3 */}
-                    {isCyclic ? (
+                    {isSimple ? (
                         <button
                             onClick={onShowAdvancedTransition}
                             className="w-full py-3 rounded-full text-label-large font-bold uppercase tracking-widest border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-all"
@@ -694,7 +694,7 @@ const StructureTabView: React.FC<StructureTabViewProps> = ({
                                         Convertir a programa avanzado
                                     </h3>
                                     <p className="text-body-md leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">
-                                        Al añadir un {blockLabel.toLowerCase()}, el programa se convierte en <span className="font-bold text-[var(--md-sys-color-on-surface)]">avanzado</span> y los eventos cíclicos se eliminarán. ¿Continuar?
+                                        Al añadir un {blockLabel.toLowerCase()}, el programa se convierte en <span className="font-bold text-[var(--md-sys-color-on-surface)]">avanzado</span> y los loops se eliminarán. ¿Continuar?
                                     </p>
                                 </div>
                             </div>

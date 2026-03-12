@@ -8,7 +8,7 @@ import { getAbsoluteWeekIndex, checkWeekHasEvent } from '../../utils/programHelp
 
 interface StructureCardProps {
     program: Program;
-    isCyclic: boolean;
+    isSimple: boolean;
     onUpdateProgram?: (program: Program) => void;
     onEditWeek: (info: {
         macroIndex: number;
@@ -27,7 +27,7 @@ interface StructureCardProps {
 const GOAL_OPTIONS = ['Acumulación', 'Intensificación', 'Realización', 'Descarga', 'Custom'];
 
 const StructureCard: React.FC<StructureCardProps> = ({
-    program, isCyclic, onUpdateProgram, onEditWeek,
+    program, isSimple, onUpdateProgram, onEditWeek,
     onShowAdvancedTransition, onShowSimpleTransition,
     collapsed = false, onToggleCollapse,
 }) => {
@@ -54,7 +54,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                     <div>
                         <h3 className="text-[14px] font-black text-black uppercase tracking-tight">Estructura</h3>
                         <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mt-0.5">
-                            {isCyclic ? 'Programa Cíclico' : `${program.macrocycles.length} Macrociclo${program.macrocycles.length > 1 ? 's' : ''}`}
+                            {isSimple ? 'Programa Simple' : `${program.macrocycles.length} Macrociclo${program.macrocycles.length > 1 ? 's' : ''}`}
                         </p>
                     </div>
                 </div>
@@ -90,7 +90,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
 
                                 {/* Actions */}
                                 <div className="flex gap-3 flex-wrap pl-2">
-                                    {isCyclic ? (
+                                    {isSimple ? (
                                         <button
                                             onClick={onShowAdvancedTransition}
                                             className="py-2.5 px-4 bg-white/60 backdrop-blur-md border border-white/60 rounded-xl text-[9px] font-black uppercase tracking-widest text-blue-600 hover:bg-blue-50 transition-all flex items-center gap-2 shadow-sm"
@@ -186,10 +186,10 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                             <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                                                             <input
                                                                                 className="bg-transparent border-none p-0 text-[11px] font-black text-black uppercase tracking-tight flex-1 focus:ring-0"
-                                                                                defaultValue={isCyclic ? 'Semanas Cíclicas' : meso.name}
-                                                                                disabled={isCyclic}
+                                                                                defaultValue={isSimple ? 'Semanas Cíclicas' : meso.name}
+                                                                                disabled={isSimple}
                                                                                 onBlur={e => {
-                                                                                    if (!isCyclic && e.target.value !== meso.name) {
+                                                                                    if (!isSimple && e.target.value !== meso.name) {
                                                                                         const updated = JSON.parse(JSON.stringify(program));
                                                                                         updated.macrocycles[macroIndex].blocks[blockIndex].mesocycles[mesoIndex].name = e.target.value;
                                                                                         onUpdateProgram?.(updated);
@@ -198,7 +198,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                             />
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
-                                                                            {!isCyclic && (
+                                                                            {!isSimple && (
                                                                                 <select
                                                                                     className="bg-white text-[8px] font-black text-blue-600 uppercase tracking-widest border border-black/5 rounded-lg px-2 py-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none"
                                                                                     value={meso.goal}
@@ -226,7 +226,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                         </div>
                                                                     </div>
 
-                                                                    {isCyclic && (
+                                                                    {isSimple && (
                                                                         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 opacity-60">
                                                                             Las semanas se repiten cíclicamente.
                                                                         </p>
@@ -244,7 +244,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                             return (
                                                                                 <div key={week.id} className="shrink-0 w-32 relative group/week">
                                                                                     <div
-                                                                                        onClick={() => onEditWeek({ macroIndex, blockIndex, mesoIndex, weekIndex, week, isSimple: isCyclic })}
+                                                                                        onClick={() => onEditWeek({ macroIndex, blockIndex, mesoIndex, weekIndex, week, isSimple: isSimple })}
                                                                                         className={`w-full bg-white border ${hasEvent ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-black/5'} rounded-xl p-3 flex flex-col gap-2.5 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer shadow-sm`}
                                                                                     >
                                                                                         <div className="flex items-center justify-between">
@@ -288,7 +288,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
                                                                 </div>
                                                             ))}
 
-                                                            {!isCyclic && (
+                                                            {!isSimple && (
                                                                 <button
                                                                     onClick={() => {
                                                                         const updated = JSON.parse(JSON.stringify(program));

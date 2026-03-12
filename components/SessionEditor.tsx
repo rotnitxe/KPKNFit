@@ -2105,7 +2105,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                         </button>
                     </div>
                 ) : (
-                    <div className="tab-bar-safe-area">
+                    <div className="pb-24">
                         {/* ═══ Parts & Exercises (volumen solo en FAB AUGE) ═══ */}
                         <DragDropContext onDragEnd={handleExerciseDragEnd}>
                             {session.parts?.map((part, pi) => (

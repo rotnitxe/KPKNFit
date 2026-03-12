@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export type MainTab = 'training' | 'analytics';
-export type StructureSubTab = 'semana' | 'split' | 'macrociclo';
+export type StructureSubTab = 'semana' | 'split' | 'macrociclo' | 'loops' | 'protocolos';
 export type AnalyticsSubTab = 'volumen' | 'progreso' | 'historiales';
 
 interface IntegratedTabsProps {
@@ -11,6 +11,7 @@ interface IntegratedTabsProps {
     activeSubTab: StructureSubTab | AnalyticsSubTab;
     onSubTabChange: (tab: StructureSubTab | AnalyticsSubTab) => void;
     gradientTheme: string;
+    isSimpleProgram?: boolean;
 }
 
 const IntegratedTabs: React.FC<IntegratedTabsProps> = ({
@@ -19,13 +20,26 @@ const IntegratedTabs: React.FC<IntegratedTabsProps> = ({
     activeSubTab,
     onSubTabChange,
     gradientTheme,
+    isSimpleProgram = true,
 }) => {
     const isTraining = activeMainTab === 'training';
     
-    // Determine subtab options based on main tab
     const subTabs = isTraining
-        ? [{ label: 'Semana', value: 'semana' }, { label: 'Split', value: 'split' }, { label: 'Macrociclo', value: 'macrociclo' }]
-        : [{ label: 'Volumen', value: 'volumen' }, { label: 'Progreso', value: 'progreso' }, { label: 'Historiales', value: 'historiales' }];
+        ? [
+            { label: 'Semana', value: 'semana' }, 
+            { label: 'Split', value: 'split' }, 
+            { label: 'Macrociclo', value: 'macrociclo' },
+            // Loops para simples, Protocolos para avanzados
+            ...(isSimpleProgram
+                ? [{ label: 'Loops', value: 'loops' }]
+                : [{ label: 'Protocolos', value: 'protocolos' }]
+            ),
+        ]
+        : [
+            { label: 'Volumen', value: 'volumen' }, 
+            { label: 'Progreso', value: 'progreso' }, 
+            { label: 'Historiales', value: 'historiales' }
+        ];
 
     return (
         <div className="px-0 mb-0">

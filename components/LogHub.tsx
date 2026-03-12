@@ -18,7 +18,7 @@ const LogHub: React.FC<LogHubProps> = ({ onNavigate, setIsNutritionLogModalOpen 
   };
   const { setIsStartWorkoutModalOpen } = useAppDispatch();
   return (
-    <div className="animate-fade-in space-y-8 max-w-2xl mx-auto text-center tab-bar-safe-area">
+    <div className="animate-fade-in space-y-8 max-w-2xl mx-auto text-center pb-24">
       <div>
         <h1 className="text-4xl font-bold uppercase tracking-wider">Registrar</h1>
       </div>

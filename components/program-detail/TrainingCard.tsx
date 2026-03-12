@@ -18,7 +18,7 @@ interface RoadmapBlock {
 
 interface TrainingCardProps {
     program: Program;
-    isCyclic: boolean;
+    isSimple: boolean;
     roadmapBlocks: RoadmapBlock[];
     currentWeeks: (ProgramWeek & { mesoIndex: number })[];
     selectedBlockId: string | null;
@@ -43,7 +43,7 @@ interface TrainingCardProps {
 const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 const TrainingCard: React.FC<TrainingCardProps> = ({
-    program, isCyclic, roadmapBlocks, currentWeeks,
+    program, isSimple, roadmapBlocks, currentWeeks,
     selectedBlockId, selectedWeekId, activeBlockId, settings,
     exerciseList, history, onSelectBlock, onSelectWeek,
     onOpenSplitChanger, onStartWorkout, onEditSession, onDeleteSession,
@@ -159,7 +159,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                     <div>
                         <h3 className="text-xs font-black text-white uppercase tracking-widest">Entrenamiento</h3>
                         <p className="text-[9px] text-[#49454F] font-bold">
-                            {isCyclic
+                            {isSimple
                                 ? `${currentWeeks.length} semana${currentWeeks.length > 1 ? 's' : ''} cíclica${currentWeeks.length > 1 ? 's' : ''}`
                                 : `${roadmapBlocks.length} bloques • Semana ${selectedWeekIndex}`
                             }
@@ -173,7 +173,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                 <div className="px-4 pb-4 space-y-4 animate-fade-in">
                     {/* Actions bar */}
                     <div className="flex items-center justify-between">
-                        {isCyclic && (
+                        {isSimple && (
                             <button
                                 onClick={() => setShowCyclicHistory(!showCyclicHistory)}
                                 className="px-3 py-1.5 rounded-lg bg-blue-900/20 text-blue-400 text-[9px] font-black uppercase tracking-widest border border-blue-500/30 hover:bg-blue-600/40 transition-colors flex items-center gap-1.5"
@@ -191,7 +191,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                     </div>
 
                     {/* Block selector (non-cyclic) */}
-                    {!isCyclic && roadmapBlocks.length > 0 && (
+                    {!isSimple && roadmapBlocks.length > 0 && (
                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                             {roadmapBlocks.map((block, idx) => {
                                 const isSelected = block.id === selectedBlockId;
@@ -238,7 +238,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                                     </button>
                                 );
                             })}
-                            {isCyclic && (program.events || []).map(ev => (
+                            {isSimple && (program.events || []).map(ev => (
                                 <button
                                     key={ev.id}
                                     onClick={() => setSelectedEventId(ev.id || null)}
@@ -255,7 +255,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                     )}
 
                     {/* Content */}
-                    {showCyclicHistory && isCyclic ? (
+                    {showCyclicHistory && isSimple ? (
                         <div className="space-y-3 animate-slide-up">
                             <div className="flex items-center gap-2 mb-3">
                                 <div className="h-px bg-white/10 flex-1" />
@@ -286,7 +286,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({
                                 </div>
                             )}
                         </div>
-                    ) : selectedEventId && isCyclic ? (
+                    ) : selectedEventId && isSimple ? (
                         <div className="space-y-3 animate-fade-in">
                             {(() => {
                                 const ev = program.events?.find(e => e.id === selectedEventId);

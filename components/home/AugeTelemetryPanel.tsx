@@ -22,9 +22,15 @@ const RING_COLORS = {
 } as const;
 
 const RING_LABELS: Record<string, string> = {
-    muscular: "Muscular",
+    muscular: "Músculos",
     cns: "SNC",
     spinal: "Columna",
+};
+
+const RING_LABELS_SHORT: Record<string, string> = {
+    muscular: "Músc.",
+    cns: "SNC",
+    spinal: "Col.",
 };
 
 const RING_DESCRIPTIONS: Record<string, string> = {
@@ -297,8 +303,8 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
                 }}
             >
                 <div className="h-4 flex items-center justify-center mb-1">
-                    <span className="text-[9px] font-black text-black/40 uppercase tracking-[0.2em] leading-none mb-1">
-                        {RING_LABELS[id]}
+                    <span className="text-[9px] sm:text-[10px] font-black text-black/40 uppercase tracking-[0.2em] leading-none whitespace-nowrap">
+                        {RING_LABELS_SHORT[id]}
                     </span>
                 </div>
                 <div className="relative" style={{ width: size, height: size }}>
@@ -374,8 +380,8 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
                     </svg>
                 </div>
                 <div className="h-6 flex items-center justify-center mt-1">
-                    <span className="text-sm font-black text-black/60 font-mono tracking-wider leading-none">
-                        {value}<span className="text-[8px] opacity-20 ml-0.5">%</span>
+                    <span className="text-sm sm:text-base font-black text-black/60 font-mono tracking-wider leading-none">
+                        {value}<span className="text-[8px] sm:text-[10px] opacity-20 ml-0.5">%</span>
                     </span>
                 </div>
             </div>
@@ -498,23 +504,23 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
                                     </div>
 
                                     {/* Description/Info */}
-                                    <div className="flex-1 space-y-4">
+                                    <div className="flex-1 space-y-4 min-w-0">
                                         <div>
-                                            <h4 className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em] mb-1">Sistema {RING_LABELS[ringIds[carouselIndex]]}</h4>
-                                            <p className="text-[13px] text-black/80 font-medium leading-relaxed pr-4 whitespace-pre-wrap">
+                                            <h4 className="text-[9px] sm:text-[10px] font-black text-black/30 uppercase tracking-[0.2em] mb-1">Sistema {RING_LABELS[ringIds[carouselIndex]]}</h4>
+                                            <p className="text-[12px] sm:text-[13px] text-black/80 font-medium leading-relaxed pr-4 whitespace-pre-wrap break-words">
                                                 {RING_DESCRIPTIONS[ringIds[carouselIndex]]}
                                             </p>
                                         </div>
-                                        <div className="bg-white/50 border border-black/[0.03] shadow-sm rounded-2xl p-4 pr-5 backdrop-blur-md">
-                                            <p className="text-[11px] text-black/60 font-medium leading-relaxed">
-                                                <span className="font-bold text-black/80 block mb-1">Calibración Sensorial</span>
+                                        <div className="bg-white/50 border border-black/[0.03] shadow-sm rounded-2xl p-3 sm:p-4 pr-4 sm:pr-5 backdrop-blur-md">
+                                            <p className="text-[10px] sm:text-[11px] text-black/60 font-medium leading-relaxed">
+                                                <span className="font-bold text-black/80 block mb-1 text-[11px] sm:text-[12px]">Calibración Sensorial</span>
                                                 {RING_QUESTIONS[ringIds[carouselIndex]]}
                                             </p>
                                         </div>
                                         {ringIds[carouselIndex] === 'muscular' && (
                                             <button
                                                 onClick={() => setIsMuscleAccordionOpen(!isMuscleAccordionOpen)}
-                                                className="flex items-center gap-2 py-2 px-4 rounded-full bg-black text-white shadow-xl shadow-black/10 text-[10px] font-black uppercase tracking-widest hover:bg-black/80 active:scale-95 transition-all mt-2"
+                                                className="flex items-center gap-2 py-2 px-3 sm:px-4 rounded-full bg-black text-white shadow-xl shadow-black/10 text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:bg-black/80 active:scale-95 transition-all mt-2"
                                             >
                                                 {isMuscleAccordionOpen ? 'Cerrar detalle' : 'Batería por zona'}
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className={`transition-transform duration-300 ${isMuscleAccordionOpen ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -540,14 +546,14 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
                                                         return (
                                                             <div key={group.label} className="flex flex-col gap-2">
                                                                 <div className="flex justify-between items-end border-b border-black/[0.03] pb-1.5">
-                                                                    <span className="text-[10px] font-black text-black/50 uppercase tracking-widest">{group.label}</span>
-                                                                    <span className={`text-[10px] font-black tabular-nums ${getBarTextColor(avg)}`}>{avg}% global</span>
+                                                                    <span className="text-[9px] sm:text-[10px] font-black text-black/50 uppercase tracking-widest">{group.label}</span>
+                                                                    <span className={`text-[9px] sm:text-[10px] font-black tabular-nums ${getBarTextColor(avg)}`}>{avg}% global</span>
                                                                 </div>
                                                                 <div className="grid grid-cols-1 gap-1.5 pl-2">
                                                                     {muscles.map(m => (
                                                                         <div key={m.id} className="flex flex-col gap-0.5 w-full relative">
-                                                                            <div className="flex justify-between items-center text-[11px] font-black text-black/70 tracking-tight">
-                                                                                <span>{LABEL_MAP[m.id.toLowerCase()] || m.id}</span>
+                                                                            <div className="flex justify-between items-center text-[10px] sm:text-[11px] font-black text-black/70 tracking-tight">
+                                                                                <span className="truncate">{LABEL_MAP[m.id.toLowerCase()] || m.id}</span>
                                                                                 <span className={getBarTextColor(m.value)}>{m.value}%</span>
                                                                             </div>
                                                                             <div className="group relative w-full h-[6px] rounded-full bg-black/[0.04] overflow-hidden flex items-center">

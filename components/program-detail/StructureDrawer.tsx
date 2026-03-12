@@ -11,7 +11,7 @@ interface StructureDrawerProps {
     isOpen: boolean;
     onClose: () => void;
     program: Program;
-    isCyclic: boolean;
+    isSimple: boolean;
     selectedBlockId: string | null;
     selectedWeekId: string | null;
     onSelectBlock: (id: string) => void;
@@ -31,7 +31,7 @@ const GOAL_OPTIONS = ['Acumulación', 'Intensificación', 'Realización', 'Desca
 const BLOCK_COLORS = ['#3B82F6', '#A855F7', '#EAB308', '#10B981', '#F43F5E', '#06B6D4', '#EC4899'];
 
 const StructureDrawer: React.FC<StructureDrawerProps> = ({
-    isOpen, onClose, program, isCyclic, selectedBlockId, selectedWeekId,
+    isOpen, onClose, program, isSimple, selectedBlockId, selectedWeekId,
     onSelectBlock, onSelectWeek, onUpdateProgram, onEditWeek,
     onShowAdvancedTransition, onShowSimpleTransition, onOpenEventModal,
     inline = false,
@@ -279,7 +279,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
 
                             <button
                                 onClick={() => {
-                                    if (isCyclic && blockCount === 1) {
+                                    if (isSimple && blockCount === 1) {
                                         setPendingAddBlockMacroIdx(macroIdx);
                                         setShowAddBlockConfirm(true);
                                     } else {
@@ -357,7 +357,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                         <h3 className="text-title-small font-black uppercase tracking-tight text-[var(--md-sys-color-on-tertiary-container)]">¿Cambiar modo de programa?</h3>
                         <p className="text-[10px] font-bold text-[var(--md-sys-color-on-tertiary-container)]/70 mt-2 uppercase tracking-wide leading-relaxed">Los programas simples son cíclicos; los avanzados permiten estructuras asimétricas y periodización compleja.</p>
                     </div>
-                    {isCyclic ? (
+                    {isSimple ? (
                         <button onClick={onShowAdvancedTransition} className="px-6 py-4 rounded-2xl bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">
                             Pasar a Avanzado
                         </button>
@@ -386,7 +386,7 @@ const StructureDrawer: React.FC<StructureDrawerProps> = ({
                         </div>
                         <h3 className="text-xl font-black text-center text-[var(--md-sys-color-on-surface)] uppercase tracking-tight">Evolución de Programa</h3>
                         <p className="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] text-center mt-4 leading-relaxed uppercase tracking-wide">
-                            Añadir un bloque adicional convertirá este programa a <span className="text-[var(--md-sys-color-primary)] font-black">Modo Avanzado</span>. Se perderá la repetición cíclica automática de eventos. ¿Deseas evolucionar?
+                            Añadir un bloque adicional convertirá este programa a <span className="text-[var(--md-sys-color-primary)] font-black">Modo Avanzado</span>. Se perderá la repetición automática de loops. ¿Deseas evolucionar?
                         </p>
                         <div className="flex flex-col gap-3 mt-10">
                             <button

@@ -104,7 +104,7 @@ const ExerciseDatabaseView: React.FC = () => {
   }, [exerciseList]);
 
   return (
-    <div className="pt-12 px-6 tab-bar-safe-area min-h-screen bg-[#FDFCFE] pb-32">
+    <div className="pt-12 px-6 min-h-screen bg-[#FDFCFE] pb-32">
       <header className="flex items-center gap-4 mb-6">
         <button
           onClick={handleBack}

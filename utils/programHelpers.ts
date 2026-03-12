@@ -59,7 +59,7 @@ export const generateSessionsForWeek = (
     return sessions;
 };
 
-export const isProgramCyclic = (program: Program): boolean => {
+export const isProgramSimple = (program: Program): boolean => {
     if (program.structure === 'simple') return true;
     if (program.structure === 'complex') return false;
     if (program.macrocycles.length > 1) return false;

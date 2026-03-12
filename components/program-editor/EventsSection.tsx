@@ -12,7 +12,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ program, onUpdateProgram 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({ title: '', type: '1rm_test', repeatEveryXCycles: 4, calculatedWeek: 0 });
 
-    const isCyclic = program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
+    const isSimple = program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
     const events = program.events || [];
     const totalWeeks = program.macrocycles.reduce((a, m) => a + (m.blocks || []).reduce((b, bl) => b + bl.mesocycles.reduce((c, me) => c + me.weeks.length, 0), 0), 0);
 
@@ -35,8 +35,8 @@ const EventsSection: React.FC<EventsSectionProps> = ({ program, onUpdateProgram 
             id: editingId || crypto.randomUUID(),
             title: formData.title, type: formData.type,
             date: new Date().toISOString(),
-            calculatedWeek: isCyclic ? 0 : formData.calculatedWeek,
-            repeatEveryXCycles: isCyclic ? formData.repeatEveryXCycles : undefined,
+            calculatedWeek: isSimple ? 0 : formData.calculatedWeek,
+            repeatEveryXCycles: isSimple ? formData.repeatEveryXCycles : undefined,
         };
         if (editingId) {
             const idx = updated.events.findIndex((e: any) => e.id === editingId);
@@ -70,7 +70,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ program, onUpdateProgram 
             </div>
 
             {/* Timeline */}
-            {!isCyclic && events.length > 0 && totalWeeks > 0 && (
+            {!isSimple && events.length > 0 && totalWeeks > 0 && (
                 <div className="bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Cronograma de Eventos</span>
@@ -104,7 +104,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ program, onUpdateProgram 
                             <div className="flex-1 min-w-0">
                                 <span className="text-label-large font-black text-[var(--md-sys-color-on-surface)] uppercase tracking-tight block truncate mb-1">{ev.title}</span>
                                 <span className="text-[9px] font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">
-                                    {isCyclic ? `FRECUENCIA: CADA ${ev.repeatEveryXCycles} CICLOS` : `PLANIFICADO PARA: SEMANA ${ev.calculatedWeek + 1}`}
+                                    {isSimple ? `FRECUENCIA: CADA ${ev.repeatEveryXCycles} CICLOS` : `PLANIFICADO PARA: SEMANA ${ev.calculatedWeek + 1}`}
                                 </span>
                             </div>
                             <button
@@ -146,7 +146,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ program, onUpdateProgram 
                         </div>
 
                         <div className="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 border border-[var(--md-sys-color-outline-variant)]">
-                            {isCyclic ? (
+                            {isSimple ? (
                                 <div className="flex items-center justify-between">
                                     <span className="text-label-small font-black text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Repetir cada</span>
                                     <div className="flex items-center gap-3">

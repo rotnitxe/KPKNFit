@@ -2,6 +2,7 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Program, ProgramWeek } from '../../types';
 import { ChevronLeftIcon, ChevronRightIcon } from '../icons';
+import { getAbsoluteWeekIndex } from '../../utils/programHelpers';
 
 interface BlockRoadmapProps {
     program: Program;
@@ -29,6 +30,8 @@ interface RoadmapWeek {
     isCurrent: boolean;
     isSelected: boolean;
     hasEvent: boolean;
+    isLoopWeek: boolean;
+    loopName?: string;
     eventName?: string;
 }
 
@@ -45,6 +48,10 @@ const BlockRoadmap: React.FC<BlockRoadmapProps> = ({
 
     // Build roadmap data
     const roadmapBlocks: RoadmapBlock[] = useMemo(() => {
+        const events = program.events || [];
+        const loops = program.loops || [];
+        const cycleLength = program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length || 1;
+
         return program.macrocycles.flatMap((macro, macroIdx) =>
             (macro.blocks || []).map((block, blockIdx) => {
                 const blockName = block.name || `Bloque ${blockIdx + 1}`;
@@ -61,6 +68,18 @@ const BlockRoadmap: React.FC<BlockRoadmapProps> = ({
                         const isSelected = selectedWeekId === week.id;
                         const hasEvent = Boolean(week.events?.length);
                         
+                        // Detect loop weeks via program events or loops
+                        const absIdx = getAbsoluteWeekIndex(program, block.id || `${macroIdx}-${blockIdx}`, week.id);
+                        const loopEvent = events.find(e =>
+                            e.repeatEveryXCycles && ((absIdx + 1) % (e.repeatEveryXCycles * cycleLength)) === 0
+                        );
+                        const activeLoop = loops.find(l =>
+                            l.repeatEveryXLoops &&
+                            ((absIdx + 1) % (l.repeatEveryXLoops * cycleLength)) === 0
+                        );
+                        const isLoopWeek = Boolean(loopEvent || activeLoop);
+                        const loopName = activeLoop?.title || loopEvent?.title;
+
                         return {
                             id: week.id,
                             name: `S${mesoOffset + localMesoIdx + 1}`,
@@ -69,6 +88,8 @@ const BlockRoadmap: React.FC<BlockRoadmapProps> = ({
                             isCurrent,
                             isSelected,
                             hasEvent,
+                            isLoopWeek,
+                            loopName,
                             eventName: hasEvent ? week.events?.[0]?.title : undefined,
                         };
                     })
@@ -191,6 +212,13 @@ const BlockRoadmap: React.FC<BlockRoadmapProps> = ({
                                                 <span className="text-[6px]">📅</span>
                                             </div>
                                         )}
+
+                                        {/* Loop Indicator (only if no event badge) */}
+                                        {!block.weeks.some(w => w.hasEvent) && block.weeks.some(w => w.isLoopWeek) && (
+                                            <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-purple-500 border-2 border-white flex items-center justify-center shadow-sm">
+                                                <span className="text-[6px]">🔄</span>
+                                            </div>
+                                        )}
                                     </button>
                                 </div>
 
@@ -232,9 +260,16 @@ const BlockRoadmap: React.FC<BlockRoadmapProps> = ({
                                                                 {week.name.replace('S', '')}
                                                             </span>
 
-                                                            {/* Event Dot */}
-                                                            {week.hasEvent && (
-                                                                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white shadow-sm" />
+                                                            {/* Loop Ring Indicator */}
+                                                            {week.isLoopWeek && !week.isSelected && !week.isCurrent && (
+                                                                <div className="absolute inset-0 rounded-full border-2 border-purple-400 animate-pulse pointer-events-none" />
+                                                            )}
+
+                                                            {/* Event / Loop Dot */}
+                                                            {(week.hasEvent || week.isLoopWeek) && (
+                                                                <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm ${
+                                                                    week.isLoopWeek ? 'bg-purple-500' : 'bg-amber-400'
+                                                                }`} />
                                                             )}
                                                         </button>
 

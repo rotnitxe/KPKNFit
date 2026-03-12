@@ -11,11 +11,11 @@ const EVENT_SESSION_TYPES = [
 
 interface EventSessionsManagerProps {
     program: Program;
-    isCyclic: boolean;
+    isSimple: boolean;
     onUpdateProgram: (program: Program) => void;
 }
 
-const EventSessionsManager: React.FC<EventSessionsManagerProps> = ({ program, isCyclic, onUpdateProgram }) => {
+const EventSessionsManager: React.FC<EventSessionsManagerProps> = ({ program, isSimple, onUpdateProgram }) => {
     const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
 
     const events = program.events || [];
@@ -80,7 +80,7 @@ const EventSessionsManager: React.FC<EventSessionsManagerProps> = ({ program, is
                                 <div className="w-2 h-2 rounded-full bg-[#00F0FF] shrink-0" />
                                 <span className="text-sm font-bold text-white truncate max-w-[180px]">{ev.title}</span>
                                 <span className="text-[10px] text-[#48484A]">
-                                    {isCyclic ? `Cada ${ev.repeatEveryXCycles} ciclos` : `Semana ${(ev.calculatedWeek || 0) + 1}`}
+                                    {isSimple ? `Cada ${ev.repeatEveryXCycles} ciclos` : `Semana ${(ev.calculatedWeek || 0) + 1}`}
                                 </span>
                             </div>
                             <span className="text-[10px] text-[#48484A]">{sessions.length} sesión(es)</span>

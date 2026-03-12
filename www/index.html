@@ -259,8 +259,11 @@
     html,
     body {
       height: 100%;
+      width: 100%;
       overflow: hidden;
       overscroll-behavior: none;
+      margin: 0;
+      padding: 0;
     }
 
     body {
@@ -270,6 +273,8 @@
       background-color: var(--bg-color);
       background-image: var(--bg-gradient);
       background-attachment: fixed;
+      background-size: cover;
+      background-position: center;
       transition: background 0.5s ease, color 0.5s ease;
       color: var(--text-color);
       text-shadow: none;
@@ -344,9 +349,9 @@
       pointer-events: auto;
     }
 
-    /* Safe area for content above TabBar - use for sticky/fixed bottom elements */
+    /* Safe area for FIXED/Sticky bottom elements only - NO padding for regular content */
     .tab-bar-safe-area {
-      padding-bottom: var(--tab-bar-safe-bottom, max(140px, calc(96px + env(safe-area-inset-bottom, 0px) + 36px)));
+      /* Deprecated: Use regular padding-bottom only for fixed/sticky elements */
     }
 
     /* Safe area superior para Status Bar de Capacitor - mínimo 28px en móvil si env es 0 */

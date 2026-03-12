@@ -147,7 +147,7 @@ const ProgramEditorAdvanced: React.FC<ProgramEditorAdvancedProps> = ({
                                     isOpen={true}
                                     onClose={() => { }}
                                     program={program}
-                                    isCyclic={program.structure === 'simple'}
+                                    isSimple={program.structure === 'simple'}
                                     selectedBlockId={selectedBlockId}
                                     selectedWeekId={selectedWeekId}
                                     onSelectBlock={setSelectedBlockId}

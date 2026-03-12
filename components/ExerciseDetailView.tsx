@@ -462,7 +462,7 @@ export const ExerciseDetailView: React.FC<ExerciseDetailViewProps> = ({ exercise
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="tab-bar-safe-area bg-[#FDFCFE] min-h-screen"
+            className="bg-[#FDFCFE] min-h-screen pb-24"
         >
             {/* ═══ HEADER ═══ */}
             <header className="relative h-56 -mx-4 border-b border-black/[0.03] bg-gradient-to-b from-white/50 to-transparent">

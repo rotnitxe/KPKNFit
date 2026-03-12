@@ -63,7 +63,7 @@ const TasksView: React.FC = () => {
     const completedTasks = tasks.filter(t => t.completed);
 
     return (
-        <div className="space-y-6 tab-bar-safe-area">
+        <div className="space-y-6 pb-24">
             <h1 className="text-4xl font-bold uppercase tracking-wider">Mis Tareas</h1>
             
             <Card>

@@ -4,7 +4,7 @@ import { CalendarIcon, PlusIcon, TrashIcon, ActivityIcon, ChevronDownIcon } from
 
 interface EventsTimelineCardProps {
     program: Program;
-    isCyclic: boolean;
+    isSimple: boolean;
     onUpdateProgram?: (program: Program) => void;
     onOpenEventModal: (eventData?: { id: string; title: string; repeatEveryXCycles: number; calculatedWeek: number; type: string }) => void;
     collapsed?: boolean;
@@ -12,7 +12,7 @@ interface EventsTimelineCardProps {
 }
 
 const EventsTimelineCard: React.FC<EventsTimelineCardProps> = ({
-    program, isCyclic, onUpdateProgram, onOpenEventModal,
+    program, isSimple, onUpdateProgram, onOpenEventModal,
     collapsed = false, onToggleCollapse,
 }) => {
     const events = program.events || [];
@@ -38,7 +38,7 @@ const EventsTimelineCard: React.FC<EventsTimelineCardProps> = ({
             {!collapsed && (
                 <div className="px-4 pb-4 space-y-4 animate-fade-in">
                     {/* Linear timeline */}
-                    {!isCyclic && events.length > 0 && (
+                    {!isSimple && events.length > 0 && (
                         <div className="relative w-full h-1.5 bg-zinc-900 rounded-full border border-[#E6E0E9]">
                             {events.map((e, idx) => {
                                 const pos = Math.min(100, ((e.calculatedWeek + 1) / Math.max(1, totalWeeks)) * 100);
@@ -60,7 +60,7 @@ const EventsTimelineCard: React.FC<EventsTimelineCardProps> = ({
                     )}
 
                     {/* Cyclic diagram */}
-                    {isCyclic && events.length > 0 && (
+                    {isSimple && events.length > 0 && (
                         <div className="relative w-full flex justify-center py-4">
                             <div className="relative w-40 h-40 flex items-center justify-center">
                                 <svg className="absolute inset-0 w-full h-full text-zinc-800" viewBox="0 0 100 100">
@@ -130,10 +130,10 @@ const EventsTimelineCard: React.FC<EventsTimelineCardProps> = ({
                                         <TrashIcon size={10} />
                                     </button>
                                     <span className="text-[7px] text-[#49454F] font-black uppercase tracking-widest mb-0.5">
-                                        {isCyclic ? `Cada ${e.repeatEveryXCycles} ciclos` : 'Fecha Clave'}
+                                        {isSimple ? `Cada ${e.repeatEveryXCycles} ciclos` : 'Fecha Clave'}
                                     </span>
                                     <span className="text-[11px] font-bold text-white truncate pr-5">{e.title}</span>
-                                    {!isCyclic && (
+                                    {!isSimple && (
                                         <span className="text-[8px] text-[#49454F] mt-1 font-bold bg-white/5 self-start px-1.5 py-0.5 rounded">
                                             Semana {e.calculatedWeek + 1}
                                         </span>
@@ -148,10 +148,10 @@ const EventsTimelineCard: React.FC<EventsTimelineCardProps> = ({
                     )}
 
                     <button
-                        onClick={() => onOpenEventModal({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' })}
+                        onClick={() => onOpenEventModal({ id: '', title: '', repeatEveryXCycles: isSimple ? 4 : 1, calculatedWeek: 0, type: '1rm_test' })}
                         className="w-full py-2.5 bg-[#FEF7FF] border border-dashed border-yellow-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest text-yellow-600 hover:text-yellow-400 hover:border-yellow-500/40 transition-all flex items-center justify-center gap-1.5"
                     >
-                        <PlusIcon size={12} /> Nuevo {isCyclic ? 'Evento' : 'Hito'}
+                        <PlusIcon size={12} /> Nuevo {isSimple ? 'Evento' : 'Hito'}
                     </button>
                 </div>
             )}

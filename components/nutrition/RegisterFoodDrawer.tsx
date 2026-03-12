@@ -2,39 +2,31 @@
 // Drawer lateral para registrar comida con resolucion guiada.
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { NutritionLog, LoggedFood, FoodItem, Settings, PortionInput, CookingMethod, PortionPreset, ParsedMealItem, ParsedMealDescription } from '../../types';
-import { parseMealDescription } from '../../utils/nutritionDescriptionParser';
+import type { NutritionLog, LoggedFood, FoodItem, Settings, CookingMethod, PortionPreset, ParsedMealItem } from '../../types';
 import { AlchemyEngine } from '../../services/alchemyEngine';
 import { parseFreeFormNutrition } from '../../services/aiNutritionParser';
 import {
+    cancelCurrentLocalAiAnalysis,
+    getLocalAiStatus,
+} from '../../services/localAiService';
+import {
+    recordNutritionAiManualCorrection,
+    startNutritionAiTrace,
+    type NutritionAiTelemetryTagSnapshot,
+} from '../../services/nutritionAiTelemetryService';
+import {
+    preloadFoodDatabases,
     searchFoods,
+    searchFoodsExtended,
     rememberFoodResolution,
     type SearchConfidence,
     type SearchFoodCandidate,
 } from '../../services/foodSearchService';
 import { useAppDispatch } from '../../contexts/AppContext';
-import { XIcon, TrashIcon, UtensilsIcon, SearchIcon, ChevronDownIcon, PlusIcon } from '../icons';
+import { XIcon, TrashIcon, UtensilsIcon, SearchIcon, ChevronDownIcon, PlusIcon, AlertTriangleIcon } from '../icons';
 import { MealTemplateSelector } from './MealTemplateSelector';
-import { PortionSelector } from '../PortionSelector';
 import { getLocalDateString, dateStringToISOString } from '../../utils/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
-
-function foodToLoggedFood(food: FoodItem, amountGrams: number, portionInput?: PortionInput): LoggedFood {
-    const logged: LoggedFood = {
-        id: crypto.randomUUID(),
-        foodName: food.name,
-        amount: Math.round(amountGrams * 10) / 10,
-        unit: food.unit || 'g',
-        calories: Math.round((food.calories / food.servingSize) * amountGrams),
-        protein: Math.round((food.protein / food.servingSize) * amountGrams * 10) / 10,
-        carbs: Math.round((food.carbs / food.servingSize) * amountGrams * 10) / 10,
-        fats: Math.round((food.fats / food.servingSize) * amountGrams * 10) / 10,
-    };
-    if (portionInput) logged.portionInput = portionInput;
-    return logged;
-}
-
-type MacroKey = 'protein' | 'carbs' | 'fats';
 
 const mealOptions: { id: NutritionLog['mealType']; label: string; }[] = [
     { id: 'breakfast', label: 'Desayuno' },
@@ -43,18 +35,13 @@ const mealOptions: { id: NutritionLog['mealType']; label: string; }[] = [
     { id: 'snack', label: 'Snack' },
 ];
 
-const CALORIES_VISUAL_TARGET = 700;
-const MACRO_GOALS: { key: MacroKey; label: string; color: string; target: number }[] = [
-    { key: 'protein', label: 'PROT', color: 'bg-rose-500', target: 60 },
-    { key: 'carbs', label: 'CARB', color: 'bg-emerald-500', target: 180 },
-    { key: 'fats', label: 'FATS', color: 'bg-amber-500', target: 70 },
-];
-
-const DEBOUNCE_MS = 250;
 const SEARCH_DEBOUNCE_MS = 350;
 
 type TagOrigin = 'description' | 'manual' | 'template';
 type TagResolutionStatus = 'pending' | 'resolved' | 'needs_review' | 'unresolved';
+type TagAnalysisSource = 'rules' | 'database' | 'user-memory' | 'local-ai-estimate' | 'local-heuristic' | 'review';
+type DescriptionFlowState = 'idle' | 'analyzing' | 'ready' | 'failed';
+type SaveMode = 'confirmed' | 'estimated' | 'failed';
 
 export interface TagWithFood {
     key: string;
@@ -83,6 +70,9 @@ export interface TagWithFood {
     resolutionReason?: string;
     candidateFoods: SearchFoodCandidate[];
     sourceTrace?: string[];
+    analysisSource?: TagAnalysisSource;
+    analysisConfidence?: number;
+    reviewRequired?: boolean;
 }
 
 interface RegisterFoodDrawerProps {
@@ -94,11 +84,6 @@ interface RegisterFoodDrawerProps {
     mealType?: NutritionLog['mealType'];
     displayMode?: 'drawer' | 'appendix';
     showCloseButton?: boolean;
-}
-
-interface SelectedFoodForPortionState {
-    food: FoodItem;
-    query: string;
 }
 
 function createCustomFoodFromOverrides(tag: TagWithFood): FoodItem {
@@ -115,14 +100,46 @@ function createCustomFoodFromOverrides(tag: TagWithFood): FoodItem {
     };
 }
 
-function isBlockingResolution(tag: TagWithFood): boolean {
-    return tag.origin === 'description' && tag.resolutionStatus !== 'resolved';
+function hasManualMacroOverrides(tag: TagWithFood): boolean {
+    return Boolean(tag.macroOverrides && tag.analysisSource !== 'local-ai-estimate');
 }
 
 function confidenceLabel(confidence: SearchConfidence): string {
     if (confidence === 'high') return 'Alta';
     if (confidence === 'medium') return 'Media';
     return 'Baja';
+}
+
+function confidenceFromScore(score?: number): SearchConfidence {
+    if ((score ?? 0) >= 0.8) return 'high';
+    if ((score ?? 0) >= 0.55) return 'medium';
+    return 'low';
+}
+
+function isEstimatedTag(tag: TagWithFood): boolean {
+    return Boolean(
+        tag.analysisSource === 'local-ai-estimate'
+        || tag.isFuzzyMatch
+        || tag.resolutionConfidence !== 'high'
+        || tag.reviewRequired,
+    );
+}
+
+function isAssistedResolutionEnabled(settings: Settings): boolean {
+    return Boolean(
+        (settings.nutritionResolutionMode === 'assisted'
+            || settings.nutritionDescriptionMode === 'assisted'
+            || settings.nutritionDescriptionMode === 'local-ai')
+        && settings.nutritionUseLocalAI,
+    );
+}
+
+function detailHintLabel(tag: TagWithFood): string {
+    if (tag.analysisSource === 'local-ai-estimate') return 'Estimación automática';
+    if (tag.analysisSource === 'user-memory') return 'Ajustado según tus elecciones anteriores';
+    if (tag.subItems?.length) return 'Calculado desde una preparación compuesta';
+    if (tag.isFuzzyMatch || tag.resolutionConfidence !== 'high') return 'Referencia aproximada';
+    return 'Resultado listo';
 }
 
 function currentLikeTag(item: ParsedMealItem): Partial<TagWithFood> {
@@ -142,6 +159,18 @@ function currentLikeTag(item: ParsedMealItem): Partial<TagWithFood> {
         dimensionalMultiplier: item.dimensionalMultiplier,
         subItems: item.subItems,
         isGroup: item.isGroup,
+        analysisSource: item.analysisSource,
+        analysisConfidence: item.analysisConfidence,
+        reviewRequired: item.reviewRequired,
+    };
+}
+
+function toTelemetryTagSnapshot(tag: TagWithFood): NutritionAiTelemetryTagSnapshot {
+    return {
+        resolutionStatus: tag.resolutionStatus,
+        analysisSource: tag.analysisSource,
+        analysisConfidence: tag.analysisConfidence,
+        reviewRequired: tag.reviewRequired,
     };
 }
 
@@ -170,22 +199,10 @@ function makeDescriptionTag(item: ParsedMealItem | null, fallbackText?: string):
         resolutionStatus: 'pending',
         resolutionConfidence: 'low',
         candidateFoods: [],
+        analysisSource: item?.analysisSource || 'rules',
+        analysisConfidence: item?.analysisConfidence,
+        reviewRequired: item?.reviewRequired,
     };
-}
-
-function buildParsedSignature(parsed: ParsedMealDescription): string {
-    return parsed.items
-        .map(item => JSON.stringify({
-            tag: item.tag,
-            quantity: item.quantity,
-            amountGrams: item.amountGrams ?? null,
-            portion: item.portion ?? null,
-            brandHint: item.brandHint ?? null,
-            cookingMethod: item.cookingMethod ?? null,
-            subItems: item.subItems?.map(subItem => subItem.tag) ?? [],
-        }))
-        .sort()
-        .join('|');
 }
 
 export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
@@ -208,12 +225,16 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
     const [searchLoading, setSearchLoading] = useState(false);
-    const [selectedFoodForPortion, setSelectedFoodForPortion] = useState<SelectedFoodForPortionState | null>(null);
     const [saveState, setSaveState] = useState<'idle' | 'success'>('idle');
     const [manualResolveTagKey, setManualResolveTagKey] = useState<string | null>(null);
+    const [descriptionState, setDescriptionState] = useState<DescriptionFlowState>('idle');
+    const [lastAnalyzedDescription, setLastAnalyzedDescription] = useState('');
+    const [showResultDetails, setShowResultDetails] = useState(false);
 
     const resolutionRequestRef = useRef(0);
     const searchRequestRef = useRef(0);
+    const tagItemsRef = useRef<TagWithFood[]>([]);
+    const analysisTraceRef = useRef<ReturnType<typeof startNutritionAiTrace> | null>(null);
 
     const isAppendixMode = displayMode === 'appendix';
     const sheetContainerClass = isAppendixMode
@@ -234,51 +255,146 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         setSearchQuery('');
         setSearchResults([]);
         setSearchLoading(false);
-        setSelectedFoodForPortion(null);
         setSaveState('idle');
         setManualResolveTagKey(null);
+        setDescriptionState('idle');
+        setLastAnalyzedDescription('');
+        setShowResultDetails(false);
     }, [isOpen, initialDate, initialMealType]);
+
+    useEffect(() => {
+        tagItemsRef.current = tagItems;
+    }, [tagItems]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        preloadFoodDatabases('hot');
+    }, [isOpen]);
 
     const buildLoggedFromItem = useCallback((item: FoodItem, tag: TagWithFood): LoggedFood => {
         return AlchemyEngine.calculateLoggedFood(item, tag);
     }, []);
 
+    const createResolvedTag = useCallback((
+        food: FoodItem,
+        origin: TagOrigin,
+        overrides: Partial<TagWithFood> = {},
+    ): TagWithFood => {
+        const baseTag: TagWithFood = {
+            key: crypto.randomUUID(),
+            origin,
+            tag: overrides.tag ?? food.name,
+            portion: overrides.portion ?? 'medium',
+            quantity: overrides.quantity ?? 1,
+            amountGrams: overrides.amountGrams,
+            cookingMethod: overrides.cookingMethod,
+            brandHint: overrides.brandHint,
+            macroOverrides: overrides.macroOverrides,
+            anatomicalModifiers: overrides.anatomicalModifiers,
+            heuristicModifiers: overrides.heuristicModifiers,
+            preparationModifiers: overrides.preparationModifiers,
+            stateModifiers: overrides.stateModifiers,
+            compositionModifiers: overrides.compositionModifiers,
+            dimensionalMultiplier: overrides.dimensionalMultiplier,
+            subItems: overrides.subItems,
+            isGroup: overrides.isGroup,
+            foodItem: food,
+            loggedFood: null,
+            isFuzzyMatch: overrides.isFuzzyMatch,
+            resolutionStatus: 'resolved',
+            resolutionConfidence: overrides.resolutionConfidence ?? 'high',
+            resolutionScore: overrides.resolutionScore,
+            resolutionReason: overrides.resolutionReason,
+            candidateFoods: overrides.candidateFoods ?? [],
+            sourceTrace: overrides.sourceTrace,
+            analysisSource: overrides.analysisSource ?? 'database',
+            analysisConfidence: overrides.analysisConfidence,
+            reviewRequired: overrides.reviewRequired,
+        };
+
+        return {
+            ...baseTag,
+            loggedFood: buildLoggedFromItem(food, baseTag),
+        };
+    }, [buildLoggedFromItem]);
+
     const updateTagItem = useCallback((tagKey: string, updater: (current: TagWithFood) => TagWithFood) => {
         setTagItems(prev => prev.map(tag => tag.key === tagKey ? updater(tag) : tag));
     }, []);
 
+    const resolveWithAiEstimate = useCallback((
+        tag: TagWithFood,
+        requestId: number,
+        candidateFoods: SearchFoodCandidate[] = [],
+        reason = 'Resultado estimado automáticamente.',
+    ) => {
+        if (requestId !== resolutionRequestRef.current || !tag.macroOverrides) return;
+
+        const customFood = createCustomFoodFromOverrides(tag);
+        updateTagItem(tag.key, current => ({
+            ...current,
+            foodItem: customFood,
+            loggedFood: buildLoggedFromItem(customFood, current),
+            resolutionStatus: 'resolved',
+            resolutionConfidence: confidenceFromScore(current.analysisConfidence),
+            resolutionReason: reason,
+            candidateFoods,
+            sourceTrace: ['local_ai_estimate'],
+            analysisSource: 'local-ai-estimate',
+        }));
+    }, [buildLoggedFromItem, updateTagItem]);
+
     const resolveDescriptionTag = useCallback(async (tag: TagWithFood, requestId: number) => {
         if (tag.isGroup && tag.subItems?.length) {
-            const subResults = await Promise.all(tag.subItems.map(subItem => searchFoods(subItem.tag, settings, subItem.brandHint)));
+            const subResults = [];
+            for (const subItem of tag.subItems) {
+                const subResult = await searchFoods(subItem.tag, settings, subItem.brandHint);
+                if (requestId !== resolutionRequestRef.current) return;
+                subResults.push(subResult);
+            }
             if (requestId !== resolutionRequestRef.current) return;
 
-            const canResolveGroup = subResults.every(result => result.canAutoSelect && result.results[0]);
-            if (!canResolveGroup) {
+            const subItemCount = tag.subItems.length;
+            const chosenCandidates = subResults
+                .map(result => result.candidates[0] ?? null)
+                .filter((candidate): candidate is SearchFoodCandidate => Boolean(candidate));
+
+            if (chosenCandidates.length === 0) {
+                if (tag.macroOverrides) {
+                    resolveWithAiEstimate(tag, requestId, [], 'Resultado estimado para una preparación compuesta.');
+                    return;
+                }
+
                 updateTagItem(tag.key, current => ({
                     ...current,
-                    resolutionStatus: 'needs_review',
+                    foodItem: null,
+                    loggedFood: null,
+                    resolutionStatus: 'unresolved',
                     resolutionConfidence: 'low',
-                    resolutionReason: 'La receta compuesta requiere confirmar sus ingredientes.',
+                    resolutionReason: 'No pudimos estimar esta preparación todavía.',
                     candidateFoods: [],
+                    analysisSource: current.analysisSource === 'local-ai-estimate' ? 'review' : current.analysisSource,
                 }));
-                setExpandedTagKey(prev => prev ?? tag.key);
                 return;
             }
 
-            const subLoggedFoods = tag.subItems.map((subItem, index) => {
-                const food = subResults[index].results[0]!;
-                const subTag: TagWithFood = {
-                    ...(currentLikeTag(subItem) as TagWithFood),
-                    key: crypto.randomUUID(),
-                    origin: 'description',
-                    foodItem: food,
-                    loggedFood: null,
-                    resolutionStatus: 'resolved',
-                    resolutionConfidence: subResults[index].bestConfidence,
-                    candidateFoods: subResults[index].candidates,
-                };
-                return buildLoggedFromItem(food, subTag);
-            });
+            const subLoggedFoods = tag.subItems
+                .map((subItem, index) => {
+                    const candidate = subResults[index].candidates[0];
+                    if (!candidate) return null;
+
+                    const subTag = createResolvedTag(candidate.food, 'description', {
+                        ...currentLikeTag(subItem),
+                        resolutionConfidence: subResults[index].bestConfidence,
+                        resolutionScore: candidate.score,
+                        candidateFoods: subResults[index].candidates,
+                        analysisSource: candidate.learned ? 'user-memory' : 'database',
+                        isFuzzyMatch: candidate.confidence !== 'high',
+                    });
+
+                    return subTag.loggedFood;
+                })
+                .filter((loggedFood): loggedFood is LoggedFood => Boolean(loggedFood));
 
             const aggregate = subLoggedFoods.reduce((acc, logged) => {
                 acc.amount += logged.amount;
@@ -303,10 +419,18 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                     portionPreset: 'medium',
                     quantity: 1,
                 },
-                resolutionStatus: 'resolved',
-                resolutionConfidence: 'high',
-                resolutionReason: 'Receta compuesta resuelta por ingredientes.',
-                candidateFoods: [],
+                resolutionStatus: chosenCandidates.length === subItemCount && subResults.every(result => result.canAutoSelect)
+                    ? 'resolved'
+                    : 'needs_review',
+                resolutionConfidence: chosenCandidates.length === subItemCount && subResults.every(result => result.canAutoSelect)
+                    ? 'high'
+                    : 'medium',
+                resolutionReason: chosenCandidates.length === subItemCount && subResults.every(result => result.canAutoSelect)
+                    ? 'Calculado usando los ingredientes detectados.'
+                    : 'Calculamos una referencia aproximada para esta preparación y conviene revisarla.',
+                candidateFoods: chosenCandidates.slice(0, 4),
+                analysisSource: chosenCandidates.some(candidate => candidate.learned) ? 'user-memory' : 'database',
+                reviewRequired: !subResults.every(result => result.canAutoSelect),
             }));
             return;
         }
@@ -315,18 +439,24 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         if (requestId !== resolutionRequestRef.current) return;
 
         if (!result.results[0] && tag.macroOverrides) {
-            const customFood = createCustomFoodFromOverrides(tag);
-            updateTagItem(tag.key, current => ({
-                ...current,
-                foodItem: customFood,
-                loggedFood: buildLoggedFromItem(customFood, current),
-                resolutionStatus: 'resolved',
-                resolutionConfidence: 'high',
-                resolutionScore: 1,
-                resolutionReason: 'Macros manuales aplicados como alimento personalizado.',
-                candidateFoods: [],
-                sourceTrace: ['macro_override'],
-            }));
+            if (hasManualMacroOverrides(tag)) {
+                const customFood = createCustomFoodFromOverrides(tag);
+                updateTagItem(tag.key, current => ({
+                    ...current,
+                    foodItem: customFood,
+                    loggedFood: buildLoggedFromItem(customFood, current),
+                    resolutionStatus: 'resolved',
+                    resolutionConfidence: 'high',
+                    resolutionScore: 1,
+                    resolutionReason: 'Macros manuales aplicados como alimento personalizado.',
+                    candidateFoods: [],
+                    sourceTrace: ['macro_override'],
+                    analysisSource: 'rules',
+                }));
+                return;
+            }
+
+            resolveWithAiEstimate(tag, requestId, [], 'Estimado por IA local y macros offline.');
             return;
         }
 
@@ -342,6 +472,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                 candidateFoods: result.candidates.slice(0, 4),
                 sourceTrace: result.candidates[0]?.trace,
                 isFuzzyMatch: true,
+                analysisSource: current.analysisSource === 'local-ai-estimate' ? 'review' : current.analysisSource,
             }));
             setExpandedTagKey(prev => prev ?? tag.key);
             return;
@@ -360,7 +491,35 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                 candidateFoods: result.candidates.slice(0, 4),
                 sourceTrace: bestCandidate.trace,
                 isFuzzyMatch: result.matchType === 'fuzzy',
+                analysisSource: bestCandidate.learned ? 'user-memory' : 'database',
+                reviewRequired: false,
             }));
+            return;
+        }
+
+        if (tag.macroOverrides && tag.analysisSource === 'local-ai-estimate') {
+            resolveWithAiEstimate(tag, requestId, result.candidates.slice(0, 4), 'Estimado por IA local; la base local quedó ambigua.');
+            return;
+        }
+
+        const bestCandidate = result.candidates[0];
+        if (bestCandidate) {
+            updateTagItem(tag.key, current => ({
+                ...current,
+                foodItem: null,
+                loggedFood: null,
+                resolutionStatus: 'needs_review',
+                resolutionConfidence: result.bestConfidence,
+                resolutionScore: bestCandidate.score,
+                resolutionReason: result.decisionReason || 'Selecciona una de las sugerencias para confirmar.',
+                candidateFoods: result.candidates.slice(0, 4),
+                sourceTrace: bestCandidate.trace,
+                isFuzzyMatch: true,
+                analysisSource: bestCandidate.learned ? 'user-memory' : 'review',
+                analysisConfidence: bestCandidate.score,
+                reviewRequired: true,
+            }));
+            setExpandedTagKey(prev => prev ?? tag.key);
             return;
         }
 
@@ -368,63 +527,18 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             ...current,
             foodItem: null,
             loggedFood: null,
-            resolutionStatus: result.candidates.length > 0 ? 'needs_review' : 'unresolved',
+            resolutionStatus: 'unresolved',
             resolutionConfidence: result.bestConfidence,
             resolutionScore: result.bestScore,
-            resolutionReason: result.decisionReason,
+            resolutionReason: result.decisionReason || 'No pudimos estimar esta comida todavía.',
             candidateFoods: result.candidates.slice(0, 4),
             sourceTrace: result.candidates[0]?.trace,
             isFuzzyMatch: true,
+            analysisSource: current.analysisSource === 'local-ai-estimate' ? 'review' : current.analysisSource,
+            reviewRequired: true,
         }));
         setExpandedTagKey(prev => prev ?? tag.key);
-    }, [buildLoggedFromItem, settings, updateTagItem]);
-
-    const parseAndSetTags = useCallback(async () => {
-        const requestId = ++resolutionRequestRef.current;
-        const preserved = tagItems.filter(tag => tag.origin !== 'description');
-        const trimmedDescription = description.trim();
-
-        if (!trimmedDescription) {
-            setTagItems(preserved);
-            return;
-        }
-
-        const fastParsed = parseMealDescription(trimmedDescription);
-        const fastSignature = buildParsedSignature(fastParsed);
-        const descriptionTags = fastParsed.items.length > 0
-            ? fastParsed.items.map(item => makeDescriptionTag(item))
-            : [makeDescriptionTag(null, trimmedDescription)];
-
-        setExpandedTagKey(null);
-        setTagItems([...descriptionTags, ...preserved]);
-
-        await Promise.all(descriptionTags.map(tag => resolveDescriptionTag(tag, requestId)));
-
-        const refinedParsed = await parseFreeFormNutrition(trimmedDescription, settings);
-        if (requestId !== resolutionRequestRef.current) return;
-
-        const refinedSignature = buildParsedSignature(refinedParsed);
-        if (refinedSignature === fastSignature) return;
-
-        const refinedTags = refinedParsed.items.length > 0
-            ? refinedParsed.items.map(item => makeDescriptionTag(item))
-            : [makeDescriptionTag(null, trimmedDescription)];
-
-        setExpandedTagKey(null);
-        setTagItems([...refinedTags, ...preserved]);
-        await Promise.all(refinedTags.map(tag => resolveDescriptionTag(tag, requestId)));
-    }, [description, resolveDescriptionTag, settings, tagItems]);
-
-    useEffect(() => {
-        if (!isOpen || activeTab === 'templates') return;
-        const timeout = setTimeout(() => {
-            parseAndSetTags().catch(() => {
-                addToast('No se pudo procesar la descripcion.', 'danger');
-            });
-        }, DEBOUNCE_MS);
-
-        return () => clearTimeout(timeout);
-    }, [activeTab, addToast, isOpen, parseAndSetTags]);
+    }, [createResolvedTag, buildLoggedFromItem, resolveWithAiEstimate, settings, updateTagItem]);
 
     useEffect(() => {
         if (!isOpen || activeTab !== 'search') return;
@@ -440,7 +554,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         setSearchLoading(true);
 
         const timeout = setTimeout(() => {
-            searchFoods(trimmed, settings)
+            searchFoodsExtended(trimmed, settings)
                 .then(result => {
                     if (requestId !== searchRequestRef.current) return;
                     setSearchResults(result.results);
@@ -456,7 +570,169 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
         return () => clearTimeout(timeout);
     }, [activeTab, isOpen, searchQuery, settings]);
 
+    const cancelAnalysis = useCallback(() => {
+        if (descriptionState === 'analyzing') {
+            analysisTraceRef.current?.cancel({
+                parsed: null,
+                tags: tagItems
+                    .filter(tag => tag.origin === 'description')
+                    .map(toTelemetryTagSnapshot),
+            });
+            analysisTraceRef.current = null;
+        }
+
+        resolutionRequestRef.current += 1;
+        const preserved = tagItems.filter(tag => tag.origin !== 'description');
+        setTagItems(preserved);
+        setExpandedTagKey(null);
+        setDescriptionState(description.trim() ? 'idle' : 'idle');
+        setLastAnalyzedDescription('');
+        setShowResultDetails(false);
+        if (isAssistedResolutionEnabled(settings)) {
+            cancelCurrentLocalAiAnalysis().catch(() => { });
+        }
+    }, [description, descriptionState, settings, tagItems]);
+
+    const analyzeDescription = useCallback(async () => {
+        const trimmedDescription = description.trim();
+        const preserved = tagItems.filter(tag => tag.origin !== 'description');
+
+        if (!trimmedDescription) {
+            setTagItems(preserved);
+            addToast('Escribe una descripción antes de analizar.', 'danger');
+            return;
+        }
+
+        const requestId = ++resolutionRequestRef.current;
+        const assistedMode = isAssistedResolutionEnabled(settings);
+        const trace = startNutritionAiTrace({
+            descriptionLength: trimmedDescription.length,
+            localAiEnabled: assistedMode,
+            requestedModel: settings?.nutritionLocalModel ?? null,
+            reanalysis: trimmedDescription === lastAnalyzedDescription,
+        });
+        analysisTraceRef.current = trace;
+        trace.markStage('interpreting');
+        if (assistedMode) {
+            getLocalAiStatus().then((status) => {
+                trace.setRuntimeStatus(status);
+            }).catch(() => {
+                trace.setRuntimeStatus(null);
+            });
+        } else {
+            trace.setRuntimeStatus(null);
+        }
+
+        setDescriptionState('analyzing');
+        setExpandedTagKey(null);
+        setManualResolveTagKey(null);
+        setTagItems(preserved);
+
+        try {
+            const parsed = await parseFreeFormNutrition(trimmedDescription, settings, {
+                onStageChange: (stage) => {
+                    if (requestId !== resolutionRequestRef.current) return;
+                    trace.markStage(stage);
+                },
+            });
+
+            if (requestId !== resolutionRequestRef.current) return;
+
+            const descriptionTags = parsed.items.length > 0
+                ? parsed.items.map(item => makeDescriptionTag(item))
+                : [makeDescriptionTag(null, trimmedDescription)];
+
+            setTagItems([...descriptionTags, ...preserved]);
+            trace.markStage('matching');
+            for (const tag of descriptionTags) {
+                await resolveDescriptionTag(tag, requestId);
+                if (requestId !== resolutionRequestRef.current) return;
+            }
+            if (requestId !== resolutionRequestRef.current) return;
+
+            const descriptionTagKeys = new Set(descriptionTags.map(tag => tag.key));
+            const finalDescriptionTags = tagItemsRef.current
+                .filter(tag => descriptionTagKeys.has(tag.key))
+                .map(toTelemetryTagSnapshot);
+            const hasUsableResult = tagItemsRef.current
+                .some(tag => descriptionTagKeys.has(tag.key) && Boolean(tag.loggedFood));
+
+            trace.complete({
+                parsed,
+                tags: finalDescriptionTags,
+            });
+            analysisTraceRef.current = null;
+            setLastAnalyzedDescription(trimmedDescription);
+            setDescriptionState(hasUsableResult ? 'ready' : 'failed');
+            setShowResultDetails(false);
+        } catch (error) {
+            console.error('[RegisterFoodDrawer] analyzeDescription failed', error);
+            if (requestId !== resolutionRequestRef.current) return;
+            trace.fail(error instanceof Error ? error.message : 'No se pudo analizar la descripción.', {
+                parsed: null,
+                tags: tagItemsRef.current
+                    .filter(tag => tag.origin === 'description')
+                    .map(toTelemetryTagSnapshot),
+            });
+            analysisTraceRef.current = null;
+            setDescriptionState('failed');
+            addToast('No se pudo analizar la descripción.', 'danger');
+        }
+    }, [addToast, description, lastAnalyzedDescription, resolveDescriptionTag, settings, tagItems]);
+
+    const handleDescriptionChange = useCallback((nextValue: string) => {
+        setDescription(nextValue);
+        const preserved = tagItems.filter(tag => tag.origin !== 'description');
+        if (preserved.length !== tagItems.length) {
+            setTagItems(preserved);
+            setExpandedTagKey(null);
+        }
+        if (manualResolveTagKey) {
+            setManualResolveTagKey(null);
+        }
+        if (nextValue.trim() !== lastAnalyzedDescription) {
+            setDescriptionState(nextValue.trim() ? 'idle' : 'idle');
+            setShowResultDetails(false);
+        }
+    }, [lastAnalyzedDescription, manualResolveTagKey, tagItems]);
+
+    useEffect(() => {
+        if (descriptionState === 'analyzing') return;
+
+        const trimmedDescription = description.trim();
+        const descriptionTags = tagItems.filter(tag => tag.origin === 'description');
+        const hasLoggedFoods = tagItems.some(tag => Boolean(tag.loggedFood));
+        const hasDescriptionResults = descriptionTags.some(tag => Boolean(tag.loggedFood));
+
+        let nextState: DescriptionFlowState = descriptionState;
+        if (trimmedDescription && trimmedDescription !== lastAnalyzedDescription) {
+            nextState = 'idle';
+        } else if (trimmedDescription && descriptionTags.length > 0) {
+            nextState = hasDescriptionResults ? 'ready' : 'failed';
+        } else if (!trimmedDescription && hasLoggedFoods) {
+            nextState = 'ready';
+        } else if (!trimmedDescription) {
+            nextState = 'idle';
+        }
+
+        if (nextState !== descriptionState) {
+            setDescriptionState(nextState);
+        }
+    }, [description, descriptionState, lastAnalyzedDescription, tagItems]);
+
     const handleCandidateSelect = useCallback((tagKey: string, candidate: SearchFoodCandidate, rememberQuery = true) => {
+        const currentTag = tagItems.find(tag => tag.key === tagKey) ?? null;
+        if (currentTag?.origin === 'description') {
+            void recordNutritionAiManualCorrection({
+                originalTag: currentTag.tag,
+                selectedFoodName: candidate.food.name,
+                fromSource: currentTag.analysisSource ?? null,
+                confidence: currentTag.analysisConfidence ?? null,
+                rememberQuery,
+                reviewRequired: Boolean(currentTag.reviewRequired || currentTag.resolutionStatus === 'needs_review'),
+            });
+        }
+
         setTagItems(prev => prev.map(tag => {
             if (tag.key !== tagKey) return tag;
             if (rememberQuery) rememberFoodResolution(tag.tag, candidate.food, tag.brandHint);
@@ -471,11 +747,12 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                 resolutionReason: 'Confirmado manualmente.',
                 sourceTrace: candidate.trace,
                 isFuzzyMatch: candidate.confidence !== 'high',
+                analysisSource: candidate.learned ? 'user-memory' : 'database',
             };
         }));
         setManualResolveTagKey(null);
         addToast('Etiqueta resuelta manualmente.', 'success');
-    }, [addToast, buildLoggedFromItem]);
+    }, [addToast, buildLoggedFromItem, tagItems]);
 
     const handleOpenManualSearch = useCallback((tag: TagWithFood) => {
         setActiveTab('search');
@@ -488,11 +765,16 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
     const handleSearchFoodSelect = useCallback((food: FoodItem) => {
         if (manualResolveTagKey) {
             handleCandidateSelect(manualResolveTagKey, {
+                foodId: food.id,
+                displayName: food.name,
+                brand: food.brand,
                 food,
                 score: 1,
                 confidence: 'high',
                 canonicalId: food.name,
                 source: 'local',
+                matchedAlias: food.name,
+                why: 'manual_search_resolution',
                 trace: ['manual_search_resolution'],
                 queryCoverage: 1,
                 tokenPrecision: 1,
@@ -505,23 +787,33 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
             return;
         }
 
-        setSelectedFoodForPortion({
-            food,
-            query: searchQuery.trim(),
-        });
-    }, [handleCandidateSelect, manualResolveTagKey, searchQuery]);
+        addToast(`"${food.name}" quedó agregado.`, 'success');
+        setTagItems(prev => [
+            ...prev,
+            createResolvedTag(food, 'manual', {
+                resolutionReason: 'Agregado manualmente.',
+                analysisSource: 'database',
+            }),
+        ]);
+        setSearchQuery('');
+        setSearchResults([]);
+        setActiveTab('description');
+    }, [addToast, createResolvedTag, handleCandidateSelect, manualResolveTagKey]);
 
     const handleSave = useCallback(() => {
-        const blockingTag = tagItems.find(isBlockingResolution);
-        if (blockingTag) {
-            setExpandedTagKey(blockingTag.key);
-            addToast('Revisa los alimentos ambiguos antes de guardar.', 'danger');
+        if (descriptionState === 'analyzing') {
+            addToast('Espera a que termine el análisis.', 'danger');
+            return;
+        }
+
+        if (description.trim() && description.trim() !== lastAnalyzedDescription) {
+            addToast('Pulsa "Analizar calorías" antes de guardar la descripción.', 'danger');
             return;
         }
 
         const foods = tagItems.filter(tag => tag.loggedFood).map(tag => tag.loggedFood!);
         if (foods.length === 0) {
-            addToast('Anade comida para registrar.', 'danger');
+            addToast('No pudimos estimar esta comida. Prueba con otra descripción o ajústala manualmente.', 'danger');
             return;
         }
 
@@ -542,31 +834,80 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                 setTagItems([]);
                 setSaveState('idle');
                 setManualResolveTagKey(null);
+                setDescriptionState('idle');
+                setLastAnalyzedDescription('');
+                setShowResultDetails(false);
             }, 400);
         }, 1800);
-    }, [addToast, description, logDate, mealType, onClose, onSave, tagItems]);
+    }, [addToast, description, descriptionState, lastAnalyzedDescription, logDate, mealType, onClose, onSave, tagItems]);
 
-    const totalMacros = useMemo(() => tagItems.reduce((acc, tag) => {
-        if (!tag.loggedFood) return acc;
-        acc.calories += tag.loggedFood.calories;
-        acc.protein += tag.loggedFood.protein;
-        acc.carbs += tag.loggedFood.carbs;
-        acc.fats += tag.loggedFood.fats;
-        return acc;
-    }, { calories: 0, protein: 0, carbs: 0, fats: 0 }), [tagItems]);
+    const { totalMacros, caloriesStdDev } = useMemo(() => {
+        const result = tagItems.reduce((acc, tag) => {
+            if (!tag.loggedFood) return acc;
+            acc.macros.calories += tag.loggedFood.calories;
+            acc.macros.protein += tag.loggedFood.protein;
+            acc.macros.carbs += tag.loggedFood.carbs;
+            acc.macros.fats += tag.loggedFood.fats;
 
-    const blockingCount = tagItems.filter(isBlockingResolution).length;
-    const macroCaloriesFill = Math.min(100, (totalMacros.calories / CALORIES_VISUAL_TARGET) * 100);
-    const macroBarSegments = MACRO_GOALS.map(goal => {
-        const value = totalMacros[goal.key];
-        const fill = goal.target > 0 ? Math.min(100, (value / goal.target) * 100) : 0;
+            // Compute varying margins of error depending on truthfulness of the data source
+            let marginPct = 0.05; // 5% baseline for known database items
+            if (tag.analysisSource === 'local-ai-estimate') marginPct = 0.22; // 22% SD for pure AI mathematical estimates
+            else if (tag.analysisSource === 'user-memory') marginPct = 0.10;
+            else if (tag.analysisSource === 'local-heuristic') marginPct = 0.08;
+            else if (tag.isFuzzyMatch || tag.resolutionConfidence !== 'high') marginPct = 0.15;
+
+            const itemStdDev = tag.loggedFood.calories * marginPct;
+            acc.variance += itemStdDev * itemStdDev;
+
+            return acc;
+        }, { macros: { calories: 0, protein: 0, carbs: 0, fats: 0 }, variance: 0 });
+
         return {
-            label: goal.label,
-            value,
-            fill,
-            color: goal.color,
+            totalMacros: result.macros,
+            caloriesStdDev: Math.round(Math.sqrt(result.variance))
         };
-    });
+    }, [tagItems]);
+
+    const trimmedDescription = description.trim();
+    const isAnalyzing = descriptionState === 'analyzing';
+    const needsExplicitAnalysis = Boolean(trimmedDescription && trimmedDescription !== lastAnalyzedDescription);
+    const hasLoggedFoods = tagItems.some(tag => Boolean(tag.loggedFood));
+    const hasEstimatedFoods = tagItems.some(isEstimatedTag);
+    const saveMode: SaveMode = !hasLoggedFoods
+        ? 'failed'
+        : hasEstimatedFoods
+            ? 'estimated'
+            : 'confirmed';
+    const canSave = !isAnalyzing && !needsExplicitAnalysis && hasLoggedFoods;
+    const caloriesLabel = hasLoggedFoods ? Math.round(totalMacros.calories).toString() : '--';
+    const estimatedPercentage = caloriesStdDev > 0 && totalMacros.calories > 0
+        ? Math.round((caloriesStdDev / totalMacros.calories) * 100)
+        : 0;
+    const caloriesDeviationLabel = hasLoggedFoods && caloriesStdDev > 0
+        ? `±${caloriesStdDev} (${estimatedPercentage}%)`
+        : '';
+    const resultTone = descriptionState === 'failed'
+        ? 'No pudimos estimar esta comida'
+        : isAnalyzing
+            ? 'Analizando...'
+            : saveMode === 'estimated'
+                ? 'Resultado estimado'
+                : hasLoggedFoods
+                    ? 'Resultado listo'
+                    : 'Escribe tu comida';
+    const resultSupport = descriptionState === 'failed'
+        ? 'Prueba con otra descripción o ajusta el resultado manualmente.'
+        : isAnalyzing
+            ? 'Estamos preparando una referencia útil para guardar.'
+            : needsExplicitAnalysis
+                ? 'Escribe con libertad y analiza solo cuando termines.'
+                : hasLoggedFoods
+                    ? 'Puedes guardar tal cual o ajustar solo si quieres.'
+                    : 'Las calorías son una referencia práctica, no una medición exacta.';
+    const macroSummary = hasLoggedFoods
+        ? `Prot ${Math.round(totalMacros.protein)} g · Carb ${Math.round(totalMacros.carbs)} g · Grasas ${Math.round(totalMacros.fats)} g`
+        : 'Te damos una referencia práctica para registrar sin fricción.';
+    const detailCount = tagItems.length;
 
     if (!isOpen) return null;
 
@@ -609,33 +950,33 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                         )}
 
                         <div className={scrollAreaClass}>
-                            {/* Macros Summary Panel */}
-                            <motion.div layout className={`${displayMode === 'appendix' ? 'bg-white/60 backdrop-blur-xl border-white/40' : 'bg-white border-black/[0.03]'} rounded-[32px] p-6 shadow-sm border flex flex-col gap-4 mt-2 relative overflow-hidden`}>
-                                <div className="flex flex-col gap-2">
-                                    <div>
-                                        <div className="text-[48px] font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter leading-none">{Math.round(totalMacros.calories)}</div>
-                                        <div className="text-[10px] uppercase font-black text-[#49454F]/40 tracking-[0.25em]">Calorias totales</div>
-                                    </div>
-                                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                                        <div className="h-full rounded-full bg-gradient-to-r from-[#FF8A00] to-[#FF3F5A]" style={{ width: `${macroCaloriesFill}%` }} />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {macroBarSegments.map(segment => (
-                                        <div key={segment.label} className="flex flex-col gap-1">
-                                            <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                                                <div className={`h-full rounded-full ${segment.color}`} style={{ width: `${segment.fill}%` }} />
+                            <motion.div layout className={`${displayMode === 'appendix' ? 'bg-white/60 backdrop-blur-xl border-white/40' : 'bg-white border-black/[0.03]'} rounded-[32px] p-6 shadow-sm border flex flex-col gap-3 mt-2 relative overflow-hidden`}>
+                                <div className="space-y-2">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#49454F]/40">Calorías</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <div className="text-[48px] font-black text-[#1C1B1F] font-['Roboto'] tracking-tighter leading-none">{caloriesLabel}</div>
+                                        {caloriesDeviationLabel && (
+                                            <div
+                                                className="text-[12px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-[8px] font-['Roboto'] tracking-tight flex items-center gap-1"
+                                                title={`Índice de desviación estándar: los valores reales de tus alimentos podrían desviar un ${estimatedPercentage}% aprox respecto del total`}
+                                            >
+                                                <span>{caloriesDeviationLabel}</span>
                                             </div>
-                                            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[#49454F]/50">{segment.label}</div>
-                                            <div className="text-[10px] font-black text-[#1C1B1F]">{Math.round(segment.value)}</div>
-                                        </div>
-                                    ))}
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#49454F]/45">{resultTone}</p>
+                                    <p className="text-[12px] leading-relaxed text-[#49454F]/70">{resultSupport}</p>
                                 </div>
-                                <div className="flex gap-4">
-                                    <MacroBadge label="PROT" val={totalMacros.protein} color="bg-rose-500" />
-                                    <MacroBadge label="CARB" val={totalMacros.carbs} color="bg-emerald-500" />
-                                    <MacroBadge label="FATS" val={totalMacros.fats} color="bg-amber-500" />
+                                <div className="rounded-[24px] bg-black/[0.03] px-4 py-3">
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#49454F]/35">Resumen</p>
+                                    <p className="mt-1 text-[12px] font-medium text-[#49454F]/70">{macroSummary}</p>
                                 </div>
+                                {isAnalyzing && (
+                                    <div className="flex items-center gap-2 rounded-[24px] border border-primary/10 bg-primary/5 px-4 py-3 text-[11px] font-bold text-primary/80">
+                                        <span className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
+                                        Analizando...
+                                    </div>
+                                )}
                             </motion.div>
 
                             {/* Selectors Row */}
@@ -665,51 +1006,112 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 </div>
                             </div>
 
-                            {/* Tabs */}
-                            <div className={`flex p-1.5 rounded-[32px] overflow-x-auto hide-scrollbar border ${displayMode === 'appendix' ? 'bg-white/40 backdrop-blur-xl border-white/40' : 'bg-black/[0.03] border-black/[0.02]'}`}>
-                                <TabBtn active={activeTab === 'description'} displayMode={displayMode} onClick={() => setActiveTab('description')}>Descriptivo</TabBtn>
-                                <TabBtn active={activeTab === 'search'} displayMode={displayMode} onClick={() => setActiveTab('search')}>Buscador</TabBtn>
-                                <TabBtn active={activeTab === 'templates'} displayMode={displayMode} onClick={() => setActiveTab('templates')}>Plantillas</TabBtn>
-                            </div>
-
                             {displayMode === 'appendix' && (
                                 <div className="flex justify-end">
                                     <button
                                         onClick={handleSave}
-                                        disabled={blockingCount > 0}
-                                        className={`py-2 px-5 text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl transition-all ${blockingCount > 0 ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-[#1C1B1F] text-white shadow-lg shadow-black/20'}`}
+                                        disabled={!canSave}
+                                        className={`py-2 px-5 text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl transition-all ${canSave ? 'bg-[#1C1B1F] text-white shadow-lg shadow-black/20' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}
                                     >
-                                        Confirmar
+                                        Guardar
                                     </button>
                                 </div>
-                            )}
-
-                            {blockingCount > 0 && (
-                                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="rounded-[28px] border border-rose-200/50 bg-rose-50/50 px-6 py-4 text-[12px] font-black uppercase tracking-wider text-rose-600 shadow-sm backdrop-blur-sm text-center">
-                                    Revisar {blockingCount} alimento{blockingCount > 1 ? 's' : ''}
-                                </motion.div>
                             )}
 
                             {/* Content Area */}
                             <AnimatePresence mode="wait">
                                 {activeTab === 'description' && (
-                                    <motion.div key="desc" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
+                                    <motion.div key="desc" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-4">
                                         <div className="relative group">
                                             <textarea
                                                 className={`w-full h-36 rounded-[32px] p-8 text-base font-medium text-[#1C1B1F] border shadow-sm outline-none transition-all placeholder-[#49454F]/30 resize-none font-['Roboto'] leading-relaxed ${displayMode === 'appendix' ? 'bg-white/60 backdrop-blur-xl border-white/40 focus:border-white/60' : 'bg-white border-black/[0.03] focus:border-primary/30'}`}
                                                 placeholder="Describe tu comida... ej: 200g arroz, 150g pollo"
                                                 value={description}
-                                                onChange={event => setDescription(event.target.value)}
+                                                onChange={event => handleDescriptionChange(event.target.value)}
                                             />
                                             <div className="absolute top-6 right-8 flex gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-primary/20 animate-pulse" />
+                                                <div className={`w-2 h-2 rounded-full ${isAnalyzing ? 'bg-primary animate-pulse' : 'bg-primary/20'}`} />
                                             </div>
+                                        </div>
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <p className="text-[11px] font-bold text-[#49454F]/60 leading-relaxed">
+                                                {isAnalyzing
+                                                    ? 'Estamos preparando tu referencia...'
+                                                    : needsExplicitAnalysis
+                                                        ? 'Nada corre mientras escribes. Analiza solo cuando termines.'
+                                                        : descriptionState === 'failed'
+                                                            ? 'No pudimos estimar esta comida todavía.'
+                                                            : hasLoggedFoods
+                                                                ? 'Puedes guardar ahora o ajustar solo si quieres.'
+                                                                : 'Escribe una comida para empezar.'}
+                                            </p>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={analyzeDescription}
+                                                    disabled={isAnalyzing || !trimmedDescription}
+                                                    className={`rounded-[22px] px-5 py-3 text-[10px] font-black uppercase tracking-[0.28em] transition-all ${isAnalyzing || !trimmedDescription ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-primary text-[#1C1B1F] shadow-lg shadow-primary/20'}`}
+                                                >
+                                                    {isAnalyzing ? 'Analizando...' : lastAnalyzedDescription && trimmedDescription === lastAnalyzedDescription ? 'Reanalizar calorías' : 'Analizar calorías'}
+                                                </button>
+                                                {isAnalyzing && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={cancelAnalysis}
+                                                        className="rounded-[20px] border border-black/[0.08] bg-white px-4 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-[#49454F] shadow-sm"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {detailCount > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowResultDetails(prev => !prev)}
+                                                    className="rounded-[20px] border border-black/[0.06] bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F] shadow-sm"
+                                                >
+                                                    {showResultDetails ? 'Ocultar detalle' : 'Ver detalle'}
+                                                </button>
+                                            )}
+                                            {(detailCount > 0 || descriptionState === 'failed') && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setActiveTab('search')}
+                                                    className="rounded-[20px] border border-black/[0.06] bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F] shadow-sm"
+                                                >
+                                                    Ajustar resultado
+                                                </button>
+                                            )}
+                                            {detailCount === 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setActiveTab('templates')}
+                                                    className="rounded-[20px] border border-black/[0.06] bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F] shadow-sm"
+                                                >
+                                                    Usar plantilla
+                                                </button>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )}
 
                                 {activeTab === 'search' && (
                                     <motion.div key="search" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#49454F]/35">Ajustar resultado</p>
+                                                <p className="text-[12px] text-[#49454F]/65">Busca un alimento solo si quieres afinar la referencia.</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveTab('description')}
+                                                className="rounded-[18px] border border-black/[0.06] bg-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F] shadow-sm"
+                                            >
+                                                Volver
+                                            </button>
+                                        </div>
                                         <div className="relative">
                                             <SearchIcon size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-[#49454F]/20" />
                                             <input
@@ -745,36 +1147,52 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                 )}
 
                                 {activeTab === 'templates' && (
-                                    <motion.div key="templates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-[32px] overflow-hidden bg-white border border-black/[0.03] p-6 shadow-sm">
-                                        <MealTemplateSelector
-                                            onSelect={foods => {
-                                                const templateTags = foods.map(food => ({
-                                                    key: crypto.randomUUID(),
-                                                    origin: 'template' as const,
-                                                    tag: food.foodName,
-                                                    portion: 'medium' as PortionPreset,
-                                                    quantity: 1,
-                                                    foodItem: null,
-                                                    loggedFood: food,
-                                                    resolutionStatus: 'resolved' as TagResolutionStatus,
-                                                    resolutionConfidence: 'high' as SearchConfidence,
-                                                    resolutionReason: 'Agregado desde plantilla.',
-                                                    candidateFoods: [],
-                                                }));
-                                                setTagItems(prev => [...prev.filter(tag => tag.origin !== 'template'), ...templateTags]);
-                                                setActiveTab('description');
-                                            }}
-                                            onClose={() => { /* noop */ }}
-                                        />
+                                    <motion.div key="templates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#49454F]/35">Plantillas</p>
+                                                <p className="text-[12px] text-[#49454F]/65">Usa una base rápida y vuelve al registro en un toque.</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveTab('description')}
+                                                className="rounded-[18px] border border-black/[0.06] bg-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#49454F] shadow-sm"
+                                            >
+                                                Volver
+                                            </button>
+                                        </div>
+                                        <div className="rounded-[32px] overflow-hidden bg-white border border-black/[0.03] p-6 shadow-sm">
+                                            <MealTemplateSelector
+                                                onSelect={foods => {
+                                                    const templateTags = foods.map(food => ({
+                                                        key: crypto.randomUUID(),
+                                                        origin: 'template' as const,
+                                                        tag: food.foodName,
+                                                        portion: 'medium' as PortionPreset,
+                                                        quantity: 1,
+                                                        foodItem: null,
+                                                        loggedFood: food,
+                                                        resolutionStatus: 'resolved' as TagResolutionStatus,
+                                                        resolutionConfidence: 'high' as SearchConfidence,
+                                                        resolutionReason: 'Agregado desde plantilla.',
+                                                        candidateFoods: [],
+                                                    }));
+                                                    setTagItems(prev => [...prev.filter(tag => tag.origin !== 'template'), ...templateTags]);
+                                                    setShowResultDetails(false);
+                                                    setActiveTab('description');
+                                                }}
+                                                onClose={() => { /* noop */ }}
+                                            />
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
                             {/* Food List Section */}
-                            {tagItems.length > 0 && (
+                            {showResultDetails && tagItems.length > 0 && activeTab === 'description' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between px-1">
-                                        <h4 className="text-[10px] font-black text-[#49454F]/30 uppercase tracking-[0.2em]">Detectados</h4>
+                                        <h4 className="text-[10px] font-black text-[#49454F]/30 uppercase tracking-[0.2em]">Tu comida</h4>
                                         <span className="text-[10px] font-black text-primary px-3 py-1 bg-primary/10 rounded-full">{tagItems.length}</span>
                                     </div>
                                     <div className="space-y-3">
@@ -798,14 +1216,14 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                             <div className="flex-1 min-w-0 pt-1">
                                                                 <div className="flex items-center gap-2 flex-wrap mb-1">
                                                                     <p className="text-[15px] font-black text-[#1C1B1F] truncate leading-none font-['Roboto'] tracking-tight group-hover:text-primary transition-colors">{tag.tag}</p>
-                                                                    <StatusBadge status={tag.resolutionStatus} confidence={tag.resolutionConfidence} />
+                                                                    <StatusBadge status={tag.resolutionStatus} confidence={tag.resolutionConfidence} source={tag.analysisSource} />
                                                                 </div>
                                                                 <p className="text-[11px] font-bold text-[#49454F]/40 tracking-tight">
                                                                     {tag.loggedFood
                                                                         ? `${Math.round(tag.loggedFood.calories)} kcal · ${tag.loggedFood.amount}${tag.loggedFood.unit}`
                                                                         : tag.resolutionStatus === 'pending'
-                                                                            ? 'Buscando coincidencia...'
-                                                                            : tag.resolutionReason || 'Sin resolver'}
+                                                                            ? 'Buscando resultado...'
+                                                                            : tag.resolutionReason || 'Sin resultado todavía'}
                                                                 </p>
                                                             </div>
                                                         </button>
@@ -836,6 +1254,20 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                                 className="overflow-hidden"
                                                             >
                                                                 <div className="mt-5 pt-5 border-t border-black/[0.03] space-y-4">
+                                                                    {tag.analysisSource === 'local-ai-estimate' ? (
+                                                                        <div className="rounded-[16px] bg-amber-50 border border-amber-200/50 px-4 py-3 text-[11px] font-medium text-amber-800 flex items-start gap-2">
+                                                                            <AlertTriangleIcon size={14} className="mt-0.5 shrink-0 text-amber-500" />
+                                                                            <p className="leading-snug">
+                                                                                <strong className="block text-amber-900 mb-0.5 font-bold">Estimación generada por IA</strong>
+                                                                                Los macronutrientes y calorías de este alimento fueron calculados matemáticamente por IA y podrían no ser exactos. Revisa y ajusta si notas diferencias.
+                                                                            </p>
+                                                                        </div>
+                                                                    ) : (tag.analysisSource && tag.analysisSource !== 'database') || tag.subItems?.length ? (
+                                                                        <div className="rounded-[16px] bg-black/[0.02] px-4 py-3 text-[11px] font-medium text-[#49454F]/60">
+                                                                            {detailHintLabel(tag)}
+                                                                        </div>
+                                                                    ) : null}
+
                                                                     {tag.subItems?.length ? (
                                                                         <div className="rounded-[20px] bg-black/[0.02] px-4 py-3 text-[11px] font-medium text-[#49454F]/60">
                                                                             Ingredientes: {tag.subItems.map(item => item.tag).join(', ')}
@@ -844,7 +1276,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
                                                                     {tag.candidateFoods.length > 0 && (
                                                                         <div className="space-y-3">
-                                                                            <p className="text-[9px] font-black text-[#49454F]/20 uppercase tracking-[0.2em] px-1">Mejores coincidencias</p>
+                                                                            <p className="text-[9px] font-black text-[#49454F]/20 uppercase tracking-[0.2em] px-1">Opciones parecidas</p>
                                                                             <div className="grid gap-2">
                                                                                 {tag.candidateFoods.map(candidate => (
                                                                                     <button
@@ -859,7 +1291,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                                                                     {candidate.food.calories} kcal · {confidenceLabel(candidate.confidence)}
                                                                                                 </p>
                                                                                             </div>
-                                                                                            <div className="text-[9px] font-black uppercase tracking-widest text-[#1C1B1F]/20 group-hover:text-primary transition-colors">Select</div>
+                                                                                            <div className="text-[9px] font-black uppercase tracking-widest text-[#1C1B1F]/20 group-hover:text-primary transition-colors">Usar</div>
                                                                                         </div>
                                                                                     </button>
                                                                                 ))}
@@ -872,7 +1304,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                                                             onClick={() => handleOpenManualSearch(tag)}
                                                                             className="w-full rounded-[24px] border border-black/[0.05] bg-white py-4 text-[10px] font-black uppercase tracking-widest text-[#1C1B1F] hover:bg-black/5 transition-all shadow-sm"
                                                                         >
-                                                                            Búsqueda Manual
+                                                                            Ajustar manualmente
                                                                         </button>
                                                                     )}
                                                                 </div>
@@ -899,9 +1331,10 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
                                     </button>
                                     <button
                                         onClick={handleSave}
-                                        className="flex-[2] py-5 bg-[#1C1B1F] text-white rounded-[32px] text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 font-['Roboto']"
+                                        disabled={!canSave}
+                                        className={`flex-[2] py-5 rounded-[32px] text-[11px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all flex items-center justify-center gap-3 font-['Roboto'] ${canSave ? 'bg-[#1C1B1F] text-white shadow-2xl' : 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'}`}
                                     >
-                                        Confirmar Registro
+                                        Guardar
                                         <PlusIcon size={16} />
                                     </button>
                                 </div>
@@ -936,35 +1369,13 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
 // --- Helper Components ---
 
-const MacroBadge: React.FC<{ label: string; val: number; color: string }> = ({ label, val, color }) => (
-    <div className="flex flex-col items-center gap-1.5 min-w-[50px]">
-        <div className={`w-1.5 h-1.5 rounded-full ${color} shadow-[0_0_8px] ${color.replace('bg-', 'shadow-')}/40`} />
-        <span className="text-[14px] font-black text-[#1C1B1F] tracking-tighter font-['Roboto'] leading-none">{Math.round(val)}</span>
-        <span className="text-[8px] font-black text-[#49454F]/20 uppercase tracking-widest">{label}</span>
-    </div>
-);
+const StatusBadge: React.FC<{ status: TagResolutionStatus; confidence: SearchConfidence; source?: TagAnalysisSource }> = ({ status, source }) => {
+    if (status === 'resolved' && (source === 'local-ai-estimate' || source === 'local-heuristic')) {
+        return <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-amber-700">Estimado</span>;
+    }
 
-const TabBtn: React.FC<{ active: boolean; displayMode?: 'drawer' | 'appendix'; onClick: () => void; children: React.ReactNode }> = ({ active, displayMode, onClick, children }) => {
-    const activeClass = displayMode === 'appendix'
-        ? 'bg-[#1C1B1F] text-white shadow-lg shadow-black/30'
-        : 'bg-[#1C1B1F] text-white shadow-xl shadow-black/20';
-    const inactiveClass = displayMode === 'appendix'
-        ? 'bg-white/80 text-[#49454F]/70 border border-white/40 hover:bg-white'
-        : 'bg-white/90 text-[#49454F]/70 border border-black/[0.05] hover:bg-white';
-
-    return (
-        <button
-            onClick={onClick}
-            className={`flex-1 py-3 px-4 rounded-[28px] text-[11px] font-black uppercase tracking-[0.35em] transition-all duration-200 ${active ? activeClass : inactiveClass}`}
-        >
-            {children}
-        </button>
-    );
-};
-
-const StatusBadge: React.FC<{ status: TagResolutionStatus; confidence: SearchConfidence }> = ({ status, confidence }) => {
     if (status === 'resolved') {
-        return <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-primary">Confirmado</span>;
+        return <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-primary">Listo</span>;
     }
 
     if (status === 'pending') {
@@ -973,7 +1384,7 @@ const StatusBadge: React.FC<{ status: TagResolutionStatus; confidence: SearchCon
 
     return (
         <span className="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-rose-500">
-            Revisión necesaria
+            Ajustar
         </span>
     );
 };

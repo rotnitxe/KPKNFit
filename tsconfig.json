@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,
@@ -14,8 +19,29 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": [],
+    "paths": {
+      "@kpkn/shared-types": [
+        "packages/shared-types/src/index.ts"
+      ],
+      "@kpkn/shared-domain": [
+        "packages/shared-domain/src/index.ts"
+      ],
+      "@kpkn/design-tokens": [
+        "packages/design-tokens/src/index.ts"
+      ]
+    }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "www", "android"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "www",
+    "android",
+    "apps/mobile",
+    "packages/*/dist"
+  ]
 }

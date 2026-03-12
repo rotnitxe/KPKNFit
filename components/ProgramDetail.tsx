@@ -1,25 +1,24 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Program, Session, ProgramWeek } from '../types';
-import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon, TrashIcon, EditIcon } from './icons';
+import { Program } from '../types';
+import { CalendarIcon, ActivityIcon, DumbbellIcon, XIcon } from './icons';
 import { useAppContext } from '../contexts/AppContext';
 import { calculateUnifiedMuscleVolume } from '../services/volumeCalculator';
-import InteractiveWeekOverlay from './InteractiveWeekOverlay';
-import SplitChangerDrawer from './program-detail/SplitChangerDrawer';
-import StructureDrawer from './program-detail/StructureDrawer';
 import { getCachedAdaptiveData, AugeAdaptiveCache } from '../services/augeAdaptiveService';
 
 import CompactHeroBanner from './program-detail/CompactHeroBanner';
-import type { StructureSubTab, AnalyticsSubTab } from './program-detail/SubTabs';
+import type { StructureSubTab, AnalyticsSubTab } from './program-detail/IntegratedTabs';
 import WeekView from './program-detail/WeekView';
-import MacrocycleView from './program-detail/MacrocycleView';
 import VolumeView from './program-detail/VolumeView';
 import ProgressView from './program-detail/ProgressView';
 import HistoryView from './program-detail/HistoryView';
 import IntegratedTabs from './program-detail/IntegratedTabs';
 import BlockRoadmap from './program-detail/BlockRoadmap';
-import MacrocycleEditor from './program-detail/MacrocycleEditor';
 import DayView from './program-detail/DayView';
+import { SplitView } from './program-detail/SplitView';
+import { MacrocycleEditor } from './program-detail/MacrocycleEditorIntegrated';
+import LoopsView from './program-detail/LoopsView';
+import ProtocolsView from './program-detail/ProtocolsView';
 
 interface ProgramDetailProps {
     program: Program;
@@ -50,26 +49,16 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
     const [activeTab, setActiveTab] = useState<'training' | 'analytics'>('training');
     const [structureSubTab, setStructureSubTab] = useState<StructureSubTab>('semana');
     const [analyticsSubTab, setAnalyticsSubTab] = useState<AnalyticsSubTab>('volumen');
-    const prevStructureTabRef = useRef<StructureSubTab>('semana');
-    const [isSplitChangerOpen, setIsSplitChangerOpen] = useState(false);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
-    const [editingWeekInfo, setEditingWeekInfo] = useState<{
-        macroIndex: number; blockIndex: number; mesoIndex: number;
-        weekIndex: number; week: ProgramWeek; isSimple: boolean;
-    } | null>(null);
     const [tourStep, setTourStep] = useState(0);
-    const [showAdvancedTransition, setShowAdvancedTransition] = useState(false);
-    const [showSimpleTransition, setShowSimpleTransition] = useState(false);
-    const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-    const [newEventData, setNewEventData] = useState({ id: '', title: '', repeatEveryXCycles: 1, calculatedWeek: 0, type: '1rm_test' });
-    const [isMacrocycleEditorOpen, setIsMacrocycleEditorOpen] = useState(false);
 
-    // ─── Derived data ───
-    const isCyclic = useMemo(() =>
-        program.structure === 'simple' || (!program.structure && program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1),
+    // ─── Program type detection ───
+    const isSimpleProgram = useMemo(() =>
+        program.structure === 'simple' || (!program.structure && program.macrocycles.length === 1 && (program.macrocycles[0]?.blocks || []).length <= 1),
         [program]);
 
+    // ─── Derived data ───
     const roadmapBlocks = useMemo(() =>
         program.macrocycles.flatMap((macro, macroIdx) =>
             (macro.blocks || []).map((block, blockIdx) => ({
@@ -174,13 +163,13 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
         if (roadmapBlocks.length > 0 && (!selectedBlockId || !roadmapBlocks.find(b => b.id === selectedBlockId))) {
             setSelectedBlockId(roadmapBlocks[0].id);
         }
-    }, [roadmapBlocks]);
+    }, [roadmapBlocks, selectedBlockId]);
 
     useEffect(() => {
         if (currentWeeks.length > 0 && (!selectedWeekId || !currentWeeks.find(w => w.id === selectedWeekId))) {
             setSelectedWeekId(currentWeeks[0].id);
         }
-    }, [selectedBlockId, currentWeeks]);
+    }, [selectedBlockId, currentWeeks, selectedWeekId]);
 
     useEffect(() => {
         const tourSeen = localStorage.getItem(`kpkn_tour_seen_${program.id}`);
@@ -190,23 +179,13 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
         }
     }, [program.id]);
 
-    useEffect(() => {
-        if (structureSubTab === 'split' && prevStructureTabRef.current !== 'split') {
-            setIsSplitChangerOpen(true);
-        }
-        if (structureSubTab !== 'split' && prevStructureTabRef.current === 'split') {
-            setIsSplitChangerOpen(false);
-        }
-        prevStructureTabRef.current = structureSubTab;
-    }, [structureSubTab]);
-
     // ─── Handlers ───
     const handleProgramEdit = useCallback(() => handleEditProgram(program.id), [handleEditProgram, program.id]);
 
-    const onEditSessionClick = useCallback((session: Session) => {
+    const onEditSessionClick = useCallback((sessionId: string) => {
         const block = roadmapBlocks.find(b => b.id === selectedBlockId);
         const week = currentWeeks.find(w => w.id === selectedWeekId);
-        if (block && week) handleEditSession(program.id, block.macroIndex, week.mesoIndex, week.id, session.id);
+        if (block && week) handleEditSession(program.id, block.macroIndex, week.mesoIndex, week.id, sessionId);
     }, [roadmapBlocks, selectedBlockId, currentWeeks, selectedWeekId, handleEditSession, program.id]);
 
     const onDeleteSessionHandler = useCallback((sessionId: string, programId: string, macroIndex: number, mesoIndex: number, weekId: string) => {
@@ -215,8 +194,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     const isActiveProgram = activeProgramState?.programId === program.id && activeProgramState?.status === 'active';
     const isPausedProgram = activeProgramState?.programId === program.id && activeProgramState?.status === 'paused';
-
-    const [isStructureDrawerOpen, setIsStructureDrawerOpen] = useState(false);
 
     // ─── Render ───
     return (
@@ -249,6 +226,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                         }
                     }}
                     gradientTheme="purple"
+                    isSimpleProgram={isSimpleProgram}
                 />
 
                 {/* Contenido: Training y/o Analytics */}
@@ -280,11 +258,12 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                         program={program}
                                         selectedWeekId={selectedWeekId}
                                         currentWeekId={activeProgramState?.currentWeekId}
-                                        onEditSession={(sessionId) => {
-                                            const dummySession = { id: sessionId } as any;
-                                            onEditSessionClick(dummySession);
+                                        onEditSession={onEditSessionClick}
+                                        onAddSession={(dayOfWeek) => {
+                                            const block = roadmapBlocks.find(b => b.id === selectedBlockId);
+                                            const week = currentWeeks.find(w => w.id === selectedWeekId);
+                                            if (block && week) handleAddSession(program.id, block.macroIndex, week.mesoIndex, selectedWeekId || '', dayOfWeek);
                                         }}
-                                        onAddSession={(dayOfWeek) => handleAddSession(program.id, 0, 0, selectedWeekId || '', dayOfWeek)}
                                         onDeleteSession={onDeleteSessionHandler}
                                         onStartWorkout={(session) => handleStartWorkout(session, program)}
                                         onUpdateProgram={handleUpdateProgram}
@@ -292,41 +271,42 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                     />
                                 )}
 
-                                {/* Vista de Split */}
+                                {/* Vista de Split - INTEGRADA, NO DRAWER */}
                                 {structureSubTab === 'split' && (
-                                    <div className="px-4">
-                                        <div className="bg-white rounded-3xl border border-zinc-200/60 p-6 shadow-sm">
-                                            <div className="text-center space-y-3 py-6">
-                                                <CalendarIcon className="mx-auto text-purple-400" size={40} />
-                                                <h3 className="text-lg font-black text-zinc-900 uppercase tracking-tight mb-2">
-                                                    Gestor de Splits
-                                                </h3>
-                                                <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
-                                                    Selecciona y aplica splits predefinidos o personalizados
-                                                </p>
-                                                <p className="text-[11px] text-zinc-500 leading-relaxed uppercase tracking-[0.2em]">
-                                                    El panel lateral se mantiene abierto autom�ticamente para que elijas tu plantilla sin pasos extra.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <SplitView
+                                        program={program}
+                                        selectedBlockId={selectedBlockId}
+                                        selectedWeekId={selectedWeekId}
+                                        onUpdateProgram={handleUpdateProgram}
+                                        addToast={addToast}
+                                    />
                                 )}
 
-                                {/* Vista de Macrociclo */}
+                                {/* Vista de Loops - Programas Simples */}
+                                {structureSubTab === 'loops' && (
+                                    <LoopsView
+                                        program={program}
+                                        onUpdateProgram={handleUpdateProgram}
+                                        addToast={addToast}
+                                    />
+                                )}
+
+                                {/* Vista de Protocolos - Programas Avanzados */}
+                                {structureSubTab === 'protocolos' && (
+                                    <ProtocolsView
+                                        program={program}
+                                        onUpdateProgram={handleUpdateProgram}
+                                        addToast={addToast}
+                                    />
+                                )}
+
+                                {/* Vista de Macrociclo - EDITOR AVANZADO INTEGRADO */}
                                 {structureSubTab === 'macrociclo' && (
-                                    <div className="px-4">
-                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
-                                            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400">Editor de Macrociclo</h3>
-                                            <p className="text-[10px] text-zinc-500 uppercase tracking-[0.25em]">Toca cualquier semana para editar sin pasos adicionales.</p>
-                                        </div>
-                                        <MacrocycleView
-                                            program={program}
-                                            onEditWeek={(week, macroIndex, mesoIndex, weekIndex) => {
-                                                setEditingWeekInfo({ macroIndex, blockIndex: 0, mesoIndex, weekIndex, week, isSimple: isCyclic });
-                                            }}
-                                            onUpdateProgram={handleUpdateProgram}
-                                        />
-                                    </div>
+                                    <MacrocycleEditor
+                                        program={program}
+                                        onUpdateProgram={handleUpdateProgram}
+                                        addToast={addToast}
+                                    />
                                 )}
 
                                 <div className="h-[max(120px,calc(100px+env(safe-area-inset-bottom)))]" />
@@ -392,204 +372,9 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                 </div>
             </div>
 
-            {/* ═══ Modals ═══ */}
+            {/* ╝╝╝ Modals ╝╝╝ */}
 
-            <StructureDrawer
-                isOpen={isStructureDrawerOpen}
-                onClose={() => setIsStructureDrawerOpen(false)}
-                program={program}
-                isCyclic={isCyclic}
-                selectedBlockId={selectedBlockId}
-                selectedWeekId={selectedWeekId}
-                onSelectBlock={setSelectedBlockId}
-                onSelectWeek={(id) => { setSelectedWeekId(id); setIsStructureDrawerOpen(false); }}
-                onUpdateProgram={handleUpdateProgram}
-                onEditWeek={setEditingWeekInfo}
-                onShowAdvancedTransition={() => { setIsStructureDrawerOpen(false); setShowAdvancedTransition(true); }}
-                onShowSimpleTransition={() => { setIsStructureDrawerOpen(false); setShowSimpleTransition(true); }}
-                onOpenEventModal={(data) => {
-                    setIsStructureDrawerOpen(false);
-                    if (data) setNewEventData(data);
-                    else setNewEventData({ id: '', title: '', repeatEveryXCycles: isCyclic ? 4 : 1, calculatedWeek: 0, type: '1rm_test' });
-                    setIsEventModalOpen(true);
-                }}
-            />
-
-            {/* Week Overlay */}
-            {editingWeekInfo && (
-                <InteractiveWeekOverlay
-                    week={editingWeekInfo.week}
-                    weekTitle={`Semana ${editingWeekInfo.weekIndex + 1}`}
-                    onClose={() => setEditingWeekInfo(null)}
-                    onSave={(updatedWeek) => {
-                        const updated = JSON.parse(JSON.stringify(program));
-                        if (editingWeekInfo.isSimple) {
-                            if (updated.macrocycles[0]?.blocks[0]?.mesocycles[0]) updated.macrocycles[0].blocks[0].mesocycles[0].weeks[editingWeekInfo.weekIndex] = updatedWeek;
-                        } else {
-                            updated.macrocycles[editingWeekInfo.macroIndex].blocks[editingWeekInfo.blockIndex].mesocycles[editingWeekInfo.mesoIndex].weeks[editingWeekInfo.weekIndex] = updatedWeek;
-                        }
-                        if (handleUpdateProgram) { handleUpdateProgram(updated); addToast('Split semanal guardado.', 'success'); }
-                        setEditingWeekInfo(null);
-                    }}
-                    onEditSession={(sessionId, intermediateWeek) => {
-                        const updated = JSON.parse(JSON.stringify(program));
-                        if (editingWeekInfo.isSimple) {
-                            if (updated.macrocycles[0]?.blocks[0]?.mesocycles[0]) updated.macrocycles[0].blocks[0].mesocycles[0].weeks[editingWeekInfo.weekIndex] = intermediateWeek;
-                        } else {
-                            updated.macrocycles[editingWeekInfo.macroIndex].blocks[editingWeekInfo.blockIndex].mesocycles[editingWeekInfo.mesoIndex].weeks[editingWeekInfo.weekIndex] = intermediateWeek;
-                        }
-                        if (handleUpdateProgram) handleUpdateProgram(updated);
-                        setEditingWeekInfo(null);
-                        setTimeout(() => {
-                            handleEditSession(program.id, editingWeekInfo.isSimple ? 0 : editingWeekInfo.macroIndex, editingWeekInfo.isSimple ? 0 : editingWeekInfo.mesoIndex, editingWeekInfo.week.id, sessionId);
-                        }, 100);
-                    }}
-                />
-            )}
-
-            {/* Event Modal */}
-            {isEventModalOpen && (
-                <div className="fixed inset-0 z-[200] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setIsEventModalOpen(false)}>
-                    <div className="bg-white border border-[#ECE6F0] w-full max-w-sm rounded-[2rem] p-8 shadow-2xl relative animate-in fade-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setIsEventModalOpen(false)} className="absolute top-6 right-6 text-zinc-300 hover:text-zinc-900 transition-colors"><XIcon size={20} /></button>
-                        <h2 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-8 flex items-center gap-3"><CalendarIcon size={18} className="text-blue-500" /> Evento</h2>
-                        <div className="space-y-6">
-                            <div>
-                                <label className="text-[10px] text-[#49454F] font-black uppercase tracking-widest block mb-2">Nombre del Evento</label>
-                                <input type="text" value={newEventData.title} onChange={e => setNewEventData({ ...newEventData, title: e.target.value })} placeholder="Ej: Prueba 1RM" className="w-full bg-[#ECE6F0] border border-[#ECE6F0] rounded-xl p-4 text-zinc-900 text-xs font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
-                            </div>
-                            {isCyclic ? (
-                                <div>
-                                    <label className="text-[10px] text-[#49454F] font-black uppercase tracking-widest block mb-1">Cada cuántos ciclos</label>
-                                    <div className="flex items-center gap-3">
-                                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={newEventData.repeatEveryXCycles} onChange={e => setNewEventData({ ...newEventData, repeatEveryXCycles: e.target.value === '' ? '' as any : parseInt(e.target.value) })} className="w-24 bg-[#ECE6F0] border border-[#ECE6F0] rounded-xl p-4 text-zinc-900 text-center text-xs font-bold" />
-                                        <span className="text-[10px] text-[#49454F] font-black uppercase tracking-widest">Ciclos</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div>
-                                    <label className="text-[10px] text-[#49454F] font-black uppercase tracking-widest block mb-2">Semana de realización</label>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-[10px] text-[#49454F] font-black uppercase tracking-widest min-w-[60px]">Semana</span>
-                                        <input type="text" inputMode="numeric" pattern="[0-9]*" value={newEventData.calculatedWeek === -1 ? '' : newEventData.calculatedWeek + 1} onChange={e => setNewEventData({ ...newEventData, calculatedWeek: e.target.value === '' ? -1 : (parseInt(e.target.value) || 1) - 1 })} className="w-full bg-[#ECE6F0] border border-[#ECE6F0] rounded-xl p-4 text-zinc-900 text-center text-xs font-bold" />
-                                    </div>
-                                </div>
-                            )}
-                            <div className="flex gap-3 mt-4 pt-4 border-t border-gray-50">
-                                {newEventData.id && (
-                                    <button onClick={() => {
-                                        if (window.confirm('¿Eliminar evento?')) {
-                                            const updated = JSON.parse(JSON.stringify(program));
-                                            updated.events = updated.events.filter((e: any) => e.id !== newEventData.id);
-                                            if (handleUpdateProgram) handleUpdateProgram(updated);
-                                            setIsEventModalOpen(false);
-                                        }
-                                    }} className="w-14 h-14 bg-red-50 border border-red-100 text-red-500 rounded-xl flex items-center justify-center shrink-0 hover:bg-red-100 transition-colors">
-                                        <TrashIcon size={18} />
-                                    </button>
-                                )}
-                                <button onClick={() => {
-                                    if (!newEventData.title.trim()) { addToast('Nombre requerido', 'danger'); return; }
-                                    const updated = JSON.parse(JSON.stringify(program));
-                                    if (!updated.events) updated.events = [];
-                                    const payload = {
-                                        id: newEventData.id || crypto.randomUUID(),
-                                        title: newEventData.title, type: newEventData.type,
-                                        date: new Date().toISOString(),
-                                        calculatedWeek: isCyclic ? 0 : (newEventData.calculatedWeek === -1 ? 0 : newEventData.calculatedWeek),
-                                        repeatEveryXCycles: isCyclic ? (parseInt(newEventData.repeatEveryXCycles as any) || 1) : undefined,
-                                    };
-                                    if (newEventData.id) {
-                                        const idx = updated.events.findIndex((e: any) => e.id === newEventData.id);
-                                        if (idx !== -1) updated.events[idx] = payload;
-                                    } else {
-                                        updated.events.push(payload);
-                                    }
-                                    if (handleUpdateProgram) handleUpdateProgram(updated);
-                                    setIsEventModalOpen(false);
-                                    addToast(newEventData.id ? 'Evento actualizado' : 'Evento creado', 'success');
-                                }} className="flex-1 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-black text-[10px] uppercase tracking-widest py-4 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] shadow-lg">
-                                    Guardar Evento
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Advanced Transition Modal */}
-            {showAdvancedTransition && (
-                <div className="fixed inset-0 z-[200] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowAdvancedTransition(false)}>
-                    <div className="bg-white border border-[#ECE6F0] w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative animate-in fade-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setShowAdvancedTransition(false)} className="absolute top-8 right-8 text-zinc-300 hover:text-zinc-900 transition-colors"><XIcon size={20} /></button>
-                        <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight mb-2 flex items-center gap-3"><ActivityIcon className="text-blue-500" /> Transición a Avanzado</h2>
-                        <p className="text-xs text-[#49454F] mb-8 font-medium leading-relaxed uppercase tracking-widest">Convierte tu bucle en <span className="text-zinc-900 font-black">Periodización por Bloques</span>.</p>
-                        <div className="space-y-4">
-                            <button onClick={() => {
-                                const updated = JSON.parse(JSON.stringify(program));
-                                updated.structure = 'complex'; updated.events = [];
-                                updated.macrocycles[0].name = 'Macrociclo Principal';
-                                updated.macrocycles[0].blocks[0].name = 'Bloque de Inicio';
-                                updated.macrocycles[0].blocks.push({ id: crypto.randomUUID(), name: 'Nuevo Bloque', mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Inicial', goal: 'Acumulación', weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }] }] });
-                                if (handleUpdateProgram) handleUpdateProgram(updated);
-                                setShowAdvancedTransition(false); addToast('Programa convertido.', 'success');
-                            }} className="w-full text-left p-6 rounded-[2rem] bg-[#ECE6F0] hover:bg-white hover:border-blue-200 border border-[#ECE6F0] transition-all shadow-sm group">
-                                <h4 className="text-xs font-black text-zinc-900 uppercase tracking-widest mb-1 group-hover:text-blue-600 transition-colors">Bloque en Blanco</h4>
-                                <p className="text-[11px] text-[#49454F] font-bold uppercase tracking-tight">Crear bloque vacío para empezar tu periodización.</p>
-                            </button>
-                            <button onClick={() => {
-                                const updated = JSON.parse(JSON.stringify(program));
-                                updated.structure = 'complex'; updated.events = [];
-                                updated.macrocycles[0].name = 'Macrociclo de Fuerza';
-                                updated.macrocycles[0].blocks[0].name = 'Bloque de Acumulación';
-                                updated.macrocycles[0].blocks.push({ id: crypto.randomUUID(), name: 'Bloque de Intensificación', mesocycles: [{ id: crypto.randomUUID(), name: 'Fase Peaking', goal: 'Intensificación', weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }, { id: crypto.randomUUID(), name: 'Semana 2', sessions: [] }] }] });
-                                if (handleUpdateProgram) handleUpdateProgram(updated);
-                                setShowAdvancedTransition(false); addToast('Plantilla de fuerza aplicada.', 'success');
-                            }} className="w-full text-left p-6 rounded-[2rem] bg-blue-50 hover:bg-white hover:border-blue-200 border border-blue-100/50 transition-all shadow-sm group">
-                                <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">Plantilla de Fuerza</h4>
-                                <p className="text-[11px] text-[#49454F] font-bold uppercase tracking-tight">Acumulación + Intensificación pre-configurados para peaking.</p>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Simple Transition Modal */}
-            {showSimpleTransition && (
-                <div className="fixed inset-0 z-[200] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowSimpleTransition(false)}>
-                    <div className="bg-white border border-[#ECE6F0] w-full max-w-md max-h-[85vh] flex flex-col rounded-[2.5rem] p-8 shadow-2xl relative animate-in fade-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setShowSimpleTransition(false)} className="absolute top-8 right-8 text-zinc-300 hover:text-zinc-900 transition-colors"><XIcon size={20} /></button>
-                        <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight mb-2">Volver a Simple</h2>
-                        <p className="text-xs text-[#49454F] font-bold uppercase tracking-widest mb-6">¿Qué semana conservar como ciclo base?</p>
-                        <div className="overflow-y-auto custom-scrollbar space-y-3 pr-1">
-                            <button onClick={() => {
-                                const updated = JSON.parse(JSON.stringify(program));
-                                updated.structure = 'simple'; updated.events = [];
-                                updated.macrocycles = [{ id: crypto.randomUUID(), name: 'Macrociclo', blocks: [{ id: crypto.randomUUID(), name: 'BLOQUE CÍCLICO', mesocycles: [{ id: crypto.randomUUID(), name: 'Ciclo Base', goal: 'Custom', weeks: [{ id: crypto.randomUUID(), name: 'Semana 1', sessions: [] }] }] }] }];
-                                if (handleUpdateProgram) handleUpdateProgram(updated);
-                                setShowSimpleTransition(false); addToast('Programa simplificado.', 'success');
-                            }} className="w-full text-left p-5 rounded-2xl border-2 border-dashed border-[#E6E0E9] hover:border-blue-300 hover:bg-blue-50/50 transition-all">
-                                <h4 className="text-xs font-black text-zinc-900 uppercase tracking-widest">Semana en Blanco</h4>
-                                <p className="text-[11px] text-[#49454F] font-bold uppercase tracking-tight">Empezar desde cero con un bucle simple.</p>
-                            </button>
-                            {program.macrocycles.flatMap(m => (m.blocks || []).flatMap(b => (b.mesocycles || []).flatMap(me => (me.weeks || []).map(w => ({ ...w, label: `${b.name} · ${w.name}` }))))).map((week, idx) => (
-                                <button key={idx} onClick={() => {
-                                    const updated = JSON.parse(JSON.stringify(program));
-                                    updated.structure = 'simple'; updated.events = [];
-                                    updated.macrocycles = [{ id: crypto.randomUUID(), name: 'Macrociclo', blocks: [{ id: crypto.randomUUID(), name: 'BLOQUE CÍCLICO', mesocycles: [{ id: crypto.randomUUID(), name: 'Ciclo Base', goal: 'Custom', weeks: [{ ...week, id: crypto.randomUUID(), name: 'Semana 1' }] }] }] }];
-                                    if (handleUpdateProgram) handleUpdateProgram(updated);
-                                    setShowSimpleTransition(false); addToast(`Usando: ${week.label}`, 'success');
-                                }} className="w-full text-left p-5 rounded-2xl bg-[#ECE6F0] border border-[#ECE6F0] hover:border-blue-200 hover:bg-white transition-all group">
-                                    <h4 className="text-xs font-black text-zinc-900 uppercase tracking-widest truncate group-hover:text-blue-600 transition-colors">{week.label}</h4>
-                                    <p className="text-[11px] text-[#49454F] font-bold tracking-tight">{(week.sessions || []).length} SESIONES DEFINIDAS</p>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Tour */}
+            {/* Tour de bienvenida */}
             {tourStep > 0 && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-md px-4">
                     <div className="bg-white border border-[#ECE6F0] rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl relative text-center animate-in fade-in zoom-in duration-300">
@@ -624,29 +409,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                     </div>
                 </div>
             )}
-
-            {/* Split Changer - drawer integrado con scopes */}
-            <SplitChangerDrawer
-                isOpen={isSplitChangerOpen}
-                onClose={() => setIsSplitChangerOpen(false)}
-                currentSplitId={program.selectedSplitId}
-                currentStartDay={program.startDay ?? settings?.startWeekOn ?? 1}
-                isSimpleProgram={isCyclic}
-                onApply={(split, scope, preserveExercises, startDay) => {
-                    const block = program.macrocycles[0]?.blocks?.find(b => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
-                    const week = block?.mesocycles.flatMap(m => m.weeks).find(w => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
-                    handleChangeSplit(program.id, split.pattern, split.id, scope, preserveExercises, startDay, block?.id, week?.id);
-                }}
-            />
-
-            {/* Macrocycle Editor Modal */}
-            <MacrocycleEditor
-                program={program}
-                isOpen={isMacrocycleEditorOpen}
-                onClose={() => setIsMacrocycleEditorOpen(false)}
-                onUpdateProgram={handleUpdateProgram}
-                addToast={addToast}
-            />
         </div>
     );
 };

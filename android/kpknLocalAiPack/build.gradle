@@ -1,0 +1,8 @@
+apply plugin: 'com.android.asset-pack'
+
+assetPack {
+    packName = "kpkn_local_ai"
+    dynamicDelivery {
+        deliveryType = "install-time"
+    }
+}

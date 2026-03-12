@@ -89,7 +89,7 @@ const BodyPartDetailView: React.FC<BodyPartDetailViewProps> = ({ bodyPartId }) =
   const info = TRAIN_INFO[bodyPartId];
 
   return (
-    <div className="tab-bar-safe-area min-h-screen bg-[#FDFCFE] pb-32">
+    <div className="min-h-screen bg-[#FDFCFE] pb-32">
       {/* Header */}
       <header className="pt-12 px-6 mb-6">
         <span className="text-[9px] font-black uppercase tracking-widest text-[#49454F] opacity-40 mb-2 block">

@@ -16,8 +16,8 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
     program, isActive, isPaused, onBack, onEdit, onStart, onPause,
 }) => {
     const structureLabel = (() => {
-        const isCyclic = program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
-        if (isCyclic) {
+        const isSimple = program.structure === 'simple' || (program.macrocycles.length === 1 && (program.macrocycles[0].blocks || []).length <= 1);
+        if (isSimple) {
             const weekCount = program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length || 0;
             return weekCount > 1 ? `${weekCount} Semanas` : 'Simple';
         }

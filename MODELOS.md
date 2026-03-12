@@ -1,69 +1,38 @@
-# Registro de Comidas y IA Local
+# IA local para nutricion
 
-## Estado actual
+El registro descriptivo ya no depende de Ollama ni del backend para nutricion.
 
-El registro de comidas ya no usa WebLLM ni modelos GGUF embebidos en el frontend.
+Arquitectura actual:
 
-La arquitectura real es esta:
+1. `RegisterFoodDrawer` deja escribir sin lag.
+2. El usuario pulsa `Analizar calorias`.
+3. `parseFreeFormNutrition()` usa parser por reglas + bridge Android local.
+4. `LocalAiPlugin` intenta cargar `kpkn-food-fg270m-v1` desde:
+   - asset pack install-time (`android/kpknLocalAiPack/...`)
+   - assets debug/sideload (`android/app/src/main/assets/models/...`)
+5. Si el modelo real no esta presente, el flujo sigue con fallback heuristico offline.
 
-1. `RegisterFoodDrawer` captura la descripcion libre del usuario.
-2. `parseFreeFormNutrition()` decide entre parser por reglas o IA local via backend.
-3. `searchFoods()` resuelve cada etiqueta usando la base local y catalogos offline/online existentes.
-4. El usuario corrige ambiguedades en la UI antes de guardar.
-5. `handleSaveNutritionLog()` persiste el `NutritionLog` final en la app.
+Documentacion completa:
 
-## IA local opcional
+- `C:\Users\valen\Downloads\kpkn-fit-(beta-test)\docs\local-ai-functiongemma-android.md`
 
-La IA local sigue disponible, pero no dentro del navegador.
-
-Se activa solo si el backend responde en `GET /api/ai/status` y reporta un proveedor local disponible, hoy pensado para Ollama.
-
-Campos relevantes en `Settings`:
-
-- `nutritionDescriptionMode`: `auto`, `rules` o `local-ai`
-- `nutritionUseLocalAI`
-- `nutritionLocalModel`
-- `nutritionUseOnlineApis`
-
-Comportamiento:
-
-- `rules`: usa solo el parser heuristico local.
-- `auto`: intenta IA local si el backend esta disponible; si no, vuelve a reglas.
-- `local-ai`: prioriza IA local, pero tambien hace fallback a reglas si el backend falla o expira.
-
-## Build
-
-No existe descarga automatica de modelos durante el build.
-
-Comandos vigentes:
+Comandos clave:
 
 ```bash
-npm run build
-npm run build:android
+npm run local-ai:stage-model -- --src "C:\ruta\al\export-del-modelo" --clean
+npm run local-ai:check-model
+npm run cap:sync
+cd android && .\gradlew.bat :app:bundleDebug
 ```
 
-Android y web comparten el mismo bundle de la app. No se copian modelos a `www/models/` ni a assets de Capacitor.
+Telemetria de analisis:
 
-## Verificacion rapida
+- Se guarda localmente en `nutrition-ai-telemetry-runs`
+- Correcciones manuales en `nutrition-ai-telemetry-corrections`
+- En runtime de desarrollo puedes inspeccionarla con:
 
-Para validar el flujo base del registro descriptivo:
-
-```bash
-npm run test:nutrition-logging
+```js
+await window.__kpknNutritionAiTelemetry.summary()
+await window.__kpknNutritionAiTelemetry.runs()
+await window.__kpknNutritionAiTelemetry.corrections()
 ```
-
-Este chequeo cubre:
-
-- parser descriptivo por reglas
-- fallback local sin backend
-- busqueda real en la base de alimentos
-
-## Operacion recomendada
-
-Si quieres IA local de verdad:
-
-1. Levanta el backend que expone `/api/ai/status`.
-2. Configura Ollama con el modelo que quieras usar.
-3. Define `nutritionLocalModel` en settings si no quieres el default.
-
-Si no hay backend, el sistema sigue funcionando con parser por reglas y busqueda nutricional local.
