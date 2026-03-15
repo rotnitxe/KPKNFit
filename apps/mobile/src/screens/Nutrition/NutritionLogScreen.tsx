@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 import { Keyboard } from 'react-native';
-import { Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { ScreenShell } from '../../components/ScreenShell';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { useMobileNutritionStore } from '../../stores/nutritionStore';
+import { useMealTemplateStore } from '../../stores/mealTemplateStore';
 
 function MacroPill({ label, value }: { label: string; value: number }) {
   return (
@@ -18,6 +19,7 @@ export function NutritionLogScreen() {
   const description = useMobileNutritionStore(state => state.description);
   const status = useMobileNutritionStore(state => state.status);
   const lastAnalysis = useMobileNutritionStore(state => state.lastAnalysis);
+  const savedLogs = useMobileNutritionStore(state => state.savedLogs);
   const isDetailVisible = useMobileNutritionStore(state => state.isDetailVisible);
   const saveNotice = useMobileNutritionStore(state => state.saveNotice);
   const errorMessage = useMobileNutritionStore(state => state.errorMessage);
@@ -25,6 +27,7 @@ export function NutritionLogScreen() {
   const analyze = useMobileNutritionStore(state => state.analyze);
   const saveCurrent = useMobileNutritionStore(state => state.saveCurrent);
   const toggleDetail = useMobileNutritionStore(state => state.toggleDetail);
+  const templates = useMealTemplateStore(state => state.templates);
 
   const handleAnalyze = () => {
     Keyboard.dismiss();
@@ -49,6 +52,18 @@ export function NutritionLogScreen() {
     );
   }, [lastAnalysis]);
 
+  const recentDescriptions = useMemo(() => {
+    const seen = new Set<string>();
+    return savedLogs
+      .map(log => log.description.trim())
+      .filter(value => {
+        if (!value || seen.has(value)) return false;
+        seen.add(value);
+        return true;
+      })
+      .slice(0, 4);
+  }, [savedLogs]);
+
   return (
     <ScreenShell
       title="Registrar comida"
@@ -70,6 +85,26 @@ export function NutritionLogScreen() {
               tone="secondary"
             />
           </View>
+          {templates.length > 0 ? (
+            <View className="mb-4 gap-3">
+              <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Plantillas rápidas</Text>
+              <View className="gap-3">
+                {templates.slice(0, 3).map(template => (
+                  <Pressable
+                    key={template.id}
+                    className="rounded-3xl border border-white/8 bg-kpkn-elevated px-4 py-4"
+                    onPress={() => applyExample(template.quickDescription)}
+                  >
+                    <Text className="text-base font-semibold text-kpkn-text">{template.name}</Text>
+                    <Text className="mt-1 text-sm leading-5 text-kpkn-muted">{template.description}</Text>
+                    <Text className="mt-2 text-sm text-kpkn-muted">
+                      {`${Math.round(template.calories)} kcal · ${Math.round(template.protein)}p · ${Math.round(template.carbs)}c · ${Math.round(template.fats)}g`}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ) : null}
           <TextInput
             testID="nutrition-description-input"
             className="min-h-[144px] rounded-3xl border border-white/8 bg-kpkn-elevated px-4 py-4 text-base leading-6 text-kpkn-text"
@@ -88,6 +123,22 @@ export function NutritionLogScreen() {
               disabled={status === 'analyzing' || description.trim().length === 0}
             />
           </View>
+          {recentDescriptions.length > 0 ? (
+            <View className="mt-4 gap-2">
+              <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Recientes</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {recentDescriptions.map(value => (
+                  <Pressable
+                    key={value}
+                    className="rounded-full border border-white/10 bg-white/5 px-4 py-3"
+                    onPress={() => applyExample(value)}
+                  >
+                    <Text className="text-sm text-kpkn-text">{value}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ) : null}
         </View>
 
         <View className="rounded-card border border-white/10 bg-kpkn-surface px-4 py-5">

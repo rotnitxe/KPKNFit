@@ -1410,17 +1410,12 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, []);
     // Single save modal removed — migrated to SaveDrawer
 
-    const sessionRef = useRef(session);
-    const weekSessionsRef = useRef(weekSessions);
-    const modifiedIdsRef = useRef(modifiedSessionIds);
     const onSaveRef = useRef(onSave);
 
-    useEffect(() => { sessionRef.current = session; }, [session]);
-    useEffect(() => { weekSessionsRef.current = weekSessions; }, [weekSessions]);
-    useEffect(() => { modifiedIdsRef.current = modifiedSessionIds; }, [modifiedSessionIds]);
     useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
 
     const updateSession = useCallback((updater: (draft: Session) => void) => {
+        if (activeSessionId === 'empty' || !weekSessions.some(s => s.id === activeSessionId)) return;
         setWeekSessions(prev => prev.map(s => {
             if (s.id === activeSessionId) {
                 const draft = JSON.parse(JSON.stringify(s));
@@ -1432,7 +1427,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
         }));
         setModifiedSessionIds(prev => new Set(prev).add(activeSessionId));
         setIsDirty(true);
-    }, [activeSessionId, setIsDirty]);
+    }, [activeSessionId, setIsDirty, weekSessions]);
 
     const handleDayClick = (dayValue: number, daySessions: Session[]) => {
         if (daySessions.length > 0) {
@@ -1540,21 +1535,34 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, [sessionRules, exerciseList]);
 
     const handleSave = useCallback(async () => {
-        if (activeSessionId !== 'empty' && (!sessionRef.current.name || !sessionRef.current.name.trim())) {
-            addToast("La sesión debe tener un nombre antes de guardar.", "danger"); return;
+        if (activeSessionId === 'empty') {
+            addToast("No hay una sesión activa para guardar.", "danger");
+            return;
         }
-        const rulesError = validateSessionRules(sessionRef.current);
+
+        const activeSession = weekSessions.find(s => s.id === activeSessionId);
+        if (!activeSession) {
+            addToast("No se encontró la sesión activa para guardar.", "danger");
+            return;
+        }
+
+        if (!activeSession.name || !activeSession.name.trim()) {
+            addToast("La sesión debe tener un nombre antes de guardar.", "danger");
+            return;
+        }
+
+        const rulesError = validateSessionRules(activeSession);
         if (rulesError) {
             addToast(rulesError, "danger");
             return;
         }
 
-        if ((modifiedIdsRef.current.size > 1 && existingSessionInfo) || (existingSessionInfo && existingSessionInfo.macroIndex !== undefined)) {
+        if ((modifiedSessionIds.size > 1 && existingSessionInfo) || (existingSessionInfo && existingSessionInfo.macroIndex !== undefined)) {
             setIsSaveDrawerOpenState(true);
         } else {
-            executeFinalSave([sessionRef.current]);
+            executeFinalSave([activeSession]);
         }
-    }, [activeSessionId, addToast, existingSessionInfo, validateSessionRules]);
+    }, [activeSessionId, addToast, existingSessionInfo, modifiedSessionIds, validateSessionRules, weekSessions]);
 
     const handleCancelOrConfirm = useCallback(() => {
         if (modifiedSessionIds.size > 0) {
@@ -1613,10 +1621,11 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     useEffect(() => {
         if (addExerciseTrigger !== lastAddTrigger.current) {
             lastAddTrigger.current = addExerciseTrigger;
-            const lastPartIndex = (sessionRef.current.parts?.length || 1) - 1;
+            const activeSession = weekSessions.find(s => s.id === activeSessionId);
+            const lastPartIndex = (activeSession?.parts?.length || 1) - 1;
             handleAddExercise(lastPartIndex >= 0 ? lastPartIndex : 0);
         }
-    }, [addExerciseTrigger, handleAddExercise]);
+    }, [activeSessionId, addExerciseTrigger, handleAddExercise, weekSessions]);
 
     const [draggedPartIndex, setDraggedPartIndex] = useState<number | null>(null);
 
@@ -2015,13 +2024,19 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, [updateSession, addToast, exerciseList, globalSessionAlerts]);
 
     const handleSaveSingle = useCallback((applyBlock: boolean) => {
+        const activeSession = weekSessions.find(s => s.id === activeSessionId);
+        if (!activeSession) {
+            addToast("No se encontró la sesión activa para guardar.", "danger");
+            return;
+        }
+
         if (applyBlock) {
-            const sCopy = { ...session, _applyToBlock: true } as any;
+            const sCopy = { ...activeSession, _applyToBlock: true } as any;
             executeFinalSave([sCopy]);
         } else {
-            executeFinalSave([session]);
+            executeFinalSave([activeSession]);
         }
-    }, [session]);
+    }, [activeSessionId, addToast, weekSessions]);
 
     const handleSaveMultiple = useCallback((sessions: Session[], blockSelections: Record<string, boolean>) => {
         const final = sessions.map(s => {

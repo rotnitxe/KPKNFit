@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import packageJson from '../package.json';
-import type { MigrationSnapshotV1 } from '../packages/shared-types/src';
+import { validateMigrationSnapshot, type MigrationSnapshotV1 } from '../packages/shared-types/src';
 
 export const MIGRATION_SNAPSHOT_SCHEMA_VERSION = 1;
 export const MIGRATION_SNAPSHOT_PATH = 'migration/snapshot-v1.json';
@@ -126,7 +126,13 @@ export async function readMigrationSnapshotV1(): Promise<MigrationSnapshotV1 | n
       directory: Directory.Data,
       encoding: Encoding.UTF8,
     });
-    return JSON.parse(typeof result.data === 'string' ? result.data : '') as MigrationSnapshotV1;
+    const parsed = JSON.parse(typeof result.data === 'string' ? result.data : '');
+    const validation = validateMigrationSnapshot(parsed);
+    if (!validation.valid) {
+      console.warn('Snapshot puente invalido.', validation.reason);
+      return null;
+    }
+    return validation.snapshot;
   } catch (error) {
     console.warn('Snapshot puente no disponible todavia.', error);
     return null;

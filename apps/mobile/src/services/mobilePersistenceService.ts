@@ -1,4 +1,4 @@
-import type { MigrationSnapshotV1 } from '@kpkn/shared-types';
+import type { MigrationSnapshotV1, WorkoutLogSummary } from '@kpkn/shared-types';
 import type { SavedNutritionEntry } from '../types/nutrition';
 import { getMobileDatabase } from '../storage/mobileDatabase';
 
@@ -179,6 +179,69 @@ export async function persistDomainPayload(domain: string, payload: unknown) {
 
 export async function persistMetaValue(key: string, value: unknown) {
   upsertMeta(key, value, new Date().toISOString());
+}
+
+export async function loadPersistedDomainPayload<T = unknown>(domain: string): Promise<T | null> {
+  const db = getMobileDatabase();
+  const result = db.execute(
+    'SELECT payload_json FROM domain_payloads WHERE domain = ? LIMIT 1',
+    [domain],
+  );
+  const row = result.rows?._array?.[0];
+  if (!row?.payload_json) return null;
+  return parseJson<T | null>(String(row.payload_json), null);
+}
+
+export async function persistLocalWorkoutLog(entry: WorkoutLogSummary) {
+  const db = getMobileDatabase();
+  db.execute(
+    `
+      INSERT OR REPLACE INTO workout_logs_local (
+        id,
+        date,
+        program_name,
+        session_name,
+        exercise_count,
+        completed_set_count,
+        duration_minutes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      entry.id,
+      entry.date,
+      entry.programName,
+      entry.sessionName,
+      entry.exerciseCount,
+      entry.completedSetCount,
+      entry.durationMinutes,
+    ],
+  );
+}
+
+export async function loadLocalWorkoutLogs(limit = 60): Promise<WorkoutLogSummary[]> {
+  const db = getMobileDatabase();
+  const result = db.execute(
+    `
+      SELECT id, date, program_name, session_name, exercise_count, completed_set_count, duration_minutes
+      FROM workout_logs_local
+      ORDER BY date DESC
+      LIMIT ?
+    `,
+    [limit],
+  );
+
+  return (result.rows?._array ?? []).map(row => ({
+    id: String(row.id),
+    date: String(row.date),
+    programName: String(row.program_name),
+    sessionName: String(row.session_name),
+    exerciseCount: Number(row.exercise_count ?? 0),
+    completedSetCount: Number(row.completed_set_count ?? 0),
+    durationMinutes:
+      row.duration_minutes === null || row.duration_minutes === undefined
+        ? null
+        : Number(row.duration_minutes),
+  }));
 }
 
 // ────────────────────────────────────────────────────────────

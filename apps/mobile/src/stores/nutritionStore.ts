@@ -2,10 +2,11 @@ import { create } from 'zustand';
 import type { LocalAiNutritionAnalysisResult } from '@kpkn/shared-types';
 import { analyzeNutritionDraft } from '../services/nutritionAnalyzer';
 import { LOCAL_CHILEAN_FOOD_CATALOG } from '@kpkn/shared-domain';
-import { widgetModule } from '../modules/widgets';
 import type { SavedNutritionEntry } from '../types/nutrition';
 import { loadSavedNutritionLogs, persistNutritionLog } from '../services/mobilePersistenceService';
 import { generateId } from '../utils/generateId';
+import { syncNutritionWidgetState } from '../services/widgetSyncService';
+import { rescheduleCoreNotificationsFromStorage } from '../services/mobileNotificationService';
 
 type NutritionScreenStatus = 'idle' | 'analyzing' | 'ready' | 'failed';
 
@@ -49,6 +50,8 @@ export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, g
   errorMessage: null,
   hydrateFromStorage: async () => {
     const savedLogs = await loadSavedNutritionLogs();
+    void syncNutritionWidgetState(savedLogs);
+    void rescheduleCoreNotificationsFromStorage();
     set({
       savedLogs,
       hasHydrated: true,
@@ -121,26 +124,8 @@ export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, g
 
     const nextLogs = [entry, ...savedLogs].slice(0, 100);
     await persistNutritionLog(entry);
-
-    // Single pass to compute today's totals instead of 4× filter/reduce
-    const todayDate = entry.createdAt.slice(0, 10);
-    const { caloriesToday, proteinToday, carbsToday, fatsToday } = nextLogs
-      .filter(log => log.createdAt.slice(0, 10) === todayDate)
-      .reduce(
-        (acc, log) => ({
-          caloriesToday: acc.caloriesToday + log.totals.calories,
-          proteinToday: acc.proteinToday + log.totals.protein,
-          carbsToday: acc.carbsToday + log.totals.carbs,
-          fatsToday: acc.fatsToday + log.totals.fats,
-        }),
-        { caloriesToday: 0, proteinToday: 0, carbsToday: 0, fatsToday: 0 },
-      );
-    void widgetModule.syncDashboardState({
-      nutritionCaloriesToday: caloriesToday,
-      nutritionProteinToday: proteinToday,
-      nutritionCarbsToday: carbsToday,
-      nutritionFatsToday: fatsToday,
-    });
+    void syncNutritionWidgetState(nextLogs);
+    void rescheduleCoreNotificationsFromStorage();
     set({
       savedLogs: nextLogs,
       saveNotice: 'Comida guardada.',

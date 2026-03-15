@@ -1,21 +1,78 @@
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { StatusBar, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, AppState } from 'react-native';
+import notifee, { EventType } from '@notifee/react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { useBootstrapStore } from './src/stores/bootstrapStore';
+import { backgroundModule } from './src/modules/background';
+import {
+  rescheduleCoreNotificationsFromStorage,
+  syncNotificationPermissionState,
+} from './src/services/mobileNotificationService';
+import { navigateFromExternalTarget } from './src/navigation/navigationRef';
+
+function getNotificationTarget(value: unknown) {
+  return typeof value === 'string' ? value : undefined;
+}
 
 export default function App() {
-  const { status, error, bootstrap, retry } = useBootstrapStore(state => ({
+  const { status, error, bootstrap, retry } = useBootstrapStore(useShallow(state => ({
     status: state.status,
     error: state.error,
     bootstrap: state.bootstrap,
     retry: state.retry,
-  }));
+  })));
 
   useEffect(() => {
     void bootstrap();
   }, [bootstrap]);
+
+  useEffect(() => {
+    if (status !== 'ready') return;
+
+    void backgroundModule.schedulePeriodicSync().catch(error => {
+      console.warn('[background] No se pudo programar el sync periódico.', error);
+    });
+
+    void rescheduleCoreNotificationsFromStorage().catch(error => {
+      console.warn('[notifications] No se pudieron reprogramar los recordatorios al iniciar.', error);
+    });
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== 'ready') return undefined;
+
+    const subscription = AppState.addEventListener('change', nextState => {
+      if (nextState !== 'active') return;
+
+      void syncNotificationPermissionState().catch(error => {
+        console.warn('[notifications] No se pudo refrescar el permiso al volver a la app.', error);
+      });
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== 'ready') return undefined;
+
+    const unsubscribe = notifee.onForegroundEvent(({ type, detail }) => {
+      if (type !== EventType.PRESS) return;
+      navigateFromExternalTarget(getNotificationTarget(detail.notification?.data?.screen));
+    });
+
+    void notifee.getInitialNotification().then(initialNotification => {
+      navigateFromExternalTarget(getNotificationTarget(initialNotification?.notification?.data?.screen));
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [status]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

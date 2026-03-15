@@ -34,6 +34,7 @@ const fallbackDiagnostics: LocalAiDebugSnapshot = {
 };
 
 const nativeModule = NativeModules.KPKNLocalAi as LocalAiModuleContract | undefined;
+export const isLocalAiModuleAvailable = Boolean(nativeModule);
 
 export const localAiModule: LocalAiModuleContract = nativeModule ? {
   async getStatus() {

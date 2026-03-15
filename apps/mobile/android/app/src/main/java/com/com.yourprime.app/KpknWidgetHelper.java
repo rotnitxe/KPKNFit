@@ -4,7 +4,10 @@ import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.widget.RemoteViews;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,6 +19,20 @@ public class KpknWidgetHelper {
     static final String KEY_BATTERY = "battery_auge";
     static final String KEY_NUTRITION = "nutrition";
     static final String KEY_VOLUME = "effective_volume";
+    static final String KEY_SYNC_LAST_SYNC_AT = "sync_last_sync_at";
+    static final String KEY_SYNC_STALE = "sync_stale";
+
+    private static boolean isStale(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_GROUP, Context.MODE_PRIVATE);
+        boolean explicitStale = prefs.getBoolean(KEY_SYNC_STALE, true);
+        long lastSyncAt = prefs.getLong(KEY_SYNC_LAST_SYNC_AT, 0L);
+        boolean expired = lastSyncAt == 0L || (System.currentTimeMillis() - lastSyncAt) > 24L * 60L * 60L * 1000L;
+        return explicitStale || expired;
+    }
+
+    private static String staleSuffix(Context context) {
+        return isStale(context) ? " · STALE" : "";
+    }
 
     static void updateNextSessionWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_next_session);
@@ -34,11 +51,15 @@ public class KpknWidgetHelper {
             } catch (JSONException ignored) {}
         }
 
-        views.setTextViewText(R.id.widget_title, "NEXT SESSION");
+        if (isStale(context)) {
+            programName = programName + " · desactualizado";
+        }
+
+        views.setTextViewText(R.id.widget_title, "NEXT SESSION" + staleSuffix(context));
         views.setTextViewText(R.id.widget_session_name, sessionName);
         views.setTextViewText(R.id.widget_program_name, programName);
 
-        Intent clickIntent = new Intent(context, MainActivity.class);
+        Intent clickIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("kpkn://workout"), context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_next_session_root, pendingIntent);
@@ -66,11 +87,11 @@ public class KpknWidgetHelper {
         views.setProgressBar(R.id.widget_cns_bar, 100, cns, false);
         views.setProgressBar(R.id.widget_muscular_bar, 100, muscular, false);
         views.setProgressBar(R.id.widget_spinal_bar, 100, spinal, false);
-        views.setTextViewText(R.id.widget_cns_value, cns + "%");
-        views.setTextViewText(R.id.widget_muscular_value, muscular + "%");
-        views.setTextViewText(R.id.widget_spinal_value, spinal + "%");
+        views.setTextViewText(R.id.widget_cns_value, cns + "%" + (isStale(context) ? "*" : ""));
+        views.setTextViewText(R.id.widget_muscular_value, muscular + "%" + (isStale(context) ? "*" : ""));
+        views.setTextViewText(R.id.widget_spinal_value, spinal + "%" + (isStale(context) ? "*" : ""));
 
-        Intent clickIntent = new Intent(context, MainActivity.class);
+        Intent clickIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("kpkn://progress"), context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 1, clickIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_battery_root, pendingIntent);
@@ -100,12 +121,15 @@ public class KpknWidgetHelper {
         String caloriesText = calorieGoal > 0
                 ? calories + " / " + calorieGoal + " kcal"
                 : calories + " kcal";
+        if (isStale(context)) {
+            caloriesText = caloriesText + " *";
+        }
         views.setTextViewText(R.id.widget_calories_main, caloriesText);
         views.setTextViewText(R.id.widget_protein_value, String.valueOf(protein));
         views.setTextViewText(R.id.widget_carbs_value, String.valueOf(carbs));
         views.setTextViewText(R.id.widget_fats_value, String.valueOf(fats));
 
-        Intent clickIntent = new Intent(context, MainActivity.class);
+        Intent clickIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("kpkn://nutrition"), context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 2, clickIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_nutrition_root, pendingIntent);
@@ -131,11 +155,11 @@ public class KpknWidgetHelper {
         }
 
         int progress = planned > 0 ? Math.min(100, (completed * 100) / planned) : 0;
-        String summary = completed + " / " + planned;
+        String summary = completed + " / " + planned + (isStale(context) ? " *" : "");
         views.setTextViewText(R.id.widget_volume_summary, summary);
         views.setProgressBar(R.id.widget_volume_bar, 100, progress, false);
 
-        Intent clickIntent = new Intent(context, MainActivity.class);
+        Intent clickIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("kpkn://workout"), context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 3, clickIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_volume_root, pendingIntent);

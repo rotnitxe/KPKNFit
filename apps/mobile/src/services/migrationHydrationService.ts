@@ -5,13 +5,10 @@
  * y convierte los datos al formato que usan los stores RN.
  *
  * Dominios rehidratados en esta versión:
- *   ✅ nutrition   — nutritionLogs → SavedNutritionEntry[], mealTemplates como raw
- *   ✅ settings    — guardado en MMKV bajo 'migration.settings'
- *   ✅ wellbeing   — tasks, sleepLogs, waterLogs como raw en MMKV
- *   ⏭ workout     — historial importado intencionalmente fuera de esta ronda.
- *                   Los datos estás en SQLite pero no los exponemos hasta el paso 7,
- *                   cuando exista un store de workout real en RN. No se declara como
- *                   rehidratado. Queda como deuda explícita.
+ *   ✅ nutrition   — nutritionLogs → SavedNutritionEntry[], mealTemplates a storage RN propio
+ *   ✅ settings    — storage RN propio (sin escribir sobre migration.*)
+ *   ✅ wellbeing   — storage RN propio (sin escribir sobre migration.*)
+ *   ✅ workout     — queda persistido en SQLite/domain_payloads y su overview se arma en el store RN
  *
  * La estrategia de conversión usa "adaptadores defensivos": tomamos lo que podemos
  * de cada objeto desconocido y generamos entradas válidas para los stores RN.
@@ -21,8 +18,12 @@
 import type { SavedNutritionEntry } from '../types/nutrition';
 import type { LocalAiNutritionAnalysisResult } from '@kpkn/shared-types';
 import { getMobileDatabase } from '../storage/mobileDatabase';
-import { setJsonValue } from '../storage/mmkv';
 import { persistNutritionLog } from './mobilePersistenceService';
+import {
+  persistStoredMealTemplatesRaw,
+  persistStoredSettingsRaw,
+  persistStoredWellbeingPayload,
+} from './mobileDomainStateService';
 
 // ────────────────────────────────────────────────────────────
 // Lectura de domain_payloads desde SQLite
@@ -186,7 +187,7 @@ export interface HydrationResult {
   nutritionLogsDiscarded: number;
   settingsImported: boolean;
   wellbeingImported: boolean;
-  workoutStatus: 'skipped-pending-paso-7';
+  workoutStatus: 'available-in-overview';
   errors: string[];
 }
 
@@ -223,9 +224,9 @@ export async function hydrateFromMigrationSnapshot(): Promise<HydrationResult> {
         }
       }
 
-      // Meal templates: guardamos como raw en MMKV para consumo futuro
+      // Meal templates: guardamos en storage RN propio para no depender del namespace migration.*
       if (Array.isArray(np.mealTemplates) && np.mealTemplates.length > 0) {
-        setJsonValue('migration.mealTemplates', np.mealTemplates);
+        persistStoredMealTemplatesRaw(np.mealTemplates);
       }
     }
   } catch (error) {
@@ -238,9 +239,7 @@ export async function hydrateFromMigrationSnapshot(): Promise<HydrationResult> {
   try {
     const settingsPayload = readDomainPayload('settings');
     if (settingsPayload !== null && typeof settingsPayload === 'object' && !Array.isArray(settingsPayload)) {
-      // Guardamos el objeto de settings tal como viene.
-      // El futuro settingsStore RN lo leerá de aquí con la clave 'migration.settings'.
-      setJsonValue('migration.settings', settingsPayload);
+      persistStoredSettingsRaw(settingsPayload as Record<string, unknown>);
       settingsImported = true;
     }
   } catch (error) {
@@ -255,17 +254,12 @@ export async function hydrateFromMigrationSnapshot(): Promise<HydrationResult> {
     if (wellbeingPayload !== null && typeof wellbeingPayload === 'object' && !Array.isArray(wellbeingPayload)) {
       const wp = wellbeingPayload as Record<string, unknown>;
 
-      // Tasks: guardamos raw en MMKV para consumo en módulo wellbeing futuro
-      if (Array.isArray(wp.tasks) && wp.tasks.length > 0) {
-        setJsonValue('migration.wellbeing.tasks', wp.tasks);
-      }
-      if (Array.isArray(wp.sleepLogs) && wp.sleepLogs.length > 0) {
-        setJsonValue('migration.wellbeing.sleepLogs', wp.sleepLogs);
-      }
-      if (Array.isArray(wp.waterLogs) && wp.waterLogs.length > 0) {
-        setJsonValue('migration.wellbeing.waterLogs', wp.waterLogs);
-      }
-
+      persistStoredWellbeingPayload({
+        tasks: Array.isArray(wp.tasks) ? wp.tasks : [],
+        sleepLogs: Array.isArray(wp.sleepLogs) ? wp.sleepLogs : [],
+        waterLogs: Array.isArray(wp.waterLogs) ? wp.waterLogs : [],
+        dailyWellbeingLogs: Array.isArray(wp.dailyWellbeingLogs) ? wp.dailyWellbeingLogs : [],
+      });
       wellbeingImported = true;
     }
   } catch (error) {
@@ -274,18 +268,12 @@ export async function hydrateFromMigrationSnapshot(): Promise<HydrationResult> {
     errors.push(msg);
   }
 
-  // ── 4. Workout — FUERA DE ALCANCE (explícito) ─────────────────────────────
-  // El historial de workouts existe en domain_payloads['workout'] pero no hay
-  // ningún store RN que lo consuma todavía. Hidratar datos sin consumidor sería
-  // lo mismo que el bug original. Se rehidrata en el paso 7 junto con el módulo
-  // de entrenamiento. Marcado como skipped intencionalmente.
-
   return {
     nutritionLogsImported,
     nutritionLogsDiscarded,
     settingsImported,
     wellbeingImported,
-    workoutStatus: 'skipped-pending-paso-7',
+    workoutStatus: 'available-in-overview',
     errors,
   };
 }

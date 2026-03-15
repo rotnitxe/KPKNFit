@@ -67,6 +67,7 @@
     "html2canvas": "^1.4.1",
     "immer": "^11.1.4",
     "lucide-react": "^0.576.0",
+    "openai": "^6.29.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^2.12.7",

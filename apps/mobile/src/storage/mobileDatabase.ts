@@ -50,6 +50,23 @@ function bootstrapDatabase(db: QuickSQLiteConnection) {
     ON nutrition_logs(created_at DESC);
   `);
 
+  db.execute(`
+    CREATE TABLE IF NOT EXISTS workout_logs_local (
+      id TEXT PRIMARY KEY NOT NULL,
+      date TEXT NOT NULL,
+      program_name TEXT NOT NULL,
+      session_name TEXT NOT NULL,
+      exercise_count INTEGER NOT NULL,
+      completed_set_count INTEGER NOT NULL,
+      duration_minutes INTEGER
+    );
+  `);
+
+  db.execute(`
+    CREATE INDEX IF NOT EXISTS idx_workout_logs_local_date
+    ON workout_logs_local(date DESC);
+  `);
+
   // Tabla aislada para smoke tests — no contamina nutrition_logs con datos de prueba.
   db.execute(`
     CREATE TABLE IF NOT EXISTS smoke_test_logs (

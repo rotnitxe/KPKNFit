@@ -1003,7 +1003,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     const exInfo = exerciseList.find(e => e.id === exercise.exerciseDbId || e.name === exercise.name);
                     const primaryEntry = exInfo?.involvedMuscles?.find(m => m.role === 'primary');
                     const rawMuscle = primaryEntry?.muscle || exInfo?.subMuscleGroup || 'Core';
-                    const calibMuscle = normalizeMuscleGroup(rawMuscle, primaryEntry?.emphasis);
+                    const calibMuscle = normalizeMuscleGroup ? normalizeMuscleGroup(rawMuscle, primaryEntry?.emphasis) : rawMuscle;
 
                     setSessionAdjusted1RMs(prev => {
                         const next = { ...prev };
@@ -1013,7 +1013,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                             if (idx <= currentIdx) return;
                             const info = exerciseList.find(e => e.id === ex.exerciseDbId || e.name === ex.name);
                             const exPrimary = info?.involvedMuscles?.find(m => m.role === 'primary');
-                            const exMuscle = normalizeMuscleGroup(exPrimary?.muscle || info?.subMuscleGroup || 'Core', exPrimary?.emphasis);
+                            const exMuscle = normalizeMuscleGroup ? normalizeMuscleGroup(exPrimary?.muscle || info?.subMuscleGroup || 'Core', exPrimary?.emphasis) : (exPrimary?.muscle || info?.subMuscleGroup || 'Core');
                             if (exMuscle === calibMuscle) next[ex.id] = conservative1RM;
                         });
                         return next;
@@ -1106,7 +1106,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             if (nextEx.warmupSets && nextEx.warmupSets.length > 0) {
                 setActiveSetId(`warmup-${nextEx.id}`);
                 scrollToId(nextEx.id, `warmup-card-${nextEx.id}`);
-            } else {
+} else if (nextEx.sets && nextEx.sets.length > 0) {
                 setActiveSetId(nextEx.sets[0].id);
                 scrollToId(nextEx.id, `set-card-${nextEx.sets[0].id}`);
             }
@@ -1206,15 +1206,15 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                     if (!replaceModalExercise) return;
                     const newExercise: Exercise = {
                         ...replaceModalExercise,
-                        id: crypto.randomUUID(),
+                        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `exercise-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                         name: sugg.name,
                         exerciseDbId: sugg.id,
                     };
                     const updatedSession: Session = { ...currentSession };
                     if (updatedSession.parts) {
-                        updatedSession.parts = updatedSession.parts.map(p => ({
+updatedSession.parts = updatedSession.parts.map(p => ({
                             ...p,
-                            exercises: p.exercises.map(ex => ex.id === replaceModalExercise.id ? newExercise : ex),
+                            exercises: p.exercises?.map(ex => ex.id === replaceModalExercise.id ? newExercise : ex) || [],
                         }));
                     } else if (updatedSession.exercises) {
                         updatedSession.exercises = updatedSession.exercises.map(ex => ex.id === replaceModalExercise.id ? newExercise : ex);
@@ -1284,7 +1284,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                         <AlertTriangleIcon size={22} className="mx-auto mb-3 text-[var(--md-sys-color-on-surface-variant)]" />
                         <h3 className="text-[15px] font-semibold text-[var(--md-sys-color-on-surface)]">No hay ejercicios disponibles</h3>
                         <p className="mt-2 text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
-                            Esta sesion se abrio sin ejercicios validos. Puedes reintentar la carga o salir.
+                            Esta sesión se abrió sin ejercicios válidos. Puedes reintentar la carga o salir.
                         </p>
                         <div className="mt-4 flex items-center justify-center gap-2">
                             <button
@@ -1296,7 +1296,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                             </button>
                             <button
                                 type="button"
-                                onClick={() => { if (window.confirm('Cancelar sesion y salir?')) onCancel(); }}
+                                onClick={() => { if (window.confirm('¿Cancelar sesión y salir?')) onCancel(); }}
                                 className="min-h-[44px] rounded-full bg-[var(--md-sys-color-primary)] px-4 text-[12px] font-semibold text-[var(--md-sys-color-on-primary)]"
                             >
                                 Salir
@@ -1364,7 +1364,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                     <FlameIcon size={14} className="text-primary" />
                                                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">Series de aproximación</span>
                                                                 </div>
-                                                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-primary/40">{ex.warmupSets!.length} SERIES</span>
+                                                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-primary/40">{ex.warmupSets?.length || 0} SERIES</span>
                                                             </div>
                                                             <div className="p-4 space-y-2">
                                                                 {(ex.warmupSets as WarmupSetDefinition[]).map((wSet, wi) => {
@@ -1440,7 +1440,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                                                                             </div>
                                                                             {isActiveRow && (
                                                                                 <div id={`set-card-${setId}`} className="px-2 pb-3 animate-fade-in">
-                                                                                    <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={(setInputs[String(setId)] as SetInputState) || safeInputsRow} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as any; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} />
+                                                                                    <SetDetails exercise={ex} exerciseInfo={exInfo} set={set} setIndex={setIndex} settings={settings} inputs={((ex.isUnilateral ? (setInputs[String(setId)] as UnilateralSetInputs)?.left : (setInputs[String(setId)] as SetInputState)) || safeInputsRow) as SetInputState} onInputChange={(field, value, side) => handleSetInputChange(String(setId), field as keyof SetInputState, value, side)} onLogSet={(isCal) => handleLogSet(ex, set, isCal)} isLogged={!!isCompleted} history={history} currentSession1RM={sessionAdjusted1RMs[ex.id]} base1RM={exInfo?.calculated1RM || ex.reference1RM} isCalibrated={!!sessionAdjusted1RMs[ex.id]} cardAnimation={setCardAnimations[String(setId)]} addToast={addToast} suggestedWeight={getWeightSuggestionForSet(ex, exInfo, setIndex, ex.sets.slice(0, setIndex).map(s => { const d = completedSets[String(s.id)] as any; if (!d) return { weight: 0 }; const p = ex.isUnilateral ? (d.left || d.right) : d; return p ? { weight: p.weight || 0, reps: p.reps, machineBrand: p.machineBrand } : { weight: 0 }; }), settings, history, selectedTags[ex.id], sessionAdjusted1RMs[ex.id])} selectedTag={selectedTags[ex.id]} tableRowMode setId={String(setId)} />
                                                                                 </div>
                                                                             )}
                                                                         </div>
@@ -1494,11 +1494,11 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                         durationMinutes={Math.floor(duration / 60)}
                         completedSetsCount={Object.keys(completedSets).length}
                         totalSetsCount={allExercises.reduce((acc, ex) => acc + (ex.sets?.filter((s: any) => s.type !== 'warmup').length ?? 0), 0)}
-                        totalTonnage={Object.entries(completedSets).reduce((acc, [, data]) => {
-                            const d = data as { left: OngoingSetData | null; right: OngoingSetData | null };
+totalTonnage={Object.entries(completedSets).reduce((acc, [, data]) => {
+                            const d = data as { left?: OngoingSetData | null; right?: OngoingSetData | null } | undefined;
                             let t = 0;
-                            if (d?.left) t += (d.left.weight || 0) * (d.left.reps || 0);
-                            if (d?.right) t += (d.right?.weight || 0) * (d.right?.reps || 0);
+                            if (d?.left && typeof d.left === 'object') t += ((d.left.weight || 0) * (d.left.reps || 0));
+                            if (d?.right && typeof d.right === 'object') t += ((d.right.weight || 0) * (d.right.reps || 0));
                             return acc + t;
                         }, 0)}
                         finishCardExpanded={finishCardExpanded}

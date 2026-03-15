@@ -3,6 +3,10 @@ import { importBridgeSnapshotIfNeeded, type MigrationImportSummary } from '../se
 import { hydrateFromMigrationSnapshot, type HydrationResult } from '../services/migrationHydrationService';
 import { useMobileNutritionStore } from './nutritionStore';
 import { useLocalAiDiagnosticsStore } from './localAiDiagnosticsStore';
+import { useWorkoutStore } from './workoutStore';
+import { useSettingsStore } from './settingsStore';
+import { useWellbeingStore } from './wellbeingStore';
+import { useMealTemplateStore } from './mealTemplateStore';
 
 export type BootstrapStatus = 'booting' | 'ready' | 'failed';
 
@@ -41,14 +45,35 @@ export const useBootstrapStore = create<BootstrapStore>((set, get) => ({
       if (summary.source === 'snapshot') {
         hydrationResult = await hydrateFromMigrationSnapshot();
         set({ hydrationResult });
-        if (hydrationResult.errors.length > 0) {
-          throw new Error(hydrationResult.errors.join(' | '));
-        }
       }
 
       // ── 3. Hidratar stores RN ─────────────────────────────────────────────
-      await useMobileNutritionStore.getState().hydrateFromStorage();
-      await useLocalAiDiagnosticsStore.getState().refreshStatus();
+      const storeHydrationResults = await Promise.allSettled([
+        useMobileNutritionStore.getState().hydrateFromStorage(),
+        useWorkoutStore.getState().hydrateFromMigration(),
+        useSettingsStore.getState().hydrateFromMigration(),
+        useWellbeingStore.getState().hydrateFromMigration(),
+        useMealTemplateStore.getState().hydrateFromMigration(),
+        useLocalAiDiagnosticsStore.getState().refreshStatus(),
+      ]);
+
+      const criticalErrors = storeHydrationResults
+        .slice(0, 3)
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map(result => (result.reason instanceof Error ? result.reason.message : 'Error crítico de hidratación.'));
+
+      const nonCriticalErrors = storeHydrationResults
+        .slice(3)
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map(result => (result.reason instanceof Error ? result.reason.message : 'Error no crítico de hidratación.'));
+
+      if (criticalErrors.length > 0) {
+        throw new Error(criticalErrors.join(' | '));
+      }
+
+      if (nonCriticalErrors.length > 0) {
+        console.warn('[Bootstrap] Stores no críticos fallaron, seguimos en modo degradado:', nonCriticalErrors);
+      }
 
       set({ status: 'ready' });
     } catch (error) {
