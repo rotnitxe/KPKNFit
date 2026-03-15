@@ -42,12 +42,13 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
 
   if (!isOpen && !show) return null;
 
+  // White theme with Liquid Glass effect
   const borderClass =
     variant === 'failure'
-      ? 'tactical-modal-critical-failure'
+      ? 'border-red-300 shadow-[0_0_40px_rgba(239,68,68,0.15)]'
       : variant === 'pr'
-        ? 'tactical-modal-critical-pr'
-        : '';
+        ? 'border-amber-300 shadow-[0_0_40px_rgba(245,158,11,0.15)]'
+        : 'border-slate-200 shadow-2xl';
 
   const isSheet = variant === 'sheet';
 
@@ -71,20 +72,21 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
           ${!isSheet ? (isOpen ? 'animate-tactical-enter' : 'animate-tactical-exit opacity-0') : ''}
           ${borderClass}
           ${className}
+          bg-white/95 backdrop-blur-2xl rounded-2xl
         `}
         style={isSheet ? { height: '90vh', maxHeight: '90dvh' } : undefined}
       >
         {title !== undefined && (
-          <div className="flex items-center justify-between px-5 py-4 flex-shrink-0 border-b border-[#2A2D38]">
+          <div className="flex items-center justify-between px-5 py-4 flex-shrink-0 border-b border-slate-200">
             <h2
               id="tactical-modal-title"
-              className="text-base font-bold text-white font-mono text-left"
+              className="text-base font-bold text-slate-800 font-sans text-left"
             >
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-sm text-[#A0A7B8] hover:bg-[#2A2D38] hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyber-cyan focus:ring-offset-2 focus:ring-offset-[#15171E]"
+              className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-white"
               aria-label="Cerrar"
             >
               <XIcon size={18} />
@@ -93,12 +95,12 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
         )}
 
         {useCustomContent ? (
-          <div className="flex-grow min-h-0 flex flex-col font-mono">
+          <div className="flex-grow min-h-0 flex flex-col font-sans">
             {children}
           </div>
         ) : (
           <div
-            className={`overflow-y-auto px-5 pb-6 custom-scrollbar font-mono ${
+            className={`overflow-y-auto px-5 pb-6 custom-scrollbar font-sans ${
               title === undefined ? 'pt-6' : 'pt-5'
             }`}
           >

@@ -62,17 +62,27 @@ const AugeFAB: React.FC<AugeFABProps> = ({ alertCount, sessionStatus, hasCritica
         onClick();
     }, [onClick, isDragging]);
 
-    const fabBg = sessionStatus === 'fatiguing' ? 'bg-[#FF3B30]/20 border-[#FF3B30]/50' : sessionStatus === 'warning' ? 'bg-[#FFD60A]/20 border-[#FFD60A]/50' : 'bg-[#00F19F]/20 border-[#00F19F]/50';
-    const badgeColor = alertCount > 0 ? (hasCritical ? 'bg-[#FF3B30]' : 'bg-[#FFD60A]') : 'bg-[#00F19F]';
+    // White theme with Liquid Glass effect - Material Design inspired
+    const fabBg = sessionStatus === 'fatiguing' 
+        ? 'bg-white/80 backdrop-blur-xl border-red-500/30' 
+        : sessionStatus === 'warning' 
+            ? 'bg-white/80 backdrop-blur-xl border-yellow-500/30' 
+            : 'bg-white/80 backdrop-blur-xl border-emerald-500/30';
+    const badgeColor = alertCount > 0 ? (hasCritical ? 'bg-red-500' : 'bg-yellow-500') : 'bg-emerald-500';
+    const iconColor = sessionStatus === 'fatiguing' 
+        ? 'text-red-600' 
+        : sessionStatus === 'warning' 
+            ? 'text-yellow-600' 
+            : 'text-emerald-600';
     const glowColor = sessionStatus === 'fatiguing'
-        ? 'shadow-[0_0_20px_rgba(255,59,48,0.25)]'
+        ? 'shadow-[0_8px_32px_rgba(239,68,68,0.2)]'
         : sessionStatus === 'warning'
-            ? 'shadow-[0_0_20px_rgba(255,214,10,0.2)]'
-            : 'shadow-[0_0_15px_rgba(0,241,159,0.12)]';
+            ? 'shadow-[0_8px_32px_rgba(234,179,8,0.2)]'
+            : 'shadow-[0_8px_32px_rgba(16,185,129,0.2)]';
 
     return (
         <div
-            className={`fixed z-30 w-12 h-12 rounded-full ${fabBg} border flex items-center justify-center text-white transition-shadow ${glowColor} ${isDragging ? 'scale-110 cursor-grabbing' : 'cursor-grab hover:opacity-90 active:scale-95'}`}
+            className={`fixed z-30 w-12 h-12 rounded-full ${fabBg} border flex items-center justify-center transition-all ${glowColor} ${isDragging ? 'scale-110 cursor-grabbing' : 'cursor-grab hover:opacity-90 active:scale-95'}`}
             style={{ right: position.right, bottom: position.bottom }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -84,9 +94,9 @@ const AugeFAB: React.FC<AugeFABProps> = ({ alertCount, sessionStatus, hasCritica
                 onClick={handleClick}
                 className="w-full h-full flex items-center justify-center touch-none rounded-full"
             >
-                <ActivityIcon size={20} className="text-white pointer-events-none" />
+                <ActivityIcon size={20} className={`${iconColor} pointer-events-none`} />
                 {alertCount > 0 && (
-                    <span className={`absolute -top-1 -right-1 w-5 h-5 rounded-full ${badgeColor} text-[9px] font-bold text-black flex items-center justify-center pointer-events-none ${hasCritical ? 'animate-pulse' : ''}`}>
+                    <span className={`absolute -top-1 -right-1 w-5 h-5 rounded-full ${badgeColor} text-[9px] font-bold text-white flex items-center justify-center pointer-events-none ${hasCritical ? 'animate-pulse' : ''} shadow-lg`}>
                         {alertCount > 9 ? '9+' : alertCount}
                     </span>
                 )}

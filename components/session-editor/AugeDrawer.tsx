@@ -211,35 +211,35 @@ const AvisoRow: React.FC<{
         >
             <div
                 onClick={handleClick}
-                className={`w-full text-left p-3 rounded-lg border transition-colors cursor-pointer ${
+                className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer shadow-sm ${
                     aviso.severity === 'critical'
-                        ? 'bg-[#FF3B30]/5 border-[#FF3B30]/15 hover:bg-[#FF3B30]/10'
+                        ? 'bg-red-50/80 backdrop-blur-sm border-red-200 hover:bg-red-100/80'
                         : aviso.severity === 'info'
-                            ? 'bg-[#00F19F]/5 border-[#00F19F]/15 hover:bg-[#00F19F]/10'
-                            : 'bg-[#FFD60A]/5 border-[#FFD60A]/10 hover:bg-[#FFD60A]/10'
+                            ? 'bg-emerald-50/80 backdrop-blur-sm border-emerald-200 hover:bg-emerald-100/80'
+                            : 'bg-amber-50/80 backdrop-blur-sm border-amber-200 hover:bg-amber-100/80'
                 }`}
             >
                 <div className="flex items-start gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                        aviso.severity === 'critical' ? 'bg-[#FF3B30]' : aviso.severity === 'info' ? 'bg-[#00F19F]' : 'bg-[#FFD60A]'
+                    <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 shadow-sm ${
+                        aviso.severity === 'critical' ? 'bg-red-500' : aviso.severity === 'info' ? 'bg-emerald-500' : 'bg-amber-500'
                     }`} />
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs text-white leading-relaxed">{aviso.message}</p>
+                        <p className="text-xs text-slate-800 leading-relaxed font-medium">{aviso.message}</p>
                         {aviso.kind === 'neural' && aviso.type && (
-                            <span className="text-[10px] text-[#555] mt-0.5 block">{aviso.type}</span>
+                            <span className="text-[10px] text-slate-500 mt-0.5 block">{aviso.type}</span>
                         )}
                         {!expanded && onApplyCorrection && getCorrectionOptions(aviso).length > 0 && (
                             <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
-                                className="mt-2 text-[10px] font-bold text-[#00F0FF] hover:text-[#00F0FF]/80 transition-colors"
+                                className="mt-2 text-[10px] font-bold text-cyan-600 hover:text-cyan-700 transition-colors"
                             >
                                 Ver opciones →
                             </button>
                         )}
                         {expanded && onApplyCorrection && (
-                            <div className="mt-3 pt-3 border-t border-[#E6E0E9] space-y-2">
-                                <p className="text-[10px] text-[#999] leading-relaxed">{getCorrectionDescription(aviso)}</p>
+                            <div className="mt-3 pt-3 border-t border-slate-200 space-y-2">
+                                <p className="text-[10px] text-slate-600 leading-relaxed">{getCorrectionDescription(aviso)}</p>
                                 <div className="flex flex-col gap-1.5">
                                     {getCorrectionOptions(aviso).map((opt, idx) => (
                                         <button
@@ -249,7 +249,7 @@ const AvisoRow: React.FC<{
                                                 onApplyCorrection?.({ ...aviso, correctionType: opt.correctionType });
                                                 setExpanded(false);
                                             }}
-                                            className="px-3 py-1.5 rounded-lg bg-[#00F0FF] text-white text-[10px] font-bold hover:brightness-110 transition-all text-left"
+                                            className="px-3 py-1.5 rounded-lg bg-cyan-500 text-white text-[10px] font-bold hover:bg-cyan-600 transition-all shadow-sm text-left"
                                         >
                                             {opt.label}
                                         </button>
@@ -285,14 +285,14 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
 
     return (
         <>
-            <div className="fixed inset-0 z-[110] bg-black/40" onClick={onClose} />
-            <div className="fixed top-0 right-0 bottom-0 z-[111] w-[320px] max-w-[85vw] bg-[#ECE6F0] border-l border-white/[0.08] flex flex-col animate-slide-left">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
+            <div className="fixed inset-0 z-[110] bg-black/20 backdrop-blur-sm" onClick={onClose} />
+            <div className="fixed top-0 right-0 bottom-0 z-[111] w-[320px] max-w-[85vw] bg-white/95 backdrop-blur-2xl border-l border-slate-200 flex flex-col animate-slide-left shadow-2xl">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white/50 backdrop-blur-xl">
                     <div className="flex items-center gap-2">
-                        <ActivityIcon size={16} className="text-[#00F0FF]" />
-                        <span className="text-sm font-semibold text-white">AUGE</span>
+                        <ActivityIcon size={16} className="text-cyan-600" />
+                        <span className="text-sm font-bold text-slate-800">AUGE</span>
                     </div>
-                    <button onClick={onClose} className="p-2 text-[#555] hover:text-white transition-colors -m-2">
+                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all rounded-lg" aria-label="Cerrar">
                         <XIcon size={16} />
                     </button>
                 </div>
@@ -300,8 +300,8 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
                     {/* Aviso estático de déficit calórico (no alarmista) */}
                     {settings?.calorieGoalObjective === 'deficit' && (
-                        <div className="p-3 rounded-lg bg-[#00F0FF]/5 border border-[#00F0FF]/15">
-                            <p className="text-[10px] text-[#00F0FF]/90 leading-relaxed">
+                        <div className="p-3 rounded-xl bg-cyan-50/80 backdrop-blur-sm border border-cyan-200">
+                            <p className="text-[10px] text-cyan-800 leading-relaxed font-medium">
                                 Estás en déficit calórico. La recuperación muscular puede ser más lenta. Considera priorizar volumen moderado y evitar ir al fallo en cada serie.
                             </p>
                         </div>
@@ -309,10 +309,10 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
 
                     {visibleAvisos.length > 0 && (
                         <section>
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-[#999] mb-3">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-3">
                                 Avisos ({visibleAvisos.length})
                             </h3>
-                            <p className="text-[10px] text-[#666] mb-2">Desliza para descartar · Toca para corregir</p>
+                            <p className="text-[10px] text-slate-400 mb-2">Desliza para descartar · Toca para corregir</p>
                             <div className="space-y-2">
                                 {visibleAvisos.map(aviso => (
                                     <AvisoRow
@@ -329,47 +329,47 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
 
                     {visibleAvisos.length === 0 && (
                         <div className="text-center py-4">
-                            <ActivityIcon size={24} className="text-[#00F19F] mx-auto mb-2" />
-                            <p className="text-xs text-[#999]">Sin avisos. Todo en orden.</p>
+                            <ActivityIcon size={24} className="text-emerald-500 mx-auto mb-2" />
+                            <p className="text-xs text-slate-500 font-medium">Sin avisos. Todo en orden.</p>
                         </div>
                     )}
 
                     {/* Volumen por músculo con switch sesión / semana */}
                     <section>
                         <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-[#999] flex items-center gap-1.5">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
                                 <TargetIcon size={12} />
                                 Volumen por músculo
                             </h3>
-                            <div className="flex rounded-lg border border-[#E6E0E9] overflow-hidden">
+                            <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-slate-100/50">
                                 <button
                                     onClick={() => setVolumeContext('session')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'session' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-all ${volumeContext === 'session' ? 'bg-white text-cyan-600 shadow-sm' : 'bg-transparent text-slate-500 hover:text-slate-700'}`}
                                 >
                                     Sesión
                                 </button>
                                 <button
                                     onClick={() => setVolumeContext('week')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${volumeContext === 'week' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-all ${volumeContext === 'week' ? 'bg-white text-cyan-600 shadow-sm' : 'bg-transparent text-slate-500 hover:text-slate-700'}`}
                                 >
                                     Semana
                                 </button>
                             </div>
                         </div>
                         {volumeData.length === 0 ? (
-                            <p className="text-[10px] text-[#666] py-2">Agrega ejercicios para ver el volumen.</p>
+                            <p className="text-[10px] text-slate-400 py-2">Agrega ejercicios para ver el volumen.</p>
                         ) : (
                             <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                                 {volumeData.map(v => (
                                     <div key={v.muscleGroup} className="flex items-center gap-3">
-                                        <span className="text-[10px] font-bold text-[#999] w-24 truncate">{v.muscleGroup}</span>
-                                        <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                                        <span className="text-[10px] font-bold text-slate-500 w-24 truncate">{v.muscleGroup}</span>
+                                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                                             <div
-                                                className={`h-full rounded-full transition-all ${v.displayVolume > 5 ? 'bg-red-500' : v.displayVolume > 3 ? 'bg-[#FFD60A]' : 'bg-[#00F19F]'}`}
+                                                className={`h-full rounded-full transition-all ${v.displayVolume > 5 ? 'bg-red-500' : v.displayVolume > 3 ? 'bg-amber-500' : 'bg-emerald-500'}`}
                                                 style={{ width: `${Math.min(100, (v.displayVolume / 8) * 100)}%` }}
                                             />
                                         </div>
-                                        <span className="text-[10px] font-mono font-bold text-white w-8 text-right">{v.displayVolume.toFixed(1)}</span>
+                                        <span className="text-[10px] font-mono font-bold text-slate-700 w-8 text-right">{v.displayVolume.toFixed(1)}</span>
                                     </div>
                                 ))}
                             </div>
@@ -379,20 +379,20 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                     {/* Fatiga AUGE con switch sesión / semana */}
                     <section>
                         <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-[#999] flex items-center gap-1.5">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
                                 <ActivityIcon size={12} />
                                 Fatiga AUGE
                             </h3>
-                            <div className="flex rounded-lg border border-[#E6E0E9] overflow-hidden">
+                            <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-slate-100/50">
                                 <button
                                     onClick={() => setDrainContext('session')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'session' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-all ${drainContext === 'session' ? 'bg-white text-cyan-600 shadow-sm' : 'bg-transparent text-slate-500 hover:text-slate-700'}`}
                                 >
                                     Sesión
                                 </button>
                                 <button
                                     onClick={() => setDrainContext('week')}
-                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-colors ${drainContext === 'week' ? 'bg-[#00F0FF] text-white' : 'bg-white/5 text-[#666] hover:text-white'}`}
+                                    className={`px-2.5 py-1 text-[9px] font-bold uppercase transition-all ${drainContext === 'week' ? 'bg-white text-cyan-600 shadow-sm' : 'bg-transparent text-slate-500 hover:text-slate-700'}`}
                                 >
                                     Semana
                                 </button>
@@ -400,17 +400,17 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs text-[#999]">Sets efectivos</span>
-                                <span className="text-sm font-mono font-bold text-white">{drain.totalSets}</span>
+                                <span className="text-xs text-slate-500 font-medium">Sets efectivos</span>
+                                <span className="text-sm font-mono font-bold text-slate-800">{drain.totalSets}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs text-[#999]">Duración est.</span>
-                                <span className="text-sm font-mono font-bold text-white">{drain.estimatedDuration}min</span>
+                                <span className="text-xs text-slate-500 font-medium">Duración est.</span>
+                                <span className="text-sm font-mono font-bold text-slate-800">{drain.estimatedDuration}min</span>
                             </div>
                             {drain.difficulty != null && (
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs text-[#999]">Dificultad</span>
-                                    <span className="text-sm font-mono font-bold text-white">{drain.difficulty}/10</span>
+                                    <span className="text-xs text-slate-500 font-medium">Dificultad</span>
+                                    <span className="text-sm font-mono font-bold text-slate-800">{drain.difficulty}/10</span>
                                 </div>
                             )}
                             <div className="space-y-2 pt-2">
@@ -428,14 +428,14 @@ const AugeDrawer: React.FC<AugeDrawerProps> = ({
 
 const DrainBar: React.FC<{ label: string; value: number }> = ({ label, value }) => {
     const pct = Math.min(100, Math.max(0, value));
-    const color = pct > 80 ? '#FF3B30' : pct > 50 ? '#FFD60A' : '#00F19F';
+    const color = pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#10b981';
     return (
         <div className="flex items-center gap-2">
-            <span className="w-14 text-[10px] font-bold text-[#555] text-right">{label}</span>
-            <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <span className="w-14 text-[10px] font-bold text-slate-500 text-right">{label}</span>
+            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
             </div>
-            <span className="w-8 text-[10px] font-mono text-[#999] text-right">{Math.round(pct)}%</span>
+            <span className="w-8 text-[10px] font-mono text-slate-600 text-right">{Math.round(pct)}%</span>
         </div>
     );
 };

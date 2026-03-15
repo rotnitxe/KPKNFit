@@ -16,9 +16,9 @@ const TacticalBackdrop: React.FC<TacticalBackdropProps> = ({
   <div
     className={`
       absolute inset-0 transition-opacity duration-200 ease-out
-      ${variant === 'modal' ? 'tactical-backdrop' : 'tactical-backdrop-toast'}
       ${className}
     `}
+    style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', backdropFilter: 'blur(4px)' }}
     onClick={onClick}
     aria-hidden="true"
   />

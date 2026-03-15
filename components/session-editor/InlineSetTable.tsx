@@ -49,9 +49,9 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
     }, [onAddSet, onFirstAddSet]);
 
     return (
-        <div className="session-card-base w-full overflow-x-auto">
+        <div className="bg-white rounded-xl border border-[#E6E0E9] w-full overflow-x-auto">
             <div className="session-table min-w-[380px]" data-tabular="true">
-                <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#2A2D38] text-[10px] font-bold uppercase tracking-widest text-[#A0A7B8]">
+                <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#E6E0E9] text-[10px] font-bold uppercase tracking-widest text-[#49454F]">
                     <span className="w-8 text-center">Set</span>
                     <span className="w-12 max-w-[48px]">{isTime ? 'Seg' : 'Reps'}</span>
                     {showPercentColumn && <span className="w-14 text-right">%1RM</span>}
@@ -80,7 +80,7 @@ const InlineSetTable: React.FC<InlineSetTableProps> = ({
 
                 <button
                     onClick={handleAddSetClick}
-                    className="flex items-center gap-1.5 px-2 py-2.5 w-full text-left text-[#00F0FF]/90 hover:text-[#00F0FF] transition-colors border-none bg-transparent"
+                    className="flex items-center gap-1.5 px-2 py-2.5 w-full text-left text-cyan-600 hover:text-cyan-500 transition-colors border-none bg-transparent"
                 >
                     <PlusIcon size={12} />
                     <span className="text-xs font-medium">Añadir serie</span>

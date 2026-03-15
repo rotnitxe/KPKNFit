@@ -185,7 +185,7 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Buscar ejercicio..."
                         autoFocus
-                        className="w-full bg-[#0d0d0d] border-b border-[#E6E0E9] focus:border-[#00F0FF] pl-9 pr-3 py-2.5 text-sm text-white placeholder-[#555] outline-none transition-colors"
+                        className="w-full bg-white border-b border-[#E6E0E9] focus:border-cyan-500 pl-9 pr-3 py-2.5 text-sm text-[#1D1B20] placeholder-[#9CA3AF] outline-none transition-colors"
                     />
                 </div>
                 <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-0.5">

@@ -301,7 +301,7 @@ const SessionAugeDashboard: React.FC<{
                                     <div className="flex-1 mx-2 h-1.5 bg-[#ECE6F0] rounded-full overflow-hidden">
                                         <div className={`h-full transition-all ${isDanger ? 'bg-red-500' : 'bg-white'}`} style={{ width: `${Math.min(100, (stat.volume / maxScale) * 100)}%` }}></div>
                                     </div>
-                                    <span className="text-[10px] font-semibold text-white text-right whitespace-nowrap">{stat.volume} series</span>
+                                    <span className="text-[10px] font-semibold text-[#49454F] text-right whitespace-nowrap">{stat.volume} series</span>
                                 </div>
                             )
                         }) : <p className="text-[10px] text-zinc-600 font-bold uppercase text-center py-4">Sin datos de volumen</p>}
@@ -552,28 +552,28 @@ const SwipeableSetCard: React.FC<{
                 className="bg-[#FEF7FF] p-3 flex flex-col justify-between relative z-10 min-h-full will-change-transform"
             >
                 <div className="flex justify-between items-center mb-3 pb-2 border-b border-[#E6E0E9]">
-                    <span className="font-black text-[#49454F] text-[10px] bg-black px-2 py-0.5 rounded-full border border-zinc-800">S{setIndex + 1}</span>
+                    <span className="font-black text-[#49454F] text-[10px] bg-[#49454F] px-2 py-0.5 rounded-full border border-zinc-800">S{setIndex + 1}</span>
                 </div>
-                <div className="flex flex-col items-center mb-3 bg-black/50 p-2 rounded-xl">
+                    <div className="flex flex-col items-center mb-3 bg-[#ECE6F0] p-2 rounded-xl">
                     <span className="text-[8px] text-[#49454F] font-bold uppercase tracking-widest mb-1">{exercise.trainingMode === 'time' ? 'Segundos' : isAmrap ? 'Mínimo Reps' : 'Reps Target'}</span>
                     {exercise.trainingMode === 'time' ? (
-                        <input type="number" maxLength={4} value={set.targetDuration ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetDuration', v === '' ? undefined : parseInt(v)); }} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-white max-w-[48px]" placeholder="0" />
+                         <input type="number" maxLength={4} value={set.targetDuration ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetDuration', v === '' ? undefined : parseInt(v)); }} className="w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 text-[#1D1B20] max-w-[48px]" placeholder="0" />
                     ) : (
-                        <input type="number" maxLength={2} max={99} value={set.targetReps ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetReps', v === '' ? undefined : Math.min(99, Math.max(0, parseInt(v) || 0))); }} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 max-w-[48px] ${isAmrap ? 'text-yellow-400' : 'text-white'}`} />
+                         <input type="number" maxLength={2} max={99} value={set.targetReps ?? ''} onChange={e => { const v = e.target.value; handleSetChange(setIndex, 'targetReps', v === '' ? undefined : Math.min(99, Math.max(0, parseInt(v) || 0))); }} placeholder="0" className={`w-full text-center bg-transparent text-xl font-black p-0 border-none focus:ring-0 max-w-[48px] ${isAmrap ? 'text-yellow-400' : 'text-[#1D1B20]'}`} />
                     )}
                 </div>
                 <div className="flex items-center justify-between gap-1">
                     {isAmrap ? (
                         <div className="flex-1 bg-yellow-900/20 border border-yellow-600/30 rounded p-1.5 flex justify-center text-center"><span className="text-[8px] font-black text-yellow-500 uppercase leading-none">{set.isCalibrator ? 'Calibrador' : 'Al Fallo'}</span></div>
                     ) : (
-                        <div className="flex flex-col flex-1 bg-zinc-900 p-1.5 rounded-lg border border-zinc-800">
+                        <div className="flex flex-col flex-1 bg-[#ECE6F0] p-1.5 rounded-lg border border-[#E6E0E9]">
                             <select value={mode} onChange={e => handleSetChange(setIndex, 'intensityMode', e.target.value as any)} className="bg-transparent text-[8px] text-[#49454F] font-bold border-none focus:ring-0 uppercase p-0 mb-0.5">
                                 {exercise.trainingMode === 'percent' && <option value="solo_rm">RM</option>}
                                 <option value="rpe">RPE</option><option value="rir">RIR</option><option value="failure">FAIL</option>
                                 {exercise.trainingMode === 'percent' && <option value="load">%</option>}
                             </select>
                             {mode !== 'failure' && mode !== 'solo_rm' && (
-                                <input type="number" step="0.5" value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => { const v = e.target.value; if (v === '') handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); else { const n = parseFloat(v); if (!isNaN(n)) handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', n); } }} className="w-full bg-transparent text-sm font-bold text-white focus:border-white p-0 border-none" placeholder="-" />
+                                 <input type="number" step="0.5" value={mode === 'rir' ? (set.targetRIR ?? '') : (set.targetRPE ?? '')} onChange={e => { const v = e.target.value; if (v === '') handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', undefined); else { const n = parseFloat(v); if (!isNaN(n)) handleSetChange(setIndex, mode === 'rir' ? 'targetRIR' : 'targetRPE', n); } }} className="w-full bg-transparent text-sm font-bold text-[#1D1B20] focus:border-cyan-500 p-0 border-none" placeholder="-" />
                             )}
                         </div>
                     )}
@@ -593,7 +593,7 @@ const SwipeableSetCard: React.FC<{
                         const newVal = !isAmrap;
                         if (newVal) { setPendingAmrapSetIndex(setIndex); return; }
                         handleSetChange(setIndex, { isAmrap: false, intensityMode: 'rpe' });
-                    }} className={`p-2 rounded-lg ml-1 border ${isAmrap ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'bg-black border-zinc-800 text-zinc-600 hover:text-white'}`}><FlameIcon size={12} /></button>
+                    }}                     className={`p-2 rounded-lg ml-1 border ${isAmrap ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'bg-white border-[#E6E0E9] text-[#49454F] hover:text-white'}`}><FlameIcon size={12} /></button>
                 </div>
             </div>
         </div>
@@ -769,19 +769,19 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
 
             {isSelectionMode && (
                 <div className="pt-4 animate-fade-in">
-                    <button type="button" onClick={(e) => { e.preventDefault(); onToggleSelect?.(); }} className={`w-6 h-6 rounded flex items-center justify-center border transition-all ${isSelected ? 'bg-white border-white text-black' : 'border-zinc-700 bg-black'}`}>
+                    <button type="button" onClick={(e) => { e.preventDefault(); onToggleSelect?.(); }}                             className={`w-6 h-6 rounded flex items-center justify-center border transition-all ${isSelected ? 'bg-white border-white text-black' : 'border-[#E6E0E9] bg-white'}`}>
                         {isSelected && <CheckIcon size={14} strokeWidth={4} />}
                     </button>
                 </div>
             )}
 
-            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b bg-black ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''} ${isJunkVolumeCulprit ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-[#E6E0E9]'}`} open={isDetailsOpen}>
+            <details ref={ref} id={`exercise-card-${exercise.id}`} className={`relative flex-grow w-full border-b bg-white/95 ${activeAutocomplete ? 'z-50 overflow-visible' : 'overflow-hidden'} ${isInSuperset ? '!border-none !shadow-none !bg-transparent' : ''} ${isJunkVolumeCulprit ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-[#E6E0E9]'}`} open={isDetailsOpen}>
                 {isJunkVolumeCulprit && (
                     <div className="absolute top-0 right-2 bg-red-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-b-lg shadow-lg z-10 animate-pulse">
                         Volumen Basura
                     </div>
                 )}
-                <summary className="py-4 px-2 flex items-center gap-3 cursor-pointer list-none hover:bg-zinc-900 transition-colors rounded-lg group" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) { e.preventDefault(); setIsDetailsOpen(prev => !prev); } }}>
+                 <summary className="py-4 px-2 flex items-center gap-3 cursor-pointer list-none hover:bg-[#ECE6F0] transition-colors rounded-lg group" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) { e.preventDefault(); setIsDetailsOpen(prev => !prev); } }}>
                     <div className="flex items-center gap-3 flex-grow min-w-0">
                         <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExerciseChange('isStarTarget', !exercise.isStarTarget); }} className={`transition-colors flex-shrink-0 ${exercise.isStarTarget ? 'text-white' : 'text-zinc-700 group-hover:text-[#49454F]'}`}>
                             <StarIcon size={18} filled={exercise.isStarTarget} />
@@ -790,7 +790,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                             <button
                                 type="button"
                                 onClick={(e) => { e.preventDefault(); setIsAdvancedPickerOpen(true); }}
-                                className={`w-full text-left !text-lg !font-bold !bg-transparent !border-0 !p-0 uppercase tracking-tight truncate ${exercise.name ? 'text-white' : 'text-zinc-600'}`}
+                                 className={`w-full text-left !text-lg !font-bold !bg-transparent !border-0 !p-0 uppercase tracking-tight truncate ${exercise.name ? 'text-[#1D1B20]' : 'text-zinc-600'}`}
                             >
                                 {exercise.name || "Buscar ejercicio..."}
                             </button>
@@ -818,12 +818,12 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                         </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        <button type="button" onClick={(e) => { e.preventDefault(); if (exerciseInfo) setInfoModalExercise(exerciseInfo); }} className={`transition-colors ${exerciseInfo ? 'text-white' : 'text-zinc-700'}`}><InfoIcon size={18} /></button>
+                         <button type="button" onClick={(e) => { e.preventDefault(); if (exerciseInfo) setInfoModalExercise(exerciseInfo); }} className={`transition-colors ${exerciseInfo ? 'text-[#49454F]' : 'text-zinc-700'}`}><InfoIcon size={18} /></button>
                         <ChevronRightIcon className="details-arrow text-[#49454F]" size={16} />
                     </div>
                 </summary>
 
-                <div className="px-2 py-2 flex gap-4 bg-zinc-900/30 rounded mb-4">
+                        <div className="px-2 py-2 flex gap-4 bg-[#ECE6F0]/50 rounded mb-4">
                     {!isConfirmingDelete ? (
                         <>
                             {onLinkNext && !isLast && <button onClick={(e) => { e.preventDefault(); onLinkNext(); }} className="text-[9px] font-black uppercase text-[#49454F] hover:text-white transition-colors flex items-center gap-1"><LinkIcon size={12} /> Biserie</button>}
@@ -857,20 +857,18 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                         max={5}
                                         value={Math.floor((Math.min(300, exercise.restTime || 90)) / 60)}
                                         onChange={e => { const m = Math.min(5, Math.max(0, parseInt(e.target.value, 10) || 0)); const sec = (exercise.restTime || 90) % 60; onExerciseChange('restTime', Math.min(300, m * 60 + sec)); }}
-                                        className="w-10 bg-transparent border-b border-zinc-700 text-white font-medium focus:border-white focus:ring-0 p-1 text-xs text-center"
+                                         className="w-10 bg-transparent border-b border-[#E6E0E9] text-[#1D1B20] font-medium focus:border-cyan-500 focus:ring-0 p-1 text-xs text-center"
                                         placeholder="0"
                                     />
                                     <span className="text-[#49454F] text-xs">:</span>
-                                    <input
-                                        type="number"
-                                        inputMode="numeric"
-                                        min={0}
-                                        max={59}
-                                        value={((exercise.restTime || 90) % 60)}
-                                        onChange={e => { const sec = Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0)); const m = Math.floor((Math.min(300, exercise.restTime || 90)) / 60); onExerciseChange('restTime', Math.min(300, m * 60 + sec)); }}
-                                        className="w-10 bg-transparent border-b border-zinc-700 text-white font-medium focus:border-white focus:ring-0 p-1 text-xs text-center"
-                                        placeholder="00"
-                                    />
+                    <input
+                        type="number"
+                        placeholder="0"
+                        min="0"
+                        step="0.1"
+                        max="60"
+                        className="w-8 bg-transparent border-b border-[#E6E0E9] focus:border-cyan-500 text-[10px] font-mono text-[#1D1B20] text-center py-0.5 outline-none transition-colors"
+                    />
                                 </div>
                                 {exercise.sets?.length > 0 && (() => {
                                     const avgRPE = exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).reduce((a, s) => a + (s.targetRPE ?? (s.targetRIR != null ? 10 - s.targetRIR : 8)), 0) / Math.max(1, exercise.sets.filter(s => (s.targetRPE ?? s.targetRIR) != null).length) || 8;
@@ -897,12 +895,12 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                         </div>
                         <div>
                             <label className="text-[9px] text-[#49454F] font-black uppercase tracking-wider">Modo</label>
-                            <select value={exercise.trainingMode || 'reps'} onChange={(e) => onExerciseChange('trainingMode', e.target.value as any)} className="w-full mt-1 bg-black text-white border-b border-zinc-700 text-xs font-bold p-1 focus:ring-0 uppercase"><option value="reps">Repeticiones</option><option value="percent">% 1RM</option><option value="time">Tiempo</option><option value="custom">Libre</option></select>
+                            <select value={exercise.trainingMode || 'reps'} onChange={(e) => onExerciseChange('trainingMode', e.target.value as any)} className="w-full mt-1 bg-white text-[#1D1B20] border-b border-[#E6E0E9] text-xs font-bold p-1 focus:ring-0 uppercase"><option value="reps">Repeticiones</option><option value="percent">% 1RM</option><option value="time">Tiempo</option><option value="custom">Libre</option></select>
                         </div>
 
                         {/* CALCULADORA 1RM (Solo visible en modo Percent) */}
                         {exercise.trainingMode === 'percent' && (
-                            <div className="col-span-2 bg-zinc-900/50 p-2 rounded border border-[#E6E0E9] grid grid-cols-3 gap-2 animate-fade-in">
+                            <div className="col-span-2 bg-[#ECE6F0]/30 p-2 rounded border border-[#E6E0E9] grid grid-cols-3 gap-2 animate-fade-in">
                                 <div className="col-span-3 flex justify-between mb-1">
                                     <span className="text-[9px] font-black uppercase text-[#49454F]">1RM de Referencia</span>
                                     <div className="flex gap-2">
@@ -914,11 +912,11 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                     <>
                                         <div className="flex flex-col">
                                             <label className="text-[8px] text-zinc-600 uppercase">Peso PR</label>
-                                            <input type="number" value={prWeight} onChange={(e) => setPrWeight(e.target.value)} className="bg-black border border-zinc-700 rounded text-xs text-white p-1 text-center" />
+                                            <input type="number" value={prWeight} onChange={(e) => setPrWeight(e.target.value)} className="bg-white border border-[#E6E0E9] rounded text-xs text-[#1D1B20] p-1 text-center" />
                                         </div>
                                         <div className="flex flex-col">
                                             <label className="text-[8px] text-zinc-600 uppercase">Reps</label>
-                                            <input type="number" value={prReps} onChange={(e) => setPrReps(e.target.value)} className="bg-black border border-zinc-700 rounded text-xs text-white p-1 text-center" />
+                                            <input type="number" value={prReps} onChange={(e) => setPrReps(e.target.value)} className="bg-white border border-[#E6E0E9] rounded text-xs text-[#1D1B20] p-1 text-center" />
                                         </div>
                                         <div className="flex flex-col justify-end">
                                             <div className="flex items-center justify-center bg-white/10 rounded text-xs font-bold text-white border border-white/20 h-[26px]">
@@ -928,7 +926,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                                     </>
                                 ) : (
                                     <div className="col-span-3 flex items-center gap-2">
-                                        <input type="number" value={exercise.reference1RM || ''} onChange={(e) => onExerciseChange('reference1RM', parseFloat(e.target.value))} className="bg-black border border-zinc-700 rounded text-xs text-white p-1 w-full text-center font-bold" placeholder="Tu 1RM..." />
+                                        <input type="number" value={exercise.reference1RM || ''} onChange={(e) => onExerciseChange('reference1RM', parseFloat(e.target.value))} className="bg-white border border-[#E6E0E9] rounded text-xs text-[#1D1B20] p-1 w-full text-center font-bold" placeholder="Tu 1RM..." />
                                     </div>
                                 )}
                             </div>
@@ -943,16 +941,16 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">MSC</span><span className={`text-[8px] font-mono ${localDrain.muscular > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.muscular.toFixed(0)}%</span></div>
-                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.muscular > 80 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${localDrain.muscular}%` }}></div></div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">MSC</span><span className={`text-[8px] font-mono ${localDrain.muscular > 80 ? 'text-red-400' : 'text-[#1D1B20]'}`}>{localDrain.muscular.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-[#E6E0E9] rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.muscular > 80 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${localDrain.muscular}%` }}></div></div>
                                 </div>
                                 <div>
-                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">SNC</span><span className={`text-[8px] font-mono ${localDrain.cns > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.cns.toFixed(0)}%</span></div>
-                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.cns > 80 ? 'bg-red-500' : 'bg-yellow-500'}`} style={{ width: `${localDrain.cns}%` }}></div></div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">SNC</span><span className={`text-[8px] font-mono ${localDrain.cns > 80 ? 'text-red-400' : 'text-[#1D1B20]'}`}>{localDrain.cns.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-[#E6E0E9] rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.cns > 80 ? 'bg-red-500' : 'bg-yellow-500'}`} style={{ width: `${localDrain.cns}%` }}></div></div>
                                 </div>
                                 <div>
-                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">ESP</span><span className={`text-[8px] font-mono ${localDrain.spinal > 80 ? 'text-red-400' : 'text-white'}`}>{localDrain.spinal.toFixed(0)}%</span></div>
-                                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.spinal > 80 ? 'bg-red-500' : 'bg-cyber-cyan'}`} style={{ width: `${localDrain.spinal}%` }}></div></div>
+                                    <div className="flex justify-between items-center mb-1"><span className="text-[8px] font-bold text-[#49454F]">ESP</span><span className={`text-[8px] font-mono ${localDrain.spinal > 80 ? 'text-red-400' : 'text-[#1D1B20]'}`}>{localDrain.spinal.toFixed(0)}%</span></div>
+                                    <div className="h-1 w-full bg-[#E6E0E9] rounded-full overflow-hidden"><div className={`h-full transition-all duration-300 ${localDrain.spinal > 80 ? 'bg-red-500' : 'bg-cyber-cyan'}`} style={{ width: `${localDrain.spinal}%` }}></div></div>
                                 </div>
                             </div>
                         </div>
@@ -961,7 +959,7 @@ const ExerciseCard = React.forwardRef<HTMLDetailsElement, {
                     {/* BARRA DE HERRAMIENTAS ADICIONAL */}
                     <div className="flex justify-between items-center mb-2 border-b border-[#E6E0E9] pb-2">
                         <label className="flex items-center gap-2 cursor-pointer group">
-                            <input type="checkbox" checked={exercise.isCompetitionLift} onChange={(e) => onExerciseChange('isCompetitionLift', e.target.checked)} className="rounded border-zinc-700 bg-black text-yellow-500 focus:ring-0 w-3 h-3" />
+                             <input type="checkbox" checked={exercise.isCompetitionLift} onChange={(e) => onExerciseChange('isCompetitionLift', e.target.checked)} className="rounded border-[#E6E0E9] bg-white text-yellow-500 focus:ring-0 w-3 h-3" />
                             <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${exercise.isCompetitionLift ? 'text-yellow-500' : 'text-zinc-600 group-hover:text-white'}`}>Modo Competición / Tarima</span>
                         </label>
                     </div>
@@ -2047,7 +2045,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
     }, []);
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-black text-white animate-slide-up flex flex-col safe-area-root">
+        <div className="fixed inset-0 z-[9999] bg-[#FEF7FF] text-white animate-slide-up flex flex-col safe-area-root">
 
             {/* ═══ Contextual Header ═══ */}
             <ContextualHeader

@@ -40,44 +40,44 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
             <div ref={sentinelRef} className="h-0 w-0" />
 
             {/* Header */}
-            <div className={`sticky top-0 z-30 bg-black border-b border-white/[0.08] transition-all ${isCompact ? 'py-2 px-4' : 'py-4 px-4'}`}>
+            <div className={`sticky top-0 z-30 bg-white/90 backdrop-blur-2xl border-b border-slate-200 transition-all ${isCompact ? 'py-2 px-4' : 'py-4 px-4'} shadow-sm`}>
                 {isCompact ? (
                     /* Compact mode */
                     <div className="flex items-center gap-2">
-                        <button onClick={onCancel} className="text-[#555] hover:text-white transition-colors shrink-0 p-1" title="Salir">
+                        <button onClick={onCancel} className="text-slate-400 hover:text-slate-700 transition-colors shrink-0 p-1 rounded-lg hover:bg-slate-100" title="Salir">
                             <XIcon size={16} />
                         </button>
-                        <h1 className="text-sm font-semibold text-white truncate flex-1 min-w-0">
+                        <h1 className="text-sm font-bold text-slate-800 truncate flex-1 min-w-0">
                             {session.name || 'Sin nombre'}
                         </h1>
                         {dayLabel && (
-                            <span className="text-[10px] font-bold text-[#999] bg-white/5 px-2 py-0.5 rounded shrink-0">
+                            <span className="text-[10px] font-bold text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-lg shrink-0 border border-cyan-100">
                                 {dayLabel}
                             </span>
                         )}
                         {session.isMeetDay && (
-                            <TrophyIcon size={12} className="text-yellow-400 shrink-0" />
+                            <TrophyIcon size={12} className="text-amber-500 shrink-0" />
                         )}
                         {hasChanges && (
                             <div className="flex items-center gap-1 shrink-0">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" />
-                                <span className="text-[10px] text-[#999] font-medium hidden sm:inline">Sin guardar</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                                <span className="text-[10px] text-slate-500 font-medium hidden sm:inline">Sin guardar</span>
                             </div>
                         )}
                         {activeSessionId !== 'empty' && (
                             <button
                                 onClick={onSave}
                                 disabled={!hasChanges}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${hasChanges ? 'bg-[#00F0FF] text-white hover:brightness-110' : 'bg-white/5 text-[#555] cursor-not-allowed'}`}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${hasChanges ? 'bg-cyan-500 text-white hover:bg-cyan-600 shadow-sm' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
                                 title="Guardar"
                             >
                                 <CheckIcon size={14} strokeWidth={2.5} />
                             </button>
                         )}
-                        <button onClick={onOpenHistoryDrawer} className="p-1.5 rounded-lg text-[#555] hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 transition-colors shrink-0" title="Historial">
+                        <button onClick={onOpenHistoryDrawer} className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-all shrink-0" title="Historial">
                             <ClockIcon size={14} />
                         </button>
-                        <button onClick={onOpenRulesDrawer} className="p-1.5 rounded-lg text-[#555] hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 transition-colors shrink-0" title="Reglas">
+                        <button onClick={onOpenRulesDrawer} className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-all shrink-0" title="Reglas">
                             <SettingsIcon size={14} />
                         </button>
                     </div>
@@ -88,19 +88,19 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                             <div className="flex-1 min-w-0 space-y-1">
                                 <div className="flex items-center gap-2">
                                     {dayLabel && (
-                                        <span className="text-[10px] font-bold text-[#00F0FF] bg-[#00F0FF]/10 px-2 py-0.5 rounded">
+                                        <span className="text-[10px] font-bold text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-lg border border-cyan-100">
                                             {dayLabel}
                                         </span>
                                     )}
                                     {session.isMeetDay && (
-                                        <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">
+                                        <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
                                             Competición
                                         </span>
                                     )}
                                     {hasChanges && (
                                         <div className="flex items-center gap-1">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" />
-                                            <span className="text-[10px] text-[#999] font-medium">Sin guardar</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                                            <span className="text-[10px] text-slate-500 font-medium">Sin guardar</span>
                                         </div>
                                     )}
                                 </div>
@@ -109,14 +109,14 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                                     value={session.name}
                                     onChange={e => updateSession(d => { d.name = e.target.value; })}
                                     placeholder="Nombre de la sesión"
-                                    className="text-lg font-semibold text-white bg-transparent border-none focus:ring-0 w-full p-0 leading-tight placeholder-[#555] outline-none"
+                                    className="text-lg font-bold text-slate-800 bg-transparent border-none focus:ring-0 w-full p-0 leading-tight placeholder-slate-300 outline-none"
                                 />
                                 <input
                                     type="text"
                                     value={session.description}
                                     onChange={e => updateSession(d => { d.description = e.target.value; })}
                                     placeholder="Descripción..."
-                                    className="text-xs text-[#999] bg-transparent border-none focus:ring-0 w-full p-0 placeholder-[#555] font-medium outline-none"
+                                    className="text-xs text-slate-500 bg-transparent border-none focus:ring-0 w-full p-0 placeholder-slate-300 font-medium outline-none"
                                 />
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0 ml-3">
@@ -124,13 +124,13 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                                     <button
                                         onClick={onSave}
                                         disabled={!hasChanges}
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${hasChanges ? 'bg-[#00F0FF] text-white hover:brightness-110' : 'bg-white/5 text-[#555] cursor-not-allowed'}`}
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${hasChanges ? 'bg-cyan-500 text-white hover:bg-cyan-600 shadow-sm' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
                                         title="Guardar"
                                     >
                                         <CheckIcon size={14} strokeWidth={2.5} />
                                     </button>
                                 )}
-                                <button onClick={onCancel} className="w-8 h-8 rounded-full flex items-center justify-center text-[#555] hover:text-white hover:bg-white/10 transition-colors shrink-0" title="Salir">
+                                <button onClick={onCancel} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all shrink-0" title="Salir">
                                     <XIcon size={16} />
                                 </button>
                             </div>
@@ -139,27 +139,27 @@ const ContextualHeader: React.FC<ContextualHeaderProps> = ({
                         {/* Action bar + Carrusel Historial/Reglas */}
                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
                             <div className="flex items-center gap-1.5 shrink-0">
-                                <button onClick={onOpenBgDrawer} className="px-2.5 py-1.5 rounded-lg border border-white/[0.08] text-[#999] hover:text-white hover:bg-white/5 transition-all text-[10px] font-medium flex items-center gap-1.5">
+                                <button onClick={onOpenBgDrawer} className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all text-[10px] font-bold flex items-center gap-1.5 shadow-sm">
                                     <ImageIcon size={12} /> Fondo
                                 </button>
                                 {activeSessionId !== 'empty' && (
-                                    <button onClick={onOpenTransferDrawer} className="px-2.5 py-1.5 rounded-lg border border-white/[0.08] text-[#999] hover:text-white hover:bg-white/5 transition-all text-[10px] font-medium flex items-center gap-1.5">
+                                    <button onClick={onOpenTransferDrawer} className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all text-[10px] font-bold flex items-center gap-1.5 shadow-sm">
                                         <LayersIcon size={12} /> Transferir
                                     </button>
                                 )}
                                 <button
                                     onClick={() => updateSession(d => { d.isMeetDay = !d.isMeetDay; })}
-                                    className={`px-2.5 py-1.5 rounded-lg border transition-all text-[10px] font-medium flex items-center gap-1.5 ${session.isMeetDay ? 'bg-yellow-400/10 border-yellow-400/20 text-yellow-400' : 'border-white/[0.08] text-[#999] hover:text-white hover:bg-white/5'}`}
+                                    className={`px-2.5 py-1.5 rounded-xl border transition-all text-[10px] font-bold flex items-center gap-1.5 shadow-sm ${session.isMeetDay ? 'bg-amber-50 border-amber-200 text-amber-600' : 'border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
                                 >
                                     <TrophyIcon size={12} /> Comp.
                                 </button>
                             </div>
-                            <div className="h-6 w-px bg-white/10 shrink-0" />
+                            <div className="h-6 w-px bg-slate-200 shrink-0" />
                             <div className="flex items-center gap-1.5 shrink-0">
-                                <button onClick={onOpenHistoryDrawer} className="px-3 py-1.5 rounded-full bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <button onClick={onOpenHistoryDrawer} className="px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-600 hover:bg-cyan-100 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
                                     <ClockIcon size={12} /> Historial
                                 </button>
-                                <button onClick={onOpenRulesDrawer} className="px-3 py-1.5 rounded-full bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <button onClick={onOpenRulesDrawer} className="px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-600 hover:bg-cyan-100 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
                                     <SettingsIcon size={12} /> Reglas
                                 </button>
                             </div>
