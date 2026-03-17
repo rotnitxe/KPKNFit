@@ -15,6 +15,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  withDelay,
   interpolate,
   Extrapolation,
   runOnJS,
@@ -89,11 +90,13 @@ export const ExerciseGradientCard: React.FC<ExerciseGradientCardProps> = ({
 
   // Entry animation
   React.useEffect(() => {
-    enterAnim.value = withSpring(1, {
-      damping: 20,
-      stiffness: 150,
-      delay: index * 50,
-    });
+    enterAnim.value = withDelay(
+      index * 50,
+      withSpring(1, {
+        damping: 20,
+        stiffness: 150,
+      })
+    );
   }, [index, enterAnim]);
 
   // Favorite animation
@@ -268,7 +271,7 @@ const styles = StyleSheet.create({
     width: 60,
     marginLeft: -30,
     borderRadius: 30,
-    blurRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     opacity: 0,
   },
   content: {

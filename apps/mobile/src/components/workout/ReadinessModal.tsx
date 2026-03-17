@@ -21,7 +21,7 @@ import Animated, {
 import { LiquidGlassModal } from '../ui/LiquidGlassModal';
 import { Button } from '../ui/Button';
 import { useColors } from '../../theme';
-import { SleepIcon, MoodIcon, PainIcon } from '../icons';
+import { BedIcon as SleepIcon, MoonIcon as MoodIcon, BrainIcon as PainIcon } from '../icons';
 
 interface ReadinessModalProps {
   visible: boolean;

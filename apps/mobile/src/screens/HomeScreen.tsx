@@ -258,7 +258,7 @@ export function HomeScreen() {
           sessions={sessionsWithOngoing}
           currentDayOfWeek={[7, 1, 2, 3, 4, 5, 6][new Date().getDay()]}
           onStartWorkout={handleStartWorkout}
-          onOpenStartWorkoutModal={() => navigation.navigate('Workout', { screen: 'ProgramDetail', params: { programId: activeProgram?.id } })}
+          onOpenStartWorkoutModal={() => navigation.navigate('Workout', { screen: 'ProgramDetail', params: { programId: activeProgram?.id || '' } })}
         />
       </View>
 

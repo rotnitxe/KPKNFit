@@ -302,7 +302,7 @@ export const AugeEnergyOrbs: React.FC<AugeEnergyOrbsProps> = ({
                 styles.summaryBarFill,
                 {
                   width: `${Math.min(100, (cns + muscular + spinal) / 3)}%`,
-                  backgroundColor: (cns + muscular + spinal) / 3 > 70 ? colors.error : (cns + muscular + spinal) / 3 > 40 ? colors.warning : colors.batteryHigh,
+                  backgroundColor: (cns + muscular + spinal) / 3 > 70 ? colors.error : (cns + muscular + spinal) / 3 > 40 ? colors.batteryMid : colors.batteryHigh,
                 },
               ]}
             />
@@ -410,7 +410,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderRadius: 50,
     opacity: 0.3,
-    blurRadius: 20,
   },
   statusIndicator: {
     width: 6,
