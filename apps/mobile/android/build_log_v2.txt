@@ -1107,3 +1107,8 @@ Note: Recompile with -Xlint:deprecation for details.
 > Task :react-native-quick-sqlite:lintVitalAnalyzeRelease
 > Task :react-native-mmkv:lintVitalAnalyzeRelease
 > Task :app:mergeReleaseJavaResource
+> Task :react-native-reanimated:lintVitalAnalyzeRelease
+> Task :app:mergeDexRelease
+> Task :app:compileReleaseArtProfile
+> Task :react-native-safe-area-context:lintVitalAnalyzeRelease
+> Task :react-native-svg:lintVitalAnalyzeRelease
