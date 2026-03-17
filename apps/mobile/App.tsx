@@ -6,19 +6,25 @@ import notifee, { EventType } from '@notifee/react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { useBootstrapStore } from './src/stores/bootstrapStore';
+import { ThemeProvider, useTheme } from './src/theme';
 import { backgroundModule } from './src/modules/background';
 import {
   rescheduleCoreNotificationsFromStorage,
   syncNotificationPermissionState,
 } from './src/services/mobileNotificationService';
 import { navigateFromExternalTarget } from './src/navigation/navigationRef';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 
 function getNotificationTarget(value: unknown) {
   return typeof value === 'string' ? value : undefined;
 }
 
-export default function App() {
-  const { status, error, bootstrap, retry } = useBootstrapStore(useShallow(state => ({
+import { CaupolicanIcon } from './src/components/CaupolicanIcon';
+
+// Create inner component that can use useTheme
+function AppContent() {
+  const { colors, isDark } = useTheme();
+  const { status, error, retry, bootstrap } = useBootstrapStore(useShallow(state => ({
     status: state.status,
     error: state.error,
     bootstrap: state.bootstrap,
@@ -29,77 +35,54 @@ export default function App() {
     void bootstrap();
   }, [bootstrap]);
 
-  useEffect(() => {
-    if (status !== 'ready') return;
+  return (
+    <>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
+      {status === 'booting' && (
+        <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+          <CaupolicanIcon size={120} color={colors.primary} style={{ marginBottom: 12 }} />
+          <Text style={[styles.brandText, { color: colors.onSurface }]}>KPKN</Text>
+          <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 24 }} />
+          <Text style={[styles.bootingText, { color: colors.onSurfaceVariant }]}>Cargando experiencia...</Text>
+        </View>
+      )}
+      {status === 'failed' && (
+        <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+          <Text style={[styles.errorTitle, { color: colors.onSurface }]}>No se pudo iniciar la app</Text>
+          <Text style={[styles.errorDetail, { color: colors.error }]}>
+            {error ?? 'Ocurrió un error inesperado durante el arranque.'}
+          </Text>
+          <TouchableOpacity
+            style={[styles.retryButton, {
+              backgroundColor: colors.surfaceContainer,
+              borderColor: colors.outline
+            }]}
+            onPress={() => void retry()}
+            accessibilityLabel="Reintentar inicio de la aplicación"
+          >
+            <Text style={[styles.retryButtonText, { color: colors.onSurface }]}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {status === 'ready' && (
+        <ErrorBoundary>
+          <AppNavigator />
+        </ErrorBoundary>
+      )}
+    </>
+  );
+}
 
-    void backgroundModule.schedulePeriodicSync().catch(error => {
-      console.warn('[background] No se pudo programar el sync periódico.', error);
-    });
-
-    void rescheduleCoreNotificationsFromStorage().catch(error => {
-      console.warn('[notifications] No se pudieron reprogramar los recordatorios al iniciar.', error);
-    });
-  }, [status]);
-
-  useEffect(() => {
-    if (status !== 'ready') return undefined;
-
-    const subscription = AppState.addEventListener('change', nextState => {
-      if (nextState !== 'active') return;
-
-      void syncNotificationPermissionState().catch(error => {
-        console.warn('[notifications] No se pudo refrescar el permiso al volver a la app.', error);
-      });
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [status]);
-
-  useEffect(() => {
-    if (status !== 'ready') return undefined;
-
-    const unsubscribe = notifee.onForegroundEvent(({ type, detail }) => {
-      if (type !== EventType.PRESS) return;
-      navigateFromExternalTarget(getNotificationTarget(detail.notification?.data?.screen));
-    });
-
-    void notifee.getInitialNotification().then(initialNotification => {
-      navigateFromExternalTarget(getNotificationTarget(initialNotification?.notification?.data?.screen));
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [status]);
-
+export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
-        {status === 'booting' && (
-          <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#FFFFFF" />
-            <Text style={styles.bootingText}>Iniciando KPKN…</Text>
-          </View>
-        )}
-        {status === 'failed' && (
-          <View style={styles.centerContainer}>
-            <Text style={styles.errorTitle}>No se pudo iniciar la app</Text>
-            <Text style={styles.errorDetail}>
-              {error ?? 'Ocurrió un error inesperado durante el arranque.'}
-            </Text>
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={() => void retry()}
-              accessibilityLabel="Reintentar inicio de la aplicación"
-            >
-              <Text style={styles.retryButtonText}>Reintentar</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        {status === 'ready' && <AppNavigator />}
+        <ThemeProvider initialDark={false}>
+          <AppContent />
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -116,9 +99,17 @@ const styles = StyleSheet.create({
   },
   bootingText: {
     color: '#888888',
-    fontSize: 14,
+    fontSize: 12,
+    fontWeight: '500',
     fontFamily: 'System',
-    marginTop: 12,
+    marginTop: 8,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  brandText: {
+    fontSize: 32,
+    fontWeight: '900',
+    letterSpacing: 4,
   },
   errorTitle: {
     color: '#FFFFFF',

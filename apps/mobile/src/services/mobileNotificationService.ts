@@ -13,6 +13,7 @@ import {
 } from './mobileDomainStateService';
 import { loadSavedNutritionLogs } from './mobilePersistenceService';
 import { loadWorkoutRuntimeState } from './workoutStateService';
+import { getLocalDateKey } from '@kpkn/shared-domain';
 
 const CHANNELS = {
   timers: 'kpkn-timers',
@@ -39,10 +40,6 @@ interface NotificationSyncState {
   settings: CoreReminderSettings;
   nutritionLogs: SavedNutritionEntry[];
   workoutOverview: WorkoutOverview | null;
-}
-
-function getLocalDateKey(date = new Date()) {
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 }
 
 function parseLocalDate(raw: string) {

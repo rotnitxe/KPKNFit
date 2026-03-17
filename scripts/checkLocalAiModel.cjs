@@ -21,6 +21,14 @@ const checks = [
         label: 'debug assets (.litertlm)',
         file: path.join(repoRoot, 'android', 'app', 'src', 'main', 'assets', 'models', `${MODEL_VERSION}.litertlm`),
     },
+    {
+        label: 'RN debug assets (.task)',
+        file: path.join(repoRoot, 'apps', 'mobile', 'android', 'app', 'src', 'main', 'assets', 'models', `${MODEL_VERSION}.task`),
+    },
+    {
+        label: 'RN debug assets (.litertlm)',
+        file: path.join(repoRoot, 'apps', 'mobile', 'android', 'app', 'src', 'main', 'assets', 'models', `${MODEL_VERSION}.litertlm`),
+    },
 ];
 
 let foundAny = false;

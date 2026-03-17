@@ -42,21 +42,35 @@ react {
     //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
     // extraPackagerArgs = []
 
-    /* Hermes Commands */
-    //   The hermes compiler command to run. By default it is 'hermesc'
-    hermesCommand = "../../node_modules/hermes-compiler/hermesc/win64-bin/hermesc.exe"
-    //
-    //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
-    // hermesFlags = ["-O", "-output-source-map"]
+/* Hermes Commands */
+// The hermes compiler command to run. By default it is 'hermesc'
+// hermesFlags = ["-O", "-output-source-map"]
+
+    // Hermes compiler — resolve per-platform from hermes-compiler package
+    def hermescDir = file("../../../../node_modules/hermes-compiler/hermesc")
+    def osName = System.getProperty("os.name").toLowerCase()
+    if (osName.contains("win")) {
+        // Use Windows short-path (8.3) names to avoid issues with special characters
+        // (parentheses, spaces) in directory names when Gradle shells out via cmd.exe.
+        def longPath = new File(hermescDir, "win64-bin/hermesc.exe").absolutePath
+        def proc = ["cmd", "/c", "for %I in (\"${longPath}\") do @echo %~sI"].execute()
+        proc.waitFor()
+        def shortPath = proc.text.trim()
+        hermesCommand = shortPath ?: longPath
+    } else if (osName.contains("mac") || osName.contains("darwin")) {
+        hermesCommand = new File(hermescDir, "osx-bin/hermesc").absolutePath
+    } else {
+        hermesCommand = new File(hermescDir, "linux64-bin/hermesc").absolutePath
+    }
 
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
 
 /**
- * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
- */
-def enableProguardInReleaseBuilds = false
+* Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+*/
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -77,27 +91,49 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
     assetPacks = [':kpknLocalAiPack']
 
+    // Redirect CMake/.cxx intermediates to a short path to avoid Windows issues
+    // with parentheses and long paths in the project directory name.
+    externalNativeBuild {
+        cmake {
+            buildStagingDirectory = file("C:/tmp/rn-cxx")
+        }
+    }
+
     namespace "com.yourprime.app"
     defaultConfig {
         applicationId "com.yourprime.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+	versionCode 100000 // 1.0.0 → major*100000 + minor*1000 + patch
+	versionName "1.0.0"
     }
     sourceSets {
         main {
             assets.srcDirs = ['src/main/assets', '../../../../android/app/src/main/assets']
         }
     }
-    signingConfigs {
-        debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
-    }
+	signingConfigs {
+		debug {
+			storeFile file('debug.keystore')
+			storePassword 'android'
+			keyAlias 'androiddebugkey'
+			keyPassword 'android'
+		}
+		release {
+			if (project.hasProperty('KPKN_RELEASE_STORE_FILE')) {
+				storeFile file(KPKN_RELEASE_STORE_FILE)
+				storePassword KPKN_RELEASE_STORE_PASSWORD
+				keyAlias KPKN_RELEASE_KEY_ALIAS
+				keyPassword KPKN_RELEASE_KEY_PASSWORD
+			} else {
+				// Fall back to debug signing for local dev builds
+				storeFile file('debug.keystore')
+				storePassword 'android'
+				keyAlias 'androiddebugkey'
+				keyPassword 'android'
+			}
+		}
+	}
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -109,14 +145,12 @@ android {
             signingConfig signingConfigs.debug
             manifestPlaceholders = [usesCleartextTraffic: "false"]
         }
-        release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
-            manifestPlaceholders = [usesCleartextTraffic: "false"]
-            minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-        }
+		release {
+			signingConfig signingConfigs.release
+			manifestPlaceholders = [usesCleartextTraffic: "false"]
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+		}
     }
 }
 

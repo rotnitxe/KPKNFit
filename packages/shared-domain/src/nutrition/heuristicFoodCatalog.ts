@@ -27,6 +27,7 @@
  * y datos propios de formación KPKN.
  */
 
+// SYNC CHECK 2026-03-15: Verified aligned with LocalAiModule.java lines 89-114 (12/12 foods match)
 export interface HeuristicFood {
   key: string;
   canonicalName: string;

@@ -18,6 +18,7 @@ export interface MobileSettingsSummary extends CoreReminderSettings {
   workoutLoggerMode: 'pro' | 'simple' | null;
   sessionCompactView: boolean;
   homeWidgetOrder: string[];
+  weightUnit: 'kg' | 'lbs';
   source: StoredSettingsSource;
 }
 
@@ -48,6 +49,7 @@ function buildSettingsSummary(raw: Record<string, unknown>, source: StoredSettin
     homeWidgetOrder: Array.isArray(raw.homeWidgetOrder)
       ? raw.homeWidgetOrder.filter((value): value is string => typeof value === 'string')
       : [],
+    weightUnit: raw.weightUnit === 'lbs' ? 'lbs' : 'kg',
     source,
   };
 }

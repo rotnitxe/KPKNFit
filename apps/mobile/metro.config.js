@@ -22,6 +22,9 @@ const config = {
     extraNodeModules: {
       react: path.resolve(projectRoot, 'node_modules/react'),
       'react-native': path.resolve(workspaceRoot, 'node_modules/react-native'),
+      '@kpkn/shared-types': path.resolve(workspaceRoot, 'packages/shared-types'),
+      '@kpkn/shared-domain': path.resolve(workspaceRoot, 'packages/shared-domain'),
+      '@kpkn/design-tokens': path.resolve(workspaceRoot, 'packages/design-tokens'),
     },
   },
 };

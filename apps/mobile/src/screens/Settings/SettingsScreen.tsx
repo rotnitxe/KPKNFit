@@ -1,24 +1,51 @@
 import React, { useEffect } from 'react';
-import { NativeModules, Text, View } from 'react-native';
-import { ScreenShell } from '../../components/ScreenShell';
-import { PrimaryButton } from '../../components/PrimaryButton';
-import { useSettingsStore } from '../../stores/settingsStore';
-import { useWorkoutStore } from '../../stores/workoutStore';
-import { useMealTemplateStore } from '../../stores/mealTemplateStore';
-import { useWellbeingStore } from '../../stores/wellbeingStore';
-import { useCutoverStore } from '../../stores/cutoverStore';
-import { useLocalAiDiagnosticsStore } from '../../stores/localAiDiagnosticsStore';
+import {
+  NativeModules,
+  Text,
+  View,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { ScreenShell } from '@/components/ScreenShell';
+import { Button } from '@/components/ui';
+import { useColors } from '@/theme';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useWorkoutStore } from '@/stores/workoutStore';
+import { useMealTemplateStore } from '@/stores/mealTemplateStore';
+import { useWellbeingStore } from '@/stores/wellbeingStore';
+import { useCutoverStore } from '@/stores/cutoverStore';
+import { useLocalAiDiagnosticsStore } from '@/stores/localAiDiagnosticsStore';
+import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
+import type { RootTabParamList } from '@/navigation/AppNavigator';
 
-function SettingRow({ label, value }: { label: string; value: string }) {
+interface SettingRowProps {
+  label: string;
+  value: string;
+}
+
+function SettingRow({ label, value }: SettingRowProps) {
+  const colors = useColors();
+
   return (
-    <View className="flex-row items-center justify-between rounded-3xl border border-white/8 bg-kpkn-elevated px-4 py-4">
-      <Text className="text-sm text-kpkn-muted">{label}</Text>
-      <Text className="max-w-[45%] text-right text-sm font-semibold text-kpkn-text">{value}</Text>
+    <View style={[styles.settingRow, { borderColor: colors.outlineVariant }]}>
+      <Text style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
+        {label}
+      </Text>
+      <Text
+        numberOfLines={1}
+        style={[styles.settingValue, { color: colors.onSurface }]}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
 
 export function SettingsScreen() {
+  const colors = useColors();
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const isInternalBuild = __DEV__ || Boolean((NativeModules as Record<string, unknown>).DevMenu);
   const status = useSettingsStore(state => state.status);
   const summary = useSettingsStore(state => state.summary);
@@ -47,6 +74,7 @@ export function SettingsScreen() {
   const runOperationalSweep = useCutoverStore(state => state.runOperationalSweep);
   const toggleManualSignoff = useCutoverStore(state => state.toggleManualSignoff);
   const clearCutoverNotice = useCutoverStore(state => state.clearNotice);
+  const rawSettings = readStoredSettingsRaw();
 
   useEffect(() => {
     if (status === 'idle') {
@@ -74,174 +102,313 @@ export function SettingsScreen() {
     return () => clearTimeout(timeout);
   }, [clearCutoverNotice, cutoverNotice]);
 
-  return (
-      <ScreenShell
-        title="Ajustes"
-        subtitle="Aquí ya operamos ajustes propios de RN: recordatorios, fallback IA y señales de readiness para el relevo Android."
-      >
-      <View className="gap-4">
-        <View className="rounded-card border border-white/10 bg-kpkn-surface px-4 py-5">
-          <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Estado</Text>
-          <Text className="mt-3 text-2xl font-semibold text-kpkn-text">
-            {status === 'ready' ? 'Configuración lista en RN' : 'Preparando configuración'}
-          </Text>
-          <Text className="mt-2 text-base leading-6 text-kpkn-muted">
-            {status === 'ready'
-              ? `Fuente ${summary?.source ?? 'sin definir'} · estos ajustes ya viven en storage propio de RN y se usan para widgets, recordatorios y fallback.`
-              : 'Cuando el bootstrap termine, aquí podremos tocar tus preferencias base directamente desde RN.'}
-          </Text>
-        </View>
+  const renderSection = (title: string, children: React.ReactNode) => (
+    <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+      <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+        {title}
+      </Text>
+      {children}
+    </View>
+  );
 
-        {notice ? (
-          <View className="rounded-card border border-emerald-400/25 bg-emerald-500/10 px-4 py-4">
-            <Text className="text-base font-medium text-white">{notice}</Text>
-          </View>
-        ) : null}
+  const renderNotice = (message: string, type: 'success' | 'info') => {
+    const borderColor = type === 'success' ? colors.batteryHigh : colors.primary;
+    const bgColor = type === 'success' ? `${colors.batteryHigh}1A` : `${colors.primary}1A`;
 
-        {cutoverNotice ? (
-          <View className="rounded-card border border-cyan-400/25 bg-cyan-500/10 px-4 py-4">
-            <Text className="text-base font-medium text-white">{cutoverNotice}</Text>
-          </View>
-        ) : null}
-
-        {summary ? (
-          <>
-            <View className="rounded-card border border-white/10 bg-kpkn-surface px-4 py-5">
-              <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Recordatorios</Text>
-              <View className="mt-4 gap-3">
-                <SettingRow label="Entreno diario" value={summary.remindersEnabled ? (summary.reminderTime ?? 'activo') : 'desactivado'} />
-                <SettingRow label="Desayuno" value={summary.mealRemindersEnabled ? summary.breakfastReminderTime : 'desactivado'} />
-                <SettingRow label="Almuerzo" value={summary.mealRemindersEnabled ? summary.lunchReminderTime : 'desactivado'} />
-                <SettingRow label="Cena" value={summary.mealRemindersEnabled ? summary.dinnerReminderTime : 'desactivado'} />
-                <SettingRow label="Entreno no registrado" value={summary.missedWorkoutReminderEnabled ? summary.missedWorkoutReminderTime : 'desactivado'} />
-                <SettingRow label="Batería baja" value={summary.augeBatteryReminderEnabled ? `${summary.augeBatteryReminderThreshold}% · ${summary.augeBatteryReminderTime}` : 'desactivado'} />
-              </View>
-            </View>
-
-            <View className="rounded-card border border-white/10 bg-kpkn-surface px-4 py-5">
-              <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Preferencias base</Text>
-              <View className="mt-4 gap-3">
-                <SettingRow label="Semana inicia" value={`día ${summary.startWeekOn}`} />
-                <SettingRow label="Proveedor IA" value={summary.apiProvider ?? 'sin definir'} />
-                <SettingRow label="Fallback IA" value={summary.fallbackEnabled ? 'activo' : 'apagado'} />
-                <SettingRow label="Modo workout" value={summary.workoutLoggerMode ?? 'sin definir'} />
-                <SettingRow label="Vista compacta" value={summary.sessionCompactView ? 'sí' : 'no'} />
-                <SettingRow label="Widgets Home" value={summary.homeWidgetOrder.length > 0 ? summary.homeWidgetOrder.join(', ') : 'orden por defecto'} />
-              </View>
-            </View>
-
-            <View className="rounded-card border border-white/10 bg-kpkn-surface px-4 py-5">
-              <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Módulos migrados</Text>
-              <View className="mt-4 gap-3">
-                <SettingRow label="Plantillas de comida" value={templateCount > 0 ? `${templateCount} disponibles` : 'sin plantillas aún'} />
-                <SettingRow label="Plantillas descartadas" value={discardedTemplateCount > 0 ? String(discardedTemplateCount) : 'ninguna'} />
-                <SettingRow label="Wellbeing" value={wellbeingStatus === 'ready' ? `resumen activo · ${wellbeingSource}` : 'pendiente'} />
-                <SettingRow label="Sueño promedio" value={wellbeingOverview?.averageSleepHoursLast7Days ? `${wellbeingOverview.averageSleepHoursLast7Days} h` : 'sin datos'} />
-                <SettingRow label="Agua de hoy" value={wellbeingOverview ? `${wellbeingOverview.waterTodayMl} ml` : 'sin datos'} />
-                <SettingRow label="Logs wellbeing inválidos" value={wellbeingDroppedDailyLogs > 0 ? String(wellbeingDroppedDailyLogs) : '0'} />
-                <SettingRow label="IA local" value={localAiStatus ? `${localAiStatus.engine} · ${localAiStatus.modelVersion ?? 'sin modelo'}` : 'sin revisar'} />
-              </View>
-            </View>
-
-            <View className="rounded-card border border-white/10 bg-kpkn-surface px-4 py-5">
-              <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Acciones</Text>
-              <View className="mt-4 gap-3">
-                <PrimaryButton
-                  label={summary.remindersEnabled ? 'Apagar recordatorios de entreno' : 'Encender recordatorios de entreno'}
-                  onPress={() => void toggleWorkoutReminders()}
-                  tone="secondary"
-                />
-                <PrimaryButton
-                  label={summary.mealRemindersEnabled ? 'Apagar recordatorios de comida' : 'Encender recordatorios de comida'}
-                  onPress={() => void toggleMealReminders()}
-                  tone="secondary"
-                />
-                <PrimaryButton
-                  label={summary.fallbackEnabled ? 'Apagar fallback IA' : 'Encender fallback IA'}
-                  onPress={() => void toggleFallbackEnabled()}
-                  tone="secondary"
-                />
-                <PrimaryButton
-                  label="Aplicar perfil suave"
-                  onPress={() => void applyReminderPreset('light')}
-                  tone="secondary"
-                />
-                <PrimaryButton
-                  label="Aplicar perfil seguimiento"
-                  onPress={() => void applyReminderPreset('full')}
-                  tone="secondary"
-                />
-                <PrimaryButton
-                  label="Volver a sincronizar widgets y recordatorios"
-                  onPress={() => void refreshWorkoutInfra()}
-                />
-              </View>
-            </View>
-
-            {isInternalBuild ? (
-              <View className="rounded-card border border-white/10 bg-kpkn-surface px-4 py-5">
-                <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Cutover Android (interno)</Text>
-                <Text className="mt-3 text-2xl font-semibold text-kpkn-text">
-                  {cutoverStage === 'ready-for-cutover' ? 'Listo para relevo' : cutoverStage === 'pilot-ready' ? 'Listo para piloto' : 'Aun faltan piezas'}
-                </Text>
-                <Text className="mt-2 text-base leading-6 text-kpkn-muted">
-                  {cutoverCheckedAt
-                    ? `Última revisión ${new Date(cutoverCheckedAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
-                    : 'Todavía no revisamos el checklist de relevo.'}
-                </Text>
-                {cutoverChecklist ? (
-                  <View className="mt-4 gap-3">
-                    {Object.entries(cutoverChecklist).map(([key, value]) => (
-                      <SettingRow
-                        key={key}
-                        label={key}
-                        value={value ? 'ok' : 'pendiente'}
-                      />
-                    ))}
-                  </View>
-                ) : null}
-                {operationalSnapshot ? (
-                  <View className="mt-4 gap-3">
-                    <SettingRow label="Permiso notificaciones" value={operationalSnapshot.notificationPermission} />
-                    <SettingRow label="Bridge widgets" value={operationalSnapshot.widgetModuleAvailable ? 'nativo' : 'fallback'} />
-                    <SettingRow label="Bridge background" value={operationalSnapshot.backgroundModuleAvailable ? 'nativo' : 'fallback'} />
-                    <SettingRow label="Bridge migración" value={operationalSnapshot.migrationBridgeAvailable ? 'nativo' : 'fallback'} />
-                    <SettingRow label="Bridge IA local" value={operationalSnapshot.localAiModuleAvailable ? 'nativo' : 'fallback'} />
-                    <SettingRow label="Widget stale" value={operationalSnapshot.widgetStale ? 'sí' : 'no'} />
-                    <SettingRow label="Background" value={operationalSnapshot.backgroundLastResult} />
-                    <SettingRow label="Logs nutrición" value={String(operationalSnapshot.nutritionLogCount)} />
-                    <SettingRow label="Plantillas" value={String(operationalSnapshot.templateCount)} />
-                    <SettingRow label="Wellbeing útil" value={operationalSnapshot.wellbeingHasData ? 'sí' : 'no'} />
-                  </View>
-                ) : null}
-                <View className="mt-4 gap-3">
-                  <Text className="text-sm uppercase tracking-[2px] text-kpkn-muted">Signoff manual</Text>
-                  {Object.entries(cutoverSignoff).map(([key, value]) => (
-                    <PrimaryButton
-                      key={key}
-                      label={`${value ? 'OK' : 'Pendiente'} · ${key}`}
-                      onPress={() => toggleManualSignoff(key as keyof typeof cutoverSignoff)}
-                      tone="secondary"
-                    />
-                  ))}
-                </View>
-                <View className="mt-4 gap-3">
-                  <PrimaryButton
-                    label="Actualizar checklist de relevo"
-                    onPress={() => void refreshCutover()}
-                    tone="secondary"
-                  />
-                  <PrimaryButton
-                    label="Correr sweep operativo"
-                    onPress={() => void runOperationalSweep()}
-                    tone="secondary"
-                  />
-                </View>
-              </View>
-            ) : null}
-          </>
-        ) : null}
+    return (
+      <View style={[styles.notice, { borderColor, backgroundColor: bgColor }]}>
+        <Text style={[styles.noticeText, { color: colors.onSurface }]}>{message}</Text>
       </View>
+    );
+  };
+
+  return (
+    <ScreenShell
+      title="Ajustes"
+      subtitle="Aquí ya operamos ajustes propios de RN: recordatorios, fallback IA y señales de readiness para el relevo Android."
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.container}>
+          {/* Profile Section */}
+          {rawSettings ? (
+            renderSection('Perfil', (
+              <View style={styles.sectionContent}>
+                <SettingRow label="Nombre" value={(rawSettings.userName as string) || 'No definido'} />
+                <SettingRow label="Edad" value={rawSettings.age ? `${rawSettings.age} años` : 'No definida'} />
+                <SettingRow label="Peso" value={rawSettings.weight ? `${rawSettings.weight} kg` : 'No definido'} />
+                <SettingRow label="Altura" value={rawSettings.height ? `${rawSettings.height} cm` : 'No definida'} />
+                <SettingRow label="Género" value={(rawSettings.gender as string) || 'No definido'} />
+                <SettingRow label="Nivel actividad" value={(rawSettings.activityLevel as string) || 'No definido'} />
+              </View>
+            ))
+          ) : null}
+
+          {/* Status Section */}
+          {renderSection('Estado', (
+            <View style={styles.sectionContent}>
+              <Text numberOfLines={1} style={[styles.statusTitle, { color: colors.onSurface }]}>
+                {status === 'ready' ? 'Configuración lista en RN' : 'Preparando configuración'}
+              </Text>
+              <Text style={[styles.statusDescription, { color: colors.onSurfaceVariant }]}>
+                {status === 'ready'
+                  ? `Fuente ${summary?.source ?? 'sin definir'} · estos ajustes ya viven en storage propio de RN y se usan para widgets, recordatorios y fallback.`
+                  : 'Cuando el bootstrap termine, aquí podremos tocar tus preferencias base directamente desde RN.'}
+              </Text>
+            </View>
+          ))}
+
+          {/* Notices */}
+          {notice ? renderNotice(notice, 'success') : null}
+          {cutoverNotice ? renderNotice(cutoverNotice, 'info') : null}
+
+          {/* Reminders Section */}
+          {summary ? (
+            <>
+              {renderSection('Recordatorios', (
+                <View style={styles.sectionContent}>
+                  <SettingRow label="Entreno diario" value={summary.remindersEnabled ? (summary.reminderTime ?? 'activo') : 'desactivado'} />
+                  <SettingRow label="Desayuno" value={summary.mealRemindersEnabled ? summary.breakfastReminderTime : 'desactivado'} />
+                  <SettingRow label="Almuerzo" value={summary.mealRemindersEnabled ? summary.lunchReminderTime : 'desactivado'} />
+                  <SettingRow label="Cena" value={summary.mealRemindersEnabled ? summary.dinnerReminderTime : 'desactivado'} />
+                  <SettingRow label="Entreno no registrado" value={summary.missedWorkoutReminderEnabled ? summary.missedWorkoutReminderTime : 'desactivado'} />
+                  <SettingRow label="Batería baja" value={summary.augeBatteryReminderEnabled ? `${summary.augeBatteryReminderThreshold}% · ${summary.augeBatteryReminderTime}` : 'desactivado'} />
+                </View>
+              ))}
+
+              {/* Base Preferences Section */}
+              {renderSection('Preferencias base', (
+                <View style={styles.sectionContent}>
+                  <SettingRow label="Semana inicia" value={`día ${summary.startWeekOn}`} />
+                  <SettingRow label="Proveedor IA" value={summary.apiProvider ?? 'sin definir'} />
+                  <SettingRow label="Fallback IA" value={summary.fallbackEnabled ? 'activo' : 'apagado'} />
+                  <SettingRow label="Modo workout" value={summary.workoutLoggerMode ?? 'sin definir'} />
+                  <SettingRow label="Vista compacta" value={summary.sessionCompactView ? 'sí' : 'no'} />
+                  <SettingRow label="Rest timer" value={`${rawSettings?.defaultRestSeconds ?? 90}s · ${rawSettings?.autoStartTimer ? 'auto' : 'manual'}`} />
+                  <SettingRow label="Metas nutricion" value={`${rawSettings?.dailyCalorieGoal ?? '--'} kcal · ${rawSettings?.dailyProteinGoal ?? '--'}g P`} />
+                  <SettingRow label="Meta sueño" value={`${rawSettings?.sleepTargetHours ?? 8}h · ${rawSettings?.wakeTimeWork ?? '--'}`} />
+                  <SettingRow label="Widgets Home" value={summary.homeWidgetOrder.length > 0 ? summary.homeWidgetOrder.join(', ') : 'orden por defecto'} />
+                </View>
+              ))}
+
+              {/* Migrated Modules Section */}
+              {renderSection('Módulos migrados', (
+                <View style={styles.sectionContent}>
+                  <SettingRow label="Plantillas de comida" value={templateCount > 0 ? `${templateCount} disponibles` : 'sin plantillas aún'} />
+                  <SettingRow label="Plantillas descartadas" value={discardedTemplateCount > 0 ? String(discardedTemplateCount) : 'ninguna'} />
+                  <SettingRow label="Wellbeing" value={wellbeingStatus === 'ready' ? `resumen activo · ${wellbeingSource}` : 'pendiente'} />
+                  <SettingRow label="Sueño promedio" value={wellbeingOverview?.averageSleepHoursLast7Days ? `${wellbeingOverview.averageSleepHoursLast7Days} h` : 'sin datos'} />
+                  <SettingRow label="Agua de hoy" value={wellbeingOverview ? `${wellbeingOverview.waterTodayMl} ml` : 'sin datos'} />
+                  <SettingRow label="Logs wellbeing inválidos" value={wellbeingDroppedDailyLogs > 0 ? String(wellbeingDroppedDailyLogs) : '0'} />
+                  <SettingRow label="IA local" value={localAiStatus ? `${localAiStatus.engine} · ${localAiStatus.modelVersion ?? 'sin modelo'}` : 'sin revisar'} />
+                </View>
+              ))}
+
+              {/* Actions Section */}
+              {renderSection('Acciones', (
+                <View style={styles.actionsSection}>
+                  <Button
+                    onPress={() => navigation.navigate('Coach')}
+                    variant="secondary"
+                  >
+                    Coach IA
+                  </Button>
+                  <Button
+                    onPress={() => navigation.navigate('Workout')}
+                    variant="secondary"
+                  >
+                    Base de ejercicios (entreno)
+                  </Button>
+                  <Button
+                    onPress={() => void toggleWorkoutReminders()}
+                    variant="secondary"
+                  >
+                    {summary.remindersEnabled ? 'Apagar recordatorios de entreno' : 'Encender recordatorios de entreno'}
+                  </Button>
+                  <Button
+                    onPress={() => void toggleMealReminders()}
+                    variant="secondary"
+                  >
+                    {summary.mealRemindersEnabled ? 'Apagar recordatorios de comida' : 'Encender recordatorios de comida'}
+                  </Button>
+                  <Button
+                    onPress={() => void toggleFallbackEnabled()}
+                    variant="secondary"
+                  >
+                    {summary.fallbackEnabled ? 'Apagar fallback IA' : 'Encender fallback IA'}
+                  </Button>
+                  <Button
+                    onPress={() => void applyReminderPreset('light')}
+                    variant="secondary"
+                  >
+                    Aplicar perfil suave
+                  </Button>
+                  <Button
+                    onPress={() => void applyReminderPreset('full')}
+                    variant="secondary"
+                  >
+                    Aplicar perfil seguimiento
+                  </Button>
+                  <Button
+                    onPress={() => void refreshWorkoutInfra()}
+                  >
+                    Volver a sincronizar widgets y recordatorios
+                  </Button>
+                </View>
+              ))}
+
+              {/* Cutover Section (Internal) */}
+              {isInternalBuild ? (
+                renderSection('Cutover Android (interno)', (
+                  <View style={styles.sectionContent}>
+                    <Text numberOfLines={1} style={[styles.statusTitle, { color: colors.onSurface }]}>
+                      {cutoverStage === 'ready-for-cutover' ? 'Listo para relevo' : cutoverStage === 'pilot-ready' ? 'Listo para piloto' : 'Aun faltan piezas'}
+                    </Text>
+                    <Text style={[styles.statusDescription, { color: colors.onSurfaceVariant }]}>
+                      {cutoverCheckedAt
+                        ? `Última revisión ${new Date(cutoverCheckedAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
+                        : 'Todavía no revisamos el checklist de relevo.'}
+                    </Text>
+
+                    {cutoverChecklist ? (
+                      <View style={styles.sectionContent}>
+                        {Object.entries(cutoverChecklist).map(([key, value]) => (
+                          <SettingRow
+                            key={key}
+                            label={key}
+                            value={value ? 'ok' : 'pendiente'}
+                          />
+                        ))}
+                      </View>
+                    ) : null}
+
+                    {operationalSnapshot ? (
+                      <View style={styles.sectionContent}>
+                        <SettingRow label="Permiso notificaciones" value={operationalSnapshot.notificationPermission} />
+                        <SettingRow label="Bridge widgets" value={operationalSnapshot.widgetModuleAvailable ? 'nativo' : 'fallback'} />
+                        <SettingRow label="Bridge background" value={operationalSnapshot.backgroundModuleAvailable ? 'nativo' : 'fallback'} />
+                        <SettingRow label="Bridge migración" value={operationalSnapshot.migrationBridgeAvailable ? 'nativo' : 'fallback'} />
+                        <SettingRow label="Bridge IA local" value={operationalSnapshot.localAiModuleAvailable ? 'nativo' : 'fallback'} />
+                        <SettingRow label="Widget stale" value={operationalSnapshot.widgetStale ? 'sí' : 'no'} />
+                        <SettingRow label="Background" value={operationalSnapshot.backgroundLastResult} />
+                        <SettingRow label="Logs nutrición" value={String(operationalSnapshot.nutritionLogCount)} />
+                        <SettingRow label="Plantillas" value={String(operationalSnapshot.templateCount)} />
+                        <SettingRow label="Wellbeing útil" value={operationalSnapshot.wellbeingHasData ? 'sí' : 'no'} />
+                      </View>
+                    ) : null}
+
+                    <View style={styles.signoffSection}>
+                      <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+                        Signoff manual
+                      </Text>
+                      {Object.entries(cutoverSignoff).map(([key, value]) => (
+                        <Button
+                          key={key}
+                          onPress={() => toggleManualSignoff(key as keyof typeof cutoverSignoff)}
+                          variant="secondary"
+                        >
+                          {`${value ? 'OK' : 'Pendiente'} · ${key}`}
+                        </Button>
+                      ))}
+                    </View>
+
+                    <View style={styles.cutoverActions}>
+                      <Button
+                        onPress={() => void refreshCutover()}
+                        variant="secondary"
+                      >
+                        Actualizar checklist de relevo
+                      </Button>
+                      <Button
+                        onPress={() => void runOperationalSweep()}
+                        variant="secondary"
+                      >
+                        Correr sweep operativo
+                      </Button>
+                    </View>
+                  </View>
+                ))
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      </ScrollView>
     </ScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 16,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  section: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 12,
+  },
+  sectionContent: {
+    gap: 12,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+  },
+  settingLabel: {
+    fontSize: 13,
+    flex: 1,
+    marginRight: 12,
+  },
+  settingValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'right',
+    maxWidth: '45%',
+  },
+  statusTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  statusDescription: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginTop: 8,
+  },
+  notice: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 16,
+  },
+  noticeText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  actionsSection: {
+    gap: 12,
+    marginTop: 8,
+  },
+  signoffSection: {
+    gap: 12,
+    marginTop: 16,
+  },
+  cutoverActions: {
+    gap: 12,
+    marginTop: 16,
+  },
+});

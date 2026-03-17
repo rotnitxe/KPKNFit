@@ -124,14 +124,18 @@ export async function persistNutritionLog(entry: SavedNutritionEntry) {
         id,
         description,
         created_at,
+        logged_date,
+        meal_type,
         totals_json,
         analysis_json
-      ) VALUES (?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `,
     [
       entry.id,
       entry.description,
       entry.createdAt,
+      entry.loggedDate ?? null,
+      entry.mealType ?? null,
       JSON.stringify(entry.totals),
       JSON.stringify(entry.analysis),
     ],
@@ -142,7 +146,7 @@ export async function loadSavedNutritionLogs(limit = 100): Promise<SavedNutritio
   const db = getMobileDatabase();
   const result = db.execute(
     `
-      SELECT id, description, created_at, totals_json, analysis_json
+      SELECT id, description, created_at, logged_date, meal_type, totals_json, analysis_json
       FROM nutrition_logs
       ORDER BY created_at DESC
       LIMIT ?
@@ -154,6 +158,14 @@ export async function loadSavedNutritionLogs(limit = 100): Promise<SavedNutritio
     id: String(row.id),
     description: String(row.description),
     createdAt: String(row.created_at),
+    loggedDate:
+      row.logged_date === null || row.logged_date === undefined
+        ? undefined
+        : String(row.logged_date),
+    mealType:
+      row.meal_type === null || row.meal_type === undefined
+        ? undefined
+        : String(row.meal_type) as SavedNutritionEntry['mealType'],
     totals: parseJson<SavedNutritionEntry['totals']>(String(row.totals_json), {
       calories: 0,
       protein: 0,
@@ -171,6 +183,16 @@ export async function loadSavedNutritionLogs(limit = 100): Promise<SavedNutritio
       runtimeError: null,
     }),
   }));
+}
+
+export async function deleteNutritionLog(id: string): Promise<void> {
+  const db = getMobileDatabase();
+  db.execute('DELETE FROM nutrition_logs WHERE id = ?', [id]);
+}
+
+export async function updateNutritionLogDescription(id: string, description: string): Promise<void> {
+  const db = getMobileDatabase();
+  db.execute('UPDATE nutrition_logs SET description = ? WHERE id = ?', [description, id]);
 }
 
 export async function persistDomainPayload(domain: string, payload: unknown) {
@@ -252,12 +274,22 @@ export async function loadLocalWorkoutLogs(limit = 60): Promise<WorkoutLogSummar
 export async function persistSmokeLog(entry: SavedNutritionEntry) {
   const db = getMobileDatabase();
   db.execute(
-    `INSERT OR REPLACE INTO smoke_test_logs (id, description, created_at, totals_json, analysis_json)
-     VALUES (?, ?, ?, ?, ?)`,
+    `INSERT OR REPLACE INTO smoke_test_logs (
+        id,
+        description,
+        created_at,
+        logged_date,
+        meal_type,
+        totals_json,
+        analysis_json
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       entry.id,
       entry.description,
       entry.createdAt,
+      entry.loggedDate ?? null,
+      entry.mealType ?? null,
       JSON.stringify(entry.totals),
       JSON.stringify(entry.analysis),
     ],
@@ -267,7 +299,7 @@ export async function persistSmokeLog(entry: SavedNutritionEntry) {
 export async function loadSmokeTestLogs(limit = 10): Promise<SavedNutritionEntry[]> {
   const db = getMobileDatabase();
   const result = db.execute(
-    `SELECT id, description, created_at, totals_json, analysis_json
+    `SELECT id, description, created_at, logged_date, meal_type, totals_json, analysis_json
      FROM smoke_test_logs
      ORDER BY created_at DESC
      LIMIT ?`,
@@ -278,6 +310,14 @@ export async function loadSmokeTestLogs(limit = 10): Promise<SavedNutritionEntry
     id: String(row.id),
     description: String(row.description),
     createdAt: String(row.created_at),
+    loggedDate:
+      row.logged_date === null || row.logged_date === undefined
+        ? undefined
+        : String(row.logged_date),
+    mealType:
+      row.meal_type === null || row.meal_type === undefined
+        ? undefined
+        : String(row.meal_type) as SavedNutritionEntry['mealType'],
     totals: parseJson<SavedNutritionEntry['totals']>(String(row.totals_json), {
       calories: 0,
       protein: 0,

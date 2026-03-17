@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import packageJson from '../package.json';
-import { validateMigrationSnapshot, type MigrationSnapshotV1 } from '../packages/shared-types/src';
+import { validateMigrationSnapshot, type MigrationSnapshotV1 } from '@kpkn/shared-types';
 
 export const MIGRATION_SNAPSHOT_SCHEMA_VERSION = 1;
 export const MIGRATION_SNAPSHOT_PATH = 'migration/snapshot-v1.json';

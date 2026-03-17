@@ -1,0 +1,29 @@
+appId: com.yourprime.app
+---
+# Flujo: Análisis con texto libre escrito por el usuario
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "Nutrición"
+# Escribir texto libre en el input
+- tapOn:
+    id: "nutrition-description-input"
+- inputText: "Un plato de arroz con pollo y ensalada"
+- tapOn:
+    id: "nutrition-analyze-button"
+- extendedWaitUntil:
+    visible: "calorías aproximadas"
+    timeout: 30000
+# Verificar macros
+- assertVisible: "Proteína"
+- assertVisible: "Carbs"
+- assertVisible: "Grasas"
+# Guardar
+- tapOn:
+    id: "nutrition-save-button"
+- assertVisible: "Comida guardada."
+# Verificar historial
+- scrollUntilVisible:
+    element: "Historial reciente"
+    direction: DOWN
+- assertVisible: "Un plato de arroz con pollo y ensalada"

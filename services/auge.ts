@@ -82,42 +82,13 @@ export {
   type StructuralReadinessBreakdown,
 } from './structuralReadinessService';
 
-// ─── CONSTANTES CENTRALIZADAS ───────────────────────────────────────────────
+// ─── CONSTANTES CENTRALIZADAS (canonical source: @kpkn/shared-types) ────────
 
-/**
- * Multiplicadores de rol muscular para conteo de HIPERTROFIA.
- * Miden el estímulo mecánico real que recibe un músculo según su rol.
- * Estabilizadores/Neutralizadores = 0 porque no hacen ROM significativo.
- */
-export const HYPERTROPHY_ROLE_MULTIPLIERS: Record<string, number> = {
-    primary: 1.0,
-    secondary: 0.5,
-    stabilizer: 0.0,
-    neutralizer: 0.0,
-};
-
-/**
- * Multiplicadores de rol muscular para conteo de FATIGA.
- * Miden el coste sistémico (drenaje de batería) que genera un músculo.
- * Los estabilizadores SÍ drenan porque hacen esfuerzo isométrico/compresión.
- */
-export const FATIGUE_ROLE_MULTIPLIERS: Record<string, number> = {
-    primary: 1.0,
-    secondary: 0.6,
-    stabilizer: 0.3,
-    neutralizer: 0.15,
-};
-
-/**
- * Pesos de rol para DISPLAY UI (peso visual relativo en listas de ejercicios).
- * Incluye estabilizadores con peso visual reducido para mostrar su participación.
- */
-export const DISPLAY_ROLE_WEIGHTS: Record<string, number> = {
-    primary: 1.0,
-    secondary: 0.5,
-    stabilizer: 0.4,
-    neutralizer: 0.2,
-};
+export {
+    HYPERTROPHY_ROLE_MULTIPLIERS,
+    FATIGUE_ROLE_MULTIPLIERS,
+    DISPLAY_ROLE_WEIGHTS,
+} from '@kpkn/shared-types';
 
 // ─── FUNCIONES DERIVADAS ────────────────────────────────────────────────────
 

@@ -40,6 +40,8 @@ function bootstrapDatabase(db: QuickSQLiteConnection) {
       id TEXT PRIMARY KEY NOT NULL,
       description TEXT NOT NULL,
       created_at TEXT NOT NULL,
+      logged_date TEXT,
+      meal_type TEXT,
       totals_json TEXT NOT NULL,
       analysis_json TEXT NOT NULL
     );
@@ -73,10 +75,32 @@ function bootstrapDatabase(db: QuickSQLiteConnection) {
       id TEXT PRIMARY KEY NOT NULL,
       description TEXT NOT NULL,
       created_at TEXT NOT NULL,
+      logged_date TEXT,
+      meal_type TEXT,
       totals_json TEXT NOT NULL,
       analysis_json TEXT NOT NULL
     );
   `);
+
+  ensureOptionalColumn(db, 'nutrition_logs', 'logged_date TEXT');
+  ensureOptionalColumn(db, 'nutrition_logs', 'meal_type TEXT');
+  ensureOptionalColumn(db, 'smoke_test_logs', 'logged_date TEXT');
+  ensureOptionalColumn(db, 'smoke_test_logs', 'meal_type TEXT');
+}
+
+function ensureOptionalColumn(
+  db: QuickSQLiteConnection,
+  tableName: string,
+  columnDefinition: string,
+) {
+  try {
+    db.execute(`ALTER TABLE ${tableName} ADD COLUMN ${columnDefinition};`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+    if (!message.includes('duplicate') && !message.includes('already exists')) {
+      throw error;
+    }
+  }
 }
 
 /**

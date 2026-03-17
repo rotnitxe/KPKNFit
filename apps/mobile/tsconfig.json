@@ -4,7 +4,13 @@
     "types": [
       "jest"
     ],
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@kpkn/design-tokens": ["../../packages/design-tokens/src/index.ts"],
+      "@kpkn/shared-domain/*": ["../../packages/shared-domain/src/*"],
+      "@kpkn/shared-types/*": ["../../packages/shared-types/src/*"]
+    }
   },
   "include": [
     "**/*.ts",

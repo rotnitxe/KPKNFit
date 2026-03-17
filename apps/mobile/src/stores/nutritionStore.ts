@@ -2,13 +2,18 @@ import { create } from 'zustand';
 import type { LocalAiNutritionAnalysisResult } from '@kpkn/shared-types';
 import { analyzeNutritionDraft } from '../services/nutritionAnalyzer';
 import { LOCAL_CHILEAN_FOOD_CATALOG } from '@kpkn/shared-domain';
-import type { SavedNutritionEntry } from '../types/nutrition';
-import { loadSavedNutritionLogs, persistNutritionLog } from '../services/mobilePersistenceService';
+import type { NutritionMealType, SavedNutritionEntry } from '../types/nutrition';
+import { loadSavedNutritionLogs, persistNutritionLog, deleteNutritionLog, updateNutritionLogDescription } from '../services/mobilePersistenceService';
 import { generateId } from '../utils/generateId';
 import { syncNutritionWidgetState } from '../services/widgetSyncService';
 import { rescheduleCoreNotificationsFromStorage } from '../services/mobileNotificationService';
 
 type NutritionScreenStatus = 'idle' | 'analyzing' | 'ready' | 'failed';
+
+interface SaveCurrentOptions {
+  mealType?: NutritionMealType;
+  logDate?: string;
+}
 
 interface MobileNutritionStoreState {
   description: string;
@@ -22,7 +27,11 @@ interface MobileNutritionStoreState {
   hydrateFromStorage: () => Promise<void>;
   setDescription: (value: string) => void;
   analyze: () => Promise<void>;
-  saveCurrent: () => Promise<void>;
+  replaceAnalysis: (value: LocalAiNutritionAnalysisResult | null, nextDescription?: string) => void;
+  saveCurrent: (options?: SaveCurrentOptions) => Promise<void>;
+  deleteLog: (id: string) => Promise<void>;
+  editDescription: (id: string, newDescription: string) => Promise<void>;
+  duplicateLog: (id: string) => Promise<void>;
   toggleDetail: () => void;
   clearNotice: () => void;
 }
@@ -37,6 +46,21 @@ function computeTotals(result: LocalAiNutritionAnalysisResult) {
     }),
     { calories: 0, protein: 0, carbs: 0, fats: 0 },
   );
+}
+
+function buildLogTimestamp(logDate?: string) {
+  if (!logDate) {
+    return new Date().toISOString();
+  }
+
+  const now = new Date();
+  const timePart = [
+    now.getHours().toString().padStart(2, '0'),
+    now.getMinutes().toString().padStart(2, '0'),
+    now.getSeconds().toString().padStart(2, '0'),
+  ].join(':');
+  const candidate = new Date(`${logDate}T${timePart}`);
+  return Number.isNaN(candidate.getTime()) ? now.toISOString() : candidate.toISOString();
 }
 
 export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, get) => ({
@@ -62,6 +86,16 @@ export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, g
       description: value,
       status: 'idle',
       lastAnalysis: null,
+      saveNotice: null,
+      errorMessage: null,
+    });
+  },
+  replaceAnalysis: (value, nextDescription) => {
+    set({
+      description: nextDescription ?? get().description,
+      status: value && value.items.length > 0 ? 'ready' : 'idle',
+      lastAnalysis: value,
+      isDetailVisible: false,
       saveNotice: null,
       errorMessage: null,
     });
@@ -108,7 +142,7 @@ export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, g
       });
     }
   },
-  saveCurrent: async () => {
+  saveCurrent: async options => {
     const { description, lastAnalysis, savedLogs } = get();
     if (!description.trim() || !lastAnalysis) return;
 
@@ -117,7 +151,9 @@ export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, g
     const entry: SavedNutritionEntry = {
       id: generateId(),
       description,
-      createdAt: new Date().toISOString(),
+      createdAt: buildLogTimestamp(options?.logDate),
+      loggedDate: options?.logDate,
+      mealType: options?.mealType ?? 'lunch',
       totals: computeTotals(lastAnalysis),
       analysis: lastAnalysis,
     };
@@ -128,7 +164,52 @@ export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, g
     void rescheduleCoreNotificationsFromStorage();
     set({
       savedLogs: nextLogs,
-      saveNotice: 'Comida guardada.',
+      saveNotice: `${entry.mealType === 'breakfast'
+        ? 'Desayuno'
+        : entry.mealType === 'dinner'
+          ? 'Cena'
+          : entry.mealType === 'snack'
+            ? 'Snack'
+            : 'Almuerzo'} guardado.`,
+    });
+  },
+  deleteLog: async id => {
+    const { savedLogs } = get();
+    const nextLogs = savedLogs.filter(log => log.id !== id);
+    await deleteNutritionLog(id);
+    void syncNutritionWidgetState(nextLogs);
+    void rescheduleCoreNotificationsFromStorage();
+    set({ savedLogs: nextLogs });
+  },
+  editDescription: async (id, newDescription) => {
+    const { savedLogs } = get();
+    const nextLogs = savedLogs.map(log =>
+      log.id === id ? { ...log, description: newDescription } : log,
+    );
+    await updateNutritionLogDescription(id, newDescription);
+    void syncNutritionWidgetState(nextLogs);
+    void rescheduleCoreNotificationsFromStorage();
+    set({ savedLogs: nextLogs });
+  },
+  duplicateLog: async id => {
+    const { savedLogs } = get();
+    const original = savedLogs.find(log => log.id === id);
+    if (!original) return;
+
+    const entry: SavedNutritionEntry = {
+      ...original,
+      id: generateId(),
+      description: `${original.description} (copia)`,
+      createdAt: new Date().toISOString(),
+    };
+
+    const nextLogs = [entry, ...savedLogs].slice(0, 100);
+    await persistNutritionLog(entry);
+    void syncNutritionWidgetState(nextLogs);
+    void rescheduleCoreNotificationsFromStorage();
+    set({
+      savedLogs: nextLogs,
+      saveNotice: 'Comida duplicada.',
     });
   },
   toggleDetail: () => set(state => ({ isDetailVisible: !state.isDetailVisible })),

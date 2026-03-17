@@ -7,9 +7,26 @@
 // Cache local para funcionar offline.
 // ============================================================================
 
-const BACKEND_URL = (import.meta as any)?.env?.VITE_BACKEND_URL || 'http://localhost:8000';
+import type { AugeAdaptiveCacheBase } from '@kpkn/shared-types';
+
+const BACKEND_URL = 'http://localhost:8000';
 const CACHE_KEY = 'auge_adaptive_cache';
 const QUEUE_KEY = 'auge_adaptive_queue';
+
+type StorageLike = {
+    getItem: (key: string) => string | null;
+    setItem: (key: string, value: string) => void;
+    removeItem: (key: string) => void;
+};
+
+const safeStorage: StorageLike =
+    typeof globalThis !== 'undefined' && 'localStorage' in globalThis
+        ? ((globalThis as { localStorage?: StorageLike }).localStorage as StorageLike)
+        : {
+            getItem: () => null,
+            setItem: () => { },
+            removeItem: () => { },
+        };
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -98,13 +115,16 @@ export interface ModelAccuracy {
     sample_size: number;
 }
 
-export interface AugeAdaptiveCache {
+export interface AugeAdaptiveCache extends AugeAdaptiveCacheBase {
+    // AUGE Legacy / PWA-only Props
     priors: Record<string, GammaPrior>;
     totalObservations: number;
     personalizedRecoveryHours: Record<string, number>;
     confidenceIntervals: Record<string, [number, number]>;
     gpCurve: GPFatiguePrediction | null;
+
     banister: {
+
         systems: Record<string, BanisterSystemResult>;
         combined_performance: number[];
         optimal_next_session_hour: number | null;
@@ -143,11 +163,16 @@ const createEmptyCache = (): AugeAdaptiveCache => ({
     personalizedRecoveryHours: {},
     confidenceIntervals: {},
     gpCurve: null,
+    cnsDelta: 0,
+    muscularDelta: 0,
+    spinalDelta: 0,
+    lastCalibrated: '',
     banister: null,
     selfImprovement: null,
     banisterHistory: [],
     lastSyncTimestamp: '',
 });
+
 
 function normalizeTrainingImpulse(impulse: TrainingImpulse | null | undefined): TrainingImpulse | null {
     const timestamp = Number(impulse?.timestamp_hours);
@@ -202,7 +227,7 @@ function buildRelativeTrainingHistory(history: TrainingImpulse[]): TrainingImpul
 
 function loadQueue(): AdaptiveQueue {
     try {
-        const raw = localStorage.getItem(QUEUE_KEY);
+        const raw = safeStorage.getItem(QUEUE_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
             return {
@@ -216,18 +241,18 @@ function loadQueue(): AdaptiveQueue {
 }
 
 function saveQueue(queue: AdaptiveQueue): void {
-    try { localStorage.setItem(QUEUE_KEY, JSON.stringify(queue)); } catch { /* quota */ }
+    try { safeStorage.setItem(QUEUE_KEY, JSON.stringify(queue)); } catch { /* quota */ }
 }
 
 function clearQueue(): void {
-    localStorage.removeItem(QUEUE_KEY);
+    safeStorage.removeItem(QUEUE_KEY);
 }
 
 // ─── Cache Management ───────────────────────────────────────────
 
 function loadCache(): AugeAdaptiveCache {
     try {
-        const raw = localStorage.getItem(CACHE_KEY);
+        const raw = safeStorage.getItem(CACHE_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
             return {
@@ -244,7 +269,7 @@ function loadCache(): AugeAdaptiveCache {
 }
 
 function saveCache(cache: AugeAdaptiveCache): void {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch { /* quota */ }
+    try { safeStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch { /* quota */ }
 }
 
 // ─── Public API: Queue Data ─────────────────────────────────────

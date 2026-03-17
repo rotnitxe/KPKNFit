@@ -42,6 +42,7 @@
     "www",
     "android",
     "apps/mobile",
-    "packages/*/dist"
+    "packages/*/dist",
+    "packages/shared-domain/tests"
   ]
 }

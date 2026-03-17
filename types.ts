@@ -2,6 +2,32 @@
 // types.ts
 import { z } from 'zod';
 import React from 'react';
+import { 
+    PortionPreset, 
+    MuscleRole, 
+    CanonicalMuscle, 
+    MuscleRecoveryStatus, 
+    DailyWellnessLog,
+    AugeAdaptiveCache,
+    AugeAdaptiveCacheBase,
+    AugeExerciseMetrics,
+    InvolvesMuscle,
+    ArticularBatteryId,
+    ArticularBatteryState
+} from '@kpkn/shared-types';
+
+export type {
+    MuscleRole,
+    CanonicalMuscle,
+    MuscleRecoveryStatus,
+    DailyWellnessLog,
+    AugeAdaptiveCache,
+    AugeAdaptiveCacheBase,
+    AugeExerciseMetrics,
+    InvolvesMuscle,
+    ArticularBatteryId,
+    ArticularBatteryState
+};
 
 export type WeightUnit = 'kg' | 'lbs';
 export type HapticIntensity = 'soft' | 'medium' | 'heavy';
@@ -706,25 +732,8 @@ export interface ExerciseSet {
     judgingLights?: [boolean | null, boolean | null, boolean | null];
 }
 
-// NUEVO: Definimos los roles exactos (AUGE)
-export type MuscleRole = 'primary' | 'secondary' | 'stabilizer' | 'neutralizer';
-
-// NUEVO: Modelo de Datos para el Wellness Diario (AUGE)
-export interface DailyWellnessLog {
-    date: string; // YYYY-MM-DD
-    sleepHours: number;
-    sleepQuality: number; // 1-5
-    nutritionStatus: 'deficit' | 'maintenance' | 'surplus';
-    stressLevel: number; // 1-5 (1=Alto Estrés, 5=Relajado)
-    hydration: 'good' | 'poor';
-}
-
-// Músculos canónicos para conteo de volumen
-export type CanonicalMuscle =
-    | 'Pectorales' | 'Dorsales' | 'Trapecio' | 'Deltoides'
-    | 'Tríceps' | 'Bíceps' | 'Antebrazo' | 'Abdomen'
-    | 'Cuádriceps' | 'Isquiosurales' | 'Glúteos' | 'Aductores' | 'Pantorrillas'
-    | 'Core' | 'Erectores Espinales' | 'Cuello';
+// --- RE-EXPORTED FROM SHARED ---
+// MuscleRole, DailyWellnessLog, CanonicalMuscle, MuscleRecoveryStatus, AugeAdaptiveCache are imported above
 
 export interface ExerciseMuscleInfo {
     id: string;
@@ -999,7 +1008,7 @@ export interface NutritionPlan {
 }
 
 
-export type PortionPreset = 'small' | 'medium' | 'large' | 'extra';
+export type { PortionPreset } from '@kpkn/shared-types';
 
 export const PORTION_MULTIPLIERS: Record<PortionPreset, number> = {
     small: 0.6,
@@ -1504,17 +1513,7 @@ export interface MobilityExercise {
     instruction: string;
 }
 
-export interface MuscleRecoveryStatus {
-    muscleId: string;
-    muscleName: string;
-    recoveryScore: number;
-    hoursSinceLastSession: number;
-    status: 'fresh' | 'optimal' | 'recovering' | 'exhausted';
-    impactingFactors: string[];
-    effectiveSets: number;
-    estimatedHoursToRecovery: number;
-}
-
+// RecoveryStatus imported from shared
 export interface WaterLog {
     id: string;
     date: string;

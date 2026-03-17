@@ -17,6 +17,8 @@
 
 import type { SavedNutritionEntry } from '../types/nutrition';
 import type { LocalAiNutritionAnalysisResult } from '@kpkn/shared-types';
+import type { ExerciseCatalogEntry, ExercisePlaylist, MuscleGroupInfo, MuscleHierarchy } from '../types/workout';
+import type { MuscleRole } from '@kpkn/shared-types';
 import { getMobileDatabase } from '../storage/mobileDatabase';
 import { persistNutritionLog } from './mobilePersistenceService';
 import {
@@ -24,6 +26,7 @@ import {
   persistStoredSettingsRaw,
   persistStoredWellbeingPayload,
 } from './mobileDomainStateService';
+import { setJsonValue } from '../storage/mmkv';
 
 // ────────────────────────────────────────────────────────────
 // Lectura de domain_payloads desde SQLite
@@ -187,6 +190,9 @@ export interface HydrationResult {
   nutritionLogsDiscarded: number;
   settingsImported: boolean;
   wellbeingImported: boolean;
+  bodyImported: boolean;
+  exerciseImported: boolean;
+  programsImported: boolean;
   workoutStatus: 'available-in-overview';
   errors: string[];
 }
@@ -201,6 +207,9 @@ export async function hydrateFromMigrationSnapshot(): Promise<HydrationResult> {
   let nutritionLogsDiscarded = 0;
   let settingsImported = false;
   let wellbeingImported = false;
+  let bodyImported = false;
+  let exerciseImported = false;
+  let programsImported = false;
 
   // ── 1. Nutrición ──────────────────────────────────────────────────────────
   try {
@@ -268,11 +277,181 @@ export async function hydrateFromMigrationSnapshot(): Promise<HydrationResult> {
     errors.push(msg);
   }
 
+  // ── 4. Body ────────────────────────────────────────────
+  try {
+    const bodyPayload = readDomainPayload('body');
+    if (bodyPayload !== null) {
+      bodyImported = true;
+    }
+  } catch (error) {
+    const msg = `Error rehidratando body: ${error instanceof Error ? error.message : 'desconocido'}`;
+    console.error('[MigrationHydration]', msg);
+    errors.push(msg);
+  }
+
+      // ── 5. Exercise ────────────────────────────────────────
+      try {
+        const exercisePayload = readDomainPayload('exercise');
+        if (exercisePayload !== null && typeof exercisePayload === 'object' && !Array.isArray(exercisePayload)) {
+          const ep = exercisePayload as Record<string, unknown>;
+          
+          // Process exercise list
+          if (Array.isArray(ep.exerciseList)) {
+            // Validate and convert exercise entries
+            const validExercises: ExerciseCatalogEntry[] = ep.exerciseList
+              .filter((ex): ex is Record<string, unknown> => 
+                ex !== null && 
+                typeof ex === 'object' && 
+                !Array.isArray(ex) &&
+                typeof ex.id === 'string' &&
+                ex.id.trim() !== '' &&
+                typeof ex.name === 'string' &&
+                ex.name.trim() !== ''
+              )
+              .map((ex: Record<string, unknown>) => {
+                // Ensure required fields have proper types
+                const exercise: ExerciseCatalogEntry = {
+                  id: String(ex.id).trim(),
+                  name: String(ex.name).trim(),
+                  alias: typeof ex.alias === 'string' ? String(ex.alias).trim() : undefined,
+                  description: String(ex.description ?? '').trim(),
+                  category: String(ex.category ?? '').trim(),
+                  type: (ex.type === 'A' || ex.type === 'Accesorio' || ex.type === 'Aislamiento') ? 
+                        (ex.type as 'Básico' | 'Accesorio' | 'Aislamiento') : 'Básico',
+                  tier: (ex.tier === 'T1' || ex.tier === 'T2' || ex.tier === 'T3') ? 
+                        (ex.tier as 'T1' | 'T2' | 'T3') : undefined,
+                  equipment: String(ex.equipment ?? '').trim(),
+                  force: String(ex.force ?? '').trim(),
+                  isCustom: Boolean(ex.isCustom),
+                  bodyPart: (ex.bodyPart === 'upper' || ex.bodyPart === 'lower' || ex.bodyPart === 'full') ? 
+                            (ex.bodyPart as 'upper' | 'lower' | 'full') : undefined,
+                  isFavorite: Boolean(ex.isFavorite),
+                  variantOf: typeof ex.variantOf === 'string' ? String(ex.variantOf).trim() : undefined,
+                  efc: Number.isFinite(Number(ex.efc)) ? Number(ex.efc) : undefined,
+                  ssc: Number.isFinite(Number(ex.ssc)) ? Number(ex.ssc) : undefined,
+                  cnc: Number.isFinite(Number(ex.cnc)) ? Number(ex.cnc) : undefined,
+                  ttc: Number.isFinite(Number(ex.ttc)) ? Number(ex.ttc) : undefined,
+                  involvedMuscles: Array.isArray(ex.involvedMuscles) 
+                    ? ex.involvedMuscles
+                      .filter((mus): mus is Record<string, unknown> => 
+                        mus !== null && 
+                        typeof mus === 'object' && 
+                        !Array.isArray(mus) &&
+                        typeof mus.muscle === 'string' &&
+                        typeof mus.role === 'string' &&
+                        (mus.activation === undefined || typeof mus.activation === 'number')
+                      )
+                      .map((mus: Record<string, unknown>) => ({
+                        muscle: String(mus.muscle).trim(),
+                        role: (mus.role === 'primary' || mus.role === 'secondary' || mus.role === 'stabilizer') ? 
+                              (mus.role as MuscleRole) : 'secondary',
+                        activation: mus.activation !== undefined && Number.isFinite(Number(mus.activation)) 
+                          ? Number(mus.activation) : undefined
+                      }))
+                    : []
+                };
+                
+                return exercise;
+              });
+            
+            // Process exercise playlists
+            const validPlaylists: ExercisePlaylist[] = Array.isArray(ep.exercisePlaylists)
+              ? ep.exercisePlaylists
+                .filter((pl): pl is Record<string, unknown> => 
+                  pl !== null && 
+                  typeof pl === 'object' && 
+                  !Array.isArray(pl) &&
+                  typeof pl.id === 'string' &&
+                  pl.id.trim() !== '' &&
+                  typeof pl.name === 'string' &&
+                  pl.name.trim() !== '' &&
+                  Array.isArray(pl.exerciseIds)
+                )
+                .map((pl: Record<string, unknown>) => ({
+                  id: String(pl.id).trim(),
+                  name: String(pl.name).trim(),
+                  description: typeof pl.description === 'string' ? String(pl.description).trim() : '',
+                  exerciseIds: Array.isArray(pl.exerciseIds) 
+                    ? pl.exerciseIds.map(id => String(id).trim()).filter(Boolean)
+                    : []
+                }))
+              : [];
+            
+            // Process muscle group data
+            const validMuscleGroups: MuscleGroupInfo[] = Array.isArray(ep.muscleGroupData)
+              ? ep.muscleGroupData
+                .filter((mg): mg is Record<string, unknown> => 
+                  mg !== null && 
+                  typeof mg === 'object' && 
+                  !Array.isArray(mg) &&
+                  typeof mg.id === 'string' &&
+                  mg.id.trim() !== '' &&
+                  typeof mg.name === 'string' &&
+                  mg.name.trim() !== ''
+                )
+                .map((mg: Record<string, unknown>) => ({
+                  id: String(mg.id).trim(),
+                  name: String(mg.name).trim(),
+                  description: typeof mg.description === 'string' ? String(mg.description).trim() : '',
+                  importance: typeof mg.importance === 'object' && mg.importance !== null 
+                    ? {
+                        movement: String((mg.importance as Record<string, unknown>).movement ?? ''),
+                        health: String((mg.importance as Record<string, unknown>).health ?? '')
+                      }
+                    : { movement: '', health: '' },
+                  volumeRecommendations: typeof mg.volumeRecommendations === 'object' && mg.volumeRecommendations !== null
+                    ? {
+                        mev: String((mg.volumeRecommendations as Record<string, unknown>).mev ?? '0'),
+                        mav: String((mg.volumeRecommendations as Record<string, unknown>).mav ?? '0'),
+                        mrv: String((mg.volumeRecommendations as Record<string, unknown>).mrv ?? '0')
+                      }
+                    : { mev: '0', mav: '0', mrv: '0' }
+                }))
+              : [];
+            
+            // Process muscle hierarchy
+            const validMuscleHierarchy: MuscleHierarchy | null = 
+              typeof ep.muscleHierarchy === 'object' && ep.muscleHierarchy !== null && !Array.isArray(ep.muscleHierarchy)
+                ? ep.muscleHierarchy as MuscleHierarchy
+                : null;
+            
+            // Save to MMKV storage
+            setJsonValue('rn.exercise', { 
+              exerciseList: validExercises, 
+              exercisePlaylists: validPlaylists,
+              muscleGroupData: validMuscleGroups,
+              muscleHierarchy: validMuscleHierarchy
+            });
+            
+            exerciseImported = true;
+          }
+        }
+      } catch (error) {
+        const msg = `Error rehidratando exercise: ${error instanceof Error ? error.message : 'desconocido'}`;
+        console.error('[MigrationHydration]', msg);
+        errors.push(msg);
+      }
+
+  // ── 6. Programs ────────────────────────────────────────
+  try {
+    const programsPayload = readDomainPayload('programs');
+    if (programsPayload !== null) {
+      programsImported = true;
+    }
+  } catch (error) {
+    const msg = `Error rehidratando programs: ${error instanceof Error ? error.message : 'desconocido'}`;
+    console.error('[MigrationHydration]', msg);
+    errors.push(msg);
+  }
+
   return {
     nutritionLogsImported,
     nutritionLogsDiscarded,
     settingsImported,
     wellbeingImported,
+    bodyImported,
+    exerciseImported,
+    programsImported,
     workoutStatus: 'available-in-overview',
     errors,
   };

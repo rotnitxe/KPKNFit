@@ -1,4 +1,5 @@
 import type { WellbeingOverview, WellbeingSnapshot } from '@kpkn/shared-types';
+import { getLocalDateKey, normalizeDateKey } from '../utils/dateUtils';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -18,20 +19,6 @@ function numberOrNull(value: unknown): number | null {
 
 function round(value: number) {
   return Math.round(value * 10) / 10;
-}
-
-function getLocalDateKey(date = new Date()) {
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-}
-
-function normalizeDateKey(raw: unknown): string | null {
-  const value = stringOrNull(raw);
-  if (!value) return null;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return getLocalDateKey(parsed);
 }
 
 function getLast7DateKeys() {

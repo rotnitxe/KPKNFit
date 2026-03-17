@@ -1,0 +1,51 @@
+appId: com.yourprime.app
+---
+# Flujo: Análisis de nutrición happy path completo
+- launchApp:
+    clearState: true
+# Navegar a Nutrición
+- tapOn:
+    text: "Nutrición"
+# --- Test 1: Ejemplo "completos" ---
+- tapOn:
+    id: "nutrition-example-completos"
+# Verificar que el input se rellenó
+- assertVisible:
+    id: "nutrition-description-input"
+    text: "2 completos italianos"
+- tapOn:
+    id: "nutrition-analyze-button"
+# Esperar resultado (la AI puede tardar)
+- extendedWaitUntil:
+    visible: "calorías aproximadas"
+    timeout: 30000
+# Verificar macros visibles
+- assertVisible: "Proteína"
+- assertVisible: "Carbs"
+- assertVisible: "Grasas"
+# Toggle detalle
+- tapOn:
+    id: "nutrition-toggle-detail-button"
+- assertVisible: "Tu comida"
+# Ocultar detalle
+- tapOn:
+    id: "nutrition-toggle-detail-button"
+- assertNotVisible: "Tu comida"
+# Guardar
+- tapOn:
+    id: "nutrition-save-button"
+- assertVisible: "Comida guardada."
+# Verificar que aparece en historial
+- assertVisible: "Historial reciente"
+- assertVisible: "2 completos italianos"
+# --- Test 2: Ejemplo "cazuela" (segundo análisis) ---
+- tapOn:
+    id: "nutrition-example-cazuela"
+- tapOn:
+    id: "nutrition-analyze-button"
+- extendedWaitUntil:
+    visible: "calorías aproximadas"
+    timeout: 30000
+- tapOn:
+    id: "nutrition-save-button"
+- assertVisible: "Comida guardada."

@@ -6,6 +6,7 @@ const VALID_EXTENSIONS = new Set(['.task', '.litertlm']);
 
 const repoRoot = path.resolve(__dirname, '..');
 const debugTargetDir = path.join(repoRoot, 'android', 'app', 'src', 'main', 'assets', 'models');
+const rnDebugTargetDir = path.join(repoRoot, 'apps', 'mobile', 'android', 'app', 'src', 'main', 'assets', 'models');
 const installTargetDir = path.join(repoRoot, 'android', 'kpknLocalAiPack', 'src', 'main', 'assets', 'install-time-models');
 
 function parseArgs(argv) {
@@ -130,7 +131,10 @@ function main() {
 
     const targetsMode = String(args.targets || 'both').toLowerCase();
     const targets = [];
-    if (targetsMode === 'both' || targetsMode === 'debug') targets.push(debugTargetDir);
+    if (targetsMode === 'both' || targetsMode === 'debug') {
+        targets.push(debugTargetDir);
+        targets.push(rnDebugTargetDir);
+    }
     if (targetsMode === 'both' || targetsMode === 'install') targets.push(installTargetDir);
     if (!targets.length) {
         throw new Error(`Invalid --targets value: ${targetsMode}`);

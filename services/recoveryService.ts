@@ -2,11 +2,17 @@
 import { WorkoutLog, ExerciseMuscleInfo, MuscleHierarchy, SleepLog, PostSessionFeedback, PendingQuestionnaire, DailyWellbeingLog, Settings, WaterLog, NutritionLog } from '../types';
 import { computeNutritionRecoveryMultiplier } from './nutritionRecoveryService';
 import { calculateSetStress, isSetEffective, calculatePersonalizedBatteryTanks, calculateSetBatteryDrain } from './fatigueService';
+import { 
+    calculateMuscleRecovery as calculateMuscleRecoveryShared,
+    computeAugeReadiness as computeAugeReadinessShared,
+    AugeEngineConfig
+} from '@kpkn/shared-domain';
 import { buildExerciseIndex, findExercise, findExerciseWithFallback, ExerciseIndex } from '../utils/exerciseIndex';
+
 import { inferInvolvedMuscles } from '../data/inferMusclesFromName';
 import { getLocalDateString } from '../utils/dateUtils';
 import { calculateArticularBatteries } from './tendonRecoveryService';
-import { getCachedAdaptiveData } from './augeAdaptiveService';
+import { getCachedAdaptiveData, type AugeAdaptiveCache } from './augeAdaptiveService';
 import { getMuscleDisplayId, matchesMuscleTarget, normalizeCanonicalMuscle } from '../utils/canonicalMuscles';
 
 // --- CONSTANTES & CONFIGURACIÓN ---
@@ -74,12 +80,12 @@ const shouldCountFatigueSet = (set: any): boolean => {
     return !!set && !(set.type === 'warmup' || set.isIneffective) && isSetEffective(set);
 };
 
-const getAdaptiveRecoveryHours = (muscleName: string): number | null => {
-    const adaptiveCache = getCachedAdaptiveData();
+const getAdaptiveRecoveryHours = (muscleName: string, adaptiveCache?: any): number | null => {
+    const cache = adaptiveCache || getCachedAdaptiveData();
     const normalizedTarget = normalizeLookupKey(muscleName);
     const canonicalTarget = normalizeLookupKey(normalizeCanonicalMuscle(muscleName).muscle);
 
-    for (const [key, value] of Object.entries(adaptiveCache.personalizedRecoveryHours || {})) {
+    for (const [key, value] of Object.entries(cache.personalizedRecoveryHours || {})) {
         const normalizedKey = normalizeLookupKey(key);
         if (normalizedKey === normalizedTarget || normalizedKey === canonicalTarget) {
             return typeof value === 'number' && value > 0 ? value : null;
@@ -89,11 +95,12 @@ const getAdaptiveRecoveryHours = (muscleName: string): number | null => {
     return null;
 };
 
-const getAdaptiveSystemBiasCorrection = (system: 'cns' | 'muscular' | 'spinal'): number => {
-    const adaptiveCache = getCachedAdaptiveData();
-    const value = adaptiveCache.selfImprovement?.suggested_adjustments?.[`${system}_bias_correction`];
+const getAdaptiveSystemBiasCorrection = (system: 'cns' | 'muscular' | 'spinal', adaptiveCache?: any): number => {
+    const cache = adaptiveCache || getCachedAdaptiveData();
+    const value = cache.selfImprovement?.suggested_adjustments?.[`${system}_bias_correction`];
     return typeof value === 'number' ? value : 0;
 };
+
 
 // Mapa de normalización para agrupar variantes anatómicas
 const MUSCLE_CATEGORY_MAP: Record<string, string[]> = {
@@ -179,275 +186,74 @@ export const calculateMuscleBattery = (
     postSessionFeedback: PostSessionFeedback[] = [],
     waterLogs: WaterLog[] = [],
     dailyWellbeingLogs: DailyWellbeingLog[] = [],
-    nutritionLogs: NutritionLog[] = []
+    nutritionLogs: NutritionLog[] = [],
+    adaptiveCache?: any
 ) => {
-    const now = Date.now();
-    const exIndex = buildExerciseIndex(exerciseList);
-
-    // 1. Obtener Capacidad Dinámica (Tu tanque de gasolina personal)
-    const muscleCapacity = calculateUserWorkCapacity(history, muscleName, exerciseList, settings, exIndex);
-
-    // 2. Determinar Perfil de Recuperación (Half-Life diferenciado)
-    let profileKey = 'medium';
-    for (const [key, val] of Object.entries(MUSCLE_PROFILE_MAP)) {
-        if (isMuscleInGroup(muscleName, key)) {
-            profileKey = val;
-            break;
-        }
-    }
-    const baseRecoveryTime = clamp(getAdaptiveRecoveryHours(muscleName) ?? RECOVERY_PROFILES[profileKey], 18, 144);
-
-    // 3. SISTEMA AUGE: Ajuste por Factores de Estilo de Vida (Wellness)
-    // Nota: En AUGE, el multiplicador AUMENTA el tiempo de recuperación (penalización)
-    let recoveryTimeMultiplier = 1.0;
-
-    // Extraer el log de bienestar más reciente
     const todayStr = getLocalDateString();
-    const recentWellbeing = dailyWellbeingLogs.find(l => l.date === todayStr) || dailyWellbeingLogs[dailyWellbeingLogs.length - 1];
+    const wellbeingLog = dailyWellbeingLogs.find(l => l.date === todayStr) || dailyWellbeingLogs[dailyWellbeingLogs.length - 1];
 
-    // --- INTEGRACIÓN NUTRICIÓN DINÁMICA AUGE (lógica no lineal) ---
+    // Calculamos el multiplicador de nutrición como antes
+    let nutritionMultiplier = 1.0;
     if (settings.algorithmSettings?.augeEnableNutritionTracking !== false) {
         const nutritionResult = computeNutritionRecoveryMultiplier({
             nutritionLogs,
             settings,
-            stressLevel: recentWellbeing?.stressLevel ?? 3,
+            stressLevel: wellbeingLog?.stressLevel ?? 3,
             hoursWindow: 48,
         });
-        recoveryTimeMultiplier *= nutritionResult.recoveryTimeMultiplier;
+        nutritionMultiplier = nutritionResult.recoveryTimeMultiplier;
     } else if (settings.calorieGoalObjective === 'deficit') {
-        // Régimen especial: usuario reportó déficit pero no conecta nutrición. Aplicamos penalización base.
-        recoveryTimeMultiplier *= 1.25;
+        nutritionMultiplier = 1.25;
     }
 
-    // Factor 2: Estrés (Alto estrés = +40% de tiempo según AUGE)
-    if (recentWellbeing && recentWellbeing.stressLevel >= 4) {
-        recoveryTimeMultiplier *= 1.4;
-    }
+    const exIndex = buildExerciseIndex(exerciseList);
+    const effectiveAdaptiveCache = adaptiveCache || getCachedAdaptiveData();
 
-    // Factor 3: Sueño (El "Borrador de Fatiga" Neural)
-    // Solo aplicamos el modificador de sueño si el usuario lo permite
-    let wSleep = 7.5; // Base neutral por defecto
-
-    if (settings.algorithmSettings?.augeEnableSleepTracking !== false) {
-        const safeSleepLogs = sleepLogs || [];
-        const sleepArray = Array.isArray(sleepLogs) ? sleepLogs : [];
-        const sortedSleep = [...sleepArray].sort((a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime()).slice(0, 3);
-
-        if (sortedSleep.length > 0) {
-            wSleep = ((sortedSleep[0]?.duration || 7) * 0.5) + ((sortedSleep[1]?.duration || 7) * 0.3) + ((sortedSleep[2]?.duration || 7) * 0.2);
+    // Inyectamos el suelo de capacidad en los settings para que el shared-domain lo use
+    const enrichedSettings = {
+        ...settings,
+        athleteScore: {
+            ...settings.athleteScore,
+            baseCapacity: calculateUserWorkCapacity(history, muscleName, exerciseList, settings, exIndex)
         }
+    };
 
-        if (wSleep < 6) recoveryTimeMultiplier *= 1.5;
-        else if (wSleep < 7) recoveryTimeMultiplier *= 1.2;
-        else if (wSleep >= 8.5) recoveryTimeMultiplier *= 0.8; // PCE: Sleep Banking (Recompensa masiva)
-        else if (wSleep >= 7.5) recoveryTimeMultiplier *= 0.9; // Sueño óptimo estándar
-    }
+    const sharedWellness = wellbeingLog ? {
+        date: wellbeingLog.date,
+        sleepHours: (Array.isArray(sleepLogs) && sleepLogs.length > 0) ? (sleepLogs[0].duration || 7.5) : 7.5,
+        sleepQuality: 3, // No mapeado directamente
+        nutritionStatus: settings.calorieGoalObjective as any || 'maintenance',
+        stressLevel: wellbeingLog.stressLevel,
+        hydration: 'good' as any,
+        doms: wellbeingLog.doms
+    } : undefined;
 
-    // --- 3.1 FACTORES BIOLÓGICOS (EDAD Y GÉNERO) ---
-    const age = settings.userVitals?.age || 25;
-    if (age > 35) {
-        const agePenalty = (age - 35) * 0.01; // +1% de tiempo por cada año sobre 35
-        recoveryTimeMultiplier *= (1 + agePenalty);
-    }
-    const gender = settings.userVitals?.gender || 'male';
-    if (gender === 'female' || gender === 'transfemale') {
-        recoveryTimeMultiplier *= 0.85; // Sistema neuromuscular femenino recupera ~15% más rápido
-    }
-
-    // TimeToRecover = Base * Multiplier (Si el factor es 1.5 y 1.4, se dispara exponencialmente)
-    const realRecoveryTime = baseRecoveryTime * Math.max(0.5, recoveryTimeMultiplier);
-
-    // 4. Cálculo de Fatiga Acumulada (Cascada y Sinergistas)
-    let accumulatedFatigue = 0;
-    let lastSessionDate = 0;
-    let effectiveSetsCount = 0;
-
-    const relevantHistory = history.filter(log => (now - new Date(log.date).getTime()) < 10 * 24 * 3600 * 1000);
-
-    relevantHistory.forEach(log => {
-        const logTime = new Date(log.date).getTime();
-        const hoursSince = Math.max(0, (now - logTime) / 3600000);
-        let sessionMuscleStress = 0;
-
-        log.completedExercises.forEach(ex => {
+    const result = calculateMuscleRecoveryShared(
+        muscleName,
+        history,
+        effectiveAdaptiveCache,
+        sharedWellness,
+        enrichedSettings,
+        (ex, mName) => {
             const info = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
-            const involvedMuscles = info?.involvedMuscles ?? inferInvolvedMuscles(ex.exerciseName ?? '', (ex as any).equipment ?? '', 'Otro', 'upper');
-
-            for (const muscleInvolvement of involvedMuscles) {
-                const emphasis = 'emphasis' in muscleInvolvement ? muscleInvolvement.emphasis : undefined;
-                if (!isMuscleInGroup(muscleInvolvement.muscle, muscleName, emphasis)) continue;
-
-                const rawStress = ex.sets.reduce((acc, s) => {
-                    if (!shouldCountFatigueSet(s)) return acc;
-                    return acc + calculateSetStress(s, info ?? undefined, (ex as any).restTime || 90);
-                }, 0);
-
-                let roleMultiplier = 0.0;
-                switch (muscleInvolvement.role) {
-                    case 'primary': roleMultiplier = 1.0; break;
-                    case 'secondary': roleMultiplier = 0.5; break;
-                    case 'stabilizer': roleMultiplier = 0.15; break;
-                    default: roleMultiplier = 0.1;
-                }
-
-                const activationFactor = muscleInvolvement.activation || 1.0;
-                sessionMuscleStress += (rawStress * roleMultiplier * activationFactor);
-
-                if (hoursSince <= 168 && (muscleInvolvement.role === 'primary' || (muscleInvolvement.role === 'secondary' && activationFactor > 0.6))) {
-                    effectiveSetsCount += ex.sets.filter((s: any) => shouldCountFatigueSet(s)).length;
-                }
-            }
-        });
-
-        if (sessionMuscleStress > 0) {
-            // Decaimiento Exponencial
-            const k = 2.9957 / Math.max(1, realRecoveryTime);
-            const remainingStress = sessionMuscleStress * safeExp(-k * hoursSince);
-
-            accumulatedFatigue += remainingStress;
-            if (logTime > lastSessionDate) lastSessionDate = logTime;
-        }
-    });
-
-    // Calcular batería base matemática con curva logarítmica para evitar saturaciones
-    const rawFatiguePercent = (accumulatedFatigue / muscleCapacity) * 100;
-    const fatiguePenalty = transformFatigueToPercent(rawFatiguePercent, Math.max(30, muscleCapacity * 0.35));
-    let batteryPercentage = clamp(100 - fatiguePenalty, 0, 100);
-
-    // --- 5. CARGA DE FONDO (BACKGROUND LOAD) ---
-    // Si la vida diaria es exigente, el "100%" nunca es realmente 100%.
-    // Usamos el último log de bienestar o los settings generales.
-    const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
-    const contextLog = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
-
-    let backgroundCap = 100;
-    const workIntensity = contextLog?.workIntensity || settings.userVitals?.workIntensity || 'light';
-    const stressLevel = contextLog?.stressLevel || 3;
-
-    if (workIntensity === 'high') backgroundCap -= 10;
-
-    if (stressLevel === 5) backgroundCap -= 10; // Estrés extremo
-    else if (stressLevel === 4) backgroundCap -= 2; // Estrés alto (muy poco impacto en tope)
-
-    // Aplicar el techo de carga de fondo
-    batteryPercentage = Math.min(batteryPercentage, backgroundCap);
-
-    // --- 5.1 GARANTÍA DE FRESCURA (AUGE v3.2) ---
-    // Si no hay fatiga acumulada real, la batería debe estar al 100%
-    if (accumulatedFatigue <= 0.1 && (recentWellbeing?.doms || 0) <= 2) {
-        batteryPercentage = 100;
-    }
-
-    // --- 5.1 CALIBRACIÓN MANUAL POR MÚSCULO (AUGE v3.1) ---
-    const muscleDeltas = settings.batteryCalibration?.muscleDeltas || {};
-    const myDelta = muscleDeltas[muscleName] ?? 0;
-    if (myDelta !== 0) {
-        batteryPercentage = clamp(batteryPercentage + myDelta, 0, 100);
-    }
-
-
-    // --- 6. OVERRIDE POR DOMS Y MOLESTIAS (READINESS + POST-ENTRENO) ---
-    let domsCap = 100;
-
-    // A. Check del Readiness (Wellbeing) - Impacto Inmediato
-    if (recentWellbeing && recentWellbeing.doms > 2) {
-        const wellbeingDoms = recentWellbeing.doms;
-        if (wellbeingDoms === 5) domsCap = Math.min(domsCap, 20);
-        else if (wellbeingDoms === 4) domsCap = Math.min(domsCap, 50);
-        else if (wellbeingDoms === 3) domsCap = Math.min(domsCap, 85); // Neutral (3) cap suave
-    }
-
-    // B. Check de Molestias registradas en logs (Discomforts Array)
-    const recentLogsWithDiscomfort = history.filter(l =>
-        (now - new Date(l.date).getTime()) < 48 * 3600000 && l.discomforts && l.discomforts.length > 0
+            if (!info) return null;
+            const involvement = info.involvedMuscles.find(m => isMuscleInGroup(m.muscle, mName, m.emphasis));
+            if (!involvement) return null;
+            return { role: involvement.role, activation: involvement.activation ?? 1.0 };
+        },
+        () => nutritionMultiplier
     );
 
-    recentLogsWithDiscomfort.forEach(log => {
-        const isRelated = log.discomforts?.some(d => isMuscleInGroup(d, muscleName));
-        if (isRelated) domsCap = Math.min(domsCap, 50); // Cap de seguridad por molestia activa
-    });
-
-    // C. Feedback Detallado (Existente)
-    const recentFeedback = postSessionFeedback
-        .filter(f => (now - new Date(f.date).getTime()) < 72 * 3600 * 1000)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-
-    if (recentFeedback?.feedback) {
-        const feedbackEntry = Object.entries(recentFeedback.feedback).find(([k]) => isMuscleInGroup(k, muscleName));
-        if (feedbackEntry) {
-            const [_, data] = feedbackEntry;
-            const hoursSinceFeedback = (now - new Date(recentFeedback.date).getTime()) / 3600000;
-
-            // "Hard Caps" basados en dolor reportado (1-5)
-            // Se asume que el dolor disminuye con el tiempo, liberando el cap gradualmente.
-            let localDomsCap = 100;
-
-            if (data.doms === 5) { // Extremo
-                localDomsCap = 10 + (hoursSinceFeedback * 1.5);
-            } else if (data.doms === 4) { // Fuerte
-                localDomsCap = 40 + (hoursSinceFeedback * 1.0);
-            } else if (data.doms === 3) { // Moderado
-                localDomsCap = 70 + (hoursSinceFeedback * 0.5);
-            }
-
-            domsCap = Math.min(domsCap, localDomsCap);
-        }
-    }
-
-    batteryPercentage = Math.min(batteryPercentage, domsCap);
-
-    // D. OVERRIDE RETROACTIVO: Baterías reportadas en FinishWorkoutModal (WorkoutLog.muscleBatteries)
-    const logsWithMuscleBattery = history
-        .filter(l => l.muscleBatteries && Object.keys(l.muscleBatteries).length > 0)
-        .filter(l => (now - new Date(l.date).getTime()) < 10 * 24 * 3600 * 1000)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    for (const log of logsWithMuscleBattery) {
-        const reported = Object.entries(log.muscleBatteries!).find(([key]) => isMuscleInGroup(key, muscleName));
-        if (!reported) continue;
-        const [_, observedBattery] = reported;
-        const hoursSince = (now - new Date(log.date).getTime()) / 3600000;
-        const tau = realRecoveryTime;
-        const recoveryFactor = 1 - safeExp(-hoursSince / Math.max(12, tau * 1.5));
-        const recoveredBattery = Math.min(100, observedBattery + (100 - observedBattery) * recoveryFactor);
-        const blendWeight = hoursSince < 48 ? 0.8 : hoursSince < 96 ? 0.5 : 0.25;
-        batteryPercentage = clamp(recoveredBattery * blendWeight + batteryPercentage * (1 - blendWeight), 0, 100);
-        break;
-    }
-
-    // Clamp final por seguridad
-    batteryPercentage = clamp(batteryPercentage, 0, 100);
-
-    // Definir estado cualitativo
-    let status: 'optimal' | 'recovering' | 'exhausted' = 'optimal';
-    if (batteryPercentage < 40) status = 'exhausted';
-    else if (batteryPercentage < 85) status = 'recovering';
-
-    // Estimación de tiempo para volver al 90% (o al backgroundCap si es menor)
-    let hoursToRecovery = 0;
-    const targetPercentage = Math.min(90, backgroundCap);
-
-    if (batteryPercentage < targetPercentage && accumulatedFatigue > 0) {
-        const k = 2.9957 / realRecoveryTime;
-        // targetStress es la fatiga restante permitida para estar al targetPercentage
-        // battery = 100 - (fatigue / capacity * 100)
-        // fatigue = (100 - battery) * capacity / 100
-        const targetFatigue = (100 - targetPercentage) * muscleCapacity / 100;
-
-        if (accumulatedFatigue > targetFatigue) {
-            // t = -ln(target/current) / k
-            hoursToRecovery = -Math.log(targetFatigue / accumulatedFatigue) / k;
-        }
-    }
-
+    // Mapeo de vuelta al formato PWA legacy para no romper la UI
     return {
-        recoveryScore: Math.round(batteryPercentage),
-        effectiveSets: effectiveSetsCount,
-        hoursSinceLastSession: lastSessionDate > 0 ? Math.round((now - lastSessionDate) / 3600000) : -1,
-        estimatedHoursToRecovery: Math.round(Math.max(0, hoursToRecovery)),
-        status
+        recoveryScore: result.recoveryScore,
+        effectiveSets: result.effectiveSets,
+        hoursSinceLastSession: result.hoursSinceLastSession,
+        estimatedHoursToRecovery: result.estimatedHoursToRecovery,
+        status: result.status === 'fresh' ? 'optimal' : result.status // legacy enum: optimal | recovering | exhausted
     };
 };
+
 
 // --- CORE: CÁLCULO DE SNC (ROBUSTO Y HUMANO) ---
 
@@ -553,11 +359,9 @@ export const calculateDailyReadiness = (
     sleepLogs: SleepLog[],
     dailyWellbeingLogs: DailyWellbeingLog[],
     settings: Settings,
-    cnsBattery: number // Batería sistémica/SNC actual (0-100)
+    cnsBattery: number, // Batería sistémica/SNC actual (0-100)
+    adaptiveCache?: AugeAdaptiveCache
 ) => {
-    let recoveryTimeMultiplier = 1.0;
-    const diagnostics: string[] = [];
-
     const todayStr = getLocalDateString();
     const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
     const recentWellbeing = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
@@ -567,55 +371,25 @@ export const calculateDailyReadiness = (
     const lastSleep = [...sleepArray].sort((a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime())[0];
     const sleepHours = lastSleep?.duration || 7.5;
 
-    if (sleepHours < 6) {
-        recoveryTimeMultiplier *= 1.5;
-        diagnostics.push("Falta de sueño detectada (<6h). Tu recarga está severamente frenada hoy.");
-    }
+    const effectiveAdaptiveCache = adaptiveCache ?? getCachedAdaptiveData();
 
-    // Evaluador de Estrés
-    if (recentWellbeing && recentWellbeing.stressLevel >= 4) {
-        recoveryTimeMultiplier *= 1.4;
-        diagnostics.push("Tus niveles altos de estrés están liberando cortisol, bloqueando la recuperación del sistema nervioso.");
-    }
-
-    // Evaluador de Nutrición
-    if (settings.calorieGoalObjective === 'deficit') {
-        recoveryTimeMultiplier *= 1.3;
-        diagnostics.push("Al estar en déficit calórico, tienes recursos limitados para reparar tejido dañado.");
-    }
-
-    // Determinación del Semáforo (Traffic Light)
-    let status: 'green' | 'yellow' | 'red' = 'green';
-    let recommendation = "Estás en condiciones óptimas. Tienes luz verde para buscar récords personales o tirar pesado.";
-    const isDeficit = settings.calorieGoalObjective === 'deficit';
-    if (isDeficit) {
-        recommendation = "En régimen de déficit: prioriza mantener masa muscular. Evita volumen excesivo o ir al fallo en cada serie.";
-    }
-
-    // Lógica de castigo combinado: Batería baja + Mal estilo de vida = Riesgo inminente
-    if (cnsBattery < 40 || recoveryTimeMultiplier >= 1.8) {
-        status = 'red';
-        recommendation = isDeficit
-            ? "Déficit + fatiga alta. Riesgo de pérdida muscular. Descanso o sesión muy ligera. Prioriza proteína y sueño."
-            : "Tu sistema nervioso no está listo. Tu falta de sueño/estrés está frenando tu recarga. Considera descanso total o una sesión muy ligera de movilidad.";
-    } else if (cnsBattery < 70 || recoveryTimeMultiplier >= 1.3) {
-        status = 'yellow';
-        recommendation = isDeficit
-            ? "Déficit activo. Reduce volumen o RPE hoy para poder recuperarte y proteger tu masa muscular."
-            : "Tienes fatiga residual o factores externos en contra. Cambia el trabajo pesado por técnica, o reduce tu volumen planificado al 50%.";
-    }
-
-    if (diagnostics.length === 0) {
-        diagnostics.push("Tus hábitos de las últimas 24 hrs fueron excelentes. La síntesis de recuperación está a tope.");
-    }
-
-    return {
-        status, // 'green', 'yellow', 'red'
-        stressMultiplier: parseFloat(recoveryTimeMultiplier.toFixed(2)),
-        cnsBattery,
-        diagnostics,
-        recommendation
+    const config: AugeEngineConfig = {
+        settings,
+        adaptiveCache: effectiveAdaptiveCache,
+        wellbeing: recentWellbeing ? {
+            date: recentWellbeing.date,
+            sleepHours,
+            sleepQuality: 3,
+            nutritionStatus: settings.calorieGoalObjective as any || 'maintenance',
+            stressLevel: recentWellbeing.stressLevel,
+            hydration: 'good' as any,
+            doms: recentWellbeing.doms
+        } : undefined,
+        history: [], // No requerido para el cálculo actual de readiness en shared
+        cnsBattery
     };
+
+    return computeAugeReadinessShared(config);
 };
 
 // --- UTILIDADES ---
@@ -720,7 +494,8 @@ export const calculateGlobalBatteries = (
     dailyWellbeingLogs: DailyWellbeingLog[],
     nutritionLogs: NutritionLog[],
     settings: Settings,
-    exerciseList: ExerciseMuscleInfo[]
+    exerciseList: ExerciseMuscleInfo[],
+    adaptiveCache?: AugeAdaptiveCache
 ) => {
     const now = Date.now();
     const tanks = calculatePersonalizedBatteryTanks(settings);
@@ -734,8 +509,8 @@ export const calculateGlobalBatteries = (
     const todayStr = getLocalDateString();
     const wellbeingArray = Array.isArray(dailyWellbeingLogs) ? dailyWellbeingLogs : [];
     const recentWellbeing = wellbeingArray.find(l => l.date === todayStr) || wellbeingArray[wellbeingArray.length - 1];
-    const adaptiveCache = getCachedAdaptiveData();
-    const adaptiveRecoverySamples = Object.values(adaptiveCache.personalizedRecoveryHours || {}).filter((value): value is number => typeof value === 'number' && value > 0);
+    const effectiveAdaptiveCache = adaptiveCache ?? getCachedAdaptiveData();
+    const adaptiveRecoverySamples = Object.values(effectiveAdaptiveCache.personalizedRecoveryHours || {}).filter((value): value is number => typeof value === 'number' && value > 0);
 
     if (adaptiveRecoverySamples.length > 0) {
         const adaptiveMeanRecovery = adaptiveRecoverySamples.reduce((acc, value) => acc + value, 0) / adaptiveRecoverySamples.length;
@@ -757,7 +532,7 @@ export const calculateGlobalBatteries = (
             auditLogs.muscular.push({ icon: '📉', label: 'Déficit Calórico (Recarga Lenta)', val: '', type: 'info' });
         } else if (nutritionResult.status === 'surplus') {
             auditLogs.muscular.push({ icon: '🚀', label: 'Superávit Calórico (Recarga Acelerada)', val: '', type: 'info' });
-        } else if (nutritionResult.factors.some(f => f.includes('Proteína'))) {
+        } else if (nutritionResult.factors.some((f: string) => f.includes('Proteína'))) {
             auditLogs.muscular.push({ icon: '🥩', label: 'Proteína subóptima', val: '', type: 'info' });
         }
     } else if (settings?.calorieGoalObjective === 'deficit') {
@@ -876,8 +651,9 @@ export const calculateGlobalBatteries = (
     else if (cnsPenalty > 10) verdict = "Tu falta de sueño/estrés está limitando tu potencial hoy. Autorregula tu peso y no vayas al fallo.";
 
     // 7. BATERÍAS ARTICULARES (tendones y articulaciones)
-    const articularBatteries = calculateArticularBatteries(history, exerciseList, undefined, settings);
+    const articularBatteries = calculateArticularBatteries(history, exerciseList, [], settings);
     const articularScores = Object.values(articularBatteries).map(state => state.recoveryScore);
+
     const articularAverage = articularScores.length
         ? Math.round(articularScores.reduce((sum, score) => sum + score, 0) / articularScores.length)
         : 100;

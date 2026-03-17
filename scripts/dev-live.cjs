@@ -46,6 +46,6 @@ if (init.status !== 0) {
 
 console.log('[dev-live] Starting watchers on http://localhost:5500');
 run('tailwind-watch', 'npx', ['tailwindcss', '-i', 'input.css', '-o', 'www/output.css', '--watch']);
-run('esbuild-main-watch', 'npx', ['esbuild', './index.tsx', '--bundle', '--outfile=www/index.js', '--sourcemap', '--jsx=automatic', '--loader:.js=jsx', '--loader:.ts=tsx', '--format=esm', '--watch']);
-run('esbuild-worker-watch', 'npx', ['esbuild', './workers/computeWorker.ts', '--bundle', '--outfile=www/computeWorker.js', '--format=iife', '--loader:.ts=tsx', '--watch']);
+run('esbuild-main-watch', 'npx', ['esbuild', './index.tsx', '--bundle', '--outfile=www/index.js', '--sourcemap', '--jsx=automatic', '--loader:.js=jsx', '--loader:.ts=tsx', '--format=esm', '--watch', '--alias:capacitor-widget-bridge=./plugins/capacitor-widget-bridge/src/index.ts', '--alias:@kpkn/shared-types=./packages/shared-types/src/index.ts', '--alias:@kpkn/shared-domain=./packages/shared-domain/src/index.ts', '--alias:@kpkn/design-tokens=./packages/design-tokens/src/index.ts']);
+run('esbuild-worker-watch', 'npx', ['esbuild', './workers/computeWorker.ts', '--bundle', '--outfile=www/computeWorker.js', '--format=iife', '--loader:.ts=tsx', '--watch', '--alias:capacitor-widget-bridge=./plugins/capacitor-widget-bridge/src/index.ts', '--alias:@kpkn/shared-types=./packages/shared-types/src/index.ts', '--alias:@kpkn/shared-domain=./packages/shared-domain/src/index.ts', '--alias:@kpkn/design-tokens=./packages/design-tokens/src/index.ts']);
 run('static-serve', 'npx', ['serve', 'www', '-l', '5500']);

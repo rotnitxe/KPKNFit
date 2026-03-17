@@ -8,210 +8,30 @@ import { calculateSetTendonDrain } from './ttcService';
 import {
   getArticularBatteriesForExercise,
   ARTICULAR_BATTERIES,
-  type ArticularBatteryId,
 } from '../data/articularBatteryConfig';
-import type { MuscleGroupInfo } from '../types';
-import { INITIAL_MUSCLE_GROUP_DATA } from '../data/initialMuscleGroupDatabase';
+import type { MuscleGroupInfo, ArticularBatteryId, ArticularBatteryState } from '../types';
+import { calculateArticularBatteries as calculateShared, MUSCLE_TO_ARTICULAR_BATTERIES } from '@kpkn/shared-domain';
 
-const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
-const safeExp = (v: number) => {
-  const r = Math.exp(v);
-  return isNaN(r) || !isFinite(r) ? 0 : r;
-};
-
-/** Capacidad de referencia por batería articular (puntos de TTC-stress) */
-const TENDON_CAPACITY_BASE = 80;
-
-/** Tiempo base de recuperación (horas) para sesión con TTC medio > 3.0 */
-const TENDON_RECOVERY_HIGH_TTC = 60;
-/** Tiempo base estándar */
-const TENDON_RECOVERY_STD = 48;
-
-/** Penalización por fatiga acumulativa (entrenar antes de 100%) */
-const CUMULATIVE_PENALTY = 0.1;
-
-export interface ArticularBatteryState {
-  recoveryScore: number;
-  estimatedHoursToRecovery: number;
-  status: 'optimal' | 'recovering' | 'exhausted';
-  accumulatedStress: number;
-}
+export type { ArticularBatteryState };
 
 export function calculateArticularBatteries(
   history: WorkoutLog[],
   exerciseList: ExerciseMuscleInfo[],
-  muscleGroupData: MuscleGroupInfo[] = INITIAL_MUSCLE_GROUP_DATA,
-  _settings?: Settings
+  muscleGroupData: MuscleGroupInfo[],
+  settings?: Settings
 ): Record<ArticularBatteryId, ArticularBatteryState> {
-  const now = Date.now();
-  const exIndex = buildExerciseIndex(exerciseList);
-  const tenDaysMs = 10 * 24 * 3600 * 1000;
-  const relevantLogs = history
-    .filter((l) => now - new Date(l.date).getTime() < tenDaysMs)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-  const capacity = TENDON_CAPACITY_BASE;
-
-  const result: Record<ArticularBatteryId, ArticularBatteryState> = {
-    shoulder: makeInitialState(),
-    elbow: makeInitialState(),
-    knee: makeInitialState(),
-    hip: makeInitialState(),
-    ankle: makeInitialState(),
-    cervical: makeInitialState(),
-  };
-
-  for (const id of Object.keys(result) as ArticularBatteryId[]) {
-    result[id] = { ...result[id], accumulatedStress: 0 };
-  }
-
-  // Para penalización: última vez que cada batería fue drenada (timestamp)
-  const lastDrainTime: Record<ArticularBatteryId, number> = {
-    shoulder: 0,
-    elbow: 0,
-    knee: 0,
-    hip: 0,
-    ankle: 0,
-    cervical: 0,
-  };
-
-  for (const log of relevantLogs) {
-    const logTime = new Date(log.date).getTime();
-    const hoursSince = Math.max(0, (now - logTime) / 3600000);
-
-    const sessionDrain: Record<ArticularBatteryId, number> = {
-      shoulder: 0,
-      elbow: 0,
-      knee: 0,
-      hip: 0,
-      ankle: 0,
-      cervical: 0,
-    };
-
-    for (const ex of log.completedExercises) {
-      const info = findExerciseWithFallback(
-        exIndex,
-        ex.exerciseDbId,
-        ex.exerciseName
-      );
-      const articularWeights = getArticularBatteriesForExercise(
-        info,
-        muscleGroupData
-      );
-
-      if (Object.values(articularWeights).every((w) => w === 0)) continue;
-
-      for (const s of ex.sets) {
-        if ((s as any).type === 'warmup' || (s as any).isIneffective) continue;
-        const drain = calculateSetTendonDrain(s, info, articularWeights);
-        for (const id of Object.keys(drain) as ArticularBatteryId[]) {
-          sessionDrain[id] += drain[id];
-        }
-      }
-    }
-
-    // Penalización acumulativa: si se drenó esta batería en los últimos 72h, +10%
-    const recoveryWindowMs = 72 * 3600 * 1000;
-    for (const id of Object.keys(sessionDrain) as ArticularBatteryId[]) {
-      if (sessionDrain[id] > 0 && lastDrainTime[id] > 0 && logTime - lastDrainTime[id] < recoveryWindowMs) {
-        sessionDrain[id] *= 1 + CUMULATIVE_PENALTY;
-      }
-      if (sessionDrain[id] > 0) lastDrainTime[id] = logTime;
-    }
-
-    const totalTTC = Object.values(sessionDrain).reduce((a, b) => a + b, 0);
-    const drainedCount = Object.values(sessionDrain).filter((v) => v > 0).length;
-    const avgTTC = drainedCount > 0 ? totalTTC / drainedCount : 0;
-    const recoveryHours = avgTTC > 3 ? TENDON_RECOVERY_HIGH_TTC : TENDON_RECOVERY_STD;
-    const k = 2.0 / recoveryHours;
-
-    for (const id of Object.keys(sessionDrain) as ArticularBatteryId[]) {
-      const stress = sessionDrain[id];
-      if (stress <= 0) continue;
-      const remaining = stress * safeExp(-k * hoursSince);
-      result[id].accumulatedStress += remaining;
-    }
-  }
-
-  for (const id of Object.keys(result) as ArticularBatteryId[]) {
-    const acc = result[id].accumulatedStress;
-    const battery = clamp(100 - (acc / capacity) * 100, 0, 100);
-    result[id].recoveryScore = Math.round(battery);
-    result[id].status = battery < 40 ? 'exhausted' : battery < 85 ? 'recovering' : 'optimal';
-
-    const target = 90;
-    if (battery < target && acc > 0) {
-      const targetStress = ((100 - target) / 100) * capacity;
-      const k = 2.0 / TENDON_RECOVERY_STD;
-      result[id].estimatedHoursToRecovery = Math.round(
-        Math.max(0, -Math.log(targetStress / acc) / k)
-      );
-    } else {
-      result[id].estimatedHoursToRecovery = 0;
-    }
-  }
-
-  return result;
+  return calculateShared(
+    history as any,
+    {
+      buildExerciseIndex: buildExerciseIndex as any,
+      findExerciseWithFallback: findExerciseWithFallback as any,
+      getArticularBatteriesForExercise: getArticularBatteriesForExercise as any,
+      calculateSetTendonDrain: calculateSetTendonDrain as any,
+    },
+    exerciseList as any,
+    muscleGroupData as any,
+    settings
+  );
 }
 
-function makeInitialState(): ArticularBatteryState {
-  return {
-    recoveryScore: 100,
-    estimatedHoursToRecovery: 0,
-    status: 'optimal',
-    accumulatedStress: 0,
-  };
-}
-
-/** Mapeo accordion muscle id → baterías articulares relacionadas */
-export const MUSCLE_TO_ARTICULAR_BATTERIES: Record<string, ArticularBatteryId[]> = {
-  'deltoides-anterior': ['shoulder'],
-  'deltoides-lateral': ['shoulder'],
-  'deltoides-posterior': ['shoulder'],
-  'pectorales': ['shoulder'],
-  'dorsales': ['shoulder'],
-  'bíceps': ['shoulder', 'elbow'],
-  'tríceps': ['elbow'],
-  'cuádriceps': ['knee', 'hip'],
-  'isquiosurales': ['knee', 'hip'],
-  'glúteos': ['hip'],
-  'pantorrillas': ['ankle'],
-  'antebrazo': ['elbow'],
-  'trapecio': ['shoulder'],
-  'espalda baja': ['hip'],
-};
-
-delete MUSCLE_TO_ARTICULAR_BATTERIES['deltoides-anterior'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['deltoides-lateral'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['deltoides-posterior'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['pectorales'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['dorsales'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['bÇðceps'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['trÇðceps'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['cuÇ­driceps'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['isquiosurales'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['glÇ§teos'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['pantorrillas'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['antebrazo'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['trapecio'];
-delete MUSCLE_TO_ARTICULAR_BATTERIES['espalda baja'];
-
-Object.assign(MUSCLE_TO_ARTICULAR_BATTERIES, {
-  'Deltoides Anterior': ['shoulder'],
-  'Deltoides Lateral': ['shoulder'],
-  'Deltoides Posterior': ['shoulder'],
-  'Pectorales': ['shoulder'],
-  'Dorsales': ['shoulder'],
-  'Bíceps': ['shoulder', 'elbow'],
-  'Tríceps': ['elbow'],
-  'Cuádriceps': ['knee', 'hip'],
-  'Isquiosurales': ['knee', 'hip'],
-  'Glúteos': ['hip'],
-  'Pantorrillas': ['ankle'],
-  'Antebrazo': ['elbow'],
-  'Trapecio': ['shoulder', 'cervical'],
-  'Aductores': ['hip'],
-  'Cuello': ['cervical'],
-} satisfies Record<string, ArticularBatteryId[]>);
-
-export { ARTICULAR_BATTERIES };
+export { MUSCLE_TO_ARTICULAR_BATTERIES, ARTICULAR_BATTERIES };

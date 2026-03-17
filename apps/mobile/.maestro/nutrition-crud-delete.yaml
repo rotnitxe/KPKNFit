@@ -1,0 +1,39 @@
+appId: com.yourprime.app
+---
+# Flujo: Eliminar un log de nutrición con confirmación
+- launchApp:
+    clearState: true
+# Crear un log
+- tapOn:
+    text: "Nutrición"
+- tapOn:
+    id: "nutrition-example-completos"
+- tapOn:
+    id: "nutrition-analyze-button"
+- extendedWaitUntil:
+    visible: "calorías aproximadas"
+    timeout: 30000
+- tapOn:
+    id: "nutrition-save-button"
+- assertVisible: "Comida guardada."
+# Scroll al historial
+- scrollUntilVisible:
+    element: "Historial reciente"
+    direction: DOWN
+- assertVisible: "2 completos italianos"
+# Tocar Eliminar en el HistoryCard
+- tapOn:
+    text: "Eliminar"
+# El Alert.alert nativo aparece. Cancelar primero para probar que no borra.
+- tapOn:
+    text: "Cancelar"
+# El log debe seguir visible
+- assertVisible: "2 completos italianos"
+# Ahora sí eliminar
+- tapOn:
+    text: "Eliminar"
+# Confirmar en el Alert
+- tapOn:
+    text: "Eliminar"
+# El historial debería desaparecer (era el único log)
+- assertNotVisible: "Historial reciente"

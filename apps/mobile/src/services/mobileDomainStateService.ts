@@ -1,7 +1,9 @@
 import { extractCoreReminderSettings } from '@kpkn/shared-domain';
 import { appStorage, getJsonValue, setJsonValue } from '../storage/mmkv';
+import type { AugeRuntimeSnapshot } from '../types/augeRuntime';
 
 export type StoredSettingsSource = 'rn-owned' | 'migration-fallback' | 'defaults';
+
 export type StoredWellbeingSource = 'rn-owned' | 'migration-fallback' | 'empty';
 export type StoredTemplateSource = 'rn-owned' | 'migration-fallback' | 'empty';
 export type WidgetSyncSource = 'foreground' | 'background' | 'unknown';
@@ -10,10 +12,13 @@ const KEYS = {
   settings: 'rn.settings',
   wellbeing: 'rn.wellbeing',
   mealTemplates: 'rn.mealTemplates',
+  mealPlanner: 'rn.mealPlanner',
   notificationPermission: 'rn.notifications.permission',
   widgetSyncStatus: 'rn.widgets.syncStatus',
   backgroundSyncStatus: 'rn.background.syncStatus',
+  augeRuntime: 'rn.augeRuntime',
 } as const;
+
 
 const MIGRATION_KEYS = {
   settings: 'migration.settings',
@@ -74,6 +79,7 @@ function buildDefaultSettingsRaw() {
     workoutLoggerMode: 'simple',
     sessionCompactView: false,
     homeWidgetOrder: [],
+    weightUnit: 'kg',
   } satisfies Record<string, unknown>;
 }
 
@@ -220,3 +226,28 @@ export function readBackgroundSyncStatus() {
 export function persistBackgroundSyncStatus(status: BackgroundSyncStatus) {
   setJsonValue(KEYS.backgroundSyncStatus, status);
 }
+
+export interface StoredMealPlannerPayload {
+  activeWeekPlan: import('../types/mealPlanner').WeeklyMealPlan | null;
+}
+
+export function readStoredMealPlannerPayload(): StoredMealPlannerPayload {
+  return getJsonValue<StoredMealPlannerPayload>(KEYS.mealPlanner, { activeWeekPlan: null });
+}
+
+export function persistStoredMealPlannerPayload(payload: StoredMealPlannerPayload) {
+  setJsonValue(KEYS.mealPlanner, payload);
+}
+
+export interface StoredAugeRuntimePayload {
+  snapshot: AugeRuntimeSnapshot | null;
+}
+
+export function readStoredAugeRuntimePayload(): StoredAugeRuntimePayload {
+  return getJsonValue<StoredAugeRuntimePayload>(KEYS.augeRuntime, { snapshot: null });
+}
+
+export function persistStoredAugeRuntimePayload(payload: StoredAugeRuntimePayload) {
+  setJsonValue(KEYS.augeRuntime, payload);
+}
+

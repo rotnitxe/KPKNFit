@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-KPKN Fit (`yourprime-v2`) is an intelligent gym routine creator and tracker. It is a PWA bundled with Capacitor for Android, with a separate React Native app in `apps/mobile` (in progress). The UI language is Spanish.
+KPKN Fit (`yourprime-v2`) is an intelligent gym routine creator and tracker. It is a PWA bundled with Capacitor for Android, with a feature-complete and optimized **React Native app in `apps/mobile`** (Production Ready). The UI language is Spanish.
 
 ## Commands
 
@@ -64,7 +64,12 @@ Multi-provider AI with **Gemini, GPT, and DeepSeek**. Provider selection and fal
 On-device inference via `kpkn-food-fg270m-v1` (FunctionGemma 270M). Pipeline: `RegisterFoodDrawer` → `parseFreeFormNutrition()` in `services/aiNutritionParser.ts` → `LocalAiPlugin` native bridge → heuristic offline fallback if model not present. See `MODELOS.md` and `docs/local-ai-functiongemma-android.md` for staging and deployment details.
 
 ### Theming
-Material You (M3) dynamic theming. Colors are CSS variables generated at runtime via `@material/material-color-utilities`. `tailwind.config.js` maps Tailwind utilities to those CSS variables. The static "cyber" color palette (`cyber-canvas`, `cyber-cyan`, etc.) and `kpkn-*` semantic tokens are also defined there. Use `md-*` Tailwind classes for Material You adaptive colors and `cyber-*`/`kpkn-*` for brand-specific accents.
+**PWA Target:** Material You (M3) dynamic theming via CSS variables and Tailwind.
+**Mobile Target (`apps/mobile`):** Strictly uses **Native StyleSheet** and the `useColors()` hook for M3 dynamic theming.
+- **Tailwind is FORBIDDEN** in the mobile workspace (no `className`).
+- Styles must be encapsulated in `StyleSheet.create`.
+- Use `React.memo` and `useCallback` for performance optimization in complex components.
+- Color tokens are governed by `apps/mobile/src/theme/colors.ts`.
 
 ### Optional backend (`backend/`)
 FastAPI server (`main.py`) with routers for volume, fatigue, recovery, analysis, AI proxying, and the AUGE adaptive engine. The client proxy is `services/backendAIService.ts` (defaults to `http://localhost:8000`). The backend is **not required** for web/PWA development — all AUGE computations have client-side implementations.

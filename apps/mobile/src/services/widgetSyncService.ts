@@ -2,10 +2,7 @@ import type { WidgetDashboardSnapshot, WorkoutOverview } from '@kpkn/shared-type
 import type { SavedNutritionEntry } from '../types/nutrition';
 import { widgetModule } from '../modules/widgets';
 import { persistWidgetSyncStatus, readWidgetSyncStatus, type WidgetSyncSource } from './mobileDomainStateService';
-
-function getLocalDateString(date = new Date()) {
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-}
+import { getLocalDateString } from '@kpkn/shared-domain';
 
 function withSyncMeta(snapshot: WidgetDashboardSnapshot, source: WidgetSyncSource): WidgetDashboardSnapshot {
   return {
