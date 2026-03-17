@@ -14,8 +14,9 @@ import {
 import { useColors } from '@/theme';
 import { useMobileNutritionStore } from '@/stores/nutritionStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
 import type { NutritionStackParamList } from '@/navigation/types';
-import { Canvas, Path, Group } from '@shopify/react-native-skia';
+import { Canvas, Path } from '@shopify/react-native-skia';
 
 const { width } = Dimensions.get('window');
 
@@ -75,13 +76,15 @@ function MacroRing({ label, value, goal, color, colors }: { label: string; value
 export function NutritionDashboardScreen() {
   const colors = useColors();
   const navigation = useNavigation<Nav>();
-  const { savedLogs, settings: nutritionSettings } = useMobileNutritionStore();
-  const { settings } = useSettingsStore();
+  const { savedLogs } = useMobileNutritionStore();
+  const { summary: settingsSummary } = useSettingsStore();
+
+  const rawSettings = useMemo(() => readStoredSettingsRaw(), [settingsSummary]);
 
   const selectedDate = new Date().toISOString().slice(0, 10);
   
   const dailyTotals = useMemo(() => {
-    const todayLogs = savedLogs.filter(log => log.date === selectedDate);
+    const todayLogs = savedLogs.filter(log => (log.loggedDate || log.createdAt.split('T')[0]) === selectedDate);
     return todayLogs.reduce((acc, log) => ({
       calories: acc.calories + (log.totals?.calories || 0),
       protein: acc.protein + (log.totals?.protein || 0),
@@ -90,16 +93,16 @@ export function NutritionDashboardScreen() {
     }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
   }, [savedLogs, selectedDate]);
 
-  const calorieGoal = nutritionSettings?.calorieGoal || 2000;
-  const proteinGoal = nutritionSettings?.proteinGoal || 150;
-  const carbsGoal = nutritionSettings?.carbsGoal || 200;
-  const fatsGoal = nutritionSettings?.fatsGoal || 60;
+  const calorieGoal = (rawSettings?.calorieGoal as number) || 2000;
+  const proteinGoal = (rawSettings?.proteinGoal as number) || 150;
+  const carbsGoal = (rawSettings?.carbsGoal as number) || 200;
+  const fatsGoal = (rawSettings?.fatsGoal as number) || 60;
 
   const calPct = Math.min(100, (dailyTotals.calories / calorieGoal) * 100);
 
   const mealHistory = useMemo(() => {
     return savedLogs
-      .filter(log => log.date === selectedDate)
+      .filter(log => (log.loggedDate || log.createdAt.split('T')[0]) === selectedDate)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [savedLogs, selectedDate]);
 
@@ -141,7 +144,7 @@ export function NutritionDashboardScreen() {
               <Text style={[styles.goalText, { color: colors.onSurfaceVariant }]}>OBJETIVO {calorieGoal} kcal</Text>
               <Text style={[styles.pctText, { color: colors.onSurface }]}>{Math.round(calPct)}%</Text>
             </View>
-            <View style={[styles.progressTrack, { backgroundColor: colors.surfaceContainerLow }]}>
+            <View style={[styles.progressTrack, { backgroundColor: colors.surfaceContainer }]}>
               <View 
                 style={[
                   styles.progressFill, 

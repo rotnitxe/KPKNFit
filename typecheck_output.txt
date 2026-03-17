@@ -1,0 +1,37 @@
+npm warn Unknown project config "sharp_binary_host". This will stop working in the next major version of npm.
+npm warn Unknown project config "sharp_libvips_binary_host". This will stop working in the next major version of npm.
+
+> @kpkn/mobile@0.0.1 typecheck
+> tsc --noEmit
+
+src/components/auge/AugeEnergyOrbs.tsx(305,132): error TS2339: Property 'warning' does not exist on type 'KPKNColorTokens'.
+src/components/auge/AugeEnergyOrbs.tsx(413,5): error TS2345: Argument of type '{ container: { marginHorizontal: number; marginTop: number; marginBottom: number; paddingHorizontal: number; paddingVertical: number; borderRadius: number; borderWidth: number; borderColor: string; ... 5 more ...; elevation: number; }; ... 20 more ...; summaryBarFill: { ...; }; }' is not assignable to parameter of type '{ container: { marginHorizontal: number; marginTop: number; marginBottom: number; paddingHorizontal: number; paddingVertical: number; borderRadius: number; borderWidth: number; borderColor: string; ... 5 more ...; elevation: number; }; ... 20 more ...; summaryBarFill: { ...; }; } & NamedStyles<...>'.
+  Property 'orbGlowOverlay' is incompatible with index signature.
+    Object literal may only specify known properties, and 'blurRadius' does not exist in type 'ViewStyle | TextStyle | ImageStyle'.
+src/components/exercise/ExerciseGradientCard.tsx(95,7): error TS2353: Object literal may only specify known properties, and 'delay' does not exist in type '{ mass?: number | undefined; overshootClamping?: boolean | undefined; energyThreshold?: number | undefined; velocity?: number | undefined; reduceMotion?: ReduceMotion | undefined; } & { ...; }'.
+src/components/exercise/ExerciseGradientCard.tsx(271,5): error TS2345: Argument of type '{ container: { flexDirection: "row"; alignItems: "center"; borderRadius: number; overflow: "hidden"; marginHorizontal: number; marginVertical: number; height: number; backgroundColor: string; ... 6 more ...; elevation: number; }; ... 10 more ...; muscleBar: { ...; }; }' is not assignable to parameter of type '{ container: { flexDirection: "row"; alignItems: "center"; borderRadius: number; overflow: "hidden"; marginHorizontal: number; marginVertical: number; height: number; backgroundColor: string; ... 6 more ...; elevation: number; }; ... 10 more ...; muscleBar: { ...; }; } & NamedStyles<...>'.
+  Property 'edgeGlow' is incompatible with index signature.
+    Object literal may only specify known properties, and 'blurRadius' does not exist in type 'ViewStyle | TextStyle | ImageStyle'.
+src/components/workout/ReadinessModal.tsx(24,10): error TS2305: Module '"../icons"' has no exported member 'SleepIcon'.
+src/components/workout/ReadinessModal.tsx(24,21): error TS2724: '"../icons"' has no exported member named 'MoodIcon'. Did you mean 'MoonIcon'?
+src/components/workout/ReadinessModal.tsx(24,31): error TS2724: '"../icons"' has no exported member named 'PainIcon'. Did you mean 'BrainIcon'?
+src/data/foodTaxonomy.ts(3,15): error TS2305: Module '"../types/workout"' has no exported member 'FoodItem'.
+src/navigation/navigationRef.ts(2,15): error TS2459: Module '"./AppNavigator"' declares 'RootTabParamList' locally, but it is not exported.
+src/navigation/navigationRef.ts(28,28): error TS2769: No overload matches this call.
+  Argument of type '[string | number | symbol]' is not assignable to parameter of type '[screen: string, params?: any, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | [screen: number, params?: any, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | [screen: ...]'.
+    Type '[string | number | symbol]' is not assignable to type '[screen: symbol, params?: any, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined]'.
+      Type at position 0 in source is not compatible with type at position 0 in target.
+        Type 'string | number | symbol' is not assignable to type 'symbol'.
+          Type 'string' is not assignable to type 'symbol'.
+  Overload 2 of 2, '(options: { name: string; params: RootTabParamList; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: number; params: RootTabParamList; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { ...; }): void', gave the following error.
+    Argument of type 'string | number | symbol' is not assignable to parameter of type '{ name: string; params: RootTabParamList; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: number; params: RootTabParamList; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { ...; }'.
+      Type 'string' is not assignable to type '{ name: string; params: RootTabParamList; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: number; params: RootTabParamList; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { ...; }'.
+src/screens/HomeScreen.tsx(261,110): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 2
+npm error path C:\Users\valen\Downloads\kpkn-fit-(beta-test)\apps\mobile
+npm error workspace @kpkn/mobile@0.0.1
+npm error location C:\Users\valen\Downloads\kpkn-fit-(beta-test)\apps\mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c tsc --noEmit

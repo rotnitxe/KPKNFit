@@ -5,7 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenShell } from '../../components/ScreenShell';
 import { useColors } from '../../theme';
 import { WIKI_MUSCLES, WIKI_JOINTS, WIKI_TENDONS, WIKI_MOVEMENT_PATTERNS } from '../../data/wikiData';
-import type { WorkoutStackParamList } from '../../navigation/AppNavigator';
+import type { WorkoutStackParamList } from '../../navigation/types';
 import type { WikiMuscle, WikiJoint, WikiTendon, WikiMovementPattern } from '../../types/wiki';
 
 type WikiArticleRouteProp = RouteProp<WorkoutStackParamList, 'WikiMuscleDetail' | 'WikiJointDetail' | 'WikiTendonDetail' | 'WikiPatternDetail'>;

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { ScreenShell } from '../../components/ScreenShell';
 import { FOOD_DATABASE } from '../../data/foodDatabase';
-import { NutritionStackParamList } from '../../navigation/AppNavigator';
+import { NutritionStackParamList } from '../../navigation/types';
 import { useColors } from '../../theme';
 
 type RoutePropType = RouteProp<NutritionStackParamList, 'FoodDetail'>;

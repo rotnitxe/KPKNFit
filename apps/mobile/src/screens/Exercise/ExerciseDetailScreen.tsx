@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { WorkoutStackParamList } from '../../navigation/AppNavigator';
+import type { WorkoutStackParamList } from '../../navigation/types';
 import { ScreenShell } from '../../components/ScreenShell';
 import { useExerciseStore } from '../../stores/exerciseStore';
 import { MuscleBadgeList } from '../../components/exercise';

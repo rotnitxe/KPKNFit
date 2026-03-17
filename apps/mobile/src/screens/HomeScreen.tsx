@@ -12,7 +12,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ScreenShell } from '@/components/ScreenShell';
 import { CaupolicanIcon } from '@/components/CaupolicanIcon';
 import { SessionTodayCard, TodaySessionItem } from '@/components/home/SessionTodayCard';
-import { AugeTelemetryPanel, RingsViewMode } from '@/components/home/AugeTelemetryPanel';
+import { AugeEnergyOrbs } from '@/components/auge/AugeEnergyOrbs';
+import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
 import {
   BellIcon,
   IntertwinedRingsIcon,
@@ -32,7 +33,7 @@ import { useColors, useTheme } from '@/theme';
 import type { RootTabParamList } from '@/navigation/types';
 import type { Program, Session } from '@/types/workout';
 
-type RingsMode = RingsViewMode;
+type RingsMode = 'rings' | 'individual';
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -84,11 +85,15 @@ export function HomeScreen() {
   const { isDark, toggleDark } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   
-  const { settings } = useSettingsStore();
-  const {
-    programs,
-    activeProgramState,
+  const { summary: settingsSummary, hydrateFromMigration: hydrateSettings } = useSettingsStore();
+  const { 
+    programs, 
+    activeProgramState, 
     status: programStatus,
+    hydrateFromMigration: hydratePrograms,
+  } = useProgramStore();
+  const {
+    overview,
     status: workoutStatus,
     hydrateFromMigration: hydrateWorkout,
     startActiveSession,
@@ -96,9 +101,7 @@ export function HomeScreen() {
     recoverActiveSession,
   } = useWorkoutStore();
 
-  const {
-    hydrateFromMigration: hydratePrograms,
-  } = useProgramStore();
+  const rawSettings = useMemo(() => readStoredSettingsRaw(), [settingsSummary]);
 
   const {
     status: bodyStatus,
@@ -123,6 +126,7 @@ export function HomeScreen() {
     if (bodyStatus === 'idle') void hydrateBody();
     if (wellbeingStatus === 'idle') void hydrateWellbeing();
     if (!hasHydratedNutrition) void hydrateNutrition();
+    if (settingsSummary === null) void hydrateSettings();
     void recoverActiveSession();
   }, []);
 
@@ -174,7 +178,7 @@ export function HomeScreen() {
     });
   }, [activeProgram, activeProgramState, activeSession]);
 
-  const handleStartWorkout = useCallback((session: Session, program: Program, location: any) => {
+  const handleStartWorkout = useCallback((session: Session, program: Program) => {
     startActiveSession({ programId: program.id, session });
     navigation.navigate('Workout', {
       screen: 'ActiveSession',
@@ -187,14 +191,14 @@ export function HomeScreen() {
   }, [startActiveSession, navigation]);
 
   const greeting = getGreeting();
-  const userName = settings.userName?.trim() || 'Atleta';
+  const userName = (rawSettings?.userName as string)?.trim() || 'Atleta';
 
   const headerContent = (
     <View style={styles.heroHeader}>
       <View style={styles.heroTopRow}>
         <View style={[styles.avatarWrap, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'white' }]}>
-          {settings.profilePicture ? (
-            <Image source={{ uri: settings.profilePicture }} style={styles.avatarImage} />
+          {rawSettings?.profilePicture ? (
+            <Image source={{ uri: rawSettings.profilePicture as string }} style={styles.avatarImage} />
           ) : (
             <CaupolicanIcon size={24} color={isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"} />
           )}
@@ -239,7 +243,12 @@ export function HomeScreen() {
             </View>
           }
         />
-        <AugeTelemetryPanel variant="hero" shareable viewMode={ringsView} />
+        <AugeEnergyOrbs 
+          cns={overview?.battery?.cns ?? 0}
+          muscular={overview?.battery?.muscular ?? 0}
+          spinal={overview?.battery?.spinal ?? 0}
+          liveMode={!!activeSession}
+        />
       </View>
 
       <View style={styles.section}>
@@ -256,7 +265,7 @@ export function HomeScreen() {
       <View style={styles.section}>
         <SectionTitle title="Tus Programas" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.programsScroll}>
-          {programs.map(prog => (
+          {programs.map((prog: Program) => (
             <ProgramPreviewCard 
               key={prog.id} 
               program={prog} 
@@ -305,7 +314,12 @@ export function HomeScreen() {
         Inicia tu próximo{'\n'}<Text style={{ color: colors.primary }}>Plan Maestro</Text>
       </Text>
       
-      <AugeTelemetryPanel variant="hero" shareable />
+      <AugeEnergyOrbs 
+        cns={overview?.battery?.cns ?? 0}
+        muscular={overview?.battery?.muscular ?? 0}
+        spinal={overview?.battery?.spinal ?? 0}
+        liveMode={!!activeSession}
+      />
 
       <View style={styles.emptyArsenal}>
         <View style={styles.emptyIconWrap}>
