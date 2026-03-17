@@ -1,6 +1,7 @@
 // apps/mobile/src/data/foodTaxonomy.ts
 // Taxonomía y Enriquecimiento de Alimentos — Ported from PWA
-import type { FoodItem } from '../types/workout'; // Reusing workout types for basic Food shape
+import type { FoodItem } from '../types/food'; 
+// Reusing food types for basic Food shape
 
 interface FoodCategoryRule {
     category: string;
