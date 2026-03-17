@@ -41,37 +41,9 @@ function AppContent() {
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={colors.background}
       />
-      {status === 'booting' && (
-        <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
-          <CaupolicanIcon size={120} color={colors.primary} style={{ marginBottom: 12 }} />
-          <Text style={[styles.brandText, { color: colors.onSurface }]}>KPKN</Text>
-          <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 24 }} />
-          <Text style={[styles.bootingText, { color: colors.onSurfaceVariant }]}>Cargando experiencia...</Text>
-        </View>
-      )}
-      {status === 'failed' && (
-        <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
-          <Text style={[styles.errorTitle, { color: colors.onSurface }]}>No se pudo iniciar la app</Text>
-          <Text style={[styles.errorDetail, { color: colors.error }]}>
-            {error ?? 'Ocurrió un error inesperado durante el arranque.'}
-          </Text>
-          <TouchableOpacity
-            style={[styles.retryButton, {
-              backgroundColor: colors.surfaceContainer,
-              borderColor: colors.outline
-            }]}
-            onPress={() => void retry()}
-            accessibilityLabel="Reintentar inicio de la aplicación"
-          >
-            <Text style={[styles.retryButtonText, { color: colors.onSurface }]}>Reintentar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      {status === 'ready' && (
-        <ErrorBoundary>
-          <AppNavigator />
-        </ErrorBoundary>
-      )}
+      <ErrorBoundary>
+        <AppNavigator />
+      </ErrorBoundary>
     </>
   );
 }

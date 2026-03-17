@@ -22,124 +22,71 @@ interface BootstrapStore {
   hydrationResult: HydrationResult | null;
   error: string | null;
   bootstrap: () => Promise<void>;
-  /**
-   * Reinicia el estado de bootstrap y vuelve a ejecutar el flujo completo.
-   * Disponible cuando status === 'failed'.
-   */
   retry: () => Promise<void>;
 }
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
-  let timeoutId: any;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(new Error(`TIMEOUT: ${errorMessage} (${timeoutMs}ms)`));
-    }, timeoutMs);
-  });
-
-  try {
-    const result = await Promise.race([promise, timeoutPromise]);
-    return result as T;
-  } finally {
-    clearTimeout(timeoutId!);
-  }
-}
-
-const BOOTSTRAP_STEP_TIMEOUT = 6000; // 6 segundos por fase crítica
-
 export const useBootstrapStore = create<BootstrapStore>((set, get) => ({
-  status: 'booting',
+  // Instant-start: la app arranca en 'ready' por defecto para mostrar el navegador inmediatamente.
+  status: 'ready',
   summary: null,
   hydrationResult: null,
   error: null,
 
   bootstrap: async () => {
-    console.log('[Bootstrap] Iniciando proceso...');
-    set({ status: 'booting', error: null, summary: null, hydrationResult: null });
-    try {
-      // ── 1. Importar snapshot (con timeout) ───────────────────────────────
-      console.log('[Bootstrap] Pasos 1: importBridgeSnapshotIfNeeded...');
-      const summary = await withTimeout(
-        importBridgeSnapshotIfNeeded(),
-        BOOTSTRAP_STEP_TIMEOUT,
-        'No se pudo leer el snapshot de migración'
-      );
-      set({ summary });
-      console.log('[Bootstrap] Resumen de importación:', summary.source);
+    const currentStatus = get().status;
+    console.log('[Bootstrap] Iniciando rehidratación en segundo plano...');
+    
+    // No bloqueamos: disparamos las tareas y que terminen cuando puedan.
+    (async () => {
+      try {
+        // ── 1. Importar snapshot (segundo plano) ───────────────────────────
+        const summary = await importBridgeSnapshotIfNeeded();
+        set({ summary });
 
-      if (summary.validationError) {
-        throw new Error(`La migración local no es válida todavía. ${summary.validationError}`);
+        if (summary.validationError) {
+          console.warn('[Bootstrap] Snapshot de migración no válido:', summary.validationError);
+          return;
+        }
+
+        // ── 2. Rehidratar dominios (segundo plano) ─────────────────────────
+        if (summary.source === 'snapshot') {
+          const hydrationResult = await hydrateFromMigrationSnapshot();
+          set({ hydrationResult });
+          console.log('[Bootstrap] Datos de migración inyectados.');
+        }
+
+        // ── 3. Sincronizar stores (segundo plano) ──────────────────────────
+        const hydrationTasks = [
+          useMobileNutritionStore.getState().hydrateFromStorage(),
+          useWorkoutStore.getState().hydrateFromMigration(),
+          useSettingsStore.getState().hydrateFromMigration(),
+          useWellbeingStore.getState().hydrateFromMigration(),
+          useMealTemplateStore.getState().hydrateFromMigration(),
+          useProgramStore.getState().hydrateFromMigration(),
+          useBodyStore.getState().hydrateFromMigration(),
+          useExerciseStore.getState().hydrateFromMigration(),
+          useMealPlannerStore.getState().hydrateFromStorage(),
+          useCoachStore.getState().hydrateFromStorage(),
+          useAugeRuntimeStore.getState().hydrateFromStorage(),
+          useLocalAiDiagnosticsStore.getState().refreshStatus(),
+        ];
+
+        // Usamos allSettled para que un fallo en un store no detenga a los demás.
+        const results = await Promise.allSettled(hydrationTasks);
+        
+        const failures = results.filter(r => r.status === 'rejected');
+        if (failures.length > 0) {
+          console.warn('[Bootstrap] Algunos stores fallaron al hidratarse:', failures);
+        }
+
+        console.log('[Bootstrap] Proceso de fondo completado.');
+      } catch (err) {
+        console.error('[Bootstrap] Fallo en proceso secundario:', err);
       }
-
-      // ── 2. Rehidratar dominios si vino de un snapshot (con timeout) ──────
-      let hydrationResult: HydrationResult | null = null;
-      if (summary.source === 'snapshot') {
-        console.log('[Bootstrap] Paso 2: hydrateFromMigrationSnapshot...');
-        hydrationResult = await withTimeout(
-          hydrateFromMigrationSnapshot(),
-          BOOTSTRAP_STEP_TIMEOUT,
-          'La rehidratación de datos tomó demasiado tiempo'
-        );
-        set({ hydrationResult });
-        console.log('[Bootstrap] Hidratación completada.');
-      }
-
-      // ── 3. Hidratar stores RN (con timeout batch) ─────────────────────────
-      console.log('[Bootstrap] Paso 3: Hidratando stores...');
-      const hydrationTasks = [
-        useMobileNutritionStore.getState().hydrateFromStorage(),
-        useWorkoutStore.getState().hydrateFromMigration(),
-        useSettingsStore.getState().hydrateFromMigration(),
-        useWellbeingStore.getState().hydrateFromMigration(),
-        useMealTemplateStore.getState().hydrateFromMigration(),
-        useProgramStore.getState().hydrateFromMigration(),
-        useBodyStore.getState().hydrateFromMigration(),
-        useExerciseStore.getState().hydrateFromMigration(),
-        useMealPlannerStore.getState().hydrateFromStorage(),
-        useCoachStore.getState().hydrateFromStorage(),
-        useAugeRuntimeStore.getState().hydrateFromStorage(),
-        useLocalAiDiagnosticsStore.getState().refreshStatus(),
-      ];
-
-      const storeHydrationResults = await withTimeout(
-        Promise.allSettled(hydrationTasks),
-        BOOTSTRAP_STEP_TIMEOUT + 2000, // Margen extra para el batch
-        'La sincronización de stores interna falló por tiempo'
-      );
-
-      const criticalErrors = storeHydrationResults
-        .slice(0, 3)
-        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-        .map(result => (result.reason instanceof Error ? result.reason.message : 'Error crítico de hidratación.'));
-
-      const nonCriticalErrors = storeHydrationResults
-        .slice(3)
-        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-        .map(result => (result.reason instanceof Error ? result.reason.message : 'Error no crítico de hidratación.'));
-
-      if (criticalErrors.length > 0) {
-        throw new Error(criticalErrors.join(' | '));
-      }
-
-      if (nonCriticalErrors.length > 0) {
-        console.warn('[Bootstrap] Stores no críticos fallaron o expiraron:', nonCriticalErrors);
-      }
-
-      set({ status: 'ready' });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error desconocido durante el arranque.';
-      console.error('[Bootstrap] Fallo durante el arranque:', message, error);
-      
-      // Si el error es un TIMEOUT no crítico (ej. Local AI), podríamos intentar seguir
-      // Pero por ahora, fallamos para que el usuario pueda reintentar o ver qué pasó.
-      // EXCEPCIÓN: Si el error contiene "TIMEOUT" y logramos al menos cargar configuraciones básicas, podríamos forzar 'ready'.
-      set({ status: 'failed', error: message });
-    }
+    })();
   },
 
   retry: async () => {
-    if (get().status === 'failed') {
-      await get().bootstrap();
-    }
+    await get().bootstrap();
   },
 }));
