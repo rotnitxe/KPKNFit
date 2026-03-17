@@ -154,3 +154,14 @@ export const calculateCompletedSessionDrainBreakdown = (
     const totalStress = totalCns + totalMuscular + totalSpinal;
     return { totalStress, cnsDrain: totalCns, muscularDrain: totalMuscular, spinalDrain: totalSpinal };
 };
+
+export const calculateExerciseFatigueScale = (exercise: any, info: ExerciseCatalogEntry | undefined): number => {
+    if (!exercise.sets?.length) return 0;
+    const defaultTanks = calculatePersonalizedBatteryTanks({});
+    let totalDrain = 0;
+    exercise.sets.forEach((s: any, idx: number) => {
+        const drain = calculateSetBatteryDrain(s, info as any, defaultTanks, idx, exercise.restTime || 90);
+        totalDrain += drain.cnsDrainPct + (drain.muscularDrainPct * 0.5);
+    });
+    return Math.min(10, Math.round(totalDrain / 2));
+};

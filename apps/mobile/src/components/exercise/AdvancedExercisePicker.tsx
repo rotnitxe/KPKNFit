@@ -106,12 +106,20 @@ export const AdvancedExercisePicker: React.FC<AdvancedExercisePickerProps> = ({
         const ranked = searchResults.map(ex => {
             let score = 0;
             if (favoriteExerciseIds.has(ex.id)) score += 100;
-            if (search.trim() && ex.name.toLowerCase().includes(search.toLowerCase())) score += 30;
+            if (search.trim()) {
+                const q = search.toLowerCase();
+                if (ex.name.toLowerCase() === q) score += 200;
+                else if (ex.name.toLowerCase().startsWith(q)) score += 100;
+                else if (ex.name.toLowerCase().includes(q)) score += 30;
+                
+                if (ex.involvedMuscles?.some(m => m.muscle.toString().toLowerCase() === q)) score += 80;
+                if (ex.equipment?.toLowerCase() === q) score += 50;
+            }
             if (ex.tier === 'T1') score += 20;
             return { exercise: ex, score };
         });
         ranked.sort((a, b) => b.score - a.score || a.exercise.name.localeCompare(b.exercise.name));
-        return ranked.slice(0, 50).map(r => r.exercise);
+        return ranked.map(r => r.exercise);
     }, [search, selectedCategory, exerciseList, favoriteExerciseIds]);
 
     const gesture = Gesture.Pan()

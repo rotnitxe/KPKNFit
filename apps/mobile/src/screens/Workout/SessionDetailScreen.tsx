@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View, ScrollView, StyleSheet } from 'react-native';
 import { ScreenShell } from '../../components/ScreenShell';
 import { useProgramStore } from '../../stores/programStore';
-import type { Program, Session, ProgramExercise, ExerciseSet } from '../../types/workout';
+import type { Program, Session, Exercise, ExerciseSet } from '../../types/workout';
 import { useColors } from '../../theme';
 
 /**
@@ -54,7 +54,7 @@ export function SessionDetailScreen({ route }: { route: { params: { sessionId: s
     );
   }
 
-  const exercises: ProgramExercise[] = session.exercises || [];
+  const exercises: Exercise[] = session.exercises || [];
 
   return (
     <ScreenShell title={session.name || 'Detalle de Sesión'}>
@@ -72,7 +72,7 @@ export function SessionDetailScreen({ route }: { route: { params: { sessionId: s
           <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
             Ejercicios Planeados
           </Text>
-          {exercises.map((ex: ProgramExercise, index: number) => (
+          {exercises.map((ex: Exercise, index: number) => (
             <View
               key={ex.id || index}
               style={[

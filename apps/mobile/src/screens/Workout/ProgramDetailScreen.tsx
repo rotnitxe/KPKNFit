@@ -15,9 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WorkoutStackParamList } from '../../navigation/types';
 import { useProgramStore } from '../../stores/programStore';
-import { useWorkoutStore } from '../../stores/workoutStore';
 import type { Block, Program, ProgramWeek, Session } from '../../types/workout';
-import { AugeDashboard } from '../../components/auge/AugeDashboard';
 import { LiquidGlassCard } from '../../components/ui/LiquidGlassCard';
 import { useColors } from '../../theme';
 import { 
@@ -30,8 +28,14 @@ import {
     LayoutIcon, 
     ChevronRightIcon,
     ArrowLeftIcon,
-    PlusIcon
+    PlusIcon,
+    InfoIcon
 } from '../../components/icons';
+import { AugeDashboard } from '../../components/auge/AugeDashboard';
+import { CaupolicanBody } from '../../components/analytics/CaupolicanBody';
+import { calculateAverageVolumeForWeeks } from '../../services/analysisService';
+import { useExerciseStore } from '../../stores/exerciseStore';
+import { useWorkoutStore } from '../../stores/workoutStore';
 import { Canvas, Rect, LinearGradient, vec, Blur, Circle } from '@shopify/react-native-skia';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { SessionDayPickerModal } from '../../components/workout/SessionDayPickerModal';
@@ -40,7 +44,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type ProgramMainTab = 'training' | 'analytics';
 type TrainingSubTab = 'semana' | 'macrociclo' | 'split' | 'loops';
-type AnalyticsSubTab = 'volumen' | 'progreso' | 'historiales';
+type AnalyticsSubTab = 'volumen' | 'muscles' | 'progreso' | 'historiales';
 
 function getProgramWeeks(program: Program) {
   return program.macrocycles.flatMap(macro =>
@@ -100,6 +104,8 @@ export const ProgramDetailScreen: React.FC = () => {
     const updateProgram = useProgramStore(state => state.updateProgram);
     const overview = useWorkoutStore(state => state.overview);
     const moveSessionToDay = useProgramStore(state => state.moveSessionToDay);
+    const addSession = useProgramStore(state => state.addSession);
+    const deleteSession = useProgramStore(state => state.deleteSession);
 
     const [mainTab, setMainTab] = useState<ProgramMainTab>('training');
     const [trainingTab, setTrainingTab] = useState<TrainingSubTab>('semana');
@@ -111,10 +117,20 @@ export const ProgramDetailScreen: React.FC = () => {
     const [targetSessionToAssign, setTargetSessionToAssign] = useState<string | null>(null);
     const [targetSessionDay, setTargetSessionDay] = useState<number>(0);
 
+    const { exerciseList, muscleHierarchy } = useExerciseStore();
+
     const program = useMemo(
         () => programs.find(item => item.id === programId) ?? null,
         [programId, programs],
     );
+
+    const volumeAnalysis = useMemo(() => {
+        if (!program || !exerciseList.length) return [];
+        const allWeeks = program.macrocycles.flatMap(m => 
+            (m.blocks || []).flatMap(b => b.mesocycles.flatMap(meso => meso.weeks))
+        );
+        return calculateAverageVolumeForWeeks(allWeeks, exerciseList, muscleHierarchy);
+    }, [program, exerciseList, muscleHierarchy]);
 
     const [isEditingDescription, setIsEditingDescription] = useState(false);
     const [tempDescription, setTempDescription] = useState(program?.description || '');
@@ -188,6 +204,18 @@ export const ProgramDetailScreen: React.FC = () => {
             await moveSessionToDay(program.id, targetSessionToAssign, targetSessionDay, day);
             ReactNativeHapticFeedback.trigger('notificationSuccess');
         }
+    };
+
+    const handleAddSession = async () => {
+        if (!selectedWeekId) return;
+        ReactNativeHapticFeedback.trigger('impactLight');
+        await addSession(program.id, selectedWeekId);
+    };
+
+    const handleDeleteSession = async (sessionId: string) => {
+        if (!selectedWeekId) return;
+        ReactNativeHapticFeedback.trigger('impactHeavy');
+        await deleteSession(program.id, selectedWeekId, sessionId);
     };
 
     return (
@@ -301,6 +329,7 @@ export const ProgramDetailScreen: React.FC = () => {
                             { id: 'loops', label: 'PROTOCOLO' }
                         ] : [
                             { id: 'volumen', label: 'RECOVERY' },
+                            { id: 'muscles', label: 'VOLUMEN' },
                             { id: 'progreso', label: 'RUTINA' },
                             { id: 'historiales', label: 'REGISTROS' }
                         ]).map(tab => {
@@ -375,6 +404,12 @@ export const ProgramDetailScreen: React.FC = () => {
                                                         <PencilIcon size={18} color={colors.onSurfaceVariant} />
                                                     </TouchableOpacity>
                                                     <TouchableOpacity 
+                                                        onPress={() => handleDeleteSession(session.id)}
+                                                        style={styles.sessionActionBtn}
+                                                    >
+                                                        <TrashIcon size={18} color={colors.error} />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity 
                                                         onPress={() => navigation.navigate('ActiveSession', { programId, sessionId: session.id, sessionName: session.name })}
                                                         style={[styles.sessionActionBtn, { backgroundColor: colors.primary }]}
                                                     >
@@ -384,6 +419,14 @@ export const ProgramDetailScreen: React.FC = () => {
                                             </View>
                                         </LiquidGlassCard>
                                     ))}
+
+                                    <TouchableOpacity 
+                                        onPress={handleAddSession}
+                                        style={[styles.addSessionBtn, { borderColor: colors.outlineVariant }]}
+                                    >
+                                        <PlusIcon size={20} color={colors.primary} />
+                                        <Text style={[styles.addSessionBtnText, { color: colors.primary }]}>AÑADIR SESIÓN</Text>
+                                    </TouchableOpacity>
                                 </View>
                             </View>
                         )}
@@ -392,11 +435,17 @@ export const ProgramDetailScreen: React.FC = () => {
                         <View style={styles.toolboxSection}>
                             <Text style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>STRUCTURE TOOLBOX</Text>
                             <View style={styles.toolboxGrid}>
-                                <TouchableOpacity style={[styles.toolBtn, { backgroundColor: colors.surfaceContainer }]}>
+                                <TouchableOpacity 
+                                    onPress={() => navigation.navigate('SplitEditor', { programId })}
+                                    style={[styles.toolBtn, { backgroundColor: colors.surfaceContainer }]}
+                                >
                                     <LayoutIcon size={20} color={colors.primary} />
                                     <Text style={[styles.toolBtnTxt, { color: colors.onSurface }]}>Split Semanal</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={[styles.toolBtn, { backgroundColor: colors.surfaceContainer }]}>
+                                <TouchableOpacity 
+                                    onPress={() => navigation.navigate('MacrocycleEditor', { programId })}
+                                    style={[styles.toolBtn, { backgroundColor: colors.surfaceContainer }]}
+                                >
                                     <ActivityIcon size={20} color={colors.primary} />
                                     <Text style={[styles.toolBtnTxt, { color: colors.onSurface }]}>Macrociclo</Text>
                                 </TouchableOpacity>
@@ -406,6 +455,40 @@ export const ProgramDetailScreen: React.FC = () => {
                 ) : (
                     <View style={styles.analyticsSection}>
                         {analyticsTab === 'volumen' && <AugeDashboard />}
+
+                        {analyticsTab === 'muscles' && (
+                            <View style={{ paddingBottom: 40, marginTop: 12 }}>
+                                <LiquidGlassCard style={{ padding: 20, marginBottom: 16 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                                        <View>
+                                            <Text style={{ fontSize: 13, fontWeight: '900', color: colors.primary, textTransform: 'uppercase' }}>MAPA DE CARGA</Text>
+                                            <Text style={{ fontSize: 10, color: colors.onSurfaceVariant, fontWeight: '700' }}>Promedio semanal del programa</Text>
+                                        </View>
+                                        <InfoIcon size={18} color={colors.onSurfaceVariant} opacity={0.5} />
+                                    </View>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <CaupolicanBody data={volumeAnalysis} />
+                                    </View>
+                                </LiquidGlassCard>
+
+                                <View style={{ gap: 10 }}>
+                                    {volumeAnalysis.map(item => (
+                                        <View key={item.muscleGroup} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.4)', padding: 16, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' }}>
+                                            <View>
+                                                <Text style={{ fontSize: 14, fontWeight: '800', color: colors.onSurface }}>{item.muscleGroup}</Text>
+                                                <Text style={{ fontSize: 10, fontWeight: '700', color: colors.onSurfaceVariant, textTransform: 'uppercase' }}>{item.totalSets} Series Totales</Text>
+                                            </View>
+                                            <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                                                <Text style={{ fontSize: 16, fontWeight: '900', color: colors.primary }}>{item.displayVolume}</Text>
+                                                <View style={{ width: 60, height: 4, backgroundColor: colors.outlineVariant, borderRadius: 2, overflow: 'hidden' }}>
+                                                    <View style={{ width: `${Math.min(100, (item.displayVolume / 20) * 100)}%`, height: '100%', backgroundColor: colors.primary }} />
+                                                </View>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        )}
                         
                         <View style={styles.analyticsStats}>
                             <LiquidGlassCard style={styles.analyticRow}>
@@ -740,5 +823,21 @@ const styles = StyleSheet.create({
     analyticValue: {
         fontSize: 22,
         fontWeight: '900',
+    },
+    addSessionBtn: {
+        marginTop: 8,
+        paddingVertical: 16,
+        borderWidth: 1.5,
+        borderStyle: 'dashed',
+        borderRadius: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+    },
+    addSessionBtnText: {
+        fontSize: 13,
+        fontWeight: '900',
+        letterSpacing: 1.5,
     },
 });

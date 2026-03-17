@@ -23,8 +23,19 @@ import { useColors } from '../../theme';
 import type { Session, Exercise, ExerciseSet } from '../../types/workout';
 import { generateId } from '../../utils/generateId';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { 
+    getDynamicAugeMetrics, 
+    classifyStressLevel,
+    calculateExerciseFatigueScale 
+} from '../../services/auge';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+type EditorPart = {
+    id: string;
+    name: string;
+    exercises: Exercise[];
+};
 
 export const SessionEditorScreen: React.FC = () => {
     const route = useRoute<RouteProp<WorkoutStackParamList, 'SessionEditor'>>();
@@ -55,6 +66,25 @@ export const SessionEditorScreen: React.FC = () => {
 
     const [session, setSession] = useState<Session | null>(sessionOriginal ?? null);
     const [pickerVisible, setPickerVisible] = useState(false);
+    const [activePartId, setActivePartId] = useState<string | null>(null);
+
+    // Derived parts for editing
+    const parts = useMemo<EditorPart[]>(() => {
+        if (!session) return [];
+        if (session.parts && session.parts.length > 0) {
+            return session.parts.map(p => ({
+                id: p.id,
+                name: p.name,
+                exercises: p.exercises || []
+            }));
+        }
+        // Fallback: Group by superset or just one big part A
+        return [{
+            id: 'default-a',
+            name: 'A',
+            exercises: session.exercises || []
+        }];
+    }, [session]);
 
     if (!session) return null;
 
@@ -71,25 +101,60 @@ export const SessionEditorScreen: React.FC = () => {
             name: exInfo.name,
             exerciseDbId: exInfo.id,
             sets: [
-                { id: generateId(), targetReps: 10, weight: 0, targetRIR: 2 }
+                { id: generateId(), targetReps: 10, weight: 0, targetRIR: 2, intensityMode: 'rir' }
             ],
             restTime: 120,
             trainingMode: 'reps'
         };
+
+        if (session) {
+            if (activePartId) {
+                const nextParts = parts.map(p => {
+                    if (p.id === activePartId) return { ...p, exercises: [...p.exercises, newExercise] };
+                    return p;
+                });
+                setSession({ ...session, parts: nextParts, exercises: [] });
+            } else {
+                setSession({
+                    ...session,
+                    exercises: [...session.exercises, newExercise]
+                });
+            }
+        }
+        setPickerVisible(false);
+        setActivePartId(null);
+        ReactNativeHapticFeedback.trigger('impactLight');
+    };
+
+    const addPart = () => {
+        if (!session) return;
+        const nextLetter = String.fromCharCode(65 + parts.length); // A, B, C...
+        const newPart: EditorPart = {
+            id: generateId(),
+            name: nextLetter,
+            exercises: []
+        };
         setSession({
             ...session,
-            exercises: [...session.exercises, newExercise]
+            parts: [...(session.parts || []), newPart]
         });
-        setPickerVisible(false);
-        ReactNativeHapticFeedback.trigger('impactLight');
+        ReactNativeHapticFeedback.trigger('impactMedium');
     };
 
     const removeExercise = (exerciseId: string) => {
         ReactNativeHapticFeedback.trigger('impactMedium');
-        setSession({
-            ...session,
-            exercises: session.exercises.filter(ex => ex.id !== exerciseId)
-        });
+        if (session?.parts && session.parts.length > 0) {
+            const nextParts = session.parts.map(p => ({
+                ...p,
+                exercises: p.exercises.filter(ex => ex.id !== exerciseId)
+            }));
+            setSession({ ...session, parts: nextParts });
+        } else {
+            setSession({
+                ...session,
+                exercises: session.exercises.filter(ex => ex.id !== exerciseId)
+            });
+        }
     };
 
     const addSet = (exerciseId: string) => {
@@ -122,16 +187,116 @@ export const SessionEditorScreen: React.FC = () => {
     };
 
     const updateSet = (exerciseId: string, setId: string, patch: Partial<ExerciseSet>) => {
-        setSession({
-            ...session,
-            exercises: session.exercises.map(ex => {
-                if (ex.id !== exerciseId) return ex;
-                return {
-                    ...ex,
-                    sets: ex.sets.map(s => s.id === setId ? { ...s, ...patch } : s)
-                };
-            })
-        });
+        if (!session) return;
+        const updateEx = (ex: Exercise) => {
+            if (ex.id !== exerciseId) return ex;
+            return {
+                ...ex,
+                sets: ex.sets.map(s => s.id === setId ? { ...s, ...patch } : s)
+            };
+        };
+
+        if (session.parts && session.parts.length > 0) {
+            setSession({
+                ...session,
+                parts: session.parts.map(p => ({
+                    ...p,
+                    exercises: p.exercises.map(updateEx)
+                }))
+            });
+        } else {
+            setSession({
+                ...session,
+                exercises: session.exercises.map(updateEx)
+            });
+        }
+    };
+
+    const addWarmupSet = (exerciseId: string) => {
+        if (!session) return;
+        ReactNativeHapticFeedback.trigger('selection');
+        const updateEx = (ex: Exercise) => {
+            if (ex.id !== exerciseId) return ex;
+            const newWarmup: ExerciseSet = {
+                id: generateId(),
+                targetReps: 12,
+                weight: 0,
+                intensityMode: 'rir',
+                targetRIR: 4
+            };
+            return {
+                ...ex,
+                warmupSets: [...(ex.warmupSets || []), newWarmup]
+            };
+        };
+
+        if (session.parts && session.parts.length > 0) {
+            setSession({
+                ...session,
+                parts: session.parts.map(p => ({
+                    ...p,
+                    exercises: p.exercises.map(updateEx)
+                }))
+            });
+        } else {
+            setSession({
+                ...session,
+                exercises: session.exercises.map(updateEx)
+            });
+        }
+    };
+
+    const removeWarmupSet = (exerciseId: string, setId: string) => {
+        if (!session) return;
+        ReactNativeHapticFeedback.trigger('impactLight');
+        const updateEx = (ex: Exercise) => {
+            if (ex.id !== exerciseId) return ex;
+            return {
+                ...ex,
+                warmupSets: (ex.warmupSets as ExerciseSet[] || []).filter(s => s.id !== setId)
+            };
+        };
+
+        if (session.parts && session.parts.length > 0) {
+            setSession({
+                ...session,
+                parts: session.parts.map(p => ({
+                    ...p,
+                    exercises: p.exercises.map(updateEx)
+                }))
+            });
+        } else {
+            setSession({
+                ...session,
+                exercises: session.exercises.map(updateEx)
+            });
+        }
+    };
+
+    const updateWarmupSet = (exerciseId: string, setId: string, patch: Partial<ExerciseSet>) => {
+        if (!session) return;
+        const updateEx = (ex: Exercise) => {
+            if (ex.id !== exerciseId) return ex;
+            return {
+                ...ex,
+                warmupSets: (ex.warmupSets as ExerciseSet[] || []).map(s => s.id === setId ? { ...s, ...patch } : s)
+            };
+        };
+
+        if (session.parts && session.parts.length > 0) {
+            setSession({
+                ...session,
+                parts: session.parts.map(p => ({
+                    ...p,
+                    exercises: p.exercises.map(updateEx)
+                }))
+            });
+        } else {
+            setSession({
+                ...session,
+                exercises: session.exercises.map(updateEx)
+            });
+        }
     };
 
     return (
@@ -174,93 +339,166 @@ export const SessionEditorScreen: React.FC = () => {
                     </LiquidGlassCard>
 
                     <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Ejercicios</Text>
+                        <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Estructura</Text>
                         <TouchableOpacity 
-                            onPress={() => setPickerVisible(true)} 
-                            style={[styles.addButton, { backgroundColor: colors.primaryContainer }]}
+                            onPress={addPart} 
+                            style={[styles.addButton, { backgroundColor: colors.secondaryContainer }]}
                         >
-                            <PlusCircleIcon size={18} color={colors.primary} />
-                            <Text style={[styles.addButtonText, { color: colors.primary }]}>Añadir</Text>
+                            <PlusCircleIcon size={18} color={colors.secondary} />
+                            <Text style={[styles.addButtonText, { color: colors.secondary }]}>Añadir Parte</Text>
                         </TouchableOpacity>
                     </View>
 
-                    {session.exercises.length === 0 && (
-                        <View style={styles.emptyState}>
-                            <InfoIcon size={32} color={colors.onSurfaceVariant} />
-                            <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>
-                                No hay ejercicios en esta sesión.
-                            </Text>
-                        </View>
-                    )}
-
-                    {session.exercises.map((ex, exIndex) => (
-                        <LiquidGlassCard key={ex.id} style={styles.exerciseCard}>
-                            <View style={styles.exerciseHeader}>
-                                <View style={styles.exerciseTitleRow}>
-                                    <View style={[styles.exerciseIndex, { backgroundColor: colors.secondaryContainer }]}>
-                                        <Text style={[styles.exerciseIndexText, { color: colors.secondary }]}>
-                                            {exIndex + 1}
-                                        </Text>
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.exerciseName, { color: colors.onSurface }]}>{ex.name}</Text>
-                                        <Text style={[styles.exerciseMeta, { color: colors.onSurfaceVariant }]}>
-                                            {ex.trainingMode === 'reps' ? 'Repeticiones' : 'Tiempo'}
-                                        </Text>
-                                    </View>
+                    {parts.map((part) => (
+                        <View key={part.id} style={styles.partContainer}>
+                            <View style={styles.partHeader}>
+                                <View style={[styles.partBadge, { backgroundColor: colors.primary }]}>
+                                    <Text style={[styles.partBadgeText, { color: colors.onPrimary }]}>PARTE {part.name}</Text>
                                 </View>
-                                <TouchableOpacity onPress={() => removeExercise(ex.id)} style={styles.trashBtn}>
-                                    <TrashIcon size={20} color={colors.error} />
+                                <TouchableOpacity 
+                                    onPress={() => {
+                                        setActivePartId(part.id);
+                                        setPickerVisible(true);
+                                    }}
+                                    style={styles.addExToPartBtn}
+                                >
+                                    <PlusCircleIcon size={16} color={colors.primary} />
+                                    <Text style={[styles.addExToPartText, { color: colors.primary }]}>Añadir Ejercicio</Text>
                                 </TouchableOpacity>
                             </View>
 
-                            <View style={styles.setsList}>
-                                <View style={styles.setsHeaderRow}>
-                                    <Text style={[styles.setLabel, { flex: 0.6 }]}>#</Text>
-                                    <Text style={[styles.setLabel, { flex: 1 }]}>Pesos</Text>
-                                    <Text style={[styles.setLabel, { flex: 1 }]}>Reps</Text>
-                                    <Text style={[styles.setLabel, { flex: 1 }]}>RIR</Text>
-                                    <View style={{ width: 32 }} />
-                                </View>
-
-                                {ex.sets.map((set, sIndex) => (
-                                    <View key={set.id} style={styles.setRow}>
-                                        <Text style={[styles.setIndexText, { flex: 0.6, color: colors.onSurfaceVariant }]}>
-                                            {sIndex + 1}
-                                        </Text>
-                                        <TextInput
-                                            style={[styles.setInp, { flex: 1, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
-                                            keyboardType="numeric"
-                                            value={String(set.weight)}
-                                            onChangeText={(t) => updateSet(ex.id, set.id, { weight: parseFloat(t) || 0 })}
-                                        />
-                                        <TextInput
-                                            style={[styles.setInp, { flex: 1, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
-                                            keyboardType="numeric"
-                                            value={String(set.targetReps)}
-                                            onChangeText={(t) => updateSet(ex.id, set.id, { targetReps: parseInt(t) || 0 })}
-                                        />
-                                        <TextInput
-                                            style={[styles.setInp, { flex: 1, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
-                                            keyboardType="numeric"
-                                            value={String(set.targetRIR)}
-                                            onChangeText={(t) => updateSet(ex.id, set.id, { targetRIR: parseFloat(t) || 0 })}
-                                        />
-                                        <TouchableOpacity onPress={() => removeSet(ex.id, set.id)} style={styles.setRemove}>
-                                            <Text style={{ color: colors.error, fontSize: 16 }}>×</Text>
+                            {part.exercises.map((ex, exIndex) => (
+                                <LiquidGlassCard key={ex.id} style={styles.exerciseCard}>
+                                    <View style={styles.exerciseHeader}>
+                                        <View style={styles.exerciseTitleRow}>
+                                            <View style={[styles.exerciseIndex, { backgroundColor: colors.secondaryContainer }]}>
+                                                <Text style={[styles.exerciseIndexText, { color: colors.secondary }]}>
+                                                    {part.name}{exIndex + 1}
+                                                </Text>
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={[styles.exerciseName, { color: colors.onSurface }]} numberOfLines={1}>{ex.name}</Text>
+                                                <View style={styles.augeMetricsRow}>
+                                                    <ActivityIcon size={10} color={colors.primary} />
+                                                    <Text style={[styles.augeMetricTxt, { color: colors.onSurfaceVariant }]}>
+                                                        FATIGA: {calculateExerciseFatigueScale ? calculateExerciseFatigueScale(ex, undefined) : 0}/10
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                        <TouchableOpacity onPress={() => removeExercise(ex.id)} style={styles.trashBtn}>
+                                            <TrashIcon size={18} color={colors.error} />
                                         </TouchableOpacity>
                                     </View>
-                                ))}
 
-                                <TouchableOpacity 
-                                    onPress={() => addSet(ex.id)} 
-                                    style={[styles.addSetBtn, { borderColor: colors.outlineVariant }]}
-                                >
-                                    <Text style={[styles.addSetBtnText, { color: colors.primary }]}>+ Añadir Serie</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </LiquidGlassCard>
+                                    <View style={styles.setsList}>
+                                        <View style={styles.setsHeaderRow}>
+                                            <Text style={[styles.setLabel, { flex: 0.5 }]}>#</Text>
+                                            <Text style={[styles.setLabel, { flex: 1.2 }]}>Peso (kg)</Text>
+                                            <Text style={[styles.setLabel, { flex: 1 }]}>Reps</Text>
+                                            <Text style={[styles.setLabel, { flex: 1 }]}>RIR/RPE</Text>
+                                            <View style={{ width: 32 }} />
+                                        </View>
+
+                                        {/* Warmup Sets */}
+                                        {(ex.warmupSets as ExerciseSet[] || []).map((set, sIndex) => (
+                                            <View key={set.id} style={[styles.setRow, { opacity: 0.7 }]}>
+                                                <Text style={[styles.setIndexText, { flex: 0.5, color: colors.secondary, fontWeight: '900' }]}>W</Text>
+                                                <TextInput
+                                                    style={[styles.setInp, { flex: 1.2, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
+                                                    keyboardType="numeric"
+                                                    value={String(set.weight ?? 0)}
+                                                    onChangeText={(t) => updateWarmupSet(ex.id, set.id, { weight: parseFloat(t) || 0 })}
+                                                />
+                                                <TextInput
+                                                    style={[styles.setInp, { flex: 1, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
+                                                    keyboardType="numeric"
+                                                    value={String(set.targetReps ?? 12)}
+                                                    onChangeText={(t) => updateWarmupSet(ex.id, set.id, { targetReps: parseInt(t) || 0 })}
+                                                />
+                                                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Text style={{ fontSize: 10, fontWeight: '900', color: colors.secondary }}>WARMUP</Text>
+                                                </View>
+                                                <TouchableOpacity onPress={() => removeWarmupSet(ex.id, set.id)} style={styles.setRemove}>
+                                                    <Text style={{ color: colors.error, fontSize: 16 }}>×</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))}
+
+                                        {/* Add Warmup Button */}
+                                        <TouchableOpacity 
+                                            onPress={() => addWarmupSet(ex.id)}
+                                            style={[styles.addWarmupBtn, { borderColor: colors.secondary, opacity: 0.6 }]}
+                                        >
+                                            <Text style={[styles.addWarmupBtnText, { color: colors.secondary }]}>+ Serie Calentamiento</Text>
+                                        </TouchableOpacity>
+
+                                        <View style={{ height: 1, backgroundColor: colors.outlineVariant, marginVertical: 8, opacity: 0.3 }} />
+
+                                        {ex.sets.map((set, sIndex) => (
+                                            <View key={set.id} style={styles.setRow}>
+                                                <Text style={[styles.setIndexText, { flex: 0.5, color: colors.onSurfaceVariant }]}>
+                                                    {sIndex + 1}
+                                                </Text>
+                                                <TextInput
+                                                    style={[styles.setInp, { flex: 1.2, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
+                                                    keyboardType="numeric"
+                                                    value={String(set.weight ?? 0)}
+                                                    onChangeText={(t) => updateSet(ex.id, set.id, { weight: parseFloat(t) || 0 })}
+                                                />
+                                                <TextInput
+                                                    style={[styles.setInp, { flex: 1, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
+                                                    keyboardType="numeric"
+                                                    value={String(set.targetReps ?? 10)}
+                                                    onChangeText={(t) => updateSet(ex.id, set.id, { targetReps: parseInt(t) || 0 })}
+                                                />
+                                                <View style={{ flex: 1, flexDirection: 'row', gap: 4 }}>
+                                                    <TextInput
+                                                        style={[styles.setInp, { flex: 1, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
+                                                        keyboardType="numeric"
+                                                        value={String(set.intensityMode === 'rpe' ? (set.targetRPE ?? 8) : (set.targetRIR ?? 2))}
+                                                        onChangeText={(t) => {
+                                                            const val = parseFloat(t) || 0;
+                                                            updateSet(ex.id, set.id, set.intensityMode === 'rpe' ? { targetRPE: val } : { targetRIR: val });
+                                                        }}
+                                                    />
+                                                    <TouchableOpacity 
+                                                        onPress={() => updateSet(ex.id, set.id, { intensityMode: set.intensityMode === 'rpe' ? 'rir' : 'rpe' })}
+                                                        style={styles.intensityToggle}
+                                                    >
+                                                        <Text style={{ fontSize: 8, fontWeight: '900', color: colors.primary }}>
+                                                            {set.intensityMode === 'rpe' ? 'RPE' : 'RIR'}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                                <TouchableOpacity onPress={() => removeSet(ex.id, set.id)} style={styles.setRemove}>
+                                                    <Text style={{ color: colors.error, fontSize: 16 }}>×</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))}
+
+                                        <TouchableOpacity 
+                                            onPress={() => addSet(ex.id)} 
+                                            style={[styles.addSetBtn, { borderColor: colors.outlineVariant }]}
+                                        >
+                                            <Text style={[styles.addSetBtnText, { color: colors.primary }]}>+ Añadir Serie</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </LiquidGlassCard>
+                            ))}
+                        </View>
                     ))}
+
+                    <TouchableOpacity 
+                        onPress={() => {
+                            setActivePartId(null);
+                            setPickerVisible(true);
+                        }}
+                        style={[styles.finalAddBtn, { backgroundColor: colors.surfaceVariant }]}
+                    >
+                        <PlusCircleIcon size={24} color={colors.onSurfaceVariant} />
+                        <Text style={[styles.finalAddBtnTxt, { color: colors.onSurfaceVariant }]}>AÑADIR EJERCICIO SUELTO</Text>
+                    </TouchableOpacity>
 
                     <View style={{ height: 40 }} />
                     <Button 
@@ -447,13 +685,85 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '800',
     },
-    emptyState: {
-        alignItems: 'center',
-        paddingVertical: 40,
-        gap: 12,
-    },
     emptyText: {
         fontSize: 15,
         fontWeight: '600',
+    },
+    partContainer: {
+        marginBottom: 20,
+    },
+    partHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        marginBottom: 10,
+    },
+    partBadge: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
+    partBadgeText: {
+        fontSize: 10,
+        fontWeight: '900',
+    },
+    addExToPartBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    addExToPartText: {
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    augeMetricsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 2,
+    },
+    augeMetricTxt: {
+        fontSize: 9,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+    intensityToggle: {
+        width: 24,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.03)',
+        borderRadius: 6,
+    },
+    finalAddBtn: {
+        marginHorizontal: 20,
+        paddingVertical: 20,
+        borderRadius: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        borderWidth: 1.5,
+        borderStyle: 'dashed',
+        opacity: 0.6,
+    },
+    finalAddBtnTxt: {
+        fontSize: 12,
+        fontWeight: '900',
+        letterSpacing: 1,
+    },
+    addWarmupBtn: {
+        paddingVertical: 8,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderRadius: 10,
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    addWarmupBtnText: {
+        fontSize: 10,
+        fontWeight: '900',
+        textTransform: 'uppercase',
     },
 });

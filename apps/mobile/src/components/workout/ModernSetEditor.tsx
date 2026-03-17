@@ -36,12 +36,17 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
   isAmrap,
   isCalibrator,
 }) => {
+  const [intensityMode, setIntensityMode] = useState<'rpe' | 'rir' | 'percent'>(initialData?.rpe !== undefined ? 'rpe' : (initialData?.rir !== undefined ? 'rir' : 'rir'));
   const [weight, setWeight] = useState(initialData?.weight?.toString() || targetWeight?.toString() || '0');
   const [reps, setReps] = useState(initialData?.reps?.toString() || targetReps?.toString() || '0');
   const [rir, setRir] = useState((initialData?.rir ?? 2).toString());
+  const [rpe, setRpe] = useState((initialData?.rpe ?? 8).toString());
+  const [percentRM, setPercentRM] = useState('75');
   const [perfMode, setPerfMode] = useState<OngoingSetData['performanceMode']>(initialData?.performanceMode || 'target');
   const [isAmrapState, setIsAmrapState] = useState(initialData?.isAmrap ?? isAmrap ?? false);
   const [isCalibratorState, setIsCalibratorState] = useState(initialData?.isCalibrator ?? isCalibrator ?? false);
+
+  const reference1RM = initialData?.weight ? (initialData.weight / (1.0278 - 0.0278 * (initialData.reps || 1))) : targetWeight; // Very basic fallback
 
   const translateY = useSharedValue(SCREEN_HEIGHT);
 
@@ -86,7 +91,8 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
     onSave({
       weight: parseFloat(weight) || 0,
       reps: parseInt(reps, 10) || 0,
-      rir: parseFloat(rir) || 0,
+      rir: intensityMode === 'rir' ? parseFloat(rir) : undefined,
+      rpe: intensityMode === 'rpe' ? parseFloat(rpe) : undefined,
       performanceMode: perfMode,
       isAmrap: isAmrapState,
       isCalibrator: isCalibratorState,
@@ -248,22 +254,80 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
                   </View>
                 </View>
 
-                <View style={styles.rpeSection}>
-                  <Text style={styles.inputLabel}>RIR (reps en reserva)</Text>
-                  <View style={styles.rpeRow}>
-                    {[0, 1, 2, 3, 4].map((val) => (
-                      <Pressable
-                        key={val}
+                <View style={styles.intensitySection}>
+                  <View style={styles.intensityTabs}>
+                    {(['rir', 'rpe', 'percent'] as const).map((m) => (
+                      <TouchableOpacity 
+                        key={m} 
                         onPress={() => {
-                          ReactNativeHapticFeedback.trigger('selection', { enableVibrateFallback: true });
-                          setRir(val.toString());
+                          ReactNativeHapticFeedback.trigger('selection');
+                          setIntensityMode(m);
                         }}
-                        style={[styles.rpeButton, rir === val.toString() && styles.rpeButtonActive]}
+                        style={[styles.intensityTab, intensityMode === m && styles.intensityTabActive]}
                       >
-                        <Text style={[styles.rpeText, rir === val.toString() && styles.rpeTextActive]}>{val}</Text>
-                      </Pressable>
+                        <Text style={[styles.intensityTabText, intensityMode === m && styles.intensityTabTextActive]}>
+                          {m === 'rir' ? 'RIR' : m === 'rpe' ? 'RPE' : '%RM'}
+                        </Text>
+                      </TouchableOpacity>
                     ))}
                   </View>
+
+                  {intensityMode === 'rir' && (
+                    <View style={styles.rpeRow}>
+                      {[0, 1, 2, 3, 4].map((val) => (
+                        <Pressable
+                          key={val}
+                          onPress={() => {
+                            ReactNativeHapticFeedback.trigger('selection', { enableVibrateFallback: true });
+                            setRir(val.toString());
+                          }}
+                          style={[styles.rpeButton, rir === val.toString() && styles.rpeButtonActive]}
+                        >
+                          <Text style={[styles.rpeText, rir === val.toString() && styles.rpeTextActive]}>{val}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
+
+                  {intensityMode === 'rpe' && (
+                    <View style={styles.rpeRow}>
+                      {[6, 7, 8, 9, 10].map((val) => (
+                        <Pressable
+                          key={val}
+                          onPress={() => {
+                            ReactNativeHapticFeedback.trigger('selection', { enableVibrateFallback: true });
+                            setRpe(val.toString());
+                          }}
+                          style={[styles.rpeButton, rpe === val.toString() && styles.rpeButtonActive]}
+                        >
+                          <Text style={[styles.rpeText, rpe === val.toString() && styles.rpeTextActive]}>{val}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
+
+                  {intensityMode === 'percent' && (
+                    <View style={styles.percentRow}>
+                       <TextInput
+                          style={[styles.input, { flex: 0.4, height: 48, fontSize: 18 }]}
+                          value={percentRM}
+                          onChangeText={setPercentRM}
+                          keyboardType="numeric"
+                          placeholder="%"
+                       />
+                       <TouchableOpacity 
+                        style={[styles.adjBtn, { flex: 0.6, height: 48 }]}
+                        onPress={() => {
+                           if (targetWeight && parseFloat(percentRM) > 0) {
+                             const newWeight = (targetWeight * parseFloat(percentRM)) / 100;
+                             setWeight(newWeight.toFixed(1));
+                           }
+                        }}
+                       >
+                         <Text style={{ fontSize: 10, fontWeight: '900' }}>APLICAR LOAD</Text>
+                       </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
 
                 <View style={styles.toggleRow}>
@@ -504,6 +568,42 @@ const styles = StyleSheet.create({
   },
   rpeTextActive: {
     color: '#FFFFFF',
+  },
+  intensitySection: {
+    padding: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E6DCF3',
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    marginBottom: 24,
+  },
+  intensityTabs: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  intensityTab: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  intensityTabActive: {
+    backgroundColor: PWA.primary,
+  },
+  intensityTabText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: PWA.muted,
+  },
+  intensityTabTextActive: {
+    color: '#FFF',
+  },
+  percentRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
   },
   toggleRow: {
     flexDirection: 'row',

@@ -18,7 +18,7 @@ import { useWellbeingStore } from '@/stores/wellbeingStore';
 import { useCutoverStore } from '@/stores/cutoverStore';
 import { useLocalAiDiagnosticsStore } from '@/stores/localAiDiagnosticsStore';
 import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
-import type { RootTabParamList } from '@/navigation/AppNavigator';
+import type { RootTabParamList } from '@/navigation/types';
 
 interface SettingRowProps {
   label: string;

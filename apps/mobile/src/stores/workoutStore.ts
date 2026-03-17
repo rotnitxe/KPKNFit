@@ -99,6 +99,7 @@ interface WorkoutStoreState {
   updateSessionAdjusted1RM: (exerciseId: string, e1RM: number, isSource?: boolean) => void;
 
   finishActiveSession: (feedback?: PostSessionFeedbackInput) => Promise<void>;
+  clearLastPR: () => void;
   clearNotice: () => void;
 }
 
@@ -477,6 +478,30 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
     const { updateSetData, updateSessionAdjusted1RM, activeSession } = get();
     const { exerciseList } = useExerciseStore.getState();
 
+    // Check for PR before updating
+    const currentEx = activeSession?.session.exercises.find(ex => ex.id === exerciseId);
+    if (currentEx && data.weight && data.reps) {
+      const { calculateBrzycki1RM } = require('../utils/calculations');
+      const newE1RM = calculateBrzycki1RM(data.weight, data.reps);
+      const oldBest1RM = currentEx.reference1RM || 0;
+
+      if (newE1RM > oldBest1RM * 1.01 && oldBest1RM > 0) {
+        // It's a PR! (1% improvement to avoid noise)
+        set((state) => ({
+          ...state,
+          activeSession: state.activeSession ? {
+            ...state.activeSession,
+            lastPR: {
+              exerciseName: currentEx.name,
+              weight: data.weight || 0,
+              reps: data.reps || 0,
+              e1RM: newE1RM
+            }
+          } : null
+        }));
+      }
+    }
+
     updateSetData(setId, data);
     
     // Persistir completion inmediatamente para recuperación ante crash
@@ -494,7 +519,6 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
         updateSessionAdjusted1RM(exerciseId, conservative1RM, true);
 
         // Propagación inteligente usando el servicio de 1RM y el catálogo
-        const currentEx = activeSession?.session.exercises.find(ex => ex.id === exerciseId);
         if (currentEx && activeSession?.session.exercises) {
           const propagationResults = propagate1RM(
             currentEx,
@@ -652,5 +676,11 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
     }
   },
 
+  clearLastPR: () => {
+    set((state) => ({
+      ...state,
+      activeSession: state.activeSession ? { ...state.activeSession, lastPR: null } : null
+    }));
+  },
   clearNotice: () => set({ notice: null }),
 }));

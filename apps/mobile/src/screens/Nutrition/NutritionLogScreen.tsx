@@ -19,7 +19,7 @@ import { useColors } from '@/theme';
 import { preloadFoodDatabases, searchFoods } from '@/services/foodSearchService';
 import { useMealTemplateStore } from '@/stores/mealTemplateStore';
 import { useMobileNutritionStore } from '@/stores/nutritionStore';
-import type { NutritionStackParamList } from '@/navigation/AppNavigator';
+import type { NutritionStackParamList } from '@/navigation/types';
 import type { NutritionMealType, SavedNutritionEntry } from '@/types/nutrition';
 import type { FoodItem } from '@/types/food';
 

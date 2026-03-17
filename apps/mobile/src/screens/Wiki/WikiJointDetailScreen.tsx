@@ -4,7 +4,7 @@ import { ScreenShell } from '../../components/ScreenShell';
 import { WIKI_MUSCLES, WIKI_JOINTS, WIKI_TENDONS } from '../../data/wikiData';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { WorkoutStackParamList } from '../../navigation/AppNavigator';
+import { WorkoutStackParamList } from '../../navigation/types';
 import { useColors } from '@/theme';
 
 export function WikiJointDetailScreen() {

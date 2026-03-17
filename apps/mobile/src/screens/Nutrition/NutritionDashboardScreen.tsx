@@ -14,7 +14,7 @@ import {
 import { useColors } from '@/theme';
 import { useMobileNutritionStore } from '@/stores/nutritionStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import type { NutritionStackParamList } from '@/navigation/AppNavigator';
+import type { NutritionStackParamList } from '@/navigation/types';
 import { Canvas, Path, Group } from '@shopify/react-native-skia';
 
 const { width } = Dimensions.get('window');

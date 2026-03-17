@@ -92,6 +92,15 @@ export interface Block {
   mesocycles: Mesocycle[];
 }
 
+export interface ProgramEvent {
+  id: string;
+  title: string;
+  type: string;
+  calculatedWeek: number;
+  date: string;
+  repeatEveryXCycles?: boolean;
+}
+
 export interface Macrocycle {
   id: string;
   name: string;
@@ -113,6 +122,10 @@ export interface Program {
   autoVolumeEnabled?: boolean;
   isDraft?: boolean;
   coverImage?: string;
+  startDay?: number;
+  selectedSplitId?: string;
+  athleteProfile?: AthleteProfileScore;
+  events?: ProgramEvent[];
 }
 
 export interface ActiveProgramState {
@@ -248,6 +261,7 @@ export interface OngoingWorkoutState {
     dynamicWeights: Record<string, { consolidated?: number, technical?: number }>;
     sessionAdjusted1RMs?: Record<string, number>;
     selectedBrands?: Record<string, string>;
+    lastPR?: { exerciseName: string, weight: number, reps: number, e1RM: number } | null;
 }
 
 
@@ -298,6 +312,53 @@ export interface SetInputState {
 export interface UnilateralSetInputs {
     left: SetInputState;
     right: SetInputState;
+}
+
+export interface AthleteProfileScore {
+    trainingStyle: 'Bodybuilder' | 'Powerbuilder' | 'Powerlifter';
+    technicalScore: number;
+    consistencyScore: number;
+    strengthScore: number;
+    mobilityScore: number;
+    totalScore: number;
+    profileLevel: 'Beginner' | 'Advanced';
+}
+
+export type SplitTag = 'Recomendado por KPKN' | 'Alta Frecuencia' | 'Baja Frecuencia' | 'Balanceado' | 'Alto Volumen' | 'Alta Tolerancia' | 'Personalizado' | 'Powerlifting';
+
+export interface SplitTemplate {
+    id: string;
+    name: string;
+    description: string;
+    tags: SplitTag[];
+    pattern: string[];
+    difficulty: 'Principiante' | 'Intermedio' | 'Avanzado';
+    pros: string[];
+    cons: string[];
+}
+
+export interface ProgramTemplateOption {
+    id: string;
+    name: string;
+    description: string;
+    type: 'simple' | 'complex';
+    weeks: number;
+    iconType: 'trending' | 'barchart' | 'star';
+    blockNames?: string[];
+    defaultBlockDurations?: number[];
+}
+
+export interface DetailedMuscleVolumeAnalysis {
+    muscleGroup: string;
+    displayVolume: number;
+    totalSets: number;
+    frequency: number;
+    indirectFrequency: number;
+    avgRestDays: number | null;
+    directExercises: { name: string; sets: number }[];
+    indirectExercises: { name: string; sets: number; activationPercentage: number }[];
+    avgIFI: number | null;
+    recoveryStatus: 'N/A' | 'Recovered' | 'UnderRecovered';
 }
 
 export interface WorkoutLog {

@@ -39,6 +39,10 @@ import {
 } from './types';
 
 const NutritionStack = createNativeStackNavigator<NutritionStackParamList>();
+import { ProgramWizardScreen } from '../screens/Workout/ProgramWizardScreen';
+import { SplitEditorScreen } from '../screens/Workout/SplitEditorScreen';
+import { MacrocycleEditorScreen } from '../screens/Workout/MacrocycleEditorScreen';
+
 const WorkoutStack = createNativeStackNavigator<WorkoutStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const WikiStack = createNativeStackNavigator<WikiStackParamList>();
@@ -65,6 +69,9 @@ function WorkoutStackScreen() {
       <WorkoutStack.Screen name="ProgramDetail" component={ProgramDetailScreen} />
       <WorkoutStack.Screen name="ActiveSession" component={ActiveSessionScreen} />
       <WorkoutStack.Screen name="SessionEditor" component={SessionEditorScreen} />
+      <WorkoutStack.Screen name="ProgramWizard" component={ProgramWizardScreen} />
+      <WorkoutStack.Screen name="SplitEditor" component={SplitEditorScreen} />
+      <WorkoutStack.Screen name="MacrocycleEditor" component={MacrocycleEditorScreen} />
       <WorkoutStack.Screen name="ExerciseDatabase" component={ExerciseDatabaseScreen} />
       <WorkoutStack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
       <WorkoutStack.Screen name="WikiHome" component={WikiHomeScreen} />
@@ -114,6 +121,7 @@ const linking = {
           ProgramDetail: 'workout/programs/:programId',
           ActiveSession: 'workout/active',
           SessionEditor: 'workout/editor',
+          MacrocycleEditor: 'workout/programs/:programId/macrocycle',
           ExerciseDatabase: 'workout/exercises',
           ExerciseDetail: 'workout/exercises/:exerciseId',
         },

@@ -4,7 +4,7 @@ import {
   persistDomainPayload,
 } from '../services/mobilePersistenceService';
 import { setJsonValue } from '../storage/mmkv';
-import type { Program, ActiveProgramState } from '../types/workout';
+import type { Program, ActiveProgramState, SplitTemplate } from '../types/workout';
 import { generateId } from '../utils/generateId';
 
 interface ProgramMigrationPayload {
@@ -30,7 +30,11 @@ interface ProgramStoreState {
   addExerciseToSession: (programId: string, weekId: string, sessionId: string, exercise: any) => Promise<void>;
   removeExerciseFromSession: (programId: string, weekId: string, sessionId: string, exerciseId: string) => Promise<void>;
   updateExerciseInSession: (programId: string, weekId: string, sessionId: string, exercise: any) => Promise<void>;
-  
+  addSession: (programId: string, weekId: string) => Promise<void>;
+  deleteSession: (programId: string, weekId: string, sessionId: string) => Promise<void>;
+  addProgram: (program: Program) => Promise<void>;
+  updateProgramSplit: (programId: string, split: SplitTemplate, startDay: number, scope: 'week' | 'block' | 'program', targetBlockId?: string, targetWeekId?: string) => Promise<void>;
+
   // Drag-and-Drop Session Management
   moveSessionToDay: (programId: string, sessionId: string, fromDay: number, toDay: number) => Promise<void>;
   swapSessions: (programId: string, session1Id: string, session2Id: string) => Promise<void>;
@@ -562,6 +566,129 @@ export const useProgramStore = create<ProgramStoreState>((set) => ({
         })),
       })),
     }));
+
+    await useProgramStore.getState().updateProgram(nextProgram);
+  },
+
+  addSession: async (programId: string, weekId: string) => {
+    const state = useProgramStore.getState();
+    const program = state.programs.find(p => p.id === programId);
+    if (!program) return;
+
+    const nextProgram = { ...program };
+    const newSession = {
+      id: generateId(),
+      name: 'Nueva Sesión',
+      focus: 'Foco de la sesión',
+      exercises: [],
+      dayOfWeek: 0,
+    };
+
+    nextProgram.macrocycles = nextProgram.macrocycles.map(m => ({
+      ...m,
+      blocks: m.blocks?.map(b => ({
+        ...b,
+        mesocycles: b.mesocycles.map(meso => ({
+          ...meso,
+          weeks: meso.weeks.map(w => {
+            if (w.id !== weekId) return w;
+            return {
+              ...w,
+              sessions: [...w.sessions, newSession],
+            };
+          }),
+        })),
+      })),
+    }));
+
+    await useProgramStore.getState().updateProgram(nextProgram);
+  },
+
+  deleteSession: async (programId: string, weekId: string, sessionId: string) => {
+    const state = useProgramStore.getState();
+    const program = state.programs.find(p => p.id === programId);
+    if (!program) return;
+
+    const nextProgram = JSON.parse(JSON.stringify(program));
+    nextProgram.macrocycles.forEach((m: any) => {
+      m.blocks?.forEach((b: any) => {
+        b.mesocycles.forEach((meso: any) => {
+          const week = meso.weeks.find((w: any) => w.id === weekId);
+          if (week) {
+            week.sessions = week.sessions.filter((s: any) => s.id !== sessionId);
+          }
+        });
+      });
+    });
+
+    await useProgramStore.getState().updateProgram(nextProgram);
+  },
+
+  addProgram: async (program: Program) => {
+    let nextPrograms: Program[] = [];
+    set(state => {
+      nextPrograms = [program, ...state.programs];
+      return { programs: nextPrograms, errorMessage: null };
+    });
+    try {
+      const activeState = useProgramStore.getState().activeProgramState;
+      await persistProgramsSnapshot(nextPrograms, activeState);
+      set({ status: 'ready' });
+    } catch (error) {
+      set({
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'No pudimos guardar el nuevo programa.',
+      });
+    }
+  },
+
+  updateProgramSplit: async (programId: string, split: SplitTemplate, startDay: number, scope: 'week' | 'block' | 'program', targetBlockId?: string, targetWeekId?: string) => {
+    const state = useProgramStore.getState();
+    const program = state.programs.find(p => p.id === programId);
+    if (!program) return;
+
+    const nextProgram = JSON.parse(JSON.stringify(program));
+    nextProgram.startDay = startDay;
+    nextProgram.selectedSplitId = split.id;
+
+    const regenerateWeekSessions = (week: any) => {
+      const newSessions: any[] = [];
+      split.pattern.forEach((label: string, dayIndex: number) => {
+        if (label && label.toLowerCase() !== 'descanso' && label.trim() !== '') {
+          const assignedDay = (startDay + dayIndex) % 7;
+          // Intentar preservar ejercicios si la sesión tiene el mismo nombre
+          const existingSession = week.sessions.find((s: any) => s.name.toLowerCase() === label.toLowerCase());
+          
+          if (existingSession) {
+            newSessions.push({ ...existingSession, dayOfWeek: assignedDay });
+          } else {
+            newSessions.push({
+              id: generateId(),
+              name: label,
+              description: '',
+              exercises: [],
+              warmup: [],
+              dayOfWeek: assignedDay
+            });
+          }
+        }
+      });
+      week.sessions = newSessions;
+    };
+
+    nextProgram.macrocycles.forEach((macro: any) => {
+      macro.blocks?.forEach((block: any) => {
+        const isTargetBlock = !targetBlockId || block.id === targetBlockId;
+        if (!isTargetBlock && scope === 'block') return;
+
+        block.mesocycles.forEach((meso: any) => {
+          meso.weeks.forEach((week: any) => {
+            if (scope === 'week' && week.id !== targetWeekId) return;
+            regenerateWeekSessions(week);
+          });
+        });
+      });
+    });
 
     await useProgramStore.getState().updateProgram(nextProgram);
   },

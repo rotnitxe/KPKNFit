@@ -13,7 +13,7 @@ import {
   WIKI_TENDONS,
   searchWiki,
 } from '@/data/wikiData';
-import type { WikiStackParamList } from '@/navigation/AppNavigator';
+import type { WikiStackParamList } from '@/navigation/types';
 import { useColors } from '@/theme';
 
 type WikiHomeNavProp = NativeStackNavigationProp<WikiStackParamList, 'WikiHome'>;

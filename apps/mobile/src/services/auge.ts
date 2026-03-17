@@ -10,6 +10,7 @@ export {
     isSetEffective,
     calculateCompletedSessionStress,
     calculateCompletedSessionDrainBreakdown,
+    calculateExerciseFatigueScale,
     WEEKLY_CNS_FATIGUE_REFERENCE,
 } from './fatigueService';
 

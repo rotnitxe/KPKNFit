@@ -9,7 +9,7 @@ import {
 import { useExerciseStore } from '../../stores/exerciseStore';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { WorkoutStackParamList } from '../../navigation/AppNavigator';
+import { WorkoutStackParamList } from '../../navigation/types';
 import { useColors } from '@/theme';
 
 export function WikiPatternDetailScreen() {

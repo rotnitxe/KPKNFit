@@ -3,7 +3,7 @@ import { Text, View, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { WorkoutStackParamList } from '../../navigation/AppNavigator';
+import type { WorkoutStackParamList } from '../../navigation/types';
 import { ScreenShell } from '../../components/ScreenShell';
 import { Button } from '../../components/ui';
 import { useProgramStore } from '../../stores/programStore';

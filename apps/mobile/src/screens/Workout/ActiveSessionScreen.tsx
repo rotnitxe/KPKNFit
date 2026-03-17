@@ -11,7 +11,8 @@ import {
     View, 
     Dimensions, 
     Platform,
-    StatusBar
+    StatusBar,
+    Animated
 } from 'react-native';
 
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -22,15 +23,16 @@ import { AugeTelemetryPanel } from '../../components/workout/AugeTelemetryPanel'
 import { ExerciseBlockCard } from '../../components/workout/ExerciseBlockCard';
 import { FinishSessionModal } from '../../components/workout/FinishSessionModal';
 import { PostSessionQuestionnaireModal } from '../../components/workout/PostSessionQuestionnaireModal';
-import { CheckCircleIcon, ClockIcon, PencilIcon, ActivityIcon, ArrowDownIcon, ChevronRightIcon } from '../../components/icons';
+import { CheckCircleIcon, ClockIcon, PencilIcon, ActivityIcon, ArrowDownIcon, ChevronRightIcon, TrophyIcon } from '../../components/icons';
 import { WorkoutStackParamList } from '../../navigation/types';
 import { useProgramStore } from '../../stores/programStore';
 import { PostSessionFeedbackInput, useWorkoutStore } from '../../stores/workoutStore';
 import { calculateCompletedSessionDrainBreakdown } from '../../services/fatigueService';
 import { useExerciseStore } from '../../stores/exerciseStore';
-import { CompletedExercise, CompletedSet, OngoingSetData } from '../../types/workout';
+import { CompletedExercise, CompletedSet, OngoingSetData, Exercise } from '../../types/workout';
 import { useColors, useTheme } from '../../theme';
 import { LiquidGlassCard } from '../../components/ui/LiquidGlassCard';
+import { Button } from '../../components/ui';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { Canvas, Rect, LinearGradient, vec, Blur, Fill } from '@shopify/react-native-skia';
 
@@ -300,22 +302,53 @@ export const ActiveSessionScreen: React.FC = () => {
             </LiquidGlassCard>
           </View>
 
-          {currentSession.exercises.map((exercise, index) => (
-            <View
-              key={exercise.id}
-              onLayout={(event) => {
-                cardOffsetsRef.current[exercise.id] = event.nativeEvent.layout.y;
-              }}
-            >
-              <ExerciseBlockCard
-                exercise={exercise}
-                activeSession={activeSession}
-                exerciseIndex={index}
-                isFocused={currentExercise?.id === exercise.id}
-                onSelect={() => focusExercise(exercise.id)}
-              />
-            </View>
-          ))}
+          {/* Exercise Grouping by Parts */}
+          {useMemo(() => {
+            const groups: { part: { id: string, name: string }, exercises: Exercise[] }[] = [];
+            
+            if (currentSession.parts && currentSession.parts.length > 0) {
+              currentSession.parts.forEach(p => {
+                groups.push({ part: p, exercises: p.exercises || [] });
+              });
+            } else {
+              // Fallback to one group
+              groups.push({ 
+                part: { id: 'default', name: 'A' }, 
+                exercises: currentSession.exercises 
+              });
+            }
+
+            return groups.map((group, gIdx) => (
+              <View key={group.part.id} style={styles.partGroup}>
+                <View style={styles.partHeader}>
+                   <View style={[styles.partBadge, { backgroundColor: colors.primary }]}>
+                      <Text style={[styles.partBadgeText, { color: colors.onPrimary }]}>PARTE {group.part.name}</Text>
+                   </View>
+                   <View style={styles.partLine} />
+                </View>
+
+                {group.exercises.map((exercise, exIdx) => {
+                  const globalIndex = groups.slice(0, gIdx).reduce((acc, g) => acc + g.exercises.length, 0) + exIdx;
+                  return (
+                    <View
+                      key={exercise.id}
+                      onLayout={(event) => {
+                        cardOffsetsRef.current[exercise.id] = event.nativeEvent.layout.y;
+                      }}
+                    >
+                      <ExerciseBlockCard
+                        exercise={exercise}
+                        activeSession={activeSession}
+                        exerciseIndex={globalIndex}
+                        isFocused={currentExercise?.id === exercise.id}
+                        onSelect={() => focusExercise(exercise.id)}
+                      />
+                    </View>
+                  );
+                })}
+              </View>
+            ));
+          }, [currentSession, activeSession, currentExercise, focusExercise, colors])}
 
           <TouchableOpacity style={styles.discardBtn} onPress={handleDiscard}>
             <Text style={[styles.discardBtnText, { color: colors.error }]}>Descartar Sesión</Text>
@@ -397,6 +430,51 @@ export const ActiveSessionScreen: React.FC = () => {
             </ScrollView>
         </View>
       </View>
+
+      {/* PR Celebration Modal */}
+      <Modal 
+        transparent 
+        visible={!!activeSession.lastPR} 
+        animationType="fade"
+      >
+        <View style={styles.prOverlay}>
+           <Canvas style={StyleSheet.absoluteFill}>
+             <Fill color="rgba(0,0,0,0.6)">
+                <Blur blur={10} />
+             </Fill>
+           </Canvas>
+           
+           <Animated.View style={styles.prCard}>
+              <TrophyIcon size={80} color="#FFD700" />
+              <Text style={styles.prTitle}>¡NUEVO RÉCORD!</Text>
+              <Text style={styles.prExName}>{activeSession.lastPR?.exerciseName}</Text>
+              
+              <View style={styles.prStats}>
+                 <View style={styles.prStatItem}>
+                    <Text style={styles.prStatLabel}>PESO</Text>
+                    <Text style={styles.prStatValue}>{activeSession.lastPR?.weight} kg</Text>
+                 </View>
+                 <View style={styles.prStatItem}>
+                    <Text style={styles.prStatLabel}>REPS</Text>
+                    <Text style={styles.prStatValue}>{activeSession.lastPR?.reps}</Text>
+                 </View>
+              </View>
+
+              <View style={styles.e1rmBadge}>
+                 <Text style={styles.e1rmBadgeLabel}>ESTIMATED 1RM</Text>
+                 <Text style={styles.e1rmBadgeValue}>{activeSession.lastPR?.e1RM.toFixed(1)} kg</Text>
+              </View>
+
+              <Button 
+                variant="primary" 
+                onPress={() => useWorkoutStore.getState().clearLastPR()}
+                style={styles.prCloseBtn}
+              >
+                CONTINUAR
+              </Button>
+           </Animated.View>
+        </View>
+      </Modal>
 
       <FinishSessionModal
         visible={isFinishModalVisible}
@@ -653,8 +731,108 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  notesBtnTextPri: {
+    notesBtnTextPri: {
     fontWeight: '800',
     fontSize: 14,
+  },
+  partGroup: {
+    marginBottom: 24,
+  },
+  partHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    gap: 12,
+  },
+  partBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  partBadgeText: {
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  partLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
+  prOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  prCard: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 32,
+    padding: 32,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 340,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  prTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFB800',
+    marginTop: 20,
+    letterSpacing: 2,
+  },
+  prExName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1C1B1F',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  prStats: {
+    flexDirection: 'row',
+    gap: 32,
+    marginTop: 24,
+  },
+  prStatItem: {
+    alignItems: 'center',
+  },
+  prStatLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: 'rgba(0,0,0,0.4)',
+    letterSpacing: 1,
+  },
+  prStatValue: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1C1B1F',
+  },
+  e1rmBadge: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 16,
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  e1rmBadgeLabel: {
+    fontSize: 8,
+    fontWeight: '900',
+    color: 'rgba(0,0,0,0.5)',
+    letterSpacing: 1,
+  },
+  e1rmBadgeValue: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#10B981',
+  },
+  prCloseBtn: {
+    marginTop: 32,
+    width: '100%',
   },
 });

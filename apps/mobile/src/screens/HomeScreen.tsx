@@ -29,7 +29,7 @@ import { useWellbeingStore } from '@/stores/wellbeingStore';
 import { useMobileNutritionStore } from '@/stores/nutritionStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors, useTheme } from '@/theme';
-import type { RootTabParamList } from '@/navigation/AppNavigator';
+import type { RootTabParamList } from '@/navigation/types';
 import type { Program, Session } from '@/types/workout';
 
 type RingsMode = RingsViewMode;

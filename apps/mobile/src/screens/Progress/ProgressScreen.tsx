@@ -17,6 +17,10 @@ import { getLocalDateKey } from '@kpkn/shared-domain';
 import { calculateWeightDelta, buildLast7NutritionSeries, buildBodyWeightSeries } from '../../utils/homeHelpers';
 import { ChartCard, LineTrendChart, BarTrendChart } from '../../components/charts';
 import { useColors } from '../../theme';
+import { CaupolicanBody } from '../../components/analytics/CaupolicanBody';
+import { calculateLast7DaysMuscleVolume } from '../../services/analysisService';
+import { loadPersistedDomainPayload } from '../../services/mobilePersistenceService';
+import { WorkoutLog } from '../../types/workout';
 
 interface MetricCardProps {
   label: string;
@@ -64,6 +68,7 @@ export function ProgressScreen() {
 
   const exerciseStatus = useExerciseStore((state) => state.status);
   const exerciseList = useExerciseStore((state) => state.exerciseList);
+  const muscleHierarchy = useExerciseStore((state) => state.muscleHierarchy);
   const exercisePlaylists = useExerciseStore((state) => state.exercisePlaylists);
   const hydrateExercises = useExerciseStore((state) => state.hydrateFromMigration);
 
@@ -156,6 +161,23 @@ export function ProgressScreen() {
   const nutritionSeries = useMemo(() => buildLast7NutritionSeries(savedLogs), [savedLogs]);
   const bodyWeightSeries = useMemo(() => buildBodyWeightSeries(bodyProgress), [bodyProgress]);
 
+  const [fullHistory, setFullHistory] = useState<WorkoutLog[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const payload = await loadPersistedDomainPayload<any>('workout');
+      if (payload?.history) {
+        setFullHistory(payload.history);
+      }
+    };
+    load();
+  }, [workoutOverview]);
+
+  const muscleVolumeAnalysis = useMemo(() => {
+    if (!fullHistory.length || !exerciseList.length) return [];
+    return calculateLast7DaysMuscleVolume(fullHistory, exerciseList, muscleHierarchy);
+  }, [fullHistory, exerciseList, muscleHierarchy]);
+
   const handleDeleteBodyLog = (entry: BodyProgressEntry) => {
     Alert.alert(
       'Eliminar registro',
@@ -195,6 +217,14 @@ export function ProgressScreen() {
               value={`${Math.round(nutritionSummary.weeklyProtein)} g`}
               detail="Suma referencial de la última semana"
             />
+          </View>
+
+          {/* Heat Map Section */}
+          <View style={[styles.section, styles.heatMapSection]}>
+            <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>Estímulo Semanal por Músculo</Text>
+            <View style={[styles.heatMapContainer, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+              <CaupolicanBody data={muscleVolumeAnalysis} />
+            </View>
           </View>
 
           {/* Rings and Streak */}
@@ -585,6 +615,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     padding: 16,
+  },
+  heatMapSection: {
+    marginBottom: 24,
+  },
+  heatMapContainer: {
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
   },
   taskTitle: {
     fontSize: 15,

@@ -20,7 +20,7 @@ import { useBodyStore } from '@/stores/bodyStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useWellbeingStore } from '@/stores/wellbeingStore';
 import { useColors } from '@/theme';
-import type { ProfileStackParamList } from '@/navigation/AppNavigator';
+import type { ProfileStackParamList } from '@/navigation/types';
 
 function computeFfmi(weightKg?: number, bodyFatPct?: number, heightCm?: number) {
   if (!weightKg || !bodyFatPct || !heightCm) return null;

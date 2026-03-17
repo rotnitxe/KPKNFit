@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ScreenShell } from '../../components/ScreenShell';
 import { useProgramStore } from '../../stores/programStore';
 import type { Program } from '../../types/workout';
-import type { WorkoutStackParamList } from '../../navigation/AppNavigator';
+import type { WorkoutStackParamList } from '../../navigation/types';
 import { useColors } from '../../theme';
 
 type WorkoutNavProp = NativeStackNavigationProp<WorkoutStackParamList>;
@@ -167,7 +167,7 @@ export function ProgramsScreen() {
     try {
       setIsCreating(true);
       const next = await createDraftProgram();
-      navigation.navigate('ProgramDetail', { programId: next.id });
+      navigation.navigate('ProgramWizard', { mode: 'create', programId: next.id });
     } catch (error) {
       Alert.alert(
         'No pudimos crear el programa',
