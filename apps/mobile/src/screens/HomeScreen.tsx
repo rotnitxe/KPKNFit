@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Image,
   Pressable,
@@ -12,141 +12,66 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ScreenShell } from '@/components/ScreenShell';
 import { CaupolicanIcon } from '@/components/CaupolicanIcon';
 import { SessionTodayCard, TodaySessionItem } from '@/components/home/SessionTodayCard';
-import { BatteryRingCard } from '@/components/activity/BatteryRingCard';
-import { AugeStatusCard } from '@/components/auge';
-import { LiquidGlassCard } from '@/components/ui/LiquidGlassCard';
+import { AugeTelemetryPanel, RingsViewMode } from '@/components/home/AugeTelemetryPanel';
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
   BellIcon,
   IntertwinedRingsIcon,
   MoonIcon,
   SettingsIcon,
   SingleRingIcon,
   SunIcon,
-  TrophyIcon,
-  UserBadgeIcon,
   WikiLabIcon,
 } from '@/components/icons';
-import { useBootstrapStore } from '@/stores/bootstrapStore';
-import { useAugeRuntimeStore } from '@/stores/augeRuntimeStore';
 import { useWorkoutStore } from '@/stores/workoutStore';
 import { useProgramStore } from '@/stores/programStore';
 import { useBodyStore } from '@/stores/bodyStore';
 import { useWellbeingStore } from '@/stores/wellbeingStore';
 import { useMobileNutritionStore } from '@/stores/nutritionStore';
-import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors, useTheme } from '@/theme';
 import type { RootTabParamList } from '@/navigation/AppNavigator';
 import type { Program, Session } from '@/types/workout';
 
-type RingsMode = 'rings' | 'individual';
+type RingsMode = RingsViewMode;
 
-function computeFfmi(weightKg?: number, bodyFatPct?: number, heightCm?: number) {
-  if (!weightKg || !bodyFatPct || !heightCm) return null;
-  const leanMassKg = weightKg * (1 - bodyFatPct / 100);
-  const heightMeters = heightCm / 100;
-  if (!heightMeters) return null;
-  return leanMassKg / (heightMeters * heightMeters);
-}
-
-function getGreeting(userName?: string) {
-  const hour = new Date().getHours();
-  const base = hour < 12 ? '¡Buenos días' : hour < 19 ? '¡Buenas tardes' : '¡Buenas noches';
-  return `${base}, ${userName && userName.trim() ? userName.trim() : 'Atleta'}!`;
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return '¡Buenos días';
+  if (h < 19) return '¡Buenas tardes';
+  return '¡Buenas noches';
 }
 
 function SectionTitle({ title, action }: { title: string; action?: React.ReactNode }) {
+  const colors = useColors();
   return (
     <View style={styles.sectionHeaderRow}>
-      <Text style={styles.sectionHeaderText}>{title}</Text>
+      <Text style={[styles.sectionHeaderText, { color: colors.onSurface }]}>{title}</Text>
       {action}
     </View>
   );
 }
 
-function HomeMetricCard({
-  eyebrow,
-  value,
-  helper,
-  accent,
-  trend,
-}: {
-  eyebrow: string;
-  value: string;
-  helper: string;
-  accent: string;
-  trend?: 'up' | 'down' | 'neutral';
-}) {
-  const colors = useColors();
-  const trendColor =
-    trend === 'up' ? colors.error : trend === 'down' ? colors.batteryHigh : colors.onSurfaceVariant;
-  const TrendIcon = trend === 'up' ? ArrowUpIcon : trend === 'down' ? ArrowDownIcon : null;
-
-  return (
-    <LiquidGlassCard style={styles.metricCard} padding={18}>
-      <Text style={[styles.metricEyebrow, { color: colors.onSurfaceVariant }]}>{eyebrow}</Text>
-      <Text style={[styles.metricValue, { color: accent }]}>{value}</Text>
-      <View style={styles.metricFooter}>
-        <Text style={[styles.metricHelper, { color: colors.onSurfaceVariant }]}>{helper}</Text>
-        {TrendIcon ? <TrendIcon size={14} color={trendColor} /> : null}
-      </View>
-    </LiquidGlassCard>
-  );
-}
-
-function CornerCard({
-  title,
-  subtitle,
-  icon,
-  onPress,
-}: {
-  title: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  onPress: () => void;
-}) {
-  const colors = useColors();
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.cornerPressable, pressed && styles.pressed]}>
-      <LiquidGlassCard style={styles.cornerCard} padding={20}>
-        <View style={[styles.cornerIconWrap, { backgroundColor: `${colors.onSurface}10` }]}>{icon}</View>
-        <View style={styles.cornerTextWrap}>
-          <Text style={[styles.cornerTitle, { color: colors.onSurface }]}>{title}</Text>
-          <Text style={[styles.cornerSubtitle, { color: colors.onSurfaceVariant }]}>{subtitle}</Text>
-        </View>
-      </LiquidGlassCard>
-    </Pressable>
-  );
-}
-
 function ProgramPreviewCard({
   program,
-  active,
   onPress,
 }: {
   program: Program;
-  active: boolean;
   onPress: () => void;
 }) {
   const colors = useColors();
+  const { isDark } = useTheme();
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.programCardPressable, pressed && styles.pressed]}>
       <View style={styles.programCardWrap}>
-        <View style={[styles.programCover, { backgroundColor: active ? colors.primaryContainer : colors.surfaceContainerHigh }]}>
+        <View style={[styles.programCover, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'white', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.03)' }]}>
           {program.coverImage ? (
             <Image source={{ uri: program.coverImage }} style={styles.programCoverImage} />
           ) : (
-            <CaupolicanIcon size={42} color={active ? colors.primary : `${colors.onSurfaceVariant}55`} />
+            <CaupolicanIcon size={40} color={isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"} />
           )}
-          {active ? (
-            <View style={[styles.programBadge, { backgroundColor: `${colors.primary}22`, borderColor: `${colors.primary}44` }]}>
-              <Text style={[styles.programBadgeText, { color: colors.primary }]}>ACTIVO</Text>
-            </View>
-          ) : null}
         </View>
-        <Text style={[styles.programName, { color: colors.onSurface }]} numberOfLines={2}>
+        <Text style={[styles.programName, { color: isDark ? 'rgba(255,255,255,0.8)' : 'black' }]} numberOfLines={1}>
           {program.name}
         </Text>
       </View>
@@ -158,212 +83,245 @@ export function HomeScreen() {
   const colors = useColors();
   const { isDark, toggleDark } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
-  const status = useBootstrapStore(state => state.status);
-  const [ringsMode, setRingsMode] = useState<RingsMode>('rings');
-
-  const augeStoreSnapshot = useAugeRuntimeStore(state => state.snapshot);
-  const augeIsRefreshing = useAugeRuntimeStore(state => state.isRefreshing);
-  const recomputeAugeRuntime = useAugeRuntimeStore(state => state.recompute);
-
-  const {
-    overview: workoutOverview,
-    status: workoutStatus,
-    hydrateFromMigration: hydrateWorkout,
-    startActiveSession,
-    activeSession,
-  } = useWorkoutStore();
-
+  
+  const { settings } = useSettingsStore();
   const {
     programs,
     activeProgramState,
     status: programStatus,
+    status: workoutStatus,
+    hydrateFromMigration: hydrateWorkout,
+    startActiveSession,
+    activeSession,
+    recoverActiveSession,
+  } = useWorkoutStore();
+
+  const {
     hydrateFromMigration: hydratePrograms,
   } = useProgramStore();
 
   const {
-    bodyProgress,
     status: bodyStatus,
     hydrateFromMigration: hydrateBody,
   } = useBodyStore();
 
   const {
-    overview: wellbeingOverview,
     status: wellbeingStatus,
     hydrateFromMigration: hydrateWellbeing,
   } = useWellbeingStore();
 
   const {
-    savedLogs,
     hasHydrated: hasHydratedNutrition,
-    hydrateFromStorage,
+    hydrateFromStorage: hydrateNutrition,
   } = useMobileNutritionStore();
 
-  const rawSettings = readStoredSettingsRaw();
+  const [ringsView, setRingsView] = useState<RingsMode>('rings');
 
   useEffect(() => {
-    if (workoutStatus === 'idle') {
-      void hydrateWorkout();
-    }
-  }, [hydrateWorkout, workoutStatus]);
+    if (workoutStatus === 'idle') void hydrateWorkout();
+    if (programStatus === 'idle') void hydratePrograms();
+    if (bodyStatus === 'idle') void hydrateBody();
+    if (wellbeingStatus === 'idle') void hydrateWellbeing();
+    if (!hasHydratedNutrition) void hydrateNutrition();
+    void recoverActiveSession();
+  }, []);
 
-  useEffect(() => {
-    if (programStatus === 'idle') {
-      void hydratePrograms();
-    }
-  }, [hydratePrograms, programStatus]);
+  const activeProgram = useMemo(() =>
+    programs.find((p: Program) => p.id === activeProgramState?.programId) || null
+  , [programs, activeProgramState]);
 
-  useEffect(() => {
-    if (bodyStatus === 'idle') {
-      void hydrateBody();
-    }
-  }, [bodyStatus, hydrateBody]);
+  const sessionsWithOngoing = useMemo(() => {
+    if (!activeProgram || !activeProgramState) return [] as TodaySessionItem[];
 
-  useEffect(() => {
-    if (wellbeingStatus === 'idle') {
-      void hydrateWellbeing();
-    }
-  }, [hydrateWellbeing, wellbeingStatus]);
+    const { currentMacrocycleIndex, currentBlockIndex, currentMesocycleIndex, currentWeekId } = activeProgramState;
+    const macro = activeProgram.macrocycles?.[currentMacrocycleIndex ?? 0];
+    const block = macro?.blocks?.[currentBlockIndex ?? 0];
+    const meso = block?.mesocycles?.[currentMesocycleIndex ?? 0];
+    const week = meso?.weeks.find(w => w.id === currentWeekId);
 
-  useEffect(() => {
-    if (!hasHydratedNutrition) {
-      void hydrateFromStorage();
-    }
-  }, [hasHydratedNutrition, hydrateFromStorage]);
+    if (!week) return [] as TodaySessionItem[];
 
-  const greeting = useMemo(
-    () => getGreeting(typeof rawSettings.userName === 'string' ? rawSettings.userName : undefined),
-    [rawSettings.userName],
-  );
+    const today = new Date().getDay(); // 0-6 (Sun-Sat)
+    const dayMap = [7, 1, 2, 3, 4, 5, 6]; // Map JS day to 1-7 (Mon-Sun)
+    const currentDay = dayMap[today];
 
-  const latestBody = bodyProgress[0];
-  const previousBody = bodyProgress[1];
-  const ffmi = useMemo(
-    () =>
-      computeFfmi(
-        latestBody?.weight,
-        latestBody?.bodyFatPercentage,
-        typeof rawSettings.height === 'number' ? rawSettings.height : undefined,
-      ),
-    [latestBody?.bodyFatPercentage, latestBody?.weight, rawSettings.height],
-  );
-
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const todayNutritionTotals = useMemo(
-    () =>
-      savedLogs
-        .filter(log => log.createdAt.slice(0, 10) === todayKey)
-        .reduce(
-          (acc, log) => ({
-            calories: acc.calories + log.totals.calories,
-            protein: acc.protein + log.totals.protein,
-          }),
-          { calories: 0, protein: 0 },
-        ),
-    [savedLogs, todayKey],
-  );
-
-  const todaySessions = useMemo(() => {
-    if (!workoutOverview?.todaySession) return [] as TodaySessionItem[];
-    const program =
-      programs.find(item => item.id === workoutOverview.activeProgramId) ||
-      ({
-        id: workoutOverview.activeProgramId || 'programa-activo',
-        name: workoutOverview.activeProgramName || 'Programa activo',
-        coverImage: undefined,
-      } as Program);
-
-    const macro = program.macrocycles?.[activeProgramState?.currentMacrocycleIndex ?? 0];
-    const block = macro?.blocks?.[activeProgramState?.currentBlockIndex ?? 0];
-    const mesocycle = block?.mesocycles?.[activeProgramState?.currentMesocycleIndex ?? 0];
-    const week = mesocycle?.weeks.find(item => item.id === activeProgramState?.currentWeekId);
-    const fullSession =
-      week?.sessions.find(item => item.id === workoutOverview.todaySession?.id) ??
-      week?.sessions.find(item => item.dayOfWeek === workoutOverview.todaySession?.dayOfWeek) ??
-      null;
-
-    if (!fullSession) return [] as TodaySessionItem[];
-
-    return [
-      {
-        session: fullSession,
-        program,
+    return week.sessions.map(session => {
+      const isToday = session.dayOfWeek === currentDay;
+      const ongoing = activeSession?.session?.id === session.id;
+      
+      return {
+        session: session,
+        program: activeProgram,
         location: {
-          macroIndex: activeProgramState?.currentMacrocycleIndex ?? 0,
-          mesoIndex: activeProgramState?.currentMesocycleIndex ?? 0,
-          weekId: activeProgramState?.currentWeekId || workoutOverview.currentWeekId || '',
+          macroIndex: currentMacrocycleIndex ?? 0,
+          mesoIndex: currentMesocycleIndex ?? 0,
+          weekId: currentWeekId ?? ''
         },
-        isCompleted: workoutOverview.hasWorkoutLoggedToday,
-        dayOfWeek: workoutOverview.todaySession.dayOfWeek || undefined,
-      },
-    ];
-  }, [activeProgramState?.currentBlockIndex, activeProgramState?.currentMacrocycleIndex, activeProgramState?.currentMesocycleIndex, activeProgramState?.currentWeekId, programs, workoutOverview]);
+        isCompleted: false,
+        dayOfWeek: session.dayOfWeek || 1,
+        isOngoing: ongoing
+      } as TodaySessionItem;
+    }).sort((a, b) => {
+      if (a.isOngoing) return -1;
+      if (b.isOngoing) return 1;
 
-  const activeProgramsFirst = useMemo(() => {
-    const activeId = activeProgramState?.status === 'active' ? activeProgramState.programId : null;
-    return [...programs].sort((a, b) => {
-      if (a.id === activeId) return -1;
-      if (b.id === activeId) return 1;
-      return a.name.localeCompare(b.name);
+      const aIsToday = a.session.dayOfWeek === currentDay;
+      const bIsToday = b.session.dayOfWeek === currentDay;
+      if (aIsToday && !bIsToday) return -1;
+      if (!aIsToday && bIsToday) return 1;
+
+      return (a.session.dayOfWeek ?? 0) - (b.session.dayOfWeek ?? 0);
     });
-  }, [activeProgramState?.programId, activeProgramState?.status, programs]);
+  }, [activeProgram, activeProgramState, activeSession]);
 
-  const handleStartWorkout = (session: Session, program: Program, location: unknown) => {
-    void location;
-    startActiveSession({
-      programId: program.id,
-      session,
-    });
-
+  const handleStartWorkout = useCallback((session: Session, program: Program, location: any) => {
+    startActiveSession({ programId: program.id, session });
     navigation.navigate('Workout', {
       screen: 'ActiveSession',
-      params: {
-        programId: program.id,
+      params: { 
+        programId: program.id, 
         sessionId: session.id,
-        sessionName: session.name,
+        sessionName: session.name 
       },
     });
-  };
+  }, [startActiveSession, navigation]);
 
-  const battery = workoutOverview?.battery;
-  const sleepLabel = wellbeingOverview?.averageSleepHoursLast7Days
-    ? `${wellbeingOverview.averageSleepHoursLast7Days}h`
-    : '--';
-  const weightDelta =
-    latestBody?.weight && previousBody?.weight ? latestBody.weight - previousBody.weight : 0;
+  const greeting = getGreeting();
+  const userName = settings.userName?.trim() || 'Atleta';
 
   const headerContent = (
     <View style={styles.heroHeader}>
       <View style={styles.heroTopRow}>
-        <Pressable
-          onPress={() => navigation.navigate('Profile', { screen: 'ProfileMain' })}
-          style={({ pressed }) => [styles.avatarWrap, pressed && styles.pressed, { borderColor: colors.outlineVariant, backgroundColor: `${colors.onSurface}08` }]}
-        >
-          <CaupolicanIcon size={24} color={`${colors.onSurface}66`} />
-        </Pressable>
-
+        <View style={[styles.avatarWrap, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'white' }]}>
+          {settings.profilePicture ? (
+            <Image source={{ uri: settings.profilePicture }} style={styles.avatarImage} />
+          ) : (
+            <CaupolicanIcon size={24} color={isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"} />
+          )}
+        </View>
         <View style={styles.heroActions}>
-          <Pressable
-            onPress={toggleDark}
-            style={({ pressed }) => [styles.heroActionButton, pressed && styles.pressed, { backgroundColor: `${colors.onSurface}10` }]}
-          >
-            {isDark ? <SunIcon size={20} color={colors.onSurfaceVariant} /> : <MoonIcon size={20} color={colors.onSurfaceVariant} />}
+          <Pressable onPress={toggleDark} style={styles.heroActionButton}>
+            {isDark ? <SunIcon size={22} color={colors.onSurfaceVariant} /> : <MoonIcon size={22} color={colors.onSurfaceVariant} />}
           </Pressable>
-          <Pressable
-            onPress={() => navigation.navigate('Settings')}
-            style={({ pressed }) => [styles.heroActionButton, pressed && styles.pressed, { backgroundColor: `${colors.onSurface}10` }]}
-          >
-            <BellIcon size={20} color={colors.onSurfaceVariant} />
+          <Pressable style={styles.heroActionButton}>
+            <BellIcon size={24} color={colors.onSurfaceVariant} />
           </Pressable>
-          <Pressable
-            onPress={() => navigation.navigate('Settings')}
-            style={({ pressed }) => [styles.heroActionButton, pressed && styles.pressed, { backgroundColor: `${colors.onSurface}10` }]}
-          >
-            <SettingsIcon size={20} color={colors.onSurfaceVariant} />
+          <Pressable onPress={() => navigation.navigate('Settings')} style={styles.heroActionButton}>
+            <SettingsIcon size={24} color={colors.onSurfaceVariant} />
           </Pressable>
         </View>
       </View>
+      <Text style={[styles.greetingText, { color: isDark ? 'white' : '#1C1B1F' }]}>
+        {greeting}, {'\n'}{userName}!
+      </Text>
+    </View>
+  );
 
-      <Text style={[styles.greeting, { color: colors.onSurface }]}>{greeting}</Text>
+  const renderWithProgram = () => (
+    <View style={styles.programView}>
+      <View style={styles.section}>
+        <SectionTitle 
+          title="Tus RINGS" 
+          action={
+            <View style={[styles.segmentedControl, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#ECE6F0' }]}>
+              <Pressable 
+                onPress={() => setRingsView('rings')} 
+                style={[styles.segmentedOption, ringsView === 'rings' && { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'white' }]}
+              >
+                <IntertwinedRingsIcon size={22} color={ringsView === 'rings' ? colors.primary : colors.onSurfaceVariant} />
+              </Pressable>
+              <Pressable 
+                onPress={() => setRingsView('individual')} 
+                style={[styles.segmentedOption, ringsView === 'individual' && { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'white' }]}
+              >
+                <SingleRingIcon size={22} color={ringsView === 'individual' ? colors.primary : colors.onSurfaceVariant} />
+              </Pressable>
+            </View>
+          }
+        />
+        <AugeTelemetryPanel variant="hero" shareable viewMode={ringsView} />
+      </View>
+
+      <View style={styles.section}>
+        <SectionTitle title="Sesión de hoy" />
+        <SessionTodayCard
+          programName={activeProgram?.name ?? 'Entrenamiento'}
+          sessions={sessionsWithOngoing}
+          currentDayOfWeek={[7, 1, 2, 3, 4, 5, 6][new Date().getDay()]}
+          onStartWorkout={handleStartWorkout}
+          onOpenStartWorkoutModal={() => navigation.navigate('Workout', { screen: 'ProgramDetail', params: { programId: activeProgram?.id } })}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <SectionTitle title="Tus Programas" />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.programsScroll}>
+          {programs.map(prog => (
+            <ProgramPreviewCard 
+              key={prog.id} 
+              program={prog} 
+              onPress={() => navigation.navigate('Workout', { screen: 'ProgramDetail', params: { programId: prog.id } })} 
+            />
+          ))}
+        </ScrollView>
+      </View>
+
+      <View style={styles.section}>
+        <SectionTitle title="Rincones" />
+        <View style={styles.cornersGrid}>
+          <Pressable 
+            onPress={() => navigation.navigate('Profile', { screen: 'ProfileMain' })}
+            style={({ pressed }) => [styles.cornerCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.02)' }, pressed && styles.pressed]}
+          >
+            <View style={[styles.cornerIconWrap, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#ECE6F0' }]}>
+              <CaupolicanIcon size={32} color={isDark ? "rgba(255,255,255,0.3)" : "rgba(73,69,79,0.5)"} />
+            </View>
+            <View style={styles.cornerText}>
+              <Text style={[styles.cornerTitle, { color: isDark ? 'white' : '#1D1B20' }]}>Powerlifter Corner</Text>
+              <Text style={[styles.cornerSubtitle, { color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(73,69,79,0.6)' }]}>Federaciones, historial y competiciones.</Text>
+            </View>
+          </Pressable>
+
+          <Pressable 
+            onPress={() => navigation.navigate('Wiki', { screen: 'WikiHome' })}
+            style={({ pressed }) => [styles.cornerCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.02)' }, pressed && styles.pressed]}
+          >
+            <View style={[styles.cornerIconWrap, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#ECE6F0' }]}>
+              <WikiLabIcon size={28} color={isDark ? "rgba(255,255,255,0.3)" : "rgba(73,69,79,0.5)"} />
+            </View>
+            <View style={styles.cornerText}>
+              <Text style={[styles.cornerTitle, { color: isDark ? 'white' : '#1D1B20' }]}>WikiLab</Text>
+              <Text style={[styles.cornerSubtitle, { color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(73,69,79,0.6)' }]}>Ciencia del entrenamiento y biomecánica.</Text>
+            </View>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderEmpty = () => (
+    <View style={styles.emptyView}>
+      <Text style={[styles.emptyHeader, { color: isDark ? 'white' : '#1C1B1F' }]}>
+        Inicia tu próximo{'\n'}<Text style={{ color: colors.primary }}>Plan Maestro</Text>
+      </Text>
+      
+      <AugeTelemetryPanel variant="hero" shareable />
+
+      <View style={styles.emptyArsenal}>
+        <View style={styles.emptyIconWrap}>
+          <CaupolicanIcon size={120} color={isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"} />
+        </View>
+        <Text style={styles.emptyLabel}>Arsenal Vacío</Text>
+        <Text style={[styles.emptyDescription, { color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(73,69,79,0.7)' }]}>
+          Configura tu biometría avanzada creando tu primer programa de entrenamiento.
+        </Text>
+        <Pressable 
+          onPress={() => navigation.navigate('Workout', { screen: 'ProgramsList' })}
+          style={[styles.createButton, { backgroundColor: colors.primary }]}
+        >
+          <Text style={styles.createButtonText}>CREAR PROGRAMA</Text>
+        </Pressable>
+      </View>
     </View>
   );
 
@@ -374,185 +332,25 @@ export function HomeScreen() {
       headerContent={headerContent}
       contentContainerStyle={styles.shellContent}
     >
-      <View style={styles.content}>
-        <View style={styles.section}>
-          <SectionTitle
-            title="Tus Rings"
-            action={
-              <View style={[styles.segmentedControl, { backgroundColor: `${colors.onSurface}10` }]}>
-                <Pressable
-                  onPress={() => setRingsMode('rings')}
-                  style={[
-                    styles.segmentedOption,
-                    ringsMode === 'rings' && { backgroundColor: `${colors.onSurface}14` },
-                  ]}
-                >
-                  <IntertwinedRingsIcon size={18} color={ringsMode === 'rings' ? colors.primary : colors.onSurfaceVariant} />
-                </Pressable>
-                <Pressable
-                  onPress={() => setRingsMode('individual')}
-                  style={[
-                    styles.segmentedOption,
-                    ringsMode === 'individual' && { backgroundColor: `${colors.onSurface}14` },
-                  ]}
-                >
-                  <SingleRingIcon size={18} color={ringsMode === 'individual' ? colors.primary : colors.onSurfaceVariant} />
-                </Pressable>
-              </View>
-            }
-          />
-
-          {ringsMode === 'rings' ? (
-            <BatteryRingCard
-              overallPct={battery?.overall ?? 0}
-              cnsPct={battery?.cns ?? 0}
-              muscularPct={battery?.muscular ?? 0}
-              sourceLabel={battery?.source === 'wellbeing-derived' ? 'derivado desde wellbeing' : 'estimación RN'}
-            />
-          ) : (
-            <View style={styles.individualGrid}>
-              {[
-                { label: 'Muscular', value: `${Math.round(battery?.muscular ?? 0)}%`, accent: colors.ringMuscular },
-                { label: 'SNC', value: `${Math.round(battery?.cns ?? 0)}%`, accent: colors.ringCns },
-                { label: 'Espinal', value: `${Math.round(battery?.spinal ?? 0)}%`, accent: colors.ringSpinal },
-              ].map(item => (
-                <LiquidGlassCard key={item.label} style={styles.individualCard} padding={16}>
-                  <Text style={[styles.individualLabel, { color: colors.onSurfaceVariant }]}>{item.label}</Text>
-                  <Text style={[styles.individualValue, { color: item.accent }]}>{item.value}</Text>
-                </LiquidGlassCard>
-              ))}
-            </View>
-          )}
-
-          <AugeStatusCard
-            snapshot={augeStoreSnapshot}
-            isRefreshing={augeIsRefreshing}
-            onRefresh={() => void recomputeAugeRuntime()}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <SectionTitle title="Sesión de hoy" />
-          <SessionTodayCard
-            programName={workoutOverview?.activeProgramName || 'Entrenamiento'}
-            sessions={todaySessions}
-            currentDayOfWeek={[7, 1, 2, 3, 4, 5, 6][new Date().getDay()]}
-            onStartWorkout={handleStartWorkout}
-            onOpenStartWorkoutModal={() => navigation.navigate('Workout', { screen: 'ProgramsList' })}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <SectionTitle title="Progreso físico y alimentación" />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.metricsScroll}
-          >
-            <HomeMetricCard
-              eyebrow="Calorías"
-              value={`${Math.round(todayNutritionTotals.calories)}`}
-              helper={`Meta ${typeof rawSettings.dailyCalorieGoal === 'number' ? rawSettings.dailyCalorieGoal : 2200} kcal`}
-              accent={colors.primary}
-            />
-            <HomeMetricCard
-              eyebrow="Proteína"
-              value={`${Math.round(todayNutritionTotals.protein)} g`}
-              helper="Hoy"
-              accent={colors.secondary}
-            />
-            <HomeMetricCard
-              eyebrow="Peso"
-              value={latestBody?.weight ? `${latestBody.weight} kg` : '--'}
-              helper={weightDelta === 0 ? 'Sin cambios recientes' : `${Math.abs(weightDelta).toFixed(1)} kg vs último log`}
-              accent={colors.onSurface}
-              trend={weightDelta > 0 ? 'up' : weightDelta < 0 ? 'down' : 'neutral'}
-            />
-            <HomeMetricCard
-              eyebrow="FFMI / Sueño"
-              value={ffmi ? ffmi.toFixed(1) : sleepLabel}
-              helper={ffmi ? 'Masa libre de grasa' : 'Promedio 7 días'}
-              accent={colors.tertiary}
-            />
-          </ScrollView>
-        </View>
-
-        <View style={styles.section}>
-          <SectionTitle
-            title="Tus programas"
-            action={<Text style={[styles.sectionActionText, { color: colors.onSurfaceVariant }]}>{programs.length} total</Text>}
-          />
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.programsScroll}>
-            {activeProgramsFirst.length === 0 ? (
-              <LiquidGlassCard style={styles.emptyProgramsCard} padding={20}>
-                <Text style={[styles.emptyProgramsTitle, { color: colors.onSurface }]}>Sin programas aún</Text>
-                <Text style={[styles.emptyProgramsBody, { color: colors.onSurfaceVariant }]}>
-                  Aquí vamos a reflejar exactamente tus programas de la PWA. Por ahora ya dejamos el carrusel operativo para que no parezca una demo vacía.
-                </Text>
-              </LiquidGlassCard>
-            ) : (
-              activeProgramsFirst.map(program => (
-                <ProgramPreviewCard
-                  key={program.id}
-                  program={program}
-                  active={program.id === activeProgramState?.programId}
-                  onPress={() =>
-                    navigation.navigate('Workout', {
-                      screen: 'ProgramDetail',
-                      params: { programId: program.id },
-                    })
-                  }
-                />
-              ))
-            )}
-          </ScrollView>
-        </View>
-
-        <View style={styles.section}>
-          <SectionTitle title="Rincones" />
-          <View style={styles.cornersColumn}>
-            <CornerCard
-              title="Athlete ID"
-              subtitle="Tu perfil atlético, cuerpo y progreso corporal en una sola vista."
-              icon={<UserBadgeIcon size={24} color={colors.primary} />}
-              onPress={() => navigation.navigate('Profile', { screen: 'ProfileMain' })}
-            />
-            <CornerCard
-              title="WikiLab"
-              subtitle="Biomecánica, bases del movimiento y exploración de ejercicios."
-              icon={<WikiLabIcon size={24} color={colors.secondary} />}
-              onPress={() => navigation.navigate('Wiki', { screen: 'WikiHome' })}
-            />
-            <CornerCard
-              title="Nutrición"
-              subtitle="Registro libre, base de alimentos y planner desde el nuevo flujo móvil."
-              icon={<TrophyIcon size={24} color={colors.tertiary} />}
-              onPress={() => navigation.navigate('Nutrition', { screen: 'NutritionDashboard' })}
-            />
-          </View>
-        </View>
-
-        {__DEV__ ? (
-          <View style={[styles.devPanel, { borderColor: colors.outlineVariant }]}>
-            <Text style={[styles.devText, { color: colors.onSurfaceVariant }]}>
-              DEBUG {status.toUpperCase()} · activeSession {activeSession ? 'sí' : 'no'}
-            </Text>
-          </View>
-        ) : null}
+      <View style={[styles.container, { backgroundColor: isDark ? '#121212' : 'transparent' }]}>
+        {activeProgram ? renderWithProgram() : renderEmpty()}
       </View>
     </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingBottom: 40,
+  },
   shellContent: {
     paddingTop: 8,
   },
   heroHeader: {
     paddingHorizontal: 24,
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: 16,
     gap: 24,
   },
   heroTopRow: {
@@ -567,35 +365,38 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   heroActions: {
     flexDirection: 'row',
     gap: 8,
   },
   heroActionButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  greeting: {
+  greetingText: {
     fontSize: 32,
     fontWeight: '900',
     lineHeight: 38,
     letterSpacing: -1.1,
   },
-  content: {
-    gap: 28,
-  },
   section: {
-    gap: 14,
+    marginBottom: 24,
+    gap: 16,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    paddingHorizontal: 24,
   },
   sectionHeaderText: {
     fontSize: 22,
@@ -603,153 +404,75 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: -0.5,
   },
-  sectionActionText: {
-    fontSize: 10,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1.4,
-  },
   segmentedControl: {
     flexDirection: 'row',
     padding: 4,
-    borderRadius: 999,
+    borderRadius: 24,
     gap: 4,
   },
   segmentedOption: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  individualGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  individualCard: {
-    flex: 1,
-    borderRadius: 24,
-  },
-  individualLabel: {
-    fontSize: 9,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1.1,
-  },
-  individualValue: {
-    marginTop: 8,
-    fontSize: 22,
-    fontWeight: '900',
-  },
-  metricsScroll: {
-    paddingRight: 4,
-    gap: 14,
-  },
-  metricCard: {
-    width: 164,
-    borderRadius: 32,
-  },
-  metricEyebrow: {
-    fontSize: 9,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1.3,
-  },
-  metricValue: {
-    marginTop: 12,
-    fontSize: 30,
-    fontWeight: '900',
-    letterSpacing: -0.9,
-  },
-  metricFooter: {
-    marginTop: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  metricHelper: {
-    flex: 1,
-    fontSize: 11,
-    lineHeight: 15,
-  },
-  programsScroll: {
-    paddingRight: 4,
-    gap: 14,
-  },
-  programCardPressable: {
-    width: 184,
-  },
-  programCardWrap: {
-    gap: 10,
-  },
-  programCover: {
-    height: 118,
-    borderRadius: 32,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  programCoverImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  programBadge: {
-    position: 'absolute',
-    top: 14,
-    left: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  programBadgeText: {
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-  },
-  programName: {
-    fontSize: 12,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    paddingHorizontal: 4,
-  },
-  emptyProgramsCard: {
-    width: 280,
-    borderRadius: 32,
-  },
-  emptyProgramsTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  emptyProgramsBody: {
-    marginTop: 8,
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  cornersColumn: {
-    gap: 14,
-  },
-  cornerPressable: {
-    width: '100%',
-  },
-  cornerCard: {
-    borderRadius: 34,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  cornerIconWrap: {
-    width: 56,
-    height: 56,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cornerTextWrap: {
+  programView: {
+    gap: 8,
+  },
+  programsScroll: {
+    paddingHorizontal: 24,
+    gap: 16,
+    paddingBottom: 8,
+  },
+  programCardPressable: {
+    width: 176,
+  },
+  programCardWrap: {
+    gap: 12,
+  },
+  programCover: {
+    height: 112,
+    borderRadius: 32,
+    borderWidth: 1,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  programCoverImage: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.8,
+  },
+  programName: {
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
+    paddingHorizontal: 8,
+  },
+  cornersGrid: {
+    paddingHorizontal: 24,
+    gap: 16,
+  },
+  cornerCard: {
+    flexDirection: 'row',
+    padding: 20,
+    borderRadius: 36,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 24,
+  },
+  cornerIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cornerText: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   cornerTitle: {
     fontSize: 18,
@@ -757,24 +480,64 @@ const styles = StyleSheet.create({
   },
   cornerSubtitle: {
     fontSize: 12,
+    fontWeight: '500',
     lineHeight: 18,
   },
-  devPanel: {
-    marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderRadius: 18,
-    borderStyle: 'dashed',
+  emptyView: {
+    paddingTop: 10,
+    gap: 8,
   },
-  devText: {
+  emptyHeader: {
+    fontSize: 32,
+    fontWeight: '900',
+    lineHeight: 38,
+    letterSpacing: -1.1,
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  emptyArsenal: {
+    marginTop: 64,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    gap: 16,
+  },
+  emptyIconWrap: {
+    position: 'relative',
+    marginBottom: 8,
+  },
+  emptyLabel: {
     fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.2,
+    fontWeight: '900',
     textTransform: 'uppercase',
+    letterSpacing: 2,
+    color: 'rgba(73,69,79,0.4)',
+  },
+  emptyDescription: {
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 280,
+  },
+  createButton: {
+    width: '100%',
+    height: 64,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+  },
+  createButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 1.5,
   },
   pressed: {
     opacity: 0.8,
-    transform: [{ scale: 0.98 }],
   },
 });

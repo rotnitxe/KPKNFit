@@ -6,6 +6,7 @@ export type StoredSettingsSource = 'rn-owned' | 'migration-fallback' | 'defaults
 
 export type StoredWellbeingSource = 'rn-owned' | 'migration-fallback' | 'empty';
 export type StoredTemplateSource = 'rn-owned' | 'migration-fallback' | 'empty';
+export type StoredPantrySource = 'rn-owned' | 'empty';
 export type WidgetSyncSource = 'foreground' | 'background' | 'unknown';
 
 const KEYS = {
@@ -13,6 +14,7 @@ const KEYS = {
   wellbeing: 'rn.wellbeing',
   mealTemplates: 'rn.mealTemplates',
   mealPlanner: 'rn.mealPlanner',
+  pantryItems: 'rn.pantryItems',
   notificationPermission: 'rn.notifications.permission',
   widgetSyncStatus: 'rn.widgets.syncStatus',
   backgroundSyncStatus: 'rn.background.syncStatus',
@@ -181,6 +183,19 @@ export function persistStoredMealTemplatesRaw(templates: unknown[]) {
   setJsonValue(KEYS.mealTemplates, asArray(templates));
 }
 
+export function readStoredPantryItemsRaw(): unknown[] {
+  return asArray(getJsonValue<unknown[]>(KEYS.pantryItems, []));
+}
+
+export function persistStoredPantryItemsRaw(items: unknown[]) {
+  setJsonValue(KEYS.pantryItems, asArray(items));
+}
+
+export function getStoredPantrySource(): StoredPantrySource {
+  if (hasStoredKey(KEYS.pantryItems)) return 'rn-owned';
+  return 'empty';
+}
+
 const DEFAULT_NOTIFICATION_PERMISSION: NotificationPermissionSnapshot = {
   status: 'unsupported',
   granted: false,
@@ -250,4 +265,3 @@ export function readStoredAugeRuntimePayload(): StoredAugeRuntimePayload {
 export function persistStoredAugeRuntimePayload(payload: StoredAugeRuntimePayload) {
   setJsonValue(KEYS.augeRuntime, payload);
 }
-
