@@ -1,0 +1,1109 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :notifee_react-native
+:notifee_react-native @notifee/react-native found at C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@notifee\react-native
+:notifee_react-native package.json found at C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@notifee\react-native\package.json
+:notifee_react-native:version set from package.json: 9.1.8 (9,1,8 - 9001008)
+:notifee_react-native:android.compileSdk using custom value: 36
+:notifee_react-native:android.targetSdk using custom value: 36
+:notifee_react-native:android.minSdk using custom value: 24
+:notifee_react-native:reactNativeAndroidDir C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native
+
+> Configure project :react-native-mmkv
+[react-native-mmkv] Thank you for using react-native-mmkv ??
+[react-native-mmkv] If you enjoy using react-native-mmkv, please consider sponsoring this project: https://github.com/sponsors/mrousavy
+
+> Configure project :shopify_react-native-skia
+react-native-skia: SK_GRAPHITE: false
+react-native-skia: Skia Android package: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-skia-android
+react-native-skia: node_modules/ found at: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules
+react-native-skia: RN Version: 84 / 0.84.1
+react-native-skia: isSourceBuild: false
+react-native-skia: PrebuiltDir: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@shopify\react-native-skia\android\build/react-native-0*/jni
+react-native-skia: buildType: release
+react-native-skia: buildDir: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@shopify\react-native-skia\android\build
+react-native-skia: node_modules: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules
+react-native-skia: Enable Prefab: true
+react-native-skia: aar state post 70, do nothing
+
+> Task :shopify_react-native-skia:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :shopify_react-native-skia:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :shopify_react-native-skia:prepareHeaders UP-TO-DATE
+> Task :shopify_react-native-skia:preBuild UP-TO-DATE
+> Task :shopify_react-native-skia:preReleaseBuild UP-TO-DATE
+> Task :shopify_react-native-skia:extractAARHeaders
+> Task :shopify_react-native-skia:extractJNIFiles
+> Task :shopify_react-native-skia:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :shopify_react-native-skia:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :shopify_react-native-skia:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :shopify_react-native-skia:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :shopify_react-native-skia:mergeReleaseJniLibFolders
+> Task :shopify_react-native-skia:generateReleaseResValues
+> Task :shopify_react-native-skia:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :shopify_react-native-skia:generateReleaseBuildConfig
+> Task :shopify_react-native-skia:generateReleaseResources
+> Task :shopify_react-native-skia:packageReleaseResources
+> Task :shopify_react-native-skia:parseReleaseLocalResources
+> Task :shopify_react-native-skia:mergeReleaseShaders
+> Task :shopify_react-native-skia:compileReleaseShaders NO-SOURCE
+> Task :shopify_react-native-skia:generateReleaseAssets UP-TO-DATE
+> Task :shopify_react-native-skia:mergeReleaseAssets
+> Task :shopify_react-native-skia:generateReleaseRFile
+> Task :shopify_react-native-skia:javaPreCompileRelease
+> Task :shopify_react-native-skia:extractReleaseAnnotations
+> Task :shopify_react-native-skia:mergeReleaseNativeLibs
+
+> Task :shopify_react-native-skia:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :shopify_react-native-skia:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :shopify_react-native-skia:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :shopify_react-native-skia:stripReleaseDebugSymbols
+> Task :shopify_react-native-skia:externalNativeBuildRelease
+> Task :shopify_react-native-skia:generateJsonModelRelease
+> Task :shopify_react-native-skia:prefabReleaseConfigurePackage UP-TO-DATE
+> Task :shopify_react-native-skia:copyReleaseJniLibsProjectAndLocalJars
+> Task :shopify_react-native-skia:prefabReleasePackage
+> Task :shopify_react-native-skia:prepareLintJarForPublish UP-TO-DATE
+> Task :shopify_react-native-skia:prepareReleaseArtProfile UP-TO-DATE
+> Task :shopify_react-native-skia:processReleaseJavaRes NO-SOURCE
+
+> Task :shopify_react-native-skia:processReleaseManifest
+package="com.shopify.reactnative.skia" found in source AndroidManifest.xml: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@shopify\react-native-skia\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.shopify.reactnative.skia" from the source AndroidManifest.xml: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@shopify\react-native-skia\android\src\main\AndroidManifest.xml.
+
+> Task :shopify_react-native-skia:writeReleaseAarMetadata
+> Task :shopify_react-native-skia:mergeReleaseJavaResource
+> Task :shopify_react-native-skia:mapReleaseSourceSetPaths
+> Task :shopify_react-native-skia:syncReleaseLibJars
+> Task :shopify_react-native-skia:bundleReleaseAar
+> Task :shopify_react-native-skia:mergeReleaseResources
+> Task :app:generateAutolinkingNewArchitectureFiles UP-TO-DATE
+> Task :app:generateAutolinkingPackageList UP-TO-DATE
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+> Task :app:generateReactNativeEntryPoint UP-TO-DATE
+> Task :notifee_react-native:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-haptic-feedback:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-haptic-feedback:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-haptic-feedback:preBuild UP-TO-DATE
+> Task :react-native-mmkv:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-mmkv:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-mmkv:preBuild UP-TO-DATE
+> Task :react-native-quick-sqlite:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-quick-sqlite:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-quick-sqlite:preBuild UP-TO-DATE
+> Task :react-native-reanimated:assertMinimalReactNativeVersionTask
+> Task :react-native-reanimated:assertNewArchitectureEnabledTask SKIPPED
+> Task :react-native-reanimated:assertWorkletsVersionTask
+> Task :react-native-reanimated:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-reanimated:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-reanimated:prepareReanimatedHeadersForPrefabs UP-TO-DATE
+> Task :react-native-reanimated:preBuild
+> Task :react-native-safe-area-context:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-safe-area-context:preBuild UP-TO-DATE
+> Task :react-native-screens:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-screens:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-screens:preBuild UP-TO-DATE
+> Task :react-native-svg:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-svg:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-svg:preBuild UP-TO-DATE
+> Task :react-native-worklets:assertMinimalReactNativeVersionTask
+> Task :react-native-worklets:assertNewArchitectureEnabledTask SKIPPED
+> Task :react-native-worklets:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-worklets:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-worklets:prepareWorkletsHeadersForPrefabs UP-TO-DATE
+> Task :react-native-worklets:preBuild
+> Task :app:preBuild
+> Task :app:preReleaseBuild
+> Task :react-native-reanimated:preReleaseBuild
+> Task :react-native-worklets:preReleaseBuild
+> Task :react-native-worklets:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[arm64-v8a][worklets]
+> Task :react-native-worklets:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-worklets:buildCMakeRelWithDebInfo[armeabi-v7a][worklets]
+> Task :react-native-worklets:externalNativeBuildRelease
+> Task :react-native-worklets:generateJsonModelRelease
+> Task :react-native-worklets:prefabReleaseConfigurePackage
+> Task :react-native-reanimated:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-reanimated:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-reanimated:generateJsonModelRelease
+> Task :react-native-reanimated:prefabReleaseConfigurePackage UP-TO-DATE
+> Task :shopify_react-native-skia:verifyReleaseResources
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :shopify_react-native-skia:assembleRelease
+> Task :react-native-worklets:prefabReleasePackage
+> Task :react-native-reanimated:buildCMakeRelWithDebInfo[arm64-v8a][reanimated]
+> Task :react-native-reanimated:buildCMakeRelWithDebInfo[armeabi-v7a][reanimated]
+> Task :react-native-worklets:mergeReleaseJniLibFolders
+> Task :react-native-worklets:mergeReleaseNativeLibs
+> Task :app:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app:mergeReleaseJniLibFolders
+> Task :notifee_react-native:preReleaseBuild UP-TO-DATE
+> Task :notifee_react-native:mergeReleaseJniLibFolders
+> Task :notifee_react-native:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-gesture-handler:preReleaseBuild UP-TO-DATE
+> Task :notifee_react-native:copyReleaseJniLibsProjectOnly
+> Task :react-native-gesture-handler:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-gesture-handler:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-worklets:copyReleaseJniLibsProjectOnly
+> Task :react-native-gesture-handler:mergeReleaseJniLibFolders
+> Task :react-native-reanimated:externalNativeBuildRelease
+> Task :react-native-reanimated:prefabReleasePackage
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-gesture-handler:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-gesture-handler:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-haptic-feedback:preReleaseBuild UP-TO-DATE
+> Task :react-native-haptic-feedback:mergeReleaseJniLibFolders
+> Task :react-native-haptic-feedback:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-gesture-handler:mergeReleaseNativeLibs
+> Task :react-native-mmkv:preReleaseBuild UP-TO-DATE
+> Task :react-native-haptic-feedback:copyReleaseJniLibsProjectOnly
+> Task :react-native-gesture-handler:copyReleaseJniLibsProjectOnly
+> Task :react-native-mmkv:mergeReleaseJniLibFolders
+> Task :react-native-mmkv:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-quick-sqlite:preReleaseBuild UP-TO-DATE
+> Task :react-native-mmkv:copyReleaseJniLibsProjectOnly
+> Task :react-native-quick-sqlite:configureCMakeRelWithDebInfo[arm64-v8a]
+
+> Task :react-native-quick-sqlite:buildCMakeRelWithDebInfo[arm64-v8a]
+C/C++: ninja: Entering directory `C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-quick-sqlite\android\.cxx\RelWithDebInfo\31122r2g\arm64-v8a'
+C/C++: In file included from C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/android/cpp-adapter.cpp:2:
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/android/../cpp/logs.h:4:9: warning: 'LOG_TAG' macro redefined [-Wmacro-redefined]
+C/C++:     4 | #define LOG_TAG "react-native-quick-sqlite"
+C/C++:       |         ^
+C/C++: <command line>:5:9: note: previous definition is here
+C/C++:     5 | #define LOG_TAG "ReactNative"
+C/C++:       |         ^
+C/C++: 1 warning generated.
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:184:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   184 |       array.setValueAtIndex(rt, i, move(rowObject));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:186:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   186 |     rows.setProperty(rt, "_array", move(array));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:187:33: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   187 |     res.setProperty(rt, "rows", move(rows));
+C/C++:       |                                 ^
+C/C++:       |                                 std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:200:43: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   200 |       column_array.setValueAtIndex(rt, i, move(column_object));
+C/C++:       |                                           ^
+C/C++:       |                                           std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:202:37: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   202 |     res.setProperty(rt, "metadata", move(column_array));
+C/C++:       |                                     ^
+C/C++:       |                                     std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:206:10: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   206 |   return move(res);
+C/C++:       |          ^
+C/C++:       |          std::
+C/C++: 6 warnings generated.
+C/C++: In file included from C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:18:
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/logs.h:4:9: warning: 'LOG_TAG' macro redefined [-Wmacro-redefined]
+C/C++:     4 | #define LOG_TAG "react-native-quick-sqlite"
+C/C++:       |         ^
+C/C++: <command line>:5:9: note: previous definition is here
+C/C++:     5 | #define LOG_TAG "ReactNative"
+C/C++:       |         ^
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:363:28: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   363 |         results->push_back(move(row));
+C/C++:       |                            ^
+C/C++:       |                            std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:446:15: warning: unused variable 'i' [-Wunused-variable]
+C/C++:   446 |   int result, i, count, column_type;
+C/C++:       |               ^
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:446:18: warning: unused variable 'count' [-Wunused-variable]
+C/C++:   446 |   int result, i, count, column_type;
+C/C++:       |                  ^~~~~
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:446:25: warning: unused variable 'column_type' [-Wunused-variable]
+C/C++:   446 |   int result, i, count, column_type;
+C/C++:       |                         ^~~~~~~~~~~
+C/C++: 5 warnings generated.
+C/C++: In file included from C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:3:
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/logs.h:4:9: warning: 'LOG_TAG' macro redefined [-Wmacro-redefined]
+C/C++:     4 | #define LOG_TAG "react-native-quick-sqlite"
+C/C++:       |         ^
+C/C++: <command line>:5:9: note: previous definition is here
+C/C++:     5 | #define LOG_TAG "ReactNative"
+C/C++:       |         ^
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:237:180: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   237 |           invoker->invokeAsync([&rt, results = make_shared<vector<map<string, QuickValue>>>(results), metadata = make_shared<vector<QuickColumnMetadata>>(metadata), status_copy = move(status), resolve, reject]
+C/C++:       |                                                                                                                                                                                    ^
+C/C++:       |                                                                                                                                                                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:241:61: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   241 |               resolve->asObject(rt).asFunction(rt).call(rt, move(jsiResult));
+C/C++:       |                                                             ^
+C/C++:       |                                                             std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:290:14: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   290 |       return move(res);
+C/C++:       |              ^
+C/C++:       |              std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:332:52: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   332 |           invoker->invokeAsync([&rt, batchResult = move(batchResult), resolve, reject]
+C/C++:       |                                                    ^
+C/C++:       |                                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:338:61: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   338 |               resolve->asObject(rt).asFunction(rt).call(rt, move(res));
+C/C++:       |                                                             ^
+C/C++:       |                                                             std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:371:14: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   371 |       return move(res);
+C/C++:       |              ^
+C/C++:       |              std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:403:47: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   403 |           invoker->invokeAsync([&rt, result = move(importResult), resolve, reject]
+C/C++:       |                                               ^
+C/C++:       |                                               std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:410:61: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   410 |               resolve->asObject(rt).asFunction(rt).call(rt, move(res));
+C/C++:       |                                                             ^
+C/C++:       |                                                             std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:435:34: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   435 |   module.setProperty(rt, "open", move(open));
+C/C++:       |                                  ^
+C/C++:       |                                  std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:436:35: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   436 |   module.setProperty(rt, "close", move(close));
+C/C++:       |                                   ^
+C/C++:       |                                   std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:437:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   437 |   module.setProperty(rt, "attach", move(attach));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:438:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   438 |   module.setProperty(rt, "detach", move(detach));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:439:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   439 |   module.setProperty(rt, "delete", move(remove));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:440:37: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   440 |   module.setProperty(rt, "execute", move(execute));
+C/C++:       |                                     ^
+C/C++:       |                                     std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:441:42: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   441 |   module.setProperty(rt, "executeAsync", move(executeAsync));
+C/C++:       |                                          ^
+C/C++:       |                                          std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:442:42: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   442 |   module.setProperty(rt, "executeBatch", move(executeBatch));
+C/C++:       |                                          ^
+C/C++:       |                                          std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:443:47: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   443 |   module.setProperty(rt, "executeBatchAsync", move(executeBatchAsync));
+C/C++:       |                                               ^
+C/C++:       |                                               std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:444:38: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   444 |   module.setProperty(rt, "loadFile", move(loadFile));
+C/C++:       |                                      ^
+C/C++:       |                                      std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:445:43: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   445 |   module.setProperty(rt, "loadFileAsync", move(loadFileAsync));
+C/C++:       |                                           ^
+C/C++:       |                                           std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:447:53: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   447 |   rt.global().setProperty(rt, "__QuickSQLiteProxy", move(module));
+C/C++:       |                                                     ^
+C/C++:       |                                                     std::
+C/C++: 21 warnings generated.
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqlite3.c:58618:7: warning: variable 'nUri' set but not used [-Wunused-but-set-variable]
+C/C++:  58618 |   int nUri = 0;            /* Number of URI parameters */
+C/C++:        |       ^
+C/C++: 1 warning generated.
+
+> Task :react-native-quick-sqlite:configureCMakeRelWithDebInfo[armeabi-v7a]
+
+> Task :react-native-quick-sqlite:buildCMakeRelWithDebInfo[armeabi-v7a]
+C/C++: ninja: Entering directory `C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-quick-sqlite\android\.cxx\RelWithDebInfo\31122r2g\armeabi-v7a'
+C/C++: In file included from C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/android/cpp-adapter.cpp:2:
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/android/../cpp/logs.h:4:9: warning: 'LOG_TAG' macro redefined [-Wmacro-redefined]
+C/C++:     4 | #define LOG_TAG "react-native-quick-sqlite"
+C/C++:       |         ^
+C/C++: <command line>:5:9: note: previous definition is here
+C/C++:     5 | #define LOG_TAG "ReactNative"
+C/C++:       |         ^
+C/C++: 1 warning generated.
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:184:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   184 |       array.setValueAtIndex(rt, i, move(rowObject));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:186:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   186 |     rows.setProperty(rt, "_array", move(array));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:187:33: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   187 |     res.setProperty(rt, "rows", move(rows));
+C/C++:       |                                 ^
+C/C++:       |                                 std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:200:43: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   200 |       column_array.setValueAtIndex(rt, i, move(column_object));
+C/C++:       |                                           ^
+C/C++:       |                                           std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:202:37: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   202 |     res.setProperty(rt, "metadata", move(column_array));
+C/C++:       |                                     ^
+C/C++:       |                                     std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/JSIHelper.cpp:206:10: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   206 |   return move(res);
+C/C++:       |          ^
+C/C++:       |          std::
+C/C++: 6 warnings generated.
+C/C++: In file included from C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:18:
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/logs.h:4:9: warning: 'LOG_TAG' macro redefined [-Wmacro-redefined]
+C/C++:     4 | #define LOG_TAG "react-native-quick-sqlite"
+C/C++:       |         ^
+C/C++: <command line>:5:9: note: previous definition is here
+C/C++:     5 | #define LOG_TAG "ReactNative"
+C/C++:       |         ^
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:363:28: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   363 |         results->push_back(move(row));
+C/C++:       |                            ^
+C/C++:       |                            std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:446:15: warning: unused variable 'i' [-Wunused-variable]
+C/C++:   446 |   int result, i, count, column_type;
+C/C++:       |               ^
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:446:18: warning: unused variable 'count' [-Wunused-variable]
+C/C++:   446 |   int result, i, count, column_type;
+C/C++:       |                  ^~~~~
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqliteBridge.cpp:446:25: warning: unused variable 'column_type' [-Wunused-variable]
+C/C++:   446 |   int result, i, count, column_type;
+C/C++:       |                         ^~~~~~~~~~~
+C/C++: 5 warnings generated.
+C/C++: In file included from C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:3:
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/logs.h:4:9: warning: 'LOG_TAG' macro redefined [-Wmacro-redefined]
+C/C++:     4 | #define LOG_TAG "react-native-quick-sqlite"
+C/C++:       |         ^
+C/C++: <command line>:5:9: note: previous definition is here
+C/C++:     5 | #define LOG_TAG "ReactNative"
+C/C++:       |         ^
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:237:180: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   237 |           invoker->invokeAsync([&rt, results = make_shared<vector<map<string, QuickValue>>>(results), metadata = make_shared<vector<QuickColumnMetadata>>(metadata), status_copy = move(status), resolve, reject]
+C/C++:       |                                                                                                                                                                                    ^
+C/C++:       |                                                                                                                                                                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:241:61: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   241 |               resolve->asObject(rt).asFunction(rt).call(rt, move(jsiResult));
+C/C++:       |                                                             ^
+C/C++:       |                                                             std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:290:14: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   290 |       return move(res);
+C/C++:       |              ^
+C/C++:       |              std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:332:52: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   332 |           invoker->invokeAsync([&rt, batchResult = move(batchResult), resolve, reject]
+C/C++:       |                                                    ^
+C/C++:       |                                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:338:61: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   338 |               resolve->asObject(rt).asFunction(rt).call(rt, move(res));
+C/C++:       |                                                             ^
+C/C++:       |                                                             std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:371:14: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   371 |       return move(res);
+C/C++:       |              ^
+C/C++:       |              std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:403:47: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   403 |           invoker->invokeAsync([&rt, result = move(importResult), resolve, reject]
+C/C++:       |                                               ^
+C/C++:       |                                               std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:410:61: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   410 |               resolve->asObject(rt).asFunction(rt).call(rt, move(res));
+C/C++:       |                                                             ^
+C/C++:       |                                                             std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:435:34: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   435 |   module.setProperty(rt, "open", move(open));
+C/C++:       |                                  ^
+C/C++:       |                                  std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:436:35: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   436 |   module.setProperty(rt, "close", move(close));
+C/C++:       |                                   ^
+C/C++:       |                                   std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:437:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   437 |   module.setProperty(rt, "attach", move(attach));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:438:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   438 |   module.setProperty(rt, "detach", move(detach));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:439:36: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   439 |   module.setProperty(rt, "delete", move(remove));
+C/C++:       |                                    ^
+C/C++:       |                                    std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:440:37: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   440 |   module.setProperty(rt, "execute", move(execute));
+C/C++:       |                                     ^
+C/C++:       |                                     std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:441:42: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   441 |   module.setProperty(rt, "executeAsync", move(executeAsync));
+C/C++:       |                                          ^
+C/C++:       |                                          std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:442:42: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   442 |   module.setProperty(rt, "executeBatch", move(executeBatch));
+C/C++:       |                                          ^
+C/C++:       |                                          std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:443:47: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   443 |   module.setProperty(rt, "executeBatchAsync", move(executeBatchAsync));
+C/C++:       |                                               ^
+C/C++:       |                                               std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:444:38: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   444 |   module.setProperty(rt, "loadFile", move(loadFile));
+C/C++:       |                                      ^
+C/C++:       |                                      std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:445:43: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   445 |   module.setProperty(rt, "loadFileAsync", move(loadFileAsync));
+C/C++:       |                                           ^
+C/C++:       |                                           std::
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/bindings.cpp:447:53: warning: unqualified call to 'std::move' [-Wunqualified-std-cast-call]
+C/C++:   447 |   rt.global().setProperty(rt, "__QuickSQLiteProxy", move(module));
+C/C++:       |                                                     ^
+C/C++:       |                                                     std::
+C/C++: 21 warnings generated.
+C/C++: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-quick-sqlite/cpp/sqlite3.c:58618:7: warning: variable 'nUri' set but not used [-Wunused-but-set-variable]
+C/C++:  58618 |   int nUri = 0;            /* Number of URI parameters */
+C/C++:        |       ^
+C/C++: 1 warning generated.
+
+> Task :react-native-quick-sqlite:mergeReleaseJniLibFolders
+> Task :react-native-reanimated:mergeReleaseJniLibFolders
+> Task :react-native-safe-area-context:preReleaseBuild UP-TO-DATE
+> Task :react-native-safe-area-context:mergeReleaseJniLibFolders
+> Task :react-native-safe-area-context:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-screens:preReleaseBuild UP-TO-DATE
+> Task :react-native-safe-area-context:copyReleaseJniLibsProjectOnly
+> Task :react-native-screens:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-quick-sqlite:mergeReleaseNativeLibs
+> Task :react-native-reanimated:mergeReleaseNativeLibs
+> Task :react-native-screens:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-screens:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-quick-sqlite:copyReleaseJniLibsProjectOnly
+> Task :react-native-reanimated:copyReleaseJniLibsProjectOnly
+> Task :react-native-screens:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-screens:mergeReleaseJniLibFolders
+> Task :react-native-svg:preReleaseBuild UP-TO-DATE
+> Task :react-native-svg:mergeReleaseJniLibFolders
+> Task :react-native-svg:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-svg:copyReleaseJniLibsProjectOnly
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-screens:mergeReleaseNativeLibs
+> Task :react-native-gesture-handler:generateReleaseBuildConfig
+> Task :react-native-gesture-handler:generateReleaseResValues
+> Task :react-native-screens:copyReleaseJniLibsProjectOnly
+> Task :react-native-gesture-handler:generateReleaseResources
+> Task :react-native-gesture-handler:packageReleaseResources
+> Task :react-native-gesture-handler:parseReleaseLocalResources
+> Task :react-native-reanimated:generateReleaseBuildConfig
+> Task :react-native-reanimated:generateReleaseResValues
+> Task :react-native-gesture-handler:generateReleaseRFile
+> Task :react-native-reanimated:generateReleaseResources
+> Task :react-native-reanimated:packageReleaseResources
+> Task :react-native-reanimated:javaPreCompileRelease
+> Task :react-native-reanimated:parseReleaseLocalResources
+> Task :react-native-worklets:generateReleaseBuildConfig
+> Task :react-native-worklets:generateReleaseResValues
+> Task :react-native-reanimated:generateReleaseRFile
+> Task :react-native-worklets:generateReleaseResources
+> Task :react-native-worklets:packageReleaseResources
+> Task :react-native-worklets:javaPreCompileRelease
+> Task :react-native-worklets:parseReleaseLocalResources
+> Task :react-native-svg:generateReleaseBuildConfig
+> Task :react-native-svg:generateReleaseResValues
+> Task :react-native-worklets:generateReleaseRFile
+> Task :shopify_react-native-skia:copyReleaseJniLibsProjectOnly
+> Task :react-native-svg:generateReleaseResources
+
+> Task :react-native-worklets:compileReleaseJavaWithJavac
+Note: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-worklets\android\src\main\java\com\swmansion\worklets\WorkletsMessageQueueThreadBase.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-worklets\android\src\main\java\com\swmansion\worklets\WorkletsPackage.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :react-native-worklets:bundleLibCompileToJarRelease
+> Task :react-native-svg:packageReleaseResources
+
+> Task :react-native-reanimated:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :react-native-svg:javaPreCompileRelease
+> Task :react-native-svg:parseReleaseLocalResources
+> Task :react-native-gesture-handler:javaPreCompileRelease
+> Task :react-native-reanimated:bundleLibCompileToJarRelease
+> Task :react-native-quick-sqlite:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-svg:generateReleaseRFile
+> Task :react-native-quick-sqlite:generateReleaseBuildConfig
+> Task :app:mergeReleaseNativeLibs
+
+> Task :react-native-svg:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :react-native-quick-sqlite:generateReleaseResValues
+> Task :react-native-quick-sqlite:generateReleaseResources
+> Task :react-native-quick-sqlite:packageReleaseResources
+> Task :react-native-quick-sqlite:parseReleaseLocalResources
+> Task :react-native-safe-area-context:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-quick-sqlite:javaPreCompileRelease
+> Task :react-native-quick-sqlite:generateReleaseRFile
+> Task :react-native-safe-area-context:generateReleaseBuildConfig
+> Task :react-native-quick-sqlite:compileReleaseKotlin NO-SOURCE
+> Task :react-native-svg:bundleLibCompileToJarRelease
+> Task :app:stripReleaseDebugSymbols
+
+> Task :react-native-quick-sqlite:compileReleaseJavaWithJavac
+C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-quick-sqlite\android\src\main\java\com\margelo\rnquicksqlite\SequelModule.java:35: warning: [removal] onCatalystInstanceDestroy() in NativeModule has been deprecated and marked for removal
+  public void onCatalystInstanceDestroy() {
+              ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+1 warning
+
+> Task :react-native-safe-area-context:generateReleaseResValues
+> Task :react-native-safe-area-context:generateReleaseResources
+> Task :react-native-quick-sqlite:bundleLibRuntimeToDirRelease
+> Task :react-native-safe-area-context:packageReleaseResources
+> Task :react-native-screens:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-safe-area-context:javaPreCompileRelease
+> Task :react-native-safe-area-context:parseReleaseLocalResources
+> Task :react-native-screens:generateReleaseBuildConfig
+> Task :react-native-screens:generateReleaseResValues
+> Task :react-native-safe-area-context:generateReleaseRFile
+> Task :react-native-screens:generateReleaseResources
+> Task :app:extractReleaseNativeSymbolTables
+> Task :react-native-screens:packageReleaseResources
+> Task :react-native-screens:javaPreCompileRelease
+> Task :notifee_react-native:generateReleaseBuildConfig
+> Task :notifee_react-native:generateReleaseResValues
+> Task :react-native-screens:parseReleaseLocalResources
+> Task :notifee_react-native:generateReleaseResources
+> Task :react-native-screens:generateReleaseRFile
+> Task :notifee_react-native:packageReleaseResources
+> Task :notifee_react-native:parseReleaseLocalResources
+> Task :notifee_react-native:javaPreCompileRelease
+> Task :react-native-haptic-feedback:generateReleaseBuildConfig
+> Task :notifee_react-native:generateReleaseRFile
+> Task :react-native-haptic-feedback:generateReleaseResValues
+> Task :shopify_react-native-skia:bundleLibRuntimeToDirRelease
+C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@notifee\react-native\android\src\main\java\io\invertase\notifee\NotifeeApiModule.java:42: warning: [removal] onCatalystInstanceDestroy() in NativeModule has been deprecated and marked for removal
+  public void onCatalystInstanceDestroy() {
+              ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+1 warning
+
+> Task :notifee_react-native:compileReleaseJavaWithJavac
+
+> Task :react-native-haptic-feedback:generateReleaseResources
+> Task :notifee_react-native:bundleLibRuntimeToDirRelease
+> Task :react-native-haptic-feedback:packageReleaseResources
+> Task :react-native-haptic-feedback:javaPreCompileRelease
+> Task :react-native-haptic-feedback:parseReleaseLocalResources
+> Task :react-native-mmkv:generateReleaseBuildConfig
+> Task :react-native-mmkv:generateReleaseResValues
+> Task :react-native-haptic-feedback:generateReleaseRFile
+> Task :react-native-mmkv:generateReleaseResources
+
+> Task :react-native-haptic-feedback:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :react-native-mmkv:packageReleaseResources
+> Task :react-native-mmkv:javaPreCompileRelease
+> Task :react-native-mmkv:parseReleaseLocalResources
+> Task :react-native-haptic-feedback:bundleLibRuntimeToDirRelease
+> Task :react-native-mmkv:generateReleaseRFile
+> Task :react-native-worklets:bundleLibRuntimeToDirRelease
+> Task :react-native-reanimated:bundleLibRuntimeToDirRelease
+> Task :app:checkReleaseDuplicateClasses
+> Task :react-native-svg:bundleLibRuntimeToDirRelease
+
+> Task :react-native-mmkv:compileReleaseJavaWithJavac
+Note: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\apps\mobile\node_modules\react-native-mmkv\android\src\main\java\com\mrousavy\mmkv\MmkvPackage.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :app:buildKotlinToolingMetadata
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateReleaseBuildConfig
+> Task :react-native-mmkv:bundleLibRuntimeToDirRelease
+> Task :notifee_react-native:writeReleaseAarMetadata
+> Task :react-native-gesture-handler:writeReleaseAarMetadata
+> Task :react-native-haptic-feedback:writeReleaseAarMetadata
+> Task :react-native-mmkv:writeReleaseAarMetadata
+> Task :react-native-quick-sqlite:writeReleaseAarMetadata
+> Task :react-native-reanimated:writeReleaseAarMetadata
+> Task :react-native-safe-area-context:writeReleaseAarMetadata
+> Task :react-native-screens:writeReleaseAarMetadata
+> Task :react-native-svg:writeReleaseAarMetadata
+> Task :react-native-worklets:writeReleaseAarMetadata
+> Task :app:mergeReleaseNativeDebugMetadata
+
+> Task :react-native-safe-area-context:compileReleaseKotlin
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaView.kt:9:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaView.kt:50:54 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaView.kt:59:23 'val uiImplementation: UIImplementation!' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaViewShadowNode.kt:9:32 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-safe-area-context/android/src/main/java/com/th3rdwave/safeareacontext/SafeAreaViewShadowNode.kt:110:61 'class NativeViewHierarchyOptimizer : Any' is deprecated. Deprecated in Java.
+
+> Task :app:createBundleReleaseJsAndAssets
+
+                        ÔûÆÔûÆÔûôÔûôÔûôÔûôÔûÆÔûÆ
+                     ÔûÆÔûôÔûôÔûôÔûÆÔûÆÔûæÔûæÔûÆÔûÆÔûôÔûôÔûôÔûÆ
+                  ÔûÆÔûôÔûôÔûôÔûôÔûæÔûæÔûæÔûÆÔûÆÔûÆÔûÆÔûæÔûæÔûæÔûôÔûôÔûôÔûôÔûÆ
+                 ÔûôÔûôÔûÆÔûÆÔûÆÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûÆÔûÆÔûÆÔûôÔûô
+                 ÔûôÔûôÔûæÔûæÔûæÔûæÔûæÔûÆÔûôÔûôÔûôÔûôÔûôÔûôÔûÆÔûæÔûæÔûæÔûæÔûæÔûôÔûô
+                 ÔûôÔûôÔûæÔûæÔûôÔûôÔûÆÔûæÔûæÔûæÔûÆÔûÆÔûæÔûæÔûæÔûÆÔûôÔûÆÔûæÔûæÔûôÔûô
+                 ÔûôÔûôÔûæÔûæÔûôÔûôÔûôÔûôÔûôÔûÆÔûÆÔûÆÔûÆÔûôÔûôÔûôÔûôÔûÆÔûæÔûæÔûôÔûô
+                 ÔûôÔûôÔûæÔûæÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûÆÔûæÔûæÔûôÔûô
+                 ÔûôÔûôÔûÆÔûæÔûæÔûÆÔûÆÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûôÔûÆÔûæÔûæÔûæÔûÆÔûôÔûô
+                  ÔûÆÔûôÔûôÔûôÔûÆÔûæÔûæÔûæÔûÆÔûôÔûôÔûÆÔûæÔûæÔûæÔûÆÔûôÔûôÔûôÔûÆ
+                     ÔûÆÔûôÔûôÔûôÔûÆÔûæÔûæÔûæÔûæÔûÆÔûôÔûôÔûôÔûÆ
+                        ÔûÆÔûÆÔûôÔûôÔûôÔûôÔûÆÔûÆ
+
+
+ WARN  the transform cache was reset.
+                Welcome to Metro v0.83.5
+              Fast - Scalable - Integrated
+
+
+
+> Task :react-native-gesture-handler:compileReleaseKotlin
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/Extensions.kt:8:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/Extensions.kt:13:29 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/Extensions.kt:14:32 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:173:53 This synthetic property is based on the getter function 'fun getRootViewTag(): Int' from Kotlin. In the future, synthetic properties will be available only if the base getter function came from Java. Consider replacing this property access with a 'getRootViewTag()' function call.
+
+> Task :react-native-screens:compileReleaseKotlin
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt:62:9 The corresponding parameter in the supertype 'BaseReactPackage' is named 'name'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt:63:9 The corresponding parameter in the supertype 'BaseReactPackage' is named 'reactContext'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt:76:17 'constructor(name: String, className: String, canOverrideExistingModule: Boolean, needsEagerInit: Boolean, hasConstants: Boolean, isCxxModule: Boolean, isTurboModule: Boolean): ReactModuleInfo' is deprecated. This constructor is deprecated and will be removed in the future. Use ReactModuleInfo(String, String, boolean, boolean, boolean, boolean)].
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:26:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:56:77 Unchecked cast of '(CoordinatorLayout.Behavior<View!>?..CoordinatorLayout.Behavior<*>?)' to 'BottomSheetBehavior<Screen>'.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:428:42 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:6:8 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:56:78 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:222:31 'var targetElevation: Float' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:225:13 'fun setHasOptionsMenu(p0: Boolean): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:404:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:411:22 'fun onPrepareOptionsMenu(p0: Menu): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:414:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt:419:22 'fun onCreateOptionsMenu(p0: Menu, p1: MenuInflater): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:441:22 'val reactNativeHost: ReactNativeHost' is deprecated. You should not use ReactNativeHost directly in the New Architecture. Use ReactHost instead.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigShadowNode.kt:4:8 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigShadowNode.kt:10:5 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:9:8 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:37:78 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:6:8 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:65:78 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt:48:42 'fun replaceSystemWindowInsets(p0: Int, p1: Int, p2: Int, p3: Int): @NonNull() WindowInsetsCompat' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt:49:39 'val systemWindowInsetLeft: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt:51:39 'val systemWindowInsetRight: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt:52:39 'val systemWindowInsetBottom: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt:4:8 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt:5:8 'class NativeViewHierarchyManager : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt:6:8 'class NativeViewHierarchyOptimizer : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt:7:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt:11:5 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt:12:63 'class NativeViewHierarchyOptimizer : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt:14:34 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt:14:106 'class NativeViewHierarchyManager : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:7:8 'object ReactFeatureFlags : Any' is deprecated. Use com.facebook.react.internal.featureflags.ReactNativeFeatureFlags instead.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:25:13 'object ReactFeatureFlags : Any' is deprecated. Use com.facebook.react.internal.featureflags.ReactNativeFeatureFlags instead.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:32:9 The corresponding parameter in the supertype 'ReactViewGroup' is named 'left'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:33:9 The corresponding parameter in the supertype 'ReactViewGroup' is named 'top'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:34:9 The corresponding parameter in the supertype 'ReactViewGroup' is named 'right'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:35:9 The corresponding parameter in the supertype 'ReactViewGroup' is named 'bottom'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:71:9 The corresponding parameter in the supertype 'RootView' is named 'childView'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:72:9 The corresponding parameter in the supertype 'RootView' is named 'ev'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:79:46 The corresponding parameter in the supertype 'RootView' is named 'ev'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:83:9 The corresponding parameter in the supertype 'RootView' is named 'childView'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:84:9 The corresponding parameter in the supertype 'RootView' is named 'ev'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/BottomSheetDialogRootView.kt:95:34 The corresponding parameter in the supertype 'RootView' is named 't'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/DimmingView.kt:64:9 The corresponding parameter in the supertype 'ReactCompoundView' is named 'touchX'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/DimmingView.kt:65:9 The corresponding parameter in the supertype 'ReactCompoundView' is named 'touchY'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/DimmingView.kt:69:9 The corresponding parameter in the supertype 'ReactCompoundViewGroup' is named 'touchX'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/bottomsheet/DimmingView.kt:70:9 The corresponding parameter in the supertype 'ReactCompoundViewGroup' is named 'touchY'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:37:9 The corresponding parameter in the supertype 'TabsHostViewManager' is named 'view'. This may cause problems when calling this function with named arguments.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaView.kt:19:8 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaView.kt:153:45 'fun consumeDisplayCutout(): @NonNull() WindowInsetsCompat' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaView.kt:194:58 'class UIManagerModule : ReactContextBaseJavaModule, LifecycleEventListener, UIManager' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaView.kt:201:31 'val uiImplementation: UIImplementation!' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/paper/SafeAreaViewShadowNode.kt:7:8 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/paper/SafeAreaViewShadowNode.kt:8:8 'class NativeViewHierarchyOptimizer : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/paper/SafeAreaViewShadowNode.kt:14:32 'class LayoutShadowNode : ReactShadowNodeImpl' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/paper/SafeAreaViewShadowNode.kt:83:63 'class NativeViewHierarchyOptimizer : Any' is deprecated. Deprecated in Java.
+
+> Task :app:createBundleReleaseJsAndAssets
+LOG:Writing bundle output to: android\app\build\generated\assets\react\release\index.android.bundle
+LOG:Writing sourcemap output to: android\app\build\intermediates\sourcemaps\react\release\index.android.bundle.packager.map
+LOG:Done writing bundle output
+LOG:Done writing sourcemap output
+Copying 19 asset files
+Done copying assets
+
+> Task :react-native-gesture-handler:compileReleaseJavaWithJavac
+> Task :react-native-gesture-handler:bundleLibRuntimeToDirRelease
+> Task :react-native-safe-area-context:compileReleaseJavaWithJavac
+> Task :react-native-safe-area-context:bundleLibRuntimeToDirRelease
+> Task :react-native-screens:compileReleaseJavaWithJavac
+> Task :app:generateReleaseResValues
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:generateReleaseResources
+> Task :app:checkReleaseAarMetadata
+> Task :react-native-screens:bundleLibRuntimeToDirRelease
+> Task :app:packageReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease
+> Task :notifee_react-native:extractDeepLinksRelease
+> Task :app:parseReleaseLocalResources
+> Task :react-native-gesture-handler:extractDeepLinksRelease
+
+> Task :notifee_react-native:processReleaseManifest
+package="io.invertase.notifee" found in source AndroidManifest.xml: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@notifee\react-native\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="io.invertase.notifee" from the source AndroidManifest.xml: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@notifee\react-native\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-haptic-feedback:extractDeepLinksRelease
+> Task :react-native-gesture-handler:processReleaseManifest
+> Task :react-native-mmkv:extractDeepLinksRelease
+
+> Task :react-native-haptic-feedback:processReleaseManifest
+package="com.mkuczera" found in source AndroidManifest.xml: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-haptic-feedback\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.mkuczera" from the source AndroidManifest.xml: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-haptic-feedback\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-quick-sqlite:extractDeepLinksRelease
+> Task :react-native-mmkv:processReleaseManifest
+> Task :react-native-reanimated:extractDeepLinksRelease
+> Task :react-native-quick-sqlite:processReleaseManifest
+> Task :react-native-safe-area-context:extractDeepLinksRelease
+> Task :react-native-reanimated:processReleaseManifest
+> Task :react-native-screens:extractDeepLinksRelease
+
+> Task :react-native-safe-area-context:processReleaseManifest
+package="com.th3rdwave.safeareacontext" found in source AndroidManifest.xml: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-safe-area-context\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.th3rdwave.safeareacontext" from the source AndroidManifest.xml: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\react-native-safe-area-context\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-svg:extractDeepLinksRelease
+> Task :react-native-screens:processReleaseManifest
+> Task :react-native-worklets:extractDeepLinksRelease
+> Task :react-native-svg:processReleaseManifest
+> Task :shopify_react-native-skia:extractDeepLinksRelease
+> Task :react-native-worklets:processReleaseManifest
+> Task :notifee_react-native:compileReleaseLibraryResources
+> Task :app:processReleaseMainManifest
+> Task :app:mergeReleaseResources
+> Task :app:processReleaseManifest
+> Task :react-native-gesture-handler:compileReleaseLibraryResources
+> Task :react-native-haptic-feedback:compileReleaseLibraryResources
+> Task :app:processReleaseManifestForPackage
+> Task :react-native-mmkv:compileReleaseLibraryResources
+> Task :react-native-quick-sqlite:compileReleaseLibraryResources
+> Task :react-native-reanimated:compileReleaseLibraryResources
+> Task :react-native-safe-area-context:compileReleaseLibraryResources
+> Task :react-native-svg:compileReleaseLibraryResources
+> Task :react-native-worklets:compileReleaseLibraryResources
+> Task :shopify_react-native-skia:compileReleaseLibraryResources
+> Task :react-native-mmkv:bundleLibCompileToJarRelease
+> Task :react-native-quick-sqlite:bundleLibCompileToJarRelease
+> Task :app:javaPreCompileRelease
+> Task :react-native-haptic-feedback:bundleLibCompileToJarRelease
+> Task :notifee_react-native:bundleLibCompileToJarRelease
+> Task :app:desugarReleaseFileDependencies
+> Task :app:mergeReleaseStartupProfile UP-TO-DATE
+> Task :react-native-screens:compileReleaseLibraryResources
+> Task :react-native-safe-area-context:bundleLibCompileToJarRelease
+> Task :shopify_react-native-skia:bundleLibCompileToJarRelease
+> Task :react-native-gesture-handler:bundleLibCompileToJarRelease
+> Task :notifee_react-native:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-gesture-handler:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-haptic-feedback:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-mmkv:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-quick-sqlite:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-reanimated:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-safe-area-context:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-screens:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-svg:prepareReleaseArtProfile UP-TO-DATE
+> Task :react-native-worklets:prepareReleaseArtProfile UP-TO-DATE
+> Task :app:mergeReleaseArtProfile
+> Task :react-native-quick-sqlite:bundleLibRuntimeToJarRelease
+> Task :notifee_react-native:bundleLibRuntimeToJarRelease
+> Task :react-native-screens:bundleLibCompileToJarRelease
+> Task :react-native-haptic-feedback:bundleLibRuntimeToJarRelease
+> Task :react-native-mmkv:bundleLibRuntimeToJarRelease
+> Task :react-native-gesture-handler:bundleLibRuntimeToJarRelease
+> Task :app:mergeReleaseShaders
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :notifee_react-native:mergeReleaseShaders
+> Task :notifee_react-native:compileReleaseShaders NO-SOURCE
+> Task :notifee_react-native:generateReleaseAssets UP-TO-DATE
+> Task :react-native-reanimated:bundleLibRuntimeToJarRelease
+> Task :notifee_react-native:mergeReleaseAssets
+> Task :shopify_react-native-skia:bundleLibRuntimeToJarRelease
+> Task :react-native-safe-area-context:bundleLibRuntimeToJarRelease
+> Task :react-native-gesture-handler:mergeReleaseShaders
+> Task :react-native-gesture-handler:compileReleaseShaders NO-SOURCE
+> Task :react-native-gesture-handler:generateReleaseAssets UP-TO-DATE
+> Task :react-native-worklets:bundleLibRuntimeToJarRelease
+> Task :react-native-gesture-handler:mergeReleaseAssets
+> Task :react-native-haptic-feedback:mergeReleaseShaders
+> Task :react-native-haptic-feedback:compileReleaseShaders NO-SOURCE
+> Task :react-native-haptic-feedback:generateReleaseAssets UP-TO-DATE
+> Task :react-native-haptic-feedback:mergeReleaseAssets
+> Task :react-native-mmkv:mergeReleaseShaders
+> Task :react-native-mmkv:compileReleaseShaders NO-SOURCE
+> Task :react-native-mmkv:generateReleaseAssets UP-TO-DATE
+> Task :react-native-mmkv:mergeReleaseAssets
+> Task :react-native-quick-sqlite:mergeReleaseShaders
+> Task :react-native-quick-sqlite:compileReleaseShaders NO-SOURCE
+> Task :react-native-quick-sqlite:generateReleaseAssets UP-TO-DATE
+> Task :react-native-quick-sqlite:mergeReleaseAssets
+> Task :react-native-reanimated:mergeReleaseShaders
+> Task :react-native-reanimated:compileReleaseShaders NO-SOURCE
+> Task :react-native-reanimated:generateReleaseAssets UP-TO-DATE
+> Task :react-native-reanimated:mergeReleaseAssets
+> Task :react-native-safe-area-context:mergeReleaseShaders
+> Task :react-native-safe-area-context:compileReleaseShaders NO-SOURCE
+> Task :react-native-safe-area-context:generateReleaseAssets UP-TO-DATE
+> Task :react-native-safe-area-context:mergeReleaseAssets
+> Task :react-native-screens:mergeReleaseShaders
+> Task :react-native-screens:compileReleaseShaders NO-SOURCE
+> Task :react-native-screens:generateReleaseAssets UP-TO-DATE
+> Task :react-native-screens:mergeReleaseAssets
+> Task :react-native-svg:mergeReleaseShaders
+> Task :react-native-svg:compileReleaseShaders NO-SOURCE
+> Task :react-native-svg:generateReleaseAssets UP-TO-DATE
+> Task :react-native-svg:mergeReleaseAssets
+> Task :react-native-worklets:mergeReleaseShaders
+> Task :react-native-worklets:compileReleaseShaders NO-SOURCE
+> Task :react-native-worklets:generateReleaseAssets UP-TO-DATE
+> Task :react-native-worklets:mergeReleaseAssets
+> Task :react-native-svg:bundleLibRuntimeToJarRelease
+> Task :app:mergeReleaseAssets
+> Task :app:extractReleaseVersionControlInfo
+> Task :app:extractProguardFiles
+> Task :notifee_react-native:processReleaseJavaRes NO-SOURCE
+> Task :notifee_react-native:createFullJarRelease
+> Task :notifee_react-native:extractProguardFiles
+> Task :react-native-screens:bundleLibRuntimeToJarRelease
+> Task :notifee_react-native:generateReleaseLintModel
+> Task :notifee_react-native:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-gesture-handler:processReleaseJavaRes
+> Task :react-native-gesture-handler:createFullJarRelease
+> Task :react-native-gesture-handler:extractProguardFiles
+> Task :react-native-reanimated:processReleaseJavaRes NO-SOURCE
+> Task :react-native-reanimated:createFullJarRelease
+> Task :react-native-reanimated:extractProguardFiles
+> Task :react-native-worklets:processReleaseJavaRes NO-SOURCE
+> Task :react-native-worklets:createFullJarRelease
+> Task :react-native-worklets:extractProguardFiles
+> Task :react-native-worklets:generateReleaseLintModel
+> Task :react-native-worklets:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-reanimated:generateReleaseLintModel
+> Task :react-native-reanimated:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-svg:processReleaseJavaRes NO-SOURCE
+> Task :react-native-svg:createFullJarRelease
+> Task :react-native-svg:extractProguardFiles
+> Task :react-native-svg:generateReleaseLintModel
+> Task :react-native-svg:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseLintModel
+> Task :react-native-gesture-handler:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-haptic-feedback:processReleaseJavaRes NO-SOURCE
+> Task :react-native-haptic-feedback:createFullJarRelease
+> Task :react-native-haptic-feedback:extractProguardFiles
+> Task :react-native-haptic-feedback:generateReleaseLintModel
+> Task :react-native-haptic-feedback:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-mmkv:processReleaseJavaRes NO-SOURCE
+> Task :react-native-mmkv:createFullJarRelease
+> Task :react-native-mmkv:extractProguardFiles
+> Task :react-native-mmkv:generateReleaseLintModel
+> Task :react-native-mmkv:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-quick-sqlite:processReleaseJavaRes NO-SOURCE
+> Task :react-native-quick-sqlite:createFullJarRelease
+> Task :react-native-quick-sqlite:extractProguardFiles
+> Task :react-native-quick-sqlite:generateReleaseLintModel
+> Task :react-native-quick-sqlite:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-safe-area-context:processReleaseJavaRes
+> Task :react-native-safe-area-context:createFullJarRelease
+> Task :react-native-safe-area-context:extractProguardFiles
+> Task :react-native-safe-area-context:generateReleaseLintModel
+> Task :react-native-safe-area-context:prepareLintJarForPublish UP-TO-DATE
+> Task :react-native-screens:processReleaseJavaRes
+> Task :react-native-screens:createFullJarRelease
+> Task :react-native-screens:extractProguardFiles
+> Task :react-native-screens:generateReleaseLintModel
+> Task :react-native-screens:prepareLintJarForPublish UP-TO-DATE
+> Task :shopify_react-native-skia:createFullJarRelease
+> Task :shopify_react-native-skia:extractProguardFiles
+> Task :shopify_react-native-skia:generateReleaseLintModel
+> Task :react-native-gesture-handler:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-gesture-handler:extractReleaseAnnotations
+> Task :react-native-gesture-handler:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-gesture-handler:stripReleaseDebugSymbols
+> Task :react-native-gesture-handler:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :react-native-gesture-handler:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-quick-sqlite:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-quick-sqlite:extractReleaseAnnotations
+> Task :react-native-quick-sqlite:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-quick-sqlite:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :react-native-safe-area-context:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-safe-area-context:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-safe-area-context:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-quick-sqlite:mergeReleaseJavaResource
+> Task :react-native-safe-area-context:extractReleaseAnnotations
+> Task :react-native-quick-sqlite:syncReleaseLibJars
+> Task :react-native-safe-area-context:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-safe-area-context:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :react-native-screens:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-gesture-handler:mergeReleaseJavaResource
+> Task :react-native-safe-area-context:mergeReleaseJavaResource
+> Task :react-native-quick-sqlite:stripReleaseDebugSymbols
+> Task :react-native-screens:extractReleaseAnnotations
+> Task :react-native-screens:stripReleaseDebugSymbols
+> Task :react-native-gesture-handler:syncReleaseLibJars
+> Task :react-native-gesture-handler:bundleReleaseLocalLintAar
+> Task :react-native-quick-sqlite:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-safe-area-context:syncReleaseLibJars
+> Task :react-native-quick-sqlite:bundleReleaseLocalLintAar
+> Task :react-native-safe-area-context:bundleReleaseLocalLintAar
+> Task :react-native-screens:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-screens:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :react-native-screens:copyReleaseJniLibsProjectAndLocalJars
+> Task :notifee_react-native:stripReleaseDebugSymbols NO-SOURCE
+> Task :notifee_react-native:copyReleaseJniLibsProjectAndLocalJars
+> Task :notifee_react-native:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-screens:mergeReleaseJavaResource
+> Task :notifee_react-native:extractReleaseAnnotations
+> Task :react-native-screens:syncReleaseLibJars
+> Task :react-native-screens:bundleReleaseLocalLintAar
+> Task :notifee_react-native:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :notifee_react-native:mergeReleaseConsumerProguardFiles
+> Task :notifee_react-native:mergeReleaseJavaResource
+> Task :app:processReleaseResources
+> Task :shopify_react-native-skia:bundleReleaseLocalLintAar
+> Task :notifee_react-native:syncReleaseLibJars
+> Task :notifee_react-native:bundleReleaseLocalLintAar
+> Task :react-native-haptic-feedback:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-haptic-feedback:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-haptic-feedback:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-haptic-feedback:extractReleaseAnnotations
+> Task :react-native-haptic-feedback:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-haptic-feedback:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :react-native-mmkv:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-haptic-feedback:mergeReleaseJavaResource
+> Task :react-native-mmkv:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-mmkv:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-haptic-feedback:syncReleaseLibJars
+> Task :react-native-haptic-feedback:bundleReleaseLocalLintAar
+> Task :react-native-mmkv:extractReleaseAnnotations
+> Task :react-native-mmkv:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-mmkv:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :react-native-mmkv:mergeReleaseJavaResource
+> Task :react-native-reanimated:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-mmkv:syncReleaseLibJars
+> Task :react-native-mmkv:bundleReleaseLocalLintAar
+> Task :react-native-reanimated:extractReleaseAnnotations
+> Task :react-native-reanimated:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-reanimated:mergeReleaseConsumerProguardFiles
+> Task :react-native-svg:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-reanimated:mergeReleaseJavaResource
+> Task :react-native-svg:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-reanimated:syncReleaseLibJars
+> Task :react-native-svg:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-reanimated:stripReleaseDebugSymbols
+> Task :react-native-svg:extractReleaseAnnotations
+> Task :react-native-svg:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-svg:mergeReleaseConsumerProguardFiles
+> Task :react-native-worklets:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :react-native-svg:mergeReleaseJavaResource
+> Task :react-native-worklets:extractReleaseAnnotations
+> Task :react-native-worklets:stripReleaseDebugSymbols
+> Task :react-native-reanimated:copyReleaseJniLibsProjectAndLocalJars
+> Task :app:mergeExtDexRelease
+> Task :react-native-svg:syncReleaseLibJars
+> Task :app:compileReleaseKotlin
+> Task :react-native-reanimated:bundleReleaseLocalLintAar
+
+> Task :app:compileReleaseJavaWithJavac
+Note: C:\Users\valen\Downloads\kpkn-fit-(beta-test)\apps\mobile\android\app\src\main\java\com\yourprime\app\modules\KPKNMobilePackage.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :app:dexBuilderRelease
+> Task :app:mergeReleaseGlobalSynthetics
+> Task :app:generateReleaseLintVitalReportModel
+> Task :react-native-svg:bundleReleaseLocalLintAar
+> Task :react-native-worklets:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :react-native-worklets:mergeReleaseConsumerProguardFiles
+> Task :react-native-worklets:mergeReleaseJavaResource
+> Task :react-native-worklets:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-worklets:syncReleaseLibJars
+> Task :react-native-worklets:bundleReleaseLocalLintAar
+> Task :notifee_react-native:writeReleaseLintModelMetadata
+> Task :react-native-reanimated:writeReleaseLintModelMetadata
+> Task :react-native-svg:writeReleaseLintModelMetadata
+> Task :react-native-worklets:writeReleaseLintModelMetadata
+> Task :react-native-gesture-handler:writeReleaseLintModelMetadata
+> Task :react-native-haptic-feedback:writeReleaseLintModelMetadata
+> Task :react-native-mmkv:writeReleaseLintModelMetadata
+> Task :react-native-quick-sqlite:writeReleaseLintModelMetadata
+> Task :react-native-safe-area-context:writeReleaseLintModelMetadata
+> Task :react-native-screens:writeReleaseLintModelMetadata
+> Task :shopify_react-native-skia:writeReleaseLintModelMetadata
+> Task :notifee_react-native:generateReleaseLintVitalModel
+> Task :react-native-gesture-handler:generateReleaseLintVitalModel
+> Task :react-native-haptic-feedback:generateReleaseLintVitalModel
+> Task :react-native-mmkv:generateReleaseLintVitalModel
+> Task :react-native-quick-sqlite:generateReleaseLintVitalModel
+> Task :react-native-reanimated:generateReleaseLintVitalModel
+> Task :react-native-safe-area-context:generateReleaseLintVitalModel
+> Task :react-native-screens:generateReleaseLintVitalModel
+> Task :react-native-svg:generateReleaseLintVitalModel
+> Task :react-native-worklets:generateReleaseLintVitalModel
+> Task :shopify_react-native-skia:generateReleaseLintVitalModel
+> Task :app:processReleaseJavaRes
+> Task :app:collectReleaseDependencies
+> Task :react-native-haptic-feedback:lintVitalAnalyzeRelease
+> Task :app:sdkReleaseDependencyData
+> Task :app:validateSigningRelease
+> Task :app:writeReleaseAppMetadata
+> Task :app:writeReleaseSigningConfigVersions
+> Task :app:optimizeReleaseResources
+> Task :notifee_react-native:lintVitalAnalyzeRelease
+> Task :react-native-quick-sqlite:lintVitalAnalyzeRelease
+> Task :react-native-mmkv:lintVitalAnalyzeRelease
+> Task :app:mergeReleaseJavaResource

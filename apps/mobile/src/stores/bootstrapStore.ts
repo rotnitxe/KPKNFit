@@ -29,6 +29,24 @@ interface BootstrapStore {
   retry: () => Promise<void>;
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
+  let timeoutId: any;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`TIMEOUT: ${errorMessage} (${timeoutMs}ms)`));
+    }, timeoutMs);
+  });
+
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    return result as T;
+  } finally {
+    clearTimeout(timeoutId!);
+  }
+}
+
+const BOOTSTRAP_STEP_TIMEOUT = 6000; // 6 segundos por fase crítica
+
 export const useBootstrapStore = create<BootstrapStore>((set, get) => ({
   status: 'booting',
   summary: null,
@@ -36,12 +54,16 @@ export const useBootstrapStore = create<BootstrapStore>((set, get) => ({
   error: null,
 
   bootstrap: async () => {
-    console.log('[Bootstrap] Inciando proceso...');
+    console.log('[Bootstrap] Iniciando proceso...');
     set({ status: 'booting', error: null, summary: null, hydrationResult: null });
     try {
-      // ── 1. Importar snapshot (valida antes de persistir) ──────────────────
+      // ── 1. Importar snapshot (con timeout) ───────────────────────────────
       console.log('[Bootstrap] Pasos 1: importBridgeSnapshotIfNeeded...');
-      const summary = await importBridgeSnapshotIfNeeded();
+      const summary = await withTimeout(
+        importBridgeSnapshotIfNeeded(),
+        BOOTSTRAP_STEP_TIMEOUT,
+        'No se pudo leer el snapshot de migración'
+      );
       set({ summary });
       console.log('[Bootstrap] Resumen de importación:', summary.source);
 
@@ -49,18 +71,22 @@ export const useBootstrapStore = create<BootstrapStore>((set, get) => ({
         throw new Error(`La migración local no es válida todavía. ${summary.validationError}`);
       }
 
-      // ── 2. Rehidratar dominios si vino de un snapshot ─────────────────────
+      // ── 2. Rehidratar dominios si vino de un snapshot (con timeout) ──────
       let hydrationResult: HydrationResult | null = null;
       if (summary.source === 'snapshot') {
         console.log('[Bootstrap] Paso 2: hydrateFromMigrationSnapshot...');
-        hydrationResult = await hydrateFromMigrationSnapshot();
+        hydrationResult = await withTimeout(
+          hydrateFromMigrationSnapshot(),
+          BOOTSTRAP_STEP_TIMEOUT,
+          'La rehidratación de datos tomó demasiado tiempo'
+        );
         set({ hydrationResult });
         console.log('[Bootstrap] Hidratación completada.');
       }
 
-      // ── 3. Hidratar stores RN ─────────────────────────────────────────────
+      // ── 3. Hidratar stores RN (con timeout batch) ─────────────────────────
       console.log('[Bootstrap] Paso 3: Hidratando stores...');
-      const storeHydrationResults = await Promise.allSettled([
+      const hydrationTasks = [
         useMobileNutritionStore.getState().hydrateFromStorage(),
         useWorkoutStore.getState().hydrateFromMigration(),
         useSettingsStore.getState().hydrateFromMigration(),
@@ -73,7 +99,13 @@ export const useBootstrapStore = create<BootstrapStore>((set, get) => ({
         useCoachStore.getState().hydrateFromStorage(),
         useAugeRuntimeStore.getState().hydrateFromStorage(),
         useLocalAiDiagnosticsStore.getState().refreshStatus(),
-      ]);
+      ];
+
+      const storeHydrationResults = await withTimeout(
+        Promise.allSettled(hydrationTasks),
+        BOOTSTRAP_STEP_TIMEOUT + 2000, // Margen extra para el batch
+        'La sincronización de stores interna falló por tiempo'
+      );
 
       const criticalErrors = storeHydrationResults
         .slice(0, 3)
@@ -90,19 +122,22 @@ export const useBootstrapStore = create<BootstrapStore>((set, get) => ({
       }
 
       if (nonCriticalErrors.length > 0) {
-        console.warn('[Bootstrap] Stores no críticos fallaron, seguimos en modo degradado:', nonCriticalErrors);
+        console.warn('[Bootstrap] Stores no críticos fallaron o expiraron:', nonCriticalErrors);
       }
 
       set({ status: 'ready' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error desconocido durante el arranque.';
       console.error('[Bootstrap] Fallo durante el arranque:', message, error);
+      
+      // Si el error es un TIMEOUT no crítico (ej. Local AI), podríamos intentar seguir
+      // Pero por ahora, fallamos para que el usuario pueda reintentar o ver qué pasó.
+      // EXCEPCIÓN: Si el error contiene "TIMEOUT" y logramos al menos cargar configuraciones básicas, podríamos forzar 'ready'.
       set({ status: 'failed', error: message });
     }
   },
 
   retry: async () => {
-    // Solo permitimos retry si el estado actual es 'failed'.
     if (get().status === 'failed') {
       await get().bootstrap();
     }

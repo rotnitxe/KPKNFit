@@ -136,12 +136,12 @@ public class LocalAiModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getStatus(Promise promise) {
-        resolvePromise(promise, buildStatus(false));
+        promise.resolve(buildStatus(false));
     }
 
     @ReactMethod
     public void getDiagnostics(Promise promise) {
-        resolvePromise(promise, buildDiagnostics());
+        promise.resolve(buildDiagnostics());
     }
 
     @ReactMethod
