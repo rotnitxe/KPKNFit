@@ -28,6 +28,12 @@ import {
     classifyStressLevel,
     calculateExerciseFatigueScale 
 } from '../../services/auge';
+import { AugeDashboard } from '../../components/auge/AugeDashboard';
+import { 
+    estimatePercent1RM, 
+    getEffectiveRepsForRM,
+    calculateBrzycki1RM
+} from '../../utils/calculations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -319,6 +325,8 @@ export const SessionEditorScreen: React.FC = () => {
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                 >
+                    <AugeDashboard />
+                    
                     <LiquidGlassCard style={styles.sessionCard}>
                         <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Configuración General</Text>
                         <TextInput
@@ -452,16 +460,28 @@ export const SessionEditorScreen: React.FC = () => {
                                                     value={String(set.targetReps ?? 10)}
                                                     onChangeText={(t) => updateSet(ex.id, set.id, { targetReps: parseInt(t) || 0 })}
                                                 />
-                                                <View style={{ flex: 1, flexDirection: 'row', gap: 4 }}>
-                                                    <TextInput
-                                                        style={[styles.setInp, { flex: 1, color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
-                                                        keyboardType="numeric"
-                                                        value={String(set.intensityMode === 'rpe' ? (set.targetRPE ?? 8) : (set.targetRIR ?? 2))}
-                                                        onChangeText={(t) => {
-                                                            const val = parseFloat(t) || 0;
-                                                            updateSet(ex.id, set.id, set.intensityMode === 'rpe' ? { targetRPE: val } : { targetRIR: val });
-                                                        }}
-                                                    />
+                                                <View style={{ flex: 1.2, flexDirection: 'row', gap: 4 }}>
+                                                    <View style={{ flex: 1 }}>
+                                                        <TextInput
+                                                            style={[styles.setInp, { color: colors.onSurface, backgroundColor: colors.surfaceContainer }]}
+                                                            keyboardType="numeric"
+                                                            value={String(set.intensityMode === 'rpe' ? (set.targetRPE ?? 8) : (set.targetRIR ?? 2))}
+                                                            onChangeText={(t) => {
+                                                                const val = parseFloat(t) || 0;
+                                                                updateSet(ex.id, set.id, set.intensityMode === 'rpe' ? { targetRPE: val } : { targetRIR: val });
+                                                            }}
+                                                        />
+                                                        {(() => {
+                                                            const effReps = getEffectiveRepsForRM(set);
+                                                            const percent = effReps ? estimatePercent1RM(effReps) : null;
+                                                            if (!percent) return null;
+                                                            return (
+                                                                <Text style={{ fontSize: 8, color: colors.primary, textAlign: 'center', marginTop: 2, fontWeight: '900' }}>
+                                                                    {percent}%
+                                                                </Text>
+                                                            );
+                                                        })()}
+                                                    </View>
                                                     <TouchableOpacity 
                                                         onPress={() => updateSet(ex.id, set.id, { intensityMode: set.intensityMode === 'rpe' ? 'rir' : 'rpe' })}
                                                         style={styles.intensityToggle}

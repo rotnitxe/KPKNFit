@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { extractCoreReminderSettings } from '@kpkn/shared-domain';
-import type { CoreReminderSettings } from '@kpkn/shared-types';
+import type { Settings } from '../types/settings';
 import {
   getStoredSettingsSource,
   patchStoredSettingsRaw,
@@ -12,13 +11,7 @@ import { rescheduleCoreNotificationsFromStorage } from '../services/mobileNotifi
 type SettingsStatus = 'idle' | 'ready';
 type ReminderPreset = 'light' | 'full';
 
-export interface MobileSettingsSummary extends CoreReminderSettings {
-  apiProvider: string | null;
-  fallbackEnabled: boolean;
-  workoutLoggerMode: 'pro' | 'simple' | null;
-  sessionCompactView: boolean;
-  homeWidgetOrder: string[];
-  weightUnit: 'kg' | 'lbs';
+export interface MobileSettingsSummary extends Settings {
   source: StoredSettingsSource;
 }
 
@@ -35,23 +28,10 @@ interface SettingsStoreState {
 }
 
 function buildSettingsSummary(raw: Record<string, unknown>, source: StoredSettingsSource): MobileSettingsSummary {
-  const reminders = extractCoreReminderSettings(raw);
-
   return {
-    ...reminders,
-    apiProvider: typeof raw.apiProvider === 'string' ? raw.apiProvider : null,
-    fallbackEnabled: typeof raw.fallbackEnabled === 'boolean' ? raw.fallbackEnabled : false,
-    workoutLoggerMode:
-      raw.workoutLoggerMode === 'pro' || raw.workoutLoggerMode === 'simple'
-        ? raw.workoutLoggerMode
-        : 'simple',
-    sessionCompactView: typeof raw.sessionCompactView === 'boolean' ? raw.sessionCompactView : false,
-    homeWidgetOrder: Array.isArray(raw.homeWidgetOrder)
-      ? raw.homeWidgetOrder.filter((value): value is string => typeof value === 'string')
-      : [],
-    weightUnit: raw.weightUnit === 'lbs' ? 'lbs' : 'kg',
+    ...raw,
     source,
-  };
+  } as MobileSettingsSummary;
 }
 
 async function persistSummary(

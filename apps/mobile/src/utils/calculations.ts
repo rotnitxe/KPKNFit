@@ -394,3 +394,12 @@ export const resolveEventDate = (targetDate: Date, rules?: { avoidDaysOfWeek?: n
     }
     return resolved;
 };
+
+export const parseDateStringAsLocal = (dateStr: string): Date => {
+    const [year, month, day] = dateStr.slice(0, 10).split('-').map(Number);
+    return new Date(year, month - 1, day);
+};
+
+export const getDatePartFromString = (dateStr: string): string => {
+    return dateStr?.slice(0, 10) || '';
+};

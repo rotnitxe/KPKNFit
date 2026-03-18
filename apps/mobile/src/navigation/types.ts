@@ -14,7 +14,7 @@ export type WorkoutStackParamList = {
   SessionDetail: { sessionId: string };
   ProgramDetail: { programId: string };
   ActiveSession: { programId: string; sessionId: string; sessionName: string };
-  SessionEditor: { programId: string; weekId: string; sessionId: string };
+  SessionEditor: { programId: string; blockIndex: number; mesoIndex: number; weekIndex: number; sessionIndex: number };
   ProgramWizard: { mode: 'create' | 'edit'; programId?: string };
   SplitEditor: { programId: string };
   MacrocycleEditor: { programId: string };

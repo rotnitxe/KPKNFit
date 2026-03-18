@@ -64,7 +64,11 @@ const MESOCYCLE_GOALS = [
   { value: 'Acumulación', label: 'Acumulación' },
   { value: 'Intensificación', label: 'Intensificación' },
   { value: 'Realización', label: 'Realización' },
-  { value: 'Descarga', label: 'Descarga' },
+  { value: 'Peak', label: 'Peak / Taper' },
+  { value: 'Fuerza', label: 'Fuerza Máxima' },
+  { value: 'Hipertrofia', label: 'Hipertrofia' },
+  { value: 'Transición', label: 'Transición' },
+  { value: 'Descarga', label: 'Descarga (Deload)' },
   { value: 'Custom', label: 'Personalizado' },
 ];
 
@@ -152,6 +156,10 @@ export const MacrocycleEditorScreen: React.FC = () => {
   };
 
   const handleDeleteBlock = (blockIndex: number) => {
+    if ((program.macrocycles[0].blocks || []).length <= 1) {
+      Alert.alert("Acción no permitida", "El programa debe tener al menos un bloque de entrenamiento.");
+      return;
+    }
     Alert.alert(
       "Eliminar Bloque",
       "¿Estás seguro de que quieres eliminar este bloque y todo su contenido?",

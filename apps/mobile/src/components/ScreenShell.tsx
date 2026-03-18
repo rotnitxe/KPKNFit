@@ -23,6 +23,7 @@ interface ScreenShellProps {
   showLogo?: boolean;
   headerContent?: React.ReactNode;
   contentContainerStyle?: StyleProp<ViewStyle>;
+  noPadding?: boolean;
 }
 
 export function ScreenShell({ 
@@ -33,6 +34,7 @@ export function ScreenShell({
   showLogo = false,
   headerContent,
   contentContainerStyle,
+  noPadding = false,
 }: ScreenShellProps) {
   const colors = useColors();
   const isDark = useIsDark();
@@ -105,7 +107,11 @@ export function ScreenShell({
 
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
+          contentContainerStyle={[
+            styles.scrollContent, 
+            noPadding && { padding: 0, paddingBottom: 0 },
+            contentContainerStyle
+          ]}
           keyboardShouldPersistTaps="handled"
         >
           {children}

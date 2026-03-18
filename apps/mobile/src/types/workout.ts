@@ -1,13 +1,218 @@
 /**
- * Mobile-side type definitions for the workout / program / exercise / body domains.
- *
- * These mirror the essential shape of the PWA root `types.ts` definitions.
- * They are intentionally lightweight — only the fields that mobile code
- * actually reads today are required; everything else is optional.
- * The data arrives via migration from the PWA's IndexedDB/Capacitor storage.
- */
+* Mobile-side type definitions for the workout / program / exercise / body domains.
+*
+* These mirror the essential shape of the PWA root `types.ts` definitions.
+* They are intentionally lightweight — only the fields that mobile code
+* actually reads today are required; everything else is optional.
+* The data arrives via migration from the PWA's IndexedDB/Capacitor storage.
+*/
 
 import type { CanonicalMuscle, MuscleRole } from '@kpkn/shared-types';
+
+// ---------------------------------------------------------------------------
+// Settings & Config Types
+// ---------------------------------------------------------------------------
+
+export type WeightUnit = 'kg' | 'lbs';
+export type HapticIntensity = 'soft' | 'medium' | 'heavy';
+export type OneRMFormula = 'brzycki' | 'epley' | 'lander';
+export type IntensityLevel = 'light' | 'moderate' | 'high';
+
+export interface CalorieGoalConfig {
+  formula: 'mifflin' | 'harris' | 'katch';
+  activityLevel: number;
+  goal: 'lose' | 'maintain' | 'gain';
+  weeklyChangeKg?: number;
+  healthMultiplier?: number;
+  customActivityFactor?: number;
+  activityDaysPerWeek?: number;
+  activityHoursPerDay?: number;
+}
+
+export type NutritionGoalMetric = 'weight' | 'bodyFat' | 'muscleMass';
+export type NutritionRiskSeverity = 'info' | 'warning' | 'danger';
+export type NutritionTrendStatus = 'on_track' | 'behind' | 'ahead' | 'unknown';
+
+export interface NutritionGoal {
+  metric: NutritionGoalMetric;
+  value: number;
+  label: string;
+  unit: string;
+  priority: 'primary' | 'secondary';
+}
+
+export interface NutritionRiskFlag {
+  id: string;
+  code: string;
+  severity: NutritionRiskSeverity;
+  message: string;
+  hardStop?: boolean;
+}
+
+export interface NutritionCalculationSnapshot {
+  formula: CalorieGoalConfig['formula'];
+  activityFactor: number;
+  bmr: number | null;
+  tdee: number | null;
+  calorieTarget: number;
+  generatedAt: string;
+}
+
+export interface NutritionProjection {
+  etaDate: string | null;
+  trendStatus: NutritionTrendStatus;
+  weeklyDelta: number | null;
+  confidence: number;
+}
+
+// ---------------------------------------------------------------------------
+// Periodización & Perfil de Atleta
+// ---------------------------------------------------------------------------
+
+export interface AthleteProfile {
+  technicalScore: 1 | 2 | 3;
+  consistencyScore: 1 | 2 | 3;
+  strengthStandard: 1 | 2 | 3;
+  recoveryCapacity: -1 | 0 | 1;
+}
+
+export type ExperienceClassification = 'beginner' | 'intermediate' | 'advanced';
+
+export type TrainingPhase =
+  | 'accumulation'
+  | 'transformation'
+  | 'realization';
+
+export type IntensityTier =
+  | 'failure'
+  | 'rpe_8_9'
+  | 'rpe_6_7';
+
+export interface VolumeRecommendation {
+  muscleGroup: string;
+  minEffectiveVolume: number;
+  maxAdaptiveVolume: number;
+  maxRecoverableVolume: number;
+  frequencyCap: number;
+}
+
+export interface VolumeRecSnapshot {
+  minEffectiveVolume: number;
+  maxAdaptiveVolume: number;
+  maxRecoverableVolume: number;
+}
+
+export interface VolumeCalibrationEntry {
+  date: string;
+  source: 'auto' | 'manual';
+  changes: { muscle: string; prev: VolumeRecSnapshot; next: VolumeRecSnapshot; reason: string }[];
+}
+
+export interface CoverStyle {
+  filters?: {
+    contrast: number;
+    saturation: number;
+    brightness: number;
+    grayscale: number;
+    sepia: number;
+    vignette: number;
+  };
+  enableMotion?: boolean;
+  labelPosition?: 'bottom-left' | 'center' | 'bottom-center';
+}
+
+export interface SessionBackground {
+  type: 'color' | 'image';
+  value: string;
+  style?: {
+    blur?: number;
+    brightness?: number;
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Loops & Eventos de Programa
+// ---------------------------------------------------------------------------
+
+export type LoopType = '1rm_test' | 'deload' | 'competition' | 'custom';
+
+export interface Loop {
+  id: string;
+  title: string;
+  type: LoopType;
+  repeatEveryXLoops: number;
+  durationType: 'day' | 'week';
+  dayOfWeek?: number;
+  durationWeeks?: number;
+  priority?: number;
+  sessions?: Session[];
+  color?: string;
+}
+
+export interface LoopActivation {
+  loopId: string;
+  cycle: number;
+  status: 'scheduled' | 'active' | 'completed' | 'postponed' | 'cancelled';
+  postponedTo?: number;
+}
+
+export interface LoopTemplate {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  tags: string[];
+  weeks: number;
+  splitId?: string;
+  loops: Loop[];
+  weekConfigs?: { weekIndex: number; focus?: string; intensityModifier?: number }[];
+}
+
+export type KeyDateType = 'competition' | 'exam_week' | 'vacation' | 'custom';
+
+export interface KeyDate {
+  id: string;
+  title: string;
+  type: KeyDateType;
+  targetDate: string;
+  durationType: 'day' | 'week';
+  durationDays?: number;
+  weekIndex?: number;
+  dayOfWeek?: number;
+  sessions?: Session[];
+  truncateWeek?: boolean;
+}
+
+export type ProtocolId = 'gzcl' | '531' | 'juggernaut' | 'westside' | 'rts' | 'custom';
+
+export interface Protocol {
+  id: string;
+  protocolId: ProtocolId;
+  name: string;
+  emoji: string;
+  description: string;
+  author?: string;
+  tags: string[];
+  sessionCategories: string[];
+  blocks: {
+    name: string;
+    weeks: number;
+    goal: Mesocycle['goal'];
+    intensityRange?: [number, number];
+    volumeModifier?: number;
+  }[];
+  defaultSplit?: string;
+}
+
+export interface MicroProgramRule {
+  id: string;
+  scope: 'session' | 'day' | 'week';
+  activateEveryXLoops: number;
+  durationLoops: number;
+  targetSessionIds?: string[];
+  targetDayOfWeek?: number;
+  action: 'swap_main' | 'activate_secondary' | 'deactivate';
+}
 
 // ---------------------------------------------------------------------------
 // Program periodization tree
@@ -28,11 +233,20 @@ export interface ExerciseSet {
   completedRPE?: number;
   completedRIR?: number;
   isFailure?: boolean;
+  isIneffective?: boolean;
+  isPartial?: boolean;
+  partialReps?: number;
   isAmrap?: boolean;
   isCalibrator?: boolean;
+  machineBrand?: string;
+  isChangeOfPlans?: boolean;
+  dropSets?: DropSetData[];
+  restPauses?: RestPauseData[];
   performanceMode?: 'target' | 'failure' | 'failed';
-  dropSets?: unknown[];
-  restPauses?: unknown[];
+  technicalWeight?: number;
+  consolidatedWeight?: number;
+  attemptResult?: 'good' | 'no-lift' | 'pending';
+  judgingLights?: [boolean | null, boolean | null, boolean | null];
 }
 
 export interface Exercise {
@@ -44,12 +258,29 @@ export interface Exercise {
   warmupSets?: unknown[];
   restTime?: number;
   trainingMode?: 'reps' | 'time' | 'percent' | 'custom';
-  supersetId?: string;
-  notes?: string;
-  isFavorite?: boolean;
+  customUnit?: string;
   reference1RM?: number;
+  targetSessionGoal?: string;
+  isStarTarget?: boolean;
+  trackHeartRate?: boolean;
+  setupDetails?: {
+    seatPosition?: string;
+    pinPosition?: string;
+    equipmentNotes?: string;
+  };
+  supersetId?: string;
+  variantName?: string;
+  prFor1RM?: { weight: number; reps: number };
+  consolidatedWeight?: { weightKg: number; reps: number };
+  brandEquivalencies?: BrandEquivalency[];
   isUnilateral?: boolean;
+  isCalibratorAmrap?: boolean;
+  goal1RM?: number;
+  calculated1RM?: number;
   damageProfile?: 'stretch' | 'squeeze' | 'normal';
+  isCompetitionLift?: boolean;
+  isFavorite?: boolean;
+  notes?: string;
 }
 
 export interface Session {
@@ -58,10 +289,31 @@ export interface Session {
   description?: string;
   focus?: string;
   exercises: Exercise[];
-  warmup?: unknown[];
+  warmup?: WarmupExercise[];
   parts?: SessionPart[];
+  background?: SessionBackground;
+  coverStyle?: CoverStyle;
   dayOfWeek?: number;
+  scheduleLabel?: string;
   assignedDays?: number[];
+  sessionB?: Session;
+  sessionC?: Session;
+  sessionD?: Session;
+  isMeetDay?: boolean;
+  isMainSession?: boolean;
+  microProgram?: {
+    enabled: boolean;
+    everyXCycles: number;
+    isMainInCycle: boolean;
+    rules?: MicroProgramRule[];
+  };
+  meetBodyweight?: number;
+  meetResults?: {
+    placement?: string;
+    total?: number;
+    dots?: number;
+    awards?: string[];
+  };
 }
 
 export interface SessionPart {
@@ -76,6 +328,46 @@ export interface ProgramWeek {
   name: string;
   sessions: Session[];
   variant?: 'A' | 'B' | 'C' | 'D';
+  events?: Array<{
+    id?: string;
+    title: string;
+    type?: string;
+  }>;
+  isLoopWeek?: boolean;
+  loopId?: string;
+}
+
+export interface WarmupExercise {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
+  duration?: number;
+  sets?: number;
+  reps?: string;
+}
+
+export interface WarmupSetDefinition {
+  id: string;
+  percentageOfWorkingWeight: number;
+  targetReps: number;
+  matchRPE?: number;
+}
+
+export interface BrandEquivalency {
+  brand: string;
+  pr?: { weight: number; reps: number; e1rm: number };
+}
+
+export interface SkippedWorkoutLog {
+  id: string;
+  date: string;
+  programId: string;
+  sessionId: string;
+  sessionName: string;
+  programName: string;
+  reason: 'sick' | 'vacation' | 'gym_closed' | 'other' | 'skip';
+  notes?: string;
 }
 
 export interface Mesocycle {
@@ -85,12 +377,14 @@ export interface Mesocycle {
   customGoal?: string;
   weeks: ProgramWeek[];
 }
+export type ProgramMesocycle = Mesocycle;
 
 export interface Block {
   id: string;
   name: string;
   mesocycles: Mesocycle[];
 }
+export type ProgramBlock = Block;
 
 export interface ProgramEvent {
   id: string;
@@ -126,6 +420,7 @@ export interface Program {
   selectedSplitId?: string;
   athleteProfile?: AthleteProfileScore;
   events?: ProgramEvent[];
+  volumeRecommendations?: VolumeRecommendation[];
 }
 
 export interface ActiveProgramState {
@@ -159,6 +454,7 @@ export interface ExerciseMuscleInfo {
   alias?: string;
   description: string;
   involvedMuscles: InvolvedMuscle[];
+  subMuscleGroup?: string;
   category: string;
   type: 'Básico' | 'Accesorio' | 'Aislamiento';
   tier?: 'T1' | 'T2' | 'T3';
@@ -166,12 +462,58 @@ export interface ExerciseMuscleInfo {
   force: string;
   isCustom?: boolean;
   bodyPart?: 'upper' | 'lower' | 'full';
+  chain?: 'anterior' | 'posterior' | 'full';
   isFavorite?: boolean;
   variantOf?: string;
+  sfr?: { score: number; justification: string };
+  setupTime?: number;
+  averageRestSeconds?: number;
+  coreInvolvement?: 'high' | 'medium' | 'low';
+  bracingRecommended?: boolean;
+  strapsRecommended?: boolean;
+  bodybuildingScore?: number;
+  functionalTransfer?: string;
   efc?: number;
   ssc?: number;
   cnc?: number;
   ttc?: number;
+  axialLoadFactor?: number;
+  postureFactor?: number;
+  technicalDifficulty?: number;
+  injuryRisk?: { level: number; details: string };
+  transferability?: number;
+  recommendedMobility?: string[];
+  resistanceProfile?: {
+    curve?: string;
+    peakTensionPoint?: string;
+    description?: string;
+  };
+  commonMistakes?: { mistake: string; correction: string }[];
+  progressions?: { name: string; description: string }[];
+  regressions?: { name: string; description: string }[];
+  anatomicalConsiderations?: { trait: string; advice: string }[];
+  periodizationNotes?: { phase: string; suitability: number; notes: string }[];
+  primeStars?: { score: number; justification: string };
+  communityOpinion?: string[];
+  aiCoachAnalysis?: { summary: string; pros: string[]; cons: string[] };
+  images?: string[];
+  videos?: string[];
+  userRating?: number;
+  setupDetails?: {
+    seatPosition?: string;
+    pinPosition?: string;
+    equipmentNotes?: string;
+  };
+  brandEquivalencies?: BrandEquivalency[];
+  repDebtHistory?: Record<string, number>;
+  damageProfile?: 'stretch' | 'squeeze' | 'normal';
+  calculated1RM?: number;
+  last1RMTestDate?: string;
+  setupCues?: string[];
+  executionCues?: string[];
+  isHallOfFame?: boolean;
+  sportsRelevance?: string[];
+  baseIFI?: number;
 }
 
 export interface ExercisePlaylist {

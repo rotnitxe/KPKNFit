@@ -1,19 +1,9 @@
 // apps/mobile/src/types/volume.ts
 import type { Mesocycle } from './workout';
+import type { AthleteProfileScore, VolumeRecommendation, VolumeRecSnapshot, VolumeCalibrationEntry } from '@kpkn/shared-types';
 
-export interface AthleteProfileScore {
-    totalScore: number;
-    profileLevel: 'Beginner' | 'Intermediate' | 'Advanced';
-    lastUpdated: string;
-}
-
-export interface VolumeRecommendation {
-    minSets: number;
-    maxSets: number;
-    optimalSets: number;
-    type: 'sets' | 'lifts';
-    reasoning: string;
-}
+// Re-export from shared types to ensure consistency
+export { AthleteProfileScore, VolumeRecommendation, VolumeRecSnapshot, VolumeCalibrationEntry };
 
 export interface PostSessionFeedback {
     date: string;

@@ -27,6 +27,7 @@ import { useWorkoutStore } from '@/stores/workoutStore';
 import { useProgramStore } from '@/stores/programStore';
 import { useBodyStore } from '@/stores/bodyStore';
 import { useWellbeingStore } from '@/stores/wellbeingStore';
+import { useExerciseStore } from '@/stores/exerciseStore';
 import { useMobileNutritionStore } from '@/stores/nutritionStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors, useTheme } from '@/theme';
@@ -92,6 +93,12 @@ export function HomeScreen() {
     status: programStatus,
     hydrateFromMigration: hydratePrograms,
   } = useProgramStore();
+  
+  const {
+    status: exerciseStatus,
+    hydrateFromMigration: hydrateExercises,
+  } = useExerciseStore();
+
   const {
     overview,
     status: workoutStatus,
@@ -123,6 +130,7 @@ export function HomeScreen() {
   useEffect(() => {
     if (workoutStatus === 'idle') void hydrateWorkout();
     if (programStatus === 'idle') void hydratePrograms();
+    if (exerciseStatus === 'idle') void hydrateExercises();
     if (bodyStatus === 'idle') void hydrateBody();
     if (wellbeingStatus === 'idle') void hydrateWellbeing();
     if (!hasHydratedNutrition) void hydrateNutrition();
@@ -349,6 +357,7 @@ export function HomeScreen() {
       showBack={false}
       headerContent={headerContent}
       contentContainerStyle={styles.shellContent}
+      noPadding
     >
       <View style={[styles.container, { backgroundColor: isDark ? '#121212' : 'transparent' }]}>
         {activeProgram ? renderWithProgram() : renderEmpty()}

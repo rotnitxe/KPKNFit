@@ -165,3 +165,26 @@ export const calculateExerciseFatigueScale = (exercise: any, info: ExerciseCatal
     });
     return Math.min(10, Math.round(totalDrain / 2));
 };
+
+export const calculateSetStress = (set: any, info: ExerciseCatalogEntry | undefined, restTime: number = 90): number => {
+    const defaultTanks = calculatePersonalizedBatteryTanks({});
+    const drain = calculateSetBatteryDrain(set, info as any, defaultTanks, 0, restTime);
+    return drain.muscularDrainPct;
+};
+
+export const calculateSpinalScore = (set: any, info: ExerciseCatalogEntry | undefined): number => {
+    const defaultTanks = calculatePersonalizedBatteryTanks({});
+    const drain = calculateSetBatteryDrain(set, info as any, defaultTanks, 0, 90);
+    return drain.spinalDrainPct;
+};
+
+export const normalizeToTenScale = (verroScore: number): number => {
+    return Math.min(10, Math.max(1, parseFloat(((verroScore / 10) * 10).toFixed(1))));
+};
+
+export const classifyACWR = (acwr: number): { interpretation: string; color: string } => {
+    if (acwr < 0.8) return { interpretation: 'Sub-entrenando', color: '#38BDF8' };
+    if (acwr > 1.5) return { interpretation: 'Alto Riesgo', color: '#FF2E43' };
+    if (acwr > 1.3) return { interpretation: 'Zona de Riesgo', color: '#FFD600' };
+    return { interpretation: 'Zona Segura', color: '#00FF9D' };
+};
