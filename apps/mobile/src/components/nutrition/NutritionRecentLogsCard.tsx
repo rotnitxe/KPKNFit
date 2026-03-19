@@ -37,10 +37,12 @@ export const NutritionRecentLogsCard: React.FC<NutritionRecentLogsCardProps> = (
                 style={[
                   styles.logItemContainer,
                   !isLast && { 
-                    borderBottomWidth: 1, 
-                    borderBottomColor: colors.outlineVariant,
-                    marginBottom: 12,
-                    paddingBottom: 12,
+                  borderBottomWidth: 1, 
+                  borderBottomColor: colors.outlineVariant,
+                  marginBottom: 14,
+                  paddingBottom: 14,
+                  borderBottomRightRadius: 12,
+                  borderBottomLeftRadius: 12,
                   }
                 ]}
               >
@@ -57,18 +59,18 @@ export const NutritionRecentLogsCard: React.FC<NutritionRecentLogsCardProps> = (
                             day: 'numeric',
                           })}
                         </Text>
-                        <Text style={[styles.logCalories, { color: colors.onSurface }]}>
+                        <Text style={[styles.logCalories, { color: colors.primary }]}>
                           {Math.round(log.totals.calories)} kcal
                         </Text>
                       </View>
                       <View style={styles.macrosRow}>
-                        <Text style={[styles.macroText, { color: colors.onSurfaceVariant }]}>
+                        <Text style={[styles.macroText, { color: colors.onSurfaceVariant, backgroundColor: colors.surfaceVariant, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }]}>
                           P: {Math.round(log.totals.protein)}g
                         </Text>
-                        <Text style={[styles.macroText, { color: colors.onSurfaceVariant }]}>
+                        <Text style={[styles.macroText, { color: colors.onSurfaceVariant, backgroundColor: colors.surfaceVariant, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }]}>
                           C: {Math.round(log.totals.carbs)}g
                         </Text>
-                        <Text style={[styles.macroText, { color: colors.onSurfaceVariant }]}>
+                        <Text style={[styles.macroText, { color: colors.onSurfaceVariant, backgroundColor: colors.surfaceVariant, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }]}>
                           G: {Math.round(log.totals.fats)}g
                         </Text>
                       </View>
@@ -86,18 +88,18 @@ export const NutritionRecentLogsCard: React.FC<NutritionRecentLogsCardProps> = (
                           day: 'numeric',
                         })}
                       </Text>
-                      <Text style={[styles.logCalories, { color: colors.onSurface }]}>
+                      <Text style={[styles.logCalories, { color: colors.primary }]}>
                         {Math.round(log.totals.calories)} kcal
                       </Text>
                     </View>
                     <View style={styles.macrosRow}>
-                      <Text style={[styles.macroText, { color: colors.onSurfaceVariant }]}>
+                      <Text style={[styles.macroText, { color: colors.onSurfaceVariant, backgroundColor: colors.surfaceVariant, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }]}>
                         P: {Math.round(log.totals.protein)}g
                       </Text>
-                      <Text style={[styles.macroText, { color: colors.onSurfaceVariant }]}>
+                      <Text style={[styles.macroText, { color: colors.onSurfaceVariant, backgroundColor: colors.surfaceVariant, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }]}>
                         C: {Math.round(log.totals.carbs)}g
                       </Text>
-                      <Text style={[styles.macroText, { color: colors.onSurfaceVariant }]}>
+                      <Text style={[styles.macroText, { color: colors.onSurfaceVariant, backgroundColor: colors.surfaceVariant, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }]}>
                         G: {Math.round(log.totals.fats)}g
                       </Text>
                     </View>
@@ -116,19 +118,20 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    gap: 4,
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 14,
   },
   emptyText: {
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
-    paddingVertical: 24,
+    paddingVertical: 32,
   },
   logItemContainer: {
     flexDirection: 'column',
@@ -137,31 +140,34 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   logContent: {
-    padding: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
   },
   logTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 6,
   },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 2,
   },
   logDate: {
-    fontSize: 12,
+    fontSize: 13,
   },
   logCalories: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
   },
   macrosRow: {
     flexDirection: 'row',
-    columnGap: 16,
-    marginTop: 4,
+    columnGap: 14,
+    marginTop: 8,
   },
   macroText: {
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '500',
   },
 });
