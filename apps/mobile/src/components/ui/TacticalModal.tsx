@@ -82,7 +82,7 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
             {title !== undefined && (
               <View style={[styles.header, { borderBottomColor: colors.outlineVariant }]}>
                 <Text style={[styles.title, { color: colors.onSurface }]}>{title}</Text>
-                <TouchableOpacity onPress={onClose} hitSlop={8} style={styles.closeButton}>
+                <TouchableOpacity onPress={onClose} hitSlop={8} accessibilityLabel="Cerrar" style={styles.closeButton}>
                   <XIcon size={18} color={colors.onSurfaceVariant} />
                 </TouchableOpacity>
               </View>
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   closeButton: {
-    padding: 4,
+    padding: 6,
   },
   customContent: {
     flex: 1,

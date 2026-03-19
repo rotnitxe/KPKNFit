@@ -158,7 +158,7 @@ export const NutritionDashboardScreen: React.FC = () => {
   return (
     <ScreenShell
       title="Nutrición"
-      subtitle="Panel, registro rápido, catálogo y planificador en un solo flujo"
+      subtitle="Tu panel nutricional integral"
       contentContainerStyle={styles.content}
     >
       <NutritionHeroCard

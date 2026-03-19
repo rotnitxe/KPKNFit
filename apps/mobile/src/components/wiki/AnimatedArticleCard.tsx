@@ -1,31 +1,48 @@
 import React from 'react';
-import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useColors } from '@/theme';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
-interface WikiArticleCardProps {
+interface AnimatedArticleCardProps {
   title: string;
   category: string;
   description: string;
   readTime: string;
   onPress?: () => void;
+  index?: number;
 }
 
-export function WikiArticleCard({
+export const AnimatedArticleCard: React.FC<AnimatedArticleCardProps> = ({
   title,
   category,
   description,
   readTime,
   onPress,
-}: WikiArticleCardProps) {
+}) => {
   const colors = useColors();
 
+  const handlePress = () => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+    if (onPress) onPress();
+  };
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
+    <Pressable
+      onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`${category}: ${title}`}
-      style={[styles.card, { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant }]}
+      style={({ pressed }) => [
+        styles.card,
+        {
+          backgroundColor: colors.surfaceContainer,
+          borderColor: colors.outlineVariant,
+          opacity: pressed ? 0.7 : 1,
+          transform: [{ scale: pressed ? 0.97 : 1 }],
+        },
+      ]}
     >
       <View style={styles.header}>
         <View style={[styles.categoryBadge, { backgroundColor: colors.primaryContainer }]}>
@@ -57,9 +74,9 @@ export function WikiArticleCard({
         </Text>
         <Text style={[styles.chevron, { color: colors.primary }]}>›</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
-}
+};
 
 const styles = StyleSheet.create({
   card: {

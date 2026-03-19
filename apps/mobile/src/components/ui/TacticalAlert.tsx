@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 14,
     lineHeight: 22,
+    fontFamily: 'monospace',
     flex: 1,
   },
 });

@@ -54,10 +54,10 @@ export const NutritionMacroProgressCard: React.FC<NutritionMacroProgressCardProp
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
       <Text style={[styles.title, { color: colors.onSurface }]}>
-        Macros de hoy
+        Distribución de Macros
       </Text>
       <MacroRow label="Proteína" value={protein} goal={proteinGoal} fillColor={colors.batteryHigh} />
-      <MacroRow label="Carbs" value={carbs} goal={carbGoal} fillColor={colors.ringMuscular} />
+      <MacroRow label="Carbos" value={carbs} goal={carbGoal} fillColor={colors.ringMuscular} />
       <MacroRow label="Grasas" value={fats} goal={fatGoal} fillColor={colors.error} isLast />
     </View>
   );

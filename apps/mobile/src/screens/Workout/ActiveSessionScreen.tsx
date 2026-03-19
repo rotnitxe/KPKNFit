@@ -30,9 +30,8 @@ import { CheckCircleIcon, ClockIcon, PencilIcon, ActivityIcon, ArrowDownIcon, Ch
 import { WorkoutStackParamList } from '../../navigation/types';
 import { useProgramStore } from '../../stores/programStore';
 import { PostSessionFeedbackInput, useWorkoutStore } from '../../stores/workoutStore';
-import { calculateCompletedSessionDrainBreakdown } from '../../services/fatigueService';
 import { useExerciseStore } from '../../stores/exerciseStore';
-import { CompletedExercise, CompletedSet, OngoingSetData, Exercise, PostExerciseFeedback } from '../../types/workout';
+import { OngoingSetData, PostExerciseFeedback, Exercise } from '../../types/workout';
 import { useColors, useTheme } from '../../theme';
 import { LiquidGlassCard } from '../../components/ui/LiquidGlassCard';
 import { Button } from '../../components/ui';
@@ -46,6 +45,7 @@ const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type ActiveSessionRouteParams = RouteProp<WorkoutStackParamList, 'ActiveSession'>;
 type NavigationProp = NativeStackNavigationProp<WorkoutStackParamList>;
+
 
 export const ActiveSessionScreen: React.FC = () => {
     const route = useRoute<ActiveSessionRouteParams>();
@@ -237,6 +237,26 @@ export const ActiveSessionScreen: React.FC = () => {
     }, [activeSession]);
     const durationMinutes = activeSession ? Math.max(0, Math.floor((Date.now() - activeSession.startTime) / 60000)) : 0;
 
+    // Compute muscles with effective sets for FinishSessionModal
+    const musclesWithEffectiveSets = useMemo((): string[] => {
+        if (!activeSession || !sessionExercises.length) return [];
+        const exerciseStore = useExerciseStore.getState();
+        const seen = new Set<string>();
+        for (const exercise of sessionExercises) {
+            const hasEffectiveSet = (exercise.sets ?? []).some(set => {
+                const data = activeSession.completedSets[set.id];
+                if (!data || typeof data !== 'object') return false;
+                return !('performanceMode' in data && (data as any).performanceMode === 'failed');
+            });
+            if (hasEffectiveSet) {
+                // Use exercise name as muscle label (Exercise type has no primaryMuscle field)
+                const label = exercise.name;
+                seen.add(label);
+            }
+        }
+        return Array.from(seen).slice(0, 8);
+    }, [activeSession, sessionExercises]);
+
     // Build the program overview for the header
     const programOverview = programs.find(p => p.id === activeSession?.programId);
 
@@ -332,9 +352,9 @@ export const ActiveSessionScreen: React.FC = () => {
                 onFinish={handleFinishPress}
             />
             <AugeTelemetryPanel 
-                cns={0}
-                muscular={0}
-                spinal={0}
+                cns={overview?.battery?.cns ?? 0}
+                muscular={overview?.battery?.muscular ?? 0}
+                spinal={overview?.battery?.spinal ?? 0}
             />
             <ScrollView 
                 contentContainerStyle={styles.scrollContent}
@@ -437,7 +457,8 @@ export const ActiveSessionScreen: React.FC = () => {
                     durationMinutes: activeSession ? Math.floor((Date.now() - activeSession.startTime) / 60000) : 0,
                     exerciseCount: sessionExercises.length,
                 }}
-                 initialValues={workoutLogData ?? undefined} // Pass the current workout log data as initial values
+                initialValues={workoutLogData ?? undefined}
+                musclesWithEffectiveSets={musclesWithEffectiveSets}
             />
 
             {/* Post Session Questionnaire Modal */}
@@ -489,7 +510,7 @@ const createStyles = (colors: any) => StyleSheet.create({
         backgroundColor: colors.background,
     },
     scrollContent: {
-        paddingBottom: 80, // Space for the dock
+        paddingBottom: 140, // Space for the taller dock + safe area
     },
     exerciseBlock: {
         marginHorizontal: 16,
@@ -510,7 +531,7 @@ const createStyles = (colors: any) => StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 80,
+        minHeight: 120,
     },
     dockContent: {
         flexDirection: 'column',

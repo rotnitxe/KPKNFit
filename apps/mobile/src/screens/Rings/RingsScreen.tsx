@@ -117,7 +117,7 @@ export function RingsScreen() {
       </View>
       <Text style={[styles.headerTitle, { color: colors.onSurface }]}>Mis Rings</Text>
       <Text style={[styles.headerSubtitle, { color: colors.onSurfaceVariant }]}>
-        Monitoreo de recuperación, estrés y readiness tal como en la PWA.
+        Monitoreo de recuperación y estrés
       </Text>
     </View>
   );
@@ -175,13 +175,13 @@ export function RingsScreen() {
             <StatCard
               icon={<BrainIcon size={18} color={colors.error} />}
               value={wellbeingMetrics.avgStressLevel !== null ? `${wellbeingMetrics.avgStressLevel}%` : '--'}
-              label="Estrés"
+              label="Estrés prom."
               accent={colors.error}
             />
             <StatCard
               icon={<ActivityIcon size={18} color={colors.secondary} />}
               value={wellbeingMetrics.avgEnergyLevel !== null ? `${wellbeingMetrics.avgEnergyLevel}%` : '--'}
-              label="Energía"
+              label="Energía prom."
               accent={colors.secondary}
             />
           </View>
@@ -201,21 +201,21 @@ export function RingsScreen() {
 
           <InfoCard
             title="Sistema Muscular"
-            body="Indica qué tan recuperados están tus músculos después del entrenamiento. Si cae, conviene bajar carga o priorizar descanso."
+            body="Indica qué tan recuperados están tus músculos después del entrenamiento. Un nivel bajo significa que tus fibras necesitan descansar para evitar sobrecargas y estar listas para tu próximo reto."
             accent={colors.ringMuscular}
-            footer="Se recupera entre 24 y 72 horas según la carga"
+            footer="Se recupera en 24-72 horas pos-esfuerzo"
           />
           <InfoCard
             title="Sistema Nervioso Central"
-            body="Es tu batería de coordinación y energía mental. Se ve muy afectado por sueño, estrés y acumulación de esfuerzo."
+            body="Es tu batería de coordinación y energía mental. Si está baja, puedes sentirte más lento de reflejos o con la mente cansada después de un día intenso o poco sueño."
             accent={colors.ringCns}
-            footer="Depende directamente del sueño y del estrés acumulado"
+            footer="Depende directamente de la calidad del sueño"
           />
           <InfoCard
-            title="Columna y articulaciones"
-            body="Refleja el impacto estructural de cargas pesadas y volumen alto. Nos sirve para prevenir molestias y no solo reaccionar tarde."
+            title="Columna y Articulaciones"
+            body="Mide el impacto acumulado en tu espalda y articulaciones. Te ayuda a saber cuándo es mejor bajar la carga para cuidar tu estructura y evitar molestias articulares."
             accent={colors.ringSpinal}
-            footer="El impacto estructural es acumulativo"
+            footer="Impacto acumulativo de cargas pesadas"
           />
         </View>
 
@@ -225,8 +225,11 @@ export function RingsScreen() {
           </View>
           <Text style={[styles.placeholderTitle, { color: colors.onSurface }]}>Google Health Connect</Text>
           <Text style={[styles.placeholderBody, { color: colors.onSurfaceVariant }]}>
-            Aquí vamos a dejar el mismo espacio de integración que ya tiene la PWA para enriquecer sueño, actividad y frecuencia cardíaca.
+            Sincroniza tus datos de sueño, actividad y frecuencia cardíaca para una medición más precisa.
           </Text>
+          <View style={[styles.placeholderButton, { backgroundColor: `${colors.secondary}20` }]}>
+            <Text style={[styles.placeholderButtonText, { color: colors.secondary }]}>Próximamente</Text>
+          </View>
         </LiquidGlassCard>
       </View>
     </ScreenShell>
@@ -387,5 +390,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
+  },
+  placeholderButton: {
+    marginTop: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 999,
+  },
+  placeholderButtonText: {
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
 });

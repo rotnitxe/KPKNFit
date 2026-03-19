@@ -14,6 +14,7 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 import { useColors } from '../../theme';
+import { LightbulbIcon, XIcon } from '../icons';
 import Button from './Button';
 
 interface CoachMarkProps {
@@ -70,8 +71,22 @@ export function CoachMark({
             animatedStyle,
           ]}
         >
-          <Text style={[styles.title, { color: colors.onPrimaryContainer }]}>{title}</Text>
-          <Text style={[styles.message, { color: colors.onPrimaryContainer }]}>{message}</Text>
+          <TouchableOpacity
+            onPress={handleDismiss}
+            style={styles.closeButton}
+            hitSlop={8}
+          >
+            <XIcon size={16} color={colors.onPrimaryContainer} />
+          </TouchableOpacity>
+          <View style={styles.row}>
+            <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+              <LightbulbIcon size={22} color={colors.onPrimaryContainer} />
+            </View>
+            <View style={styles.textContent}>
+              <Text style={[styles.title, { color: colors.onPrimaryContainer }]}>{title}</Text>
+              <Text style={[styles.message, { color: colors.onPrimaryContainer }]}>{message}</Text>
+            </View>
+          </View>
           <View style={styles.footer}>
             <Button
               variant="secondary"
@@ -98,34 +113,58 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     maxWidth: 400,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 24,
+    padding: 20,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
   },
+  closeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    padding: 4,
+    zIndex: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  iconWrap: {
+    padding: 10,
+    borderRadius: 16,
+    flexShrink: 0,
+  },
+  textContent: {
+    flex: 1,
+  },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
-    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: -0.3,
+    marginBottom: 4,
   },
   message: {
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 24,
+    fontSize: 14,
+    lineHeight: 20,
   },
   footer: {
     alignItems: 'flex-end',
+    marginTop: 20,
   },
   button: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 20,
-    minWidth: 100,
+    paddingHorizontal: 24,
+    minWidth: 120,
   },
   buttonText: {
     fontWeight: '700',
+    fontSize: 10,
+    textTransform: 'uppercase',
   },
 });
 

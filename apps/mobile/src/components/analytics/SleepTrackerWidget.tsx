@@ -85,6 +85,7 @@ export const SleepTrackerWidget = () => {
         </TouchableOpacity>
       </View>
 
+      <Text style={[styles.sectionHeader, { color: colors.onSurfaceVariant }]}>Consistencia Semanal</Text>
       <View style={styles.weeklyBars}>
         {last7Days.map((day) => (
           <View key={day.date} style={styles.dayColumn}>
@@ -184,6 +185,13 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 12,
     marginTop: 4,
+  },
+  sectionHeader: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 12,
   },
   addButton: {
     width: 36,

@@ -1,23 +1,23 @@
 import React from 'react';
-import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useColors } from '@/theme';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
-interface WikiCategoryCardProps {
+interface AnimatedCategoryCardProps {
   title: string;
   subtitle: string;
   count: number;
   accent?: 'sky' | 'purple' | 'emerald' | 'amber';
   onPress: () => void;
+  index?: number;
 }
 
 interface AccentColors {
   iconBg: string;
   iconText: string;
-  countBg: string;
-  countText: string;
 }
 
-export const WikiCategoryCard: React.FC<WikiCategoryCardProps> = ({
+export const AnimatedCategoryCard: React.FC<AnimatedCategoryCardProps> = ({
   title,
   subtitle,
   count,
@@ -32,53 +32,52 @@ export const WikiCategoryCard: React.FC<WikiCategoryCardProps> = ({
         return {
           iconBg: 'rgba(14, 165, 233, 0.15)',
           iconText: '#0ea5e9',
-          countBg: 'rgba(14, 165, 233, 0.1)',
-          countText: '#0284c7',
         };
       case 'purple':
         return {
           iconBg: 'rgba(168, 85, 247, 0.15)',
           iconText: '#a855f7',
-          countBg: 'rgba(168, 85, 247, 0.1)',
-          countText: '#9333ea',
         };
       case 'emerald':
         return {
           iconBg: 'rgba(16, 185, 129, 0.15)',
           iconText: '#10b981',
-          countBg: 'rgba(16, 185, 129, 0.1)',
-          countText: '#059669',
         };
       case 'amber':
         return {
           iconBg: 'rgba(251, 191, 36, 0.15)',
           iconText: '#f59e0b',
-          countBg: 'rgba(251, 191, 36, 0.1)',
-          countText: '#d97706',
         };
       default:
         return {
           iconBg: colors.surfaceContainerHigh,
           iconText: colors.primary,
-          countBg: colors.surfaceContainer,
-          countText: colors.onSurfaceVariant,
         };
     }
   };
 
   const accentColors = getAccentColors(accent);
 
+  const handlePress = () => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+    onPress();
+  };
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
+    <Pressable
+      onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${subtitle}. ${count} elementos.`}
-      style={[
+      style={({ pressed }) => [
         styles.card,
         {
           backgroundColor: colors.surfaceContainer,
           borderColor: colors.outlineVariant,
+          opacity: pressed ? 0.7 : 1,
+          transform: [{ scale: pressed ? 0.96 : 1 }],
         },
       ]}
     >
@@ -110,7 +109,7 @@ export const WikiCategoryCard: React.FC<WikiCategoryCardProps> = ({
         </Text>
         <Text style={[styles.chevron, { color: accentColors.iconText }]}>›</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

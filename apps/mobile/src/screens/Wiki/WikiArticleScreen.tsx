@@ -6,6 +6,7 @@ import { ScreenShell } from '../../components/ScreenShell';
 import { useColors } from '../../theme';
 import { WIKI_MUSCLES, WIKI_JOINTS, WIKI_TENDONS, WIKI_MOVEMENT_PATTERNS } from '../../data/wikiData';
 import type { WikiStackParamList } from '../../navigation/types';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 type WikiArticleRouteProp = RouteProp<WikiStackParamList, 'WikiArticle'>;
 type WikiArticleNavigationProp = NativeStackNavigationProp<WikiStackParamList>;
@@ -24,6 +25,49 @@ interface ArticleData {
   exampleExercises?: string[];
   detailBadge: string;
 }
+
+interface AnimatedRelatedItemProps {
+  item: { id: string; name: string; type: 'muscle' | 'joint' | 'tendon' | 'pattern' };
+  index: number;
+  onPress: () => void;
+  colors: any;
+}
+
+const AnimatedRelatedItem: React.FC<AnimatedRelatedItemProps> = ({ item, index, onPress, colors }) => {
+  const handlePress = () => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+    onPress();
+  };
+
+  return (
+    <Pressable onPress={handlePress} style={styles.relatedItemWrapper}>
+      <View
+        style={[
+          styles.relatedItem,
+          { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant },
+        ]}
+      >
+        <View>
+          <Text style={[styles.relatedItemText, { color: colors.onSurface }]}>
+            {item.name}
+          </Text>
+          <Text style={[styles.relatedItemType, { color: colors.onSurfaceVariant }]}>
+            {item.type === 'muscle'
+              ? 'Músculo'
+              : item.type === 'joint'
+                ? 'Articulación'
+                : item.type === 'tendon'
+                  ? 'Tendón'
+                  : 'Patrón'}
+          </Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+};
 
 export function WikiArticleScreen() {
   const route = useRoute<WikiArticleRouteProp>();
@@ -144,9 +188,14 @@ export function WikiArticleScreen() {
     return (
       <ScreenShell title="Error" subtitle="Artículo no encontrado">
         <View style={styles.container}>
-          <Text style={[styles.bodyText, { color: colors.onSurfaceVariant }]}>
-            El artículo solicitado no existe o fue removido.
-          </Text>
+          <View style={[styles.emptyState, { backgroundColor: colors.surfaceContainer }]}>
+            <Text style={[styles.emptyStateTitle, { color: colors.onSurface }]}>
+              Artículo no disponible
+            </Text>
+            <Text style={[styles.emptyStateText, { color: colors.onSurfaceVariant }]}>
+              El artículo solicitado no existe o fue removido de la base de datos.
+            </Text>
+          </View>
         </View>
       </ScreenShell>
     );
@@ -155,11 +204,13 @@ export function WikiArticleScreen() {
   return (
     <ScreenShell title={article.name} subtitle={article.subtitle}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={[styles.section, styles.card, { backgroundColor: colors.surfaceContainerHigh }]}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
-            {article.detailBadge}
-          </Text>
-          <Text style={[styles.bodyText, { color: colors.onSurface }]}>{article.description}</Text>
+        <View style={styles.section}>
+          <View style={[styles.card, { backgroundColor: colors.surfaceContainerHigh }]}>
+            <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+              {article.detailBadge}
+            </Text>
+            <Text style={[styles.bodyText, { color: colors.onSurface }]}>{article.description}</Text>
+          </View>
         </View>
 
         {article.relatedItems && article.relatedItems.length > 0 && (
@@ -167,9 +218,12 @@ export function WikiArticleScreen() {
             <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
               Estructuras relacionadas
             </Text>
-            {article.relatedItems.map(item => (
-              <Pressable
+            {article.relatedItems.map((item, index) => (
+              <AnimatedRelatedItem
                 key={item.id}
+                item={item}
+                index={index}
+                colors={colors}
                 onPress={() => {
                   if (item.type === 'muscle') {
                     navigation.navigate('WikiMuscleDetail', { muscleId: item.id });
@@ -184,26 +238,7 @@ export function WikiArticleScreen() {
                     navigation.navigate('WikiPatternDetail', { patternId: item.id });
                   }
                 }}
-                style={[
-                  styles.relatedItem,
-                  { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant },
-                ]}
-              >
-                <View>
-                  <Text style={[styles.relatedItemText, { color: colors.onSurface }]}>
-                    {item.name}
-                  </Text>
-                  <Text style={[styles.relatedItemType, { color: colors.onSurfaceVariant }]}>
-                    {item.type === 'muscle'
-                      ? 'Músculo'
-                      : item.type === 'joint'
-                        ? 'Articulación'
-                        : item.type === 'tendon'
-                          ? 'Tendón'
-                          : 'Patrón'}
-                  </Text>
-                </View>
-              </Pressable>
+              />
             ))}
           </View>
         )}
@@ -213,7 +248,7 @@ export function WikiArticleScreen() {
             <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
               Patrones de movimiento
             </Text>
-            {article.movementPatterns.map(patternId => {
+            {article.movementPatterns.map((patternId, index) => {
               const pattern = WIKI_MOVEMENT_PATTERNS.find(item => item.id === patternId);
               return pattern ? (
                 <View
@@ -252,22 +287,23 @@ export function WikiArticleScreen() {
         )}
 
         {article.commonInjuries && article.commonInjuries.length > 0 && (
-          <View
-            style={[
-              styles.section,
-              styles.card,
-              { backgroundColor: `${colors.error}14`, borderColor: `${colors.error}33` },
-            ]}
-          >
-            <Text style={[styles.sectionTitle, { color: colors.error }]}>Lesiones comunes</Text>
-            {article.commonInjuries.map((injury, index) => (
-              <View key={`${injury.name}-${index}`} style={styles.injuryItem}>
-                <Text style={[styles.injuryName, { color: colors.onSurface }]}>{injury.name}</Text>
-                <Text style={[styles.injuryDescription, { color: colors.onSurfaceVariant }]}>
-                  {injury.description}
-                </Text>
-              </View>
-            ))}
+          <View style={styles.section}>
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: `${colors.error}14`, borderColor: `${colors.error}33` },
+              ]}
+            >
+              <Text style={[styles.sectionTitle, { color: colors.error }]}>Lesiones comunes</Text>
+              {article.commonInjuries.map((injury, index) => (
+                <View key={`${injury.name}-${index}`} style={styles.injuryItem}>
+                  <Text style={[styles.injuryName, { color: colors.onSurface }]}>{injury.name}</Text>
+                  <Text style={[styles.injuryDescription, { color: colors.onSurfaceVariant }]}>
+                    {injury.description}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
         )}
       </ScrollView>
@@ -284,17 +320,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 8,
     paddingHorizontal: 16,
   },
   card: {
-    borderRadius: 16,
+    borderRadius: 24,
     paddingVertical: 16,
     paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
     letterSpacing: 2,
     textTransform: 'uppercase',
     marginBottom: 12,
@@ -304,47 +340,67 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '400',
   },
+  relatedItemWrapper: {
+    marginBottom: 8,
+  },
   relatedItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 16,
+    borderRadius: 24,
     borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 8,
+    paddingVertical: 14,
   },
   relatedItemText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
+    marginBottom: 2,
   },
   relatedItemType: {
-    fontSize: 12,
-    fontWeight: '400',
+    fontSize: 11,
+    fontWeight: '500',
+    opacity: 0.6,
   },
   exampleItem: {
-    borderRadius: 16,
+    borderRadius: 24,
     borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     marginBottom: 8,
   },
   exampleItemText: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   injuryItem: {
     marginBottom: 16,
   },
   injuryName: {
     fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: '700',
+    marginBottom: 6,
   },
   injuryDescription: {
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '400',
   },
+  emptyState: {
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    opacity: 0.7,
+  },
 });
-

@@ -81,7 +81,7 @@ export function BatteryRingCard({
     <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
       <View style={styles.header}>
         <View style={styles.titleSection}>
-          <Text style={[styles.title, { color: colors.onSurfaceVariant }]}>Tus Rings</Text>
+          <Text style={[styles.title, { color: colors.onSurfaceVariant }]}>Resumen Combinado</Text>
           {sourceLabel && (
             <Text style={[styles.sourceLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
               {sourceLabel}

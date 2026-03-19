@@ -20,7 +20,7 @@ export const NutritionRecentLogsCard: React.FC<NutritionRecentLogsCardProps> = (
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
       <Text style={[styles.title, { color: colors.onSurface }]}>
-        Registros recientes
+        Últimos Registros
       </Text>
 
       {items.length === 0 ? (

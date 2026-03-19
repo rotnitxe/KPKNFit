@@ -145,7 +145,7 @@ export function ProfileScreen() {
     <View style={styles.header}>
       <View style={styles.badgeRow}>
         <UserBadgeIcon size={18} color={colors.primary} />
-        <Text style={[styles.headerEyebrow, { color: colors.onSurfaceVariant }]}>Athlete ID</Text>
+        <Text style={[styles.headerEyebrow, { color: colors.onSurfaceVariant }]}>Perfil de Atleta</Text>
       </View>
       <Text style={[styles.headerTitle, { color: colors.onSurface }]}>{athleteName}</Text>
       <Text style={[styles.headerSubtitle, { color: colors.onSurfaceVariant }]}>
@@ -292,7 +292,7 @@ export function ProfileScreen() {
             <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('AthleteID' as any)}>
               <View style={styles.navButtonContent}>
                 <UserBadgeIcon size={20} color={colors.primary} />
-                <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Athlete ID</Text>
+                <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Perfil de Atleta</Text>
               </View>
               <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
             </Pressable>
@@ -329,7 +329,7 @@ export function ProfileScreen() {
             <Text style={[styles.detailEyebrow, { color: colors.onSurfaceVariant }]}>Estado actual</Text>
           </View>
           <Text style={[styles.statusCopy, { color: colors.onSurfaceVariant }]}>
-            Seguimos cerrando la paridad 1:1 del Athlete ID. Lo importante acá es que ya no es una maqueta: este panel consume stores reales de cuerpo y wellbeing.
+            Seguimos cerrando la paridad 1:1 del Perfil de Atleta. Lo importante acá es que ya no es una maqueta: este panel consume stores reales de cuerpo y wellbeing.
           </Text>
         </LiquidGlassCard>
       </View>

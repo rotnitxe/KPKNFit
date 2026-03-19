@@ -93,7 +93,7 @@ export function CoachConversationList({
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>
-            Sin conversaciones aún.
+            Aún no tienes conversaciones con el Coach. Pulsa "+ Nueva" para iniciar una conversación y obtener asesoramiento personalizado.
           </Text>
         }
       />

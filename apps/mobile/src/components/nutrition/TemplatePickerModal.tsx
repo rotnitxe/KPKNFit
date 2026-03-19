@@ -41,7 +41,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
             {templates.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>
-                  No tienes plantillas guardadas aún.
+                  No hay plantillas disponibles.
                 </Text>
               </View>
             ) : (

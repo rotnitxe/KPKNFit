@@ -325,7 +325,7 @@ export function PersonalRecordsView() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>
-                No hay registros de ejercicios completados.
+                Aún no hay récords para mostrar. Marca tus ejercicios principales como favoritos (⭐) para que aparezcan aquí.
               </Text>
             </View>
           }

@@ -31,12 +31,12 @@ const LEFT_TABS: VisibleRouteName[] = ['Rings', 'Workout', 'Nutrition'];
 const RIGHT_TABS: VisibleRouteName[] = ['Profile', 'Wiki', 'Settings'];
 
 const TAB_CONFIG: Record<VisibleRouteName, TabConfig> = {
-  Rings: { label: 'RINGS', icon: TripleRingsIcon },
-  Workout: { label: 'ENTRENAR', icon: DumbbellIcon },
-  Nutrition: { label: 'NUTRICION', icon: PlateIcon },
-  Profile: { label: 'PERFIL', icon: UserBadgeIcon },
-  Wiki: { label: 'WIKILAB', icon: WikiLabIcon },
-  Settings: { label: 'AJUSTES', icon: SettingsIcon },
+  Rings: { label: 'Mi RINGS', icon: TripleRingsIcon },
+  Workout: { label: 'Entrenar', icon: DumbbellIcon },
+  Nutrition: { label: 'Nutrición', icon: PlateIcon },
+  Profile: { label: 'Mi Perfil', icon: UserBadgeIcon },
+  Wiki: { label: 'WikiLab', icon: WikiLabIcon },
+  Settings: { label: 'Ajustes', icon: SettingsIcon },
 };
 
 function TabButton({
@@ -46,6 +46,7 @@ function TabButton({
   Icon,
   compact = false,
   showLabel = true,
+  testID,
 }: {
   label: string;
   active: boolean;
@@ -53,15 +54,19 @@ function TabButton({
   Icon: TabConfig['icon'];
   compact?: boolean;
   showLabel?: boolean;
+  testID?: string;
 }) {
   const colors = useColors();
 
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
       onPress={onPress}
       style={styles.navButton}
+      hitSlop={8}
     >
       <View
         style={[
@@ -74,7 +79,7 @@ function TabButton({
         ]}
       >
         <Icon
-          size={compact ? 16 : 18}
+          size={compact ? 18 : 20}
           color={active ? colors.onSecondaryContainer : colors.onSurfaceVariant}
         />
       </View>
@@ -128,6 +133,8 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
       style={[styles.outer, { paddingBottom: Math.max(insets.bottom, 12) }]}
     >
       <View
+        accessibilityRole="tablist"
+        accessibilityLabel="Navegación principal"
         style={[
           styles.shell,
           isCompact && styles.shellCompact,
@@ -144,6 +151,7 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
             return (
               <TabButton
                 key={routeName}
+                testID={`nav-${routeName.toLowerCase()}`}
                 label={config.label}
                 Icon={config.icon}
                 active={currentRoute === routeName}
@@ -156,10 +164,13 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
         </View>
 
         <Pressable
+          testID="nav-home"
           accessibilityRole="button"
           accessibilityLabel="Inicio"
+          accessibilityState={{ selected: currentRoute === 'Home' }}
           onPress={() => navigateTo('Home')}
           style={styles.homeButton}
+          hitSlop={8}
         >
           <View
             style={[
@@ -185,7 +196,7 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
                 { color: currentRoute === 'Home' ? colors.onSurface : colors.onSurfaceVariant },
               ]}
             >
-              INICIO
+              Inicio
             </Text>
           ) : null}
         </Pressable>
@@ -196,6 +207,7 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
             return (
               <TabButton
                 key={routeName}
+                testID={`nav-${routeName.toLowerCase()}`}
                 label={config.label}
                 Icon={config.icon}
                 active={currentRoute === routeName}
@@ -268,7 +280,7 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   indicator: {
-    width: 18,
+    width: 32,
     height: 3,
     borderRadius: 99,
     marginTop: 6,

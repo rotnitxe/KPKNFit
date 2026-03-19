@@ -115,7 +115,7 @@ export function CoachChatScreen() {
           <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
             <View style={styles.summaryHeader}>
               <View style={styles.summaryTextBlock}>
-                <Text style={[styles.sectionHeading, { color: colors.onSurfaceVariant }]}>Briefing rápido</Text>
+                <Text style={[styles.sectionHeading, { color: colors.onSurfaceVariant }]}>Resumen rápido</Text>
                 <Text style={[styles.summaryTitle, { color: colors.onSurface }]}>
                   {coachContext.activeProgramName ?? 'Sin programa activo'}
                 </Text>
@@ -192,9 +192,9 @@ export function CoachChatScreen() {
               )}
               {!activeConv?.messages.length && !isSending && (
                 <View style={styles.emptyContainer}>
-                  <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>¡Hola!</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>¡Empieza una conversación!</Text>
                   <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>
-                    Pregúntame sobre tu progreso, fatiga o próximos entrenamientos.
+                    Habla con el Coach sobre tu progreso, fatiga o los próximos entrenamientos para obtener recomendaciones personalizadas.
                   </Text>
                 </View>
               )}

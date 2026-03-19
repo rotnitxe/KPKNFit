@@ -20,7 +20,10 @@ function CoachBriefingContent({ briefing, onClose }: { briefing: string; onClose
         <SparklesIcon size={40} color={colors.primary} />
         <Text style={[styles.title, { color: colors.onSurface }]}>Informe de tu Coach IA</Text>
       </View>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <Text style={[styles.description, { color: colors.onSurfaceVariant }]}>
+  Este informe resume la información que el Coach ha analizado para ofrecerte recomendaciones.
+</Text>
+<ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <Text style={[styles.briefing, { color: colors.onSurfaceVariant }]}>{briefing}</Text>
       </ScrollView>
       <Pressable
@@ -74,6 +77,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     textAlign: 'center',
+  },
+  description: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   button: {
     borderRadius: 999,

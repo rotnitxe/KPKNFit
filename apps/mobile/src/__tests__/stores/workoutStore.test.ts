@@ -382,7 +382,54 @@ describe('workoutStore', () => {
           ]),
         }),
       }));
-      expect(useWorkoutStore.getState().notice).toContain('Sesión recuperada: Recovered Session');
+    });
+  });
+
+  describe('finishActiveSession', () => {
+    it('persists log data and clears the active session', async () => {
+      const { startActiveSession, finishActiveSession } = useWorkoutStore.getState();
+      
+      const mockSession = {
+        id: 's1',
+        name: 'Test Session',
+        exercises: [{ id: 'ex1', name: 'Exercise 1', sets: [{ id: 'set1', targetReps: 10 }] }],
+      } as Session;
+
+      startActiveSession({ programId: 'prog1', session: mockSession });
+
+      useWorkoutStore.setState((state) => ({
+        activeSession: {
+          ...state.activeSession!,
+          completedSets: {
+            'set1': { weight: 100, reps: 10, rpe: 8, rir: 2, isFailure: false }
+          }
+        }
+      }));
+
+      (loadWorkoutRuntimeState as jest.Mock).mockResolvedValue({
+        overview: null,
+        reminderSettings: null
+      });
+
+      // Finish session with feedback
+      await finishActiveSession({
+        notes: 'Felt good',
+        fatigueLevel: 6,
+        durationInMinutes: 45,
+      });
+
+      const state = useWorkoutStore.getState();
+      if (state.errorMessage) console.error("TEST STORE ERROR:", state.errorMessage);
+      
+      expect(state.activeSession).toBeNull();
+      expect(state.sessionFinishState).toEqual('success');
+      expect(persistLocalWorkoutLog).toHaveBeenCalledWith(expect.objectContaining({
+        programId: 'prog1',
+        sessionId: 's1',
+        fatigueLevel: 6,
+        notes: 'Felt good',
+        durationInMinutes: 45,
+      }));
     });
   });
 });

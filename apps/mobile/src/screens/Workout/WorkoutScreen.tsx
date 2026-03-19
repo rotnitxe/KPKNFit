@@ -164,7 +164,7 @@ export function WorkoutScreen() {
   return (
     <ScreenShell
       title="Entrenamiento"
-      subtitle="Tu vista nativa de entrenamiento ahora también puede registrar rápido la sesión de hoy, además de mantener widgets y recordatorios al día."
+      subtitle="Registra tu sesión, gestiona tu programa y controla tu readiness desde aquí."
     >
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
@@ -183,8 +183,8 @@ export function WorkoutScreen() {
               {status === 'ready'
                 ? `Semana ${overview?.currentWeekId ?? 'actual'} · ${overview?.weeklySessionCount ?? 0} entrenos registrados esta semana`
                 : status === 'empty'
-                  ? 'La versión nativa ya debería dejarte retomar el mismo flujo de la PWA. Si todavía no hay un programa activo, entremos directo a la biblioteca.'
-                  : errorMessage ?? 'Estamos revisando el estado del programa migrado.'}
+                  ? 'Todavía no tienes un programa activo. Crea uno o activa uno desde la biblioteca de programas.'
+                  : errorMessage ?? 'No se pudo cargar el estado del programa. Toca Actualizar para intentar de nuevo.'}
             </Text>
             {notice ? (
               <Text style={[styles.noticeText, { color: colors.cyberSuccess }]}>{notice}</Text>

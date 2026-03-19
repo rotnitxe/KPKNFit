@@ -193,53 +193,54 @@ export function SettingsScreen() {
     );
   };
 
+  const isLoading = status !== 'ready';
+
+  const renderHydratingState = () => (
+    <View style={styles.hydratingContainer}>
+      <Text style={[styles.hydratingTitle, { color: colors.onSurface }]}>
+        Cargando preferencias...
+      </Text>
+      <Text style={[styles.hydratingDescription, { color: colors.onSurfaceVariant }]}>
+        Estamos preparando tus ajustes. Esto toma un momento.
+      </Text>
+    </View>
+  );
+
   return (
     <ScreenShell
       title="Ajustes"
-      subtitle="Aquí ya operamos ajustes propios de RN: recordatorios, fallback IA y señales de readiness para el relevo Android."
+      subtitle="Personaliza tu experiencia"
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.container}>
-          {/* Profile Section */}
-          {settings ? (
-            renderSection('Perfil', (
-              <View style={styles.sectionContent}>
-                <SettingRow label="Nombre" value={(settings.username ?? 'Atleta') as string} />
-                <SettingRow label="Edad" value={userVitals.age ? `${userVitals.age} años` : 'No definida'} />
-                <SettingRow label="Peso" value={userVitals.weight ? `${userVitals.weight} kg` : 'No definido'} />
-                <SettingRow label="Altura" value={userVitals.height ? `${userVitals.height} cm` : 'No definida'} />
-                <SettingRow label="Género" value={(userVitals.gender as string) || 'No definido'} />
-                <SettingRow label="Nivel actividad" value={(userVitals.activityLevel as string) || 'No definido'} />
-              </View>
-            ))
-          ) : null}
-
-          {/* Status Section */}
-          {renderSection('Estado', (
-            <View style={styles.sectionContent}>
-              <Text numberOfLines={1} style={[styles.statusTitle, { color: colors.onSurface }]}>
-                {status === 'ready' ? 'Configuración lista en RN' : 'Preparando configuración'}
-              </Text>
-              <Text style={[styles.statusDescription, { color: colors.onSurfaceVariant }]}>
-                {status === 'ready'
-                  ? `Fuente ${summary?.source ?? 'sin definir'} · estos ajustes ya viven en storage propio de RN y se usan para widgets, recordatorios y fallback.`
-                  : 'Cuando el bootstrap termine, aquí podremos tocar tus preferencias base directamente desde RN.'}
-              </Text>
-            </View>
-          ))}
+          {isLoading ? renderHydratingState() : null}
 
           {/* Notices */}
           {notice ? renderNotice(notice, 'success') : null}
           {cutoverNotice ? renderNotice(cutoverNotice, 'info') : null}
 
+          {/* Profile Section — only visible once the store is hydrated */}
+          {settings && status === 'ready' ? (
+            renderSection('Perfil', (
+              <View style={styles.sectionContent}>
+                <SettingRow label="Nombre" value={(settings.username ?? 'Atleta') as string} />
+                <SettingRow label="Edad" value={userVitals.age ? `${userVitals.age} años` : 'Sin definir'} />
+                <SettingRow label="Peso" value={userVitals.weight ? `${userVitals.weight} kg` : 'Sin definir'} />
+                <SettingRow label="Altura" value={userVitals.height ? `${userVitals.height} cm` : 'Sin definir'} />
+                <SettingRow label="Género" value={(userVitals.gender as string) || 'Sin definir'} />
+                <SettingRow label="Nivel de actividad" value={(userVitals.activityLevel as string) || 'Sin definir'} />
+              </View>
+            ))
+          ) : null}
+
           {renderSection('Apariencia', (
             <View style={styles.sectionContent}>
               <ControlRow
                 label="Tema"
-                description="Afecta el shell RN y la paleta de la app"
+                description="Elige cómo se ve tu app"
               >
                 <View style={styles.choiceGrid}>
                   {([
@@ -261,11 +262,11 @@ export function SettingsScreen() {
             </View>
           ))}
 
-          {renderSection('Shell', (
+          {renderSection('Navegación', (
             <View style={styles.sectionContent}>
               <ControlRow
-                label="Estilo del bottom bar"
-                description="Cambia jerarquía visual de la navegación inferior"
+                label="Estilo barra inferior"
+                description="Máximo 4 pestañas visibles"
               >
                 <View style={styles.choiceGrid}>
                   {([
@@ -290,7 +291,7 @@ export function SettingsScreen() {
                 <View style={styles.sectionContent}>
                   <ControlRow
                     label="Entreno diario"
-                    description={settings.remindersEnabled ? (settings.reminderTime ?? 'activo') : 'desactivado'}
+                    description={settings.remindersEnabled ? `Diario a las ${settings.reminderTime ?? '--'}` : 'Desactivado'}
                   >
                     <ToggleSwitch
                       checked={remindersEnabled}
@@ -300,7 +301,7 @@ export function SettingsScreen() {
                   </ControlRow>
                   <ControlRow
                     label="Comidas"
-                    description={settings.mealRemindersEnabled ? `${settings.breakfastReminderTime} · ${settings.lunchReminderTime} · ${settings.dinnerReminderTime}` : 'desactivado'}
+                    description={settings.mealRemindersEnabled ? `Desayuno ${settings.breakfastReminderTime ?? '--'} · Almuerzo ${settings.lunchReminderTime ?? '--'} · Cena ${settings.dinnerReminderTime ?? '--'}` : 'Desactivado'}
                   >
                     <ToggleSwitch
                       checked={mealRemindersEnabled}
@@ -310,7 +311,7 @@ export function SettingsScreen() {
                   </ControlRow>
                   <ControlRow
                     label="Fallback IA"
-                    description={settings.fallbackEnabled ? 'activo' : 'apagado'}
+                    description={settings.fallbackEnabled ? 'Activo' : 'Apagado'}
                   >
                     <ToggleSwitch
                       checked={fallbackEnabled}
@@ -318,8 +319,8 @@ export function SettingsScreen() {
                       testID="toggle-fallback-ai"
                     />
                   </ControlRow>
-                  <SettingRow label="Entreno no registrado" value={settings.missedWorkoutReminderEnabled ? settings.missedWorkoutReminderTime : 'desactivado'} />
-                  <SettingRow label="Batería baja" value={settings.augeBatteryReminderEnabled ? `${settings.augeBatteryReminderThreshold}% · ${settings.augeBatteryReminderTime}` : 'desactivado'} />
+                  <SettingRow label="Entreno no registrado" value={settings.missedWorkoutReminderEnabled ? `Aviso a las ${settings.missedWorkoutReminderTime}` : 'Desactivado'} />
+                  <SettingRow label="Batería baja" value={settings.augeBatteryReminderEnabled ? `Aviso al ${settings.augeBatteryReminderThreshold}% · ${settings.augeBatteryReminderTime}` : 'Desactivado'} />
                 </View>
           ))}
 
@@ -344,36 +345,46 @@ export function SettingsScreen() {
                     </View>
                   </ControlRow>
                   <SettingRow label="Rest timer" value={`${selectedRestTimerSeconds}s · ${selectedRestTimerAutoStart ? 'auto' : 'manual'}`} />
-                  <SettingRow label="Vista compacta" value={settings.sessionCompactView ? 'sí' : 'no'} />
-                  <SettingRow label="PRs visibles" value={settings.showPRsInWorkout ? 'sí' : 'no'} />
+                  <SettingRow label="Vista compacta" value={settings.sessionCompactView ? 'Sí' : 'No'} />
+                  <SettingRow label="PRs visibles" value={settings.showPRsInWorkout ? 'Sí' : 'No'} />
                 </View>
           ))}
 
-              {/* Base Preferences Section */}
-          {renderSection('Preferencias base', (
+          {/* Preferences Section */}
+          {renderSection('Preferencias', (
                 <View style={styles.sectionContent}>
-                  <SettingRow label="Semana inicia" value={`día ${settings.startWeekOn}`} />
-                  <SettingRow label="Proveedor IA" value={settings.apiProvider ?? 'sin definir'} />
-                  <SettingRow label="Modo workout" value={settings.workoutLoggerMode ?? 'sin definir'} />
-                  <SettingRow label="Meta sueño" value={`${settings.sleepTargetHours ?? 8}h · ${settings.wakeTimeWork ?? '--'}`} />
-                  <SettingRow label="Widgets Home" value={(settings.homeWidgetOrder?.length ?? 0) > 0 ? (settings.homeWidgetOrder ?? []).join(', ') : 'orden por defecto'} />
+                  <SettingRow label="Semana inicia" value={`Día ${settings.startWeekOn}`} />
+                  <SettingRow label="Proveedor IA" value={settings.apiProvider ?? 'Sin definir'} />
+                  <SettingRow label="Modo entreno" value={settings.workoutLoggerMode === 'pro' ? 'Pro' : settings.workoutLoggerMode === 'simple' ? 'Simple' : 'Sin definir'} />
+                  <SettingRow label="Meta de sueño" value={`${settings.sleepTargetHours ?? 8}h · ${settings.wakeTimeWork ?? '--'}`} />
+                  <SettingRow label="Widgets inicio" value={(settings.homeWidgetOrder?.length ?? 0) > 0 ? (settings.homeWidgetOrder ?? []).join(', ') : 'Orden por defecto'} />
                 </View>
           ))}
 
-              {/* Migrated Modules Section */}
-          {renderSection('Módulos migrados', (
-                <View style={styles.sectionContent}>
-                  <SettingRow label="Plantillas de comida" value={templateCount > 0 ? `${templateCount} disponibles` : 'sin plantillas aún'} />
-                  <SettingRow label="Plantillas descartadas" value={discardedTemplateCount > 0 ? String(discardedTemplateCount) : 'ninguna'} />
-                  <SettingRow label="Wellbeing" value={wellbeingStatus === 'ready' ? `resumen activo · ${wellbeingSource}` : 'pendiente'} />
-                  <SettingRow label="Sueño promedio" value={wellbeingOverview?.averageSleepHoursLast7Days ? `${wellbeingOverview.averageSleepHoursLast7Days} h` : 'sin datos'} />
-                  <SettingRow label="Agua de hoy" value={wellbeingOverview ? `${wellbeingOverview.waterTodayMl} ml` : 'sin datos'} />
-                  <SettingRow label="Logs wellbeing inválidos" value={wellbeingDroppedDailyLogs > 0 ? String(wellbeingDroppedDailyLogs) : '0'} />
-                  <SettingRow label="IA local" value={localAiStatus ? `${localAiStatus.engine} · ${localAiStatus.modelVersion ?? 'sin modelo'}` : 'sin revisar'} />
-                </View>
-          ))}
+          {/* Estado interno — visible solo en builds de desarrollo */}
+          {isInternalBuild ? (
+            renderSection('Estado interno', (
+                  <View style={styles.sectionContent}>
+                    <Text numberOfLines={1} style={[styles.statusTitle, { color: colors.onSurface }]}>
+                      {status === 'ready' ? 'Preferencias cargadas' : 'Preparando preferencias'}
+                    </Text>
+                    <Text style={[styles.statusDescription, { color: colors.onSurfaceVariant }]}>
+                      {status === 'ready'
+                        ? `Fuente: ${summary?.source ?? 'desconocida'} · plantillas: ${templateCount} · wellbeing: ${wellbeingStatus === 'ready' ? 'activo' : 'pendiente'}`
+                        : 'Cargando estado interno...'}
+                    </Text>
+                    <SettingRow label="Plantillas comida" value={templateCount > 0 ? `${templateCount} disponibles` : 'Sin plantillas'} />
+                    <SettingRow label="Plantillas descartadas" value={discardedTemplateCount > 0 ? String(discardedTemplateCount) : 'Ninguna'} />
+                    <SettingRow label="Wellbeing" value={wellbeingStatus === 'ready' ? `Resumen activo · ${wellbeingSource}` : 'Pendiente'} />
+                    <SettingRow label="Sueño promedio" value={wellbeingOverview?.averageSleepHoursLast7Days ? `${wellbeingOverview.averageSleepHoursLast7Days} h` : 'Sin datos'} />
+                    <SettingRow label="Agua de hoy" value={wellbeingOverview ? `${wellbeingOverview.waterTodayMl} ml` : 'Sin datos'} />
+                    <SettingRow label="Logs inválidos" value={wellbeingDroppedDailyLogs > 0 ? String(wellbeingDroppedDailyLogs) : '0'} />
+                    <SettingRow label="IA local" value={localAiStatus ? `${localAiStatus.engine} · ${localAiStatus.modelVersion ?? 'sin modelo'}` : 'Sin revisar'} />
+                  </View>
+            ))
+          ) : null}
 
-              {/* Actions Section */}
+          {/* Actions Section */}
           {renderSection('Acciones', (
                 <View style={styles.actionsSection}>
                   <Button
@@ -386,7 +397,7 @@ export function SettingsScreen() {
                     onPress={() => navigation.navigate('Workout')}
                     variant="secondary"
                   >
-                    Base de ejercicios (entreno)
+                    Base de ejercicios
                   </Button>
                   <Button
                     onPress={() => void toggleWorkoutReminders()}
@@ -410,94 +421,98 @@ export function SettingsScreen() {
                     onPress={() => void applyReminderPreset('light')}
                     variant="secondary"
                   >
-                    Aplicar perfil suave
+                    Perfil de recordatorios suave
                   </Button>
                   <Button
                     onPress={() => void applyReminderPreset('full')}
                     variant="secondary"
                   >
-                    Aplicar perfil seguimiento
+                    Perfil de seguimiento completo
                   </Button>
                   <Button
                     onPress={() => void refreshWorkoutInfra()}
                   >
-                    Volver a sincronizar widgets y recordatorios
+                    Sincronizar widgets y recordatorios
                   </Button>
                 </View>
           ))}
 
-              {/* Cutover Section (Internal) */}
-              {isInternalBuild ? (
-                renderSection('Cutover Android (interno)', (
+          {/* Cutover Section (Internal) */}
+          {isInternalBuild ? (
+            renderSection('Cutover Android (interno)', (
+              <View style={styles.sectionContent}>
+                <Text numberOfLines={1} style={[styles.statusTitle, { color: colors.onSurface }]}>
+                  {cutoverStage === 'ready-for-cutover' ? 'Listo para relevo' : cutoverStage === 'pilot-ready' ? 'Listo para piloto' : 'Todavía faltan piezas'}
+                </Text>
+                <Text style={[styles.statusDescription, { color: colors.onSurfaceVariant }]}>
+                  {cutoverCheckedAt
+                    ? `Última revisión ${new Date(cutoverCheckedAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
+                    : 'Sin revisiones recientes del checklist de relevo.'}
+                </Text>
+
+                {cutoverChecklist ? (
                   <View style={styles.sectionContent}>
-                    <Text numberOfLines={1} style={[styles.statusTitle, { color: colors.onSurface }]}>
-                      {cutoverStage === 'ready-for-cutover' ? 'Listo para relevo' : cutoverStage === 'pilot-ready' ? 'Listo para piloto' : 'Aun faltan piezas'}
-                    </Text>
-                    <Text style={[styles.statusDescription, { color: colors.onSurfaceVariant }]}>
-                      {cutoverCheckedAt
-                        ? `Última revisión ${new Date(cutoverCheckedAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
-                        : 'Todavía no revisamos el checklist de relevo.'}
-                    </Text>
-
-                    {cutoverChecklist ? (
-                      <View style={styles.sectionContent}>
-                        {Object.entries(cutoverChecklist).map(([key, value]) => (
-                          <SettingRow
-                            key={key}
-                            label={key}
-                            value={value ? 'ok' : 'pendiente'}
-                          />
-                        ))}
-                      </View>
-                    ) : null}
-
-                    {operationalSnapshot ? (
-                      <View style={styles.sectionContent}>
-                        <SettingRow label="Permiso notificaciones" value={operationalSnapshot.notificationPermission} />
-                        <SettingRow label="Bridge widgets" value={operationalSnapshot.widgetModuleAvailable ? 'nativo' : 'fallback'} />
-                        <SettingRow label="Bridge background" value={operationalSnapshot.backgroundModuleAvailable ? 'nativo' : 'fallback'} />
-                        <SettingRow label="Bridge migración" value={operationalSnapshot.migrationBridgeAvailable ? 'nativo' : 'fallback'} />
-                        <SettingRow label="Bridge IA local" value={operationalSnapshot.localAiModuleAvailable ? 'nativo' : 'fallback'} />
-                        <SettingRow label="Widget stale" value={operationalSnapshot.widgetStale ? 'sí' : 'no'} />
-                        <SettingRow label="Background" value={operationalSnapshot.backgroundLastResult} />
-                        <SettingRow label="Logs nutrición" value={String(operationalSnapshot.nutritionLogCount)} />
-                        <SettingRow label="Plantillas" value={String(operationalSnapshot.templateCount)} />
-                        <SettingRow label="Wellbeing útil" value={operationalSnapshot.wellbeingHasData ? 'sí' : 'no'} />
-                      </View>
-                    ) : null}
-
-                    <View style={styles.signoffSection}>
-                      <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
-                        Signoff manual
-                      </Text>
-                      {Object.entries(cutoverSignoff).map(([key, value]) => (
-                        <Button
-                          key={key}
-                          onPress={() => toggleManualSignoff(key as keyof typeof cutoverSignoff)}
-                          variant="secondary"
-                        >
-                          {`${value ? 'OK' : 'Pendiente'} · ${key}`}
-                        </Button>
-                      ))}
-                    </View>
-
-                  <View style={styles.cutoverActions}>
-                      <Button
-                        onPress={() => void refreshCutover()}
-                        variant="secondary"
-                      >
-                        Actualizar checklist de relevo
-                      </Button>
-                      <Button
-                        onPress={() => void runOperationalSweep()}
-                        variant="secondary"
-                      >
-                        Correr sweep operativo
-                      </Button>
-                    </View>
+                    {Object.entries(cutoverChecklist).map(([key, value]) => (
+                      <SettingRow
+                        key={key}
+                        label={key}
+                        value={value ? 'OK' : 'Pendiente'}
+                      />
+                    ))}
                   </View>
-                ))
-              ) : null}
+                ) : (
+                  <Text style={[styles.controlDescription, { color: colors.onSurfaceVariant }]}>
+                    Checklist no disponible todavía.
+                  </Text>
+                )}
+
+                {operationalSnapshot ? (
+                  <View style={styles.sectionContent}>
+                    <SettingRow label="Permiso notificaciones" value={operationalSnapshot.notificationPermission} />
+                    <SettingRow label="Bridge widgets" value={operationalSnapshot.widgetModuleAvailable ? 'Nativo' : 'Fallback'} />
+                    <SettingRow label="Bridge background" value={operationalSnapshot.backgroundModuleAvailable ? 'Nativo' : 'Fallback'} />
+                    <SettingRow label="Bridge migración" value={operationalSnapshot.migrationBridgeAvailable ? 'Nativo' : 'Fallback'} />
+                    <SettingRow label="Bridge IA local" value={operationalSnapshot.localAiModuleAvailable ? 'Nativo' : 'Fallback'} />
+                    <SettingRow label="Widget stale" value={operationalSnapshot.widgetStale ? 'Sí' : 'No'} />
+                    <SettingRow label="Background" value={operationalSnapshot.backgroundLastResult} />
+                    <SettingRow label="Logs nutrición" value={String(operationalSnapshot.nutritionLogCount)} />
+                    <SettingRow label="Plantillas" value={String(operationalSnapshot.templateCount)} />
+                    <SettingRow label="Wellbeing útil" value={operationalSnapshot.wellbeingHasData ? 'Sí' : 'No'} />
+                  </View>
+                ) : null}
+
+                <View style={styles.signoffSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+                    Signoff manual
+                  </Text>
+                  {Object.entries(cutoverSignoff).map(([key, value]) => (
+                    <Button
+                      key={key}
+                      onPress={() => toggleManualSignoff(key as keyof typeof cutoverSignoff)}
+                      variant="secondary"
+                    >
+                      {`${value ? 'OK' : 'Pendiente'} · ${key}`}
+                    </Button>
+                  ))}
+                </View>
+
+                <View style={styles.cutoverActions}>
+                  <Button
+                    onPress={() => void refreshCutover()}
+                    variant="secondary"
+                  >
+                    Actualizar checklist
+                  </Button>
+                  <Button
+                    onPress={() => void runOperationalSweep()}
+                    variant="secondary"
+                  >
+                    Ejecutar sweep operativo
+                  </Button>
+                </View>
+              </View>
+            ))
+          ) : null}
 
         </View>
       </ScrollView>
@@ -618,5 +633,21 @@ const styles = StyleSheet.create({
   cutoverActions: {
     gap: 12,
     marginTop: 16,
+  },
+  hydratingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  hydratingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  hydratingDescription: {
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
   },
 });

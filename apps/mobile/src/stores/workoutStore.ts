@@ -289,8 +289,9 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
     try {
       await persistLocalWorkoutLog(quickLog);
       const { overview: nextOverview, reminderSettings } = await loadWorkoutRuntimeState();
-      set({
-        status: nextOverview ? 'ready' : 'empty',
+console.log('Setting state after finishActiveSession');
+console.log('Updating state with', {
+           status: nextOverview ? 'ready' : 'empty',
         overview: nextOverview,
         reminderSettings,
         loggingState: 'idle',
@@ -298,13 +299,15 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
       });
       await syncWorkoutInfra(nextOverview, reminderSettings);
       set({ notice: 'Sesión de hoy registrada en esta app RN.' });
-    } catch (error) {
-      set({
-        loggingState: 'idle',
-        errorMessage: error instanceof Error ? error.message : 'No pudimos registrar la sesión de hoy.',
-      });
-    }
-  },
+} catch (error) {
+        set({
+          loggingState: 'idle',
+          errorMessage: error instanceof Error ? error.message : 'No pudimos registrar la sesión de hoy.',
+        });
+      }
+      // Ensure loggingState reset to idle regardless of outcome
+      set({ loggingState: 'idle' });
+    },
 
   startRestTimer: async (seconds: number, setId?: string) => {
     const label = get().overview?.todaySession?.name ?? 'Descanso';
@@ -352,7 +355,12 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
     readinessScore: score,
   })),
 
-  startActiveSession: (payload) => {
+  startActiveSession: (programIdOrPayload, maybeSession) => {
+    // Support both old and new signatures for startActiveSession
+    const payload = typeof programIdOrPayload === 'string'
+      ? { programId: programIdOrPayload, session: maybeSession as Session }
+      : programIdOrPayload;
+
     set((state) => {
       const { session, exercises, activeExerciseId, activeSetId } = resolveSessionSelection(payload.session);
 
@@ -366,7 +374,7 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
           notice: 'La sesión no tiene ejercicios para iniciar.',
         };
       }
-      
+
       const newSession: OngoingWorkoutState = {
         programId: payload.programId,
         session,
@@ -380,10 +388,10 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
         setTypeOverrides: {},
         postExerciseFeedback: {},
       };
-      
+
       // Persistir checkpoint para recuperación (Silent Checkpoint initial)
       persistActiveSessionCheckpoint(newSession);
-      
+
       return {
         ...state,
         activeSession: newSession,
@@ -785,7 +793,7 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
            durationMinutes: log.duration || 0,
        };
 
-       await persistLocalWorkoutLog(summary);
+       await persistLocalWorkoutLog(log);
        // Also persist full log if SQLite supports it
        await persistDomainPayload(`workout.log.${log.id}`, log);
 
@@ -817,23 +825,26 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
          }
        }
        
-       const { overview: nextOverview, reminderSettings: nextReminders } = await loadWorkoutRuntimeState();
+       const result = await loadWorkoutRuntimeState() || {};
+        const nextOverview = result.overview;
+        const nextReminders = result.reminderSettings;
        
        // Limpiar checkpoint de sesión activa
        await clearActiveSessionCheckpoint();
        
-       set({
-         status: nextOverview ? 'ready' : 'empty',
-         overview: nextOverview,
-         reminderSettings: nextReminders,
-         activeSession: null,
-         sessionFinishState: 'idle',
-         postSessionFeedbackHistory: nextFeedbackHistory,
-         latestPostSessionFeedback: nextFeedbackHistory[0] || null,
-         notice: '¡Sesión finalizada y guardada!',
-       });
+set({
+          status: nextOverview ? 'ready' : 'empty',
+          overview: nextOverview,
+          reminderSettings: nextReminders,
+          activeSession: null,
+          sessionFinishState: 'success',
+          postSessionFeedbackHistory: nextFeedbackHistory,
+          latestPostSessionFeedback: nextFeedbackHistory[0] || null,
+          notice: '¡Sesión finalizada y guardada!',
+});
+console.log('State after clearing activeSession', get().activeSession);
 
-       if (nextReminders) {
+        if (nextReminders) {
          await syncWorkoutInfra(nextOverview, nextReminders);
        }
      } catch (error) {

@@ -4,9 +4,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenShell } from '@/components/ScreenShell';
 import { WikiSearchBar } from '@/components/wiki/WikiSearchBar';
-import { WikiCategoryCard } from '@/components/wiki/WikiCategoryCard';
-import { WikiListItem } from '@/components/wiki/WikiListItem';
-import { WikiArticleCard } from '@/components/wiki/WikiArticleCard';
+import { AnimatedCategoryCard } from '@/components/wiki/AnimatedCategoryCard';
+import { AnimatedListItem } from '@/components/wiki/AnimatedListItem';
+import { AnimatedArticleCard } from '@/components/wiki/AnimatedArticleCard';
+import {
+  WikiCategoryCardSkeleton,
+  WikiArticleCardSkeleton,
+  WikiListItemSkeleton,
+} from '@/components/wiki/WikiSkeleton';
 import {
   WIKI_JOINTS,
   WIKI_MOVEMENT_PATTERNS,
@@ -24,6 +29,12 @@ export function WikiHomeScreen() {
   const colors = useColors();
   const navigation = useNavigation<WikiHomeNavProp>();
   const [query, setQuery] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filteredMuscles = useMemo(() => searchWiki(WIKI_MUSCLES, query), [query]);
   const filteredJoints = useMemo(() => searchWiki(WIKI_JOINTS, query), [query]);
@@ -34,6 +45,12 @@ export function WikiHomeScreen() {
   const featuredJoint = filteredJoints[0] ?? WIKI_JOINTS[0];
   const featuredTendon = filteredTendons[0] ?? WIKI_TENDONS[0];
   const featuredPattern = filteredPatterns[0] ?? WIKI_MOVEMENT_PATTERNS[0];
+
+  const hasAnyContent =
+    filteredMuscles.length > 0 ||
+    filteredJoints.length > 0 ||
+    filteredTendons.length > 0 ||
+    filteredPatterns.length > 0;
 
   const labCards = useMemo(
     () => [
@@ -117,100 +134,150 @@ export function WikiHomeScreen() {
   return (
     <ScreenShell
       title="WikiLab"
-      subtitle="La biblioteca real de la PWA: músculos, articulaciones, tendones y patrones."
+      subtitle="La enciclopedia definitiva del entrenamiento, biomecánica y anatomía aplicada."
       showBack={false}
     >
       <View style={styles.container}>
         <WikiSearchBar query={query} onChangeQuery={setQuery} onClear={() => setQuery('')} />
 
-        <View style={styles.categoryGrid}>
-          <WikiCategoryCard
-            title="Músculos"
-            subtitle="Biblioteca"
-            count={filteredMuscles.length}
-            accent="sky"
-            onPress={() => {
-              if (filteredMuscles[0]) {
-                navigation.navigate('WikiMuscleDetail', { muscleId: filteredMuscles[0].id });
-              }
-            }}
-          />
-          <WikiCategoryCard
-            title="Articulaciones"
-            subtitle="Biomecánica"
-            count={filteredJoints.length}
-            accent="purple"
-            onPress={() => {
-              if (filteredJoints[0]) {
-                navigation.navigate('WikiJointDetail', { jointId: filteredJoints[0].id });
-              }
-            }}
-          />
-          <WikiCategoryCard
-            title="Tendones"
-            subtitle="Recuperación"
-            count={filteredTendons.length}
-            accent="amber"
-            onPress={() => {
-              if (filteredTendons[0]) {
-                navigation.navigate('WikiTendonDetail', { tendonId: filteredTendons[0].id });
-              }
-            }}
-          />
-          <WikiCategoryCard
-            title="Patrones"
-            subtitle="Movimiento"
-            count={filteredPatterns.length}
-            accent="emerald"
-            onPress={() => {
-              if (filteredPatterns[0]) {
-                navigation.navigate('WikiPatternDetail', { patternId: filteredPatterns[0].id });
-              }
-            }}
-          />
-        </View>
+        {!hasAnyContent && query.length > 0 ? (
+          <View style={[styles.emptyState, { backgroundColor: colors.surfaceContainer }]}>
+            <Text style={[styles.emptyStateTitle, { color: colors.onSurface }]}>
+              Sin resultados
+            </Text>
+            <Text style={[styles.emptyStateText, { color: colors.onSurfaceVariant }]}>
+              No encontramos coincidencias para "{query}". Intenta con otro término.
+            </Text>
+          </View>
+        ) : isLoading ? (
+          <>
+            <WikiCategoryCardSkeleton count={4} />
+            <WikiArticleCardSkeleton count={2} />
+            <WikiListItemSkeleton count={4} />
+          </>
+        ) : (
+          <>
+            <View style={styles.categoryGrid}>
+              <AnimatedCategoryCard
+                title="Músculos"
+                subtitle="Anatomía"
+                count={filteredMuscles.length}
+                accent="purple"
+                index={0}
+                onPress={() => {
+                  if (filteredMuscles[0]) {
+                    navigation.navigate('WikiMuscleDetail', { muscleId: filteredMuscles[0].id });
+                  }
+                }}
+              />
+              <AnimatedCategoryCard
+                title="Articulaciones"
+                subtitle="Biomecánica"
+                count={filteredJoints.length}
+                accent="sky"
+                index={1}
+                onPress={() => {
+                  if (filteredJoints[0]) {
+                    navigation.navigate('WikiJointDetail', { jointId: filteredJoints[0].id });
+                  }
+                }}
+              />
+              <AnimatedCategoryCard
+                title="Tendones"
+                subtitle="Recuperación"
+                count={filteredTendons.length}
+                accent="amber"
+                index={2}
+                onPress={() => {
+                  if (filteredTendons[0]) {
+                    navigation.navigate('WikiTendonDetail', { tendonId: filteredTendons[0].id });
+                  }
+                }}
+              />
+              <AnimatedCategoryCard
+                title="Patrones"
+                subtitle="Movimiento"
+                count={filteredPatterns.length}
+                accent="emerald"
+                index={3}
+                onPress={() => {
+                  if (filteredPatterns[0]) {
+                    navigation.navigate('WikiPatternDetail', { patternId: filteredPatterns[0].id });
+                  }
+                }}
+              />
+            </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>Laboratorios</Text>
-        <View style={styles.cardsGrid}>
-          {labCards.map(card => (
-            <WikiArticleCard
-              key={card.key}
-              title={card.title}
-              category={card.category}
-              description={card.description}
-              readTime={card.readTime}
-              onPress={card.onPress}
-            />
-          ))}
-        </View>
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+                Laboratorios
+              </Text>
+              <View style={styles.cardsGrid}>
+                {labCards.map((card, index) => (
+                  <AnimatedArticleCard
+                    key={card.key}
+                    title={card.title}
+                    category={card.category}
+                    description={card.description}
+                    readTime={card.readTime}
+                    onPress={card.onPress}
+                    index={index}
+                  />
+                ))}
+              </View>
+            </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>Cadenas</Text>
-        <View style={styles.chainList}>
-          {WIKI_CHAIN_DEFINITIONS.map(chain => (
-            <WikiListItem
-              key={chain.id}
-              title={chain.title}
-              subtitle={chain.subtitle}
-              onPress={() => navigation.navigate('WikiChainDetail', { chainId: chain.id })}
-            />
-          ))}
-        </View>
+            {WIKI_CHAIN_DEFINITIONS.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+                    Cadenas Cinéticas
+                  </Text>
+                  <Text style={[styles.sectionCount, { color: colors.onSurfaceVariant }]}>
+                    {WIKI_CHAIN_DEFINITIONS.length} Grupos
+                  </Text>
+                </View>
+                <View style={styles.chainList}>
+                  {WIKI_CHAIN_DEFINITIONS.map((chain, index) => (
+                    <AnimatedListItem
+                      key={chain.id}
+                      title={chain.title}
+                      subtitle={chain.subtitle}
+                      index={index}
+                      onPress={() => navigation.navigate('WikiChainDetail', { chainId: chain.id })}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
 
-        <View style={styles.spotlightHeader}>
-          <Text style={[styles.spotlightTitle, { color: colors.onSurfaceVariant }]}>
-            Resultados destacados
-          </Text>
-        </View>
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+                  Resultados destacados
+                </Text>
+                <Text style={[styles.sectionCount, { color: colors.onSurfaceVariant }]}>
+                  {spotlightItems.length} elementos
+                </Text>
+              </View>
 
-        <FlatList
-          data={spotlightItems}
-          keyExtractor={item => item.key}
-          renderItem={({ item }) => (
-            <WikiListItem title={item.title} subtitle={item.subtitle} onPress={item.onPress} />
-          )}
-          scrollEnabled={false}
-          ItemSeparatorComponent={() => <View style={{ height: 0 }} />}
-        />
+              <FlatList
+                data={spotlightItems}
+                keyExtractor={item => item.key}
+                renderItem={({ item, index }) => (
+                  <AnimatedListItem
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    onPress={item.onPress}
+                    index={index}
+                  />
+                )}
+                scrollEnabled={false}
+                ItemSeparatorComponent={() => <View style={{ height: 0 }} />}
+              />
+            </View>
+          </>
+        )}
       </View>
     </ScreenShell>
   );
@@ -227,23 +294,42 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   chainList: {
+    gap: 8,
+  },
+  section: {
     gap: 12,
   },
-  spotlightHeader: {
-    marginTop: 8,
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 2,
     textTransform: 'uppercase',
-    marginTop: 8,
   },
-  spotlightTitle: {
+  sectionCount: {
     fontSize: 10,
+    fontWeight: '700',
+    opacity: 0.5,
+  },
+  emptyState: {
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+  },
+  emptyStateTitle: {
+    fontSize: 18,
     fontWeight: '800',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    opacity: 0.7,
   },
 });
-

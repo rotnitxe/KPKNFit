@@ -70,7 +70,7 @@ export const NutritionHeroCard: React.FC<NutritionHeroCardProps> = ({
     >
       <View style={styles.header}>
         <Text style={[styles.dateLabel, { color: colors.onSurfaceVariant }]}>
-          Hoy · {dateLabel}
+          HOY · {dateLabel}
         </Text>
         <View style={[styles.indicator, { backgroundColor: `${indicatorColor}20` }]}>
           <IndicatorIcon size={12} color={indicatorColor} />

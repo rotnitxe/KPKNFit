@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   label: {
     fontWeight: '500',
@@ -119,6 +119,11 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     justifyContent: 'center',
     paddingHorizontal: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   knob: {
     borderRadius: 9999,

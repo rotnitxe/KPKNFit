@@ -343,8 +343,8 @@ export function AthleteIDDashboard() {
 
   return (
     <ScreenShell
-      title="Athlete ID"
-      subtitle="Tu perfil atlético completo"
+      title="Perfil de Atleta"
+      subtitle="Identificación atlética completa"
     >
       <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
         <LiquidGlassCard style={styles.heroCard} padding={20}>
