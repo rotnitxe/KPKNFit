@@ -33,12 +33,18 @@ import {
 } from '../../components/icons';
 import { AugeDashboard } from '../../components/auge/AugeDashboard';
 import { CaupolicanBody } from '../../components/analytics/CaupolicanBody';
+import VolumeView from '../../components/programs/VolumeView';
+import ProgressView from '../../components/programs/ProgressView';
+import HistoryView from '../../components/programs/HistoryView';
 import { calculateAverageVolumeForWeeks } from '../../services/analysisService';
 import { useExerciseStore } from '../../stores/exerciseStore';
 import { useWorkoutStore } from '../../stores/workoutStore';
 import { Canvas, Rect, LinearGradient, vec, Blur, Circle } from '@shopify/react-native-skia';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import ReactNativeHapticFeedback from '@/services/hapticsService';
 import { SessionDayPickerModal } from '../../components/workout/SessionDayPickerModal';
+import { StartWorkoutModal } from '../../components/workout/StartWorkoutModal';
+import { StartWorkoutDrawer } from '../../components/workout/StartWorkoutDrawer';
+import { getSessionExercises, getSessionSetCount } from '../../utils/workoutSession';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -56,10 +62,6 @@ function getProgramWeeks(program: Program) {
 
 function getProgramSessions(program: Program) {
   return getProgramWeeks(program).flatMap(({ week }) => week.sessions ?? []);
-}
-
-function getSessionSetCount(session: Session) {
-  return (session.exercises ?? []).reduce((total, exercise) => total + (exercise.sets?.length ?? 0), 0);
 }
 
 function getDayLabel(dayOfWeek?: number) {
@@ -103,6 +105,8 @@ export const ProgramDetailScreen: React.FC = () => {
     const pauseProgram = useProgramStore(state => state.pauseProgram);
     const updateProgram = useProgramStore(state => state.updateProgram);
     const overview = useWorkoutStore(state => state.overview);
+    const history = useWorkoutStore(state => state.history);
+    const startActiveSession = useWorkoutStore(state => state.startActiveSession);
     const moveSessionToDay = useProgramStore(state => state.moveSessionToDay);
     const addSession = useProgramStore(state => state.addSession);
     const deleteSession = useProgramStore(state => state.deleteSession);
@@ -116,6 +120,9 @@ export const ProgramDetailScreen: React.FC = () => {
     const [dayPickerVisible, setDayPickerVisible] = useState(false);
     const [targetSessionToAssign, setTargetSessionToAssign] = useState<string | null>(null);
     const [targetSessionDay, setTargetSessionDay] = useState<number>(0);
+    const [startWorkoutVisible, setStartWorkoutVisible] = useState(false);
+    const [startWorkoutDrawerVisible, setStartWorkoutDrawerVisible] = useState(false);
+    const [sessionToStart, setSessionToStart] = useState<Session | null>(null);
 
     const { exerciseList, muscleHierarchy } = useExerciseStore();
 
@@ -152,11 +159,14 @@ export const ProgramDetailScreen: React.FC = () => {
     const totalWeeks = allWeeks.length;
 
     const adherence = useMemo(() => {
-        const recentLogs = overview?.recentLogs?.filter(log => log.programName === (program?.name ?? '')) ?? [];
-        return totalSessions > 0
-            ? Math.round((new Set(recentLogs.map(log => log.sessionName)).size / totalSessions) * 100)
+        if (!program) return 0;
+        const programLogs = history.filter(log => log.programId === program.id);
+        const completedSessionIds = new Set(programLogs.map(l => l.sessionId));
+        const allProgramSessions = getProgramSessions(program);
+        return allProgramSessions.length > 0 
+            ? Math.round((allProgramSessions.filter(s => completedSessionIds.has(s.id)).length / allProgramSessions.length) * 100)
             : 0;
-    }, [overview, program, totalSessions]);
+    }, [history, program]);
 
     const currentWeekIndex = useMemo(() => {
         if (!program || !activeProgramState || activeProgramState.programId !== program.id) return 0;
@@ -216,6 +226,38 @@ export const ProgramDetailScreen: React.FC = () => {
         if (!selectedWeekId) return;
         ReactNativeHapticFeedback.trigger('impactHeavy');
         await deleteSession(program.id, selectedWeekId, sessionId);
+    };
+
+    const handleOpenStartWorkout = (session: Session) => {
+        setSessionToStart(session);
+        setStartWorkoutVisible(true);
+    };
+
+    const handleStartWorkout = (payload: { key: 'A' | 'B' | 'C' | 'D'; session: Session }) => {
+        ReactNativeHapticFeedback.trigger('notificationSuccess');
+        startActiveSession({ programId, session: payload.session });
+        setStartWorkoutVisible(false);
+        setSessionToStart(null);
+        navigation.navigate('ActiveSession', {
+            programId,
+            sessionId: payload.session.id,
+            sessionName: payload.session.name,
+        });
+    };
+
+    const handleStartWorkoutFromDrawer = (payload: {
+        key: 'A' | 'B' | 'C' | 'D';
+        session: Session;
+        programId: string;
+    }) => {
+        ReactNativeHapticFeedback.trigger('notificationSuccess');
+        startActiveSession({ programId: payload.programId, session: payload.session });
+        setStartWorkoutDrawerVisible(false);
+        navigation.navigate('ActiveSession', {
+            programId: payload.programId,
+            sessionId: payload.session.id,
+            sessionName: payload.session.name,
+        });
     };
 
     return (
@@ -328,10 +370,10 @@ export const ProgramDetailScreen: React.FC = () => {
                             { id: 'macrociclo', label: 'MACROCICLO' },
                             { id: 'loops', label: 'PROTOCOLO' }
                         ] : [
-                            { id: 'volumen', label: 'RECOVERY' },
-                            { id: 'muscles', label: 'VOLUMEN' },
-                            { id: 'progreso', label: 'RUTINA' },
-                            { id: 'historiales', label: 'REGISTROS' }
+                            { id: 'volumen', label: 'VOLUMEN' },
+                            { id: 'muscles', label: 'MÚSCULOS' },
+                            { id: 'progreso', label: 'PROGRESO' },
+                            { id: 'historiales', label: 'HISTORIAL' }
                         ]).map(tab => {
                             const isActive = mainTab === 'training' ? trainingTab === tab.id : analyticsTab === tab.id;
                             return (
@@ -366,6 +408,14 @@ export const ProgramDetailScreen: React.FC = () => {
 
                         {trainingTab === 'semana' && (
                             <View style={styles.weekView}>
+                                <TouchableOpacity
+                                    onPress={() => setStartWorkoutDrawerVisible(true)}
+                                    style={[styles.startDrawerBtn, { backgroundColor: colors.primaryContainer, borderColor: `${colors.primary}55` }]}
+                                >
+                                    <CheckCircleIcon size={16} color={colors.primary} />
+                                    <Text style={[styles.startDrawerTxt, { color: colors.primary }]}>Iniciar sesión (selector completo)</Text>
+                                </TouchableOpacity>
+
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weekChips}>
                                     {selectedWeeks.map((w, idx) => (
                                         <TouchableOpacity 
@@ -386,10 +436,14 @@ export const ProgramDetailScreen: React.FC = () => {
                                                 <View style={[styles.dayBadge, { backgroundColor: colors.secondaryContainer }]}>
                                                     <Text style={[styles.dayText, { color: colors.secondary }]}>{getDayLabel(session.dayOfWeek)}</Text>
                                                 </View>
-                                                <View style={styles.sessionInfo}>
+                                                <TouchableOpacity
+                                                    onPress={() => navigation.navigate('SessionDetail', { sessionId: session.id })}
+                                                    style={styles.sessionInfo}
+                                                    activeOpacity={0.7}
+                                                >
                                                     <Text style={[styles.sessionTitle, { color: colors.onSurface }]}>{session.name}</Text>
-                                                    <Text style={[styles.sessionMeta, { color: colors.onSurfaceVariant }]}>{session.exercises?.length} EJERCICIOS · {getSessionSetCount(session)} SERIES</Text>
-                                                </View>
+                                                    <Text style={[styles.sessionMeta, { color: colors.onSurfaceVariant }]}>{getSessionExercises(session).length} EJERCICIOS · {getSessionSetCount(session)} SERIES</Text>
+                                                </TouchableOpacity>
                                                 <View style={styles.sessionActions}>
                                                     <TouchableOpacity 
                                                         onPress={() => handleAssignDay(session.id, session.dayOfWeek ?? 0)}
@@ -410,7 +464,7 @@ export const ProgramDetailScreen: React.FC = () => {
                                                         <TrashIcon size={18} color={colors.error} />
                                                     </TouchableOpacity>
                                                     <TouchableOpacity 
-                                                        onPress={() => navigation.navigate('ActiveSession', { programId, sessionId: session.id, sessionName: session.name })}
+                                                        onPress={() => handleOpenStartWorkout(session)}
                                                         style={[styles.sessionActionBtn, { backgroundColor: colors.primary }]}
                                                     >
                                                         <ChevronRightIcon size={18} color={colors.onPrimary} />
@@ -454,7 +508,15 @@ export const ProgramDetailScreen: React.FC = () => {
                     </View>
                 ) : (
                     <View style={styles.analyticsSection}>
-                        {analyticsTab === 'volumen' && <AugeDashboard />}
+                        {analyticsTab === 'volumen' && (
+                            <VolumeView 
+                                volumeAnalysis={volumeAnalysis}
+                                muscleHierarchy={muscleHierarchy}
+                                currentWeeks={allWeeks}
+                                selectedWeekId={selectedWeekId}
+                                onSelectWeek={setSelectedWeekId}
+                            />
+                        )}
 
                         {analyticsTab === 'muscles' && (
                             <View style={{ paddingBottom: 40, marginTop: 12 }}>
@@ -489,6 +551,20 @@ export const ProgramDetailScreen: React.FC = () => {
                                 </View>
                             </View>
                         )}
+
+                        {analyticsTab === 'progreso' && (
+                            <ProgressView 
+                                program={program}
+                                history={history}
+                            />
+                        )}
+
+                        {analyticsTab === 'historiales' && (
+                            <HistoryView 
+                                program={program}
+                                history={history}
+                            />
+                        )}
                         
                         <View style={styles.analyticsStats}>
                             <LiquidGlassCard style={styles.analyticRow}>
@@ -505,6 +581,21 @@ export const ProgramDetailScreen: React.FC = () => {
                 onClose={() => setDayPickerVisible(false)}
                 onSelect={onDaySelected}
                 currentDay={targetSessionDay}
+            />
+            <StartWorkoutModal
+                visible={startWorkoutVisible}
+                session={sessionToStart}
+                onClose={() => {
+                    setStartWorkoutVisible(false);
+                    setSessionToStart(null);
+                }}
+                onStart={handleStartWorkout}
+            />
+            <StartWorkoutDrawer
+                visible={startWorkoutDrawerVisible}
+                programs={[program]}
+                onClose={() => setStartWorkoutDrawerVisible(false)}
+                onStart={handleStartWorkoutFromDrawer}
             />
         </SafeAreaView>
     );
@@ -713,6 +804,22 @@ const styles = StyleSheet.create({
     },
     weekView: {
         gap: 16,
+    },
+    startDrawerBtn: {
+        borderWidth: 1,
+        borderRadius: 16,
+        minHeight: 46,
+        paddingHorizontal: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+    },
+    startDrawerTxt: {
+        fontSize: 12,
+        fontWeight: '900',
+        letterSpacing: 0.6,
+        textTransform: 'uppercase',
     },
     weekChips: {
         gap: 12,

@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Pressable, Text, StyleSheet, Animated, Easing } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Pressable, Text, StyleSheet, Animated, Easing, View } from 'react-native';
 import { useColors } from '../../theme';
 
 interface ToggleSwitchProps {
@@ -26,6 +26,15 @@ export function ToggleSwitch({
     ? { track: { width: 36, height: 20 }, knob: { size: 16 }, translateX: 16 }
     : { track: { width: 44, height: 24 }, knob: { size: 20 }, translateX: 20 };
 
+  useEffect(() => {
+    Animated.timing(knobPosition, {
+      toValue: checked ? 1 : 0,
+      duration: 180,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  }, [checked, knobPosition]);
+
   const handlePress = () => {
     const newChecked = !checked;
     onChange(newChecked);
@@ -48,6 +57,8 @@ export function ToggleSwitch({
     <Pressable
       style={styles.container}
       onPress={handlePress}
+      accessibilityRole="switch"
+      accessibilityState={{ checked }}
       testID={testID}
     >
       {label && (
@@ -63,7 +74,7 @@ export function ToggleSwitch({
           {label}
         </Text>
       )}
-      <Pressable
+      <View
         style={[
           styles.track,
           {
@@ -72,7 +83,6 @@ export function ToggleSwitch({
             backgroundColor: trackColor,
           },
         ]}
-        onPress={handlePress}
       >
         <Animated.View
           style={[
@@ -91,7 +101,7 @@ export function ToggleSwitch({
             },
           ]}
         />
-      </Pressable>
+      </View>
     </Pressable>
   );
 }

@@ -1,11 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 import { ModernSetEditor } from './ModernSetEditor';
+import { InCardTimer } from './InCardTimer';
 import { TargetIcon, FlameIcon, XCircleIcon, CheckCircleIcon } from '../icons';
 import { useWorkoutStore } from '../../stores/workoutStore';
-import { ExerciseSet, OngoingWorkoutState, OngoingSetData } from '../../types/workout';
+import { ExerciseSet, OngoingWorkoutState, OngoingSetData, SetTypeLabel, Exercise } from '../../types/workout';
 import { PWA_WORKOUT_PALETTE as PWA } from './pwaWorkoutPalette';
+import { getGhostForSet } from '../../utils/ghostSets';
+import { getSessionExercises } from '../../utils/workoutSession';
 
 interface ExerciseSetRowProps {
   exerciseId: string;
@@ -28,13 +31,16 @@ export const ExerciseSetRow: React.FC<ExerciseSetRowProps> = ({
   activeSession,
 }) => {
   const updateSetData = useWorkoutStore(s => s.updateSetData);
+  const setSetTypeOverride = useWorkoutStore(s => s.setSetTypeOverride);
   const setActiveExercise = useWorkoutStore(s => s.setActiveExercise);
   const setActiveSet = useWorkoutStore(s => s.setActiveSet);
+  const history = useWorkoutStore(s => s.history);
   const [editorVisible, setEditorVisible] = React.useState(false);
 
   const completedData = activeSession?.completedSets[setId];
   const isCompleted = !!completedData;
   const isUnilateral = !!(completedData && 'left' in completedData);
+  const activeExerciseName = getSessionExercises(activeSession?.session).find(ex => ex.id === exerciseId)?.name || 'Ejercicio';
 
   const primaryData = React.useMemo(() => {
     if (!completedData) return null;
@@ -46,6 +52,53 @@ export const ExerciseSetRow: React.FC<ExerciseSetRowProps> = ({
 
   const perfMode = primaryData?.performanceMode || 'target';
   
+  // Función para obtener la etiqueta del tipo de serie (W/T/F/D)
+  const getDefaultSetTypeLabel = (set: ExerciseSet): SetTypeLabel => {
+    if (set.isAmrap) return 'W';
+    if (set.intensityMode === 'failure' || set.intensityMode === 'amrap' || set.intensityMode === 'solo_rm') return 'F';
+    if (set.dropSets && set.dropSets.length > 0) return 'D';
+    return 'T';
+  };
+
+  const currentSetType: SetTypeLabel = activeSession?.setTypeOverrides?.[setId] ?? getDefaultSetTypeLabel(set);
+  
+  // Función para ciclar al siguiente tipo de serie
+  const cycleSetType = () => {
+    if (!activeSession) return;
+    
+    const currentType = currentSetType;
+    
+    let newType: SetTypeLabel = 'W'; // Default
+    switch (currentType) {
+      case 'W': newType = 'T'; break;
+      case 'T': newType = 'F'; break;
+      case 'F': newType = 'D'; break;
+      case 'D': newType = 'W'; break;
+    }
+    
+    setSetTypeOverride(setId, newType);
+
+    // Avoid creating a "completed set" entry when the user only cycles the set type.
+    // Only mutate logged data if this set was already completed.
+    if (isCompleted) {
+      updateSetData(setId, {
+        performanceMode: newType === 'F' ? 'failure' : 'target',
+        isAmrap: newType === 'W',
+      });
+    }
+  };
+  
+  // Obtener color según el tipo de serie
+  const getSetTypeColor = (type: string): string => {
+    switch (type) {
+      case 'W': return '#6B7280'; // gris
+      case 'T': return '#3B82F6'; // azul primario
+      case 'F': return '#EF4444'; // rojo
+      case 'D': return '#8B5CF6'; // violeta
+      default: return '#6B7280';
+    }
+  };
+
   const displayWeight = useMemo(() => {
     if (typeof primaryData?.weight === 'number') return primaryData.weight;
     
@@ -58,8 +111,9 @@ export const ExerciseSetRow: React.FC<ExerciseSetRowProps> = ({
     return set.weight;
   }, [primaryData?.weight, activeSession?.sessionAdjusted1RMs, exerciseId, set.weight, set.targetPercentageRM]);
 
-  const displayReps = typeof primaryData?.reps === 'number' ? primaryData.reps : set.targetReps;
-
+  const displayReps = typeof primaryData?.reps === 'number'
+    ? primaryData.reps
+    : (typeof set.targetDuration === 'number' ? set.targetDuration : set.targetReps);
 
   const modeIcon = () => {
     if (!isCompleted) return <TargetIcon size={14} color={PWA.muted} />;
@@ -82,6 +136,7 @@ export const ExerciseSetRow: React.FC<ExerciseSetRowProps> = ({
       completeSet(exerciseId, setId, {
         weight: set.weight || 0,
         reps: set.targetReps || 0,
+        duration: set.targetDuration || undefined,
         rir: set.targetRIR || 0,
         performanceMode: 'target',
         isAmrap: set.isAmrap,
@@ -91,7 +146,6 @@ export const ExerciseSetRow: React.FC<ExerciseSetRowProps> = ({
     }
     setEditorVisible(true);
   };
-
 
   const summaryText = isCompleted
     ? `Registrada: ${formatValue(displayWeight, 'kg')} · ${formatValue(displayReps, 'reps')}`
@@ -105,61 +159,80 @@ export const ExerciseSetRow: React.FC<ExerciseSetRowProps> = ({
         </View>
       </View>
 
-      <Pressable style={styles.mainPressable} onPress={handleOpen}>
-        <View style={styles.topRow}>
-          <View style={styles.labelRow}>
-            {modeIcon()}
-            <Text style={styles.labelText}>Serie {setIndex + 1}</Text>
-            {isUnilateral ? (
-              <View style={styles.uniBadge}>
-                <Text style={styles.uniBadgeText}>UNI</Text>
-              </View>
-            ) : null}
-          </View>
-          {set.targetRIR !== undefined ? (
-            <Text style={styles.rirText}>RIR {set.targetRIR}</Text>
-          ) : null}
-        </View>
+       <Pressable style={styles.mainPressable} onPress={handleOpen}>
+         <View style={styles.topRow}>
+           <View style={styles.labelRow}>
+             <TouchableOpacity onPress={cycleSetType} style={[styles.setTypeBadge, { backgroundColor: `${getSetTypeColor(currentSetType)}1A` }]}>
+               <Text style={[styles.setTypeText, { color: getSetTypeColor(currentSetType) }]}>{currentSetType}</Text>
+             </TouchableOpacity>
+             {modeIcon()}
+             <Text style={styles.labelText}>Serie {setIndex + 1}</Text>
+             {isUnilateral ? (
+               <View style={styles.uniBadge}>
+                 <Text style={styles.uniBadgeText}>UNI</Text>
+               </View>
+             ) : null}
+             {set.targetRIR !== undefined ? (
+               <Text style={styles.rirText}>RIR {set.targetRIR}</Text>
+             ) : null}
+           </View>
 
-        <View style={styles.metricRow}>
-          <View style={styles.metricBox}>
-            <Text style={styles.metricLabel}>KG</Text>
-            <Text style={styles.metricValue}>{formatValue(displayWeight)}</Text>
-          </View>
-          <View style={styles.metricBox}>
-            <Text style={styles.metricLabel}>{typeof set.targetDuration === 'number' ? 'SEG' : 'REPS'}</Text>
-            <Text style={styles.metricValue}>{formatValue(displayReps)}</Text>
-          </View>
-        </View>
+           <View style={styles.metricRow}>
+             <View style={styles.metricBox}>
+               <Text style={styles.metricLabel}>KG</Text>
+               <Text style={styles.metricValue}>{formatValue(displayWeight)}</Text>
+             </View>
+             <View style={styles.metricBox}>
+               <Text style={styles.metricLabel}>{typeof set.targetDuration === 'number' ? 'SEG' : 'REPS'}</Text>
+               <Text style={styles.metricValue}>{formatValue(displayReps)}</Text>
+             </View>
+           </View>
+         </View>
+         <Text style={styles.summaryText}>{summaryText}</Text>
+         {(!isCompleted && history && history.length > 0) && (
+           <Text style={styles.ghostText}>
+             {getGhostForSet(exerciseId, setIndex, history) && (
+               `Anterior: ${getGhostForSet(exerciseId, setIndex, history)!.weight}kg × ${getGhostForSet(exerciseId, setIndex, history)!.reps}${
+                 getGhostForSet(exerciseId, setIndex, history)!.rpe !== undefined
+                   ? ` RPE${getGhostForSet(exerciseId, setIndex, history)!.rpe}`
+                   : ''
+               }`
+             )}
+           </Text>
+         )}
+         {typeof set.targetDuration === 'number' && (
+           <View style={styles.timerWrap}>
+             <InCardTimer
+               initialTime={primaryData?.duration ?? set.targetDuration}
+               onSave={(duration) => updateSetData(setId, { duration })}
+             />
+           </View>
+         )}
+       </Pressable>
 
-        <Text style={styles.summaryText}>{summaryText}</Text>
-      </Pressable>
+        <Pressable onPress={handleQuickComplete} style={[styles.completeButton, isCompleted && styles.completeButtonDone]}>
+          <CheckCircleIcon size={20} color={isCompleted ? '#FFFFFF' : PWA.primary} />
+        </Pressable>
 
-      <Pressable onPress={handleQuickComplete} style={[styles.completeButton, isCompleted && styles.completeButtonDone]}>
-        <CheckCircleIcon size={20} color={isCompleted ? '#FFFFFF' : PWA.primary} />
-      </Pressable>
-
-      <ModernSetEditor
-        visible={editorVisible}
-        onClose={() => setEditorVisible(false)}
-        onSave={(data) => {
-          const { completeSet } = useWorkoutStore.getState();
-          completeSet(exerciseId, setId, data, set.isCalibrator);
-          setEditorVisible(false);
-        }}
-        initialData={primaryData as OngoingSetData | undefined}
-        exerciseName={activeSession?.session.exercises.find(ex => ex.id === exerciseId)?.name || 'Ejercicio'}
-        setIndex={setIndex}
-        targetReps={set.targetReps}
-        targetWeight={set.weight}
-        isAmrap={set.isAmrap}
-        isCalibrator={set.isCalibrator}
-      />
-
-    </View>
-  );
-};
-
+        <ModernSetEditor
+          visible={editorVisible}
+          onClose={() => setEditorVisible(false)}
+          onSave={(data) => {
+            const { completeSet } = useWorkoutStore.getState();
+            completeSet(exerciseId, setId, data, set.isCalibrator);
+            setEditorVisible(false);
+          }}
+          initialData={primaryData as OngoingSetData | undefined}
+          exerciseName={activeExerciseName}
+          setIndex={setIndex}
+          targetReps={set.targetReps}
+          targetWeight={set.weight}
+          isAmrap={set.isAmrap}
+          isCalibrator={set.isCalibrator}
+         />
+     </View>
+   );
+ };
 
 const styles = StyleSheet.create({
   container: {
@@ -268,6 +341,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
+  ghostText: {
+    color: PWA.muted,
+    fontSize: 10,
+    marginTop: 4,
+  },
+  timerWrap: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
   completeButton: {
     width: 44,
     height: 44,
@@ -281,5 +363,17 @@ const styles = StyleSheet.create({
   completeButtonDone: {
     backgroundColor: PWA.primary,
     borderColor: PWA.primary,
+  },
+  setTypeBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: '#F3EDF7',
+    marginRight: 6,
+  },
+  setTypeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
 });

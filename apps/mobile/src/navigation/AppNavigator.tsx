@@ -12,6 +12,8 @@ import { FoodDatabaseScreen } from '../screens/Nutrition/FoodDatabaseScreen';
 import { FoodDetailScreen } from '../screens/Nutrition/FoodDetailScreen';
 import { WorkoutScreen } from '../screens/Workout/WorkoutScreen';
 import { SessionDetailScreen } from '../screens/Workout/SessionDetailScreen';
+import { LogHubScreen } from '../screens/Workout/LogHubScreen';
+import { LogWorkoutScreen } from '../screens/Workout/LogWorkoutScreen';
 import { ProgressScreen } from '../screens/Progress/ProgressScreen';
 import { BodyProgressScreen } from '../screens/Progress/BodyProgressScreen';
 import { SettingsScreen } from '../screens/Settings/SettingsScreen';
@@ -26,6 +28,10 @@ import { WikiMuscleDetailScreen } from '../screens/Wiki/WikiMuscleDetailScreen';
 import { WikiJointDetailScreen } from '../screens/Wiki/WikiJointDetailScreen';
 import { WikiTendonDetailScreen } from '../screens/Wiki/WikiTendonDetailScreen';
 import { WikiPatternDetailScreen } from '../screens/Wiki/WikiPatternDetailScreen';
+import { WikiBiomechanicsScreen } from '../screens/Wiki/WikiBiomechanicsScreen';
+import { WikiMobilityScreen } from '../screens/Wiki/WikiMobilityScreen';
+import { WikiChainDetailScreen } from '../screens/Wiki/WikiChainDetailScreen';
+import { WikiArticleScreen } from '../screens/Wiki/WikiArticleScreen';
 import { CoachChatScreen } from '../screens/Coach/CoachChatScreen';
 import { navigationRef } from './navigationRef';
 import { KpknBottomBar } from '../components/navigation/KpknBottomBar';
@@ -50,7 +56,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function NutritionStackScreen() {
   return (
-    <NutritionStack.Navigator screenOptions={{ headerShown: false }}>
+    <NutritionStack.Navigator id="NutritionStack" screenOptions={{ headerShown: false }}>
       <NutritionStack.Screen name="NutritionDashboard" component={NutritionDashboardScreen} />
       <NutritionStack.Screen name="MealPlanner" component={MealPlannerScreen} />
       <NutritionStack.Screen name="NutritionLog" component={NutritionLogScreen} />
@@ -62,9 +68,15 @@ function NutritionStackScreen() {
 
 function WorkoutStackScreen() {
   return (
-    <WorkoutStack.Navigator initialRouteName="ProgramsList" screenOptions={{ headerShown: false }}>
+    <WorkoutStack.Navigator
+      id="WorkoutStack"
+      initialRouteName="ProgramsList"
+      screenOptions={{ headerShown: false }}
+    >
       <WorkoutStack.Screen name="ProgramsList" component={ProgramsScreen} />
       <WorkoutStack.Screen name="WorkoutMain" component={WorkoutScreen} />
+      <WorkoutStack.Screen name="LogHub" component={LogHubScreen} />
+      <WorkoutStack.Screen name="LogWorkout" component={LogWorkoutScreen} />
       <WorkoutStack.Screen name="SessionDetail" component={SessionDetailScreen} />
       <WorkoutStack.Screen name="ProgramDetail" component={ProgramDetailScreen} />
       <WorkoutStack.Screen name="ActiveSession" component={ActiveSessionScreen} />
@@ -75,17 +87,21 @@ function WorkoutStackScreen() {
       <WorkoutStack.Screen name="ExerciseDatabase" component={ExerciseDatabaseScreen} />
       <WorkoutStack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
       <WorkoutStack.Screen name="WikiHome" component={WikiHomeScreen} />
+      <WorkoutStack.Screen name="WikiArticle" component={WikiArticleScreen} />
       <WorkoutStack.Screen name="WikiMuscleDetail" component={WikiMuscleDetailScreen} />
       <WorkoutStack.Screen name="WikiJointDetail" component={WikiJointDetailScreen} />
       <WorkoutStack.Screen name="WikiTendonDetail" component={WikiTendonDetailScreen} />
       <WorkoutStack.Screen name="WikiPatternDetail" component={WikiPatternDetailScreen} />
+      <WorkoutStack.Screen name="WikiBiomechanics" component={WikiBiomechanicsScreen} />
+      <WorkoutStack.Screen name="WikiMobility" component={WikiMobilityScreen} />
+      <WorkoutStack.Screen name="WikiChainDetail" component={WikiChainDetailScreen} />
     </WorkoutStack.Navigator>
   );
 }
 
 function ProfileStackScreen() {
   return (
-    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+    <ProfileStack.Navigator id="ProfileStack" screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
       <ProfileStack.Screen name="BodyProgress" component={BodyProgressScreen} />
       <ProfileStack.Screen name="ProgressOverview" component={ProgressScreen} />
@@ -95,8 +111,12 @@ function ProfileStackScreen() {
 
 function WikiStackScreen() {
   return (
-    <WikiStack.Navigator screenOptions={{ headerShown: false }}>
+    <WikiStack.Navigator id="WikiStack" screenOptions={{ headerShown: false }}>
       <WikiStack.Screen name="WikiHome" component={WikiHomeScreen} />
+      <WikiStack.Screen name="WikiArticle" component={WikiArticleScreen} />
+      <WikiStack.Screen name="WikiBiomechanics" component={WikiBiomechanicsScreen} />
+      <WikiStack.Screen name="WikiMobility" component={WikiMobilityScreen} />
+      <WikiStack.Screen name="WikiChainDetail" component={WikiChainDetailScreen} />
       <WikiStack.Screen name="WikiMuscleDetail" component={WikiMuscleDetailScreen} />
       <WikiStack.Screen name="WikiJointDetail" component={WikiJointDetailScreen} />
       <WikiStack.Screen name="WikiTendonDetail" component={WikiTendonDetailScreen} />
@@ -117,6 +137,8 @@ const linking = {
         screens: {
           ProgramsList: 'workout/programs',
           WorkoutMain: 'workout/main',
+          LogHub: 'workout/log-hub',
+          LogWorkout: 'workout/log-workout',
           SessionDetail: 'workout/sessions/:sessionId',
           ProgramDetail: 'workout/programs/:programId',
           ActiveSession: 'workout/active',
@@ -142,9 +164,13 @@ const linking = {
           ProgressOverview: 'profile/progress',
         },
       },
-      Wiki: {
-        screens: {
-          WikiHome: 'wiki',
+        Wiki: {
+          screens: {
+            WikiHome: 'wiki',
+            WikiArticle: 'wiki/article/:articleType/:articleId',
+            WikiBiomechanics: 'wiki/biomechanics',
+            WikiMobility: 'wiki/mobility',
+            WikiChainDetail: 'wiki/chains/:chainId?',
           WikiMuscleDetail: 'wiki/muscles/:muscleId',
           WikiJointDetail: 'wiki/joints/:jointId',
           WikiTendonDetail: 'wiki/tendons/:tendonId',
@@ -163,6 +189,7 @@ export function AppNavigator() {
   return (
     <NavigationContainer ref={navigationRef} linking={linking}>
       <Tab.Navigator
+        id="RootTabs"
         initialRouteName="Home"
         screenOptions={{ headerShown: false }}
         tabBar={props => <KpknBottomBar {...props} />}

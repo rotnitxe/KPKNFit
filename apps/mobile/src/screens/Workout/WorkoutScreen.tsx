@@ -4,11 +4,13 @@ import { useShallow } from 'zustand/react/shallow';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { WorkoutStackParamList } from '../../navigation/types';
+import type { Session } from '../../types/workout';
 import { ScreenShell } from '../../components/ScreenShell';
 import { Button } from '../../components/ui';
 import { useProgramStore } from '../../stores/programStore';
 import { useWorkoutStore } from '../../stores/workoutStore';
 import { ReadinessModal } from '../../components/workout/ReadinessModal';
+import { StartWorkoutDrawer } from '../../components/workout/StartWorkoutDrawer';
 import { useColors } from '../../theme';
 
 type WorkoutNavProp = NativeStackNavigationProp<WorkoutStackParamList>;
@@ -69,6 +71,7 @@ const SessionCard = memo(({
 export function WorkoutScreen() {
   const colors = useColors();
   const [isReadinessVisible, setReadinessVisible] = useState(false);
+  const [isStartDrawerVisible, setStartDrawerVisible] = useState(false);
   const programs = useProgramStore(state => state.programs);
 
   const {
@@ -84,6 +87,7 @@ export function WorkoutScreen() {
     startRestTimer,
     cancelRestTimer,
     setReadinessScore,
+    startActiveSession,
     activeSession,
     clearNotice,
   } = useWorkoutStore(useShallow(state => ({
@@ -99,6 +103,7 @@ export function WorkoutScreen() {
     startRestTimer: state.startRestTimer,
     cancelRestTimer: state.cancelRestTimer,
     setReadinessScore: state.setReadinessScore,
+    startActiveSession: state.startActiveSession,
     activeSession: state.activeSession,
     clearNotice: state.clearNotice,
   })));
@@ -133,6 +138,20 @@ export function WorkoutScreen() {
       });
     }
   }, [activeSession, navigation]);
+
+  const handleStartFromDrawer = useCallback((payload: {
+    key: 'A' | 'B' | 'C' | 'D';
+    session: Session;
+    programId: string;
+  }) => {
+    startActiveSession({ programId: payload.programId, session: payload.session });
+    setStartDrawerVisible(false);
+    navigation.navigate('ActiveSession', {
+      programId: payload.programId,
+      sessionId: payload.session.id,
+      sessionName: payload.session.name,
+    });
+  }, [navigation, startActiveSession]);
 
   const handleRefresh = useCallback(() => {
     void refreshInfrastructure();
@@ -266,10 +285,28 @@ export function WorkoutScreen() {
                 </Button>
               )}
               <Button
+                onPress={() => setStartDrawerVisible(true)}
+                variant="primary"
+              >
+                Iniciar sesión ahora
+              </Button>
+              <Button
                 onPress={() => setReadinessVisible(true)}
                 variant={readinessScore ? "secondary" : "primary"}
               >
                 {readinessScore ? 'Readiness Completado ✓' : '1. Evaluar Readiness'}
+              </Button>
+              <Button
+                onPress={() => navigation.navigate('LogHub')}
+                variant="secondary"
+              >
+                Abrir Log Hub
+              </Button>
+              <Button
+                onPress={() => navigation.navigate('LogWorkout')}
+                variant="secondary"
+              >
+                Registrar entreno manual
               </Button>
               <Button
                 onPress={() => navigation.navigate('ExerciseDatabase')}
@@ -343,6 +380,12 @@ export function WorkoutScreen() {
         visible={isReadinessVisible} 
         onClose={() => setReadinessVisible(false)} 
         onComplete={handleReadinessComplete} 
+      />
+      <StartWorkoutDrawer
+        visible={isStartDrawerVisible}
+        programs={programs}
+        onClose={() => setStartDrawerVisible(false)}
+        onStart={handleStartFromDrawer}
       />
     </ScreenShell>
   );

@@ -19,6 +19,8 @@ export const WikiListItem: React.FC<WikiListItemProps> = ({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
       style={[styles.container, { borderColor: colors.outlineVariant }]}
     >
       <View style={styles.content}>

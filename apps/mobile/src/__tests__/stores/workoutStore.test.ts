@@ -8,7 +8,12 @@ import {
 import { syncWorkoutWidgetState } from '../../services/widgetSyncService';
 import { useMobileNutritionStore } from '../../stores/nutritionStore';
 import { loadPersistedDomainPayload, persistLocalWorkoutLog } from '../../services/mobilePersistenceService';
+import {
+  persistActiveSessionCheckpoint,
+  recoverActiveSession as recoverActiveSessionFromCheckpoint,
+} from '../../services/activeSessionPersistenceService';
 import type { WorkoutOverview, CoreReminderSettings } from '@kpkn/shared-types';
+import type { Session } from '../../types/workout';
 
 jest.mock('../../services/workoutStateService', () => ({
   loadWorkoutRuntimeState: jest.fn(),
@@ -34,6 +39,15 @@ jest.mock('../../storage/mmkv', () => ({
   appStorage: { getString: jest.fn(), set: jest.fn(), delete: jest.fn() },
   setJsonValue: jest.fn(),
   getJsonValue: jest.fn(() => null),
+}));
+
+jest.mock('../../services/activeSessionPersistenceService', () => ({
+  SESSION_PERSISTENCE_KEY: 'test-key',
+  persistActiveSessionCheckpoint: jest.fn(),
+  clearActiveSessionCheckpoint: jest.fn(),
+  persistRestTimer: jest.fn(),
+  persistSetCompletion: jest.fn(),
+  recoverActiveSession: jest.fn(),
 }));
 
 const mockReminderSettings: CoreReminderSettings = {
@@ -91,6 +105,8 @@ function resetStoreState() {
     errorMessage: null,
     notice: null,
     loggingState: 'idle',
+    activeSession: null,
+    readinessScore: null,
   });
   useMobileNutritionStore.setState({ savedLogs: [] } as any);
 }
@@ -129,6 +145,8 @@ describe('workoutStore', () => {
 
       expect(useWorkoutStore.getState().status).toBe('empty');
       expect(useWorkoutStore.getState().hasHydrated).toBe(true);
+      expect(syncWorkoutWidgetState).not.toHaveBeenCalled();
+      expect(rescheduleCoreNotificationsFromState).toHaveBeenCalledTimes(1);
     });
 
     it('should sync widget state and notifications after hydration', async () => {
@@ -256,6 +274,115 @@ describe('workoutStore', () => {
       useWorkoutStore.setState({ notice: 'Some notice' });
       useWorkoutStore.getState().clearNotice();
       expect(useWorkoutStore.getState().notice).toBeNull();
+    });
+  });
+
+  describe('startActiveSession', () => {
+    it('uses direct session exercises when available', () => {
+      const session = {
+        id: 's-flat',
+        name: 'Flat Session',
+        exercises: [
+          { id: 'ex-1', name: 'Bench', sets: [{ id: 'set-1', targetReps: 5 }] },
+        ],
+      } as unknown as Session;
+
+      useWorkoutStore.getState().startActiveSession({ programId: 'prog-1', session });
+
+      const state = useWorkoutStore.getState().activeSession;
+      expect(state?.session.exercises).toHaveLength(1);
+      expect(state?.activeExerciseId).toBe('ex-1');
+      expect(state?.activeSetId).toBe('set-1');
+    });
+
+    it('flattens session parts when session.exercises is empty', () => {
+      const session = {
+        id: 's-parts',
+        name: 'Part Session',
+        exercises: [],
+        parts: [
+          {
+            id: 'part-a',
+            name: 'Parte A',
+            exercises: [{ id: 'ex-a', name: 'Squat', sets: [{ id: 'set-a1', targetReps: 6 }] }],
+          },
+          {
+            id: 'part-b',
+            name: 'Parte B',
+            exercises: [{ id: 'ex-b', name: 'Row', sets: [{ id: 'set-b1', targetReps: 10 }] }],
+          },
+        ],
+      } as unknown as Session;
+
+      useWorkoutStore.getState().startActiveSession({ programId: 'prog-2', session });
+
+      const state = useWorkoutStore.getState().activeSession;
+      expect(state?.session.exercises.map(ex => ex.id)).toEqual(['ex-a', 'ex-b']);
+      expect(state?.activeExerciseId).toBe('ex-a');
+      expect(state?.activeSetId).toBe('set-a1');
+    });
+
+    it('does not create an active session when the session has no exercises', () => {
+      const session = {
+        id: 's-empty',
+        name: 'Empty Session',
+        exercises: [],
+        parts: [],
+      } as unknown as Session;
+
+      useWorkoutStore.getState().startActiveSession({
+        programId: 'prog-empty',
+        session,
+      });
+
+      expect(useWorkoutStore.getState().activeSession).toBeNull();
+      expect(useWorkoutStore.getState().notice).toBe('La sesión no tiene ejercicios para iniciar.');
+    });
+  });
+
+  describe('recoverActiveSession', () => {
+    it('normalizes the recovered session before restoring it', async () => {
+      (recoverActiveSessionFromCheckpoint as jest.Mock).mockResolvedValue({
+        programId: 'prog-recovered',
+        session: {
+          id: 's-recovered',
+          name: 'Recovered Session',
+          exercises: [],
+          parts: [
+            {
+              id: 'part-a',
+              name: 'Parte A',
+              exercises: [{ id: 'ex-a', name: 'Squat', sets: [{ id: 'set-a1', targetReps: 5 }] }],
+            },
+          ],
+        } as unknown as Session,
+        startTime: 1000,
+        activeExerciseId: null,
+        activeSetId: null,
+        completedSets: {},
+        dynamicWeights: {},
+        sessionAdjusted1RMs: {},
+        selectedBrands: {},
+        setTypeOverrides: {},
+        isPaused: false,
+      });
+
+      await useWorkoutStore.getState().recoverActiveSession();
+
+      const state = useWorkoutStore.getState().activeSession;
+      expect(state?.session.exercises.map(ex => ex.id)).toEqual(['ex-a']);
+      expect(state?.activeExerciseId).toBe('ex-a');
+      expect(state?.activeSetId).toBe('set-a1');
+      expect(persistActiveSessionCheckpoint).toHaveBeenCalledWith(expect.objectContaining({
+        activeExerciseId: 'ex-a',
+        activeSetId: 'set-a1',
+        session: expect.objectContaining({
+          exercises: expect.arrayContaining([
+            expect.objectContaining({ id: 'ex-a' }),
+          ]),
+        }),
+      }));
+      expect(useWorkoutStore.getState().notice).toContain('Sesión recuperada: Recovered Session');
     });
   });
 });

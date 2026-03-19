@@ -66,19 +66,19 @@ export function CoachMark({
         <Animated.View
           style={[
             styles.container,
-            { backgroundColor: '#4F46E5' }, // Indigo-600 background per spec
+            { backgroundColor: colors.primaryContainer },
             animatedStyle,
           ]}
         >
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+          <Text style={[styles.title, { color: colors.onPrimaryContainer }]}>{title}</Text>
+          <Text style={[styles.message, { color: colors.onPrimaryContainer }]}>{message}</Text>
           <View style={styles.footer}>
             <Button
               variant="secondary"
               onPress={handleDismiss}
               style={styles.button}
             >
-              <Text style={styles.buttonText}>Entendido</Text>
+              <Text style={[styles.buttonText, { color: colors.onPrimaryContainer }]}>Entendido</Text>
             </Button>
           </View>
         </Animated.View>
@@ -107,13 +107,11 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   title: {
-    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '800',
     marginBottom: 8,
   },
   message: {
-    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 24,
@@ -127,7 +125,6 @@ const styles = StyleSheet.create({
     minWidth: 100,
   },
   buttonText: {
-    color: '#FFFFFF',
     fontWeight: '700',
   },
 });

@@ -4,6 +4,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useAppState, useAppDispatch } from '../contexts/AppContext';
+import type { BiomechanicalData } from '../types';
 import { 
     UserBadgeIcon, 
     CameraIcon, 
@@ -21,17 +22,27 @@ import ProfilePictureModal from './ProfilePictureModal';
 
 type EditTab = 'vitals' | 'anatomy' | 'goals';
 
+const EMPTY_BIOMECHANICAL_DATA: BiomechanicalData = {
+    height: 0,
+    wingspan: 0,
+    torsoLength: 0,
+    femurLength: 0,
+    tibiaLength: 0,
+    humerusLength: 0,
+    forearmLength: 0,
+};
+
 const MyProfileView: React.FC = () => {
     const { settings, bodyProgress, history, programs, biomechanicalData } = useAppState();
-    const { setSettings, addToast } = useAppDispatch();
+    const { setSettings, setBiomechanicalData, addToast } = useAppDispatch();
     
     const [editMode, setEditMode] = useState(false);
     const [editTab, setEditTab] = useState<EditTab>('vitals');
     const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
     
     // Estado local para edición
-    const [localSettings, setLocalSettings] = useState(() => JSON.parse(JSON.stringify(settings)));
-    const [localBio, setLocalBio] = useState(() => JSON.parse(JSON.stringify(biomechanicalData || {})));
+    const [localSettings, setLocalSettings] = useState<typeof settings>(() => JSON.parse(JSON.stringify(settings)));
+    const [localBio, setLocalBio] = useState<BiomechanicalData>(() => JSON.parse(JSON.stringify(biomechanicalData || EMPTY_BIOMECHANICAL_DATA)));
 
     // Calcular peso más reciente
     const latestWeight = useMemo(() => {
@@ -46,7 +57,7 @@ const MyProfileView: React.FC = () => {
         const bf = settings.userVitals.bodyFatPercentage;
         if (h && w && bf !== undefined) {
             const result = calculateFFMI(h, w, bf);
-            return result ? result.normalizedFfmi.toFixed(1) : 'N/A';
+            return result ? result.normalizedFfmi : 'N/A';
         }
         return 'N/A';
     }, [settings.userVitals, latestWeight]);
@@ -101,7 +112,7 @@ const MyProfileView: React.FC = () => {
 
     const handleCancel = () => {
         setLocalSettings(JSON.parse(JSON.stringify(settings)));
-        setLocalBio(JSON.parse(JSON.stringify(biomechanicalData || {})));
+        setLocalBio(JSON.parse(JSON.stringify(biomechanicalData || EMPTY_BIOMECHANICAL_DATA)));
         setEditMode(false);
     };
 
@@ -111,7 +122,7 @@ const MyProfileView: React.FC = () => {
                 isOpen={isPhotoModalOpen}
                 onClose={() => setIsPhotoModalOpen(false)}
                 currentPicture={localSettings.profilePicture}
-                onSave={(pic) => setLocalSettings(prev => ({ ...prev, profilePicture: pic }))}
+                onSave={(pic) => setLocalSettings((prev: typeof settings) => ({ ...prev, profilePicture: pic }))}
             />
 
             {/* Header */}
@@ -301,7 +312,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="text"
                                         value={localSettings.username || ''}
-                                        onChange={(e) => setLocalSettings(prev => ({ ...prev, username: e.target.value }))}
+                                        onChange={(e) => setLocalSettings((prev: typeof settings) => ({ ...prev, username: e.target.value }))}
                                         className="w-full bg-white border border-black/[0.1] rounded-xl px-3 py-2.5 text-[13px] font-bold text-[#1D1B20] outline-none focus:border-[var(--md-sys-color-primary)]"
                                     />
                                 </div>
@@ -310,7 +321,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="text"
                                         value={localSettings.athleteType || ''}
-                                        onChange={(e) => setLocalSettings(prev => ({ ...prev, athleteType: e.target.value }))}
+                                        onChange={(e) => setLocalSettings((prev: typeof settings) => ({ ...prev, athleteType: e.target.value as typeof prev.athleteType }))}
                                         className="w-full bg-white border border-black/[0.1] rounded-xl px-3 py-2.5 text-[13px] font-bold text-[#1D1B20] outline-none focus:border-[var(--md-sys-color-primary)]"
                                     />
                                 </div>
@@ -322,7 +333,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="number"
                                         value={localSettings.userVitals.weight || ''}
-                                        onChange={(e) => setLocalSettings(prev => ({ 
+                                        onChange={(e) => setLocalSettings((prev: typeof settings) => ({ 
                                             ...prev, 
                                             userVitals: { ...prev.userVitals, weight: parseFloat(e.target.value) }
                                         }))}
@@ -334,7 +345,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="number"
                                         value={localSettings.userVitals.height || ''}
-                                        onChange={(e) => setLocalSettings(prev => ({ 
+                                        onChange={(e) => setLocalSettings((prev: typeof settings) => ({ 
                                             ...prev, 
                                             userVitals: { ...prev.userVitals, height: parseFloat(e.target.value) }
                                         }))}
@@ -350,7 +361,7 @@ const MyProfileView: React.FC = () => {
                                         type="number"
                                         step="0.1"
                                         value={localSettings.userVitals.bodyFatPercentage || ''}
-                                        onChange={(e) => setLocalSettings(prev => ({ 
+                                        onChange={(e) => setLocalSettings((prev: typeof settings) => ({ 
                                             ...prev, 
                                             userVitals: { ...prev.userVitals, bodyFatPercentage: parseFloat(e.target.value) }
                                         }))}
@@ -363,7 +374,7 @@ const MyProfileView: React.FC = () => {
                                         type="number"
                                         step="0.1"
                                         value={localSettings.userVitals.muscleMassPercentage || ''}
-                                        onChange={(e) => setLocalSettings(prev => ({ 
+                                        onChange={(e) => setLocalSettings((prev: typeof settings) => ({ 
                                             ...prev, 
                                             userVitals: { ...prev.userVitals, muscleMassPercentage: parseFloat(e.target.value) }
                                         }))}
@@ -383,7 +394,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="number"
                                         value={localBio.wingspan || ''}
-                                        onChange={(e) => setLocalBio(prev => ({ ...prev, wingspan: parseFloat(e.target.value) }))}
+                                        onChange={(e) => setLocalBio((prev: BiomechanicalData) => ({ ...prev, wingspan: parseFloat(e.target.value) }))}
                                         className="w-full bg-white border border-black/[0.1] rounded-xl px-3 py-2.5 text-[13px] font-bold text-[#1D1B20] outline-none focus:border-[var(--md-sys-color-primary)]"
                                     />
                                 </div>
@@ -392,7 +403,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="number"
                                         value={localBio.torsoLength || ''}
-                                        onChange={(e) => setLocalBio(prev => ({ ...prev, torsoLength: parseFloat(e.target.value) }))}
+                                        onChange={(e) => setLocalBio((prev: BiomechanicalData) => ({ ...prev, torsoLength: parseFloat(e.target.value) }))}
                                         className="w-full bg-white border border-black/[0.1] rounded-xl px-3 py-2.5 text-[13px] font-bold text-[#1D1B20] outline-none focus:border-[var(--md-sys-color-primary)]"
                                     />
                                 </div>
@@ -404,7 +415,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="number"
                                         value={localBio.femurLength || ''}
-                                        onChange={(e) => setLocalBio(prev => ({ ...prev, femurLength: parseFloat(e.target.value) }))}
+                                        onChange={(e) => setLocalBio((prev: BiomechanicalData) => ({ ...prev, femurLength: parseFloat(e.target.value) }))}
                                         className="w-full bg-white border border-black/[0.1] rounded-xl px-3 py-2.5 text-[13px] font-bold text-[#1D1B20] outline-none focus:border-[var(--md-sys-color-primary)]"
                                     />
                                 </div>
@@ -413,7 +424,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="number"
                                         value={localBio.tibiaLength || ''}
-                                        onChange={(e) => setLocalBio(prev => ({ ...prev, tibiaLength: parseFloat(e.target.value) }))}
+                                        onChange={(e) => setLocalBio((prev: BiomechanicalData) => ({ ...prev, tibiaLength: parseFloat(e.target.value) }))}
                                         className="w-full bg-white border border-black/[0.1] rounded-xl px-3 py-2.5 text-[13px] font-bold text-[#1D1B20] outline-none focus:border-[var(--md-sys-color-primary)]"
                                     />
                                 </div>
@@ -430,7 +441,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="number"
                                         value={localSettings.userVitals.targetWeight || ''}
-                                        onChange={(e) => setLocalSettings(prev => ({ 
+                                        onChange={(e) => setLocalSettings((prev: typeof settings) => ({ 
                                             ...prev, 
                                             userVitals: { ...prev.userVitals, targetWeight: parseFloat(e.target.value) }
                                         }))}
@@ -442,7 +453,7 @@ const MyProfileView: React.FC = () => {
                                     <input
                                         type="date"
                                         value={localSettings.userVitals.targetDate || ''}
-                                        onChange={(e) => setLocalSettings(prev => ({ 
+                                        onChange={(e) => setLocalSettings((prev: typeof settings) => ({ 
                                             ...prev, 
                                             userVitals: { ...prev.userVitals, targetDate: e.target.value }
                                         }))}
@@ -459,3 +470,5 @@ const MyProfileView: React.FC = () => {
 };
 
 export default MyProfileView;
+
+

@@ -938,7 +938,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             const actualReps = (exercise.trainingMode === 'time') ? (primaryData.duration || 0) : (primaryData.reps || 0);
             const exInfo = exerciseList.find(e => e.id === exercise.exerciseDbId || e.name === exercise.name);
             const auge = getDynamicAugeMetrics(exInfo, exercise.name);
-            const fatigueFactor = Math.min(1.5, Math.max(0.4, (auge.cnc + auge.ssc * 0.5) / 3.5));
+            const fatigueFactor = Math.min(1.5, Math.max(0.4, (((auge.cnc ?? 0) + (auge.ssc ?? 0) * 0.5) / 3.5)));
 
             const wasProgrammedAsFailure = set.intensityMode === 'failure' || set.isAmrap;
             const wasProgrammedNearFailure = (set.targetRPE ?? 8) >= 9;

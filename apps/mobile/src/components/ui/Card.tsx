@@ -4,7 +4,7 @@ import { useColors } from '../../theme';
 
 interface CardProps {
   children: React.ReactNode;
-  className?: string;
+  cn?: string;
   style?: ViewStyle;
   onPress?: () => void;
   testID?: string;

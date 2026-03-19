@@ -3,6 +3,8 @@ import { useColorScheme as useRNColorScheme } from 'react-native';
 import { getColors, KPKNColorTokens } from './colors';
 import { M3_TYPE_SCALE, TypeStyle, FONT_SANS, FONT_MONO, FONT_SYSTEM } from './typography';
 import { M3_SHAPES } from './shapes';
+import { readStoredSettingsRaw } from '../services/mobileDomainStateService';
+import { useSettingsStore } from '../stores/settingsStore';
 
 export interface KPKNTheme {
   dark: boolean;
@@ -30,15 +32,26 @@ interface ThemeProviderProps {
   initialDark?: boolean;
 }
 
+type ThemePreference = 'default' | 'deep-black' | 'volt' | 'dark' | 'light';
+
 export function ThemeProvider({
   children,
   followSystem = false,
   initialDark = true
 }: ThemeProviderProps) {
   const systemScheme = useRNColorScheme(); // 'dark' | 'light' | null
+  const appTheme = useSettingsStore(state => state.summary?.appTheme);
+  const rawTheme = readStoredSettingsRaw().appTheme as ThemePreference | undefined;
   const [darkOverride, setDarkOverride] = useState<boolean>(initialDark);
+  const effectiveTheme = (appTheme ?? rawTheme ?? 'default') as ThemePreference;
 
-  const isDark = followSystem ? (systemScheme !== 'light') : darkOverride;
+  const isDark = useMemo(() => {
+    if (effectiveTheme === 'light') return false;
+    if (effectiveTheme === 'default') {
+      return followSystem ? systemScheme !== 'light' : darkOverride;
+    }
+    return true;
+  }, [darkOverride, effectiveTheme, followSystem, systemScheme]);
 
   const theme = useMemo<KPKNTheme>(() => ({
     dark: isDark,

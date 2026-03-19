@@ -21,12 +21,12 @@ import Animated, {
 import { LiquidGlassModal } from '../ui/LiquidGlassModal';
 import { Button } from '../ui/Button';
 import { useColors } from '../../theme';
-import { BedIcon as SleepIcon, MoonIcon as MoodIcon, BrainIcon as PainIcon } from '../icons';
+import { BedIcon as SleepIcon, MoonIcon as MoodIcon, BrainIcon as PainIcon, ZapIcon as StressIcon, StarIcon as MotivationIcon } from '../icons';
 
 interface ReadinessModalProps {
   visible: boolean;
   onClose: () => void;
-  onComplete: (data: { sleep: number; mood: number; soreness: number }) => void;
+  onComplete: (data: { sleep: number; mood: number; soreness: number; stress: number; motivation: number }) => void;
 }
 
 interface RatingPillProps {
@@ -174,19 +174,21 @@ export const ReadinessModal: React.FC<ReadinessModalProps> = ({
   const [sleep, setSleep] = useState<number>(3);
   const [mood, setMood] = useState<number>(3);
   const [soreness, setSoreness] = useState<number>(1);
-
+  const [stress, setStress] = useState<number>(3);
+  const [motivation, setMotivation] = useState<number>(3);
+ 
   const handleSave = useCallback(() => {
-    onComplete({ sleep, mood, soreness });
-  }, [sleep, mood, soreness, onComplete]);
+    onComplete({ sleep, mood, soreness, stress, motivation });
+  }, [sleep, mood, soreness, stress, motivation, onComplete]);
 
   return (
-    <LiquidGlassModal
-      visible={visible}
-      onClose={onClose}
-      title="Readiness Check"
-      subtitle="Evalúa tu estado antes de entrenar"
-      height={580}
-    >
+     <LiquidGlassModal
+       visible={visible}
+       onClose={onClose}
+       title="Readiness Check"
+       subtitle="Evalúa tu estado antes de entrenar"
+       height={700}
+     >
       <View style={styles.formContent}>
         {/* Sleep Quality */}
         <RatingRow
@@ -214,6 +216,24 @@ export const ReadinessModal: React.FC<ReadinessModalProps> = ({
           icon={PainIcon}
           color={colors.error}
         />
+
+        {/* Stress Level */}
+        <RatingRow
+          label="Nivel de Estrés"
+          value={stress}
+          onChange={setStress}
+          icon={StressIcon}
+          color={colors.batteryLow}
+        />
+
+        {/* Motivation */}
+        <RatingRow
+          label="Motivación"
+          value={motivation}
+          onChange={setMotivation}
+          icon={MotivationIcon}
+          color={colors.batteryHigh}
+        />
       </View>
 
       {/* Action Buttons */}
@@ -230,18 +250,18 @@ export const ReadinessModal: React.FC<ReadinessModalProps> = ({
         </View>
       </View>
 
-      {/* Readiness Score Preview */}
-      <View style={[styles.scorePreview, { backgroundColor: `${colors.primary}10` }]}>
-        <Text style={[styles.scoreLabel, { color: colors.onSurfaceVariant }]}>
-          Readiness Estimado
-        </Text>
-        <View style={styles.scoreValueRow}>
-          <Text style={[styles.scoreValue, { color: colors.primary }]}>
-            {Math.round(((sleep + mood + (5 - soreness)) / 15) * 100)}%
-          </Text>
-          <View style={[styles.scoreDot, { backgroundColor: colors.primary }]} />
-        </View>
-      </View>
+       {/* Readiness Score Preview */}
+       <View style={[styles.scorePreview, { backgroundColor: `${colors.primary}10` }]}>
+         <Text style={[styles.scoreLabel, { color: colors.onSurfaceVariant }]}>
+           Readiness Estimado
+         </Text>
+         <View style={styles.scoreValueRow}>
+           <Text style={[styles.scoreValue, { color: colors.primary }]}>
+             {Math.round(((sleep + mood + (5 - soreness) + (5 - stress) + motivation) / 25) * 100)}%
+           </Text>
+           <View style={[styles.scoreDot, { backgroundColor: colors.primary }]} />
+         </View>
+       </View>
     </LiquidGlassModal>
   );
 };

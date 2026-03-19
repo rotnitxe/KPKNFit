@@ -10,7 +10,7 @@ import {
 import { Button } from '../ui';
 import { useColors } from '../../theme';
 import { LiquidGlassModal } from '../ui/LiquidGlassModal';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import ReactNativeHapticFeedback from '@/services/hapticsService';
 
 interface PostSessionQuestionnaireModalProps {
   visible: boolean;

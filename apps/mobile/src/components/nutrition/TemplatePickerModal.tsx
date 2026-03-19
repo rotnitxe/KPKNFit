@@ -77,6 +77,9 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       <Text style={[styles.macroBadge, { color: colors.onSurfaceVariant }]}>
                         G: {Math.round(template.fats)}g
                       </Text>
+                      <Text style={[styles.macroBadge, { color: colors.onSurfaceVariant }]}>
+                        {template.foodCount} alimentos
+                      </Text>
                     </View>
                   </View>
                 </Pressable>

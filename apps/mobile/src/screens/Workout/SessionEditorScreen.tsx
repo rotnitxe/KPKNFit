@@ -17,12 +17,14 @@ import { WorkoutStackParamList } from '../../navigation/types';
 import { useProgramStore } from '../../stores/programStore';
 import { PlusCircleIcon, TrashIcon, ArrowLeftIcon, SearchIcon, ActivityIcon, InfoIcon } from '../../components/icons';
 import { AdvancedExercisePicker } from '../../components/exercise/AdvancedExercisePicker';
+import CustomExerciseEditorModal from '../../components/exercise/CustomExerciseEditorModal';
 import { LiquidGlassCard } from '../../components/ui/LiquidGlassCard';
 import { Button } from '../../components/ui/Button';
 import { useColors } from '../../theme';
 import type { Session, Exercise, ExerciseSet } from '../../types/workout';
 import { generateId } from '../../utils/generateId';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import ReactNativeHapticFeedback from '@/services/hapticsService';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 import { 
     getDynamicAugeMetrics, 
     classifyStressLevel,
@@ -34,6 +36,7 @@ import {
     getEffectiveRepsForRM,
     calculateBrzycki1RM
 } from '../../utils/calculations';
+import { updateSessionExercise } from './sessionEditorMutations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -72,6 +75,7 @@ export const SessionEditorScreen: React.FC = () => {
 
     const [session, setSession] = useState<Session | null>(sessionOriginal ?? null);
     const [pickerVisible, setPickerVisible] = useState(false);
+    const [showCustomEditor, setShowCustomEditor] = useState(false);
     const [activePartId, setActivePartId] = useState<string | null>(null);
 
     // Derived parts for editing
@@ -95,7 +99,7 @@ export const SessionEditorScreen: React.FC = () => {
     if (!session) return null;
 
     const handleSave = async () => {
-        if (!session) return;
+        if (!session || !programId || !weekId) return;
         ReactNativeHapticFeedback.trigger('notificationSuccess');
         await updateSession(programId, weekId, session);
         navigation.goBack();
@@ -120,6 +124,14 @@ export const SessionEditorScreen: React.FC = () => {
                     return p;
                 });
                 setSession({ ...session, parts: nextParts, exercises: [] });
+            } else if (session.parts && session.parts.length > 0) {
+                const targetPartId = session.parts[session.parts.length - 1]?.id;
+                const nextParts = session.parts.map(part => (
+                    part.id === targetPartId
+                        ? { ...part, exercises: [...(part.exercises || []), newExercise] }
+                        : part
+                ));
+                setSession({ ...session, parts: nextParts, exercises: [] });
             } else {
                 setSession({
                     ...session,
@@ -132,9 +144,21 @@ export const SessionEditorScreen: React.FC = () => {
         ReactNativeHapticFeedback.trigger('impactLight');
     };
 
+    const handleCreateNew = () => {
+            setPickerVisible(false);
+            setShowCustomEditor(true);
+        };
+
     const addPart = () => {
         if (!session) return;
-        const nextLetter = String.fromCharCode(65 + parts.length); // A, B, C...
+        const existingParts = session.parts && session.parts.length > 0
+            ? session.parts.map(part => ({ ...part, exercises: [...(part.exercises || [])] }))
+            : [{
+                id: generateId(),
+                name: 'A',
+                exercises: [...(session.exercises || [])],
+            }];
+        const nextLetter = String.fromCharCode(65 + existingParts.length); // A, B, C...
         const newPart: EditorPart = {
             id: generateId(),
             name: nextLetter,
@@ -142,7 +166,8 @@ export const SessionEditorScreen: React.FC = () => {
         };
         setSession({
             ...session,
-            parts: [...(session.parts || []), newPart]
+            parts: [...existingParts, newPart],
+            exercises: [],
         });
         ReactNativeHapticFeedback.trigger('impactMedium');
     };
@@ -164,65 +189,41 @@ export const SessionEditorScreen: React.FC = () => {
     };
 
     const addSet = (exerciseId: string) => {
+        if (!session) return;
         ReactNativeHapticFeedback.trigger('selection');
-        setSession({
-            ...session,
-            exercises: session.exercises.map(ex => {
-                if (ex.id !== exerciseId) return ex;
-                const lastSet = ex.sets[ex.sets.length - 1];
-                const newSet: ExerciseSet = {
-                    id: generateId(),
-                    targetReps: lastSet?.targetReps ?? 10,
-                    weight: lastSet?.weight ?? 0,
-                    targetRIR: lastSet?.targetRIR ?? 2
-                };
-                return { ...ex, sets: [...ex.sets, newSet] };
-            })
-        });
+        setSession(updateSessionExercise(session, exerciseId, ex => {
+            const lastSet = ex.sets[ex.sets.length - 1];
+            const newSet: ExerciseSet = {
+                id: generateId(),
+                targetReps: lastSet?.targetReps ?? 10,
+                weight: lastSet?.weight ?? 0,
+                targetRIR: lastSet?.targetRIR ?? 2
+            };
+            return { ...ex, sets: [...ex.sets, newSet] };
+        }));
     };
 
     const removeSet = (exerciseId: string, setId: string) => {
+        if (!session) return;
         ReactNativeHapticFeedback.trigger('impactLight');
-        setSession({
-            ...session,
-            exercises: session.exercises.map(ex => {
-                if (ex.id !== exerciseId) return ex;
-                return { ...ex, sets: ex.sets.filter(s => s.id !== setId) };
-            })
-        });
+        setSession(updateSessionExercise(session, exerciseId, ex => ({
+            ...ex,
+            sets: ex.sets.filter(s => s.id !== setId),
+        })));
     };
 
     const updateSet = (exerciseId: string, setId: string, patch: Partial<ExerciseSet>) => {
         if (!session) return;
-        const updateEx = (ex: Exercise) => {
-            if (ex.id !== exerciseId) return ex;
-            return {
-                ...ex,
-                sets: ex.sets.map(s => s.id === setId ? { ...s, ...patch } : s)
-            };
-        };
-
-        if (session.parts && session.parts.length > 0) {
-            setSession({
-                ...session,
-                parts: session.parts.map(p => ({
-                    ...p,
-                    exercises: p.exercises.map(updateEx)
-                }))
-            });
-        } else {
-            setSession({
-                ...session,
-                exercises: session.exercises.map(updateEx)
-            });
-        }
+        setSession(updateSessionExercise(session, exerciseId, ex => ({
+            ...ex,
+            sets: ex.sets.map(s => s.id === setId ? { ...s, ...patch } : s),
+        })));
     };
 
     const addWarmupSet = (exerciseId: string) => {
         if (!session) return;
         ReactNativeHapticFeedback.trigger('selection');
-        const updateEx = (ex: Exercise) => {
-            if (ex.id !== exerciseId) return ex;
+        setSession(updateSessionExercise(session, exerciseId, ex => {
             const newWarmup: ExerciseSet = {
                 id: generateId(),
                 targetReps: 12,
@@ -234,75 +235,24 @@ export const SessionEditorScreen: React.FC = () => {
                 ...ex,
                 warmupSets: [...(ex.warmupSets || []), newWarmup]
             };
-        };
-
-        if (session.parts && session.parts.length > 0) {
-            setSession({
-                ...session,
-                parts: session.parts.map(p => ({
-                    ...p,
-                    exercises: p.exercises.map(updateEx)
-                }))
-            });
-        } else {
-            setSession({
-                ...session,
-                exercises: session.exercises.map(updateEx)
-            });
-        }
+        }));
     };
 
     const removeWarmupSet = (exerciseId: string, setId: string) => {
         if (!session) return;
         ReactNativeHapticFeedback.trigger('impactLight');
-        const updateEx = (ex: Exercise) => {
-            if (ex.id !== exerciseId) return ex;
-            return {
-                ...ex,
-                warmupSets: (ex.warmupSets as ExerciseSet[] || []).filter(s => s.id !== setId)
-            };
-        };
-
-        if (session.parts && session.parts.length > 0) {
-            setSession({
-                ...session,
-                parts: session.parts.map(p => ({
-                    ...p,
-                    exercises: p.exercises.map(updateEx)
-                }))
-            });
-        } else {
-            setSession({
-                ...session,
-                exercises: session.exercises.map(updateEx)
-            });
-        }
+        setSession(updateSessionExercise(session, exerciseId, ex => ({
+            ...ex,
+            warmupSets: (ex.warmupSets as ExerciseSet[] || []).filter(s => s.id !== setId)
+        })));
     };
 
     const updateWarmupSet = (exerciseId: string, setId: string, patch: Partial<ExerciseSet>) => {
         if (!session) return;
-        const updateEx = (ex: Exercise) => {
-            if (ex.id !== exerciseId) return ex;
-            return {
-                ...ex,
-                warmupSets: (ex.warmupSets as ExerciseSet[] || []).map(s => s.id === setId ? { ...s, ...patch } : s)
-            };
-        };
-
-        if (session.parts && session.parts.length > 0) {
-            setSession({
-                ...session,
-                parts: session.parts.map(p => ({
-                    ...p,
-                    exercises: p.exercises.map(updateEx)
-                }))
-            });
-        } else {
-            setSession({
-                ...session,
-                exercises: session.exercises.map(updateEx)
-            });
-        }
+        setSession(updateSessionExercise(session, exerciseId, ex => ({
+            ...ex,
+            warmupSets: (ex.warmupSets as ExerciseSet[] || []).map(s => s.id === setId ? { ...s, ...patch } : s),
+        })));
     };
 
     return (
@@ -375,11 +325,30 @@ export const SessionEditorScreen: React.FC = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            {part.exercises.map((ex, exIndex) => (
-                                <LiquidGlassCard key={ex.id} style={styles.exerciseCard}>
-                                    <View style={styles.exerciseHeader}>
-                                        <View style={styles.exerciseTitleRow}>
-                                            <View style={[styles.exerciseIndex, { backgroundColor: colors.secondaryContainer }]}>
+                            <DraggableFlatList
+  data={part.exercises}
+  keyExtractor={(item) => item.id}
+  onDragEnd={({ data }) => {
+    // Actualiza el orden al soltar
+    const nextParts = parts.map(p => {
+      if (p.id === part.id) return { ...p, exercises: data };
+      return p;
+    });
+    setSession({ ...session, parts: nextParts, exercises: [] });
+  }}
+   renderItem={({ item: ex, drag, isActive }) => {
+    const exIndex = part.exercises.findIndex(e => e.id === ex.id);
+    return (
+      <LiquidGlassCard key={ex.id} style={{
+        ...styles.exerciseCard,
+        ...(isActive ? { opacity: 0.7 } : {})
+      }}> 
+      <View style={styles.exerciseHeader}>
+        <TouchableOpacity onLongPress={drag} style={{ marginRight: 9, padding: 4 }}>
+          <Text style={{ fontSize: 23, color: colors.outlineVariant, fontWeight: '900' }}>≡</Text>
+        </TouchableOpacity>
+        <View style={styles.exerciseTitleRow}>
+          <View style={[styles.exerciseIndex, { backgroundColor: colors.secondaryContainer }]}>
                                                 <Text style={[styles.exerciseIndexText, { color: colors.secondary }]}>
                                                     {part.name}{exIndex + 1}
                                                 </Text>
@@ -505,9 +474,11 @@ export const SessionEditorScreen: React.FC = () => {
                                         </TouchableOpacity>
                                     </View>
                                 </LiquidGlassCard>
-                            ))}
-                        </View>
-                    ))}
+      );
+    }}
+  />
+                </View>
+            ))}
 
                     <TouchableOpacity 
                         onPress={() => {
@@ -534,6 +505,13 @@ export const SessionEditorScreen: React.FC = () => {
                     visible={pickerVisible}
                     onClose={() => setPickerVisible(false)}
                     onSelect={addExercise}
+                    onCreateNew={handleCreateNew}
+                />
+
+                <CustomExerciseEditorModal
+                    visible={showCustomEditor}
+                    onClose={() => setShowCustomEditor(false)}
+                    onSave={addExercise}
                 />
             </KeyboardAvoidingView>
         </SafeAreaView>

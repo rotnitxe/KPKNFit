@@ -14,6 +14,7 @@ import {
     startNutritionAiTrace,
     type NutritionAiTelemetryTagSnapshot,
 } from '../../services/nutritionAiTelemetryService';
+import type { SearchFoodsResult } from '../../services/foodIndexService';
 import {
     preloadFoodDatabases,
     searchFoods,
@@ -346,7 +347,7 @@ export const RegisterFoodDrawer: React.FC<RegisterFoodDrawerProps> = ({
 
     const resolveDescriptionTag = useCallback(async (tag: TagWithFood, requestId: number) => {
         if (tag.isGroup && tag.subItems?.length) {
-            const subResults = [];
+            const subResults: SearchFoodsResult[] = [];
             for (const subItem of tag.subItems) {
                 const subResult = await searchFoods(subItem.tag, settings, subItem.brandHint);
                 if (requestId !== resolutionRequestRef.current) return;

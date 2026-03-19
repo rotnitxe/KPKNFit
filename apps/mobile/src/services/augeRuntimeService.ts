@@ -242,6 +242,20 @@ export function getConfidenceLabel(totalObservations: number): string {
   return 'poblacional';
 }
 
+export function getConfidenceColor(totalObservations: number): string {
+  const label = getConfidenceLabel(totalObservations);
+  switch (label) {
+    case 'alta':
+      return '#FFD54F';
+    case 'media':
+      return '#6750A4';
+    case 'baja':
+      return '#4A6CF7';
+    default:
+      return '#8A8A8A';
+  }
+}
+
 export function getQueueSize(): number {
   const q = loadQueue();
   return q.recoveryObservations.length + q.fatigueDataPoints.length +

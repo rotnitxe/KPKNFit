@@ -1,139 +1,69 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Alert, Modal } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { WorkoutStackParamList } from '../../navigation/types';
 import { useColors } from '../../theme';
 import { useProgramStore } from '../../stores/programStore';
-import AthleteProfilingWizard from '../../components/programs/AthleteProfilingWizard';
-import ProgramStructureWizard from '../../components/programs/ProgramStructureWizard';
 import { generateId } from '../../utils/generateId';
-import { Program, SplitTemplate, AthleteProfileScore } from '../../types/workout';
+import { Program, SplitTemplate, Session, ProgramTemplateOption } from '../../types/workout';
 import { PROGRAM_TEMPLATES } from '../../data/programTemplates';
+import WizardLayout from '../../components/programs/WizardLayout';
+import TypeStep from '../../components/programs/wizard/TypeStep';
+import CalendarStep from '../../components/programs/wizard/CalendarStep';
+import StructureStep from '../../components/programs/wizard/StructureStep';
+import SessionsStep from '../../components/programs/wizard/SessionsStep';
+import PreviewStep from '../../components/programs/wizard/PreviewStep';
 
 export const ProgramWizardScreen: React.FC = () => {
     const navigation = useNavigation<NativeStackNavigationProp<WorkoutStackParamList>>();
     const route = useRoute<RouteProp<WorkoutStackParamList, 'ProgramWizard'>>();
     const colors = useColors();
-    const { addProgram, programs } = useProgramStore();
+    const { addProgram } = useProgramStore();
     
-    // Wizard Phase: 1 (Profiling), 2 (Structure), 3 (Complete/Saving)
-    const [phase, setPhase] = useState(1);
-    const [athleteProfile, setAthleteProfile] = useState<AthleteProfileScore | null>(null);
+    // Wizard state
+    const [currentStep, setCurrentStep] = useState(0);
+    const steps = ['Tipo', 'Calendario', 'Estructura', 'Sesiones', 'Preview'];
+    
+    // Form data
+    const [programName, setProgramName] = useState('');
+    const [programDescription, setProgramDescription] = useState('');
+    const [selectedTemplate, setSelectedTemplate] = useState<ProgramTemplateOption | null>(null);
+    const [trainingDays, setTrainingDays] = useState<number[]>([1, 2, 4, 5]); // Default: Mon, Tue, Thu, Fri
+    const [selectedSplit, setSelectedSplit] = useState<SplitTemplate | null>(null);
+    const [sessions, setSessions] = useState<Session[]>([]);
 
-    const buildProgramObject = (structureData: any, profile: AthleteProfileScore): Program => {
-        const { name, templateId, startDay, cycleDuration, split } = structureData;
-        const template = PROGRAM_TEMPLATES.find(t => t.id === templateId)!;
-        
-        const programId = generateId();
-        const macrocycleId = generateId();
-        
-        // Basic structure based on template rules
-        const blocks = template.type === 'simple' 
-            ? [buildSimpleBlock(template, split, startDay)]
-            : buildComplexBlocks(template, split, startDay);
-
-        return {
-            id: programId,
-            name: name || 'Mi Programa',
-            description: `Perfil: ${profile.profileLevel}. Enfoque: ${profile.trainingStyle}.`,
-            mode: profile.trainingStyle.toLowerCase() as any,
-            structure: template.type,
-            author: 'Yo',
-            isDraft: false,
-            startDay,
-            selectedSplitId: split.id,
-            athleteProfile: profile,
-            macrocycles: [
-                {
-                    id: macrocycleId,
-                    name: 'Macrociclo 1',
-                    blocks
-                }
-            ]
-        };
+    const handleNext = () => {
+        if (currentStep < steps.length - 1) {
+            setCurrentStep(currentStep + 1);
+        }
     };
 
-    const buildSimpleBlock = (template: any, split: SplitTemplate, startDay: number) => {
-        const blockId = generateId();
-        const mesocycleId = generateId();
-        
-        // Simple template usually has 4 weeks per mesocycle
-        const weeks = Array.from({ length: 4 }, (_, i) => buildWeek(split, startDay, i));
-        
-        return {
-            id: blockId,
-            name: 'Bloque Único',
-            mesocycles: [
-                {
-                    id: mesocycleId,
-                    name: 'Mesociclo 1',
-                    goal: 'Acumulación' as const,
-                    weeks
-                }
-            ]
-        };
+    const handleBack = () => {
+        if (currentStep > 0) {
+            setCurrentStep(currentStep - 1);
+        } else {
+            navigation.goBack();
+        }
     };
 
-    const buildComplexBlocks = (template: any, split: SplitTemplate, startDay: number) => {
-        // Complex templates have multiple blocks (e.g. Accumulation, Transmutation, Realization)
-        const blockNames = ['Acumulación', 'Transmutación', 'Realización'];
-        return blockNames.map((name, i) => {
-            const blockId = generateId();
-            const mesocycleId = generateId();
-            const weeks = Array.from({ length: 4 }, (_, j) => buildWeek(split, startDay, j));
-            
-            return {
-                id: blockId,
-                name,
-                mesocycles: [
-                    {
-                        id: mesocycleId,
-                        name: `Mesociclo ${i + 1}`,
-                        goal: (name === 'Transmutación' ? 'Intensificación' : (name === 'Realización' ? 'Realización' : 'Acumulación')) as any,
-                        weeks
-                    }
-                ]
-            };
-        });
+    const canContinue = () => {
+        switch (currentStep) {
+            case 0: return selectedTemplate !== null;
+            case 1: return programName.trim().length > 0 && trainingDays.length > 0;
+            case 2: return selectedSplit !== null;
+            case 3: return sessions.length > 0 && sessions.some(s => s.exercises.length > 0);
+            case 4: return selectedTemplate !== null && selectedSplit !== null;
+            default: return false;
+        }
     };
 
-    const buildWeek = (split: SplitTemplate, startDay: number, index: number) => {
-        const weekId = generateId();
-        const sessions = split.pattern
-            .map((label, dayIndex) => {
-                if (label && label.toLowerCase() !== 'descanso' && label.trim() !== '') {
-                    return {
-                        id: generateId(),
-                        name: label,
-                        description: '',
-                        exercises: [],
-                        warmup: [],
-                        dayOfWeek: (startDay + dayIndex) % 7
-                    };
-                }
-                return null;
-            })
-            .filter(Boolean) as any[];
+    const handleCreateProgram = async () => {
+        if (!selectedTemplate || !selectedSplit) return;
 
-        return {
-            id: weekId,
-            name: `Semana ${index + 1}`,
-            sessions
-        };
-    };
-
-    const handleProfileComplete = (score: AthleteProfileScore) => {
-        setAthleteProfile(score);
-        setPhase(2);
-    };
-
-    const handleStructureComplete = async (structureData: any) => {
-        if (!athleteProfile) return;
-        
         try {
-            const newProgram = buildProgramObject(structureData, athleteProfile);
+            const newProgram = buildProgramObject();
             await addProgram(newProgram);
             
             Alert.alert(
@@ -150,27 +80,170 @@ export const ProgramWizardScreen: React.FC = () => {
         }
     };
 
+    const buildProgramObject = (): Program => {
+        if (!selectedTemplate || !selectedSplit) {
+            throw new Error('Template o Split no seleccionado');
+        }
+        
+        const programId = generateId();
+        const macrocycleId = generateId();
+        
+        const blocks = selectedTemplate.type === 'simple' 
+            ? [buildSimpleBlock()]
+            : buildComplexBlocks();
+
+        return {
+            id: programId,
+            name: programName,
+            description: programDescription,
+            mode: selectedTemplate.name.toLowerCase() as any,
+            structure: selectedTemplate.type,
+            author: 'Yo',
+            isDraft: false,
+            startDay: trainingDays[0] || 0,
+            selectedSplitId: selectedSplit.id,
+            macrocycles: [
+                {
+                    id: macrocycleId,
+                    name: 'Macrociclo 1',
+                    blocks
+                }
+            ]
+        };
+    };
+
+    const buildSimpleBlock = () => {
+        if (!selectedTemplate) throw new Error('Template no seleccionado');
+        
+        const blockId = generateId();
+        const mesocycleId = generateId();
+        
+        const weeks = Array.from({ length: selectedTemplate.weeks }, (_, i) => 
+            buildWeek(i)
+        );
+        
+        return {
+            id: blockId,
+            name: 'Bloque Único',
+            mesocycles: [
+                {
+                    id: mesocycleId,
+                    name: 'Mesociclo 1',
+                    goal: 'Acumulación' as const,
+                    weeks
+                }
+            ]
+        };
+    };
+
+    const buildComplexBlocks = () => {
+        const blockNames = ['Acumulación', 'Intensificación', 'Realización'];
+        return blockNames.map((name, i) => {
+            const blockId = generateId();
+            const mesocycleId = generateId();
+            const weeks = Array.from({ length: 4 }, (_, j) => buildWeek(j));
+            
+            return {
+                id: blockId,
+                name,
+                mesocycles: [
+                    {
+                        id: mesocycleId,
+                        name: `Mesociclo ${i + 1}`,
+                        goal: (name === 'Intensificación' ? 'Intensificación' : (name === 'Realización' ? 'Realización' : 'Acumulación')) as any,
+                        weeks
+                    }
+                ]
+            };
+        });
+    };
+
+    const buildWeek = (index: number) => {
+        const weekId = generateId();
+        // Map training days to sessions
+        const weekSessions = sessions
+            .filter(s => trainingDays.includes(s.dayOfWeek || 0))
+            .map(s => ({
+                ...s,
+                id: generateId(),
+            }));
+
+        return {
+            id: weekId,
+            name: `Semana ${index + 1}`,
+            sessions: weekSessions
+        };
+    };
+
+    const renderStep = () => {
+        switch (currentStep) {
+            case 0:
+                return (
+                    <TypeStep
+                        selectedTemplateId={selectedTemplate?.id || null}
+                        onSelectTemplate={setSelectedTemplate}
+                    />
+                );
+            case 1:
+                return (
+                    <CalendarStep
+                        programName={programName}
+                        onProgramNameChange={setProgramName}
+                        programDescription={programDescription}
+                        onProgramDescriptionChange={setProgramDescription}
+                        trainingDays={trainingDays}
+                        onTrainingDaysChange={setTrainingDays}
+                    />
+                );
+            case 2:
+                return (
+                    <StructureStep
+                        selectedSplit={selectedSplit}
+                        onSelectSplit={setSelectedSplit}
+                    />
+                );
+            case 3:
+                return (
+                    <SessionsStep
+                        trainingDays={trainingDays}
+                        sessions={sessions}
+                        onSessionsChange={setSessions}
+                    />
+                );
+            case 4:
+                return (
+                    <PreviewStep
+                        programName={programName}
+                        programDescription={programDescription}
+                        selectedTemplate={selectedTemplate}
+                        selectedSplit={selectedSplit}
+                        trainingDays={trainingDays}
+                        sessions={sessions}
+                        onCreateProgram={handleCreateProgram}
+                    />
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={styles.content}>
-                {phase === 1 && (
-                    <AthleteProfilingWizard 
-                        onComplete={handleProfileComplete}
-                        onCancel={() => navigation.goBack()}
-                    />
-                )}
-                {phase === 2 && (
-                    <ProgramStructureWizard
-                        onComplete={handleStructureComplete}
-                        onCancel={() => setPhase(1)}
-                    />
-                )}
-            </View>
+            <WizardLayout
+                title="Crear Programa"
+                steps={steps}
+                currentStep={currentStep}
+                onBack={handleBack}
+                onNext={currentStep === steps.length - 1 ? handleCreateProgram : handleNext}
+                canNext={canContinue()}
+                isLastStep={currentStep === steps.length - 1}
+            >
+                {renderStep()}
+            </WizardLayout>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    content: { flex: 1 },
 });

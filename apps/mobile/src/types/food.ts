@@ -9,19 +9,23 @@ export type FoodCategory =
   | 'Bebidas' 
   | 'Otros';
 
+export type CookingBehavior = 'shrinks' | 'expands';
+
 export interface FoodItem {
   id: string;
   name: string;
   brand?: string;
   category?: string;
   subcategory?: string;
-  servingSize: number;
+  portionSize?: string;
+  servingSize?: number;
   servingUnit?: string;
-  unit: string;
+  unit?: string;
   calories: number;
   protein: number;
   carbs: number;
   fats: number;
+  fat?: number;
   isCustom?: boolean;
   image?: string;
   fatBreakdown?: { saturated: number; monounsaturated: number; polyunsaturated: number; trans: number };
@@ -30,9 +34,9 @@ export interface FoodItem {
   micronutrients?: { name: string; amount: number; unit: string }[];
   aiNotes?: string;
   tags?: string[];
+  aliases?: string[];
   searchAliases?: string[];
-  /** Si el alimento crudo/seco cambia de peso al cocinar. Factor: peso_cocido/peso_crudo (shrinks ~0.75) o peso_seco/peso_cocido (expands ~0.25) */
-  cookingBehavior?: 'shrinks' | 'expands';
+  cookingBehavior?: CookingBehavior;
   cookingWeightFactor?: number;
 }
 

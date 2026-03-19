@@ -45,10 +45,11 @@ describe('mobileDomainStateService', () => {
     it('should return default settings when nothing stored', () => {
       const settings = readStoredSettingsRaw();
       expect(settings).toBeDefined();
-      // Should have default reminder settings from extractCoreReminderSettings
-      expect(settings).toHaveProperty('apiProvider', null);
-      expect(settings).toHaveProperty('fallbackEnabled', false);
-      expect(settings).toHaveProperty('workoutLoggerMode', 'simple');
+      expect(settings).toHaveProperty('apiProvider', 'gemini');
+      expect(settings).toHaveProperty('fallbackEnabled', true);
+      expect(settings).toHaveProperty('workoutLoggerMode', 'pro');
+      expect(settings).toHaveProperty('appTheme', 'default');
+      expect(settings).toHaveProperty('tabBarStyle', 'default');
     });
 
     it('should persist and read back settings', () => {

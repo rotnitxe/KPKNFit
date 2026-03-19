@@ -4,6 +4,7 @@ import Svg, { Path, G } from 'react-native-svg';
 import { Canvas, Blur, Rect, LinearGradient, vec, Fill, Circle } from '@shopify/react-native-skia';
 import { useColors } from '../../theme';
 import type { DetailedMuscleVolumeAnalysis } from '../../types/workout';
+import { MuscleStatsPanel } from './MuscleStatsPanel';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BODY_ASPECT_RATIO = 1 / 2.1;
@@ -38,7 +39,9 @@ const HeatZone: React.FC<HeatZoneProps> = ({
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      onPress={() => onPress?.(muscle)}
+onPress={() => {
+          onPress?.(muscle);
+        }}
       style={[
         styles.heatZoneContainer,
         {
@@ -64,7 +67,19 @@ export const CaupolicanBody: React.FC<{
   data: DetailedMuscleVolumeAnalysis[];
   focusedMuscle?: string | null;
   onMuscleClick?: (muscle: string) => void;
-}> = ({ data, focusedMuscle, onMuscleClick }) => {
+  onMuscleFocus?: (muscle: string | null) => void;
+  showStatsPanel?: boolean;
+  statsPanelData?: any;
+  onCloseStatsPanel?: () => void;
+}> = ({ 
+  data, 
+  focusedMuscle, 
+  onMuscleClick, 
+  onMuscleFocus,
+  showStatsPanel = false,
+  statsPanelData,
+  onCloseStatsPanel
+}) => {
   const colors = useColors();
   const [view, setView] = useState<'front' | 'back'>('front');
 
@@ -82,23 +97,25 @@ export const CaupolicanBody: React.FC<{
     const isFocused = !!focusedMuscle && muscle.toLowerCase().includes(focusedMuscle.toLowerCase());
     const isFaded = !!focusedMuscle && !isFocused;
 
-    return (
-      <HeatZone
-        key={`${view}-${muscle}-${left}-${top}`}
-        muscle={muscle}
-        top={top}
-        left={left}
-        width={w}
-        height={h}
-        volume={vol}
-        isFocused={isFocused}
-        isFaded={isFaded}
-        onPress={onMuscleClick}
-      />
-    );
+return (
+  <>
+    <HeatZone
+      key={`${view}-${muscle}-${left}-${top}`}
+      muscle={muscle}
+      top={top}
+      left={left}
+      width={w}
+      height={h}
+      volume={vol}
+      isFocused={isFocused}
+      isFaded={isFaded}
+      onPress={onMuscleClick}
+    />
+  </>
+);
   };
 
-  return (
+  return (<>
     <View style={styles.container}>
       {/* View Switcher */}
       <View style={[styles.switcher, { backgroundColor: `${colors.surfaceVariant}40`, borderColor: colors.outlineVariant }]}>
@@ -165,7 +182,15 @@ export const CaupolicanBody: React.FC<{
         </View>
       </View>
     </View>
-  );
+    
+    {showStatsPanel && statsPanelData && (
+<MuscleStatsPanel
+      selectedMuscle={focusedMuscle ?? null}
+      data={[statsPanelData]}
+      onClose={onCloseStatsPanel}
+    />
+    )}
+  </>);
 };
 
 const styles = StyleSheet.create({

@@ -1,7 +1,7 @@
 // apps/mobile/src/services/volumeCalculator.ts
 // Motor de Cálculo de Volumen KPKN — Ported from PWA
 import type { Mesocycle, Session, Program, ExerciseCatalogEntry, AthleteProfileScore, VolumeRecommendation as VolumeRecType } from '../types/workout';
-import type { VolumeRecommendation, PostSessionFeedback, MuscleVolumeThresholds } from '../types/volume';
+import type { WeeklyVolumeRecommendation, PostSessionFeedback, MuscleVolumeThresholds } from '../types/volume';
 import type { MuscleRole } from '@kpkn/shared-types';
 import { buildExerciseIndex, findExerciseWithFallback } from '../utils/exerciseIndex';
 import { getMuscleDisplayId, normalizeCanonicalMuscle } from '../utils/canonicalMuscles';
@@ -28,7 +28,7 @@ export const calculateWeeklyVolume = (
   athleteScore: AthleteProfileScore | null | undefined,
   settings: { preferredIntensity?: string; trainingProfile?: string },
   phase: Mesocycle['goal'] = 'Acumulación'
-): VolumeRecommendation => {
+): WeeklyVolumeRecommendation => {
   if (!athleteScore) {
     return {
       minSets: 10,
@@ -450,7 +450,7 @@ export const VOLUME_DISPLAY_MUSCLES = [
   'Deltoides Anterior', 'Deltoides Lateral', 'Deltoides Posterior',
 ] as const;
 
-export const getIsraetelVolumeRecommendations = (): VolumeRecommendation[] => {
+export const getIsraetelVolumeRecommendations = (): VolumeRecType[] => {
   const displayMuscles = [
     'Cuadriceps', 'Isquiosurales', 'Gluteos', 'Pectorales', 'Biceps', 'Triceps',
     'Dorsales', 'Trapecio', 'Erectores Espinales', 'Abdomen', 'Pantorrillas',
@@ -465,7 +465,7 @@ export const getIsraetelVolumeRecommendations = (): VolumeRecommendation[] => {
       maxAdaptiveVolume: th.optimal,
       maxRecoverableVolume: th.max,
       frequencyCap: 4,
-    } as any;
+    };
   });
 };
 
@@ -473,13 +473,13 @@ export const getKpnkVolumeRecommendations = (
   athleteScore: AthleteProfileScore,
   settings: { preferredIntensity?: string; trainingProfile?: string },
   phase: Mesocycle['goal'] = 'Acumulación'
-): VolumeRecommendation[] => {
+): VolumeRecType[] => {
   const base = calculateWeeklyVolume(athleteScore, settings, phase);
   const scale = base.optimalSets / 15;
   return getIsraetelVolumeRecommendations().map(rec => {
-    const newMin = Math.max(1, Math.round((rec as any).minEffectiveVolume * scale));
-    const newOpt = Math.round((rec as any).maxAdaptiveVolume * scale);
-    const newMax = Math.round((rec as any).maxRecoverableVolume * scale);
+    const newMin = Math.max(1, Math.round(rec.minEffectiveVolume * scale));
+    const newOpt = Math.round(rec.maxAdaptiveVolume * scale);
+    const newMax = Math.round(rec.maxRecoverableVolume * scale);
     return {
       ...rec,
       minEffectiveVolume: newMin,

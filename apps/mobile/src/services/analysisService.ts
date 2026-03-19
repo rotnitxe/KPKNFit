@@ -6,14 +6,33 @@ import type {
     DetailedMuscleVolumeAnalysis,
     ProgramWeek,
     Session,
-    Program
+    Program,
+    Exercise,
+    CompletedExercise
 } from '../types/workout';
+import type { NutritionLog } from '../types/nutrition';
 import { getMuscleDisplayId } from '../utils/canonicalMuscles';
 import { buildExerciseIndex, findExerciseWithFallback } from '../utils/exerciseIndex';
 import { isSetEffective, calculateCompletedSessionStress, classifyACWR } from './fatigueService';
 import { getWeekId, calculateFFMI, calculateBrzycki1RM } from '../utils/calculations';
-import { getLocalDateString } from '../utils/dateUtils';
+import { getLocalDateString, getDatePartFromString, parseDateStringAsLocal } from '../utils/dateUtils';
 import type { Settings } from '../types/settings';
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+export interface HistoricalFatigueDataPoint {
+  weekId: string;
+  name: string;
+  acuteLoad: number;
+  chronicLoad: number;
+  acwr: number;
+  tonnage: number;
+  avgRMI: number;
+  avgSleepQuality?: number | null;
+  avgSleepHours: number | null;
+  avgStressLevel: number | null;
+  sessionCount: number;
+}
 
 const MUSCLE_ROLE_MULTIPLIERS: Record<string, number> = { 
     primary: 1.0, 
@@ -403,17 +422,334 @@ export const calculateProgramAdherence = (
     const programHistory = history.filter(log => log.programId === program.id);
     const completedSessionIds = new Set(programHistory.map(log => log.sessionId));
     const allSessions = program.macrocycles?.flatMap(m => (m.blocks || []).flatMap(b => b.mesocycles.flatMap(meso => meso.weeks.flatMap(w => w.sessions)))) || [];
-    
+
     if (allSessions.length === 0) return { adherencePercentage: 100, completedSessions: 0, plannedSessions: 0, sessionsWithVolumeVariance: 0 };
-    
+
     const allSessionIds = new Set(allSessions.map(s => s.id));
     const completedUniqueSessionsCount = Array.from(allSessionIds).filter(id => completedSessionIds.has(id)).length;
     const adherencePercentage = (completedUniqueSessionsCount / allSessionIds.size) * 100;
-    
+
     return {
         adherencePercentage,
         completedSessions: completedUniqueSessionsCount,
         plannedSessions: allSessionIds.size,
         sessionsWithVolumeVariance: 0
     };
+};
+
+export const calculateIFI = (exercise: Exercise, exerciseList: ExerciseCatalogEntry[]): number | null => {
+    // Stub implementation that returns null for now
+    // This maintains parity with the PWA implementation
+    return null;
+};
+
+export const calculateDailyNutritionSummary = (
+  nutritionLogs: NutritionLog[],
+  settings: Settings,
+  dateStr?: string
+): {
+  consumed: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+    fatBreakdown?: { saturated: number; monounsaturated: number; polyunsaturated: number; trans: number };
+    micronutrients?: { name: string; amount: number; unit: string }[];
+  };
+  goals: { calories: number; protein: number; carbs: number; fats: number };
+} => {
+  const targetStr = dateStr || getLocalDateString();
+  const todaysLogs = nutritionLogs.filter(log => log.date && log.date.startsWith(targetStr));
+  const consumed = todaysLogs.reduce(
+    (acc, log) => {
+      (log.foods || []).forEach(food => {
+        acc.calories += food.calories || 0;
+        acc.protein += food.protein || 0;
+        acc.carbs += food.carbs || 0;
+        acc.fats += food.fats || 0;
+        if (food.fatBreakdown) {
+          acc.fatBreakdown = acc.fatBreakdown || { saturated: 0, monounsaturated: 0, polyunsaturated: 0, trans: 0 };
+          acc.fatBreakdown.saturated += food.fatBreakdown.saturated || 0;
+          acc.fatBreakdown.monounsaturated += food.fatBreakdown.monounsaturated || 0;
+          acc.fatBreakdown.polyunsaturated += food.fatBreakdown.polyunsaturated || 0;
+          acc.fatBreakdown.trans += food.fatBreakdown.trans || 0;
+        }
+        (food.micronutrients || []).forEach(m => {
+          acc.micronutrients = acc.micronutrients || [];
+          const existing = acc.micronutrients.find(x => x.name === m.name);
+          if (existing) existing.amount += m.amount;
+          else acc.micronutrients.push({ ...m });
+        });
+      });
+      return acc;
+    },
+    { calories: 0, protein: 0, carbs: 0, fats: 0 } as {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fats: number;
+      fatBreakdown?: { saturated: number; monounsaturated: number; polyunsaturated: number; trans: number };
+      micronutrients?: { name: string; amount: number; unit: string }[];
+    }
+  );
+  return {
+    consumed,
+    goals: {
+      calories: (settings as any).dailyCalorieGoal || 0,
+      protein: (settings as any).dailyProteinGoal || 0,
+      carbs: (settings as any).dailyCarbGoal || 0,
+      fats: (settings as any).dailyFatGoal || 0,
+    },
+  };
+};
+
+const getSessionTonnage = (session: CompletedExercise | any): number => {
+  return (session?.sets || []).reduce((total: number, set: any) => {
+    const weight = Number(set?.weight ?? 0);
+    const reps = Number(set?.completedReps ?? set?.reps ?? set?.targetReps ?? 0);
+    if (!Number.isFinite(weight) || !Number.isFinite(reps)) return total;
+    return total + Math.max(0, weight) * Math.max(0, reps);
+  }, 0);
+};
+
+const getSetIntensityScore = (set: any): number => {
+  const rpe = Number(set?.completedRPE ?? set?.rpe ?? set?.targetRPE);
+  if (Number.isFinite(rpe) && rpe > 0) return Math.min(100, Math.max(0, rpe * 10));
+
+  const rir = Number(set?.completedRIR ?? set?.rir ?? set?.targetRIR);
+  if (Number.isFinite(rir)) return Math.min(100, Math.max(0, (10 - rir) * 10));
+
+  if (set?.isFailure || set?.intensityMode === 'failure' || set?.performanceMode === 'failed') {
+    return 100;
+  }
+
+  return 70;
+};
+
+const buildWeekLabel = (weekId: string) => {
+  const parsed = new Date(`${weekId}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return weekId;
+  return parsed.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+};
+
+const sleepQualityFromLog = (log: { duration?: number; quality?: number }) => {
+  if (Number.isFinite(log.quality as number)) {
+    return clamp(Number(log.quality), 1, 5);
+  }
+
+  if (Number.isFinite(log.duration as number) && (log.duration ?? 0) > 0) {
+    return clamp((Number(log.duration) / 8) * 5, 1, 5);
+  }
+
+  return null;
+};
+
+export const calculateHistoricalFatigueData = (
+  history: WorkoutLog[],
+  settings: Settings,
+  exerciseList: ExerciseCatalogEntry[],
+  options?: {
+    sleepLogs?: { startTime?: string; endTime?: string; duration?: number }[];
+    dailyWellbeingLogs?: { date: string; stressLevel?: number }[];
+  }
+): HistoricalFatigueDataPoint[] => {
+  if (!history.length) return [];
+
+  const startWeekOn = (settings as any).startWeekOn || 1;
+  const weekBuckets = new Map<
+    string,
+    {
+      logs: WorkoutLog[];
+      stress: number;
+      tonnage: number;
+      intensitySamples: number[];
+    }
+  >();
+
+  history.forEach(log => {
+    const date = parseDateStringAsLocal(getDatePartFromString(log.date));
+    const weekId = getWeekId(date, startWeekOn);
+    const current = weekBuckets.get(weekId) || {
+      logs: [],
+      stress: 0,
+      tonnage: 0,
+      intensitySamples: [],
+    };
+
+    const sessionStress =
+      (log as any).sessionStressScore ??
+      calculateCompletedSessionStress(log.completedExercises, exerciseList);
+
+    current.logs.push(log);
+    current.stress += sessionStress;
+    current.tonnage += log.completedExercises.reduce((sum, ex) => sum + getSessionTonnage(ex), 0);
+    log.completedExercises.forEach(ex => {
+      ex.sets.forEach(set => {
+        if (isSetEffective(set)) {
+          current.intensitySamples.push(getSetIntensityScore(set));
+        }
+      });
+    });
+    weekBuckets.set(weekId, current);
+  });
+
+  const sortedWeeks = Array.from(weekBuckets.entries()).sort(
+    ([left], [right]) => new Date(`${left}T12:00:00`).getTime() - new Date(`${right}T12:00:00`).getTime()
+  );
+
+  const sleepLogs = options?.sleepLogs || [];
+  const wellbeingLogs = options?.dailyWellbeingLogs || [];
+
+  return sortedWeeks.slice(-12).map(([weekId, bucket], index, arr) => {
+    const chronicWindow = arr.slice(Math.max(0, index - 3), index + 1);
+    const chronicLoad = chronicWindow.length
+      ? chronicWindow.reduce((sum, [, entry]) => sum + entry.stress, 0) / chronicWindow.length
+      : bucket.stress;
+    const acwr = chronicLoad > 0 ? bucket.stress / chronicLoad : 0;
+    const weekStart = new Date(`${weekId}T12:00:00`);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    const weekEndKey = getLocalDateString(weekEnd);
+
+    const weekSleepLogs = sleepLogs.filter(log => {
+      const dateStr = (log.endTime || log.startTime || '').slice(0, 10);
+      return dateStr >= weekId && dateStr <= weekEndKey;
+    });
+    const avgSleepHours = weekSleepLogs.length
+      ? weekSleepLogs.reduce((sum, log) => sum + (log.duration || 0), 0) / weekSleepLogs.length
+      : null;
+    const sleepQualitySamples = weekSleepLogs
+      .map(log => sleepQualityFromLog(log))
+      .filter((value): value is number => typeof value === 'number');
+    const avgSleepQuality = sleepQualitySamples.length
+      ? sleepQualitySamples.reduce((sum, value) => sum + value, 0) / sleepQualitySamples.length
+      : null;
+
+    const weekWellbeing = wellbeingLogs.filter(log => log.date >= weekId && log.date <= weekEndKey);
+    const avgStressLevel = weekWellbeing.length
+      ? weekWellbeing.reduce((sum, log) => sum + (log.stressLevel || 0), 0) / weekWellbeing.length
+      : null;
+
+    const avgRmi = bucket.intensitySamples.length
+      ? bucket.intensitySamples.reduce((sum, value) => sum + value, 0) / bucket.intensitySamples.length
+      : bucket.logs.length
+        ? Math.min(100, Math.max(40, Math.round((bucket.stress / Math.max(1, bucket.logs.length)) * 1.2)))
+        : 0;
+
+    return {
+      weekId,
+      name: buildWeekLabel(weekId),
+      acuteLoad: Math.round(bucket.stress),
+      chronicLoad: Math.round(chronicLoad),
+      acwr: Math.round(acwr * 100) / 100,
+      tonnage: Math.round(bucket.tonnage),
+      avgRMI: Math.round(avgRmi),
+      avgSleepQuality: avgSleepQuality == null ? null : Math.round(avgSleepQuality * 10) / 10,
+      avgSleepHours: avgSleepHours == null ? null : Math.round(avgSleepHours * 10) / 10,
+      avgStressLevel: avgStressLevel == null ? null : Math.round(avgStressLevel * 10) / 10,
+      sessionCount: bucket.logs.length,
+    };
+  });
+};
+
+export const calculateEffectiveWeeklyVolume = (
+  history: WorkoutLog[],
+  exerciseList: ExerciseCatalogEntry[],
+  muscleHierarchy: MuscleHierarchy | null,
+  settings: Settings
+): DetailedMuscleVolumeAnalysis[] => {
+  if (!history.length) return [];
+
+  const startWeekOn = (settings as any).startWeekOn || 1;
+  const currentWeekId = getWeekId(new Date(), startWeekOn);
+  const currentWeekLogs = history.filter(log => {
+    const logDate = parseDateStringAsLocal(getDatePartFromString(log.date));
+    return getWeekId(logDate, startWeekOn) === currentWeekId;
+  });
+
+  if (currentWeekLogs.length === 0) return [];
+
+  const pseudoWeek: ProgramWeek = {
+    id: currentWeekId,
+    name: buildWeekLabel(currentWeekId),
+    sessions: currentWeekLogs.map(log => ({
+      id: log.id,
+      name: log.sessionName,
+      exercises: log.completedExercises.map(ex => ({
+        id: ex.exerciseId,
+        exerciseDbId: ex.exerciseDbId,
+        exerciseId: ex.exerciseId,
+        name: ex.exerciseName,
+        sets: ex.sets,
+      })) as any,
+    })) as any,
+  };
+
+  return calculateAverageVolumeForWeeks([pseudoWeek], exerciseList, muscleHierarchy, 'complex');
+};
+
+export const calculateDetailedVolumeForAllPrograms = (
+  programs: Program[],
+  settings: Settings,
+  exerciseList: ExerciseCatalogEntry[],
+  muscleHierarchy: MuscleHierarchy | null
+): DetailedMuscleVolumeAnalysis[] => {
+  const program = programs[0];
+  if (!program) return [];
+  const allWeeks = program.macrocycles.flatMap(m => (m.blocks || []).flatMap(b => b.mesocycles.flatMap(meso => meso.weeks)));
+  return calculateAverageVolumeForWeeks(allWeeks, exerciseList, muscleHierarchy, 'complex');
+};
+
+export const calculateWeeklyEffectiveVolumeByMuscleGroup = (
+  programs: Program[],
+  history: WorkoutLog[],
+  settings: Settings,
+  exerciseList: ExerciseCatalogEntry[],
+  muscleHierarchy: MuscleHierarchy | null
+): { muscleGroup: string; completed: number; planned: number }[] => {
+  const today = new Date();
+  const currentWeekId = getWeekId(today, (settings as any).startWeekOn || 1);
+  const thisWeekLogs = history.filter(log =>
+    getWeekId(parseDateStringAsLocal(getDatePartFromString(log.date)), (settings as any).startWeekOn || 1) === currentWeekId
+  );
+  const plannedWeek = findPlannedWeek(programs, history, settings);
+
+  const exIndex = buildExerciseIndex(exerciseList);
+  const completedVolume: Record<string, number> = {};
+  thisWeekLogs.forEach(log => {
+    log.completedExercises.forEach(ex => {
+      const exInfo = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.exerciseName);
+      if (exInfo) {
+        const primaryMuscle = exInfo.involvedMuscles.find(m => m.role === 'primary')?.muscle;
+        if (primaryMuscle) {
+          const effectiveSets = ex.sets.filter(isSetEffective).length;
+          completedVolume[primaryMuscle.toString()] = (completedVolume[primaryMuscle.toString()] || 0) + effectiveSets;
+        }
+      }
+    });
+  });
+
+  const plannedVolume: Record<string, number> = {};
+  if (plannedWeek) {
+    const exercises = plannedWeek.sessions.flatMap(s =>
+      (s.parts && s.parts.length > 0 ? s.parts.flatMap(p => p.exercises) : s.exercises) || []
+    );
+    exercises.forEach(ex => {
+      const exInfo = findExerciseWithFallback(exIndex, ex.exerciseDbId, ex.name);
+      if (exInfo) {
+        const primaryMuscle = exInfo.involvedMuscles.find(m => m.role === 'primary')?.muscle;
+        if (primaryMuscle) {
+          const effectiveSets = (ex.sets || []).filter(isSetEffective).length;
+          plannedVolume[primaryMuscle.toString()] = (plannedVolume[primaryMuscle.toString()] || 0) + effectiveSets;
+        }
+      }
+    });
+  }
+
+  const allMuscles = new Set([...Object.keys(completedVolume), ...Object.keys(plannedVolume)]);
+  return Array.from(allMuscles).map(muscle => ({
+    muscleGroup: muscle,
+    completed: completedVolume[muscle] || 0,
+    planned: plannedVolume[muscle] || 0
+  })).sort((a, b) => (b.completed + b.planned) - (a.completed + a.planned));
 };

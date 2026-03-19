@@ -17,7 +17,11 @@ export const CoachMessageBubble = memo(({ message }: CoachMessageBubbleProps) =>
   });
 
   return (
-    <View style={[styles.container, isUser ? styles.userContainer : styles.coachContainer]}>
+    <View
+      style={[styles.container, isUser ? styles.userContainer : styles.coachContainer]}
+      accessible
+      accessibilityLabel={`Mensaje ${isUser ? 'usuario' : 'coach'}: ${message.text}`}
+    >
       <View
         style={[
           styles.bubble,

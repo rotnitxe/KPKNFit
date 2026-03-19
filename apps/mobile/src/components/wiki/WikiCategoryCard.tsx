@@ -67,6 +67,8 @@ export const WikiCategoryCard: React.FC<WikiCategoryCardProps> = ({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}. ${subtitle}. ${count} resultados.`}
       style={[
         styles.card,
         {

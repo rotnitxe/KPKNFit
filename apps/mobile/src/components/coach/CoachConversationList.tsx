@@ -36,7 +36,12 @@ const ConversationItem = React.memo(({
                  : { borderColor: `${colors.onSurface}1A`, backgroundColor: colors.surface }
       ]}
     >
-      <TouchableOpacity onPress={() => onSelect(item.id)} style={styles.content}>
+      <TouchableOpacity
+        onPress={() => onSelect(item.id)}
+        style={styles.content}
+        accessibilityRole="button"
+        accessibilityLabel={`Abrir ${item.title}`}
+      >
         <View>
           <Text
             numberOfLines={1}
@@ -50,6 +55,8 @@ const ConversationItem = React.memo(({
       <TouchableOpacity
         onPress={() => onDelete(item.id)}
         style={[styles.deleteButton, { backgroundColor: `${colors.onSurface}0D` }]}
+        accessibilityRole="button"
+        accessibilityLabel={`Eliminar ${item.title}`}
       >
         <Text style={[styles.deleteText, { color: colors.onSurfaceVariant }]}>✕</Text>
       </TouchableOpacity>
@@ -84,6 +91,11 @@ export function CoachConversationList({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>
+            Sin conversaciones aún.
+          </Text>
+        }
       />
     </View>
   );
@@ -127,5 +139,10 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     fontSize: 10,
+  },
+  emptyText: {
+    fontSize: 12,
+    fontWeight: '600',
+    paddingVertical: 8,
   },
 });

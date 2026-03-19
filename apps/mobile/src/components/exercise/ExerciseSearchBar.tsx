@@ -9,7 +9,7 @@
  */
 
 import React, { useCallback, useRef } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, type ViewStyle } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -92,18 +92,19 @@ export const ExerciseSearchBar: React.FC<ExerciseSearchBarProps> = ({
 
   const clearButtonAnimStyle = useAnimatedStyle(() => ({
     opacity: interpolate(clearButtonScale.value, [0, 1], [0, 1]),
-    transform: [{ scale: clearButtonScale.value }],
+    transform: [{ scale: clearButtonScale.value }] as unknown as NonNullable<ViewStyle['transform']>,
   }));
 
   const searchIconStyle = useAnimatedStyle(() => {
     const rotate = interpolate(isFocused.value, [0, 1], [0, 15]);
     const scale = interpolate(isFocused.value, [0, 1], [1, 1.1]);
+    const transform = [
+      { rotate: `${rotate}deg` },
+      { scale },
+    ] as unknown as NonNullable<ViewStyle['transform']>;
     
     return {
-      transform: [
-        { rotate: `${rotate}deg` },
-        { scale },
-      ],
+      transform,
     };
   });
 

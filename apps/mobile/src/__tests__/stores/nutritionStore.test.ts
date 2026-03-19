@@ -249,7 +249,7 @@ describe('nutritionStore', () => {
 
       const state = useMobileNutritionStore.getState();
       expect(state.savedLogs).toHaveLength(1);
-      expect(state.saveNotice).toContain('guardada');
+      expect(state.saveNotice).toContain('guardado');
       expect(syncNutritionWidgetState).toHaveBeenCalled();
     });
 

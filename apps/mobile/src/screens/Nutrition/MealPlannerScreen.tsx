@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import ReactNativeHapticFeedback from '@/services/hapticsService';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenShell } from '../../components/ScreenShell';

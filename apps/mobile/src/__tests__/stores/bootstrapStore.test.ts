@@ -10,6 +10,9 @@ import { useProgramStore } from '../../stores/programStore';
 import { useBodyStore } from '../../stores/bodyStore';
 import { useExerciseStore } from '../../stores/exerciseStore';
 import { useLocalAiDiagnosticsStore } from '../../stores/localAiDiagnosticsStore';
+import { useMealPlannerStore } from '../../stores/mealPlannerStore';
+import { useCoachStore } from '../../stores/coachStore';
+import { useAugeRuntimeStore } from '../../stores/augeRuntimeStore';
 
 jest.mock('../../services/migrationImportService', () => ({
   importBridgeSnapshotIfNeeded: jest.fn(),
@@ -34,6 +37,9 @@ const mockMealTemplateHydrate = jest.fn().mockResolvedValue(undefined);
 const mockProgramHydrate = jest.fn().mockResolvedValue(undefined);
 const mockBodyHydrate = jest.fn().mockResolvedValue(undefined);
 const mockExerciseHydrate = jest.fn().mockResolvedValue(undefined);
+const mockMealPlannerHydrate = jest.fn().mockResolvedValue(undefined);
+const mockCoachHydrate = jest.fn().mockResolvedValue(undefined);
+const mockAugeRuntimeHydrate = jest.fn().mockResolvedValue(undefined);
 const mockDiagnosticsRefresh = jest.fn().mockResolvedValue(undefined);
 
 function resetAllStoreHydrationMocks() {
@@ -45,6 +51,9 @@ function resetAllStoreHydrationMocks() {
   mockProgramHydrate.mockResolvedValue(undefined);
   mockBodyHydrate.mockResolvedValue(undefined);
   mockExerciseHydrate.mockResolvedValue(undefined);
+  mockMealPlannerHydrate.mockResolvedValue(undefined);
+  mockCoachHydrate.mockResolvedValue(undefined);
+  mockAugeRuntimeHydrate.mockResolvedValue(undefined);
   mockDiagnosticsRefresh.mockResolvedValue(undefined);
 
   useMobileNutritionStore.setState({ hydrateFromStorage: mockNutritionHydrate } as any);
@@ -55,6 +64,9 @@ function resetAllStoreHydrationMocks() {
   useProgramStore.setState({ hydrateFromMigration: mockProgramHydrate } as any);
   useBodyStore.setState({ hydrateFromMigration: mockBodyHydrate } as any);
   useExerciseStore.setState({ hydrateFromMigration: mockExerciseHydrate } as any);
+  useMealPlannerStore.setState({ hydrateFromStorage: mockMealPlannerHydrate } as any);
+  useCoachStore.setState({ hydrateFromStorage: mockCoachHydrate } as any);
+  useAugeRuntimeStore.setState({ hydrateFromStorage: mockAugeRuntimeHydrate } as any);
   useLocalAiDiagnosticsStore.setState({ refreshStatus: mockDiagnosticsRefresh } as any);
 }
 
@@ -198,7 +210,7 @@ describe('bootstrapStore', () => {
     consoleWarnSpy.mockRestore();
   });
 
-  it('should call all 9 store hydration methods', async () => {
+  it('should call all store hydration methods', async () => {
     (importBridgeSnapshotIfNeeded as jest.Mock).mockResolvedValue(CLEAN_SUMMARY);
 
     await useBootstrapStore.getState().bootstrap();
@@ -211,6 +223,9 @@ describe('bootstrapStore', () => {
     expect(mockProgramHydrate).toHaveBeenCalledTimes(1);
     expect(mockBodyHydrate).toHaveBeenCalledTimes(1);
     expect(mockExerciseHydrate).toHaveBeenCalledTimes(1);
+    expect(mockMealPlannerHydrate).toHaveBeenCalledTimes(1);
+    expect(mockCoachHydrate).toHaveBeenCalledTimes(1);
+    expect(mockAugeRuntimeHydrate).toHaveBeenCalledTimes(1);
     expect(mockDiagnosticsRefresh).toHaveBeenCalledTimes(1);
   });
 

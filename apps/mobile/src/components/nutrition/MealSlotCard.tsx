@@ -57,6 +57,9 @@ export const MealSlotCard: React.FC<MealSlotCardProps> = ({
               {Math.round(selectedTemplate.fats)}g
             </Text>
           </View>
+          <Text style={[styles.foodCount, { color: colors.onSurfaceVariant }]}>
+            {selectedTemplate.foodCount} alimentos
+          </Text>
         </View>
       ) : (
         <View style={styles.emptySection}>
@@ -127,6 +130,10 @@ const styles = StyleSheet.create({
   },
   macroDetails: {
     fontSize: 12,
+  },
+  foodCount: {
+    fontSize: 11,
+    marginTop: 4,
   },
   emptySection: {
     paddingVertical: 8,

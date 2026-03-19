@@ -23,6 +23,8 @@ export function WikiArticleCard({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${category}: ${title}`}
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.cyberBorder }]}
     >
       <View style={styles.header}>

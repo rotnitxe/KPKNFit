@@ -285,6 +285,22 @@ export const MacrocycleEditorScreen: React.FC = () => {
     ]);
   };
 
+  const handleDuplicateWeek = (blockIndex: number, mesoIndex: number, weekIndex: number) => {
+    const updated = JSON.parse(JSON.stringify(program));
+    const weeks = updated.macrocycles[0].blocks[blockIndex].mesocycles[mesoIndex].weeks;
+    const weekToDuplicate = weeks[weekIndex];
+    
+    // Create a deep copy of the week with a new ID
+    const newWeek = JSON.parse(JSON.stringify(weekToDuplicate));
+    newWeek.id = generateId();
+    newWeek.name = weekToDuplicate.name + ' (Copia)';
+    
+    // Insert the duplicate after the original week
+    weeks.splice(weekIndex + 1, 0, newWeek);
+    
+    handleSaveProgram(updated);
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -443,6 +459,11 @@ export const MacrocycleEditorScreen: React.FC = () => {
             else if (editingMesocycle) handleSaveMesocycle(data as Mesocycle);
             else if (editingWeek) handleSaveWeek(data as ProgramWeek);
           }}
+          onDuplicate={editingWeek ? () => {
+            if (editingWeek.blockIndex !== undefined && editingWeek.mesoIndex !== undefined && editingWeek.weekIndex !== undefined) {
+              handleDuplicateWeek(editingWeek.blockIndex, editingWeek.mesoIndex, editingWeek.weekIndex);
+            }
+          } : undefined}
           initialData={editingBlock?.data || editingMesocycle?.data || editingWeek?.data}
           type={editingBlock ? 'block' : editingMesocycle ? 'meso' : 'week'}
         />
@@ -509,7 +530,7 @@ const StatCard = ({ label, value, color }: { label: string; value: number; color
   </View>
 );
 
-const EntityModal = ({ onClose, onSave, initialData, type }: { onClose: () => void; onSave: (data: any) => void; initialData: any; type: 'block' | 'meso' | 'week' }) => {
+const EntityModal = ({ onClose, onSave, onDuplicate, initialData, type }: { onClose: () => void; onSave: (data: any) => void; onDuplicate?: () => void; initialData: any; type: 'block' | 'meso' | 'week' }) => {
   const [data, setData] = useState(JSON.parse(JSON.stringify(initialData)));
   const colors = useColors();
 
@@ -557,13 +578,24 @@ const EntityModal = ({ onClose, onSave, initialData, type }: { onClose: () => vo
             )}
 
             <View style={styles.modalFooter}>
+              {type === 'week' && onDuplicate && (
+                <TouchableOpacity 
+                  onPress={() => {
+                    onDuplicate();
+                    onClose();
+                  }} 
+                  style={[styles.saveBtnFull, { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.outlineVariant, borderWidth: 1 }]}
+                >
+                  <Text style={[styles.saveBtnText, { color: colors.onSurface }]}>DUPLICAR</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity onPress={() => onSave(data)} style={[styles.saveBtnFull, { backgroundColor: colors.primary }]}>
                 <SaveIcon size={18} color={colors.onPrimary} />
                 <Text style={[styles.saveBtnText, { color: colors.onPrimary }]}>GUARDAR CAMBIOS</Text>
               </TouchableOpacity>
             </View>
-         </View>
-       </View>
+          </View>
+        </View>
     </Modal>
   );
 };

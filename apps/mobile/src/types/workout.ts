@@ -421,6 +421,13 @@ export interface Program {
   athleteProfile?: AthleteProfileScore;
   events?: ProgramEvent[];
   volumeRecommendations?: VolumeRecommendation[];
+  loops?: Loop[];
+  loopState?: {
+    currentCycle: number;
+    postponed?: { loopId: string; fromCycle: number; toCycle: number }[];
+    cancelled?: string[];
+  };
+  weekDays?: number;
 }
 
 export interface ActiveProgramState {
@@ -604,6 +611,15 @@ export interface OngoingWorkoutState {
     sessionAdjusted1RMs?: Record<string, number>;
     selectedBrands?: Record<string, string>;
     lastPR?: { exerciseName: string, weight: number, reps: number, e1RM: number } | null;
+    postExerciseFeedback?: Record<string, PostExerciseFeedback>;
+}
+
+export interface PostExerciseFeedback {
+    technicalQuality: number;
+    perceivedFatigue: number;
+    mood: number;
+    discomforts: string[];
+    jointLoad?: number;
 }
 
 
@@ -677,6 +693,8 @@ export interface SplitTemplate {
     difficulty: 'Principiante' | 'Intermedio' | 'Avanzado';
     pros: string[];
     cons: string[];
+    daysPerWeek?: number;
+    sessions?: { name: string; focus: string; muscles: string[] }[];
 }
 
 export interface ProgramTemplateOption {
@@ -721,6 +739,8 @@ export interface WorkoutLog {
     pump?: number;
     sessionDifficulty?: number;
     muscleBatteries?: Record<string, number>;
+    environmentTags?: string[];
+    planAdherenceTags?: string[];
 }
 
 export interface CompletedExercise {
@@ -732,6 +752,19 @@ export interface CompletedExercise {
 }
 
 export interface CompletedSet extends ExerciseSet {
+
+
+
+
+
+
     weight: number;
+    reps?: number;
+    rpe?: number;
+    rir?: number;
     side?: 'left' | 'right';
+    spinalScore?: number; // Carga espinal histórica guardada
+    isFailure?: boolean;
+    isIneffective?: boolean;
+    duration?: number;
 }

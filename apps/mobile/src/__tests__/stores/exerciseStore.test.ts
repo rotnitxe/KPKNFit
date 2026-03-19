@@ -7,6 +7,7 @@ jest.mock('../../services/mobilePersistenceService', () => ({
 
 jest.mock('../../storage/mmkv', () => ({
   setJsonValue: jest.fn(),
+  getJsonValue: jest.fn(() => null),
 }));
 
 describe('exerciseStore', () => {

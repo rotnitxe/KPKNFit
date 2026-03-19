@@ -23,6 +23,7 @@ import {
 } from '../services/fatigueService';
 import { getLocalDateString } from '../utils/dateUtils';
 import { propagate1RM } from '../services/oneRMPropagationService';
+import { getSessionExercises, normalizeSessionForExecution } from '../utils/workoutSession';
 import {
   persistActiveSessionCheckpoint,
   clearActiveSessionCheckpoint,
@@ -37,10 +38,12 @@ import {
   OngoingSetData,
   Session,
   WorkoutLog,
+  SkippedWorkoutLog,
   CompletedExercise,
   CompletedSet,
   SetTypeLabel,
   Exercise,
+  PostExerciseFeedback,
 } from '../types/workout';
 import { Settings } from '../types/settings';
 
@@ -78,6 +81,9 @@ interface WorkoutStoreState {
   sessionFinishState: SessionFinishState;
   postSessionFeedbackHistory: PostSessionFeedbackRecord[];
   latestPostSessionFeedback: PostSessionFeedbackRecord | null;
+  history: WorkoutLog[];
+  skippedLogs: SkippedWorkoutLog[];
+  syncQueue: WorkoutLog[];
   hydrateFromMigration: () => Promise<void>;
   refreshInfrastructure: () => Promise<void>;
   logTodaySession: () => Promise<void>;
@@ -97,15 +103,44 @@ interface WorkoutStoreState {
   completeSet: (exerciseId: string, setId: string, data: OngoingSetData, isCalibrator?: boolean) => void;
   substituteExercise: (oldExerciseId: string, replacement: any) => void;
   updateSessionAdjusted1RM: (exerciseId: string, e1RM: number, isSource?: boolean) => void;
+  savePostExerciseFeedback: (exerciseId: string, feedback: PostExerciseFeedback) => void;
 
-  finishActiveSession: (feedback?: PostSessionFeedbackInput) => Promise<void>;
+   finishActiveSession: (data: {
+        notes?: string;
+        discomforts?: string[];
+        fatigueLevel?: number;
+        mentalClarity?: number;
+        durationInMinutes?: number;
+        logDate?: string;
+        focus?: number;
+        pump?: number;
+        environmentTags?: string[];
+        sessionDifficulty?: number;
+        planAdherenceTags?: string[];
+        muscleBatteries?: Record<string, number>;
+        sessionRpe?: number;
+        energyAfter?: number;
+        sorenessAfter?: number;
+        hadPain?: boolean;
+   }) => Promise<void>;
   clearLastPR: () => void;
   clearNotice: () => void;
+  
+  setHistory: (history: WorkoutLog[] | ((prev: WorkoutLog[]) => WorkoutLog[])) => void;
+  addWorkoutLog: (log: WorkoutLog) => void;
+  setSkippedLogs: (logs: SkippedWorkoutLog[] | ((prev: SkippedWorkoutLog[]) => SkippedWorkoutLog[])) => void;
+  setSyncQueue: (queue: WorkoutLog[] | ((prev: WorkoutLog[]) => WorkoutLog[])) => void;
 }
 
 
-async function syncWorkoutInfra(overview: WorkoutOverview | null, reminderSettings: CoreReminderSettings) {
-  await syncWorkoutWidgetState(overview);
+async function syncWorkoutInfra(
+  overview: WorkoutOverview | null,
+  reminderSettings: CoreReminderSettings,
+  options: { syncEmptyOverviewToWidget?: boolean } = {},
+) {
+  if (overview || options.syncEmptyOverviewToWidget) {
+    await syncWorkoutWidgetState(overview);
+  }
   await rescheduleCoreNotificationsFromState({
     settings: reminderSettings,
     nutritionLogs: useMobileNutritionStore.getState().savedLogs,
@@ -127,6 +162,39 @@ function buildQuickWorkoutLog(overview: WorkoutOverview): WorkoutLogSummary | nu
   };
 }
 
+function resolveSessionSelection(
+  session: Session,
+  activeExerciseId: string | null = null,
+  activeSetId: string | null = null,
+) {
+  const normalizedSession = normalizeSessionForExecution(session);
+  const exercises = getSessionExercises(normalizedSession);
+
+  if (exercises.length === 0) {
+    return {
+      session: normalizedSession,
+      exercises,
+      activeExerciseId: null,
+      activeSetId: null,
+    };
+  }
+
+  const resolvedExerciseId = exercises.some(ex => ex.id === activeExerciseId)
+    ? activeExerciseId
+    : exercises[0]?.id ?? null;
+  const resolvedExercise = exercises.find(ex => ex.id === resolvedExerciseId) ?? null;
+  const resolvedSetId = resolvedExercise?.sets?.some(set => set.id === activeSetId)
+    ? activeSetId
+    : resolvedExercise?.sets?.[0]?.id ?? null;
+
+  return {
+    session: normalizedSession,
+    exercises,
+    activeExerciseId: resolvedExerciseId,
+    activeSetId: resolvedSetId,
+  };
+}
+
 export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
   status: 'idle',
   overview: null,
@@ -140,6 +208,9 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
   sessionFinishState: 'idle',
   postSessionFeedbackHistory: [],
   latestPostSessionFeedback: null,
+  history: [],
+  skippedLogs: [],
+  syncQueue: [],
 
   hydrateFromMigration: async () => {
     set({ errorMessage: null, notice: null });
@@ -148,6 +219,11 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
       
       // Cargar feedback persistido
       const feedbackHistory = await loadPersistedDomainPayload<PostSessionFeedbackRecord[]>('workout.post-session-feedback.v1') || [];
+      
+      // Cargar history, skippedLogs y syncQueue desde persistencia
+      const history = await loadPersistedDomainPayload<WorkoutLog[]>('workout.history') || [];
+      const skippedLogs = await loadPersistedDomainPayload<SkippedWorkoutLog[]>('workout.skippedLogs') || [];
+      const syncQueue = await loadPersistedDomainPayload<WorkoutLog[]>('workout.syncQueue') || [];
 
       set({
         status: overview ? 'ready' : 'empty',
@@ -155,6 +231,9 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
         reminderSettings,
         postSessionFeedbackHistory: feedbackHistory,
         latestPostSessionFeedback: feedbackHistory[0] || null,
+        history,
+        skippedLogs,
+        syncQueue,
         hasHydrated: true,
         errorMessage: null,
       });
@@ -177,7 +256,9 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
         reminderSettings,
         errorMessage: null,
       });
-      await syncWorkoutInfra(overview, reminderSettings);
+      await syncWorkoutInfra(overview, reminderSettings, {
+        syncEmptyOverviewToWidget: true,
+      });
       set({ notice: 'Widgets y recordatorios actualizados.' });
     } catch (error) {
       set({
@@ -257,7 +338,13 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
         activeSession: newState,
         notice: 'Temporizador cancelado.',
       }));
+      return;
     }
+
+    set((state) => ({
+      ...state,
+      notice: 'Temporizador cancelado.',
+    }));
   },
 
   setReadinessScore: (score) => set((state) => ({
@@ -267,21 +354,31 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
 
   startActiveSession: (payload) => {
     set((state) => {
-      if (state.activeSession?.session.id === payload.session.id) {
+      const { session, exercises, activeExerciseId, activeSetId } = resolveSessionSelection(payload.session);
+
+      if (state.activeSession?.session.id === session.id) {
         return state;
+      }
+
+      if (exercises.length === 0) {
+        return {
+          ...state,
+          notice: 'La sesión no tiene ejercicios para iniciar.',
+        };
       }
       
       const newSession: OngoingWorkoutState = {
         programId: payload.programId,
-        session: payload.session,
+        session,
         startTime: Date.now(),
-        activeExerciseId: payload.session.exercises[0]?.id || null,
-        activeSetId: payload.session.exercises[0]?.sets[0]?.id || null,
+        activeExerciseId,
+        activeSetId,
         completedSets: {},
         dynamicWeights: {},
         sessionAdjusted1RMs: {},
         selectedBrands: {},
         setTypeOverrides: {},
+        postExerciseFeedback: {},
       };
       
       // Persistir checkpoint para recuperación (Silent Checkpoint initial)
@@ -299,10 +396,32 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
       const recovered = await recoverActiveSession();
       
       if (recovered) {
+        const { session, exercises, activeExerciseId, activeSetId } = resolveSessionSelection(
+          recovered.session,
+          recovered.activeExerciseId,
+          recovered.activeSetId,
+        );
+
+        if (exercises.length === 0) {
+          await clearActiveSessionCheckpoint();
+          set({
+            activeSession: null,
+            notice: 'No pudimos recuperar una sesión válida.',
+          });
+          return;
+        }
+
+        const normalized = {
+          ...recovered,
+          session,
+          activeExerciseId,
+          activeSetId,
+        };
+        persistActiveSessionCheckpoint(normalized);
         set((state) => ({
           ...state,
-          activeSession: recovered,
-          notice: `Sesión recuperada: ${recovered.session.name}`,
+          activeSession: normalized,
+          notice: `Sesión recuperada: ${normalized.session.name}`,
         }));
       }
     } catch (error) {
@@ -444,7 +563,10 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
   substituteExercise: (oldExerciseId, replacement) => set((state) => {
     if (!state.activeSession) return state;
 
-    const exercises = state.activeSession.session.exercises.map(ex => {
+    const sessionExercises = getSessionExercises(state.activeSession.session);
+    if (sessionExercises.length === 0) return state;
+
+    const exercises = sessionExercises.map(ex => {
       if (ex.id === oldExerciseId) {
         // Create new exercise instance based on catalog info
         // Keeping the same ID to preserve its position in the list if preferred,
@@ -477,9 +599,10 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
   completeSet: (exerciseId: string, setId: string, data: OngoingSetData, isCalibrator?: boolean) => {
     const { updateSetData, updateSessionAdjusted1RM, activeSession } = get();
     const { exerciseList } = useExerciseStore.getState();
+    const sessionExercises = getSessionExercises(activeSession?.session);
 
     // Check for PR before updating
-    const currentEx = activeSession?.session.exercises.find(ex => ex.id === exerciseId);
+    const currentEx = sessionExercises.find(ex => ex.id === exerciseId);
     if (currentEx && data.weight && data.reps) {
       const { calculateBrzycki1RM } = require('../utils/calculations');
       const newE1RM = calculateBrzycki1RM(data.weight, data.reps);
@@ -519,11 +642,11 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
         updateSessionAdjusted1RM(exerciseId, conservative1RM, true);
 
         // Propagación inteligente usando el servicio de 1RM y el catálogo
-        if (currentEx && activeSession?.session.exercises) {
+        if (currentEx && sessionExercises.length > 0) {
           const propagationResults = propagate1RM(
             currentEx,
             conservative1RM,
-            activeSession.session.exercises,
+            sessionExercises,
             activeSession.sessionAdjusted1RMs || {},
             exerciseList
           );
@@ -565,116 +688,161 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
     return newState;
   }),
 
-
-  finishActiveSession: async (feedback) => {
-
-    const { activeSession, postSessionFeedbackHistory } = get();
-    if (!activeSession) {
-      set({ notice: 'No hay una sesión activa para finalizar.' });
-      return;
-    }
-
-    set({ sessionFinishState: 'saving' });
-    try {
-      const durationMinutes = Math.round((Date.now() - activeSession.startTime) / 60000);
-      
-      const completedExercises: CompletedExercise[] = activeSession.session.exercises.map(ex => {
-          const sets: CompletedSet[] = ex.sets
-              .filter(s => activeSession.completedSets[s.id])
-              .map(s => {
-                  const data = activeSession.completedSets[s.id] as OngoingSetData;
-                  return {
-                      ...s,
-                      weight: data.weight,
-                      completedReps: data.reps,
-                      completedRPE: data.rpe,
-                      completedRIR: data.rir,
-                      isFailure: data.isFailure,
-                  };
-              });
-          
-          return {
-              exerciseId: ex.id,
-              exerciseDbId: ex.exerciseDbId,
-              exerciseName: ex.name,
-              sets,
-              machineBrand: activeSession.selectedBrands?.[ex.id],
-          };
-      }).filter(ex => ex.sets.length > 0);
-
-      const log: WorkoutLog = {
-        id: generateId(),
-        programId: activeSession.programId,
-        programName: get().overview?.activeProgramName ?? 'KPKN',
-        sessionId: activeSession.session.id,
-        sessionName: activeSession.session.name,
-        date: new Date().toISOString().slice(0, 10),
-        duration: durationMinutes,
-        completedExercises,
-        fatigueLevel: feedback?.energyAfter ?? 3,
-        mentalClarity: 3, // placeholder
+  savePostExerciseFeedback: (exerciseId, feedback) => {
+    set((state) => {
+      if (!state.activeSession) return state;
+      const nextFeedback = {
+        ...(state.activeSession.postExerciseFeedback ?? {}),
+        [exerciseId]: feedback,
       };
-
-      // Transform to summary for local history persistence if needed
-      const summary: WorkoutLogSummary = {
-          id: log.id,
-          date: log.date,
-          programName: log.programName,
-          sessionName: log.sessionName,
-          exerciseCount: log.completedExercises.length,
-          completedSetCount: log.completedExercises.reduce((acc, ex) => acc + ex.sets.length, 0),
-          durationMinutes: log.duration || 0,
+      const nextState = {
+        ...state,
+        activeSession: {
+          ...state.activeSession,
+          postExerciseFeedback: nextFeedback,
+        },
+        notice: 'Feedback de ejercicio guardado.',
       };
-
-      await persistLocalWorkoutLog(summary);
-      // Also persist full log if SQLite supports it
-      await persistDomainPayload(`workout.log.${log.id}`, log);
-
-      let nextFeedbackHistory = postSessionFeedbackHistory;
-      if (feedback) {
-        try {
-          const record: PostSessionFeedbackRecord = {
-            ...feedback,
-            id: generateId(),
-            createdAt: new Date().toISOString(),
-            programId: activeSession.programId,
-            sessionId: activeSession.session.id,
-            sessionName: activeSession.session.name,
-          };
-
-          nextFeedbackHistory = [record, ...postSessionFeedbackHistory].slice(0, 100);
-          await persistDomainPayload('workout.post-session-feedback.v1', nextFeedbackHistory);
-        } catch (feedbackError) {
-          console.warn('Error guardando feedback:', feedbackError);
-        }
-      }
-      
-      const { overview: nextOverview, reminderSettings: nextReminders } = await loadWorkoutRuntimeState();
-      
-      // Limpiar checkpoint de sesión activa
-      await clearActiveSessionCheckpoint();
-      
-      set({
-        status: nextOverview ? 'ready' : 'empty',
-        overview: nextOverview,
-        reminderSettings: nextReminders,
-        activeSession: null,
-        sessionFinishState: 'idle',
-        postSessionFeedbackHistory: nextFeedbackHistory,
-        latestPostSessionFeedback: nextFeedbackHistory[0] || null,
-        notice: '¡Sesión finalizada y guardada!',
-      });
-
-      if (nextReminders) {
-        await syncWorkoutInfra(nextOverview, nextReminders);
-      }
-    } catch (error) {
-      set({
-        sessionFinishState: 'idle',
-        errorMessage: error instanceof Error ? error.message : 'Error al finalizar la sesión.',
-      });
-    }
+      persistActiveSessionCheckpoint(nextState.activeSession);
+      return nextState;
+    });
   },
+
+
+   finishActiveSession: async (data) => {
+
+     const { activeSession, postSessionFeedbackHistory } = get();
+     if (!activeSession) {
+       set({ notice: 'No hay una sesión activa para finalizar.' });
+       return;
+     }
+
+     const sessionExercises = getSessionExercises(activeSession.session);
+     if (sessionExercises.length === 0) {
+       set({
+         sessionFinishState: 'idle',
+         notice: 'La sesión activa no tiene ejercicios válidos.',
+       });
+       return;
+     }
+
+     set({ sessionFinishState: 'saving' });
+     try {
+       const durationMinutes = data.durationInMinutes ?? Math.round((Date.now() - activeSession.startTime) / 60000);
+       
+       const completedExercises: CompletedExercise[] = sessionExercises.map(ex => {
+           const sets: CompletedSet[] = ex.sets
+               .filter(s => activeSession.completedSets[s.id])
+               .map(s => {
+                   const workoutData = activeSession.completedSets[s.id] as OngoingSetData;
+                   return {
+                       ...s,
+                       weight: workoutData.weight,
+                       completedReps: workoutData.reps,
+                       completedRPE: workoutData.rpe,
+                       completedRIR: workoutData.rir,
+                       isFailure: workoutData.isFailure,
+                   };
+               });
+           
+           return {
+               exerciseId: ex.id,
+               exerciseDbId: ex.exerciseDbId,
+               exerciseName: ex.name,
+               sets,
+               machineBrand: activeSession.selectedBrands?.[ex.id],
+           };
+       }).filter(ex => ex.sets.length > 0);
+
+       const log: WorkoutLog = {
+         id: generateId(),
+         programId: activeSession.programId,
+         programName: get().overview?.activeProgramName ?? 'KPKN',
+         sessionId: activeSession.session.id,
+         sessionName: activeSession.session.name,
+         date: data.logDate ?? new Date().toISOString().slice(0, 10),
+         duration: durationMinutes,
+         completedExercises,
+         fatigueLevel: data.fatigueLevel ?? 5,
+         mentalClarity: data.mentalClarity ?? 5,
+         focus: data.focus ?? 5,
+         pump: data.pump ?? 5,
+         environmentTags: data.environmentTags ?? [],
+         planAdherenceTags: data.planAdherenceTags ?? [],
+         muscleBatteries: data.muscleBatteries ?? {},
+         discomforts: data.discomforts ?? [],
+         notes: data.notes ?? '',
+       };
+
+       // Transform to summary for local history persistence if needed
+       const summary: WorkoutLogSummary = {
+           id: log.id,
+           date: log.date,
+           programName: log.programName,
+           sessionName: log.sessionName,
+           exerciseCount: log.completedExercises.length,
+           completedSetCount: log.completedExercises.reduce((acc, ex) => acc + ex.sets.length, 0),
+           durationMinutes: log.duration || 0,
+       };
+
+       await persistLocalWorkoutLog(summary);
+       // Also persist full log if SQLite supports it
+       await persistDomainPayload(`workout.log.${log.id}`, log);
+
+       // Build the feedback record for the new structure
+       const feedbackRecord: PostSessionFeedbackInput = {
+         sessionRpe: data.sessionRpe ?? 5,
+         energyAfter: data.energyAfter ?? 3,
+         sorenessAfter: data.sorenessAfter ?? 3,
+         hadPain: data.hadPain ?? false,
+         notes: data.notes ?? '',
+       };
+
+       let nextFeedbackHistory = postSessionFeedbackHistory;
+       if (feedbackRecord) {
+         try {
+           const record: PostSessionFeedbackRecord = {
+             ...feedbackRecord,
+             id: generateId(),
+             createdAt: new Date().toISOString(),
+             programId: activeSession.programId,
+             sessionId: activeSession.session.id,
+             sessionName: activeSession.session.name,
+           };
+
+           nextFeedbackHistory = [record, ...postSessionFeedbackHistory].slice(0, 100);
+           await persistDomainPayload('workout.post-session-feedback.v1', nextFeedbackHistory);
+         } catch (feedbackError) {
+           console.warn('Error guardando feedback:', feedbackError);
+         }
+       }
+       
+       const { overview: nextOverview, reminderSettings: nextReminders } = await loadWorkoutRuntimeState();
+       
+       // Limpiar checkpoint de sesión activa
+       await clearActiveSessionCheckpoint();
+       
+       set({
+         status: nextOverview ? 'ready' : 'empty',
+         overview: nextOverview,
+         reminderSettings: nextReminders,
+         activeSession: null,
+         sessionFinishState: 'idle',
+         postSessionFeedbackHistory: nextFeedbackHistory,
+         latestPostSessionFeedback: nextFeedbackHistory[0] || null,
+         notice: '¡Sesión finalizada y guardada!',
+       });
+
+       if (nextReminders) {
+         await syncWorkoutInfra(nextOverview, nextReminders);
+       }
+     } catch (error) {
+       set({
+         sessionFinishState: 'idle',
+         errorMessage: error instanceof Error ? error.message : 'Error al finalizar la sesión.',
+       });
+     }
+   },
 
   clearLastPR: () => {
     set((state) => ({
@@ -683,4 +851,32 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
     }));
   },
   clearNotice: () => set({ notice: null }),
+
+  setHistory: (updater) => {
+    const current = get().history;
+    const next = typeof updater === 'function' ? (updater as (prev: WorkoutLog[]) => WorkoutLog[])(current) : updater;
+    persistDomainPayload('workout.history', next);
+    set({ history: next });
+  },
+
+  addWorkoutLog: (log) => {
+    const current = get().history;
+    const next = [log, ...current];
+    persistDomainPayload('workout.history', next);
+    set({ history: next });
+  },
+
+  setSkippedLogs: (updater) => {
+    const current = get().skippedLogs;
+    const next = typeof updater === 'function' ? (updater as (prev: SkippedWorkoutLog[]) => SkippedWorkoutLog[])(current) : updater;
+    persistDomainPayload('workout.skippedLogs', next);
+    set({ skippedLogs: next });
+  },
+
+  setSyncQueue: (updater) => {
+    const current = get().syncQueue;
+    const next = typeof updater === 'function' ? (updater as (prev: WorkoutLog[]) => WorkoutLog[])(current) : updater;
+    persistDomainPayload('workout.syncQueue', next);
+    set({ syncQueue: next });
+  },
 }));

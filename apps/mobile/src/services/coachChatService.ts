@@ -83,3 +83,52 @@ export function summarizeConversationTitle(firstUserText: string): string {
   if (q.includes("fati") || q.includes("sueñ") || q.includes("readi")) return "Recuperación y Fatiga";
   return "Consulta Coach AI";
 }
+
+export function generateCoachBriefing(context: CoachContextSnapshot): string {
+  const lines: string[] = [];
+  const activeProgram = context.activeProgramName ?? 'Sin programa activo';
+  const readiness = context.readiness ?? null;
+  const readinessLabel = readiness === null ? 'sin dato' : `${Math.round(readiness)}/10`;
+  const sessionProgress =
+    context.plannedSetsThisWeek > 0
+      ? `${context.completedSetsThisWeek}/${context.plannedSetsThisWeek} series`
+      : `${context.completedSetsThisWeek} series registradas`;
+  const calories = Math.round(context.todayCalories);
+  const protein = Math.round(context.todayProtein);
+
+  lines.push('Resumen operativo de hoy');
+  lines.push(`• Programa activo: ${activeProgram}`);
+  lines.push(`• Progreso semanal: ${sessionProgress}`);
+  lines.push(`• Readiness: ${readinessLabel}`);
+
+  if (typeof context.latestWeight === 'number') {
+    lines.push(`• Peso reciente: ${Math.round(context.latestWeight * 10) / 10} kg`);
+  }
+
+  if (typeof context.latestBodyFat === 'number') {
+    lines.push(`• Grasa corporal reciente: ${Math.round(context.latestBodyFat * 10) / 10}%`);
+  }
+
+  lines.push(`• Nutrición de hoy: ${calories} kcal y ${protein} g de proteína.`);
+
+  lines.push('');
+  lines.push('Prioridad inmediata');
+
+  if (readiness !== null && readiness < 6) {
+    lines.push('Baja un cambio en la intensidad de la sesión y prioriza descanso, movilidad y sueño.');
+  } else if (context.completedSetsThisWeek < context.plannedSetsThisWeek) {
+    lines.push('Vas con retraso de volumen. Recupera una sesión limpia antes de perseguir más carga.');
+  } else if (protein < 100) {
+    lines.push('Tu siguiente comida debería cerrar proteína para sostener recuperación y masa magra.');
+  } else {
+    lines.push('Mantén la constancia: hoy te conviene sostener el ritmo sin improvisar el volumen.');
+  }
+
+  lines.push('');
+  lines.push('Enfoque del coach');
+  lines.push('1. Prioriza técnica estable.');
+  lines.push('2. Registra lo que realmente haces.');
+  lines.push('3. Ajusta nutrición y descanso antes de buscar más carga.');
+
+  return lines.join('\n');
+}

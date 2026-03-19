@@ -1,7 +1,7 @@
 
 // components/SessionEditor.tsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Session, Exercise, ExerciseSet, Settings, ExerciseMuscleInfo, WarmupSetDefinition, CoverStyle, SessionBackground, Program } from '../types';
+import { Session, Exercise, ExerciseSet, Settings, ExerciseMuscleInfo, MuscleRole, WarmupSetDefinition, CoverStyle, SessionBackground, Program } from '../types';
 import { PlusIcon, TrashIcon, SparklesIcon, StarIcon, ArrowDownIcon, ArrowUpIcon, InfoIcon, ChevronRightIcon, XIcon, ImageIcon, BarChartIcon, LinkIcon, ZapIcon, DragHandleIcon, CheckIcon, ClockIcon, TargetIcon, FlameIcon, ActivityIcon, PaletteIcon, LayersIcon, RefreshCwIcon, SearchIcon, DumbbellIcon, SettingsIcon, AlertTriangleIcon } from './icons';
 import Button from './ui/Button';
 import { getEffectiveRepsForRM, estimatePercent1RM, calculateBrzycki1RM, calculateHybrid1RM, roundWeight, getOrderedDaysOfWeek, calculateWeightFrom1RMAndIntensity, suggestRestSeconds, estimateSessionDurationMinutes } from '../utils/calculations';
@@ -157,7 +157,7 @@ const SessionAugeDashboard: React.FC<{
 
                     info.involvedMuscles.forEach((m: any) => {
                         const parent = normalizeMuscleGroup(m.muscle, m.emphasis);
-                        const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
+                        const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role as MuscleRole] ?? 0;
 
                         const effVol = hyperFactor * volMult;
                         const flatVol = hyperFactor;
@@ -1237,7 +1237,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 const volMult = getEffectiveVolumeMultiplier(set);
                 info.involvedMuscles.forEach((m: any) => {
                     const parent = normalizeMuscleGroup(m.muscle, m.emphasis);
-                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
+                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role as MuscleRole] ?? 0;
                     const effVol = hyperFactor * volMult;
                     const flatVol = hyperFactor;
                     if (!targetMap[parent]) targetMap[parent] = addFail ? { flat: 0, effective: 0, fail: 0 } : { flat: 0, effective: 0 };
@@ -1342,7 +1342,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 
                 info.involvedMuscles.forEach(m => {
                     const parent = normalizeMuscleGroup(m.muscle, m.emphasis);
-                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
+                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role as MuscleRole] ?? 0;
                     const addedVol = hyperFactor * volMult;
                     const limit = limits[parent]?.maxSession || 6;
 
@@ -1799,7 +1799,7 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                 const volMult = getEffectiveVolumeMultiplier(set);
                 info.involvedMuscles.forEach((m: any) => {
                     const parent = normalizeMuscleGroup(m.muscle, m.emphasis);
-                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
+                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role as MuscleRole] ?? 0;
                     const effVol = hyperFactor * volMult;
                     if (!hyperMap[parent]) hyperMap[parent] = { flat: 0, effective: 0 };
                     hyperMap[parent].flat += hyperFactor;
@@ -2366,3 +2366,4 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
 };
 
 export const SessionEditor = React.memo(SessionEditorComponent);
+

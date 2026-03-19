@@ -15,6 +15,12 @@ import { useMobileNutritionStore } from './nutritionStore';
 import { useSettingsStore } from './settingsStore';
 import { useWellbeingStore } from './wellbeingStore';
 import { useWorkoutStore } from './workoutStore';
+import {
+  hasExpectedCountData,
+  hasExpectedNutritionData,
+  hasExpectedWellbeingData,
+  isHydratedModuleReady,
+} from './cutoverReadiness';
 
 type CutoverStage = 'needs-work' | 'pilot-ready' | 'ready-for-cutover';
 
@@ -104,10 +110,6 @@ function computeStage(systemChecklist: CutoverSystemChecklist, manualSignoff: Cu
   return 'needs-work';
 }
 
-function hasExpectedNutritionData(expectedNutritionLogs: number | undefined, currentCount: number) {
-  return (expectedNutritionLogs ?? 0) === 0 || currentCount > 0;
-}
-
 export const useCutoverStore = create<CutoverStoreState>((set, get) => ({
   stage: 'needs-work',
   systemChecklist: null,
@@ -141,21 +143,30 @@ export const useCutoverStore = create<CutoverStoreState>((set, get) => ({
     const widgetSyncStatus = readWidgetSyncStatus();
     const backgroundSyncStatus = readBackgroundSyncStatus();
     const recordCounts = persistedSummary?.integrity.recordCounts;
-    const expectedWellbeingData = Boolean(
-      recordCounts && (recordCounts.sleepLogs > 0 || recordCounts.waterLogs > 0 || recordCounts.tasks > 0),
-    );
+    const expectedWellbeingData = Boolean(recordCounts && (recordCounts.sleepLogs > 0 || recordCounts.waterLogs > 0 || recordCounts.tasks > 0));
     const hasWellbeingData = Boolean(wellbeing.overview || wellbeing.tasks.length > 0);
     const nutritionReady = nutrition.hasHydrated && hasExpectedNutritionData(recordCounts?.nutritionLogs, nutrition.savedLogs.length);
     const workoutReady =
       workout.hasHydrated && (Boolean(workout.overview) || ((recordCounts?.programs ?? 0) === 0 && workout.status === 'empty'));
     const settingsReady = settings.status === 'ready' && settings.summary !== null;
-    const wellbeingReady = wellbeing.status === 'ready' || (!expectedWellbeingData && wellbeing.status === 'empty');
-    const templatesReady = templates.status === 'ready' || ((recordCounts?.mealTemplates ?? 0) === 0 && templates.status === 'empty');
+    const wellbeingReady = expectedWellbeingData
+      ? wellbeing.status === 'ready' &&
+        hasExpectedWellbeingData(
+          { sleepLogs: recordCounts?.sleepLogs, waterLogs: recordCounts?.waterLogs, tasks: recordCounts?.tasks },
+          hasWellbeingData,
+        )
+      : wellbeing.status === 'ready' || wellbeing.status === 'empty';
+    const templatesReady = isHydratedModuleReady(
+      templates.status,
+      recordCounts?.mealTemplates,
+      templates.templates.length,
+    );
     const widgetsReady = isWidgetModuleAvailable && !widgetSyncStatus.stale && widgetNativeStatus.stale === false;
     const backgroundReady =
       isBackgroundModuleAvailable &&
       (backgroundNativeStatus.lastResult === 'success' || backgroundSyncStatus.lastResult === 'success');
     const notificationsReady = notificationSummary.granted && Boolean(notificationSummary.lastScheduledAt);
+    const workoutHasExpectedData = hasExpectedCountData(recordCounts?.programs, workout.overview ? 1 : 0);
 
     const systemChecklist: CutoverSystemChecklist = {
       migrationBridgeReady: isMigrationBridgeAvailable,
@@ -164,7 +175,11 @@ export const useCutoverStore = create<CutoverStoreState>((set, get) => ({
         !bootstrap.error &&
         Boolean(persistedSummary) &&
         nutritionReady &&
-        settingsReady,
+        settingsReady &&
+        workoutReady &&
+        workoutHasExpectedData &&
+        templatesReady &&
+        wellbeingReady,
       nutritionReady,
       workoutReady,
       settingsReady,
@@ -201,13 +216,44 @@ export const useCutoverStore = create<CutoverStoreState>((set, get) => ({
   },
 
   runOperationalSweep: async () => {
+    const backgroundAvailable = isBackgroundModuleAvailable;
+    const widgetAvailable = isWidgetModuleAvailable;
+
+    const [scheduleResult, immediateResult, widgetReloadResult] = await Promise.allSettled([
+      backgroundAvailable ? backgroundModule.schedulePeriodicSync() : Promise.resolve({ scheduled: false }),
+      backgroundAvailable ? backgroundModule.runImmediateSync() : Promise.resolve({ started: false }),
+      widgetAvailable ? widgetModule.reloadWidget() : Promise.resolve(undefined),
+    ]);
     try {
-      const [scheduleResult, immediateResult] = await Promise.all([
-        backgroundModule.schedulePeriodicSync(),
-        backgroundModule.runImmediateSync(),
-      ]);
-      await widgetModule.reloadWidget();
       await get().refresh();
+
+      const failures: string[] = [];
+      if (!backgroundAvailable) {
+        failures.push('Módulo background no disponible.');
+      } else {
+        if (scheduleResult.status === 'rejected') {
+          failures.push('No se pudo programar el sync periódico.');
+        } else if (!scheduleResult.value.scheduled) {
+          failures.push('El módulo background no confirmó el sync periódico.');
+        }
+
+        if (immediateResult.status === 'rejected') {
+          failures.push('No se pudo ejecutar el sync inmediato.');
+        } else if (!immediateResult.value.started) {
+          failures.push('El módulo background no inició el sync inmediato.');
+        }
+      }
+
+      if (!widgetAvailable) {
+        failures.push('Módulo widgets no disponible.');
+      } else if (widgetReloadResult.status === 'rejected') {
+        failures.push('No se pudo recargar widgets.');
+      }
+
+      const notice =
+        failures.length === 0
+          ? 'Sweep ok · background programado · widgets recargados.'
+          : `Sweep parcial · ${failures.join(' ')}`;
 
       set(state => ({
         operationalSnapshot: state.operationalSnapshot
@@ -216,7 +262,7 @@ export const useCutoverStore = create<CutoverStoreState>((set, get) => ({
               lastSweepAt: new Date().toISOString(),
             }
           : state.operationalSnapshot,
-        notice: `Sweep ok · background ${scheduleResult.scheduled && immediateResult.started ? 'programado' : 'parcial'} · widgets recargados.`,
+        notice,
       }));
     } catch (error) {
       set({

@@ -1,13 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Modal, Pressable, TextInput, KeyboardAvoidingView, Platform, Dimensions, ScrollView, TouchableOpacity, LayoutAnimation, UIManager, Keyboard } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Button } from '../ui';
-import { OngoingSetData } from '../../types/workout';
+import { OngoingSetData, Exercise } from '../../types/workout';
 import { TargetIcon, FlameIcon, XCircleIcon, PlusIcon, MinusIcon } from '../icons';
 import { PWA_WORKOUT_PALETTE as PWA } from './pwaWorkoutPalette';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { NumpadOverlay } from './NumpadOverlay';
+import ReactNativeHapticFeedback from '@/services/hapticsService';
 import { Canvas, Blur, Rect, ColorMatrix, Paint } from '@shopify/react-native-skia';
+import { getWeightSuggestionForSet } from '../../utils/calculations';
+import { useWorkoutStore } from '../../stores/workoutStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useExerciseStore } from '../../stores/exerciseStore';
+import type { Settings } from '../../types/settings';
+import { getSessionExercises } from '../../utils/workoutSession';
 
 interface ModernSetEditorProps {
   visible: boolean;
@@ -15,6 +22,8 @@ interface ModernSetEditorProps {
   onSave: (data: OngoingSetData) => void;
   initialData?: OngoingSetData;
   exerciseName: string;
+  exercise?: Exercise; // Added for weight suggestion
+  selectedTag?: string; // Added for brand tag filtering
   setIndex: number;
   targetReps?: number;
   targetWeight?: number;
@@ -30,6 +39,8 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
   onSave,
   initialData,
   exerciseName,
+  exercise,
+  selectedTag,
   setIndex,
   targetReps,
   targetWeight,
@@ -42,11 +53,90 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
   const [rir, setRir] = useState((initialData?.rir ?? 2).toString());
   const [rpe, setRpe] = useState((initialData?.rpe ?? 8).toString());
   const [percentRM, setPercentRM] = useState('75');
+  const [numpadField, setNumpadField] = useState<'weight' | 'reps' | 'rir' | 'rpe' | 'percent' | null>(null);
   const [perfMode, setPerfMode] = useState<OngoingSetData['performanceMode']>(initialData?.performanceMode || 'target');
   const [isAmrapState, setIsAmrapState] = useState(initialData?.isAmrap ?? isAmrap ?? false);
   const [isCalibratorState, setIsCalibratorState] = useState(initialData?.isCalibrator ?? isCalibrator ?? false);
 
   const reference1RM = initialData?.weight ? (initialData.weight / (1.0278 - 0.0278 * (initialData.reps || 1))) : targetWeight; // Very basic fallback
+  
+   // Get workout store for history
+   const { history } = useWorkoutStore();
+   // Get settings from settings store
+   const settings = useSettingsStore(state => state.getSettings());
+   
+   // Get exercise info from exercise store (for muscle info needed by weight suggestion)
+   const exerciseInfo = useExerciseStore(state => {
+     if (!exerciseName) return undefined;
+     // Try to find exercise by name first
+     const found = state.exerciseList.find(ex => ex.name === exerciseName);
+     if (found) return found;
+     // Fallback: try to find by ID if exerciseName is actually an ID
+     return state.exerciseList.find(ex => ex.id === exerciseName) || undefined;
+   });
+   
+   // Get completed sets for this exercise from workout history
+   const completedSetsForExercise = useMemo(() => {
+     if (!exerciseName || !history) return [];
+     // Find completed exercises matching our exercise (by name or ID)
+     const completedExercises = history.flatMap(log => 
+       log.completedExercises.filter(ce => 
+         ce.exerciseName === exerciseName || 
+         ce.exerciseDbId === exerciseName
+       )
+     );
+     // Flatten all sets from those exercises
+     return completedExercises.flatMap(ex => 
+       ex.sets.map(set => ({
+         reps: set.completedReps,
+         weight: set.weight,
+         machineBrand: set.machineBrand || undefined
+       }))
+     );
+   }, [exerciseName, history]);
+   
+   // Calculate suggested weight
+   const suggestedWeight = useMemo(() => {
+     // Return early if we don't have required data
+     if (!exercise || !exerciseInfo || !settings) return undefined;
+     
+     // Get the current set definition from the exercise
+     const currentSet = exercise.sets?.[setIndex];
+     if (!currentSet) return undefined;
+     
+     // Get selected tag (brand filter) from props
+     const selectedTagFromProps = selectedTag;
+     
+     // Try to get selected brand from workout store if available
+      let selectedTagFromStore = undefined;
+      try {
+        const workoutState = useWorkoutStore.getState();
+        if (workoutState.activeSession && workoutState.activeSession.selectedBrands) {
+          // Find the exercise ID in the active session to get its selected brand
+          const activeExercise = getSessionExercises(workoutState.activeSession.session).find(
+            ex => ex.name === exerciseName || ex.exerciseDbId === exerciseName
+          );
+          if (activeExercise) {
+            selectedTagFromStore = workoutState.activeSession.selectedBrands[activeExercise.id];
+          }
+       }
+     } catch (e) {
+       // Ignore errors in accessing workout store state
+     }
+     
+     // Use prop tag if available, otherwise store tag, otherwise undefined
+     const finalSelectedTag = selectedTagFromProps || selectedTagFromStore;
+     
+     return getWeightSuggestionForSet(
+       exercise,
+       exerciseInfo,
+       setIndex,
+       completedSetsForExercise,
+       settings,
+       history,
+       finalSelectedTag
+     );
+   }, [weight, reps, rir, rpe, intensityMode, exercise, exerciseInfo, completedSetsForExercise, settings, history, setIndex, selectedTag]);
 
   const translateY = useSharedValue(SCREEN_HEIGHT);
 
@@ -103,6 +193,31 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
     }
     
     closeWithAnimation();
+  };
+
+  const getNumpadValue = () => {
+    switch (numpadField) {
+      case 'weight':
+        return weight;
+      case 'reps':
+        return reps;
+      case 'rir':
+        return rir;
+      case 'rpe':
+        return rpe;
+      case 'percent':
+        return percentRM;
+      default:
+        return '';
+    }
+  };
+
+  const setNumpadValue = (value: string) => {
+    if (numpadField === 'weight') setWeight(value);
+    if (numpadField === 'reps') setReps(value);
+    if (numpadField === 'rir') setRir(value);
+    if (numpadField === 'rpe') setRpe(value);
+    if (numpadField === 'percent') setPercentRM(value);
   };
 
   const cycleMode = () => {
@@ -213,23 +328,27 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
                 <View style={styles.inputGrid}>
                   <View style={styles.inputItem}>
                     <Text style={styles.inputLabel}>Peso (kg)</Text>
-                    <View style={styles.numericInputGroup}>
-                      <TouchableOpacity onPress={() => adjustValue(setWeight, -1.25, true)} style={styles.adjBtn}>
-                        <MinusIcon size={18} color={PWA.text} />
-                      </TouchableOpacity>
+                   <View style={styles.numericInputGroup}>
+                       <TouchableOpacity onPress={() => adjustValue(setWeight, -1.25, true)} style={styles.adjBtn}>
+                         <MinusIcon size={18} color={PWA.text} />
+                       </TouchableOpacity>
                       <TextInput
                         style={styles.input}
                         value={weight}
-                        onChangeText={(text) => {
-                          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                          setWeight(text);
-                        }}
-                        keyboardType="numeric"
-                      />
-                      <TouchableOpacity onPress={() => adjustValue(setWeight, 1.25, true)} style={styles.adjBtn}>
-                        <PlusIcon size={18} color={PWA.text} />
-                      </TouchableOpacity>
-                    </View>
+                         onChangeText={(text) => {
+                           LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                         setWeight(text);
+                         }}
+                         keyboardType="numeric"
+                         placeholder={suggestedWeight !== undefined ? `${suggestedWeight} kg` : undefined}
+                       />
+                       <TouchableOpacity onPress={() => adjustValue(setWeight, 1.25, true)} style={styles.adjBtn}>
+                         <PlusIcon size={18} color={PWA.text} />
+                       </TouchableOpacity>
+                     </View>
+                     <TouchableOpacity onPress={() => setNumpadField('weight')} style={styles.numpadLink}>
+                       <Text style={styles.numpadLinkText}>Abrir numpad</Text>
+                     </TouchableOpacity>
                   </View>
 
                   <View style={styles.inputItem}>
@@ -251,6 +370,9 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
                         <PlusIcon size={18} color={PWA.text} />
                       </TouchableOpacity>
                     </View>
+                    <TouchableOpacity onPress={() => setNumpadField('reps')} style={styles.numpadLink}>
+                      <Text style={styles.numpadLinkText}>Abrir numpad</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
 
@@ -363,6 +485,26 @@ export const ModernSetEditor: React.FC<ModernSetEditorProps> = ({
           </Animated.View>
         </GestureDetector>
       </View>
+      <NumpadOverlay
+        visible={numpadField !== null}
+        value={getNumpadValue()}
+        mode={numpadField === 'weight' || numpadField === 'percent' ? 'decimal' : 'integer'}
+        label={
+          numpadField === 'weight'
+            ? 'Peso'
+            : numpadField === 'reps'
+              ? 'Reps'
+              : numpadField === 'rir'
+                ? 'RIR'
+                : numpadField === 'rpe'
+                  ? 'RPE'
+                  : 'Porcentaje RM'
+        }
+        showNextButton={numpadField === 'weight'}
+        onChange={setNumpadValue}
+        onClose={() => setNumpadField(null)}
+        onNext={numpadField === 'weight' ? () => setNumpadField('reps') : undefined}
+      />
     </Modal>
   );
 };
@@ -498,6 +640,21 @@ const styles = StyleSheet.create({
   },
   inputItem: {
     flex: 1,
+  },
+  numpadLink: {
+    marginTop: 6,
+    alignSelf: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: '#F3EDF7',
+  },
+  numpadLinkText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: PWA.primaryDeep,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   inputLabel: {
     fontSize: 10,

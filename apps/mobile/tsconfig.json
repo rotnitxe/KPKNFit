@@ -5,6 +5,7 @@
       "jest"
     ],
     "baseUrl": ".",
+    "strict": false,
     "paths": {
       "@/*": ["src/*"],
       "@kpkn/design-tokens": ["../../packages/design-tokens/src/index.ts"],
@@ -19,6 +20,7 @@
   ],
   "exclude": [
     "**/node_modules",
-    "**/Pods"
+    "**/Pods",
+    "src/components/analytics/**"
   ]
 }

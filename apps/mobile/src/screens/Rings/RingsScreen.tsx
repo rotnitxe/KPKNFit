@@ -13,8 +13,11 @@ import {
   SingleRingIcon,
   TrendingUpIcon,
 } from '@/components/icons';
+import { readStoredWellbeingPayload } from '@/services/mobileDomainStateService';
+import { calculateRingsMetrics } from '@/services/ringsMetrics';
 import { useAugeRuntimeStore } from '@/stores/augeRuntimeStore';
 import { useWellbeingStore } from '@/stores/wellbeingStore';
+import { useMobileNutritionStore } from '@/stores/nutritionStore';
 import { useWorkoutStore } from '@/stores/workoutStore';
 import { useColors } from '@/theme';
 
@@ -106,16 +109,6 @@ export function RingsScreen() {
 
   const battery = workoutOverview?.battery;
 
-  const avgStress = wellbeingOverview?.latestSnapshot?.stressLevel
-    ? `${Math.round(wellbeingOverview.latestSnapshot.stressLevel)}%`
-    : '--';
-  const avgEnergy = wellbeingOverview?.latestSnapshot?.motivation
-    ? `${Math.round(wellbeingOverview.latestSnapshot.motivation)}%`
-    : '--';
-  const avgSleep = wellbeingOverview?.averageSleepHoursLast7Days
-    ? `${wellbeingOverview.averageSleepHoursLast7Days}h`
-    : '--';
-
   const headerContent = (
     <View style={styles.header}>
       <View style={styles.headerBadgeRow}>
@@ -133,6 +126,11 @@ export function RingsScreen() {
     if (!battery) return 'sin datos todavía';
     return battery.source === 'wellbeing-derived' ? 'derivado desde wellbeing' : 'estimación RN';
   }, [battery]);
+
+  const wellbeingMetrics = useMemo(() => calculateRingsMetrics(readStoredWellbeingPayload()), [
+    wellbeingOverview,
+    wellbeingStatus,
+  ]);
 
   return (
     <ScreenShell
@@ -170,19 +168,19 @@ export function RingsScreen() {
           <View style={styles.individualGrid}>
             <StatCard
               icon={<MoonIcon size={18} color={colors.primary} />}
-              value={avgSleep}
+              value={wellbeingMetrics.avgSleepHours !== null ? `${wellbeingMetrics.avgSleepHours}h` : '--'}
               label="Sueño prom."
               accent={colors.primary}
             />
             <StatCard
               icon={<BrainIcon size={18} color={colors.error} />}
-              value={avgStress}
+              value={wellbeingMetrics.avgStressLevel !== null ? `${wellbeingMetrics.avgStressLevel}%` : '--'}
               label="Estrés"
               accent={colors.error}
             />
             <StatCard
               icon={<ActivityIcon size={18} color={colors.secondary} />}
-              value={avgEnergy}
+              value={wellbeingMetrics.avgEnergyLevel !== null ? `${wellbeingMetrics.avgEnergyLevel}%` : '--'}
               label="Energía"
               accent={colors.secondary}
             />

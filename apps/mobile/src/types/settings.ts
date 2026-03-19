@@ -206,6 +206,7 @@ export interface Settings extends CoreReminderSettings {
   autoSyncEnabled: boolean;
   appBackground?: SessionBackground;
   homeWidgetOrder?: string[];
+  homeCardOrder?: string[];
 
   // --- LÍMITES CALIBRADOS DEL ATLETA (KPKN ENGINE) ---
   volumeLimits?: Record<string, { maxSession: number; max: number; min?: number }>;

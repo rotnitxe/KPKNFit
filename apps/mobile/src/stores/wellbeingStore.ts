@@ -28,6 +28,7 @@ interface WellbeingStoreState {
   hydrateFromMigration: () => Promise<void>;
   logWater: (amountMl: number) => Promise<void>;
   toggleTask: (taskId: string) => Promise<void>;
+  addDailyCheckIn: (data: { date: string; sleepQuality: number; stressLevel: number; doms: number; motivation: number; moodState?: string }) => Promise<void>;
   clearNotice: () => void;
 }
 
@@ -170,6 +171,32 @@ export const useWellbeingStore = create<WellbeingStoreState>(set => ({
       tasks: next.tasks,
       droppedDailyLogs: next.droppedDailyLogs,
       notice: toggledTask?.completed ? 'Tarea marcada como lista.' : 'Tarea marcada como pendiente.',
+    });
+  },
+
+  addDailyCheckIn: async (data: { date: string; sleepQuality: number; stressLevel: number; doms: number; motivation: number; moodState?: string }) => {
+    const current = readStoredWellbeingPayload();
+    const todayDate = new Date().toISOString().slice(0, 10);
+    const logData = {
+      date: data.date || todayDate,
+      sleepQuality: data.sleepQuality,
+      stressLevel: data.stressLevel,
+      doms: data.doms,
+      motivation: data.motivation,
+    };
+    
+    patchStoredWellbeingPayload({
+      dailyWellbeingLogs: [...(current.dailyWellbeingLogs || []), logData],
+    });
+    
+    const next = buildState();
+    set({
+      status: next.status,
+      source: 'rn-owned',
+      overview: next.overview,
+      tasks: next.tasks,
+      droppedDailyLogs: next.droppedDailyLogs,
+      notice: 'Check-in registrado.',
     });
   },
 

@@ -27,11 +27,11 @@ const MyRingsView: React.FC = () => {
         return Math.round(total / recent.length);
     }, [dailyWellbeingLogs]);
 
-    // Calcular promedio de energía
+    // Calcular promedio de energía percibida (en el modelo actual se aproxima con motivation)
     const avgEnergy = useMemo(() => {
         if (!dailyWellbeingLogs || dailyWellbeingLogs.length === 0) return null;
         const recent = dailyWellbeingLogs.slice(0, 7);
-        const total = recent.reduce((sum, log) => sum + (log.energyLevel || 0), 0);
+        const total = recent.reduce((sum, log) => sum + (log.motivation || 0), 0);
         return Math.round(total / recent.length);
     }, [dailyWellbeingLogs]);
 

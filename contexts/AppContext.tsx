@@ -994,7 +994,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             addToast("Error al guardar el entrenamiento.", "danger");
             return;
         }
-        const validatedLog = validationResult.data;
+        const validatedLog = validationResult.data as WorkoutLog;
 
         setOngoingWorkout(null);
         ui.setActiveSession(null);

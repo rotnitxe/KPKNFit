@@ -6,6 +6,7 @@ import { ScreenShell } from '@/components/ScreenShell';
 import { WikiSearchBar } from '@/components/wiki/WikiSearchBar';
 import { WikiCategoryCard } from '@/components/wiki/WikiCategoryCard';
 import { WikiListItem } from '@/components/wiki/WikiListItem';
+import { WikiArticleCard } from '@/components/wiki/WikiArticleCard';
 import {
   WIKI_JOINTS,
   WIKI_MOVEMENT_PATTERNS,
@@ -13,6 +14,7 @@ import {
   WIKI_TENDONS,
   searchWiki,
 } from '@/data/wikiData';
+import { WIKI_CHAIN_DEFINITIONS } from '@/data/wikiExploreData';
 import type { WikiStackParamList } from '@/navigation/types';
 import { useColors } from '@/theme';
 
@@ -28,39 +30,88 @@ export function WikiHomeScreen() {
   const filteredTendons = useMemo(() => searchWiki(WIKI_TENDONS, query), [query]);
   const filteredPatterns = useMemo(() => searchWiki(WIKI_MOVEMENT_PATTERNS, query), [query]);
 
+  const featuredMuscle = filteredMuscles[0] ?? WIKI_MUSCLES[0];
+  const featuredJoint = filteredJoints[0] ?? WIKI_JOINTS[0];
+  const featuredTendon = filteredTendons[0] ?? WIKI_TENDONS[0];
+  const featuredPattern = filteredPatterns[0] ?? WIKI_MOVEMENT_PATTERNS[0];
+
+  const labCards = useMemo(
+    () => [
+      {
+        key: 'lab-biomechanics',
+        title: 'Biomecánica aplicada',
+        category: 'Laboratorio',
+        description:
+          'Palancas, vectores y lectura corporal para entender sentadillas, bisagras y empujes.',
+        readTime: '4 min',
+        onPress: () => navigation.navigate('WikiBiomechanics'),
+      },
+      {
+        key: 'lab-mobility',
+        title: 'Movilidad útil',
+        category: 'Laboratorio',
+        description:
+          'Rutinas de cadera, hombro y tobillo para entrar mejor a la sesión sin forzar rangos.',
+        readTime: '5 min',
+        onPress: () => navigation.navigate('WikiMobility'),
+      },
+      {
+        key: `article-muscle-${featuredMuscle.id}`,
+        title: featuredMuscle.name,
+        category: 'Músculo',
+        description: featuredMuscle.description,
+        readTime: '3 min',
+        onPress: () =>
+          navigation.navigate('WikiArticle', {
+            articleType: 'muscle',
+            articleId: featuredMuscle.id,
+          }),
+      },
+      {
+        key: `article-pattern-${featuredPattern.id}`,
+        title: featuredPattern.name,
+        category: 'Patrón',
+        description: featuredPattern.description,
+        readTime: '3 min',
+        onPress: () =>
+          navigation.navigate('WikiArticle', {
+            articleType: 'pattern',
+            articleId: featuredPattern.id,
+          }),
+      },
+    ],
+    [featuredMuscle, featuredPattern, navigation],
+  );
+
   const spotlightItems = useMemo(
     () => [
       {
-        key: `muscle-${filteredMuscles[0]?.id ?? 'none'}`,
-        title: filteredMuscles[0]?.name ?? 'Sin resultados',
-        subtitle: filteredMuscles[0]?.description ?? 'Prueba otra búsqueda.',
-        onPress: () =>
-          filteredMuscles[0] && navigation.navigate('WikiMuscleDetail', { muscleId: filteredMuscles[0].id }),
+        key: `joint-${featuredJoint.id}`,
+        title: featuredJoint.name,
+        subtitle: featuredJoint.description,
+        onPress: () => navigation.navigate('WikiJointDetail', { jointId: featuredJoint.id }),
       },
       {
-        key: `joint-${filteredJoints[0]?.id ?? 'none'}`,
-        title: filteredJoints[0]?.name ?? 'Sin articulaciones',
-        subtitle: filteredJoints[0]?.description ?? 'No encontramos articulaciones para esa búsqueda.',
-        onPress: () =>
-          filteredJoints[0] && navigation.navigate('WikiJointDetail', { jointId: filteredJoints[0].id }),
+        key: `tendon-${featuredTendon.id}`,
+        title: featuredTendon.name,
+        subtitle: featuredTendon.description,
+        onPress: () => navigation.navigate('WikiTendonDetail', { tendonId: featuredTendon.id }),
       },
       {
-        key: `tendon-${filteredTendons[0]?.id ?? 'none'}`,
-        title: filteredTendons[0]?.name ?? 'Sin tendones',
-        subtitle: filteredTendons[0]?.description ?? 'No encontramos tendones para esa búsqueda.',
+        key: `pattern-${featuredPattern.id}`,
+        title: featuredPattern.name,
+        subtitle: featuredPattern.description,
         onPress: () =>
-          filteredTendons[0] && navigation.navigate('WikiTendonDetail', { tendonId: filteredTendons[0].id }),
+          navigation.navigate('WikiPatternDetail', { patternId: featuredPattern.id }),
       },
       {
-        key: `pattern-${filteredPatterns[0]?.id ?? 'none'}`,
-        title: filteredPatterns[0]?.name ?? 'Sin patrones',
-        subtitle: filteredPatterns[0]?.description ?? 'No encontramos patrones para esa búsqueda.',
-        onPress: () =>
-          filteredPatterns[0] &&
-          navigation.navigate('WikiPatternDetail', { patternId: filteredPatterns[0].id }),
+        key: `muscle-${featuredMuscle.id}`,
+        title: featuredMuscle.name,
+        subtitle: featuredMuscle.description,
+        onPress: () => navigation.navigate('WikiMuscleDetail', { muscleId: featuredMuscle.id }),
       },
     ],
-    [filteredJoints, filteredMuscles, filteredPatterns, filteredTendons, navigation],
+    [featuredJoint, featuredMuscle, featuredPattern, featuredTendon, navigation],
   );
 
   return (
@@ -119,6 +170,32 @@ export function WikiHomeScreen() {
           />
         </View>
 
+        <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>Laboratorios</Text>
+        <View style={styles.cardsGrid}>
+          {labCards.map(card => (
+            <WikiArticleCard
+              key={card.key}
+              title={card.title}
+              category={card.category}
+              description={card.description}
+              readTime={card.readTime}
+              onPress={card.onPress}
+            />
+          ))}
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>Cadenas</Text>
+        <View style={styles.chainList}>
+          {WIKI_CHAIN_DEFINITIONS.map(chain => (
+            <WikiListItem
+              key={chain.id}
+              title={chain.title}
+              subtitle={chain.subtitle}
+              onPress={() => navigation.navigate('WikiChainDetail', { chainId: chain.id })}
+            />
+          ))}
+        </View>
+
         <View style={styles.spotlightHeader}>
           <Text style={[styles.spotlightTitle, { color: colors.onSurfaceVariant }]}>
             Resultados destacados
@@ -146,7 +223,20 @@ const styles = StyleSheet.create({
   categoryGrid: {
     gap: 12,
   },
+  cardsGrid: {
+    gap: 12,
+  },
+  chainList: {
+    gap: 12,
+  },
   spotlightHeader: {
+    marginTop: 8,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
     marginTop: 8,
   },
   spotlightTitle: {
@@ -156,3 +246,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 });
+

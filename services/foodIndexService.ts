@@ -661,9 +661,9 @@ function applyResolutionToParsedItem(item: ParsedMealItem, result: SearchFoodsRe
         },
         candidate,
         candidates: result.candidates.slice(0, 4),
-        decisionSource: reviewRequired
+        decisionSource: (reviewRequired
             ? 'review'
-            : (candidate?.learned ? 'user-memory' : 'database'),
+            : (candidate?.learned ? 'user-memory' : 'database')) as 'review' | 'user-memory' | 'database',
         confidence: candidate?.confidence ?? result.bestConfidence,
         reviewRequired,
     };

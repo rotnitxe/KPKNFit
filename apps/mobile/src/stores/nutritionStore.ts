@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import type { LocalAiNutritionAnalysisResult } from '@kpkn/shared-types';
-import { analyzeNutritionDraft } from '../services/nutritionAnalyzer';
+import { analyzeNutritionDraft } from '../services/aiService';
 import { LOCAL_CHILEAN_FOOD_CATALOG } from '@kpkn/shared-domain';
 import type { NutritionMealType, SavedNutritionEntry } from '../types/nutrition';
+import type { Settings } from '../types/settings';
 import { loadSavedNutritionLogs, persistNutritionLog, deleteNutritionLog, updateNutritionLogDescription } from '../services/mobilePersistenceService';
 import { generateId } from '../utils/generateId';
 import { syncNutritionWidgetState } from '../services/widgetSyncService';
 import { rescheduleCoreNotificationsFromStorage } from '../services/mobileNotificationService';
+import { useSettingsStore } from './settingsStore';
 
 type NutritionScreenStatus = 'idle' | 'analyzing' | 'ready' | 'failed';
 
@@ -15,11 +17,24 @@ interface SaveCurrentOptions {
   logDate?: string;
 }
 
+interface NutritionPlan {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+    periodization?: {
+        trainingDayCalories: number;
+        restDayCalories: number;
+    };
+}
+
 interface MobileNutritionStoreState {
   description: string;
   status: NutritionScreenStatus;
   lastAnalysis: LocalAiNutritionAnalysisResult | null;
   savedLogs: SavedNutritionEntry[];
+  nutritionPlan: NutritionPlan;
+  favorites: string[]; // food IDs
   hasHydrated: boolean;
   isDetailVisible: boolean;
   saveNotice: string | null;
@@ -34,6 +49,9 @@ interface MobileNutritionStoreState {
   duplicateLog: (id: string) => Promise<void>;
   toggleDetail: () => void;
   clearNotice: () => void;
+  updateNutritionPlan: (plan: NutritionPlan) => Promise<void>;
+  toggleFavorite: (foodId: string) => void;
+  getLogsForDate: (date: string) => SavedNutritionEntry[];
 }
 
 function computeTotals(result: LocalAiNutritionAnalysisResult) {
@@ -63,21 +81,40 @@ function buildLogTimestamp(logDate?: string) {
   return Number.isNaN(candidate.getTime()) ? now.toISOString() : candidate.toISOString();
 }
 
+function getNutritionPlanFromSettings(settings: Settings) {
+  return {
+    calories: settings.dailyCalorieGoal ?? 2000,
+    protein: settings.dailyProteinGoal ?? 150,
+    carbs: settings.dailyCarbGoal ?? 200,
+    fats: settings.dailyFatGoal ?? 60,
+    periodization: undefined,
+  };
+}
+
 export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, get) => ({
   description: '',
   status: 'idle',
   lastAnalysis: null,
   savedLogs: [],
+  nutritionPlan: {
+    calories: 2000,
+    protein: 150,
+    carbs: 200,
+    fats: 60,
+  },
+  favorites: [],
   hasHydrated: false,
   isDetailVisible: false,
   saveNotice: null,
   errorMessage: null,
   hydrateFromStorage: async () => {
     const savedLogs = await loadSavedNutritionLogs();
+    const settings = useSettingsStore.getState().getSettings();
     void syncNutritionWidgetState(savedLogs);
     void rescheduleCoreNotificationsFromStorage();
     set({
       savedLogs,
+      nutritionPlan: settings ? getNutritionPlanFromSettings(settings) : get().nutritionPlan,
       hasHydrated: true,
     });
   },
@@ -214,4 +251,29 @@ export const useMobileNutritionStore = create<MobileNutritionStoreState>((set, g
   },
   toggleDetail: () => set(state => ({ isDetailVisible: !state.isDetailVisible })),
   clearNotice: () => set({ saveNotice: null }),
+  updateNutritionPlan: async (plan: NutritionPlan) => {
+    set({ nutritionPlan: plan });
+    const currentSettings = useSettingsStore.getState().getSettings();
+    if (currentSettings) {
+      await useSettingsStore.getState().updateSettings({
+        dailyCalorieGoal: plan.calories,
+        dailyProteinGoal: plan.protein,
+        dailyCarbGoal: plan.carbs,
+        dailyFatGoal: plan.fats,
+        calorieGoalConfig: currentSettings.calorieGoalConfig,
+      });
+    }
+  },
+  toggleFavorite: (foodId: string) => {
+    set(state => {
+      const favorites = state.favorites.includes(foodId)
+        ? state.favorites.filter(id => id !== foodId)
+        : [...state.favorites, foodId];
+      return { favorites };
+    });
+  },
+  getLogsForDate: (date: string) => {
+    const { savedLogs } = get();
+    return savedLogs.filter(log => (log.loggedDate || log.createdAt.split('T')[0]) === date);
+  },
 }));

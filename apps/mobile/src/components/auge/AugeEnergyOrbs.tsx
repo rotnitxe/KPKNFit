@@ -9,7 +9,7 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, type ViewStyle } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -115,12 +115,13 @@ const EnergyOrb: React.FC<EnergyOrbProps> = React.memo(({ value, color, label, i
 
   const orbStyle = useAnimatedStyle(() => {
     const scale = interpolate(pulseAnim.value, [0, 1], [0.95, 1.05]);
+    const transform = [
+      { scale },
+      { translateX: oscillationX.value },
+      { translateY: oscillationY.value },
+    ] as unknown as NonNullable<ViewStyle['transform']>;
     return {
-      transform: [
-        { scale },
-        { translateX: oscillationX.value },
-        { translateY: oscillationY.value },
-      ],
+      transform,
     };
   });
 

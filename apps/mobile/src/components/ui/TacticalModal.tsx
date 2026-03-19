@@ -27,6 +27,19 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
   const isSheet = variant === 'sheet';
   const colors = useColors();
 
+  const buildAnimation = (builder: any, springify = false): any => {
+    if (!builder || typeof builder.duration !== 'function') {
+      return undefined;
+    }
+
+    const configured = builder.duration(200);
+    if (!springify || typeof configured.springify !== 'function') {
+      return configured;
+    }
+
+    return configured.springify();
+  };
+
   const getBorderColor = (v: TacticalVariant) => {
     switch (v) {
       case 'failure':
@@ -58,13 +71,13 @@ const TacticalModal: React.FC<TacticalModalProps> = ({
             isSheet && styles.sheetModal,
             { borderColor: getBorderColor(variant), elevation: getElevation(variant) }
           ]}
-          entering={isSheet ? SlideInDown.duration(200) : FadeIn.duration(200)}
-          exiting={isSheet ? SlideOutDown.duration(200) : FadeOut.duration(200)}
+          entering={buildAnimation(isSheet ? SlideInDown : FadeIn)}
+          exiting={buildAnimation(isSheet ? SlideOutDown : FadeOut)}
         >
           <Animated.View
             style={[styles.panel, { backgroundColor: colors.surface, borderColor: getBorderColor(variant) }]}
-            entering={isSheet ? undefined : ZoomIn.duration(200).springify()}
-            exiting={isSheet ? undefined : ZoomOut.duration(200).springify()}
+            entering={isSheet ? undefined : buildAnimation(ZoomIn, true)}
+            exiting={isSheet ? undefined : buildAnimation(ZoomOut, true)}
           >
             {title !== undefined && (
               <View style={[styles.header, { borderBottomColor: colors.outlineVariant }]}>

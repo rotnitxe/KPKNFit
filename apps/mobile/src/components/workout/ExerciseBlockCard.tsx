@@ -3,44 +3,76 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import type { Exercise, OngoingWorkoutState } from '../../types/workout';
 import { ExerciseSetRow } from './ExerciseSetRow';
 import { ExerciseSubstitutionSheet } from './ExerciseSubstitutionSheet';
+import { ExerciseCardContextMenu } from './ExerciseCardContextMenu';
 import { ActivityIcon, TrophyIcon } from '../icons';
 import { LiquidGlassCard } from '../ui/LiquidGlassCard';
 import { useColors } from '../../theme';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import ReactNativeHapticFeedback from '@/services/hapticsService';
+import { useWorkoutStore } from '../../stores/workoutStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface ExerciseBlockCardProps {
-  exercise: Exercise;
+  exercises: Exercise[]; // Changed to array of exercises
   activeSession: OngoingWorkoutState | null;
-  exerciseIndex: number;
+  exerciseIndex: number; // Index of the group in the session
   isFocused?: boolean;
   onSelect?: () => void;
+  onOpenPostExercise?: (exercise: Exercise) => void;
 }
 
 export const ExerciseBlockCard: React.FC<ExerciseBlockCardProps> = ({
-  exercise,
+  exercises,
   activeSession,
   exerciseIndex,
   isFocused = false,
   onSelect,
+  onOpenPostExercise,
 }) => {
   const [subModalVisible, setSubModalVisible] = React.useState(false);
+  const [contextMenuVisible, setContextMenuVisible] = React.useState(false);
   const colors = useColors();
 
-  const totalSets = exercise.sets?.length ?? 0;
-  const doneSets = exercise.sets?.filter(s => activeSession?.completedSets[s.id]).length ?? 0;
+  // Calculate total sets and done sets across all exercises in the group
+  const totalSets = exercises.reduce((sum, exercise) => sum + (exercise.sets?.length ?? 0), 0);
+  const doneSets = exercises.reduce((sum, exercise) => {
+    const exerciseDone = exercise.sets?.filter(set => activeSession?.completedSets[set.id]).length ?? 0;
+    return sum + exerciseDone;
+  }, 0);
   const completedPercent = totalSets > 0 ? (doneSets / totalSets) : 0;
-  
+
+  // Use the first exercise for metaText (rest time, notes) and name
+  const firstExercise = exercises[0];
   const metaText = [
     `${totalSets} series`,
-    exercise.restTime ? `${exercise.restTime}s rest` : null,
+    firstExercise.restTime ? `${firstExercise.restTime}s rest` : null,
   ].filter(Boolean).join(' · ');
 
   const handleSelect = () => {
     ReactNativeHapticFeedback.trigger('selection');
     onSelect?.();
   };
+
+  const handleSkipBlock = React.useCallback(() => {
+    if (!activeSession) return;
+    const { completeSet } = useWorkoutStore.getState();
+    for (const exercise of exercises) {
+      for (const set of exercise.sets ?? []) {
+        if (activeSession.completedSets[set.id]) continue;
+        completeSet(
+          exercise.id,
+          set.id,
+          {
+            weight: set.weight ?? 0,
+            reps: set.targetReps ?? 0,
+            performanceMode: 'failed',
+            isIneffective: true,
+          },
+          set.isCalibrator,
+        );
+      }
+    }
+  }, [activeSession, exercises]);
 
   const cardStyle = useMemo(() => [
     styles.container,
@@ -51,24 +83,44 @@ export const ExerciseBlockCard: React.FC<ExerciseBlockCardProps> = ({
     <LiquidGlassCard 
       style={cardStyle}
     >
-      <TouchableOpacity activeOpacity={0.9} onPress={handleSelect} style={styles.headerPressable}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={handleSelect}
+        onLongPress={() => setContextMenuVisible(true)}
+        delayLongPress={220}
+        style={styles.headerPressable}
+      >
         <View style={styles.headerRow}>
           <View style={[styles.indexBadge, { backgroundColor: isFocused ? colors.primary : `${colors.onSurface}08` }]}>
             <Text style={[styles.indexBadgeText, { color: isFocused ? colors.onPrimary : colors.onSurfaceVariant }]}>
               {exerciseIndex + 1}
             </Text>
           </View>
-          
+
           <View style={styles.headerContent}>
             <View style={styles.titleRow}>
-              <Text style={[styles.exerciseName, { color: colors.onSurface }]}>{exercise.name}</Text>
+              {/* Show first exercise name and if there are more, show a count */}
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={[styles.exerciseName, { color: colors.onSurface }]}>{firstExercise.name}</Text>
+                {exercises.length > 1 && (
+                  <Text style={{ marginLeft: 4, fontSize: 12, color: colors.onSurfaceVariant }}>
+                    (+{exercises.length - 1} más)
+                  </Text>
+                )}
+                {/* SUPERSET badge if more than one exercise */}
+                {exercises.length > 1 && (
+                  <View style={styles.supersetBadge}>
+                    <Text style={styles.supersetBadgeText}>SUPERSET</Text>
+                  </View>
+                )}
+              </View>
               <View style={[styles.progressBadge, { backgroundColor: `${colors.primary}10`, borderColor: `${colors.primary}20` }]}>
                 <Text style={[styles.progressBadgeText, { color: colors.primary }]}>{doneSets}/{totalSets}</Text>
               </View>
             </View>
             <Text style={[styles.metaText, { color: colors.onSurfaceVariant }]}>{metaText.toUpperCase()}</Text>
-            {exercise.notes ? (
-              <Text style={[styles.notesText, { color: colors.onSurfaceVariant }]}>{exercise.notes}</Text>
+            {firstExercise.notes ? (
+              <Text style={[styles.notesText, { color: colors.onSurfaceVariant }]}>{firstExercise.notes}</Text>
             ) : null}
           </View>
         </View>
@@ -82,27 +134,47 @@ export const ExerciseBlockCard: React.FC<ExerciseBlockCardProps> = ({
           <ActivityIcon size={12} color={colors.onSurfaceVariant} />
           <Text style={[styles.actionChipText, { color: colors.onSurfaceVariant }]}>Sustituir</Text>
         </TouchableOpacity>
-        
+
+        {onOpenPostExercise ? (
+          <TouchableOpacity
+            onPress={() => onOpenPostExercise(firstExercise)}
+            style={[styles.actionChip, { backgroundColor: `${colors.primary}16`, borderColor: `${colors.primary}30` }]}
+          >
+            <TrophyIcon size={12} color={colors.primary} />
+            <Text style={[styles.actionChipText, { color: colors.primary }]}>Feedback</Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={[styles.progressTrack, { backgroundColor: `${colors.primary}08` }]}>
           <View style={[styles.progressFill, { width: `${completedPercent * 100}%`, backgroundColor: colors.primary }]} />
         </View>
       </View>
 
       <View style={styles.tableSection}>
-        {exercise.sets && exercise.sets.length > 0 ? (
-          exercise.sets.map((set, index) => {
-            const setId = set.id || `${exercise.id}-set-${index}`;
-            return (
-              <ExerciseSetRow
-                key={setId}
-                exerciseId={exercise.id}
-                setId={setId}
-                setIndex={index}
-                set={set}
-                activeSession={activeSession}
-              />
-            );
-          })
+        {/* Render sets for each exercise in the group */}
+        {totalSets > 0 ? (
+          exercises.map((exercise, exerciseIdx) => (
+            <View key={exercise.id} style={styles.exerciseGroupContainer}>
+              <Text style={styles.exerciseGroupLabel}>{exercise.name}</Text>
+              {exercise.sets && exercise.sets.length > 0 ? (
+                exercise.sets.map((set, setIdx) => {
+                  const setId = set.id || `${exercise.id}-set-${setIdx}`;
+                  return (
+                    <ExerciseSetRow
+                      key={setId}
+                      exerciseId={exercise.id}
+                      setId={setId}
+                      setIndex={setIdx}
+                      set={set}
+                      activeSession={activeSession}
+                    />
+                  );
+                })
+              ) : (
+                <Text style={styles.emptyText}>No sets for this exercise.</Text>
+              )}
+            </View>
+          ))
         ) : (
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>No sets available.</Text>
@@ -113,7 +185,14 @@ export const ExerciseBlockCard: React.FC<ExerciseBlockCardProps> = ({
       <ExerciseSubstitutionSheet
         visible={subModalVisible}
         onClose={() => setSubModalVisible(false)}
-        oldExerciseId={exercise.id}
+        oldExerciseId={firstExercise.id} // Use the first exercise's ID for substitution sheet
+      />
+
+      <ExerciseCardContextMenu
+        visible={contextMenuVisible}
+        onClose={() => setContextMenuVisible(false)}
+        onReplace={() => setSubModalVisible(true)}
+        onSkip={handleSkipBlock}
       />
     </LiquidGlassCard>
   );
@@ -159,6 +238,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
     letterSpacing: -0.5,
+  },
+  supersetBadge: {
+    backgroundColor: '#D9F0DB',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  supersetBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#5D3FD3',
+    textTransform: 'uppercase',
   },
   progressBadge: {
     borderRadius: 8,
@@ -219,6 +311,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
+  },
+  exerciseGroupContainer: {
+    marginVertical: 8,
+  },
+  exerciseGroupLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
   },
   emptyContainer: {
     padding: 20,

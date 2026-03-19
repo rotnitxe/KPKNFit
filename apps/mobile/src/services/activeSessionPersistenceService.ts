@@ -9,6 +9,11 @@
 
 import { OngoingWorkoutState, OngoingSetData } from '../types/workout';
 import { appStorage, getJsonValue, setJsonValue } from '../storage/mmkv';
+import {
+  getSessionExercises,
+  getSessionSetCount,
+  normalizeSessionForExecution,
+} from '../utils/workoutSession';
 
 export const SESSION_PERSISTENCE_KEY = 'active_session_checkpoint';
 
@@ -37,17 +42,56 @@ export interface SessionCheckpoint {
   pauseTime?: number;
 }
 
+function resolveCheckpointSelection(
+  session: OngoingWorkoutState['session'],
+  activeExerciseId: string | null,
+  activeSetId: string | null,
+) {
+  const normalizedSession = normalizeSessionForExecution(session);
+  const exercises = getSessionExercises(normalizedSession);
+
+  if (exercises.length === 0) {
+    return {
+      session: normalizedSession,
+      exercises,
+      activeExerciseId: null,
+      activeSetId: null,
+    };
+  }
+
+  const resolvedExerciseId = exercises.some(ex => ex.id === activeExerciseId)
+    ? activeExerciseId
+    : exercises[0]?.id ?? null;
+  const resolvedExercise = exercises.find(ex => ex.id === resolvedExerciseId) ?? null;
+  const resolvedSetId = resolvedExercise?.sets?.some(set => set.id === activeSetId)
+    ? activeSetId
+    : resolvedExercise?.sets?.[0]?.id ?? null;
+
+  return {
+    session: normalizedSession,
+    exercises,
+    activeExerciseId: resolvedExerciseId,
+    activeSetId: resolvedSetId,
+  };
+}
+
 /**
  * Persiste el estado actual de la sesión activa en MMKV.
  * Se llama después de cada acción importante (completar serie, cambiar peso, etc.)
  */
 export async function persistActiveSessionCheckpoint(state: OngoingWorkoutState): Promise<void> {
+  const {
+    session,
+    activeExerciseId,
+    activeSetId,
+  } = resolveCheckpointSelection(state.session, state.activeExerciseId, state.activeSetId);
+
   const checkpoint: SessionCheckpoint = {
     programId: state.programId,
-    session: state.session,
+    session,
     startTime: state.startTime,
-    activeExerciseId: state.activeExerciseId,
-    activeSetId: state.activeSetId,
+    activeExerciseId,
+    activeSetId,
     completedSets: state.completedSets,
     dynamicWeights: state.dynamicWeights,
     sessionAdjusted1RMs: state.sessionAdjusted1RMs || {},
@@ -79,6 +123,18 @@ export async function recoverActiveSession(): Promise<OngoingWorkoutState | null
       await clearActiveSessionCheckpoint();
       return null;
     }
+
+    const {
+      session,
+      exercises,
+      activeExerciseId,
+      activeSetId,
+    } = resolveCheckpointSelection(checkpoint.session, checkpoint.activeExerciseId, checkpoint.activeSetId);
+
+    if (exercises.length === 0) {
+      await clearActiveSessionCheckpoint();
+      return null;
+    }
     
     // Recuperar timer de descanso si existe
     let restTimerState = checkpoint.restTimer;
@@ -98,15 +154,15 @@ export async function recoverActiveSession(): Promise<OngoingWorkoutState | null
     
     const recoveredState: OngoingWorkoutState = {
       programId: checkpoint.programId,
-      session: checkpoint.session,
+      session,
       startTime: checkpoint.startTime,
-      activeExerciseId: checkpoint.activeExerciseId,
-      activeSetId: checkpoint.activeSetId,
+      activeExerciseId,
+      activeSetId,
       completedSets: checkpoint.completedSets,
       dynamicWeights: checkpoint.dynamicWeights,
-      sessionAdjusted1RMs: checkpoint.sessionAdjusted1RMs,
-      selectedBrands: checkpoint.selectedBrands,
-      setTypeOverrides: checkpoint.setTypeOverrides as any,
+      sessionAdjusted1RMs: checkpoint.sessionAdjusted1RMs || {},
+      selectedBrands: checkpoint.selectedBrands || {},
+      setTypeOverrides: (checkpoint.setTypeOverrides as any) || {},
       isPaused: checkpoint.isPaused,
     };
     
@@ -198,6 +254,13 @@ export async function persistSetCompletion(
 export async function hasActiveSession(): Promise<boolean> {
   const checkpoint = getJsonValue<SessionCheckpoint | null>(SESSION_PERSISTENCE_KEY, null);
   if (!checkpoint) return false;
+
+  const { exercises } = resolveCheckpointSelection(
+    checkpoint.session,
+    checkpoint.activeExerciseId,
+    checkpoint.activeSetId,
+  );
+  if (exercises.length === 0) return false;
   
   const hoursSinceCheckpoint = (Date.now() - checkpoint.checkpointTime) / (1000 * 60 * 60);
   return hoursSinceCheckpoint <= 12;
@@ -215,16 +278,20 @@ export async function getActiveSessionSummary(): Promise<{
   try {
     const checkpoint = getJsonValue<SessionCheckpoint | null>(SESSION_PERSISTENCE_KEY, null);
     if (!checkpoint) return null;
+
+    const { session, exercises } = resolveCheckpointSelection(
+      checkpoint.session,
+      checkpoint.activeExerciseId,
+      checkpoint.activeSetId,
+    );
+    if (exercises.length === 0) return null;
     
     const completedSetsCount = Object.keys(checkpoint.completedSets).length;
-    const totalSetsCount = checkpoint.session.exercises.reduce(
-      (acc, ex) => acc + ex.sets.length,
-      0
-    );
+    const totalSetsCount = getSessionSetCount(session);
     const elapsedMinutes = Math.floor((Date.now() - checkpoint.startTime) / (1000 * 60));
     
     return {
-      sessionName: checkpoint.session.name,
+      sessionName: session.name,
       completedSets: completedSetsCount,
       totalSets: totalSetsCount,
       elapsedMinutes,
@@ -233,4 +300,3 @@ export async function getActiveSessionSummary(): Promise<{
     return null;
   }
 }
-

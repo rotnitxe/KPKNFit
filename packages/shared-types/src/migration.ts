@@ -25,22 +25,22 @@ export interface MigrationSnapshotV1 {
   appVersion: string;
   integrity: MigrationIntegritySnapshot;
   payload: {
-    settings: Record<string, unknown>;
+    settings: unknown;
     programs: {
       programs: unknown[];
-      activeProgramState: Record<string, unknown> | null;
+      activeProgramState: unknown | null;
     };
     workout: {
       history: unknown[];
       skippedLogs: unknown[];
-      ongoingWorkout: Record<string, unknown> | null;
+      ongoingWorkout: unknown | null;
       syncQueue: unknown[];
     };
     nutrition: {
       nutritionLogs: unknown[];
       pantryItems: unknown[];
       foodDatabase: unknown[];
-      aiNutritionPlan: Record<string, unknown> | null;
+      aiNutritionPlan: unknown | null;
       nutritionPlans: unknown[];
       activeNutritionPlanId: string | null;
       mealTemplates: unknown[];
@@ -57,15 +57,15 @@ export interface MigrationSnapshotV1 {
     };
     body: {
       bodyProgress: unknown[];
-      bodyLabAnalysis: Record<string, unknown> | null;
-      biomechanicalData: Record<string, unknown> | null;
-      biomechanicalAnalysis: Record<string, unknown> | null;
+      bodyLabAnalysis: unknown | null;
+      biomechanicalData: unknown | null;
+      biomechanicalAnalysis: unknown | null;
     };
     exercise: {
       exerciseList: unknown[];
       exercisePlaylists: unknown[];
       muscleGroupData: unknown[];
-      muscleHierarchy: Record<string, unknown>;
+      muscleHierarchy: unknown;
     };
   };
 }
@@ -75,8 +75,8 @@ export interface MigrationSnapshotV1 {
 // Estas funciones son guardas de tipo reales que validan en runtime.
 
 export type SnapshotValidationResult =
-  | { valid: true; snapshot: MigrationSnapshotV1 }
-  | { valid: false; reason: string };
+  | { valid: true; snapshot: MigrationSnapshotV1; reason?: never }
+  | { valid: false; reason: string; snapshot?: never };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

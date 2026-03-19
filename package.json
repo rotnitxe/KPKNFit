@@ -57,6 +57,7 @@
     "@google/genai": "^1.16.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@material/material-color-utilities": "^0.4.0",
+    "@react-native-picker/picker": "^2.11.4",
     "@sentry/capacitor": "^3.0.0",
     "@sentry/react": "10.40.0",
     "@supabase/supabase-js": "^2.97.0",

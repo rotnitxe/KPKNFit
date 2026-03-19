@@ -63,7 +63,7 @@ describe('validateMigrationSnapshot', () => {
   it('rechaza schemaVersion 2', () => {
     const result = validateMigrationSnapshot({ ...makeValidSnapshot(), schemaVersion: 2 } as any);
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.reason).toContain('schema');
+    if (result.valid === false) expect(result.reason).toContain('schema');
   });
 
   it('rechaza schemaVersion string', () => {
@@ -81,7 +81,7 @@ describe('validateMigrationSnapshot', () => {
   it('rechaza createdAt vacío', () => {
     const result = validateMigrationSnapshot({ ...makeValidSnapshot(), createdAt: '' });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.reason).toContain('createdAt');
+    if (result.valid === false) expect(result.reason).toContain('createdAt');
   });
 
   it('rechaza createdAt numérico', () => {
@@ -218,7 +218,7 @@ describe('validateMigrationSnapshot', () => {
   it('reason menciona el campo problemático cuando falla', () => {
     const result = validateMigrationSnapshot({ schemaVersion: 1, createdAt: '', appVersion: '1.0' });
     expect(result.valid).toBe(false);
-    if (!result.valid) {
+    if (result.valid === false) {
       expect(typeof result.reason).toBe('string');
       expect(result.reason.length).toBeGreaterThan(5);
     }

@@ -10,6 +10,10 @@ import { buildExerciseIndex, findExerciseWithFallback, ExerciseIndex } from '../
 import { calculateSetBatteryDrain, isSetEffective } from './fatigueService';
 import { getLocalDateString } from '../utils/dateUtils';
 import { getMuscleDisplayId, matchesMuscleTarget, normalizeCanonicalMuscle } from '../utils/canonicalMuscles';
+import { readStoredSettingsRaw, readStoredWellbeingPayload } from './mobileDomainStateService';
+import { useExerciseStore } from '../stores/exerciseStore';
+import { useMobileNutritionStore } from '../stores/nutritionStore';
+import { useWorkoutStore } from '../stores/workoutStore';
 import type { 
     ExerciseCatalogEntry, 
     WorkoutLog, 
@@ -708,4 +712,36 @@ export const calculateGlobalBatteries = (
         auditLogs,
         verdict,
     };
+};
+
+export interface MuscleRecoveryEntry {
+    name: string;
+    recovery: number;
+}
+
+export const getMuscleRecovery = (): MuscleRecoveryEntry[] => {
+    const settings = readStoredSettingsRaw() as unknown as Settings;
+    const history = useWorkoutStore.getState().history || [];
+    const exerciseList = useExerciseStore.getState().exerciseList || [];
+    const muscleHierarchy = useExerciseStore.getState().muscleHierarchy || null;
+    const nutritionLogs = useMobileNutritionStore.getState().savedLogs || [];
+    const { sleepLogs, dailyWellbeingLogs } = readStoredWellbeingPayload();
+
+    return ACCORDION_MUSCLES
+        .map(muscle => ({
+            name: muscle.label,
+            recovery: Math.round(
+                calculateMuscleBattery(
+                    muscle.id,
+                    history,
+                    exerciseList,
+                    sleepLogs as any,
+                    settings,
+                    muscleHierarchy,
+                    dailyWellbeingLogs as any,
+                    nutritionLogs as any,
+                ).recoveryScore,
+            ),
+        }))
+        .sort((a, b) => b.recovery - a.recovery);
 };

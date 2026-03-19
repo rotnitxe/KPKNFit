@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { Alert, Animated, Keyboard, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type {
@@ -47,7 +47,13 @@ const EXAMPLES = [
 
 const today = () => new Date().toISOString().slice(0, 10);
 const mealLabel = (value?: NutritionMealType) =>
-  value === 'breakfast' ? 'Desayuno' : value === 'dinner' ? 'Cena' : value === 'snack' ? 'Snack' : 'Almuerzo';
+  value === 'breakfast' ? 'Desayuno'
+  : value === 'lunch' ? 'Almuerzo'
+  : value === 'dinner' ? 'Cena'
+  : value === 'snack' ? 'Merienda'
+  : value === 'snack2' ? 'Pre-entreno'
+  : value === 'snack3' ? 'Post-entreno'
+  : 'Snack';
 
 const fromFood = (food: FoodItem, raw?: string): LocalAiNutritionAnalysisItem => ({
   rawText: raw ?? food.name,
@@ -55,7 +61,7 @@ const fromFood = (food: FoodItem, raw?: string): LocalAiNutritionAnalysisItem =>
   calories: food.calories,
   protein: food.protein,
   carbs: food.carbs,
-  fats: food.fat,
+  fats: food.fat ?? 0,
   source: 'database',
   confidence: 0.92,
   reviewRequired: false,
@@ -142,6 +148,94 @@ export function NutritionLogScreen() {
     const seen = new Set<string>();
     return savedLogs.map(log => log.description.trim()).filter(value => value && !seen.has(value) && seen.add(value)).slice(0, 4);
   }, [savedLogs]);
+
+  const groupedLogs = useMemo(() => {
+    const groups: Record<string, SavedNutritionEntry[]> = {};
+    savedLogs.forEach(log => {
+      const key = log.mealType || 'snack';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(log);
+    });
+    return Object.entries(groups).map(([mealType, logs]) => ({
+      mealType: mealType as NutritionMealType,
+      label: mealLabel(mealType as NutritionMealType),
+      logs: logs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+      totals: logs.reduce((acc, l) => ({
+        calories: acc.calories + l.totals.calories,
+        protein: acc.protein + l.totals.protein,
+        carbs: acc.carbs + l.totals.carbs,
+        fats: acc.fats + l.totals.fats,
+      }), { calories: 0, protein: 0, carbs: 0, fats: 0 }),
+    }));
+  }, [savedLogs]);
+
+  const SWIPE_THRESHOLD = 80;
+
+  const SwipeableLogRow = ({ log }: { log: SavedNutritionEntry }) => {
+    const translateX = useRef(new Animated.Value(0)).current;
+    const isOpen = useRef(false);
+
+    const panResponder = useRef(
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, { dx }) => Math.abs(dx) > 8,
+        onPanResponderMove: (_, { dx }) => {
+          if (isOpen.current) {
+            translateX.setValue(Math.min(0, dx - SWIPE_THRESHOLD));
+          } else {
+            translateX.setValue(Math.max(0, Math.min(dx, SWIPE_THRESHOLD)));
+          }
+        },
+        onPanResponderRelease: (_, { dx }) => {
+          if (dx < -SWIPE_THRESHOLD / 2) {
+            isOpen.current = true;
+            Animated.spring(translateX, { toValue: -SWIPE_THRESHOLD, useNativeDriver: true }).start();
+          } else if (dx > SWIPE_THRESHOLD / 2) {
+            isOpen.current = false;
+            Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+          } else {
+            Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+          }
+        },
+      })
+    ).current;
+
+    const closeRow = () => {
+      isOpen.current = false;
+      Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+    };
+
+    return (
+      <View style={styles.swipeRow}>
+        <View style={styles.swipeActions}>
+          <Pressable
+            style={[styles.swipeDelete, { backgroundColor: colors.error }]}
+            onPress={() => {
+              closeRow();
+              Alert.alert('Eliminar registro', 'Esta comida saldrá del historial.', [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Eliminar', style: 'destructive', onPress: () => void deleteLog(log.id) },
+              ]);
+            }}
+          >
+            <TrashIcon size={18} color="#FFF" />
+          </Pressable>
+        </View>
+        <Animated.View
+          {...panResponder.panHandlers}
+          style={[styles.logCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant, transform: [{ translateX }] }]}
+        >
+          <Text style={[styles.kicker, { color: colors.onSurfaceVariant }]}>{mealLabel(log.mealType)}</Text>
+          <Text style={[styles.resultTitle, { color: colors.onSurface }]}>{log.description}</Text>
+          <Text style={[styles.meta, { color: colors.onSurfaceVariant }]}>{new Date(log.createdAt).toLocaleString('es-CL')}</Text>
+          <Text style={[styles.meta, { color: colors.onSurfaceVariant }]}>{Math.round(log.totals.calories)} kcal · {Math.round(log.totals.protein)}p · {Math.round(log.totals.carbs)}c · {Math.round(log.totals.fats)}g</Text>
+          <View style={styles.wrap}>
+            <Pressable onPress={() => setDescription(log.description)} style={[styles.smallPill, { borderColor: colors.outlineVariant }]}><Text style={[styles.smallPillText, { color: colors.onSurface }]}>Reusar</Text></Pressable>
+            <Pressable onPress={() => void duplicateLog(log.id)} style={[styles.smallPill, { borderColor: colors.outlineVariant }]}><Text style={[styles.smallPillText, { color: colors.onSurface }]}>Duplicar</Text></Pressable>
+          </View>
+        </Animated.View>
+      </View>
+    );
+  };
 
   const canSave = Boolean(description.trim() && lastAnalysis?.items.length);
   const header = (
@@ -289,7 +383,21 @@ export function NutritionLogScreen() {
           <Pressable testID="nutrition-save-button" onPress={() => { if (canSave) { Keyboard.dismiss(); void saveCurrent({ mealType, logDate }); } }} disabled={!canSave} style={[styles.footerBtn, { flex: 1.5, backgroundColor: canSave ? colors.onSurface : colors.surfaceContainerHigh }]}><Text style={[styles.footerText, { color: canSave ? colors.surface : colors.onSurfaceVariant }]}>Guardar</Text></Pressable>
         </View>
 
-        {savedLogs.length > 0 && <View style={{ gap: 10 }}>{savedLogs.slice(0, 5).map((log: SavedNutritionEntry) => <View key={log.id} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}><Text style={[styles.kicker, { color: colors.onSurfaceVariant }]}>{mealLabel(log.mealType)}</Text><Text style={[styles.resultTitle, { color: colors.onSurface }]}>{log.description}</Text><Text style={[styles.meta, { color: colors.onSurfaceVariant }]}>{new Date(log.createdAt).toLocaleString('es-CL')}</Text><Text style={[styles.meta, { color: colors.onSurfaceVariant }]}>{Math.round(log.totals.calories)} kcal · {Math.round(log.totals.protein)}p · {Math.round(log.totals.carbs)}c · {Math.round(log.totals.fats)}g</Text><View style={styles.wrap}><Pressable onPress={() => setDescription(log.description)} style={[styles.smallPill, { borderColor: colors.outlineVariant }]}><Text style={[styles.smallPillText, { color: colors.onSurface }]}>Reusar</Text></Pressable><Pressable onPress={() => void duplicateLog(log.id)} style={[styles.smallPill, { borderColor: colors.outlineVariant }]}><Text style={[styles.smallPillText, { color: colors.onSurface }]}>Duplicar</Text></Pressable><Pressable onPress={() => Alert.alert('Eliminar registro', 'Esta comida saldra del historial reciente.', [{ text: 'Cancelar', style: 'cancel' }, { text: 'Eliminar', style: 'destructive', onPress: () => void deleteLog(log.id) }])} style={[styles.smallPill, { borderColor: colors.outlineVariant }]}><Text style={[styles.smallPillText, { color: colors.error }]}>Eliminar</Text></Pressable></View></View>)}</View>}
+        {savedLogs.length > 0 && <View style={{ gap: 16 }}>
+          {groupedLogs.map(group => (
+            <View key={group.mealType} style={styles.mealGroup}>
+              <View style={styles.groupHeader}>
+                <Text style={[styles.groupLabel, { color: colors.primary }]}>{group.label.toUpperCase()}</Text>
+                <Text style={[styles.groupTotal, { color: colors.onSurfaceVariant }]}>
+                  {Math.round(group.totals.calories)} kcal
+                </Text>
+              </View>
+              {group.logs.map(log => (
+                <SwipeableLogRow key={log.id} log={log} />
+              ))}
+            </View>
+          ))}
+        </View>}
       </View>
     </ScreenShell>
   );
@@ -329,4 +437,12 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', gap: 10, borderRadius: 28, borderWidth: 1, padding: 12 },
   footerBtn: { flex: 1, minHeight: 50, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   footerText: { fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.8 },
+  swipeRow: { position: 'relative', marginBottom: 10 },
+  swipeActions: { position: 'absolute', right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'flex-end' },
+  swipeDelete: { width: 70, height: '100%', justifyContent: 'center', alignItems: 'center', borderRadius: 20 },
+  logCard: { borderRadius: 20, borderWidth: 1, padding: 14, gap: 4 },
+  groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, marginTop: 4 },
+  groupLabel: { fontSize: 12, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.5 },
+  groupTotal: { fontSize: 12, fontWeight: '700' },
+  mealGroup: { marginBottom: 16 },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
     View,
     Text,
@@ -22,7 +22,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useExerciseStore } from '../../stores/exerciseStore';
 import { useWorkoutStore } from '../../stores/workoutStore';
 import { ExerciseMuscleInfo } from '../../types/workout';
-import { SearchIcon, XCircleIcon, ActivityIcon, PlusCircleIcon, StarIcon } from '../icons';
+import { SearchIcon, XCircleIcon, ActivityIcon, PlusCircleIcon, StarIcon, InfoIcon, DumbbellIcon, GridIcon } from '../icons';
 import { loadPersistedDomainPayload } from '../../services/mobilePersistenceService';
 import type { WorkoutLogSummary } from '@kpkn/shared-types';
 import { Canvas, Blur, Rect, ColorMatrix, Paint } from '@shopify/react-native-skia';
@@ -44,18 +44,21 @@ interface AdvancedExercisePickerProps {
     visible: boolean;
     onClose: () => void;
     onSelect: (exercise: ExerciseMuscleInfo) => void;
+    onCreateNew: () => void;
 }
 
 export const AdvancedExercisePicker: React.FC<AdvancedExercisePickerProps> = ({
     visible,
     onClose,
     onSelect,
+    onCreateNew,
 }) => {
     const { exerciseList } = useExerciseStore();
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [frequentExerciseIds] = useState<Set<string>>(new Set());
     const [favoriteExerciseIds, setFavoriteExerciseIds] = useState<Set<string>>(new Set());
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     const translateY = useSharedValue(SCREEN_HEIGHT);
 
@@ -75,11 +78,11 @@ export const AdvancedExercisePicker: React.FC<AdvancedExercisePickerProps> = ({
         transform: [{ translateY: translateY.value }],
     }));
 
-    const closeWithAnimation = () => {
+    const closeWithAnimation = useCallback(() => {
         translateY.value = withTiming(SCREEN_HEIGHT, {}, () => {
             runOnJS(onClose)();
         });
-    };
+    }, [onClose]);
 
     const categories = useMemo(() => {
         const cats = new Set<string>();
@@ -88,6 +91,16 @@ export const AdvancedExercisePicker: React.FC<AdvancedExercisePickerProps> = ({
         });
         return Array.from(cats);
     }, [exerciseList]);
+
+    // Categories for Grid View
+    const gridCategories = useMemo(() => [
+        { id: 'Pecho', label: 'Pecho', cols: 'col-span-1' },
+        { id: 'Espalda', label: 'Espalda', cols: 'col-span-1' },
+        { id: 'Hombros', label: 'Hombros', cols: 'col-span-1' },
+        { id: 'Piernas', label: 'Piernas', cols: 'col-span-1' },
+        { id: 'Brazos', label: 'Brazos', cols: 'col-span-1' },
+        { id: 'Core', label: 'Core', cols: 'col-span-1' },
+    ], []);
 
     const filteredExercises = useMemo(() => {
         let list = exerciseList;
@@ -178,53 +191,68 @@ export const AdvancedExercisePicker: React.FC<AdvancedExercisePickerProps> = ({
                             </View>
                         </View>
 
-                        <View style={{ height: 44 }}>
-                            <FlatList
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                data={categories}
-                                contentContainerStyle={styles.categoryRow}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                        onPress={() => setSelectedCategory(selectedCategory === item ? null : item)}
-                                        style={[
-                                            styles.categoryChip,
-                                            selectedCategory === item && styles.categoryChipActive
-                                        ]}
-                                    >
-                                        <Text style={[
-                                            styles.categoryText,
-                                            selectedCategory === item && styles.categoryTextActive
-                                        ]}>{item}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            />
+                        {/* View Mode Toggle & Create Button */}
+                        <View style={styles.subHeader}>
+                            <TouchableOpacity onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} style={styles.viewModeBtn}>
+                                <GridIcon size={16} color={PWA.muted} />
+                                <Text style={styles.subHeaderText}>{viewMode === 'grid' ? 'Cuadrícula' : 'Lista'}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={onCreateNew} style={styles.createBtn}>
+                                <PlusCircleIcon size={16} color={PWA.primary} />
+                                <Text style={styles.createBtnText}>Crear Nuevo</Text>
+                            </TouchableOpacity>
                         </View>
 
-                        <FlatList
-                            data={filteredExercises}
-                            keyExtractor={(item) => item.id}
-                            contentContainerStyle={styles.listContent}
-                            showsVerticalScrollIndicator={false}
-                            renderItem={({ item }) => {
-                                const isFavorite = favoriteExerciseIds.has(item.id);
-                                return (
-                                    <TouchableOpacity style={styles.item} onPress={() => onSelect(item)}>
-                                        <View style={styles.itemIconContainer}>
-                                            <ActivityIcon size={20} color={PWA.primary} />
-                                        </View>
-                                        <View style={styles.itemInfo}>
-                                            <View style={styles.itemHeader}>
-                                                <Text style={styles.itemName}>{item.name}</Text>
-                                                {isFavorite && <StarIcon size={14} color="#FFD700" fill="#FFD700" />}
-                                            </View>
-                                            <Text style={styles.itemMeta}>{item.category} · {item.equipment}</Text>
-                                        </View>
-                                        <PlusCircleIcon size={22} color={PWA.primarySoft} />
+                        {viewMode === 'grid' && !search && !selectedCategory ? (
+                            <View style={styles.gridContainer}>
+                                {gridCategories.map((cat) => (
+                                    <TouchableOpacity
+                                        key={cat.id}
+                                        onPress={() => {
+                                            setSelectedCategory(cat.id);
+                                            setViewMode('list');
+                                        }}
+                                        style={[styles.gridItem, cat.cols === 'col-span-1' && { height: 80 }]}
+                                    >
+                                        <Text style={styles.gridItemText}>{cat.label}</Text>
                                     </TouchableOpacity>
-                                );
-                            }}
-                        />
+                                ))}
+                            </View>
+                        ) : (
+                            <FlatList
+                                data={filteredExercises}
+                                keyExtractor={(item) => item.id}
+                                contentContainerStyle={styles.listContent}
+                                showsVerticalScrollIndicator={false}
+                                renderItem={({ item }) => {
+                                    const isFavorite = favoriteExerciseIds.has(item.id);
+                                    return (
+                                        <TouchableOpacity style={styles.item} onPress={() => onSelect(item)}>
+                                            <View style={styles.itemIconContainer}>
+                                                <ActivityIcon size={20} color={PWA.primary} />
+                                            </View>
+                                            <View style={styles.itemInfo}>
+                                                <View style={styles.itemHeader}>
+                                                    <Text style={styles.itemName}>{item.name}</Text>
+                                                    {isFavorite && <StarIcon size={14} color="#FFD700" fill="#FFD700" />}
+                                                </View>
+                                                <Text style={styles.itemMeta}>{item.category} · {item.equipment}</Text>
+                                            </View>
+                                            <PlusCircleIcon size={22} color={PWA.primarySoft} />
+                                        </TouchableOpacity>
+                                    );
+                                }}
+                            />
+                        )}
+                        
+                        {filteredExercises.length === 0 && (
+                            <View style={{ padding: 20, alignItems: 'center' }}>
+                                <Text style={{ color: PWA.muted, marginBottom: 10 }}>No se encontraron ejercicios.</Text>
+                                <TouchableOpacity onPress={onCreateNew}>
+                                    <Text style={{ color: PWA.primary }}>Crear Nuevo Ejercicio</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </Animated.View>
                 </GestureDetector>
             </View>
@@ -296,32 +324,60 @@ const styles = StyleSheet.create({
         color: PWA.text,
         fontWeight: '600',
     },
-    categoryRow: {
+    subHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         paddingHorizontal: 20,
-        gap: 8,
+        marginBottom: 16,
     },
-    categoryChip: {
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-        borderRadius: 14,
-        backgroundColor: '#F1F5F9',
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        height: 34,
-        justifyContent: 'center',
+    viewModeBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        padding: 8,
     },
-    categoryChipActive: {
-        backgroundColor: PWA.primary,
-        borderColor: PWA.primary,
-    },
-    categoryText: {
+    subHeaderText: {
         fontSize: 11,
-        fontWeight: '800',
-        color: '#64748B',
+        fontWeight: '700',
+        color: PWA.muted,
         textTransform: 'uppercase',
     },
-    categoryTextActive: {
-        color: '#FFFFFF',
+    createBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: PWA.primary,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    createBtnText: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#FFF',
+    },
+    gridContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        padding: 10,
+        gap: 10,
+    },
+    gridItem: {
+        flexBasis: '48%',
+        backgroundColor: PWA.card,
+        borderWidth: 1,
+        borderColor: PWA.border,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 16,
+    },
+    gridItemText: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: PWA.text,
     },
     listContent: {
         paddingHorizontal: 20,
@@ -364,3 +420,5 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
 });
+
+export default React.memo(AdvancedExercisePicker);

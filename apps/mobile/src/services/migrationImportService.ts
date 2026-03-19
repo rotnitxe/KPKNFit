@@ -53,7 +53,7 @@ export async function importBridgeSnapshotIfNeeded(): Promise<MigrationImportSum
   }
 
   const validation = validateMigrationSnapshot(parsed);
-  if (!validation.valid) {
+  if (validation.valid === false) {
     console.error('[MigrationImport] Snapshot inválido, importación abortada:', validation.reason);
     return {
       source: 'empty',

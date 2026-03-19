@@ -1,412 +1,356 @@
-import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View, Pressable, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ScreenShell } from '@/components/ScreenShell';
-import { LiquidGlassCard } from '@/components/ui/LiquidGlassCard';
-import { 
-  PlusIcon, 
-  ChevronRightIcon, 
-  UtensilsIcon, 
-  ClockIcon,
-  ChevronLeftIcon
-} from '@/components/icons';
-import { useColors } from '@/theme';
-import { useMobileNutritionStore } from '@/stores/nutritionStore';
-import { useSettingsStore } from '@/stores/settingsStore';
-import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
-import type { NutritionStackParamList } from '@/navigation/types';
-import { Canvas, Path } from '@shopify/react-native-skia';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ScreenShell } from '../../components/ScreenShell';
+import { NutritionStackParamList } from '../../navigation/types';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useMobileNutritionStore } from '../../stores/nutritionStore';
+import { useMealTemplateStore } from '../../stores/mealTemplateStore';
+import { useMealPlannerStore } from '../../stores/mealPlannerStore';
+import { NutritionHeroCard, NutritionMacroProgressCard, NutritionRecentLogsCard, NutritionSevenDayTrendCard, type TrendPoint } from '../../components/nutrition';
+import GoalReachedModal from '../../components/nutrition/GoalReachedModal';
+import NutritionPlanEditorModal from '../../components/nutrition/NutritionPlanEditorModal';
+import NutritionWizard from '../../components/nutrition/NutritionWizard';
+import { RegisterFoodDrawer } from '../../components/nutrition/RegisterFoodDrawer';
+import { Button } from '../../components/ui';
+import { useColors } from '../../theme';
+import { calculateDailyCalorieGoal } from '../../utils/calorieFormulas';
 
-const { width } = Dimensions.get('window');
+type NavigationProp = NativeStackNavigationProp<NutritionStackParamList, 'NutritionDashboard'>;
 
-type Nav = NativeStackNavigationProp<NutritionStackParamList, 'NutritionDashboard'>;
+const todayKey = () => new Date().toISOString().slice(0, 10);
 
-const RING_RADIUS = 28;
-const STROKE_WIDTH = 6;
-const CENTER = 40;
-
-const createCircularPath = (cx: number, cy: number, radius: number, progress: number) => {
-  const startAngle = -Math.PI / 2;
-  const endAngle = startAngle + (Math.PI * 2 * Math.min(1, progress));
-  const x = cx + radius * Math.cos(endAngle);
-  const y = cy + radius * Math.sin(endAngle);
-  const largeArcFlag = progress > 0.5 ? 1 : 0;
-  if (progress >= 1) {
-    return `M ${cx} ${cy - radius} A ${radius} ${radius} 0 1 1 ${cx} ${cy + radius} A ${radius} ${radius} 0 1 1 ${cx} ${cy - radius} Z`;
-  }
-  if (progress <= 0) return '';
-  const startX = cx + radius * Math.cos(startAngle);
-  const startY = cy + radius * Math.sin(startAngle);
-  return `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x} ${y}`;
-};
-
-function MacroRing({ label, value, goal, color, colors }: { label: string; value: number; goal: number; color: string; colors: any }) {
-  const pct = goal > 0 ? value / goal : 0;
-  
-  return (
-    <View style={styles.macroRingItem}>
-      <View style={styles.ringGraphic}>
-        <Canvas style={{ width: 80, height: 80 }}>
-          <Path
-            path={createCircularPath(CENTER, CENTER, RING_RADIUS, 1)}
-            color={colors.surfaceContainerHighest}
-            style="stroke"
-            strokeWidth={STROKE_WIDTH}
-            strokeCap="round"
-          />
-          <Path
-            path={createCircularPath(CENTER, CENTER, RING_RADIUS, pct)}
-            color={color}
-            style="stroke"
-            strokeWidth={STROKE_WIDTH}
-            strokeCap="round"
-          />
-        </Canvas>
-        <View style={styles.ringLabelOverlay}>
-          <Text style={[styles.ringValueText, { color }]}>{Math.round(value)}</Text>
-        </View>
-      </View>
-      <Text style={[styles.macroLabel, { color: colors.onSurfaceVariant }]}>{label}</Text>
-      <Text style={[styles.macroGoal, { color: colors.onSurfaceVariant, opacity: 0.5 }]}>{Math.round(goal)}</Text>
-    </View>
-  );
+function logDateKey(log: { loggedDate?: string; createdAt: string }) {
+  return log.loggedDate || log.createdAt.slice(0, 10);
 }
 
-export function NutritionDashboardScreen() {
+function formatShortDay(dateKey: string) {
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+}
+
+function buildTrendPoints(logs: Array<{ loggedDate?: string; createdAt: string; totals: { calories: number } }>): TrendPoint[] {
+  const anchor = new Date();
+  const dates = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(anchor);
+    day.setDate(anchor.getDate() - (6 - index));
+    return day.toISOString().slice(0, 10);
+  });
+
+  const caloriesByDate = new Map<string, number>();
+  for (const log of logs) {
+    const key = logDateKey(log);
+    caloriesByDate.set(key, (caloriesByDate.get(key) ?? 0) + (log.totals.calories ?? 0));
+  }
+
+  return dates.map(dateKey => ({
+    key: dateKey,
+    label: formatShortDay(dateKey),
+    calories: Math.round(caloriesByDate.get(dateKey) ?? 0),
+    isToday: dateKey === todayKey(),
+  }));
+}
+
+function buildMealCount(logs: Array<{ createdAt: string }>) {
+  return logs.length;
+}
+
+export const NutritionDashboardScreen: React.FC = () => {
   const colors = useColors();
-  const navigation = useNavigation<Nav>();
-  const { savedLogs } = useMobileNutritionStore();
-  const { summary: settingsSummary } = useSettingsStore();
+  const navigation = useNavigation<NavigationProp>();
 
-  const rawSettings = useMemo(() => readStoredSettingsRaw(), [settingsSummary]);
+  const settingsStatus = useSettingsStore(state => state.status);
+  const settingsSummary = useSettingsStore(state => state.summary);
+  const hydrateSettings = useSettingsStore(state => state.hydrateFromMigration);
+  const getSettings = useSettingsStore(state => state.getSettings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
 
-  const selectedDate = new Date().toISOString().slice(0, 10);
-  
-  const dailyTotals = useMemo(() => {
-    const todayLogs = savedLogs.filter(log => (log.loggedDate || log.createdAt.split('T')[0]) === selectedDate);
-    return todayLogs.reduce((acc, log) => ({
-      calories: acc.calories + (log.totals?.calories || 0),
-      protein: acc.protein + (log.totals?.protein || 0),
-      carbs: acc.carbs + (log.totals?.carbs || 0),
-      fats: acc.fats + (log.totals?.fats || 0),
-    }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
-  }, [savedLogs, selectedDate]);
+  const nutritionStatus = useMobileNutritionStore(state => state.status);
+  const savedLogs = useMobileNutritionStore(state => state.savedLogs);
+  const nutritionPlan = useMobileNutritionStore(state => state.nutritionPlan);
+  const hydrateNutrition = useMobileNutritionStore(state => state.hydrateFromStorage);
+  const getLogsForDate = useMobileNutritionStore(state => state.getLogsForDate);
+  const updateNutritionPlan = useMobileNutritionStore(state => state.updateNutritionPlan);
 
-  const calorieGoal = (rawSettings?.calorieGoal as number) || 2000;
-  const proteinGoal = (rawSettings?.proteinGoal as number) || 150;
-  const carbsGoal = (rawSettings?.carbsGoal as number) || 200;
-  const fatsGoal = (rawSettings?.fatsGoal as number) || 60;
+  const templateStatus = useMealTemplateStore(state => state.status);
+  const hydrateTemplates = useMealTemplateStore(state => state.hydrateFromMigration);
+  const templateCount = useMealTemplateStore(state => state.templates.length);
 
-  const calPct = Math.min(100, (dailyTotals.calories / calorieGoal) * 100);
+  const plannerStatus = useMealPlannerStore(state => state.status);
+  const hydratePlanner = useMealPlannerStore(state => state.hydrateFromStorage);
+  const plannerSummary = useMealPlannerStore(state => state.summary);
 
-  const mealHistory = useMemo(() => {
-    return savedLogs
-      .filter(log => (log.loggedDate || log.createdAt.split('T')[0]) === selectedDate)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [savedLogs, selectedDate]);
+  const [registerVisible, setRegisterVisible] = useState(false);
+  const [planEditorVisible, setPlanEditorVisible] = useState(false);
+  const [goalReachedVisible, setGoalReachedVisible] = useState(false);
+  const [wizardDismissed, setWizardDismissed] = useState(false);
+  const [shownGoalKey, setShownGoalKey] = useState<string | null>(null);
 
-  const header = (
-    <View style={styles.header}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
-        <ChevronLeftIcon size={24} color={colors.onSurface} />
-      </Pressable>
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.headerKicker, { color: colors.onSurfaceVariant }]}>Nutrición</Text>
-        <Text style={[styles.headerTitle, { color: colors.onSurface }]}>Dashboard</Text>
-      </View>
-      <Pressable 
-        onPress={() => navigation.navigate('NutritionLog')}
-        style={[styles.addBtn, { backgroundColor: colors.primary }]}
-      >
-        <PlusIcon size={24} color={colors.onPrimary} />
-      </Pressable>
-    </View>
-  );
+  useEffect(() => {
+    if (settingsStatus === 'idle') {
+      void hydrateSettings();
+    }
+  }, [hydrateSettings, settingsStatus]);
+
+  useEffect(() => {
+    if (nutritionStatus === 'idle') {
+      void hydrateNutrition();
+    }
+  }, [hydrateNutrition, nutritionStatus]);
+
+  useEffect(() => {
+    if (templateStatus === 'idle') {
+      void hydrateTemplates();
+    }
+  }, [hydrateTemplates, templateStatus]);
+
+  useEffect(() => {
+    if (plannerStatus === 'idle') {
+      void hydratePlanner();
+    }
+  }, [hydratePlanner, plannerStatus]);
+
+  const currentSettings = settingsSummary ?? getSettings();
+  const wizardRequired = currentSettings?.hasSeenNutritionWizard !== true || currentSettings?.nutritionWizardVersion !== 2;
+  const showWizard = wizardRequired && !wizardDismissed;
+
+  const calorieGoal = useMemo(() => {
+    if (!currentSettings) return nutritionPlan.calories;
+    return currentSettings.dailyCalorieGoal ?? calculateDailyCalorieGoal(currentSettings, currentSettings.calorieGoalConfig);
+  }, [currentSettings, nutritionPlan.calories]);
+
+  const proteinGoal = currentSettings?.dailyProteinGoal ?? nutritionPlan.protein;
+  const carbGoal = currentSettings?.dailyCarbGoal ?? nutritionPlan.carbs;
+  const fatGoal = currentSettings?.dailyFatGoal ?? nutritionPlan.fats;
+
+  const todayLogs = useMemo(() => getLogsForDate(todayKey()), [getLogsForDate, savedLogs]);
+  const todayTotals = useMemo(() => todayLogs.reduce(
+    (acc, log) => ({
+      calories: acc.calories + (log.totals.calories ?? 0),
+      protein: acc.protein + (log.totals.protein ?? 0),
+      carbs: acc.carbs + (log.totals.carbs ?? 0),
+      fats: acc.fats + (log.totals.fats ?? 0),
+    }),
+    { calories: 0, protein: 0, carbs: 0, fats: 0 },
+  ), [todayLogs]);
+
+  const trendPoints = useMemo(() => buildTrendPoints(savedLogs), [savedLogs]);
+  const mealCount = useMemo(() => buildMealCount(todayLogs), [todayLogs]);
+
+  useEffect(() => {
+    if (showWizard) {
+      setGoalReachedVisible(false);
+      return;
+    }
+
+    if (calorieGoal > 0 && todayTotals.calories >= calorieGoal) {
+      const goalKey = todayKey();
+      if (shownGoalKey !== goalKey) {
+        setGoalReachedVisible(true);
+      }
+    }
+  }, [calorieGoal, shownGoalKey, showWizard, todayTotals.calories]);
+
+  if (showWizard) {
+    return <NutritionWizard onClose={() => setWizardDismissed(true)} />;
+  }
 
   return (
-    <ScreenShell 
-      title="Nutrición" 
-      headerContent={header}
-      contentContainerStyle={{ paddingBottom: 100 }}
+    <ScreenShell
+      title="Nutrición"
+      subtitle="Panel, registro rápido, catálogo y planificador en un solo flujo"
+      contentContainerStyle={styles.content}
     >
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
-        {/* Hero Card - Calorie Summary */}
-        <LiquidGlassCard style={styles.heroCard}>
-          <Text style={[styles.heroKicker, { color: colors.onSurfaceVariant }]}>CALORÍAS CONSUMIDAS</Text>
-          <View style={styles.calorieRow}>
-            <Text style={[styles.bigCalorie, { color: colors.onSurface }]}>{Math.round(dailyTotals.calories)}</Text>
-            <Text style={[styles.kcalUnit, { color: colors.onSurfaceVariant }]}>kcal</Text>
-          </View>
-          
-          <View style={styles.progressBarContainer}>
-            <View style={styles.progressHeader}>
-              <Text style={[styles.goalText, { color: colors.onSurfaceVariant }]}>OBJETIVO {calorieGoal} kcal</Text>
-              <Text style={[styles.pctText, { color: colors.onSurface }]}>{Math.round(calPct)}%</Text>
-            </View>
-            <View style={[styles.progressTrack, { backgroundColor: colors.surfaceContainer }]}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${calPct}%`, backgroundColor: colors.primary }
-                ]} 
-              />
-            </View>
-          </View>
-        </LiquidGlassCard>
+      <NutritionHeroCard
+        dateLabel={new Date().toLocaleDateString('es-CL', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+        })}
+        caloriesToday={Math.round(todayTotals.calories)}
+        calorieGoal={Math.round(calorieGoal)}
+        mealCount={mealCount}
+        protein={Math.round(todayTotals.protein)}
+        proteinGoal={Math.round(proteinGoal)}
+        carbs={Math.round(todayTotals.carbs)}
+        carbGoal={Math.round(carbGoal)}
+        fats={Math.round(todayTotals.fats)}
+        fatGoal={Math.round(fatGoal)}
+        onPressPrimary={() => setRegisterVisible(true)}
+        onPressSettings={() => setPlanEditorVisible(true)}
+        primaryLabel="Registrar comida"
+      />
 
-        {/* Macro Rings Section */}
-        <View style={styles.macroSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Macros</Text>
-          </View>
-          <LiquidGlassCard style={styles.macroGrid}>
-            <MacroRing label="P" value={dailyTotals.protein} goal={proteinGoal} color="#10b981" colors={colors} />
-            <MacroRing label="C" value={dailyTotals.carbs} goal={carbsGoal} color="#f59e0b" colors={colors} />
-            <MacroRing label="G" value={dailyTotals.fats} goal={fatsGoal} color="#f43f5e" colors={colors} />
-          </LiquidGlassCard>
-        </View>
+      <View style={styles.quickGrid}>
+        <QuickAction
+          title="Planificador"
+          description="Plantillas, despensa y sugerencias"
+          onPress={() => navigation.navigate('MealPlanner')}
+          colors={colors}
+        />
+        <QuickAction
+          title="Catálogo"
+          description="Busca alimentos por alias y marca"
+          onPress={() => navigation.navigate('FoodDatabase')}
+          colors={colors}
+        />
+        <QuickAction
+          title="Historial"
+          description="Revisa registros y edita comidas"
+          onPress={() => navigation.navigate('NutritionLog')}
+          colors={colors}
+        />
+        <QuickAction
+          title="Wizard"
+          description="Reabrir configuración nutricional"
+          onPress={() => {
+            setWizardDismissed(false);
+            void updateSettings({
+              hasSeenNutritionWizard: false,
+              hasDismissedNutritionSetup: false,
+              nutritionWizardVersion: 1,
+            });
+          }}
+          colors={colors}
+        />
+      </View>
 
-        {/* Meal History Section */}
-        <View style={styles.historySection}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Historial de Hoy</Text>
-            <Pressable onPress={() => navigation.navigate('NutritionLog')}>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>Añadir</Text>
-            </Pressable>
-          </View>
-          
-          {mealHistory.length === 0 ? (
-            <View style={styles.emptyState}>
-              <UtensilsIcon size={40} color={colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
-              <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>No has registrado comidas hoy</Text>
-            </View>
-          ) : (
-            <View style={styles.mealList}>
-              {mealHistory.map((log) => (
-                <Pressable key={log.id} style={styles.mealItem}>
-                   <LiquidGlassCard style={styles.mealCard}>
-                    <View style={styles.mealIconWrap}>
-                      <UtensilsIcon size={18} color={colors.primary} />
-                    </View>
-                    <View style={styles.mealInfo}>
-                      <Text style={[styles.mealTime, { color: colors.onSurfaceVariant }]}>
-                        {new Date(log.createdAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
-                      </Text>
-                      <Text style={[styles.mealName, { color: colors.onSurface }]} numberOfLines={1}>{log.description}</Text>
-                      <Text style={[styles.mealMacros, { color: colors.onSurfaceVariant }]}>
-                        {Math.round(log.totals.calories)} kcal · {Math.round(log.totals.protein)}p · {Math.round(log.totals.carbs)}c · {Math.round(log.totals.fats)}g
-                      </Text>
-                    </View>
-                    <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
-                  </LiquidGlassCard>
-                </Pressable>
-              ))}
-            </View>
-          )}
+      <NutritionMacroProgressCard
+        protein={Math.round(todayTotals.protein)}
+        carbs={Math.round(todayTotals.carbs)}
+        fats={Math.round(todayTotals.fats)}
+        proteinGoal={Math.round(proteinGoal)}
+        carbGoal={Math.round(carbGoal)}
+        fatGoal={Math.round(fatGoal)}
+      />
+
+      <NutritionSevenDayTrendCard
+        points={trendPoints}
+        calorieGoal={Math.round(calorieGoal)}
+      />
+
+      <NutritionRecentLogsCard
+        logs={savedLogs}
+        maxItems={5}
+        onPressLog={() => navigation.navigate('NutritionLog')}
+      />
+
+      {plannerSummary ? (
+        <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+          <Text style={[styles.summaryLabel, { color: colors.onSurfaceVariant }]}>PLAN DE COMIDAS</Text>
+          <Text style={[styles.summaryValue, { color: colors.onSurface }]}>
+            {Math.round(plannerSummary.dayCaloriesPlanned)} / {Math.round(plannerSummary.dayCaloriesTarget)} kcal
+          </Text>
+          <Text style={[styles.summaryBody, { color: colors.onSurfaceVariant }]}>
+            {plannerSummary.selectedTemplateCount} plantillas activas · {templateCount} plantillas migradas
+          </Text>
+          <Button variant="secondary" onPress={() => navigation.navigate('MealPlanner')}>
+            Abrir planificador
+          </Button>
         </View>
-      </ScrollView>
+      ) : null}
+
+      <GoalReachedModal
+        visible={goalReachedVisible}
+        onClose={() => {
+          setGoalReachedVisible(false);
+          setShownGoalKey(todayKey());
+        }}
+        calories={todayTotals.calories}
+        target={calorieGoal}
+        protein={todayTotals.protein}
+        carbs={todayTotals.carbs}
+        fats={todayTotals.fats}
+      />
+
+      <NutritionPlanEditorModal
+        visible={planEditorVisible}
+        onClose={() => setPlanEditorVisible(false)}
+        initialPlan={nutritionPlan}
+        onSave={(plan) => {
+          void updateNutritionPlan(plan);
+        }}
+      />
+
+      <RegisterFoodDrawer
+        visible={registerVisible}
+        onClose={() => setRegisterVisible(false)}
+        selectedDate={todayKey()}
+        mealType="lunch"
+      />
     </ScreenShell>
   );
+};
+
+interface QuickActionProps {
+  title: string;
+  description: string;
+  onPress: () => void;
+  colors: ReturnType<typeof useColors>;
 }
 
+const QuickAction: React.FC<QuickActionProps> = ({ title, description, onPress, colors }) => {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.quickAction,
+        { backgroundColor: colors.surface, borderColor: colors.outlineVariant },
+      ]}
+    >
+      <Text style={[styles.quickActionTitle, { color: colors.onSurface }]}>{title}</Text>
+      <Text style={[styles.quickActionBody, { color: colors.onSurfaceVariant }]}>{description}</Text>
+    </Pressable>
+  );
+};
+
 const styles = StyleSheet.create({
-  header: {
+  content: {
+    gap: 14,
+    paddingBottom: 40,
+  },
+  quickGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    gap: 16,
+    flexWrap: 'wrap',
+    gap: 10,
   },
-  backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+  quickAction: {
+    width: '48.5%',
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    gap: 6,
   },
-  headerKicker: {
-    fontSize: 10,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: -0.5,
-  },
-  addBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  scroll: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-  },
-  heroCard: {
-    padding: 24,
-    borderRadius: 32,
-    marginBottom: 24,
-  },
-  heroKicker: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
-  calorieRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 20,
-  },
-  bigCalorie: {
-    fontSize: 48,
-    fontWeight: '900',
-    letterSpacing: -1.5,
-  },
-  kcalUnit: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginLeft: 8,
-    opacity: 0.6,
-  },
-  progressBarContainer: {
-    width: '100%',
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  goalText: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-  },
-  pctText: {
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  progressTrack: {
-    height: 10,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 5,
-  },
-  macroSection: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  macroGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 20,
-    borderRadius: 32,
-  },
-  macroRingItem: {
-    alignItems: 'center',
-  },
-  ringGraphic: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringLabelOverlay: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringValueText: {
+  quickActionTitle: {
     fontSize: 14,
     fontWeight: '900',
   },
-  macroLabel: {
-    fontSize: 10,
-    fontWeight: '900',
-    marginTop: 8,
-  },
-  macroGoal: {
-    fontSize: 9,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  historySection: {
-    marginBottom: 24,
-  },
-  seeAll: {
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  emptyState: {
-    padding: 40,
-    alignItems: 'center',
-    gap: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  mealList: {
-    gap: 12,
-  },
-  mealItem: {
-    width: '100%',
-  },
-  mealCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 24,
-    gap: 16,
-  },
-  mealIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mealInfo: {
-    flex: 1,
-  },
-  mealTime: {
-    fontSize: 10,
-    fontWeight: '800',
-    marginBottom: 2,
-  },
-  mealName: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 2,
-  },
-  mealMacros: {
+  quickActionBody: {
     fontSize: 11,
-    fontWeight: '600',
+    lineHeight: 16,
+  },
+  summaryCard: {
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 16,
+    gap: 6,
+  },
+  summaryLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  summaryValue: {
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  summaryBody: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 6,
   },
 });
+
+export default NutritionDashboardScreen;

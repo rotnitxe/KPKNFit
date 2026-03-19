@@ -10,7 +10,7 @@ import {
   BanisterSystemResult,
   getConfidenceLabel,
   getConfidenceColor,
-} from '../../../../../services/augeAdaptiveService';
+} from '../../services/augeRuntimeService';
 
 // --- SVG Chart Helpers ---
 

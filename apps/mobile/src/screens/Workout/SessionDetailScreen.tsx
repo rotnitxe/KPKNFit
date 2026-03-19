@@ -1,31 +1,38 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Text, View, ScrollView, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenShell } from '../../components/ScreenShell';
+import { Button } from '../../components/ui';
+import { StartWorkoutModal } from '../../components/workout/StartWorkoutModal';
 import { useProgramStore } from '../../stores/programStore';
+import { useWorkoutStore } from '../../stores/workoutStore';
 import type { Program, Session, Exercise, ExerciseSet } from '../../types/workout';
+import { WorkoutStackParamList } from '../../navigation/types';
 import { useColors } from '../../theme';
+import { getSessionExercises, getSessionSetCount } from '../../utils/workoutSession';
 
-/**
- * Busca una sesión por ID recorriendo la estructura anidada del programa:
- * macrocycles -> blocks -> mesocycles -> weeks -> sessions
- */
-function findSessionById(programs: Program[], sessionId: string): Session | null {
-  if (!programs || !Array.isArray(programs)) return null;
+type WorkoutNav = NativeStackNavigationProp<WorkoutStackParamList>;
 
+interface SessionContext {
+  program: Program;
+  session: Session;
+  weekId: string;
+}
+
+function findSessionContext(programs: Program[], sessionId: string): SessionContext | null {
   for (const program of programs) {
     const macrocycles = program.macrocycles || [];
     for (const macro of macrocycles) {
       const blocks = macro.blocks || [];
       for (const block of blocks) {
-        const mesos = block.mesocycles || [];
-        for (const meso of mesos) {
+        const mesocycles = block.mesocycles || [];
+        for (const meso of mesocycles) {
           const weeks = meso.weeks || [];
           for (const week of weeks) {
-            const sessions = week.sessions || [];
-            for (const session of sessions) {
-              if (session.id === sessionId) {
-                return session;
-              }
+            const session = (week.sessions || []).find(item => item.id === sessionId);
+            if (session) {
+              return { program, session, weekId: week.id };
             }
           }
         }
@@ -37,12 +44,15 @@ function findSessionById(programs: Program[], sessionId: string): Session | null
 
 export function SessionDetailScreen({ route }: { route: { params: { sessionId: string } } }) {
   const colors = useColors();
+  const navigation = useNavigation<WorkoutNav>();
+  const programs = useProgramStore(state => state.programs);
+  const startActiveSession = useWorkoutStore(state => state.startActiveSession);
   const { sessionId } = route.params;
-  const programs = useProgramStore(s => s.programs);
+  const [startVisible, setStartVisible] = useState(false);
 
-  const session = findSessionById(programs, sessionId);
+  const context = useMemo(() => findSessionContext(programs, sessionId), [programs, sessionId]);
 
-  if (!session) {
+  if (!context) {
     return (
       <ScreenShell title="Sesión no encontrada">
         <View style={styles.emptyContainer}>
@@ -54,51 +64,76 @@ export function SessionDetailScreen({ route }: { route: { params: { sessionId: s
     );
   }
 
-  const exercises: Exercise[] = session.exercises || [];
+  const { session, program, weekId } = context;
+  const exercises: Exercise[] = getSessionExercises(session);
+  const sessionSetCount = getSessionSetCount(session);
 
   return (
     <ScreenShell title={session.name || 'Detalle de Sesión'}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: `${colors.onSurface}1A` }]}>
           <Text style={[styles.focusTitle, { color: colors.onSurface }]}>
-            Foco: {session.focus || 'General'}
+            {program.name}
+          </Text>
+          <Text style={[styles.description, { color: colors.onSurfaceVariant }]}>
+            {session.focus || 'Foco general'} · {exercises.length} ejercicios · {sessionSetCount} sets
           </Text>
           {session.description ? (
             <Text style={[styles.description, { color: colors.onSurfaceVariant }]}>{session.description}</Text>
           ) : null}
         </View>
 
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: `${colors.onSurface}1A` }]}>
+          <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>Acciones rápidas</Text>
+          <View style={styles.actions}>
+            <Button variant="primary" onPress={() => setStartVisible(true)}>
+              Iniciar sesión
+            </Button>
+            <Button
+              variant="secondary"
+              onPress={() =>
+                navigation.navigate('SessionEditor', {
+                  programId: program.id,
+                  weekId,
+                  sessionId: session.id,
+                })
+              }
+            >
+              Editar sesión
+            </Button>
+            <Button variant="secondary" onPress={() => navigation.navigate('LogWorkout')}>
+              Registrar entreno manual
+            </Button>
+          </View>
+        </View>
+
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
-            Ejercicios Planeados
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>Ejercicios planeados</Text>
           {exercises.map((ex: Exercise, index: number) => (
             <View
               key={ex.id || index}
               style={[
                 styles.exerciseCard,
-                { 
-                  backgroundColor: colors.surfaceContainer, 
-                  borderColor: colors.outlineVariant 
-                }
+                {
+                  backgroundColor: colors.surfaceContainer,
+                  borderColor: colors.outlineVariant,
+                },
               ]}
             >
               <Text style={[styles.exerciseName, { color: colors.onSurface }]}>
                 {ex.name || 'Ejercicio sin nombre'}
               </Text>
               {ex.notes ? (
-                <Text style={[styles.notes, { color: colors.onSurfaceVariant }]}>
-                  {ex.notes}
-                </Text>
+                <Text style={[styles.notes, { color: colors.onSurfaceVariant }]}>{ex.notes}</Text>
               ) : null}
 
               <View style={[styles.setsContainer, { borderTopColor: colors.outlineVariant }]}>
-                {(ex.sets || []).map((set: ExerciseSet, sIdx: number) => (
-                  <View key={set.id || sIdx} style={styles.setRow}>
-                    <Text style={[styles.setText, { color: colors.onSurfaceVariant }]}>Set {sIdx + 1}:</Text>
+                {(ex.sets || []).map((set: ExerciseSet, setIndex: number) => (
+                  <View key={set.id || setIndex} style={styles.setRow}>
+                    <Text style={[styles.setText, { color: colors.onSurfaceVariant }]}>Set {setIndex + 1}:</Text>
                     <Text style={[styles.targetText, { color: colors.onSurface }]}>
-                      {set.targetReps || set.completedReps || '0'} reps{' '}
-                      {set.weight ? `@ ${set.weight}kg` : ''}
+                      {set.targetReps || set.completedReps || '0'} reps
+                      {set.weight ? ` @ ${set.weight}kg` : ''}
                       {set.targetRIR !== undefined ? ` (RIR ${set.targetRIR})` : ''}
                     </Text>
                   </View>
@@ -114,6 +149,21 @@ export function SessionDetailScreen({ route }: { route: { params: { sessionId: s
           ) : null}
         </View>
       </ScrollView>
+
+      <StartWorkoutModal
+        visible={startVisible}
+        session={session}
+        onClose={() => setStartVisible(false)}
+        onStart={payload => {
+          startActiveSession({ programId: program.id, session: payload.session });
+          setStartVisible(false);
+          navigation.navigate('ActiveSession', {
+            programId: program.id,
+            sessionId: payload.session.id,
+            sessionName: payload.session.name,
+          });
+        }}
+      />
     </ScreenShell>
   );
 }
@@ -122,6 +172,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+    gap: 12,
   },
   emptyContainer: {
     flex: 1,
@@ -137,7 +188,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     padding: 16,
-    marginBottom: 20,
   },
   focusTitle: {
     fontSize: 18,
@@ -149,14 +199,17 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   sectionHeader: {
-    marginTop: 8,
+    marginTop: 4,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 12,
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 1.6,
+  },
+  actions: {
+    gap: 10,
   },
   exerciseCard: {
     borderRadius: 24,

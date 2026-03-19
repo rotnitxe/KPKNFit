@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Pressable } from 'react-native';
 import { LiquidGlassCard } from '../ui/LiquidGlassCard';
 import { useColors } from '../../theme';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import ReactNativeHapticFeedback from '@/services/hapticsService';
 
 interface SessionDayPickerModalProps {
   visible: boolean;

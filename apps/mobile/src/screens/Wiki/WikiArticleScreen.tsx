@@ -1,15 +1,14 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenShell } from '../../components/ScreenShell';
 import { useColors } from '../../theme';
 import { WIKI_MUSCLES, WIKI_JOINTS, WIKI_TENDONS, WIKI_MOVEMENT_PATTERNS } from '../../data/wikiData';
-import type { WorkoutStackParamList } from '../../navigation/types';
-import type { WikiMuscle, WikiJoint, WikiTendon, WikiMovementPattern } from '../../types/wiki';
+import type { WikiStackParamList } from '../../navigation/types';
 
-type WikiArticleRouteProp = RouteProp<WorkoutStackParamList, 'WikiMuscleDetail' | 'WikiJointDetail' | 'WikiTendonDetail' | 'WikiPatternDetail'>;
-type WikiArticleNavigationProp = NativeStackNavigationProp<WorkoutStackParamList>;
+type WikiArticleRouteProp = RouteProp<WikiStackParamList, 'WikiArticle'>;
+type WikiArticleNavigationProp = NativeStackNavigationProp<WikiStackParamList>;
 
 type ArticleType = 'muscle' | 'joint' | 'tendon' | 'pattern';
 
@@ -19,10 +18,11 @@ interface ArticleData {
   name: string;
   subtitle: string;
   description: string;
-  relatedItems?: Array<{ id: string; name: string; type: ArticleType }>;
+  relatedItems?: Array<{ id: string; name: string; type: 'muscle' | 'joint' | 'tendon' | 'pattern' }>;
   commonInjuries?: Array<{ name: string; description: string }>;
   movementPatterns?: string[];
   exampleExercises?: string[];
+  detailBadge: string;
 }
 
 export function WikiArticleScreen() {
@@ -30,85 +30,115 @@ export function WikiArticleScreen() {
   const navigation = useNavigation<WikiArticleNavigationProp>();
   const colors = useColors();
 
-  const { muscleId, jointId, tendonId, patternId } = route.params as {
-    muscleId?: string;
-    jointId?: string;
-    tendonId?: string;
-    patternId?: string;
-  };
+  const article = useMemo<ArticleData | null>(() => {
+    const { articleType, articleId } = route.params;
 
-  const article: ArticleData | null = useMemo(() => {
-    if (muscleId) {
-      const muscle = WIKI_MUSCLES.find((m) => m.id === muscleId);
+    if (articleType === 'muscle') {
+      const muscle = WIKI_MUSCLES.find(item => item.id === articleId);
       if (!muscle) return null;
-
-      const relatedJoints = muscle.relatedJoints?.map((jid) => {
-        const joint = WIKI_JOINTS.find((j) => j.id === jid);
-        return joint ? { id: joint.id, name: joint.name, type: 'joint' as ArticleType } : null;
-      }).filter(Boolean) as Array<{ id: string; name: string; type: ArticleType }> | undefined;
-
-      const relatedTendons = muscle.relatedTendons?.map((tid) => {
-        const tendon = WIKI_TENDONS.find((t) => t.id === tid);
-        return tendon ? { id: tendon.id, name: tendon.name, type: 'tendon' as ArticleType } : null;
-      }).filter(Boolean) as Array<{ id: string; name: string; type: ArticleType }> | undefined;
 
       return {
         type: 'muscle',
         id: muscle.id,
         name: muscle.name,
-        subtitle: 'Anatomía Muscular',
+        subtitle: 'Anatomía muscular',
         description: muscle.description,
-        relatedItems: [...(relatedJoints || []), ...(relatedTendons || [])],
-        commonInjuries: muscle.commonInjuries?.map((i) => ({ name: i.name, description: i.description })),
+        relatedItems: [
+          ...(muscle.relatedJoints ?? []).map(jointId => {
+            const joint = WIKI_JOINTS.find(item => item.id === jointId);
+            return joint ? { id: joint.id, name: joint.name, type: 'joint' as const } : null;
+          }),
+          ...(muscle.relatedTendons ?? []).map(tendonId => {
+            const tendon = WIKI_TENDONS.find(item => item.id === tendonId);
+            return tendon ? { id: tendon.id, name: tendon.name, type: 'tendon' as const } : null;
+          }),
+        ].filter((value): value is NonNullable<typeof value> => value !== null),
+        commonInjuries: muscle.commonInjuries?.map(item => ({
+          name: item.name,
+          description: item.description,
+        })),
         movementPatterns: muscle.movementPatterns,
+        detailBadge: 'Músculo',
       };
     }
 
-    if (jointId) {
-      const joint = WIKI_JOINTS.find((j) => j.id === jointId);
+    if (articleType === 'joint') {
+      const joint = WIKI_JOINTS.find(item => item.id === articleId);
       if (!joint) return null;
 
       return {
         type: 'joint',
         id: joint.id,
         name: joint.name,
-        subtitle: 'Biomecánica Articular',
+        subtitle: 'Biomecánica articular',
         description: joint.description,
-        commonInjuries: joint.commonInjuries?.map((i) => ({ name: i.name, description: i.description })),
+        relatedItems: [
+          ...joint.musclesCrossing.map(muscleId => {
+            const muscle = WIKI_MUSCLES.find(item => item.id === muscleId);
+            return muscle ? { id: muscle.id, name: muscle.name, type: 'muscle' as const } : null;
+          }),
+          ...joint.tendonsRelated.map(tendonId => {
+            const tendon = WIKI_TENDONS.find(item => item.id === tendonId);
+            return tendon ? { id: tendon.id, name: tendon.name, type: 'tendon' as const } : null;
+          }),
+        ].filter((value): value is NonNullable<typeof value> => value !== null),
+        commonInjuries: joint.commonInjuries?.map(item => ({
+          name: item.name,
+          description: item.description,
+        })),
         movementPatterns: joint.movementPatterns,
+        detailBadge: `Tipo ${joint.type}`,
       };
     }
 
-    if (tendonId) {
-      const tendon = WIKI_TENDONS.find((t) => t.id === tendonId);
+    if (articleType === 'tendon') {
+      const tendon = WIKI_TENDONS.find(item => item.id === articleId);
       if (!tendon) return null;
+
+      const muscle = WIKI_MUSCLES.find(item => item.id === tendon.muscleId);
+      const joint = tendon.jointId ? WIKI_JOINTS.find(item => item.id === tendon.jointId) : null;
 
       return {
         type: 'tendon',
         id: tendon.id,
         name: tendon.name,
-        subtitle: 'Tejido Conectivo',
+        subtitle: 'Tejido conectivo',
         description: tendon.description,
-        commonInjuries: tendon.commonInjuries?.map((i) => ({ name: i.name, description: i.description })),
+        relatedItems: [
+          muscle ? { id: muscle.id, name: muscle.name, type: 'muscle' as const } : null,
+          joint ? { id: joint.id, name: joint.name, type: 'joint' as const } : null,
+        ].filter((value): value is NonNullable<typeof value> => value !== null),
+        commonInjuries: tendon.commonInjuries?.map(item => ({
+          name: item.name,
+          description: item.description,
+        })),
+        detailBadge: 'Tendón',
       };
     }
 
-    if (patternId) {
-      const pattern = WIKI_MOVEMENT_PATTERNS.find((p) => p.id === patternId);
-      if (!pattern) return null;
+    const pattern = WIKI_MOVEMENT_PATTERNS.find(item => item.id === articleId);
+    if (!pattern) return null;
 
-      return {
-        type: 'pattern',
-        id: pattern.id,
-        name: pattern.name,
-        subtitle: 'Patrón de Movimiento',
-        description: pattern.description,
-        exampleExercises: pattern.exampleExercises,
-      };
-    }
-
-    return null;
-  }, [muscleId, jointId, tendonId, patternId]);
+    return {
+      type: 'pattern',
+      id: pattern.id,
+      name: pattern.name,
+      subtitle: 'Patrón de movimiento',
+      description: pattern.description,
+      relatedItems: [
+        ...pattern.primaryMuscles.map(muscleId => {
+          const muscle = WIKI_MUSCLES.find(item => item.id === muscleId);
+          return muscle ? { id: muscle.id, name: muscle.name, type: 'muscle' as const } : null;
+        }),
+        ...pattern.primaryJoints.map(jointId => {
+          const joint = WIKI_JOINTS.find(item => item.id === jointId);
+          return joint ? { id: joint.id, name: joint.name, type: 'joint' as const } : null;
+        }),
+      ].filter((value): value is NonNullable<typeof value> => value !== null),
+      exampleExercises: pattern.exampleExercises,
+      detailBadge: 'Patrón',
+    };
+  }, [route.params]);
 
   if (!article) {
     return (
@@ -125,45 +155,66 @@ export function WikiArticleScreen() {
   return (
     <ScreenShell title={article.name} subtitle={article.subtitle}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Description Section */}
         <View style={[styles.section, styles.card, { backgroundColor: colors.surfaceContainerHigh }]}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>Descripción</Text>
+          <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+            {article.detailBadge}
+          </Text>
           <Text style={[styles.bodyText, { color: colors.onSurface }]}>{article.description}</Text>
         </View>
 
-        {/* Related Items Section */}
         {article.relatedItems && article.relatedItems.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
               Estructuras relacionadas
             </Text>
-            {article.relatedItems.map((item) => (
-              <View
+            {article.relatedItems.map(item => (
+              <Pressable
                 key={item.id}
+                onPress={() => {
+                  if (item.type === 'muscle') {
+                    navigation.navigate('WikiMuscleDetail', { muscleId: item.id });
+                  }
+                  if (item.type === 'joint') {
+                    navigation.navigate('WikiJointDetail', { jointId: item.id });
+                  }
+                  if (item.type === 'tendon') {
+                    navigation.navigate('WikiTendonDetail', { tendonId: item.id });
+                  }
+                  if (item.type === 'pattern') {
+                    navigation.navigate('WikiPatternDetail', { patternId: item.id });
+                  }
+                }}
                 style={[
                   styles.relatedItem,
                   { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant },
                 ]}
               >
-                <Text style={[styles.relatedItemText, { color: colors.onSurface }]}>
-                  {item.name}
-                </Text>
-                <Text style={[styles.relatedItemType, { color: colors.onSurfaceVariant }]}>
-                  {item.type === 'joint' ? 'Articulación' : item.type === 'tendon' ? 'Tendón' : ''}
-                </Text>
-              </View>
+                <View>
+                  <Text style={[styles.relatedItemText, { color: colors.onSurface }]}>
+                    {item.name}
+                  </Text>
+                  <Text style={[styles.relatedItemType, { color: colors.onSurfaceVariant }]}>
+                    {item.type === 'muscle'
+                      ? 'Músculo'
+                      : item.type === 'joint'
+                        ? 'Articulación'
+                        : item.type === 'tendon'
+                          ? 'Tendón'
+                          : 'Patrón'}
+                  </Text>
+                </View>
+              </Pressable>
             ))}
           </View>
         )}
 
-        {/* Movement Patterns Section */}
         {article.movementPatterns && article.movementPatterns.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
               Patrones de movimiento
             </Text>
-            {article.movementPatterns.map((patternId) => {
-              const pattern = WIKI_MOVEMENT_PATTERNS.find((p) => p.id === patternId);
+            {article.movementPatterns.map(patternId => {
+              const pattern = WIKI_MOVEMENT_PATTERNS.find(item => item.id === patternId);
               return pattern ? (
                 <View
                   key={pattern.id}
@@ -181,7 +232,6 @@ export function WikiArticleScreen() {
           </View>
         )}
 
-        {/* Example Exercises Section */}
         {article.exampleExercises && article.exampleExercises.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
@@ -189,35 +239,30 @@ export function WikiArticleScreen() {
             </Text>
             {article.exampleExercises.map((exercise, index) => (
               <View
-                key={index}
+                key={`${exercise}-${index}`}
                 style={[
                   styles.exampleItem,
                   { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant },
                 ]}
               >
-                <Text style={[styles.exampleItemText, { color: colors.onSurface }]}>
-                  {exercise}
-                </Text>
+                <Text style={[styles.exampleItemText, { color: colors.onSurface }]}>{exercise}</Text>
               </View>
             ))}
           </View>
         )}
 
-        {/* Common Injuries Section */}
         {article.commonInjuries && article.commonInjuries.length > 0 && (
           <View
             style={[
               styles.section,
               styles.card,
-              { backgroundColor: 'rgba(255, 46, 67, 0.08)', borderColor: 'rgba(255, 46, 67, 0.2)' },
+              { backgroundColor: `${colors.error}14`, borderColor: `${colors.error}33` },
             ]}
           >
             <Text style={[styles.sectionTitle, { color: colors.error }]}>Lesiones comunes</Text>
             {article.commonInjuries.map((injury, index) => (
-              <View key={index} style={styles.injuryItem}>
-                <Text style={[styles.injuryName, { color: colors.onSurface }]}>
-                  {injury.name}
-                </Text>
+              <View key={`${injury.name}-${index}`} style={styles.injuryItem}>
+                <Text style={[styles.injuryName, { color: colors.onSurface }]}>{injury.name}</Text>
                 <Text style={[styles.injuryDescription, { color: colors.onSurfaceVariant }]}>
                   {injury.description}
                 </Text>
@@ -302,3 +347,4 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
 });
+

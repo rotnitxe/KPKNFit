@@ -107,27 +107,27 @@ export const usePantryStore = create<PantryStoreState>((set, get) => ({
 
     if (existingIndex >= 0) {
       next = [...current];
-      next[existingIndex] = {
+        next[existingIndex] = {
         ...next[existingIndex],
         currentQuantity: next[existingIndex].currentQuantity + 100,
         calories: food.calories,
         protein: food.protein,
         carbs: food.carbs,
-        fats: food.fat,
-      };
+        fats: food.fat ?? 0,
+        };
       notice = `${food.name} actualizado en despensa (+100g).`;
     } else {
       next = [
-        {
-          id: generateId(),
-          name: food.name,
-          calories: food.calories,
-          protein: food.protein,
-          carbs: food.carbs,
-          fats: food.fat,
-          currentQuantity: 100,
-          unit: 'g',
-        },
+          {
+            id: generateId(),
+            name: food.name,
+            calories: food.calories,
+            protein: food.protein,
+            carbs: food.carbs,
+            fats: food.fat ?? 0,
+            currentQuantity: 100,
+            unit: 'g',
+          },
         ...current,
       ];
       notice = `${food.name} añadido a despensa.`;

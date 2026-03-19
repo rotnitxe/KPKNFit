@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { AlertTriangleIcon, InfoIcon } from './icons';
-import { Exercise, ExerciseMuscleInfo, Settings } from '../types';
+import { Exercise, ExerciseMuscleInfo, MuscleRole, Settings } from '../types';
 import { validateSessionVolume, normalizeMuscleGroup } from '../services/volumeCalculator';
 import { HYPERTROPHY_ROLE_MULTIPLIERS, FATIGUE_ROLE_MULTIPLIERS } from '../services/auge';
 
@@ -30,9 +30,10 @@ const SessionAuditAlerts: React.FC<SessionAuditAlertsProps> = ({ sessionExercise
 
                 ((dbInfo as any).involvedMuscles as any[]).forEach((m) => {
                     const parentMuscle = normalizeMuscleGroup(m.muscle, m.emphasis);
+                    const role = m.role as MuscleRole;
 
-                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?? 0;
-                    const fatigueFactor = FATIGUE_ROLE_MULTIPLIERS[m.role] ?? 0;
+                    const hyperFactor = HYPERTROPHY_ROLE_MULTIPLIERS[role] ?? 0;
+                    const fatigueFactor = FATIGUE_ROLE_MULTIPLIERS[role] ?? 0;
 
                     const hyperImpact = setCount * hyperFactor;
                     const fatigueImpact = setCount * fatigueFactor;

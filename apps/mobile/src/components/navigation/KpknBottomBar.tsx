@@ -12,6 +12,7 @@ import {
   WikiLabIcon,
 } from '@/components/icons';
 import { useColors } from '@/theme';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 type VisibleRouteName =
   | 'Rings'
@@ -43,11 +44,15 @@ function TabButton({
   active,
   onPress,
   Icon,
+  compact = false,
+  showLabel = true,
 }: {
   label: string;
   active: boolean;
   onPress: () => void;
   Icon: TabConfig['icon'];
+  compact?: boolean;
+  showLabel?: boolean;
 }) {
   const colors = useColors();
 
@@ -61,6 +66,7 @@ function TabButton({
       <View
         style={[
           styles.iconWrap,
+          compact && styles.iconWrapCompact,
           active && {
             backgroundColor: colors.secondaryContainer,
             borderColor: colors.secondary,
@@ -68,18 +74,21 @@ function TabButton({
         ]}
       >
         <Icon
-          size={18}
+          size={compact ? 16 : 18}
           color={active ? colors.onSecondaryContainer : colors.onSurfaceVariant}
         />
       </View>
-      <Text
-        style={[
-          styles.label,
-          { color: active ? colors.onSurface : colors.onSurfaceVariant },
-        ]}
-      >
-        {label}
-      </Text>
+      {showLabel ? (
+        <Text
+          style={[
+            styles.label,
+            compact && styles.labelCompact,
+            { color: active ? colors.onSurface : colors.onSurfaceVariant },
+          ]}
+        >
+          {label}
+        </Text>
+      ) : null}
       <View
         style={[
           styles.indicator,
@@ -93,7 +102,10 @@ function TabButton({
 export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const tabBarStyle = useSettingsStore(state => state.summary?.tabBarStyle ?? 'default');
   const currentRoute = state.routes[state.index]?.name;
+  const isCompact = tabBarStyle === 'compact';
+  const showLabels = tabBarStyle !== 'icons-only';
 
   const navigateTo = (routeName: string) => {
     const route = state.routes.find(item => item.name === routeName);
@@ -118,6 +130,7 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
       <View
         style={[
           styles.shell,
+          isCompact && styles.shellCompact,
           {
             backgroundColor: 'rgba(21, 23, 30, 0.92)',
             borderColor: colors.outlineVariant,
@@ -134,6 +147,8 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
                 label={config.label}
                 Icon={config.icon}
                 active={currentRoute === routeName}
+                compact={isCompact}
+                showLabel={showLabels}
                 onPress={() => navigateTo(routeName)}
               />
             );
@@ -149,6 +164,7 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
           <View
             style={[
               styles.homeOrb,
+              isCompact && styles.homeOrbCompact,
               {
                 backgroundColor:
                   currentRoute === 'Home' ? colors.primaryContainer : colors.surfaceContainer,
@@ -157,18 +173,21 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
             ]}
           >
             <KpknLogoIcon
-              size={28}
+              size={isCompact ? 24 : 28}
               color={currentRoute === 'Home' ? colors.primary : colors.onSurface}
             />
           </View>
-          <Text
-            style={[
-              styles.homeLabel,
-              { color: currentRoute === 'Home' ? colors.onSurface : colors.onSurfaceVariant },
-            ]}
-          >
-            INICIO
-          </Text>
+          {showLabels ? (
+            <Text
+              style={[
+                styles.homeLabel,
+                isCompact && styles.homeLabelCompact,
+                { color: currentRoute === 'Home' ? colors.onSurface : colors.onSurfaceVariant },
+              ]}
+            >
+              INICIO
+            </Text>
+          ) : null}
         </Pressable>
 
         <View style={styles.sideGroup}>
@@ -210,6 +229,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     elevation: 14,
   },
+  shellCompact: {
+    minHeight: 84,
+    paddingVertical: 8,
+  },
   sideGroup: {
     flex: 1,
     flexDirection: 'row',
@@ -230,11 +253,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  iconWrapCompact: {
+    width: 36,
+    height: 36,
+  },
   label: {
     marginTop: 6,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1.1,
+  },
+  labelCompact: {
+    marginTop: 4,
+    fontSize: 8,
   },
   indicator: {
     width: 18,
@@ -255,10 +286,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  homeOrbCompact: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+  },
   homeLabel: {
     marginTop: 6,
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 1.4,
+  },
+  homeLabelCompact: {
+    marginTop: 4,
+    fontSize: 9,
   },
 });

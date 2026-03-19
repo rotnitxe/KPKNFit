@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import TacticalModal from './TacticalModal';
 import { AlertTriangleIcon } from '../icons';
+import { useColors } from '../../theme';
 
 export type AlertVariant = 'failure' | 'pr' | 'default';
 
@@ -20,7 +21,9 @@ export const TacticalAlert: React.FC<TacticalAlertProps> = ({
   message,
   variant = 'default'
 }) => {
+  const colors = useColors();
   const modalVariant = variant === 'failure' ? 'failure' : variant === 'pr' ? 'pr' : 'default';
+  const iconColor = variant === 'failure' ? colors.error : colors.cyberWarning;
 
   return (
     <TacticalModal
@@ -31,9 +34,9 @@ export const TacticalAlert: React.FC<TacticalAlertProps> = ({
     >
       <View style={styles.content}>
         {variant === 'failure' && (
-          <AlertTriangleIcon size={24} color="#FF2E43" />
+          <AlertTriangleIcon size={24} color={iconColor} />
         )}
-        <Text style={styles.message}>{message}</Text>
+        <Text style={[styles.message, { color: colors.onSurfaceVariant }]}>{message}</Text>
       </View>
     </TacticalModal>
   );
@@ -46,9 +49,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   message: {
-    color: '#A0A7B8',
     fontSize: 14,
-    fontFamily: 'monospace',
     lineHeight: 22,
     flex: 1,
   },

@@ -128,7 +128,7 @@ export async function readMigrationSnapshotV1(): Promise<MigrationSnapshotV1 | n
     });
     const parsed = JSON.parse(typeof result.data === 'string' ? result.data : '');
     const validation = validateMigrationSnapshot(parsed);
-    if (!validation.valid) {
+    if (validation.valid === false) {
       console.warn('Snapshot puente invalido.', validation.reason);
       return null;
     }

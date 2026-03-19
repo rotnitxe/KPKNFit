@@ -4,12 +4,13 @@ import {
   Text,
   View,
   ScrollView,
+  Pressable,
   StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ScreenShell } from '@/components/ScreenShell';
-import { Button } from '@/components/ui';
+import { Button, ToggleSwitch } from '@/components/ui';
 import { useColors } from '@/theme';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useWorkoutStore } from '@/stores/workoutStore';
@@ -17,12 +18,24 @@ import { useMealTemplateStore } from '@/stores/mealTemplateStore';
 import { useWellbeingStore } from '@/stores/wellbeingStore';
 import { useCutoverStore } from '@/stores/cutoverStore';
 import { useLocalAiDiagnosticsStore } from '@/stores/localAiDiagnosticsStore';
-import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
 import type { RootTabParamList } from '@/navigation/types';
+import type { Settings } from '@/types/settings';
 
 interface SettingRowProps {
   label: string;
   value: string;
+}
+
+interface ChoiceChipProps {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}
+
+interface ControlRowProps {
+  label: string;
+  description?: string;
+  children: React.ReactNode;
 }
 
 function SettingRow({ label, value }: SettingRowProps) {
@@ -43,6 +56,51 @@ function SettingRow({ label, value }: SettingRowProps) {
   );
 }
 
+function ChoiceChip({ label, selected, onPress }: ChoiceChipProps) {
+  const colors = useColors();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={[
+        styles.choiceChip,
+        {
+          borderColor: selected ? colors.primary : colors.outlineVariant,
+          backgroundColor: selected ? `${colors.primary}1A` : colors.surfaceContainer,
+        },
+      ]}
+    >
+      <Text
+        style={[
+          styles.choiceChipText,
+          { color: selected ? colors.primary : colors.onSurfaceVariant },
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function ControlRow({ label, description, children }: ControlRowProps) {
+  const colors = useColors();
+
+  return (
+    <View style={[styles.controlRow, { borderColor: colors.outlineVariant }]}>
+      <View style={styles.controlText}>
+        <Text style={[styles.controlLabel, { color: colors.onSurface }]}>{label}</Text>
+        {description ? (
+          <Text style={[styles.controlDescription, { color: colors.onSurfaceVariant }]}>
+            {description}
+          </Text>
+        ) : null}
+      </View>
+      {children}
+    </View>
+  );
+}
+
 export function SettingsScreen() {
   const colors = useColors();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
@@ -51,6 +109,8 @@ export function SettingsScreen() {
   const summary = useSettingsStore(state => state.summary);
   const notice = useSettingsStore(state => state.notice);
   const hydrateFromMigration = useSettingsStore(state => state.hydrateFromMigration);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+  const getSettings = useSettingsStore(state => state.getSettings);
   const toggleWorkoutReminders = useSettingsStore(state => state.toggleWorkoutReminders);
   const toggleMealReminders = useSettingsStore(state => state.toggleMealReminders);
   const toggleFallbackEnabled = useSettingsStore(state => state.toggleFallbackEnabled);
@@ -74,7 +134,16 @@ export function SettingsScreen() {
   const runOperationalSweep = useCutoverStore(state => state.runOperationalSweep);
   const toggleManualSignoff = useCutoverStore(state => state.toggleManualSignoff);
   const clearCutoverNotice = useCutoverStore(state => state.clearNotice);
-  const rawSettings = readStoredSettingsRaw();
+  const settings = (summary ?? getSettings()) as Settings;
+  const userVitals = settings.userVitals ?? {};
+  const remindersEnabled = Boolean(settings.remindersEnabled);
+  const mealRemindersEnabled = Boolean(settings.mealRemindersEnabled);
+  const fallbackEnabled = Boolean(settings.fallbackEnabled);
+  const selectedTheme = (settings.appTheme ?? 'default') as Settings['appTheme'];
+  const selectedTabBarStyle = settings.tabBarStyle ?? 'default';
+  const selectedWeightUnit = settings.weightUnit ?? 'kg';
+  const selectedRestTimerSeconds = settings.restTimerDefaultSeconds ?? 90;
+  const selectedRestTimerAutoStart = settings.restTimerAutoStart ?? true;
 
   useEffect(() => {
     if (status === 'idle') {
@@ -83,8 +152,10 @@ export function SettingsScreen() {
   }, [hydrateFromMigration, status]);
 
   useEffect(() => {
-    void refreshCutover();
-  }, [refreshCutover, summary, templateCount, wellbeingStatus]);
+    if (status === 'ready') {
+      void refreshCutover();
+    }
+  }, [refreshCutover, status, templateCount, wellbeingStatus]);
 
   useEffect(() => {
     if (!notice) return undefined;
@@ -133,15 +204,15 @@ export function SettingsScreen() {
       >
         <View style={styles.container}>
           {/* Profile Section */}
-          {rawSettings ? (
+          {settings ? (
             renderSection('Perfil', (
               <View style={styles.sectionContent}>
-                <SettingRow label="Nombre" value={(rawSettings.userName as string) || 'No definido'} />
-                <SettingRow label="Edad" value={rawSettings.age ? `${rawSettings.age} años` : 'No definida'} />
-                <SettingRow label="Peso" value={rawSettings.weight ? `${rawSettings.weight} kg` : 'No definido'} />
-                <SettingRow label="Altura" value={rawSettings.height ? `${rawSettings.height} cm` : 'No definida'} />
-                <SettingRow label="Género" value={(rawSettings.gender as string) || 'No definido'} />
-                <SettingRow label="Nivel actividad" value={(rawSettings.activityLevel as string) || 'No definido'} />
+                <SettingRow label="Nombre" value={(settings.username ?? 'Atleta') as string} />
+                <SettingRow label="Edad" value={userVitals.age ? `${userVitals.age} años` : 'No definida'} />
+                <SettingRow label="Peso" value={userVitals.weight ? `${userVitals.weight} kg` : 'No definido'} />
+                <SettingRow label="Altura" value={userVitals.height ? `${userVitals.height} cm` : 'No definida'} />
+                <SettingRow label="Género" value={(userVitals.gender as string) || 'No definido'} />
+                <SettingRow label="Nivel actividad" value={(userVitals.activityLevel as string) || 'No definido'} />
               </View>
             ))
           ) : null}
@@ -164,37 +235,133 @@ export function SettingsScreen() {
           {notice ? renderNotice(notice, 'success') : null}
           {cutoverNotice ? renderNotice(cutoverNotice, 'info') : null}
 
-          {/* Reminders Section */}
-          {summary ? (
-            <>
-              {renderSection('Recordatorios', (
-                <View style={styles.sectionContent}>
-                  <SettingRow label="Entreno diario" value={summary.remindersEnabled ? (summary.reminderTime ?? 'activo') : 'desactivado'} />
-                  <SettingRow label="Desayuno" value={summary.mealRemindersEnabled ? summary.breakfastReminderTime : 'desactivado'} />
-                  <SettingRow label="Almuerzo" value={summary.mealRemindersEnabled ? summary.lunchReminderTime : 'desactivado'} />
-                  <SettingRow label="Cena" value={summary.mealRemindersEnabled ? summary.dinnerReminderTime : 'desactivado'} />
-                  <SettingRow label="Entreno no registrado" value={summary.missedWorkoutReminderEnabled ? summary.missedWorkoutReminderTime : 'desactivado'} />
-                  <SettingRow label="Batería baja" value={summary.augeBatteryReminderEnabled ? `${summary.augeBatteryReminderThreshold}% · ${summary.augeBatteryReminderTime}` : 'desactivado'} />
+          {renderSection('Apariencia', (
+            <View style={styles.sectionContent}>
+              <ControlRow
+                label="Tema"
+                description="Afecta el shell RN y la paleta de la app"
+              >
+                <View style={styles.choiceGrid}>
+                  {([
+                    ['default', 'Predeterminado'],
+                    ['dark', 'Oscuro'],
+                    ['light', 'Claro'],
+                    ['deep-black', 'Deep Black'],
+                    ['volt', 'Volt'],
+                  ] as const).map(([value, label]) => (
+                    <ChoiceChip
+                      key={value}
+                      label={label}
+                      selected={selectedTheme === value}
+                      onPress={() => void updateSettings({ appTheme: value })}
+                    />
+                  ))}
                 </View>
-              ))}
+              </ControlRow>
+            </View>
+          ))}
+
+          {renderSection('Shell', (
+            <View style={styles.sectionContent}>
+              <ControlRow
+                label="Estilo del bottom bar"
+                description="Cambia jerarquía visual de la navegación inferior"
+              >
+                <View style={styles.choiceGrid}>
+                  {([
+                    ['default', 'Predeterminado'],
+                    ['compact', 'Compacto'],
+                    ['icons-only', 'Solo íconos'],
+                  ] as const).map(([value, label]) => (
+                    <ChoiceChip
+                      key={value}
+                      label={label}
+                      selected={selectedTabBarStyle === value}
+                      onPress={() => void updateSettings({ tabBarStyle: value })}
+                    />
+                  ))}
+                </View>
+              </ControlRow>
+            </View>
+          ))}
+
+          {/* Reminders Section */}
+          {renderSection('Recordatorios', (
+                <View style={styles.sectionContent}>
+                  <ControlRow
+                    label="Entreno diario"
+                    description={settings.remindersEnabled ? (settings.reminderTime ?? 'activo') : 'desactivado'}
+                  >
+                    <ToggleSwitch
+                      checked={remindersEnabled}
+                      onChange={() => void toggleWorkoutReminders()}
+                      testID="toggle-workout-reminders"
+                    />
+                  </ControlRow>
+                  <ControlRow
+                    label="Comidas"
+                    description={settings.mealRemindersEnabled ? `${settings.breakfastReminderTime} · ${settings.lunchReminderTime} · ${settings.dinnerReminderTime}` : 'desactivado'}
+                  >
+                    <ToggleSwitch
+                      checked={mealRemindersEnabled}
+                      onChange={() => void toggleMealReminders()}
+                      testID="toggle-meal-reminders"
+                    />
+                  </ControlRow>
+                  <ControlRow
+                    label="Fallback IA"
+                    description={settings.fallbackEnabled ? 'activo' : 'apagado'}
+                  >
+                    <ToggleSwitch
+                      checked={fallbackEnabled}
+                      onChange={() => void toggleFallbackEnabled()}
+                      testID="toggle-fallback-ai"
+                    />
+                  </ControlRow>
+                  <SettingRow label="Entreno no registrado" value={settings.missedWorkoutReminderEnabled ? settings.missedWorkoutReminderTime : 'desactivado'} />
+                  <SettingRow label="Batería baja" value={settings.augeBatteryReminderEnabled ? `${settings.augeBatteryReminderThreshold}% · ${settings.augeBatteryReminderTime}` : 'desactivado'} />
+                </View>
+          ))}
+
+          {renderSection('Entreno', (
+                <View style={styles.sectionContent}>
+                  <ControlRow
+                    label="Unidad de peso"
+                    description="Afecta cálculos y placas sugeridas"
+                  >
+                    <View style={styles.choiceGrid}>
+                      {([
+                        ['kg', 'Kg'],
+                        ['lbs', 'Lbs'],
+                      ] as const).map(([value, label]) => (
+                        <ChoiceChip
+                          key={value}
+                          label={label}
+                          selected={selectedWeightUnit === value}
+                          onPress={() => void updateSettings({ weightUnit: value })}
+                        />
+                      ))}
+                    </View>
+                  </ControlRow>
+                  <SettingRow label="Rest timer" value={`${selectedRestTimerSeconds}s · ${selectedRestTimerAutoStart ? 'auto' : 'manual'}`} />
+                  <SettingRow label="Vista compacta" value={settings.sessionCompactView ? 'sí' : 'no'} />
+                  <SettingRow label="PRs visibles" value={settings.showPRsInWorkout ? 'sí' : 'no'} />
+                </View>
+          ))}
 
               {/* Base Preferences Section */}
-              {renderSection('Preferencias base', (
+          {renderSection('Preferencias base', (
                 <View style={styles.sectionContent}>
-                  <SettingRow label="Semana inicia" value={`día ${summary.startWeekOn}`} />
-                  <SettingRow label="Proveedor IA" value={summary.apiProvider ?? 'sin definir'} />
-                  <SettingRow label="Fallback IA" value={summary.fallbackEnabled ? 'activo' : 'apagado'} />
-                  <SettingRow label="Modo workout" value={summary.workoutLoggerMode ?? 'sin definir'} />
-                  <SettingRow label="Vista compacta" value={summary.sessionCompactView ? 'sí' : 'no'} />
-                  <SettingRow label="Rest timer" value={`${rawSettings?.defaultRestSeconds ?? 90}s · ${rawSettings?.autoStartTimer ? 'auto' : 'manual'}`} />
-                  <SettingRow label="Metas nutricion" value={`${rawSettings?.dailyCalorieGoal ?? '--'} kcal · ${rawSettings?.dailyProteinGoal ?? '--'}g P`} />
-                  <SettingRow label="Meta sueño" value={`${rawSettings?.sleepTargetHours ?? 8}h · ${rawSettings?.wakeTimeWork ?? '--'}`} />
-                  <SettingRow label="Widgets Home" value={summary.homeWidgetOrder.length > 0 ? summary.homeWidgetOrder.join(', ') : 'orden por defecto'} />
+                  <SettingRow label="Semana inicia" value={`día ${settings.startWeekOn}`} />
+                  <SettingRow label="Proveedor IA" value={settings.apiProvider ?? 'sin definir'} />
+                  <SettingRow label="Modo workout" value={settings.workoutLoggerMode ?? 'sin definir'} />
+                  <SettingRow label="Meta sueño" value={`${settings.sleepTargetHours ?? 8}h · ${settings.wakeTimeWork ?? '--'}`} />
+                  <SettingRow label="Widgets Home" value={(settings.homeWidgetOrder?.length ?? 0) > 0 ? (settings.homeWidgetOrder ?? []).join(', ') : 'orden por defecto'} />
                 </View>
-              ))}
+          ))}
 
               {/* Migrated Modules Section */}
-              {renderSection('Módulos migrados', (
+          {renderSection('Módulos migrados', (
                 <View style={styles.sectionContent}>
                   <SettingRow label="Plantillas de comida" value={templateCount > 0 ? `${templateCount} disponibles` : 'sin plantillas aún'} />
                   <SettingRow label="Plantillas descartadas" value={discardedTemplateCount > 0 ? String(discardedTemplateCount) : 'ninguna'} />
@@ -204,10 +371,10 @@ export function SettingsScreen() {
                   <SettingRow label="Logs wellbeing inválidos" value={wellbeingDroppedDailyLogs > 0 ? String(wellbeingDroppedDailyLogs) : '0'} />
                   <SettingRow label="IA local" value={localAiStatus ? `${localAiStatus.engine} · ${localAiStatus.modelVersion ?? 'sin modelo'}` : 'sin revisar'} />
                 </View>
-              ))}
+          ))}
 
               {/* Actions Section */}
-              {renderSection('Acciones', (
+          {renderSection('Acciones', (
                 <View style={styles.actionsSection}>
                   <Button
                     onPress={() => navigation.navigate('Coach')}
@@ -225,19 +392,19 @@ export function SettingsScreen() {
                     onPress={() => void toggleWorkoutReminders()}
                     variant="secondary"
                   >
-                    {summary.remindersEnabled ? 'Apagar recordatorios de entreno' : 'Encender recordatorios de entreno'}
+                    {remindersEnabled ? 'Apagar recordatorios de entreno' : 'Encender recordatorios de entreno'}
                   </Button>
                   <Button
                     onPress={() => void toggleMealReminders()}
                     variant="secondary"
                   >
-                    {summary.mealRemindersEnabled ? 'Apagar recordatorios de comida' : 'Encender recordatorios de comida'}
+                    {mealRemindersEnabled ? 'Apagar recordatorios de comida' : 'Encender recordatorios de comida'}
                   </Button>
                   <Button
                     onPress={() => void toggleFallbackEnabled()}
                     variant="secondary"
                   >
-                    {summary.fallbackEnabled ? 'Apagar fallback IA' : 'Encender fallback IA'}
+                    {fallbackEnabled ? 'Apagar fallback IA' : 'Encender fallback IA'}
                   </Button>
                   <Button
                     onPress={() => void applyReminderPreset('light')}
@@ -257,7 +424,7 @@ export function SettingsScreen() {
                     Volver a sincronizar widgets y recordatorios
                   </Button>
                 </View>
-              ))}
+          ))}
 
               {/* Cutover Section (Internal) */}
               {isInternalBuild ? (
@@ -314,7 +481,7 @@ export function SettingsScreen() {
                       ))}
                     </View>
 
-                    <View style={styles.cutoverActions}>
+                  <View style={styles.cutoverActions}>
                       <Button
                         onPress={() => void refreshCutover()}
                         variant="secondary"
@@ -331,8 +498,7 @@ export function SettingsScreen() {
                   </View>
                 ))
               ) : null}
-            </>
-          ) : null}
+
         </View>
       </ScrollView>
     </ScreenShell>
@@ -360,6 +526,48 @@ const styles = StyleSheet.create({
   },
   sectionContent: {
     gap: 12,
+  },
+  choiceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  choiceChip: {
+    minWidth: 96,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  choiceChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  controlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    gap: 16,
+  },
+  controlText: {
+    flex: 1,
+    gap: 4,
+  },
+  controlLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  controlDescription: {
+    fontSize: 12,
+    lineHeight: 18,
   },
   settingRow: {
     flexDirection: 'row',

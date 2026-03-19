@@ -9,7 +9,9 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenShell } from '../../components/ScreenShell';
+import { StartWorkoutDrawer } from '../../components/workout/StartWorkoutDrawer';
 import { useProgramStore } from '../../stores/programStore';
+import { useWorkoutStore } from '../../stores/workoutStore';
 import type { Program } from '../../types/workout';
 import type { WorkoutStackParamList } from '../../navigation/types';
 import { useColors } from '../../theme';
@@ -21,10 +23,11 @@ interface ProgramCardProps {
   stats: { weeks: number; sessions: number };
   isActive: boolean;
   onPress: () => void;
+  onStart: () => void;
   onDelete: () => void;
 }
 
-function ProgramListCard({ program, stats, isActive, onPress, onDelete }: ProgramCardProps) {
+function ProgramListCard({ program, stats, isActive, onPress, onStart, onDelete }: ProgramCardProps) {
   const colors = useColors();
 
   return (
@@ -107,6 +110,18 @@ function ProgramListCard({ program, stats, isActive, onPress, onDelete }: Progra
       >
         <Text style={styles.deletePillText}>Eliminar</Text>
       </Pressable>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Iniciar sesión en ${program.name}`}
+        onPress={onStart}
+        style={({ pressed }) => [
+          styles.startPill,
+          { opacity: pressed ? 0.85 : 1 },
+        ]}
+      >
+        <Text style={styles.startPillText}>Entrenar</Text>
+      </Pressable>
     </View>
   );
 }
@@ -130,6 +145,8 @@ export function ProgramsScreen() {
   const navigation = useNavigation<WorkoutNavProp>();
   const colors = useColors();
   const [isCreating, setIsCreating] = useState(false);
+  const [startDrawerVisible, setStartDrawerVisible] = useState(false);
+  const [startProgram, setStartProgram] = useState<Program | null>(null);
 
   const status = useProgramStore(state => state.status);
   const errorMessage = useProgramStore(state => state.errorMessage);
@@ -138,6 +155,7 @@ export function ProgramsScreen() {
   const hydrateFromMigration = useProgramStore(state => state.hydrateFromMigration);
   const removeProgram = useProgramStore(state => state.removeProgram);
   const createDraftProgram = useProgramStore(state => state.createDraftProgram);
+  const startActiveSession = useWorkoutStore(state => state.startActiveSession);
 
   useEffect(() => {
     if (status === 'idle') {
@@ -199,6 +217,11 @@ export function ProgramsScreen() {
     navigation.navigate('ProgramDetail', { programId });
   }, [navigation]);
 
+  const openStartDrawer = useCallback((program: Program) => {
+    setStartProgram(program);
+    setStartDrawerVisible(true);
+  }, []);
+
   const headerContent = (
     <View style={styles.headerShell}>
       <View style={styles.headerTextBlock}>
@@ -250,6 +273,7 @@ export function ProgramsScreen() {
               stats={getProgramStats(orderedPrograms.active)}
               isActive
               onPress={() => openProgram(orderedPrograms.active!.id)}
+              onStart={() => openStartDrawer(orderedPrograms.active!)}
               onDelete={() => handleDelete(orderedPrograms.active!)}
             />
           ) : null}
@@ -261,11 +285,31 @@ export function ProgramsScreen() {
               stats={getProgramStats(program)}
               isActive={false}
               onPress={() => openProgram(program.id)}
+              onStart={() => openStartDrawer(program)}
               onDelete={() => handleDelete(program)}
             />
           ))}
         </View>
       )}
+
+      <StartWorkoutDrawer
+        visible={startDrawerVisible}
+        programs={startProgram ? [startProgram] : []}
+        onClose={() => {
+          setStartDrawerVisible(false);
+          setStartProgram(null);
+        }}
+        onStart={payload => {
+          startActiveSession({ programId: payload.programId, session: payload.session });
+          setStartDrawerVisible(false);
+          setStartProgram(null);
+          navigation.navigate('ActiveSession', {
+            programId: payload.programId,
+            sessionId: payload.session.id,
+            sessionName: payload.session.name,
+          });
+        }}
+      />
     </ScreenShell>
   );
 }
@@ -438,6 +482,24 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     color: '#8C1D18',
+  },
+  startPill: {
+    alignSelf: 'flex-end',
+    marginTop: 8,
+    marginRight: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(37,99,235,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(37,99,235,0.28)',
+  },
+  startPillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1E40AF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   emptyState: {
     alignItems: 'center',

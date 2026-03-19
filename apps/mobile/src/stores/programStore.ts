@@ -33,6 +33,8 @@ interface ProgramStoreState {
   addSession: (programId: string, weekId: string) => Promise<void>;
   deleteSession: (programId: string, weekId: string, sessionId: string) => Promise<void>;
   addProgram: (program: Program) => Promise<void>;
+  deleteProgram: (programId: string) => Promise<void>;
+  duplicateProgram: (programId: string) => Promise<void>;
   updateProgramSplit: (programId: string, split: SplitTemplate, startDay: number, scope: 'week' | 'block' | 'program', targetBlockId?: string, targetWeekId?: string) => Promise<void>;
 
   // Drag-and-Drop Session Management
@@ -638,6 +640,51 @@ export const useProgramStore = create<ProgramStoreState>((set) => ({
       set({
         status: 'failed',
         errorMessage: error instanceof Error ? error.message : 'No pudimos guardar el nuevo programa.',
+      });
+    }
+  },
+
+  deleteProgram: async (programId: string) => {
+    let nextPrograms: Program[] = [];
+    set(state => {
+      nextPrograms = state.programs.filter(p => p.id !== programId);
+      return { programs: nextPrograms, errorMessage: null };
+    });
+    try {
+      const activeState = useProgramStore.getState().activeProgramState;
+      await persistProgramsSnapshot(nextPrograms, activeState);
+      set({ status: 'ready' });
+    } catch (error) {
+      set({
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'No pudimos eliminar el programa.',
+      });
+    }
+  },
+
+  duplicateProgram: async (programId: string) => {
+    const state = useProgramStore.getState();
+    const program = state.programs.find(p => p.id === programId);
+    if (!program) return;
+
+    const duplicatedProgram = JSON.parse(JSON.stringify(program));
+    duplicatedProgram.id = generateId();
+    duplicatedProgram.name = program.name + ' (Copia)';
+    duplicatedProgram.isDraft = true; // Copied programs are drafts
+
+    let nextPrograms: Program[] = [];
+    set(state => {
+      nextPrograms = [duplicatedProgram, ...state.programs];
+      return { programs: nextPrograms, errorMessage: null };
+    });
+    try {
+      const activeState = useProgramStore.getState().activeProgramState;
+      await persistProgramsSnapshot(nextPrograms, activeState);
+      set({ status: 'ready' });
+    } catch (error) {
+      set({
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'No pudimos duplicar el programa.',
       });
     }
   },

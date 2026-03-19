@@ -20,7 +20,13 @@ jest.mock('react-native-reanimated', () => {
     withSequence: (...vals) => vals[0],
     cancelAnimation: () => {},
     runOnJS: (fn) => fn,
+    runOnUI: (fn) => fn,
     runOnWorklet: (fn) => fn,
+    useDerivedValue: (factory) => ({ value: factory() }),
+    useAnimatedReaction: jest.fn(),
+    useAnimatedProps: () => ({}),
+    useAnimatedGestureHandler: jest.fn(),
+    useWorkletCallback: (fn) => fn,
     interpolate: (val) => val,
     Extrapolate: { CLAMP: 'clamp' },
     FadeIn: { duration: () => ({}) },
@@ -64,9 +70,13 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {
   const React = require('react');
+  const SafeAreaProvider = ({ children }) => children;
+  SafeAreaProvider.displayName = 'SafeAreaProvider';
+  const SafeAreaView = ({ children }) => children;
+  SafeAreaView.displayName = 'SafeAreaView';
   return {
-    SafeAreaProvider: ({ children }) => children,
-    SafeAreaView: ({ children }) => children,
+    SafeAreaProvider,
+    SafeAreaView,
     useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
   };
 });
@@ -117,3 +127,15 @@ jest.mock('@notifee/react-native', () => ({
   TriggerType: { TIMESTAMP: 0 },
   AndroidImportance: { DEFAULT: 3, HIGH: 4, LOW: 2, MIN: 1, NONE: 0 },
 }));
+
+jest.mock('@shopify/react-native-skia', () => require('./test/mocks/reactNativeSkia'));
+
+jest.mock('react-native-haptic-feedback', () => ({
+  __esModule: true,
+  default: {
+    trigger: jest.fn(),
+  },
+  trigger: jest.fn(),
+}));
+
+jest.mock('react-native-draggable-flatlist', () => require('./test/mocks/reactNativeDraggableFlatList'));

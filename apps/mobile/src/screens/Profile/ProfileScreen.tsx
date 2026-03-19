@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenShell } from '@/components/ScreenShell';
 import { CaupolicanIcon } from '@/components/CaupolicanIcon';
 import { BodyMetricsCarousel } from '@/components/body/BodyMetricsCarousel';
 import { LiquidGlassCard } from '@/components/ui/LiquidGlassCard';
-import { Button } from '@/components/ui/Button';
+import { ProfilePictureModal } from '@/components/profile/ProfilePictureModal';
+import { OnThisDayCard } from '@/components/analytics/OnThisDayCard';
 import {
   ActivityIcon,
   CameraIcon,
@@ -14,6 +15,10 @@ import {
   InfoIcon,
   MoonIcon,
   UserBadgeIcon,
+  ChevronRightIcon,
+  DumbbellIcon,
+  TrophyIcon,
+  RulerIcon,
 } from '@/components/icons';
 import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
 import { useBodyStore } from '@/stores/bodyStore';
@@ -62,7 +67,17 @@ function StatBox({
 export function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const colors = useColors();
-  const rawSettings = readStoredSettingsRaw();
+  const settingsSummary = useSettingsStore(state => state.summary);
+  const rawSettings = settingsSummary ?? (readStoredSettingsRaw() as any);
+  const updateSettings = useSettingsStore((state: any) => state.updateSettings);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState<string>(String(rawSettings.username || ''));
+  const [editWeight, setEditWeight] = useState<string>(String(rawSettings.userVitals?.weight ?? ''));
+  const [editHeight, setEditHeight] = useState<string>(String(rawSettings.userVitals?.height ?? ''));
+  const [editBodyFat, setEditBodyFat] = useState<string>(String(rawSettings.userVitals?.bodyFatPercentage ?? ''));
+  const [editTargetWeight, setEditTargetWeight] = useState<string>(String(rawSettings.userVitals?.targetWeight ?? ''));
+  const [showPictureModal, setShowPictureModal] = useState(false);
 
   const settingsStatus = useSettingsStore(state => state.status);
   const hydrateSettings = useSettingsStore(state => state.hydrateFromMigration);
@@ -77,22 +92,10 @@ export function ProfileScreen() {
   const hydrateWellbeing = useWellbeingStore(state => state.hydrateFromMigration);
 
   useEffect(() => {
-    if (settingsStatus === 'idle') {
-      void hydrateSettings();
-    }
-  }, [hydrateSettings, settingsStatus]);
-
-  useEffect(() => {
-    if (bodyStatus === 'idle') {
-      void hydrateBody();
-    }
-  }, [bodyStatus, hydrateBody]);
-
-  useEffect(() => {
-    if (wellbeingStatus === 'idle') {
-      void hydrateWellbeing();
-    }
-  }, [hydrateWellbeing, wellbeingStatus]);
+    if (settingsStatus === 'idle') void hydrateSettings();
+    if (bodyStatus === 'idle') void hydrateBody();
+    if (wellbeingStatus === 'idle') void hydrateWellbeing();
+  }, [bodyStatus, hydrateBody, hydrateSettings, settingsStatus, hydrateWellbeing, wellbeingStatus]);
 
   const latestBody = bodyProgress[0];
   const ffmi = useMemo(
@@ -100,16 +103,43 @@ export function ProfileScreen() {
       computeFfmi(
         latestBody?.weight,
         latestBody?.bodyFatPercentage,
-        typeof rawSettings.height === 'number' ? rawSettings.height : undefined,
+        typeof rawSettings.userVitals?.height === 'number' ? rawSettings.userVitals.height : undefined,
       ),
-    [latestBody?.bodyFatPercentage, latestBody?.weight, rawSettings.height],
+    [latestBody?.bodyFatPercentage, latestBody?.weight, rawSettings.userVitals?.height],
   );
 
   const athleteName =
-    typeof rawSettings.userName === 'string' && rawSettings.userName.trim() !== ''
-      ? rawSettings.userName.trim()
+    typeof rawSettings.username === 'string' && rawSettings.username.trim() !== ''
+      ? rawSettings.username.trim()
       : 'Atleta KPKN';
   const subtitle = athleteTier(ffmi);
+
+  const handleSaveEdit = async () => {
+    await updateSettings({
+      username: editName.trim() || undefined,
+      userVitals: {
+        ...rawSettings.userVitals,
+        weight: editWeight.trim() !== '' ? Number(editWeight) : undefined,
+        height: editHeight.trim() !== '' ? Number(editHeight) : undefined,
+        bodyFatPercentage: editBodyFat.trim() !== '' ? Number(editBodyFat) : undefined,
+        targetWeight: editTargetWeight.trim() !== '' ? Number(editTargetWeight) : undefined,
+      },
+    });
+    setIsEditing(false);
+  };
+
+  const handleOpenEdit = () => {
+    setEditName(String(rawSettings.username || ''));
+    setEditWeight(String(rawSettings.userVitals?.weight ?? ''));
+    setEditHeight(String(rawSettings.userVitals?.height ?? ''));
+    setEditBodyFat(String(rawSettings.userVitals?.bodyFatPercentage ?? ''));
+    setEditTargetWeight(String(rawSettings.userVitals?.targetWeight ?? ''));
+    setIsEditing(true);
+  };
+
+  const handleOpenPictureModal = () => {
+    setShowPictureModal(true);
+  };
 
   const headerContent = (
     <View style={styles.header}>
@@ -134,21 +164,68 @@ export function ProfileScreen() {
       <View style={styles.container}>
         <LiquidGlassCard style={styles.heroCard} padding={22}>
           <View style={styles.heroTop}>
-            <View style={[styles.avatarCircle, { backgroundColor: `${colors.onSurface}10` }]}>
+            <Pressable onPress={handleOpenPictureModal} style={[styles.avatarCircle, { backgroundColor: `${colors.onSurface}10` }]}>
               <CaupolicanIcon size={44} color={colors.primary} />
-            </View>
+            </Pressable>
 
             <View style={styles.heroActions}>
-              <Pressable style={[styles.heroAction, { backgroundColor: `${colors.onSurface}10` }]}>
+              <Pressable onPress={handleOpenPictureModal} style={[styles.heroAction, { backgroundColor: `${colors.onSurface}10` }]}>
                 <CameraIcon size={18} color={colors.onSurfaceVariant} />
               </Pressable>
-              <Pressable style={[styles.heroAction, { backgroundColor: `${colors.onSurface}10` }]}>
+              <Pressable onPress={isEditing ? handleSaveEdit : handleOpenEdit} style={[styles.heroAction, { backgroundColor: `${colors.onSurface}10` }]}>
                 <EditIcon size={18} color={colors.onSurfaceVariant} />
               </Pressable>
             </View>
           </View>
 
-          <Text style={[styles.heroTier, { color: colors.primary }]}>{subtitle}</Text>
+          {isEditing ? (
+            <View style={styles.editSection}>
+              <View style={styles.editGrid}>
+                <TextInput
+                  style={[styles.editInput, { backgroundColor: colors.surfaceContainer, color: colors.onSurface, borderColor: colors.outline }]}
+                  value={editName}
+                  onChangeText={(text: string) => setEditName(text)}
+                  placeholder="Tu nombre"
+                  placeholderTextColor={colors.onSurfaceVariant}
+                />
+                <TextInput
+                  style={[styles.editInput, { backgroundColor: colors.surfaceContainer, color: colors.onSurface, borderColor: colors.outline }]}
+                  value={editWeight}
+                  onChangeText={setEditWeight}
+                  placeholder="Peso kg"
+                  placeholderTextColor={colors.onSurfaceVariant}
+                  keyboardType="decimal-pad"
+                />
+                <TextInput
+                  style={[styles.editInput, { backgroundColor: colors.surfaceContainer, color: colors.onSurface, borderColor: colors.outline }]}
+                  value={editHeight}
+                  onChangeText={setEditHeight}
+                  placeholder="Altura cm"
+                  placeholderTextColor={colors.onSurfaceVariant}
+                  keyboardType="decimal-pad"
+                />
+                <TextInput
+                  style={[styles.editInput, { backgroundColor: colors.surfaceContainer, color: colors.onSurface, borderColor: colors.outline }]}
+                  value={editBodyFat}
+                  onChangeText={setEditBodyFat}
+                  placeholder="% Grasa"
+                  placeholderTextColor={colors.onSurfaceVariant}
+                  keyboardType="decimal-pad"
+                />
+                <TextInput
+                  style={[styles.editInput, { backgroundColor: colors.surfaceContainer, color: colors.onSurface, borderColor: colors.outline }]}
+                  value={editTargetWeight}
+                  onChangeText={setEditTargetWeight}
+                  placeholder="Peso objetivo"
+                  placeholderTextColor={colors.onSurfaceVariant}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+            </View>
+          ) : (
+            <Text style={[styles.heroTier, { color: colors.primary }]}>{subtitle}</Text>
+          )}
+          
           <Text style={[styles.heroSummary, { color: colors.onSurfaceVariant }]}>
             {bodyLabAnalysis?.profileSummary ||
               'Este panel va a concentrar la misma identidad atlética de la PWA: composición corporal, recuperación, progreso y contexto del atleta.'}
@@ -160,6 +237,8 @@ export function ProfileScreen() {
           bodyFat={latestBody?.bodyFatPercentage}
           ffmi={ffmi || undefined}
         />
+
+        <OnThisDayCard />
 
         <View style={styles.statsGrid}>
           <StatBox label="Peso" value={latestBody?.weight ? `${latestBody.weight}` : '--'} unit="kg" />
@@ -184,7 +263,7 @@ export function ProfileScreen() {
           <View style={styles.detailGrid}>
             <View style={styles.detailItem}>
               <Text style={[styles.detailValue, { color: colors.primary }]}>
-                {typeof rawSettings.height === 'number' ? `${rawSettings.height} cm` : '--'}
+                {typeof rawSettings.userVitals?.height === 'number' ? `${rawSettings.userVitals.height} cm` : '--'}
               </Text>
               <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>Altura</Text>
             </View>
@@ -206,14 +285,41 @@ export function ProfileScreen() {
         <LiquidGlassCard style={styles.detailCard} padding={20}>
           <View style={styles.detailHeader}>
             <MoonIcon size={16} color={colors.onSurfaceVariant} />
-            <Text style={[styles.detailEyebrow, { color: colors.onSurfaceVariant }]}>Acciones</Text>
+            <Text style={[styles.detailEyebrow, { color: colors.onSurfaceVariant }]}>Secciones</Text>
           </View>
 
-          <View style={styles.buttonColumn}>
-            <Button onPress={() => navigation.navigate('BodyProgress')}>Abrir progreso corporal</Button>
-            <Button onPress={() => navigation.navigate('ProgressOverview')} variant="secondary">
-              Ver progreso integral
-            </Button>
+          <View style={styles.navSection}>
+            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('AthleteID' as any)}>
+              <View style={styles.navButtonContent}>
+                <UserBadgeIcon size={20} color={colors.primary} />
+                <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Athlete ID</Text>
+              </View>
+              <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
+            </Pressable>
+            
+            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('PersonalRecords' as any)}>
+              <View style={styles.navButtonContent}>
+                <TrophyIcon size={20} color={colors.secondary} />
+                <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Records Personales</Text>
+              </View>
+              <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
+            </Pressable>
+            
+            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('BodyProgress')}>
+              <View style={styles.navButtonContent}>
+                <RulerIcon size={20} color={colors.tertiary} />
+                <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Progreso Corporal</Text>
+              </View>
+              <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
+            </Pressable>
+            
+            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('BodyLab' as any)}>
+              <View style={styles.navButtonContent}>
+                <DumbbellIcon size={20} color={colors.error} />
+                <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Body Lab</Text>
+              </View>
+              <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
+            </Pressable>
           </View>
         </LiquidGlassCard>
 
@@ -227,6 +333,18 @@ export function ProfileScreen() {
           </Text>
         </LiquidGlassCard>
       </View>
+
+      <ProfilePictureModal
+        visible={showPictureModal}
+        onClose={() => setShowPictureModal(false)}
+        onSelectCamera={async () => {
+          await updateSettings({ profilePicture: 'camera_placeholder' });
+        }}
+        onSelectGallery={async () => {
+          await updateSettings({ profilePicture: 'gallery_placeholder' });
+        }}
+        currentPicture={rawSettings.profilePicture as string | null | undefined}
+      />
     </ScreenShell>
   );
 }
@@ -302,6 +420,41 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 14,
     lineHeight: 22,
+  },
+  editSection: {
+    marginTop: 16,
+  },
+  editGrid: {
+    gap: 10,
+  },
+  editInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  navSection: {
+    marginTop: 8,
+  },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    marginBottom: 8,
+  },
+  navButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  navButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   statsGrid: {
     flexDirection: 'row',

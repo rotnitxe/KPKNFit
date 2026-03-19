@@ -207,6 +207,28 @@ export const roundWeight = (weight: number, unit: 'kg' | 'lbs') => {
     return parseFloat(rounded.toFixed(1));
 };
 
+export const calculateIPFGLPoints = (totalLifted: number, bodyWeight: number, options: { gender: string; equipment: 'classic' | 'equipped'; lift: 'total' | 'bench' | 'squat' | 'deadlift'; weightUnit: 'kg' | 'lbs'; }): number => {
+    if (!totalLifted || totalLifted <= 0 || !bodyWeight || bodyWeight <= 0) return 0;
+    const { gender, equipment, weightUnit } = options;
+    const genderKey = (gender === 'female' || gender === 'transfemale') ? 'female' : 'male';
+    let bwInKg = weightUnit === 'lbs' ? bodyWeight * 0.45359237 : bodyWeight;
+    const totalInKg = weightUnit === 'lbs' ? totalLifted * 0.45359237 : totalLifted;
+    if (genderKey === 'male' && bwInKg < 40) bwInKg = 40;
+    if (genderKey === 'female' && bwInKg < 35) bwInKg = 35;
+    const COEFFS = {
+        male: { 'equipped-total': { A: 1236.25115, B: 1449.21864, C: 0.01644 }, 'classic-total': { A: 1199.72839, B: 1025.18162, C: 0.00921 } },
+        female: { 'equipped-total': { A: 758.63878, B: 949.31382, C: 0.02435 }, 'classic-total': { A: 610.32796, B: 1045.59282, C: 0.03048 } }
+    };
+    const liftKey = `${equipment}-total`;
+    const coeffs = (COEFFS[genderKey] as any)[liftKey];
+    if (!coeffs) return 0;
+    const { A, B, C } = coeffs;
+    const denominator = A - B * Math.exp(-C * bwInKg);
+    if (denominator === 0) return 0;
+    const coefficient = 100 / denominator;
+    return parseFloat((coefficient * totalInKg).toFixed(2));
+};
+
 export const calculateFFMI = (heightCm: number, weightKg: number, bodyFatPercent: number) => {
     if (!heightCm || heightCm <= 0 || !weightKg || weightKg <= 0 || bodyFatPercent === undefined || bodyFatPercent < 0) return null;
     const heightM = heightCm / 100;
@@ -402,4 +424,48 @@ export const parseDateStringAsLocal = (dateStr: string): Date => {
 
 export const getDatePartFromString = (dateStr: string): string => {
     return dateStr?.slice(0, 10) || '';
+};
+
+/**
+ * Compute linear regression (least squares) for a set of points.
+ * Returns slope and intercept.
+ */
+export const computeLinearRegression = (points: { x: number; y: number }[]): { slope: number; intercept: number } => {
+    const n = points.length;
+    if (n < 2) return { slope: 0, intercept: 0 };
+
+    let sumX = 0;
+    let sumY = 0;
+    let sumXY = 0;
+    let sumXX = 0;
+
+    for (const p of points) {
+        sumX += p.x;
+        sumY += p.y;
+        sumXY += p.x * p.y;
+        sumXX += p.x * p.x;
+    }
+
+    const denominator = n * sumXX - sumX * sumX;
+    if (denominator === 0) return { slope: 0, intercept: sumY / n };
+
+    const slope = (n * sumXY - sumX * sumY) / denominator;
+    const intercept = (sumY - slope * sumX) / n;
+
+    return { slope, intercept };
+};
+
+/**
+ * Determine trend direction based on recent values.
+ * Returns 'up', 'down', or 'stable'.
+ * Stability threshold: 0.5% change considered stable.
+ */
+export const computeTrendDirection = (values: number[], threshold = 0.005): 'up' | 'down' | 'stable' => {
+    if (values.length < 2) return 'stable';
+    const recent = values.slice(-7); // consider last 7
+    const first = recent[0];
+    const last = recent[recent.length - 1];
+    const change = (last - first) / first;
+    if (Math.abs(change) < threshold) return 'stable';
+    return change > 0 ? 'up' : 'down';
 };

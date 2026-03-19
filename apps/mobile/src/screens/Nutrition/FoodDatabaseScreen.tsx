@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import ReactNativeHapticFeedback from '@/services/hapticsService';
 import { ScreenShell } from '../../components/ScreenShell';
 import {
   ActivityIcon,
@@ -23,6 +23,7 @@ import { FoodItem } from '../../types/food';
 import { NutritionStackParamList } from '../../navigation/types';
 import { useColors } from '../../theme';
 import { usePantryStore } from '../../stores/pantryStore';
+import { searchFoodIndex } from '../../services/foodIndexService';
 
 type NavigationProp = NativeStackNavigationProp<NutritionStackParamList, 'FoodDatabase'>;
 type SortKey = 'name' | 'protein' | 'carbs' | 'fats';
@@ -64,7 +65,7 @@ function getMacroBucket(food: FoodItem): FoodMacroBucket {
 
   const proteinCalories = food.protein * 4;
   const carbCalories = food.carbs * 4;
-  const fatCalories = food.fat * 9;
+  const fatCalories = food.fats * 9;
   const totalMacroCalories = Math.max(1, proteinCalories + carbCalories + fatCalories);
 
   if (proteinCalories / totalMacroCalories > 0.4) return 'Proteínas';
@@ -80,9 +81,8 @@ function searchFood(food: FoodItem, query: string) {
   const haystack = [
     food.name,
     food.brand ?? '',
-    food.category,
-    ...food.tags,
-    ...food.aliases,
+    food.category ?? '',
+    ...(food.tags ?? []),
   ]
     .map(normalizeText)
     .join(' ');
@@ -97,9 +97,8 @@ function buildMicronutrientFoods(micro: Micronutrient) {
     const haystack = [
       food.name,
       food.brand ?? '',
-      food.category,
-      ...food.tags,
-      ...food.aliases,
+      food.category ?? '',
+      ...(food.tags ?? []),
     ]
       .map(normalizeText)
       .join(' ');
@@ -142,7 +141,7 @@ const FoodRowCard: React.FC<FoodRowCardProps> = ({ food, onOpen, onAdd }) => {
             </View>
           </View>
           <Text style={styles.foodMacrosText}>
-            {Math.round(food.calories)} kcal · P {food.protein} · C {food.carbs} · G {food.fat}
+            {Math.round(food.calories)} kcal · P {food.protein} · C {food.carbs} · G {food.fats}
           </Text>
         </View>
       </View>
@@ -170,6 +169,14 @@ export const FoodDatabaseScreen: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<FoodMacroBucket | null>(null);
   const [selectedMicronutrient, setSelectedMicronutrient] = useState<Micronutrient | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchMeta, setSearchMeta] = useState<{
+    matchType: 'exact' | 'partial' | 'fuzzy';
+    bestConfidence: 'high' | 'medium' | 'low';
+    canAutoSelect: boolean;
+    decisionReason?: string;
+  } | null>(null);
 
   const {
     status: pantryStatus,
@@ -191,10 +198,43 @@ export const FoodDatabaseScreen: React.FC = () => {
     return () => clearTimeout(timer);
   }, [notice, clearNotice]);
 
-  const searchedFoods = useMemo(
-    () => FOOD_DATABASE.filter(food => searchFood(food, query)),
-    [query],
-  );
+  useEffect(() => {
+    let cancelled = false;
+
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setSearchMeta(null);
+      setSearchLoading(false);
+      return undefined;
+    }
+
+    setSearchLoading(true);
+    const timer = setTimeout(() => {
+      void searchFoodIndex(query, { limit: 24, scope: 'extended' })
+        .then(result => {
+          if (cancelled) return;
+          setSearchResults(result.results);
+          setSearchMeta({
+            matchType: result.matchType,
+            bestConfidence: result.bestConfidence,
+            canAutoSelect: result.canAutoSelect,
+            decisionReason: result.decisionReason,
+          });
+          setSearchLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setSearchResults([]);
+          setSearchMeta(null);
+          setSearchLoading(false);
+        });
+    }, 240);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
 
   const macroBuckets = useMemo(() => {
     const grouped: Record<FoodMacroBucket, FoodItem[]> = {
@@ -220,7 +260,7 @@ export const FoodDatabaseScreen: React.FC = () => {
       if (sortKey === 'name') return a.name.localeCompare(b.name, 'es');
       if (sortKey === 'protein') return b.protein - a.protein;
       if (sortKey === 'carbs') return b.carbs - a.carbs;
-      return b.fat - a.fat;
+      return b.fats - a.fats;
     });
 
     return foods;
@@ -300,15 +340,49 @@ export const FoodDatabaseScreen: React.FC = () => {
         <View style={styles.stack}>
           <View style={styles.sectionHeading}>
             <Text style={styles.sectionEyebrow}>RESULTADOS DE BÚSQUEDA</Text>
-            <Text style={styles.sectionTitle}>{searchedFoods.length} alimentos encontrados</Text>
+            <Text style={styles.sectionTitle}>{searchResults.length} alimentos encontrados</Text>
           </View>
-          {searchedFoods.length === 0 ? (
+          {searchMeta ? (
+            <View style={styles.searchMetaCard}>
+              <Text style={styles.searchMetaTitle}>
+                {searchMeta.matchType === 'exact'
+                  ? 'Coincidencia exacta'
+                  : searchMeta.matchType === 'partial'
+                    ? 'Coincidencia parcial'
+                    : 'Búsqueda flexible'}
+              </Text>
+              <Text style={styles.searchMetaBody}>
+                {searchMeta.bestConfidence === 'high'
+                  ? 'Alta confianza'
+                  : searchMeta.bestConfidence === 'medium'
+                    ? 'Confianza media'
+                    : 'Confianza baja'}
+                {searchMeta.canAutoSelect ? ' · selección automática disponible' : ''}
+              </Text>
+              {searchMeta.decisionReason ? (
+                <Text style={styles.searchMetaBody}>{searchMeta.decisionReason}</Text>
+              ) : null}
+            </View>
+          ) : null}
+          {query.trim().length < 2 ? (
+            <View style={styles.emptyCard}>
+              <UtensilsIcon size={30} color="rgba(73,69,79,0.3)" />
+              <Text style={styles.emptyTitle}>Escribe al menos 2 letras</Text>
+              <Text style={styles.emptyText}>Busca por nombre, marca o alias para activar el índice compartido.</Text>
+            </View>
+          ) : searchLoading ? (
+            <View style={styles.emptyCard}>
+              <UtensilsIcon size={30} color="rgba(73,69,79,0.3)" />
+              <Text style={styles.emptyTitle}>Buscando en el índice</Text>
+              <Text style={styles.emptyText}>Estamos comparando alias, marcas y categorías para darte la mejor coincidencia.</Text>
+            </View>
+          ) : searchResults.length === 0 ? (
             <View style={styles.emptyCard}>
               <UtensilsIcon size={30} color="rgba(73,69,79,0.3)" />
               <Text style={styles.emptyTitle}>No encontramos coincidencias</Text>
               <Text style={styles.emptyText}>Prueba otra marca, alias o categoría nutricional.</Text>
             </View>
-          ) : renderFoodList(searchedFoods)}
+          ) : renderFoodList(searchResults)}
         </View>
       ) : selectedMicronutrient ? (
         <View style={styles.stack}>
@@ -468,6 +542,27 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     fontSize: 15,
     color: PWA_TEXT_PRIMARY,
+  },
+  searchMetaCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: PWA_BORDER,
+    backgroundColor: PWA_CARD_STRONG,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 4,
+  },
+  searchMetaTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: PWA_TEXT_PRIMARY,
+  },
+  searchMetaBody: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: PWA_TEXT_SECONDARY,
   },
   noticeBanner: {
     borderRadius: 16,

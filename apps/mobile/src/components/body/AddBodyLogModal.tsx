@@ -21,6 +21,21 @@ interface AddBodyLogModalProps {
   initialLogId?: string | null;
 }
 
+const MEASUREMENT_FIELDS = [
+  { key: 'Pecho', label: 'Pecho (cm)' },
+  { key: 'Cintura', label: 'Cintura (cm)' },
+  { key: 'Cadera', label: 'Cadera (cm)' },
+  { key: 'Cuello', label: 'Cuello (cm)' },
+  { key: 'Bíceps (Izq)', label: 'Bíceps Izq (cm)' },
+  { key: 'Bíceps (Der)', label: 'Bíceps Der (cm)' },
+  { key: 'Antebrazo (Izq)', label: 'Antebrazo Izq (cm)' },
+  { key: 'Antebrazo (Der)', label: 'Antebrazo Der (cm)' },
+  { key: 'Muslo (Izq)', label: 'Muslo Izq (cm)' },
+  { key: 'Muslo (Der)', label: 'Muslo Der (cm)' },
+  { key: 'Pantorrilla (Izq)', label: 'Pantorrilla Izq (cm)' },
+  { key: 'Pantorrilla (Der)', label: 'Pantorrilla Der (cm)' },
+];
+
 export const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({
   visible,
   onClose,
@@ -30,8 +45,9 @@ export const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({
   const [weight, setWeight] = useState('');
   const [fat, setFat] = useState('');
   const [muscle, setMuscle] = useState('');
-  const [waist, setWaist] = useState('');
-  const [hip, setHip] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState('');
+  const [measurements, setMeasurements] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   const initialLog = useBodyStore(
@@ -50,18 +66,30 @@ export const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({
         setWeight(initialLog.weight?.toString() || '');
         setFat(initialLog.bodyFatPercentage?.toString() || '');
         setMuscle(initialLog.muscleMassPercentage?.toString() || '');
-        setWaist(initialLog.measurements?.waist?.toString() || '');
-        setHip(initialLog.measurements?.hip?.toString() || '');
+        setDate(initialLog.date?.slice(0, 10) || new Date().toISOString().slice(0, 10));
+        setNotes(initialLog.aiInsight || '');
+        const meas: Record<string, string> = {};
+        if (initialLog.measurements) {
+          for (const [key, val] of Object.entries(initialLog.measurements)) {
+            meas[key] = val.toString();
+          }
+        }
+        setMeasurements(meas);
       } else {
         setWeight('');
         setFat('');
         setMuscle('');
-        setWaist('');
-        setHip('');
+        setDate(new Date().toISOString().slice(0, 10));
+        setNotes('');
+        setMeasurements({});
       }
       setError(null);
     }
   }, [visible, initialLog]);
+
+  const handleMeasurementChange = (key: string, value: string) => {
+    setMeasurements(prev => ({ ...prev, [key]: value }));
+  };
 
   const handleSave = async () => {
     const w = parseFloat(weight);
@@ -70,11 +98,13 @@ export const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({
       return;
     }
 
-    const measurements: Record<string, number> = {};
-    const waistVal = parseFloat(waist);
-    const hipVal = parseFloat(hip);
-    if (!isNaN(waistVal) && waistVal > 0) measurements.waist = waistVal;
-    if (!isNaN(hipVal) && hipVal > 0) measurements.hip = hipVal;
+    const parsedMeasurements: Record<string, number> = {};
+    for (const [key, val] of Object.entries(measurements)) {
+      const num = parseFloat(val);
+      if (!isNaN(num) && num > 0) {
+        parsedMeasurements[key] = num;
+      }
+    }
 
     try {
       if (initialLog) {
@@ -82,14 +112,18 @@ export const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({
           weight: w,
           bodyFatPercentage: parseFloat(fat) || undefined,
           muscleMassPercentage: parseFloat(muscle) || undefined,
-          measurements: Object.keys(measurements).length > 0 ? measurements : undefined,
+          date: new Date(date).toISOString(),
+          aiInsight: notes || undefined,
+          measurements: Object.keys(parsedMeasurements).length > 0 ? parsedMeasurements : undefined,
         });
       } else {
         await addBodyLog({
           weight: w,
           bodyFatPercentage: parseFloat(fat) || undefined,
           muscleMassPercentage: parseFloat(muscle) || undefined,
-          measurements: Object.keys(measurements).length > 0 ? measurements : undefined,
+          date: new Date(date).toISOString(),
+          aiInsight: notes || undefined,
+          measurements: Object.keys(parsedMeasurements).length > 0 ? parsedMeasurements : undefined,
         });
       }
       onClose();
@@ -185,25 +219,72 @@ export const AddBodyLogModal: React.FC<AddBodyLogModalProps> = ({
                   />
                 </View>
               </View>
+              <InputField
+                label="Fecha"
+                value={date}
+                onChange={setDate}
+                placeholder="YYYY-MM-DD"
+              />
+
               <View style={styles.row}>
-                <View style={styles.flex1}>
-                  <InputField
-                    label="Cintura (cm)"
-                    value={waist}
-                    onChange={setWaist}
-                    placeholder="Ej: 80"
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-                <View style={styles.flex1}>
-                  <InputField
-                    label="Cadera (cm)"
-                    value={hip}
-                    onChange={setHip}
-                    placeholder="Ej: 95"
-                    keyboardType="decimal-pad"
-                  />
-                </View>
+                {MEASUREMENT_FIELDS.slice(0, 4).map(field => (
+                  <View key={field.key} style={styles.flex1}>
+                    <InputField
+                      label={field.label}
+                      value={measurements[field.key] || ''}
+                      onChange={(v) => handleMeasurementChange(field.key, v)}
+                      placeholder="0"
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                ))}
+              </View>
+              <View style={styles.row}>
+                {MEASUREMENT_FIELDS.slice(4, 8).map(field => (
+                  <View key={field.key} style={styles.flex1}>
+                    <InputField
+                      label={field.label}
+                      value={measurements[field.key] || ''}
+                      onChange={(v) => handleMeasurementChange(field.key, v)}
+                      placeholder="0"
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                ))}
+              </View>
+              <View style={styles.row}>
+                {MEASUREMENT_FIELDS.slice(8, 12).map(field => (
+                  <View key={field.key} style={styles.flex1}>
+                    <InputField
+                      label={field.label}
+                      value={measurements[field.key] || ''}
+                      onChange={(v) => handleMeasurementChange(field.key, v)}
+                      placeholder="0"
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={[styles.inputLabel, { color: colors.onSurfaceVariant }]}>Notas</Text>
+                <TextInput
+                  value={notes}
+                  onChangeText={setNotes}
+                  placeholder="Notas adicionales..."
+                  placeholderTextColor={`${colors.onSurface}33`}
+                  multiline
+                  numberOfLines={3}
+                  style={[
+                    styles.input,
+                    styles.textArea,
+                    {
+                      backgroundColor: `${colors.onSurface}0D`,
+                      borderColor: colors.outlineVariant,
+                      color: colors.onSurface,
+                    },
+                  ]}
+                />
               </View>
 
               {error && <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>}
@@ -280,6 +361,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
   row: {
     flexDirection: 'row',

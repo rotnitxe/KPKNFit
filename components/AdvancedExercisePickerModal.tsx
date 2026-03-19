@@ -366,15 +366,15 @@ export const AdvancedExercisePickerModal: React.FC<AdvancedExercisePickerModalPr
                                     <>
                                       <div className="flex justify-between items-center">
                                         <span className="text-[9px] text-[#525252]">Metabólico (EFC)</span>
-                                        <span className="text-[10px] font-medium text-[#1a1a1a]">{efc.toFixed(1)}</span>
+                                        <span className="text-[10px] font-medium text-[#1a1a1a]">{(efc ?? 0).toFixed(1)}</span>
                                       </div>
                                       <div className="flex justify-between items-center">
                                         <span className="text-[9px] text-[#525252]">Neural (CNC)</span>
-                                        <span className="text-[10px] font-medium text-[#1a1a1a]">{cnc.toFixed(1)}</span>
+                                        <span className="text-[10px] font-medium text-[#1a1a1a]">{(cnc ?? 0).toFixed(1)}</span>
                                       </div>
                                       <div className="flex justify-between items-center">
                                         <span className="text-[9px] text-[#525252]">Espinal (SSC)</span>
-                                        <span className="text-[10px] font-medium text-[#525252]">{ssc.toFixed(1)}</span>
+                                        <span className="text-[10px] font-medium text-[#525252]">{(ssc ?? 0).toFixed(1)}</span>
                                       </div>
                                     </>
                                   );

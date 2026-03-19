@@ -636,13 +636,13 @@ export const SplitAdvancedEditor: React.FC<SplitAdvancedEditorProps> = ({
     // Verificar si la semana actual tiene sesiones
     const checkHasSessions = useCallback(() => {
         if (!selectedWeekId) return false;
-        const block = program.macrocycles[0]?.blocks?.find(b => b.id === selectedBlockId);
+        const block = program.macrocycles[0]?.blocks?.find((b: any) => b.id === selectedBlockId);
         if (!block) return false;
-        const week = block.mesocycles.flatMap(m => m.weeks).find(w => w.id === selectedWeekId);
+        const week = block.mesocycles.flatMap((m: any) => m.weeks).find((w: any) => w.id === selectedWeekId);
         if (!week) return false;
         
         // Verificar si alguna sesión tiene ejercicios
-        return week.sessions.some(s => s.exercises && s.exercises.length > 0);
+        return week.sessions.some((s: any) => s.exercises && s.exercises.length > 0);
     }, [selectedWeekId, selectedBlockId, program.macrocycles]);
 
     // Filtros - INCLUYE splits personalizados
@@ -696,8 +696,8 @@ export const SplitAdvancedEditor: React.FC<SplitAdvancedEditorProps> = ({
     };
 
     const handleApplySplit = (split: SplitTemplate, startFromScratch: boolean) => {
-        const block = program.macrocycles[0]?.blocks?.find(b => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
-        const week = block?.mesocycles.flatMap(m => m.weeks).find(w => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
+        const block = program.macrocycles[0]?.blocks?.find((b: any) => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
+        const week = block?.mesocycles.flatMap((m: any) => m.weeks).find((w: any) => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
 
         const scope = isSimple ? 'program' : 'block';
 
@@ -714,7 +714,7 @@ export const SplitAdvancedEditor: React.FC<SplitAdvancedEditorProps> = ({
 
         // ✅ Resetear splitTrialSeen para mostrar aviso de prueba
         const updated = { ...program, splitTrialSeen: false };
-        handleUpdateProgram(updated);
+        onUpdateProgram(updated);
 
         addToast(`Split "${split.name}" aplicado`, 'success');
         setShowMigrationModal(false);
@@ -729,8 +729,8 @@ export const SplitAdvancedEditor: React.FC<SplitAdvancedEditorProps> = ({
             return;
         }
         
-        const block = program.macrocycles[0]?.blocks?.find(b => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
-        const week = block?.mesocycles.flatMap(m => m.weeks).find(w => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
+        const block = program.macrocycles[0]?.blocks?.find((b: any) => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
+        const week = block?.mesocycles.flatMap((m: any) => m.weeks).find((w: any) => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
         const scope = isSimple ? 'program' : 'block';
         
         // Aplicar el patrón guardado
@@ -757,8 +757,8 @@ export const SplitAdvancedEditor: React.FC<SplitAdvancedEditorProps> = ({
     };
 
     const handleApplyHybrid = (pattern: string[], name: string, startFromScratch: boolean) => {
-        const block = program.macrocycles[0]?.blocks?.find(b => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
-        const week = block?.mesocycles.flatMap(m => m.weeks).find(w => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
+        const block = program.macrocycles[0]?.blocks?.find((b: any) => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
+        const week = block?.mesocycles.flatMap((m: any) => m.weeks).find((w: any) => w.id === selectedWeekId) || block?.mesocycles[0]?.weeks[0];
         const scope = isSimple ? 'program' : 'block';
         
         handleChangeSplit(program.id, pattern, 'hybrid', scope, !startFromScratch, program.startDay ?? 1, block?.id, week?.id);
@@ -870,7 +870,7 @@ export const SplitAdvancedEditor: React.FC<SplitAdvancedEditorProps> = ({
             const days = split.pattern.filter(d => d.toLowerCase() !== 'descanso').length;
             const matchesDays = Math.abs(days - wizardAnswers.daysPerWeek) <= 1;
             const matchesExperience = split.difficulty.toLowerCase() === wizardAnswers.experience || 
-                (wizardAnswers.experience === 'intermedio' && split.difficulty !== 'avanzado');
+                (wizardAnswers.experience === 'intermedio' && split.difficulty.toLowerCase() !== 'avanzado');
             
             // Tags de máquinas/pesos libres (simplificado)
             const isMachineHeavy = split.name.includes('Máquina') || split.name.includes('Cable');
@@ -1155,7 +1155,14 @@ export const SplitAdvancedEditor: React.FC<SplitAdvancedEditorProps> = ({
                     isOpen={showIdealSplitWizard}
                     step={wizardStep}
                     answers={wizardAnswers}
+                    recommendations={wizardRecommendations}
                     onAnswerChange={setWizardAnswers}
+                    onSelectRecommendation={(split) => {
+                        setPendingSplit(split);
+                        setHasSessions(checkHasSessions());
+                        setShowIdealSplitWizard(false);
+                        setShowMigrationModal(true);
+                    }}
                     onNext={handleWizardNext}
                     onBack={handleWizardBack}
                     onClose={() => setShowIdealSplitWizard(false)}
@@ -1237,11 +1244,13 @@ const IdealSplitWizardModal: React.FC<{
         experience: 'principiante' | 'intermedio' | 'avanzado';
         weekStartDay: number;
     };
+    recommendations: SplitTemplate[];
     onAnswerChange: React.Dispatch<React.SetStateAction<any>>;
+    onSelectRecommendation: (split: SplitTemplate) => void;
     onNext: () => void;
     onBack: () => void;
     onClose: () => void;
-}> = ({ isOpen, step, answers, onAnswerChange, onNext, onBack, onClose }) => {
+}> = ({ isOpen, step, answers, recommendations, onAnswerChange, onSelectRecommendation, onNext, onBack, onClose }) => {
     if (!isOpen) return null;
 
     const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -1412,7 +1421,7 @@ const IdealSplitWizardModal: React.FC<{
                                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mb-2">
                                     <CheckIcon size={32} className="text-green-600" />
                                 </div>
-                                <p className="text-sm text-zinc-600">Encontramos {wizardRecommendations.length} splits ideales para ti:</p>
+                                <p className="text-sm text-zinc-600">Encontramos {recommendations.length} splits ideales para ti:</p>
                             </div>
                             
                             {/* ✅ Mensaje de prueba */}
@@ -1422,15 +1431,10 @@ const IdealSplitWizardModal: React.FC<{
                                 </p>
                             </div>
                             
-                            {wizardRecommendations.map((split, index) => (
+                            {recommendations.map((split, index) => (
                                 <button
                                     key={split.id}
-                                    onClick={() => {
-                                        setPendingSplit(split);
-                                        setHasSessions(checkHasSessions());
-                                        setShowIdealSplitWizard(false);
-                                        setShowMigrationModal(true);
-                                    }}
+                                    onClick={() => onSelectRecommendation(split)}
                                     className="w-full p-4 rounded-2xl border-2 border-zinc-200 hover:border-cyan-500 bg-white hover:bg-gradient-to-br hover:from-cyan-50 hover:to-blue-50 transition-all text-left group"
                                 >
                                     <div className="flex items-start justify-between gap-3">

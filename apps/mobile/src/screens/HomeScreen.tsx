@@ -7,13 +7,19 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ScreenShell } from '@/components/ScreenShell';
 import { CaupolicanIcon } from '@/components/CaupolicanIcon';
 import { SessionTodayCard, TodaySessionItem } from '@/components/home/SessionTodayCard';
 import { AugeEnergyOrbs } from '@/components/auge/AugeEnergyOrbs';
-import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
+import {
+  readNotificationPermissionSnapshot,
+  readStoredSettingsRaw,
+  readWidgetSyncStatus,
+  type NotificationPermissionSnapshot,
+  type WidgetSyncStatus,
+} from '@/services/mobileDomainStateService';
 import {
   BellIcon,
   IntertwinedRingsIcon,
@@ -23,6 +29,8 @@ import {
   SunIcon,
   WikiLabIcon,
 } from '@/components/icons';
+import { syncNotificationPermissionState } from '@/services/mobileNotificationService';
+import { refreshWidgetSyncHealth } from '@/services/widgetSyncService';
 import { useWorkoutStore } from '@/stores/workoutStore';
 import { useProgramStore } from '@/stores/programStore';
 import { useBodyStore } from '@/stores/bodyStore';
@@ -41,6 +49,18 @@ function getGreeting() {
   if (h < 12) return '¡Buenos días';
   if (h < 19) return '¡Buenas tardes';
   return '¡Buenas noches';
+}
+
+function formatLastSyncLabel(iso: string | null): string {
+  if (!iso) return 'sin sincronización previa';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'sin sincronización previa';
+  return date.toLocaleString('es-CL', {
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+  });
 }
 
 function SectionTitle({ title, action }: { title: string; action?: React.ReactNode }) {
@@ -126,6 +146,10 @@ export function HomeScreen() {
   } = useMobileNutritionStore();
 
   const [ringsView, setRingsView] = useState<RingsMode>('rings');
+  const [widgetHealth, setWidgetHealth] = useState<WidgetSyncStatus>(() => readWidgetSyncStatus());
+  const [notificationHealth, setNotificationHealth] = useState<NotificationPermissionSnapshot>(() =>
+    readNotificationPermissionSnapshot(),
+  );
 
   useEffect(() => {
     if (workoutStatus === 'idle') void hydrateWorkout();
@@ -137,6 +161,30 @@ export function HomeScreen() {
     if (settingsSummary === null) void hydrateSettings();
     void recoverActiveSession();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      const syncOperationalHealth = async () => {
+        try {
+          const [widgetStatus, permissionStatus] = await Promise.all([
+            refreshWidgetSyncHealth(),
+            syncNotificationPermissionState(),
+          ]);
+          if (!mounted) return;
+          setWidgetHealth(widgetStatus);
+          setNotificationHealth(permissionStatus);
+        } catch (error) {
+          if (!mounted) return;
+          console.warn('[home] No se pudo refrescar salud operativa.', error);
+        }
+      };
+      void syncOperationalHealth();
+      return () => {
+        mounted = false;
+      };
+    }, []),
+  );
 
   const activeProgram = useMemo(() =>
     programs.find((p: Program) => p.id === activeProgramState?.programId) || null
@@ -231,6 +279,30 @@ export function HomeScreen() {
 
   const renderWithProgram = () => (
     <View style={styles.programView}>
+      {widgetHealth.stale || notificationHealth.status === 'blocked' ? (
+        <View style={[styles.operationalWarningCard, { backgroundColor: `${colors.error}12`, borderColor: `${colors.error}55` }]}>
+          <Text style={[styles.operationalWarningTitle, { color: colors.error }]}>
+            Atención operativa
+          </Text>
+          {widgetHealth.stale ? (
+            <Text style={[styles.operationalWarningText, { color: colors.onSurface }]}>
+              Widget desactualizado ({formatLastSyncLabel(widgetHealth.lastSuccessfulSyncAt)}). Abre Ajustes para re-sincronizar.
+            </Text>
+          ) : null}
+          {notificationHealth.status === 'blocked' ? (
+            <Text style={[styles.operationalWarningText, { color: colors.onSurface }]}>
+              Las notificaciones están bloqueadas por el sistema.
+            </Text>
+          ) : null}
+          <Pressable
+            onPress={() => navigation.navigate('Settings')}
+            style={({ pressed }) => [styles.operationalWarningAction, { backgroundColor: colors.error }, pressed && styles.pressed]}
+          >
+            <Text style={styles.operationalWarningActionText}>Abrir Ajustes operativos</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={styles.section}>
         <SectionTitle 
           title="Tus RINGS" 
@@ -418,6 +490,39 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
     gap: 16,
+  },
+  operationalWarningCard: {
+    marginHorizontal: 24,
+    marginBottom: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 6,
+  },
+  operationalWarningTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  operationalWarningText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  operationalWarningAction: {
+    alignSelf: 'flex-start',
+    marginTop: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  operationalWarningActionText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   sectionHeaderRow: {
     flexDirection: 'row',

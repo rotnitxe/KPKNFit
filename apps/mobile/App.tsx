@@ -12,6 +12,7 @@ import {
   rescheduleCoreNotificationsFromStorage,
   syncNotificationPermissionState,
 } from './src/services/mobileNotificationService';
+import { refreshWidgetSyncHealth } from './src/services/widgetSyncService';
 import { navigateFromExternalTarget } from './src/navigation/navigationRef';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 
@@ -34,6 +35,84 @@ function AppContent() {
   useEffect(() => {
     void bootstrap();
   }, [bootstrap]);
+
+  useEffect(() => {
+    const syncPermissionsAndNotifications = async () => {
+      try {
+        const permission = await syncNotificationPermissionState();
+        await refreshWidgetSyncHealth();
+        if (permission.granted) {
+          await rescheduleCoreNotificationsFromStorage();
+        }
+      } catch (error) {
+        console.warn('[app] No se pudo refrescar permisos/notificaciones.', error);
+      }
+    };
+
+    const syncBackgroundSchedule = async () => {
+      try {
+        await backgroundModule.schedulePeriodicSync();
+      } catch (error) {
+        console.warn('[app] No se pudo programar el sync periódico.', error);
+      }
+    };
+
+    void syncPermissionsAndNotifications();
+    void syncBackgroundSchedule();
+
+    const appStateSub = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        void syncPermissionsAndNotifications();
+      }
+    });
+
+    const unsubscribeForeground = notifee.onForegroundEvent(event => {
+      if (event.type !== EventType.PRESS && event.type !== EventType.ACTION_PRESS) {
+        return;
+      }
+      const target = getNotificationTarget(event.detail.notification?.data?.screen);
+      if (target) {
+        navigateFromExternalTarget(target);
+      }
+    });
+
+    return () => {
+      appStateSub.remove();
+      unsubscribeForeground();
+    };
+  }, []);
+
+  if (status === 'booting') {
+    return (
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <CaupolicanIcon size={64} color={colors.primary} />
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={[styles.bootingText, { color: colors.onSurfaceVariant }]}>
+          iniciando módulos rn
+        </Text>
+      </View>
+    );
+  }
+
+  if (status === 'failed') {
+    return (
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <CaupolicanIcon size={56} color={colors.error} />
+        <Text style={[styles.errorTitle, { color: colors.onSurface }]}>No pudimos iniciar la app</Text>
+        <Text style={[styles.errorDetail, { color: colors.error }]}>
+          {error ?? 'Falló el bootstrap inicial.'}
+        </Text>
+        <TouchableOpacity
+          onPress={() => {
+            void retry();
+          }}
+          style={[styles.retryButton, { borderColor: colors.outlineVariant, backgroundColor: colors.surface }]}
+        >
+          <Text style={[styles.retryButtonText, { color: colors.onSurface }]}>Reintentar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <>

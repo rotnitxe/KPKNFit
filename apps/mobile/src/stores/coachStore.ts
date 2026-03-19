@@ -8,7 +8,7 @@ import type {
   CoachChatMessage, 
   CoachContextSnapshot 
 } from '../types/coach';
-import { generateCoachReply, summarizeConversationTitle } from '../services/coachChatService';
+import { generateCoachReply, summarizeConversationTitle } from '../services/aiService';
 
 interface CoachStoreState {
   status: 'idle' | 'ready' | 'failed';
