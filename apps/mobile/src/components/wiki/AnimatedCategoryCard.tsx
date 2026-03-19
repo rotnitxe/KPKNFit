@@ -71,13 +71,11 @@ export const AnimatedCategoryCard: React.FC<AnimatedCategoryCardProps> = ({
       onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${subtitle}. ${count} elementos.`}
-      style={({ pressed }) => [
+      style={[
         styles.card,
         {
           backgroundColor: colors.surfaceContainer,
           borderColor: colors.outlineVariant,
-          opacity: pressed ? 0.7 : 1,
-          transform: [{ scale: pressed ? 0.96 : 1 }],
         },
       ]}
     >

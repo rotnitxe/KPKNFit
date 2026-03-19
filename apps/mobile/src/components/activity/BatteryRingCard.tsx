@@ -80,20 +80,19 @@ export function BatteryRingCard({
   return (
     <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
       <View style={styles.header}>
-        <View style={styles.titleSection}>
-          <Text style={[styles.title, { color: colors.onSurfaceVariant }]}>Resumen Combinado</Text>
-          {sourceLabel && (
-            <Text style={[styles.sourceLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
-              {sourceLabel}
-            </Text>
-          )}
-        </View>
+        <Text style={[styles.title, { color: colors.onSurfaceVariant }]}>Resumen Combinado</Text>
         <View style={[styles.statusBadge, { backgroundColor: getStatus.backgroundColor }]}>
           <Text style={[styles.statusText, { color: getStatus.color }]} numberOfLines={1}>
             {getStatus.label}
           </Text>
         </View>
       </View>
+
+      {sourceLabel ? (
+        <Text style={[styles.sourceLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+          {sourceLabel}
+        </Text>
+      ) : null}
 
       <View style={styles.ringsContainer}>
         <Canvas style={{ width: size, height: size }}>
@@ -174,10 +173,10 @@ export function BatteryRingCard({
       </View>
 
       {/* Bottom Stats */}
-      <View style={[styles.statsRow, { borderTopColor: colors.outlineVariant }]}>
+      <View style={[styles.statsRow, { borderTopColor: `${colors.outlineVariant}80` }]}>
         <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: colors.primary }]}>{Math.round(clampedOverall)}%</Text>
-          <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>Gral</Text>
+          <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>General</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: colors.secondary }]}>{Math.round(clampedCns)}%</Text>
@@ -196,43 +195,40 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 24,
     borderWidth: 1,
-    padding: 16,
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  titleSection: {
-    flex: 1,
+    alignItems: 'center',
+    marginBottom: 4,
   },
   title: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '900',
     letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 2,
   },
   sourceLabel: {
-    fontSize: 10,
-    fontStyle: 'italic',
+    fontSize: 11,
+    fontWeight: '500',
+    marginBottom: 12,
   },
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 999,
   },
   statusText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   ringsContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginVertical: 12,
   },
   centerLabel: {
     position: 'absolute',
@@ -240,13 +236,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   centerPercentage: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   centerLabelText: {
     fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginTop: 2,
   },
@@ -254,20 +251,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     borderTopWidth: 1,
-    paddingTop: 16,
+    paddingTop: 14,
+    marginTop: 4,
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
   },
   statValue: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.3,
   },
   statLabel: {
     fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginTop: 4,
+    marginTop: 3,
   },
 });

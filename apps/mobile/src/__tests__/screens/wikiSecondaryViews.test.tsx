@@ -68,24 +68,24 @@ describe('Wiki secondary views', () => {
     // Find biomechanics card by accessibility label
     const allProps = tree!.root.findAllByProps({ accessibilityRole: 'button' });
     const biomechCard = allProps.find(
-      node => node.accessibilityLabel?.includes('Biomecánica aplicada')
+      (node: any) => (node.props as any)?.accessibilityLabel?.includes('Biomecánica aplicada')
     );
     
-    if (biomechCard && biomechCard.onPress) {
+    if (biomechCard && (biomechCard.props as any)?.onPress) {
       act(() => {
-        biomechCard.onPress();
+        (biomechCard.props as any).onPress();
       });
       expect(mockNavigate).toHaveBeenCalledWith('WikiBiomechanics');
     }
 
     // Find muscle article card
     const articleCard = allProps.find(
-      node => node.accessibilityLabel?.includes('Pectoral Mayor')
+      (node: any) => (node.props as any)?.accessibilityLabel?.includes('Pectoral Mayor')
     );
     
-    if (articleCard && articleCard.onPress) {
+    if (articleCard && (articleCard.props as any)?.onPress) {
       act(() => {
-        articleCard.onPress();
+        (articleCard.props as any).onPress();
       });
       expect(mockNavigate).toHaveBeenCalledWith('WikiArticle', {
         articleType: 'muscle',

@@ -39,7 +39,7 @@ export const CoachMessageBubble = memo(({ message }: CoachMessageBubbleProps) =>
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 12,
     flexDirection: 'row',
     width: '100%',
   },
@@ -51,9 +51,9 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '85%',
-    borderRadius: 24,
+    borderRadius: 16,
     borderWidth: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
   },
   messageText: {

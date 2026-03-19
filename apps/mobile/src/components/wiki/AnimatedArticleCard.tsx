@@ -34,13 +34,11 @@ export const AnimatedArticleCard: React.FC<AnimatedArticleCardProps> = ({
       onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`${category}: ${title}`}
-      style={({ pressed }) => [
+      style={[
         styles.card,
         {
           backgroundColor: colors.surfaceContainer,
           borderColor: colors.outlineVariant,
-          opacity: pressed ? 0.7 : 1,
-          transform: [{ scale: pressed ? 0.97 : 1 }],
         },
       ]}
     >

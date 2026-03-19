@@ -80,9 +80,15 @@ export const BodyFatChart: React.FC<BodyFatChartProps> = ({
 
     if (!data || data.length < 2) {
         return (
-            <View testID={testID} style={[styles.emptyContainer, { height }]}>
-                <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>
-                    Datos insuficientes para gráfica
+            <View testID={testID} style={[styles.emptyContainer, { height, borderColor: colors.outlineVariant }]}>
+                <Text style={[styles.emptyIcon, { color: colors.onSurfaceVariant }]}>
+                    📊
+                </Text>
+                <Text style={[styles.emptyText, { color: colors.onSurface }]}>
+                    Sin datos suficientes
+                </Text>
+                <Text style={[styles.emptyHint, { color: colors.onSurfaceVariant }]}>
+                    Se necesitan al menos 2 registros
                 </Text>
             </View>
         );
@@ -161,10 +167,24 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 12,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        gap: 6,
+        paddingVertical: 20,
+    },
+    emptyIcon: {
+        fontSize: 28,
+        marginBottom: 4,
     },
     emptyText: {
-        fontSize: 14,
+        fontSize: 15,
+        fontWeight: '700',
+    },
+    emptyHint: {
+        fontSize: 12,
+        fontWeight: '500',
+        opacity: 0.6,
     },
     labelsContainer: {
         position: 'absolute',
@@ -176,6 +196,8 @@ const styles = StyleSheet.create({
     },
     label: {
         position: 'absolute',
-        fontSize: 10,
+        fontSize: 11,
+        fontWeight: '600',
+        letterSpacing: 0.3,
     },
 });

@@ -74,7 +74,6 @@ function TabButton({
           compact && styles.iconWrapCompact,
           active && {
             backgroundColor: colors.secondaryContainer,
-            borderColor: colors.secondary,
           },
         ]}
       >
@@ -211,6 +210,8 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
                 label={config.label}
                 Icon={config.icon}
                 active={currentRoute === routeName}
+                compact={isCompact}
+                showLabel={showLabels}
                 onPress={() => navigateTo(routeName)}
               />
             );
@@ -260,8 +261,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -270,20 +269,21 @@ const styles = StyleSheet.create({
     height: 36,
   },
   label: {
-    marginTop: 6,
-    fontSize: 9,
+    marginTop: 5,
+    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 1.1,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   labelCompact: {
-    marginTop: 4,
+    marginTop: 3,
     fontSize: 8,
   },
   indicator: {
-    width: 32,
-    height: 3,
+    width: 28,
+    height: 2,
     borderRadius: 99,
-    marginTop: 6,
+    marginTop: 5,
   },
   homeButton: {
     alignItems: 'center',
@@ -304,10 +304,11 @@ const styles = StyleSheet.create({
     borderRadius: 26,
   },
   homeLabel: {
-    marginTop: 6,
+    marginTop: 5,
     fontSize: 10,
     fontWeight: '900',
-    letterSpacing: 1.4,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   homeLabelCompact: {
     marginTop: 4,

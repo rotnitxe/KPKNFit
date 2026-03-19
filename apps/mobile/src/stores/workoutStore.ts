@@ -355,12 +355,7 @@ console.log('Updating state with', {
     readinessScore: score,
   })),
 
-  startActiveSession: (programIdOrPayload, maybeSession) => {
-    // Support both old and new signatures for startActiveSession
-    const payload = typeof programIdOrPayload === 'string'
-      ? { programId: programIdOrPayload, session: maybeSession as Session }
-      : programIdOrPayload;
-
+  startActiveSession: (payload) => {
     set((state) => {
       const { session, exercises, activeExerciseId, activeSetId } = resolveSessionSelection(payload.session);
 
@@ -793,7 +788,7 @@ console.log('Updating state with', {
            durationMinutes: log.duration || 0,
        };
 
-       await persistLocalWorkoutLog(log);
+        await persistLocalWorkoutLog(summary);
        // Also persist full log if SQLite supports it
        await persistDomainPayload(`workout.log.${log.id}`, log);
 
@@ -824,10 +819,9 @@ console.log('Updating state with', {
            console.warn('Error guardando feedback:', feedbackError);
          }
        }
-       
-       const result = await loadWorkoutRuntimeState() || {};
-        const nextOverview = result.overview;
-        const nextReminders = result.reminderSettings;
+              const result = await loadWorkoutRuntimeState();
+        const nextOverview = result?.overview;
+        const nextReminders = result?.reminderSettings;
        
        // Limpiar checkpoint de sesión activa
        await clearActiveSessionCheckpoint();
@@ -837,12 +831,11 @@ set({
           overview: nextOverview,
           reminderSettings: nextReminders,
           activeSession: null,
-          sessionFinishState: 'success',
+          sessionFinishState: 'idle',
           postSessionFeedbackHistory: nextFeedbackHistory,
           latestPostSessionFeedback: nextFeedbackHistory[0] || null,
           notice: '¡Sesión finalizada y guardada!',
 });
-console.log('State after clearing activeSession', get().activeSession);
 
         if (nextReminders) {
          await syncWorkoutInfra(nextOverview, nextReminders);

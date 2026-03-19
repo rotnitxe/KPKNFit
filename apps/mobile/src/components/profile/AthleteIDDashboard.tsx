@@ -26,7 +26,7 @@ interface DonutChartProps {
   value: string;
 }
 
-function DonutChart({ percentage, color, size = 80, strokeWidth = 8, label, value }: DonutChartProps) {
+function DonutChart({ percentage, color, size = 80, strokeWidth = 10, label, value }: DonutChartProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -74,14 +74,14 @@ const chartStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   valueText: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '900',
   },
   labelText: {
-    fontSize: 8,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1.5,
   },
 });
 
@@ -114,19 +114,19 @@ const statCardStyles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 4,
+    letterSpacing: 2,
+    marginBottom: 6,
   },
   valueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 2,
+    gap: 3,
   },
   value: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: '900',
   },
   unit: {
@@ -135,7 +135,8 @@ const statCardStyles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 9,
-    marginTop: 2,
+    fontWeight: '700',
+    marginTop: 4,
   },
 });
 
@@ -181,12 +182,12 @@ function StrengthRatioBar({ label, ratio, benchmarks }: StrengthRatioBarProps) {
 
 const barStyles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   labelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   label: {
     fontSize: 12,
@@ -208,11 +209,11 @@ const barStyles = StyleSheet.create({
   benchmarks: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 4,
+    marginTop: 6,
   },
   benchmarkLabel: {
-    fontSize: 8,
-    fontWeight: '600',
+    fontSize: 9,
+    fontWeight: '700',
   },
 });
 
@@ -344,7 +345,7 @@ export function AthleteIDDashboard() {
   return (
     <ScreenShell
       title="Perfil de Atleta"
-      subtitle="Identificación atlética completa"
+      subtitle="Tu identificación atlética"
     >
       <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
         <LiquidGlassCard style={styles.heroCard} padding={20}>
@@ -486,32 +487,33 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 3,
     marginBottom: 16,
   },
   compositionRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   ffmiRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
+    borderTopColor: 'rgba(0,0,0,0.06)',
   },
   ffmiItem: {
     alignItems: 'center',
   },
   ffmiValue: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '900',
   },
   ffmiLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '900',
     textTransform: 'uppercase',
+    letterSpacing: 1.5,
     marginTop: 4,
   },
   statsRow: {
@@ -522,19 +524,23 @@ const styles = StyleSheet.create({
   liftsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+    paddingTop: 16,
   },
   liftItem: {
     alignItems: 'center',
+    gap: 4,
   },
   liftLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '900',
     textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   liftValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '900',
-    marginTop: 4,
   },
   vitalsGrid: {
     flexDirection: 'row',
@@ -543,15 +549,16 @@ const styles = StyleSheet.create({
   },
   vitalItem: {
     minWidth: '40%',
+    gap: 2,
   },
   vitalLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '900',
     textTransform: 'uppercase',
-    marginBottom: 4,
+    letterSpacing: 1.5,
   },
   vitalValue: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
   },
 });

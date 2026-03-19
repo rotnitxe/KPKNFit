@@ -1,12 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-  FadeInRight,
-} from 'react-native-reanimated';
 import { useColors } from '@/theme';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
@@ -25,11 +18,8 @@ export const AnimatedListItem: React.FC<AnimatedListItemProps> = ({
   onPress,
   icon,
   accent = 'sky',
-  index = 0,
 }) => {
   const colors = useColors();
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
 
   const getAccentColors = (accent: string): string => {
     switch (accent) {
@@ -48,73 +38,50 @@ export const AnimatedListItem: React.FC<AnimatedListItemProps> = ({
 
   const iconBgColor = getAccentColors(accent);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const chevronAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 15, stiffness: 400 });
-    translateX.value = withTiming(4, { duration: 100 });
+  const handlePress = () => {
     ReactNativeHapticFeedback.trigger('selection', {
       enableVibrateFallback: true,
       ignoreAndroidSystemSettings: false,
     });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-    translateX.value = withTiming(0, { duration: 100 });
+    if (onPress) onPress();
   };
 
   return (
-    <Animated.View entering={FadeInRight}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        accessibilityRole="button"
-        accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
-      >
-        <Animated.View
-          style={[
-            styles.container,
-            { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainer },
-            animatedStyle,
-          ]}
-        >
-          <View style={styles.content}>
-            {icon && (
-              <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-                {icon}
-              </View>
-            )}
-            <View style={[styles.textContainer, icon ? styles.textContainerWithIcon : null]}>
-              <Text style={[styles.title, { color: colors.onSurface }]} numberOfLines={1}>
-                {title}
-              </Text>
-              {subtitle && (
-                <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
-                  {subtitle}
-                </Text>
-              )}
-            </View>
+    <Pressable
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
+      style={[
+        styles.container,
+        { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainer },
+      ]}
+    >
+      <View style={styles.content}>
+        {icon && (
+          <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
+            {icon}
           </View>
-          <Animated.Text
-            style={[
-              styles.chevron,
-              { color: colors.onSurfaceVariant, opacity: 0.3 },
-              chevronAnimatedStyle,
-            ]}
-          >
-            ›
-          </Animated.Text>
-        </Animated.View>
-      </Pressable>
-    </Animated.View>
+        )}
+        <View style={[styles.textContainer, icon ? styles.textContainerWithIcon : null]}>
+          <Text style={[styles.title, { color: colors.onSurface }]} numberOfLines={1}>
+            {title}
+          </Text>
+          {subtitle && (
+            <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
+              {subtitle}
+            </Text>
+          )}
+        </View>
+      </View>
+      <Text
+        style={[
+          styles.chevron,
+          { color: colors.onSurfaceVariant, opacity: 0.3 },
+        ]}
+      >
+        ›
+      </Text>
+    </Pressable>
   );
 };
 

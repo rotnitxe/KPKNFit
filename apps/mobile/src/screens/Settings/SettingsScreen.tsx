@@ -42,13 +42,13 @@ function SettingRow({ label, value }: SettingRowProps) {
   const colors = useColors();
 
   return (
-    <View style={[styles.settingRow, { borderColor: colors.outlineVariant }]}>
-      <Text style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
+    <View style={styles.settingRow}>
+      <Text style={[styles.settingLabel, { color: colors.onSurface }]}>
         {label}
       </Text>
       <Text
         numberOfLines={1}
-        style={[styles.settingValue, { color: colors.onSurface }]}
+        style={[styles.settingValue, { color: colors.onSurfaceVariant }]}
       >
         {value}
       </Text>
@@ -67,7 +67,7 @@ function ChoiceChip({ label, selected, onPress }: ChoiceChipProps) {
         styles.choiceChip,
         {
           borderColor: selected ? colors.primary : colors.outlineVariant,
-          backgroundColor: selected ? `${colors.primary}1A` : colors.surfaceContainer,
+          backgroundColor: selected ? `${colors.primary}1A` : 'transparent',
         },
       ]}
     >
@@ -87,7 +87,7 @@ function ControlRow({ label, description, children }: ControlRowProps) {
   const colors = useColors();
 
   return (
-    <View style={[styles.controlRow, { borderColor: colors.outlineVariant }]}>
+    <View style={styles.controlRow}>
       <View style={styles.controlText}>
         <Text style={[styles.controlLabel, { color: colors.onSurface }]}>{label}</Text>
         {description ? (
@@ -175,10 +175,16 @@ export function SettingsScreen() {
 
   const renderSection = (title: string, children: React.ReactNode) => (
     <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-      <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
-        {title}
-      </Text>
-      {children}
+      {title ? (
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+            {title}
+          </Text>
+        </View>
+      ) : null}
+      <View style={styles.sectionBody}>
+        {children}
+      </View>
     </View>
   );
 
@@ -240,7 +246,7 @@ export function SettingsScreen() {
             <View style={styles.sectionContent}>
               <ControlRow
                 label="Tema"
-                description="Elige cómo se ve tu app"
+                description="Apariencia visual de la app"
               >
                 <View style={styles.choiceGrid}>
                   {([
@@ -290,7 +296,7 @@ export function SettingsScreen() {
           {renderSection('Recordatorios', (
                 <View style={styles.sectionContent}>
                   <ControlRow
-                    label="Entreno diario"
+                    label="Sesión del día"
                     description={settings.remindersEnabled ? `Diario a las ${settings.reminderTime ?? '--'}` : 'Desactivado'}
                   >
                     <ToggleSwitch
@@ -310,7 +316,7 @@ export function SettingsScreen() {
                     />
                   </ControlRow>
                   <ControlRow
-                    label="Fallback IA"
+                    label="IA sin conexión"
                     description={settings.fallbackEnabled ? 'Activo' : 'Apagado'}
                   >
                     <ToggleSwitch
@@ -319,8 +325,8 @@ export function SettingsScreen() {
                       testID="toggle-fallback-ai"
                     />
                   </ControlRow>
-                  <SettingRow label="Entreno no registrado" value={settings.missedWorkoutReminderEnabled ? `Aviso a las ${settings.missedWorkoutReminderTime}` : 'Desactivado'} />
-                  <SettingRow label="Batería baja" value={settings.augeBatteryReminderEnabled ? `Aviso al ${settings.augeBatteryReminderThreshold}% · ${settings.augeBatteryReminderTime}` : 'Desactivado'} />
+                  <SettingRow label="Entrenamiento no registrado" value={settings.missedWorkoutReminderEnabled ? `Aviso a las ${settings.missedWorkoutReminderTime}` : 'Desactivado'} />
+                  <SettingRow label="Batería AUGE baja" value={settings.augeBatteryReminderEnabled ? `Aviso al ${settings.augeBatteryReminderThreshold}% · ${settings.augeBatteryReminderTime}` : 'Desactivado'} />
                 </View>
           ))}
 
@@ -331,9 +337,9 @@ export function SettingsScreen() {
                     description="Afecta cálculos y placas sugeridas"
                   >
                     <View style={styles.choiceGrid}>
-                      {([
-                        ['kg', 'Kg'],
-                        ['lbs', 'Lbs'],
+                       {([
+                        ['kg', 'KG'],
+                        ['lbs', 'LBS'],
                       ] as const).map(([value, label]) => (
                         <ChoiceChip
                           key={value}
@@ -344,20 +350,20 @@ export function SettingsScreen() {
                       ))}
                     </View>
                   </ControlRow>
-                  <SettingRow label="Rest timer" value={`${selectedRestTimerSeconds}s · ${selectedRestTimerAutoStart ? 'auto' : 'manual'}`} />
-                  <SettingRow label="Vista compacta" value={settings.sessionCompactView ? 'Sí' : 'No'} />
-                  <SettingRow label="PRs visibles" value={settings.showPRsInWorkout ? 'Sí' : 'No'} />
+                  <SettingRow label="Descanso por defecto" value={`${selectedRestTimerSeconds}s · ${selectedRestTimerAutoStart ? 'auto' : 'manual'}`} />
+                    <SettingRow label="Vista compacta" value={settings.sessionCompactView ? 'Sí' : 'No'} />
+                    <SettingRow label="PRs en sesión" value={settings.showPRsInWorkout ? 'Sí' : 'No'} />
                 </View>
           ))}
 
           {/* Preferences Section */}
           {renderSection('Preferencias', (
                 <View style={styles.sectionContent}>
-                  <SettingRow label="Semana inicia" value={`Día ${settings.startWeekOn}`} />
-                  <SettingRow label="Proveedor IA" value={settings.apiProvider ?? 'Sin definir'} />
-                  <SettingRow label="Modo entreno" value={settings.workoutLoggerMode === 'pro' ? 'Pro' : settings.workoutLoggerMode === 'simple' ? 'Simple' : 'Sin definir'} />
+                  <SettingRow label="Inicio de semana" value={`Día ${settings.startWeekOn}`} />
+                  <SettingRow label="Modelo IA" value={settings.apiProvider ?? 'Sin definir'} />
+                  <SettingRow label="Modo de entreno" value={settings.workoutLoggerMode === 'pro' ? 'Pro' : settings.workoutLoggerMode === 'simple' ? 'Simple' : 'Sin definir'} />
                   <SettingRow label="Meta de sueño" value={`${settings.sleepTargetHours ?? 8}h · ${settings.wakeTimeWork ?? '--'}`} />
-                  <SettingRow label="Widgets inicio" value={(settings.homeWidgetOrder?.length ?? 0) > 0 ? (settings.homeWidgetOrder ?? []).join(', ') : 'Orden por defecto'} />
+                  <SettingRow label="Widgets de inicio" value={(settings.homeWidgetOrder?.length ?? 0) > 0 ? (settings.homeWidgetOrder ?? []).join(', ') : 'Orden por defecto'} />
                 </View>
           ))}
 
@@ -415,7 +421,7 @@ export function SettingsScreen() {
                     onPress={() => void toggleFallbackEnabled()}
                     variant="secondary"
                   >
-                    {fallbackEnabled ? 'Apagar fallback IA' : 'Encender fallback IA'}
+                    {fallbackEnabled ? 'Apagar IA sin conexión' : 'Encender IA sin conexión'}
                   </Button>
                   <Button
                     onPress={() => void applyReminderPreset('light')}
@@ -530,14 +536,23 @@ const styles = StyleSheet.create({
   section: {
     borderRadius: 24,
     borderWidth: 1,
-    padding: 16,
+    overflow: 'hidden',
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.03)',
   },
   sectionTitle: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: 12,
+    letterSpacing: 3,
+    opacity: 0.5,
+  },
+  sectionBody: {
+    padding: 8,
   },
   sectionContent: {
     gap: 12,
@@ -548,28 +563,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   choiceChip: {
-    minWidth: 96,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   choiceChipText: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
     textAlign: 'center',
   },
   controlRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 56,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 24,
-    borderWidth: 1,
     gap: 16,
   },
   controlText: {
@@ -577,36 +591,41 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   controlLabel: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
   },
   controlDescription: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 10,
+    fontWeight: '500',
+    lineHeight: 16,
+    opacity: 0.5,
   },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 56,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 24,
-    borderWidth: 1,
   },
   settingLabel: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '700',
     flex: 1,
     marginRight: 12,
   },
   settingValue: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    opacity: 0.5,
     textAlign: 'right',
     maxWidth: '45%',
   },
   statusTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
   },
   statusDescription: {
     fontSize: 14,
@@ -619,12 +638,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   noticeText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
   },
   actionsSection: {
-    gap: 12,
-    marginTop: 8,
+    gap: 8,
   },
   signoffSection: {
     gap: 12,
@@ -643,10 +661,10 @@ const styles = StyleSheet.create({
   },
   hydratingTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   hydratingDescription: {
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',
   },

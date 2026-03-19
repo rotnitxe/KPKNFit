@@ -37,84 +37,131 @@ export const NutritionHeroCard: React.FC<NutritionHeroCardProps> = ({
   primaryLabel,
 }) => {
   const colors = useColors();
-  
+
   const getPct = (val: number, goal: number) => Math.min(100, Math.round((val / (goal || 1)) * 100));
   const proteinPct = getPct(protein, proteinGoal);
   const carbsPct = getPct(carbs, carbGoal);
   const fatsPct = getPct(fats, fatGoal);
-  
+
   // Calculate deficit/surplus indicator
   const diff = caloriesToday - calorieGoal;
   const diffPercent = Math.abs(diff) / calorieGoal;
   let indicator = 'equals';
   let indicatorColor = colors.onSurfaceVariant;
   let IndicatorIcon = MinusIcon;
-  
-  if (diffPercent > 0.05) { // ±5% tolerance
+
+  if (diffPercent > 0.05) {
     if (diff > 0) {
       indicator = 'surplus';
-      indicatorColor = '#EF4444'; // Red
+      indicatorColor = '#EF4444';
       IndicatorIcon = ArrowUpIcon;
     } else {
       indicator = 'deficit';
-      indicatorColor = '#10B981'; // Green
+      indicatorColor = '#10B981';
       IndicatorIcon = ArrowDownIcon;
     }
   }
 
+  const formattedDate = new Date(`${dateLabel}T00:00:00`).toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
   return (
-    <TouchableOpacity 
-      style={[styles.card, { backgroundColor: `${colors.surface}CC`, borderColor: `${colors.onSurface}1A` }]}
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant }]}
       onPress={onPressSettings}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
     >
+      {/* Header: Date and status */}
       <View style={styles.header}>
-        <Text style={[styles.dateLabel, { color: colors.onSurfaceVariant }]}>
-          HOY · {dateLabel}
-        </Text>
-        <View style={[styles.indicator, { backgroundColor: `${indicatorColor}20` }]}>
-          <IndicatorIcon size={12} color={indicatorColor} />
+        <View style={styles.dateSection}>
+          <Text style={[styles.dateLabel, { color: colors.onSurfaceVariant }]}>
+            {formattedDate}
+          </Text>
+          <Text style={[styles.dateSublabel, { color: colors.onSurfaceVariant }]}>
+            Nutrición y macros
+          </Text>
+        </View>
+        <View style={[styles.indicator, { backgroundColor: `${indicatorColor}15` }]}>
+          <IndicatorIcon size={14} color={indicatorColor} />
           <Text style={[styles.indicatorText, { color: indicatorColor }]}>
-            {indicator === 'equals' ? 'Objetivo' : indicator === 'surplus' ? 'Superávit' : 'Déficit'}
+            {indicator === 'equals' ? 'En objetivo' : indicator === 'surplus' ? 'Superávit' : 'Déficit'}
           </Text>
         </View>
       </View>
 
-      <NutritionRingsContainer
-        calories={caloriesToday}
-        goal={calorieGoal}
-        proteinPct={proteinPct}
-        carbsPct={carbsPct}
-        fatsPct={fatsPct}
-      />
+      {/* Main content: Calories + Rings */}
+      <View style={styles.mainContent}>
+        {/* Left: Calorie summary */}
+        <View style={styles.calorieSection}>
+          <View style={styles.calorieLabel}>
+            <View style={[styles.calorieDot, { backgroundColor: colors.primary }]} />
+            <Text style={[styles.calorieLabelText, { color: colors.onSurfaceVariant }]}>
+              Calorías
+            </Text>
+          </View>
+          <View style={styles.calorieValueRow}>
+            <Text style={[styles.calorieValue, { color: colors.onSurface }]}>
+              {caloriesToday}
+            </Text>
+            <Text style={[styles.calorieUnit, { color: colors.onSurfaceVariant }]}>
+              / {calorieGoal} kcal
+            </Text>
+          </View>
+          <View style={styles.mealCountRow}>
+            <Text style={[styles.mealCountText, { color: colors.onSurfaceVariant }]}>
+              {mealCount} comidas registradas
+            </Text>
+          </View>
+        </View>
 
-      <View style={styles.subtitleContainer}>
-        <Text style={[styles.subtitleText, { color: colors.onSurface }]}>
-          {caloriesToday} / {calorieGoal} kcal · {mealCount} comidas
-        </Text>
+        {/* Right: Macro rings */}
+        <View style={styles.ringsSection}>
+          <NutritionRingsContainer
+            calories={caloriesToday}
+            goal={calorieGoal}
+            proteinPct={proteinPct}
+            carbsPct={carbsPct}
+            fatsPct={fatsPct}
+          />
+        </View>
       </View>
-      
-      {/* Macro Bar */}
+
+      {/* Macro progress bar */}
       <View style={styles.macroBarContainer}>
         <View style={[styles.macroBarSegment, { backgroundColor: '#10b981', width: `${proteinPct}%` }]} />
         <View style={[styles.macroBarSegment, { backgroundColor: '#f59e0b', width: `${carbsPct}%` }]} />
         <View style={[styles.macroBarSegment, { backgroundColor: '#f43f5e', width: `${fatsPct}%` }]} />
       </View>
+
+      {/* Macro legend */}
       <View style={styles.macroLegend}>
         <View style={styles.macroLegendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#10b981' }]} />
-          <Text style={[styles.legendText, { color: colors.onSurfaceVariant }]}>P {Math.round(protein)}g</Text>
+          <Text style={[styles.legendLabel, { color: colors.onSurfaceVariant }]}>P</Text>
+          <Text style={[styles.legendValue, { color: colors.onSurface }]}>
+            {Math.round(protein)}g
+          </Text>
         </View>
         <View style={styles.macroLegendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#f59e0b' }]} />
-          <Text style={[styles.legendText, { color: colors.onSurfaceVariant }]}>C {Math.round(carbs)}g</Text>
+          <Text style={[styles.legendLabel, { color: colors.onSurfaceVariant }]}>C</Text>
+          <Text style={[styles.legendValue, { color: colors.onSurface }]}>
+            {Math.round(carbs)}g
+          </Text>
         </View>
         <View style={styles.macroLegendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#f43f5e' }]} />
-          <Text style={[styles.legendText, { color: colors.onSurfaceVariant }]}>G {Math.round(fats)}g</Text>
+          <Text style={[styles.legendLabel, { color: colors.onSurfaceVariant }]}>G</Text>
+          <Text style={[styles.legendValue, { color: colors.onSurface }]}>
+            {Math.round(fats)}g
+          </Text>
         </View>
       </View>
 
+      {/* Footer: Primary CTA */}
       <View style={styles.footer}>
         <Button onPress={onPressPrimary}>
           {primaryLabel ?? 'Registrar comida'}
@@ -126,67 +173,105 @@ export const NutritionHeroCard: React.FC<NutritionHeroCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
+    borderRadius: 28,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  dateSection: {
+    flex: 1,
+    paddingRight: 12,
   },
   dateLabel: {
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  dateSublabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    opacity: 0.7,
   },
   indicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    gap: 6,
   },
   indicatorText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '800',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  caloriesValue: {
-    fontSize: 36,
-    lineHeight: 40,
-    fontWeight: 'bold',
+  mainContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  calorieSection: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  calorieLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
+    gap: 6,
   },
-  subtitleContainer: {
-    marginBottom: 16,
+  calorieDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  subtitleText: {
-    fontSize: 14,
+  calorieLabelText: {
+    fontSize: 9,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  progressBarBackground: {
-    position: 'relative',
-    height: 8,
-    width: '100%',
-    borderRadius: 9999,
-    marginBottom: 16,
+  calorieValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 4,
   },
-  progressBarFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    height: '100%',
-    borderRadius: 9999,
+  calorieValue: {
+    fontSize: 40,
+    fontWeight: '900',
+    lineHeight: 44,
+    letterSpacing: -1,
+  },
+  calorieUnit: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  mealCountRow: {
+    marginTop: 4,
+  },
+  mealCountText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  ringsSection: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   macroBarContainer: {
     flexDirection: 'row',
-    height: 4,
-    borderRadius: 2,
+    height: 5,
+    borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   macroBarSegment: {
     height: '100%',
@@ -195,22 +280,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: 16,
+    paddingHorizontal: 8,
   },
   macroLegendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
-  legendText: {
-    fontSize: 11,
-    fontWeight: '600',
+  legendLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  legendValue: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   footer: {
-    marginTop: 'auto',
+    marginTop: 4,
   },
 });

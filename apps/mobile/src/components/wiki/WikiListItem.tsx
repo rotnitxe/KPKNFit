@@ -61,7 +61,7 @@ export const WikiListItem: React.FC<WikiListItemProps> = ({
           )}
         </View>
       </View>
-      <Text style={[styles.chevron, { color: colors.onSurfaceVariant, opacity: 0.3 }]}>›</Text>
+      <Text style={[styles.chevron, { color: colors.onSurfaceVariant, opacity: 0.5 }]}>›</Text>
     </TouchableOpacity>
   );
 };
@@ -73,9 +73,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderRadius: 24,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    marginBottom: 12,
   },
   content: {
     flex: 1,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   textContainer: {
     flex: 1,
@@ -98,17 +98,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    lineHeight: 20,
+    lineHeight: 22,
     letterSpacing: -0.2,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   subtitle: {
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '500',
-    opacity: 0.6,
+    opacity: 0.7,
   },
   chevron: {
     fontSize: 22,

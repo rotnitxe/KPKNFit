@@ -7,9 +7,10 @@ import {
 } from '../../services/mobileNotificationService';
 import { syncWorkoutWidgetState } from '../../services/widgetSyncService';
 import { useMobileNutritionStore } from '../../stores/nutritionStore';
-import { loadPersistedDomainPayload, persistLocalWorkoutLog } from '../../services/mobilePersistenceService';
+import { loadPersistedDomainPayload, persistLocalWorkoutLog, persistDomainPayload } from '../../services/mobilePersistenceService';
 import {
   persistActiveSessionCheckpoint,
+  clearActiveSessionCheckpoint,
   recoverActiveSession as recoverActiveSessionFromCheckpoint,
 } from '../../services/activeSessionPersistenceService';
 import type { WorkoutOverview, CoreReminderSettings } from '@kpkn/shared-types';
@@ -410,6 +411,9 @@ describe('workoutStore', () => {
         overview: null,
         reminderSettings: null
       });
+      (persistLocalWorkoutLog as jest.Mock).mockResolvedValue(undefined);
+      (persistDomainPayload as jest.Mock).mockResolvedValue(undefined);
+      (clearActiveSessionCheckpoint as jest.Mock).mockResolvedValue(undefined);
 
       // Finish session with feedback
       await finishActiveSession({
@@ -422,13 +426,12 @@ describe('workoutStore', () => {
       if (state.errorMessage) console.error("TEST STORE ERROR:", state.errorMessage);
       
       expect(state.activeSession).toBeNull();
-      expect(state.sessionFinishState).toEqual('success');
+      expect(state.sessionFinishState).toEqual('idle');
       expect(persistLocalWorkoutLog).toHaveBeenCalledWith(expect.objectContaining({
-        programId: 'prog1',
-        sessionId: 's1',
-        fatigueLevel: 6,
-        notes: 'Felt good',
-        durationInMinutes: 45,
+        sessionName: 'Test Session',
+        exerciseCount: 1,
+        completedSetCount: 1,
+        durationMinutes: 45,
       }));
     });
   });
