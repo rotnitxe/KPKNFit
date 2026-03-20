@@ -6,7 +6,8 @@ import { NutritionRingsContainer } from './NutritionSkiaRings';
 import { ArrowDownIcon, ArrowUpIcon, MinusIcon } from '../icons';
 
 interface NutritionHeroCardProps {
-  dateLabel: string;
+  dateKey?: string;
+  dateLabel?: string;
   caloriesToday: number;
   calorieGoal: number;
   mealCount: number;
@@ -22,6 +23,7 @@ interface NutritionHeroCardProps {
 }
 
 export const NutritionHeroCard: React.FC<NutritionHeroCardProps> = ({
+  dateKey,
   dateLabel,
   caloriesToday,
   calorieGoal,
@@ -44,13 +46,14 @@ export const NutritionHeroCard: React.FC<NutritionHeroCardProps> = ({
   const fatsPct = getPct(fats, fatGoal);
 
   // Calculate deficit/surplus indicator
+  const safeCalorieGoal = calorieGoal > 0 ? calorieGoal : 1;
   const diff = caloriesToday - calorieGoal;
-  const diffPercent = Math.abs(diff) / calorieGoal;
+  const diffPercent = Math.abs(diff) / safeCalorieGoal;
   let indicator = 'equals';
   let indicatorColor = colors.onSurfaceVariant;
   let IndicatorIcon = MinusIcon;
 
-  if (diffPercent > 0.05) {
+  if (calorieGoal > 0 && diffPercent > 0.05) {
     if (diff > 0) {
       indicator = 'surplus';
       indicatorColor = '#EF4444';
@@ -62,11 +65,23 @@ export const NutritionHeroCard: React.FC<NutritionHeroCardProps> = ({
     }
   }
 
-  const formattedDate = new Date(`${dateLabel}T00:00:00`).toLocaleDateString('es-ES', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
+  const formattedDate = (() => {
+    if (dateKey) {
+      return new Date(`${dateKey}T12:00:00`).toLocaleDateString('es-ES', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      });
+    }
+    if (dateLabel && dateLabel.trim().length > 0) {
+      return dateLabel;
+    }
+    return new Date().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+  })();
 
   return (
     <TouchableOpacity
@@ -87,7 +102,13 @@ export const NutritionHeroCard: React.FC<NutritionHeroCardProps> = ({
         <View style={[styles.indicator, { backgroundColor: `${indicatorColor}15` }]}>
           <IndicatorIcon size={14} color={indicatorColor} />
           <Text style={[styles.indicatorText, { color: indicatorColor }]}>
-            {indicator === 'equals' ? 'En objetivo' : indicator === 'surplus' ? 'Superávit' : 'Déficit'}
+            {calorieGoal <= 0
+              ? 'Sin objetivo'
+              : indicator === 'equals'
+                ? 'En objetivo'
+                : indicator === 'surplus'
+                  ? 'Superávit'
+                  : 'Déficit'}
           </Text>
         </View>
       </View>

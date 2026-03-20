@@ -11,6 +11,7 @@ import { useProgramStore } from '../../stores/programStore';
 import { useWorkoutStore } from '../../stores/workoutStore';
 import { ReadinessModal } from '../../components/workout/ReadinessModal';
 import { StartWorkoutDrawer } from '../../components/workout/StartWorkoutDrawer';
+import { TimersModal } from '../../components/workout/TimersModal';
 import { useColors } from '../../theme';
 
 type WorkoutNavProp = NativeStackNavigationProp<WorkoutStackParamList>;
@@ -68,10 +69,26 @@ const SessionCard = memo(({
   );
 });
 
+function getProgramStatusLabel(status: 'active' | 'paused' | 'completed' | 'none' | undefined) {
+  if (status === 'active') return 'Activo';
+  if (status === 'paused') return 'Pausado';
+  if (status === 'completed') return 'Completado';
+  return 'Sin estado';
+}
+
+function buildReadinessSummary(readinessScore: { sleep: number; mood: number; soreness: number } | null) {
+  if (!readinessScore) return null;
+  const sorenessRecovery = 6 - readinessScore.soreness;
+  const pct = Math.round(((readinessScore.sleep + readinessScore.mood + sorenessRecovery) / 15) * 100);
+  const label = pct >= 80 ? 'Listo para alta intensidad' : pct >= 60 ? 'Carga moderada recomendada' : 'Recuperación prioritaria';
+  return { pct, label };
+}
+
 export function WorkoutScreen() {
   const colors = useColors();
   const [isReadinessVisible, setReadinessVisible] = useState(false);
   const [isStartDrawerVisible, setStartDrawerVisible] = useState(false);
+  const [isTimersVisible, setTimersVisible] = useState(false);
   const programs = useProgramStore(state => state.programs);
 
   const {
@@ -161,6 +178,11 @@ export function WorkoutScreen() {
     void logTodaySession();
   }, [logTodaySession]);
 
+  const weeklyProgressPct = overview && overview.plannedSetsThisWeek > 0
+    ? Math.min(100, Math.round((overview.completedSetsThisWeek / overview.plannedSetsThisWeek) * 100))
+    : 0;
+  const readinessSummary = buildReadinessSummary(readinessScore);
+
   return (
     <ScreenShell
       title="Entrenamiento"
@@ -186,6 +208,20 @@ export function WorkoutScreen() {
                   ? 'Todavía no tienes un programa activo. Crea uno o activa uno desde la biblioteca de programas.'
                   : errorMessage ?? 'No se pudo cargar el estado del programa. Toca Actualizar para intentar de nuevo.'}
             </Text>
+            {status === 'ready' && overview ? (
+              <View style={styles.statusChips}>
+                <View style={[styles.statusChip, { backgroundColor: colors.surfaceContainer }]}>
+                  <Text style={[styles.statusChipText, { color: colors.onSurfaceVariant }]}>
+                    Estado: {getProgramStatusLabel(overview.activeProgramStatus)}
+                  </Text>
+                </View>
+                <View style={[styles.statusChip, { backgroundColor: colors.surfaceContainer }]}>
+                  <Text style={[styles.statusChipText, { color: colors.onSurfaceVariant }]}>
+                    Semana: {overview.currentWeekId ?? 'Actual'}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
             {notice ? (
               <Text style={[styles.noticeText, { color: colors.cyberSuccess }]}>{notice}</Text>
             ) : null}
@@ -243,8 +279,46 @@ export function WorkoutScreen() {
                   value={`${overview.weeklySessionCount}${overview.hasWorkoutLoggedToday ? ' · hoy listo' : ''}`}
                 />
               </View>
+              <View style={[styles.progressTrack, { backgroundColor: `${colors.onSurface}12` }]}>
+                <View style={[styles.progressFill, { width: `${weeklyProgressPct}%`, backgroundColor: colors.primary }]} />
+              </View>
+              <Text style={[styles.progressText, { color: colors.onSurfaceVariant }]}>
+                Avance semanal: {weeklyProgressPct}% de series completadas.
+              </Text>
             </View>
           )}
+
+          <View style={[styles.statusCard, { backgroundColor: colors.surface, borderColor: `${colors.onSurface}1A` }]}>
+            <Text style={[styles.sectionHeading, { color: colors.onSurfaceVariant }]}>Readiness</Text>
+            {readinessSummary ? (
+              <>
+                <Text style={[styles.readinessValue, { color: colors.onSurface }]}>{readinessSummary.pct}%</Text>
+                <Text style={[styles.readinessLabel, { color: colors.onSurfaceVariant }]}>{readinessSummary.label}</Text>
+                <View style={[styles.progressTrack, { backgroundColor: `${colors.onSurface}12` }]}>
+                  <View style={[styles.progressFill, { width: `${readinessSummary.pct}%`, backgroundColor: colors.secondary }]} />
+                </View>
+                <View style={styles.readinessStats}>
+                  <Text style={[styles.readinessStat, { color: colors.onSurfaceVariant }]}>Sueño: {readinessScore?.sleep}/5</Text>
+                  <Text style={[styles.readinessStat, { color: colors.onSurfaceVariant }]}>Ánimo: {readinessScore?.mood}/5</Text>
+                  <Text style={[styles.readinessStat, { color: colors.onSurfaceVariant }]}>Dolor: {readinessScore?.soreness}/5</Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.readinessLabel, { color: colors.onSurfaceVariant }]}>
+                  Aún no registras readiness de hoy. Haz el check para ajustar carga y recuperación.
+                </Text>
+              </>
+            )}
+            <View style={styles.readinessAction}>
+              <Button
+                onPress={() => setReadinessVisible(true)}
+                variant={readinessScore ? 'secondary' : 'primary'}
+              >
+                {readinessScore ? 'Actualizar readiness' : 'Evaluar readiness'}
+              </Button>
+            </View>
+          </View>
 
           {overview?.battery && (
             <View style={[styles.statusCard, { backgroundColor: colors.surface, borderColor: `${colors.onSurface}1A` }]}>
@@ -256,7 +330,7 @@ export function WorkoutScreen() {
                 <MetricPill label="Espinal" value={`${Math.round(overview.battery.spinal)}%`} />
               </View>
               <Text style={[styles.batteryNote, { color: colors.onSurfaceVariant }]}>
-                Esta batería sigue siendo una estimación RN mientras el motor AUGE completo termina de migrar.
+                Batería de recuperación basada en volumen, fatiga y bienestar recientes.
               </Text>
             </View>
           )}
@@ -350,6 +424,12 @@ export function WorkoutScreen() {
               >
                 Cancelar temporizador
               </Button>
+              <Button
+                onPress={() => setTimersVisible(true)}
+                variant="secondary"
+              >
+                Abrir cronometros
+              </Button>
             </View>
           </View>
 
@@ -386,6 +466,12 @@ export function WorkoutScreen() {
         programs={programs}
         onClose={() => setStartDrawerVisible(false)}
         onStart={handleStartFromDrawer}
+      />
+      <TimersModal
+        visible={isTimersVisible}
+        onClose={() => setTimersVisible(false)}
+        onStartTimer={(seconds) => startRestTimer(seconds)}
+        onCancelTimer={() => cancelRestTimer()}
       />
     </ScreenShell>
   );
@@ -424,6 +510,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 15,
     lineHeight: 22,
+  },
+  statusChips: {
+    marginTop: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  statusChip: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  statusChipText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   noticeText: {
     marginTop: 12,
@@ -476,6 +579,45 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 18,
     fontWeight: '600',
+  },
+  progressTrack: {
+    marginTop: 14,
+    height: 8,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  progressText: {
+    marginTop: 8,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  readinessValue: {
+    marginTop: 10,
+    fontSize: 34,
+    fontWeight: '900',
+    letterSpacing: -0.8,
+  },
+  readinessLabel: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  readinessStats: {
+    marginTop: 10,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  readinessStat: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  readinessAction: {
+    marginTop: 12,
   },
   batteryNote: {
     marginTop: 12,

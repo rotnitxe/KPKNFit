@@ -1,18 +1,22 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
+  Alert,
   Image,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { Canvas, Circle, RadialGradient, vec } from '@shopify/react-native-skia';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ScreenShell } from '@/components/ScreenShell';
 import { CaupolicanIcon } from '@/components/CaupolicanIcon';
 import { SessionTodayCard, TodaySessionItem } from '@/components/home/SessionTodayCard';
-import { AugeEnergyOrbs } from '@/components/auge/AugeEnergyOrbs';
+import { HomeAugeRings } from '@/components/home/HomeAugeRings';
+import { NutritionSummaryCard } from '@/components/home/NutritionSummaryCard';
 import {
   readNotificationPermissionSnapshot,
   readStoredSettingsRaw,
@@ -23,7 +27,9 @@ import {
 import {
   BellIcon,
   IntertwinedRingsIcon,
+  MealIcon,
   MoonIcon,
+  PlusIcon,
   SettingsIcon,
   SingleRingIcon,
   SunIcon,
@@ -41,8 +47,6 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors, useTheme } from '@/theme';
 import type { RootTabParamList } from '@/navigation/types';
 import type { Program, Session } from '@/types/workout';
-
-type RingsMode = 'rings' | 'individual';
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -80,20 +84,26 @@ function ProgramPreviewCard({
   program: Program;
   onPress: () => void;
 }) {
-  const colors = useColors();
   const { isDark } = useTheme();
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.programCardPressable, pressed && styles.pressed]}>
       <View style={styles.programCardWrap}>
-        <View style={[styles.programCover, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'white', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.03)' }]}>
+        <View style={[
+          styles.programCover,
+          {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.03)',
+          },
+        ]}>
           {program.coverImage ? (
             <Image source={{ uri: program.coverImage }} style={styles.programCoverImage} />
           ) : (
             <CaupolicanIcon size={40} color={isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"} />
           )}
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.03)' }]} />
         </View>
-        <Text style={[styles.programName, { color: isDark ? 'rgba(255,255,255,0.8)' : 'black' }]} numberOfLines={1}>
+        <Text style={[styles.programName, { color: isDark ? 'rgba(255,255,255,0.8)' : '#1D1B20' }]} numberOfLines={1}>
           {program.name}
         </Text>
       </View>
@@ -105,6 +115,8 @@ export function HomeScreen() {
   const colors = useColors();
   const { isDark, toggleDark } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
+  const { width, height } = useWindowDimensions();
+  const [ringsView, setRingsView] = useState<'rings' | 'individual'>('rings');
   
   const { summary: settingsSummary, hydrateFromMigration: hydrateSettings } = useSettingsStore();
   const { 
@@ -121,6 +133,7 @@ export function HomeScreen() {
 
   const {
     overview,
+    history,
     status: workoutStatus,
     hydrateFromMigration: hydrateWorkout,
     startActiveSession,
@@ -145,7 +158,6 @@ export function HomeScreen() {
     hydrateFromStorage: hydrateNutrition,
   } = useMobileNutritionStore();
 
-  const [ringsView, setRingsView] = useState<RingsMode>('rings');
   const [widgetHealth, setWidgetHealth] = useState<WidgetSyncStatus>(() => readWidgetSyncStatus());
   const [notificationHealth, setNotificationHealth] = useState<NotificationPermissionSnapshot>(() =>
     readNotificationPermissionSnapshot(),
@@ -204,11 +216,16 @@ export function HomeScreen() {
     const today = new Date().getDay(); // 0-6 (Sun-Sat)
     const dayMap = [7, 1, 2, 3, 4, 5, 6]; // Map JS day to 1-7 (Mon-Sun)
     const currentDay = dayMap[today];
+    const todayStr = new Date().toISOString().split('T')[0];
 
     return week.sessions.map(session => {
-      const isToday = session.dayOfWeek === currentDay;
       const ongoing = activeSession?.session?.id === session.id;
-      
+      const logForToday = history?.find((log: any) =>
+        log.sessionId === session.id &&
+        typeof log.date === 'string' &&
+        log.date.startsWith(todayStr)
+      );
+
       return {
         session: session,
         program: activeProgram,
@@ -217,7 +234,7 @@ export function HomeScreen() {
           mesoIndex: currentMesocycleIndex ?? 0,
           weekId: currentWeekId ?? ''
         },
-        isCompleted: false,
+        isCompleted: !!logForToday,
         dayOfWeek: session.dayOfWeek || 1,
         isOngoing: ongoing
       } as TodaySessionItem;
@@ -232,25 +249,74 @@ export function HomeScreen() {
 
       return (a.session.dayOfWeek ?? 0) - (b.session.dayOfWeek ?? 0);
     });
-  }, [activeProgram, activeProgramState, activeSession]);
+  }, [activeProgram, activeProgramState, activeSession, history]);
 
   const handleStartWorkout = useCallback((session: Session, program: Program) => {
-    startActiveSession({ programId: program.id, session });
-    navigation.navigate('Workout', {
-      screen: 'ActiveSession',
-      params: { 
-        programId: program.id, 
-        sessionId: session.id,
-        sessionName: session.name 
-      },
-    });
+    try {
+      if (!session?.id || !program?.id) return;
+      startActiveSession({ programId: program.id, session });
+      navigation.navigate('Workout', {
+        screen: 'ActiveSession',
+        params: { 
+          programId: program.id, 
+          sessionId: session.id,
+          sessionName: session.name || 'Sesión',
+        },
+      });
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || String(err));
+    }
   }, [startActiveSession, navigation]);
 
   const greeting = getGreeting();
   const userName = (rawSettings?.userName as string)?.trim() || 'Atleta';
+  const ringsAuraWidth = width;
+  const ringsAuraHeight = Math.max(height + 420, 1200);
 
   const headerContent = (
     <View style={styles.heroHeader}>
+      <View
+        pointerEvents="none"
+        style={[
+          styles.ringsAura,
+          {
+            width: ringsAuraWidth,
+            height: ringsAuraHeight,
+          },
+        ]}
+      >
+        <Canvas style={{ width: ringsAuraWidth, height: ringsAuraHeight }}>
+          <Circle cx={ringsAuraWidth * 0.28} cy={320} r={280}>
+            <RadialGradient
+              c={vec(ringsAuraWidth * 0.28, 320)}
+              r={280}
+              colors={[`${colors.ringCns}12`, `${colors.ringCns}00`]}
+            />
+          </Circle>
+          <Circle cx={ringsAuraWidth * 0.5} cy={350} r={330}>
+            <RadialGradient
+              c={vec(ringsAuraWidth * 0.5, 350)}
+              r={330}
+              colors={[`${colors.ringMuscular}10`, `${colors.ringMuscular}00`]}
+            />
+          </Circle>
+          <Circle cx={ringsAuraWidth * 0.72} cy={326} r={290}>
+            <RadialGradient
+              c={vec(ringsAuraWidth * 0.72, 326)}
+              r={290}
+              colors={[`${colors.ringSpinal}12`, `${colors.ringSpinal}00`]}
+            />
+          </Circle>
+          <Circle cx={ringsAuraWidth * 0.5} cy={470} r={360}>
+            <RadialGradient
+              c={vec(ringsAuraWidth * 0.5, 470)}
+              r={360}
+              colors={['rgba(255,255,255,0.04)', 'rgba(255,255,255,0)']}
+            />
+          </Circle>
+        </Canvas>
+      </View>
+
       <View style={styles.heroTopRow}>
         <View style={[styles.avatarWrap, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'white' }]}>
           {rawSettings?.profilePicture ? (
@@ -277,7 +343,7 @@ export function HomeScreen() {
     </View>
   );
 
-  const renderWithProgram = () => (
+  const renderRingsSection = () => (
     <View style={styles.programView}>
       {widgetHealth.stale || notificationHealth.status === 'blocked' ? (
         <View style={[styles.operationalWarningCard, { backgroundColor: `${colors.error}12`, borderColor: `${colors.error}55` }]}>
@@ -304,33 +370,33 @@ export function HomeScreen() {
       ) : null}
 
       <View style={styles.section}>
-        <SectionTitle 
-          title="Tus RINGS" 
+        <SectionTitle
+          title="Tus RINGS"
           action={
-            <View style={[styles.segmentedControl, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#ECE6F0' }]}>
-              <Pressable 
-                onPress={() => setRingsView('rings')} 
-                style={[styles.segmentedOption, ringsView === 'rings' && { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'white' }]}
+            <View style={[styles.ringsToggleWrap, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#ECE6F0' }]}>
+              <Pressable
+                onPress={() => setRingsView('rings')}
+                style={[styles.ringsToggleBtn, ringsView === 'rings' && { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'white' }]}
               >
-                <IntertwinedRingsIcon size={22} color={ringsView === 'rings' ? colors.primary : colors.onSurfaceVariant} />
+                <IntertwinedRingsIcon size={20} color={ringsView === 'rings' ? colors.primary : colors.onSurfaceVariant} />
               </Pressable>
-              <Pressable 
-                onPress={() => setRingsView('individual')} 
-                style={[styles.segmentedOption, ringsView === 'individual' && { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'white' }]}
+              <Pressable
+                onPress={() => setRingsView('individual')}
+                style={[styles.ringsToggleBtn, ringsView === 'individual' && { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'white' }]}
               >
-                <SingleRingIcon size={22} color={ringsView === 'individual' ? colors.primary : colors.onSurfaceVariant} />
+                <SingleRingIcon size={20} color={ringsView === 'individual' ? colors.primary : colors.onSurfaceVariant} />
               </Pressable>
             </View>
           }
         />
-        <AugeEnergyOrbs 
-          cns={overview?.battery?.cns ?? 0}
-          muscular={overview?.battery?.muscular ?? 0}
-          spinal={overview?.battery?.spinal ?? 0}
-          liveMode={!!activeSession}
+        <HomeAugeRings
+          cns={overview?.battery?.cns ?? null}
+          muscular={overview?.battery?.muscular ?? null}
+          spinal={overview?.battery?.spinal ?? null}
         />
       </View>
 
+      {/* ═══ Sesión de hoy ═══ */}
       <View style={styles.section}>
         <SectionTitle title="Sesión de hoy" />
         <SessionTodayCard
@@ -339,13 +405,37 @@ export function HomeScreen() {
           currentDayOfWeek={[7, 1, 2, 3, 4, 5, 6][new Date().getDay()]}
           onStartWorkout={handleStartWorkout}
           onOpenStartWorkoutModal={() => {
-            if (activeProgram?.id) {
-              navigation.navigate('Workout', { screen: 'ProgramDetail', params: { programId: activeProgram.id } });
+            try {
+              if (activeSession?.session?.id) {
+                navigation.navigate('Workout', {
+                  screen: 'ActiveSession',
+                  params: {
+                    programId: activeSession.programId,
+                    sessionId: activeSession.session.id,
+                    sessionName: activeSession.session.name || 'Sesión',
+                  },
+                });
+              } else if (activeProgram?.id) {
+                navigation.navigate('Workout', { screen: 'ProgramDetail', params: { programId: activeProgram.id } });
+              }
+            } catch (err: any) {
+              Alert.alert('Error', err?.message || String(err));
             }
           }}
         />
       </View>
 
+      {/* ═══ Nutrición ═══ */}
+      <View style={styles.section}>
+        <SectionTitle title="Nutrición" />
+        <View style={{ paddingHorizontal: 24 }}>
+          <NutritionSummaryCard
+            onPress={() => navigation.navigate('Nutrition', { screen: 'NutritionDashboard' })}
+          />
+        </View>
+      </View>
+
+      {/* ═══ Tus Programas ═══ */}
       <View style={styles.section}>
         <SectionTitle title="Tus Programas" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.programsScroll}>
@@ -359,12 +449,25 @@ export function HomeScreen() {
         </ScrollView>
       </View>
 
+      {/* ═══ Rincones ═══ */}
       <View style={styles.section}>
         <SectionTitle title="Rincones" />
         <View style={styles.cornersGrid}>
           <Pressable 
             onPress={() => navigation.navigate('Profile', { screen: 'ProfileMain' })}
-            style={({ pressed }) => [styles.cornerCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.02)' }, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.cornerCard,
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.02)',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0 : 0.06,
+                shadowRadius: 8,
+                elevation: isDark ? 0 : 2,
+              },
+              pressed && styles.pressed,
+            ]}
           >
             <View style={[styles.cornerIconWrap, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#ECE6F0' }]}>
               <CaupolicanIcon size={32} color={isDark ? "rgba(255,255,255,0.3)" : "rgba(73,69,79,0.5)"} />
@@ -377,7 +480,19 @@ export function HomeScreen() {
 
           <Pressable 
             onPress={() => navigation.navigate('Wiki', { screen: 'WikiHome' })}
-            style={({ pressed }) => [styles.cornerCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.02)' }, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.cornerCard,
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.02)',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0 : 0.06,
+                shadowRadius: 8,
+                elevation: isDark ? 0 : 2,
+              },
+              pressed && styles.pressed,
+            ]}
           >
             <View style={[styles.cornerIconWrap, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#ECE6F0' }]}>
               <WikiLabIcon size={28} color={isDark ? "rgba(255,255,255,0.3)" : "rgba(73,69,79,0.5)"} />
@@ -394,16 +509,14 @@ export function HomeScreen() {
 
   const renderEmpty = () => (
     <View style={styles.emptyView}>
-      <Text style={[styles.emptyHeader, { color: isDark ? 'white' : '#1C1B1F' }]}>
-        Inicia tu próximo{'\n'}<Text style={{ color: colors.primary }}>Plan Maestro</Text>
-      </Text>
-      
-      <AugeEnergyOrbs 
-        cns={overview?.battery?.cns ?? 0}
-        muscular={overview?.battery?.muscular ?? 0}
-        spinal={overview?.battery?.spinal ?? 0}
-        liveMode={!!activeSession}
-      />
+      <View style={styles.section}>
+        <SectionTitle title="Tus RINGS" />
+        <HomeAugeRings
+          cns={overview?.battery?.cns ?? null}
+          muscular={overview?.battery?.muscular ?? null}
+          spinal={overview?.battery?.spinal ?? null}
+        />
+      </View>
 
       <View style={styles.emptyArsenal}>
         <View style={styles.emptyIconWrap}>
@@ -432,7 +545,7 @@ export function HomeScreen() {
       noPadding
     >
       <View style={[styles.container, { backgroundColor: isDark ? '#121212' : 'transparent' }]}>
-        {activeProgram ? renderWithProgram() : renderEmpty()}
+        {activeProgram ? renderRingsSection() : renderEmpty()}
       </View>
     </ScreenShell>
   );
@@ -442,15 +555,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingBottom: 40,
+    overflow: 'visible',
+  },
+  ringsAura: {
+    position: 'absolute',
+    top: -120,
+    left: 0,
+    overflow: 'visible',
   },
   shellContent: {
     paddingTop: 8,
   },
   heroHeader: {
+    position: 'relative',
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: 16,
     gap: 24,
+    overflow: 'visible',
   },
   heroTopRow: {
     flexDirection: 'row',
@@ -489,7 +611,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 24,
-    gap: 16,
+    gap: 8,
   },
   operationalWarningCard: {
     marginHorizontal: 24,
@@ -535,19 +657,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: -0.5,
-  },
-  segmentedControl: {
-    flexDirection: 'row',
-    padding: 4,
-    borderRadius: 24,
-    gap: 4,
-  },
-  segmentedOption: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   programView: {
     gap: 8,
@@ -595,6 +704,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 24,
   },
+  nutritionBigCard: {
+    flexDirection: 'row',
+    padding: 20,
+    borderRadius: 36,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 20,
+  },
+  nutritionBigIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  nutritionBigText: {
+    flex: 1,
+    gap: 2,
+  },
+  nutritionBigTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  nutritionBigSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 18,
+  },
   cornerIconWrap: {
     width: 64,
     height: 64,
@@ -618,14 +756,6 @@ const styles = StyleSheet.create({
   emptyView: {
     paddingTop: 10,
     gap: 8,
-  },
-  emptyHeader: {
-    fontSize: 32,
-    fontWeight: '900',
-    lineHeight: 38,
-    letterSpacing: -1.1,
-    paddingHorizontal: 24,
-    marginBottom: 16,
   },
   emptyArsenal: {
     marginTop: 64,
@@ -671,5 +801,18 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  ringsToggleWrap: {
+    flexDirection: 'row',
+    padding: 3,
+    borderRadius: 20,
+    gap: 2,
+  },
+  ringsToggleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

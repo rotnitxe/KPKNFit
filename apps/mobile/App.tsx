@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, AppState } from 'react-native';
+import { Platform, StatusBar, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, AppState } from 'react-native';
 import notifee, { EventType } from '@notifee/react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -15,6 +15,7 @@ import {
 import { refreshWidgetSyncHealth } from './src/services/widgetSyncService';
 import { navigateFromExternalTarget } from './src/navigation/navigationRef';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { AppProvider } from './src/contexts/AppContext';
 
 function getNotificationTarget(value: unknown) {
   return typeof value === 'string' ? value : undefined;
@@ -37,6 +38,21 @@ function AppContent() {
   }, [bootstrap]);
 
   useEffect(() => {
+    if (Platform.OS === 'android') {
+      StatusBar.setTranslucent(true);
+      StatusBar.setBackgroundColor('transparent', true);
+    }
+    StatusBar.setBarStyle('dark-content', true);
+  }, []);
+
+  useEffect(() => {
+    const routeFromTarget = (target: unknown) => {
+      const next = getNotificationTarget(target);
+      if (next) {
+        navigateFromExternalTarget(next);
+      }
+    };
+
     const syncPermissionsAndNotifications = async () => {
       try {
         const permission = await syncNotificationPermissionState();
@@ -57,8 +73,18 @@ function AppContent() {
       }
     };
 
+    const syncInitialNotificationRoute = async () => {
+      try {
+        const initial = await notifee.getInitialNotification();
+        routeFromTarget(initial?.notification?.data?.screen);
+      } catch (error) {
+        console.warn('[app] No se pudo leer la notificación inicial.', error);
+      }
+    };
+
     void syncPermissionsAndNotifications();
     void syncBackgroundSchedule();
+    void syncInitialNotificationRoute();
 
     const appStateSub = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {
@@ -70,10 +96,7 @@ function AppContent() {
       if (event.type !== EventType.PRESS && event.type !== EventType.ACTION_PRESS) {
         return;
       }
-      const target = getNotificationTarget(event.detail.notification?.data?.screen);
-      if (target) {
-        navigateFromExternalTarget(target);
-      }
+      routeFromTarget(event.detail.notification?.data?.screen);
     });
 
     return () => {
@@ -120,9 +143,11 @@ function AppContent() {
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={colors.background}
       />
-      <ErrorBoundary>
-        <AppNavigator />
-      </ErrorBoundary>
+      <AppProvider>
+        <ErrorBoundary>
+          <AppNavigator />
+        </ErrorBoundary>
+      </AppProvider>
     </>
   );
 }

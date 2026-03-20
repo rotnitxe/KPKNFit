@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import { Pressable, StyleSheet, Text, View, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenShell } from '@/components/ScreenShell';
@@ -24,18 +24,45 @@ import { readStoredSettingsRaw } from '@/services/mobileDomainStateService';
 import { useBodyStore } from '@/stores/bodyStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useWellbeingStore } from '@/stores/wellbeingStore';
+import { useWorkoutStore } from '@/stores/workoutStore';
 import { useColors } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
+import { calculateBrzycki1RM, calculateFFMI, calculateIPFGLPoints } from '@/utils/calculations';
 
-function computeFfmi(weightKg?: number, bodyFatPct?: number, heightCm?: number) {
-  if (!weightKg || !bodyFatPct || !heightCm) return null;
-  const leanMassKg = weightKg * (1 - bodyFatPct / 100);
-  const heightMeters = heightCm / 100;
-  if (!heightMeters) return null;
-  return leanMassKg / (heightMeters * heightMeters);
+function extractSetReps(set: any): number {
+  if (typeof set?.completedReps === 'number') return set.completedReps;
+  if (typeof set?.reps === 'number') return set.reps;
+  return 0;
 }
 
-function athleteTier(ffmi: number | null) {
+function resolveTopLift(history: any[], keywords: string[]): number | null {
+  let topLift = 0;
+  for (const workoutLog of history) {
+    for (const exercise of workoutLog?.completedExercises ?? []) {
+      const exerciseName = String(exercise?.exerciseName ?? '').toLowerCase();
+      if (!keywords.some(keyword => exerciseName.includes(keyword))) continue;
+      for (const set of exercise?.sets ?? []) {
+        const weight = typeof set?.weight === 'number' ? set.weight : 0;
+        const reps = extractSetReps(set);
+        if (weight <= 0 || reps <= 0) continue;
+        topLift = Math.max(topLift, calculateBrzycki1RM(weight, reps));
+      }
+    }
+  }
+
+  if (topLift <= 0) return null;
+  return Math.round(topLift);
+}
+
+function athleteTier(ffmi: number | null, squat1rm: number | null, bodyWeight?: number) {
+  if (squat1rm && bodyWeight && bodyWeight > 0) {
+    const squatToBodyweightRatio = squat1rm / bodyWeight;
+    if (squatToBodyweightRatio > 2.5) return 'Élite';
+    if (squatToBodyweightRatio > 2) return 'Avanzado';
+    if (squatToBodyweightRatio > 1.5) return 'Intermedio';
+    return 'Novato';
+  }
+
   if (!ffmi) return 'Perfil general';
   if (ffmi >= 24) return 'Élite';
   if (ffmi >= 22) return 'Avanzado';
@@ -87,6 +114,8 @@ export function ProfileScreen() {
   const bodyLabAnalysis = useBodyStore(state => state.bodyLabAnalysis);
   const hydrateBody = useBodyStore(state => state.hydrateFromMigration);
 
+  const workoutHistory = useWorkoutStore(state => state.history);
+
   const wellbeingStatus = useWellbeingStore(state => state.status);
   const wellbeingOverview = useWellbeingStore(state => state.overview);
   const hydrateWellbeing = useWellbeingStore(state => state.hydrateFromMigration);
@@ -98,21 +127,44 @@ export function ProfileScreen() {
   }, [bodyStatus, hydrateBody, hydrateSettings, settingsStatus, hydrateWellbeing, wellbeingStatus]);
 
   const latestBody = bodyProgress[0];
+  const topLifts = useMemo(() => ({
+    squat: resolveTopLift(workoutHistory, ['sentadilla', 'squat']),
+    bench: resolveTopLift(workoutHistory, ['press de banca', 'bench']),
+    deadlift: resolveTopLift(workoutHistory, ['peso muerto', 'deadlift']),
+  }), [workoutHistory]);
+
   const ffmi = useMemo(
-    () =>
-      computeFfmi(
-        latestBody?.weight,
-        latestBody?.bodyFatPercentage,
-        typeof rawSettings.userVitals?.height === 'number' ? rawSettings.userVitals.height : undefined,
-      ),
+    () => {
+      const height = typeof rawSettings.userVitals?.height === 'number' ? rawSettings.userVitals.height : null;
+      const weight = latestBody?.weight;
+      const bodyFat = latestBody?.bodyFatPercentage;
+      if (!height || !weight || typeof bodyFat !== 'number') return null;
+      const result = calculateFFMI(height, weight, bodyFat);
+      const numeric = Number.parseFloat(result.normalizedFfmi);
+      return Number.isFinite(numeric) ? numeric : null;
+    },
     [latestBody?.bodyFatPercentage, latestBody?.weight, rawSettings.userVitals?.height],
   );
+
+  const bodyWeight = latestBody?.weight ?? rawSettings.userVitals?.weight;
+  const ipfPoints = useMemo(() => {
+    if (!bodyWeight || bodyWeight <= 0) return null;
+    if (!topLifts.squat || !topLifts.bench || !topLifts.deadlift) return null;
+    const total = topLifts.squat + topLifts.bench + topLifts.deadlift;
+    const points = calculateIPFGLPoints(total, bodyWeight, {
+      gender: rawSettings.userVitals?.gender || 'male',
+      equipment: 'classic',
+      lift: 'total',
+      weightUnit: rawSettings.weightUnit === 'lbs' ? 'lbs' : 'kg',
+    });
+    return Number.isFinite(points) ? Math.round(points) : null;
+  }, [bodyWeight, rawSettings.userVitals?.gender, rawSettings.weightUnit, topLifts.bench, topLifts.deadlift, topLifts.squat]);
 
   const athleteName =
     typeof rawSettings.username === 'string' && rawSettings.username.trim() !== ''
       ? rawSettings.username.trim()
       : 'Atleta KPKN';
-  const subtitle = athleteTier(ffmi);
+  const subtitle = athleteTier(ffmi, topLifts.squat, bodyWeight);
 
   const handleSaveEdit = async () => {
     await updateSettings({
@@ -228,7 +280,7 @@ export function ProfileScreen() {
           
           <Text style={[styles.heroSummary, { color: colors.onSurfaceVariant }]}>
             {bodyLabAnalysis?.profileSummary ||
-              'Este panel va a concentrar la misma identidad atlética de la PWA: composición corporal, recuperación, progreso y contexto del atleta.'}
+              'Composición corporal, rendimiento y bienestar en una vista unificada para seguimiento diario.'}
           </Text>
         </LiquidGlassCard>
 
@@ -254,6 +306,37 @@ export function ProfileScreen() {
             unit="h"
           />
         </View>
+
+        <LiquidGlassCard style={styles.detailCard} padding={20}>
+          <View style={styles.detailHeader}>
+            <TrophyIcon size={16} color={colors.onSurfaceVariant} />
+            <Text style={[styles.detailEyebrow, { color: colors.onSurfaceVariant }]}>Rendimiento</Text>
+          </View>
+          <View style={styles.performanceRow}>
+            <Text style={[styles.performanceValue, { color: colors.onSurface }]}>{ipfPoints ?? '--'}</Text>
+            <Text style={[styles.performanceLabel, { color: colors.onSurfaceVariant }]}>IPF GL points</Text>
+          </View>
+          <View style={styles.detailGrid}>
+            <View style={styles.detailItem}>
+              <Text style={[styles.detailValue, { color: colors.primary }]}>
+                {topLifts.squat ? `${topLifts.squat}` : '--'}
+              </Text>
+              <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>Sentadilla</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={[styles.detailValue, { color: colors.secondary }]}>
+                {topLifts.bench ? `${topLifts.bench}` : '--'}
+              </Text>
+              <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>Banca</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={[styles.detailValue, { color: colors.tertiary }]}>
+                {topLifts.deadlift ? `${topLifts.deadlift}` : '--'}
+              </Text>
+              <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>Peso muerto</Text>
+            </View>
+          </View>
+        </LiquidGlassCard>
 
         <LiquidGlassCard style={styles.detailCard} padding={20}>
           <View style={styles.detailHeader}>
@@ -289,7 +372,7 @@ export function ProfileScreen() {
           </View>
 
           <View style={styles.navSection}>
-            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('AthleteID' as any)}>
+            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('AthleteID')}>
               <View style={styles.navButtonContent}>
                 <UserBadgeIcon size={20} color={colors.primary} />
                 <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Perfil de Atleta</Text>
@@ -297,7 +380,7 @@ export function ProfileScreen() {
               <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
             </Pressable>
             
-            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('PersonalRecords' as any)}>
+            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('PersonalRecords')}>
               <View style={styles.navButtonContent}>
                 <TrophyIcon size={20} color={colors.secondary} />
                 <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Records Personales</Text>
@@ -313,7 +396,7 @@ export function ProfileScreen() {
               <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
             </Pressable>
             
-            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('BodyLab' as any)}>
+            <Pressable style={[styles.navButton, { backgroundColor: colors.surfaceContainer }]} onPress={() => navigation.navigate('BodyLab')}>
               <View style={styles.navButtonContent}>
                 <DumbbellIcon size={20} color={colors.error} />
                 <Text style={[styles.navButtonText, { color: colors.onSurface }]}>Body Lab</Text>
@@ -329,7 +412,7 @@ export function ProfileScreen() {
             <Text style={[styles.detailEyebrow, { color: colors.onSurfaceVariant }]}>Estado actual</Text>
           </View>
           <Text style={[styles.statusCopy, { color: colors.onSurfaceVariant }]}>
-            Seguimos cerrando la paridad 1:1 del Perfil de Atleta. Lo importante acá es que ya no es una maqueta: este panel consume stores reales de cuerpo y wellbeing.
+            Perfil conectado a tus datos reales de cuerpo, bienestar y entrenamientos para mantener continuidad con el historial.
           </Text>
         </LiquidGlassCard>
       </View>
@@ -513,6 +596,22 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 21,
     fontWeight: '900',
+  },
+  performanceRow: {
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  performanceValue: {
+    fontSize: 32,
+    fontWeight: '900',
+    letterSpacing: -0.8,
+  },
+  performanceLabel: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1.1,
   },
   detailLabel: {
     marginTop: 4,

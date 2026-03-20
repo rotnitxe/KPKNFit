@@ -21,6 +21,7 @@ export * from './tendonRecovery';
 export * from './structuralReadiness';
 export * from './tendonAlerts';
 export * from './nutritionRecovery';
+export * from './classifiers';
 
 /**
  * --- AUGE ENGINE FAÇADE ---

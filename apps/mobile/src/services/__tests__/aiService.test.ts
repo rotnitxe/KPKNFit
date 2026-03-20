@@ -11,6 +11,7 @@ jest.mock('../coachChatService', () => ({
 import {
   analyzeNutritionDraft,
   buildCoachContextSnapshot,
+  generateExercisesForPurpose,
   generateCoachReply,
   generateWeightProjection,
   summarizeConversationTitle,
@@ -43,5 +44,38 @@ describe('aiService', () => {
       projection: '6 semanas',
       summary: 'Tu consumo calórico es adecuado. Mantén el ritmo actual.',
     });
+  });
+
+  it('returns purpose-based exercise suggestions for TrainingPurpose', async () => {
+    const response = await generateExercisesForPurpose('quiero mejorar sprint y salto', {
+      exerciseCatalog: [
+        {
+          id: '1',
+          name: 'Sentadilla frontal',
+          description: '',
+          involvedMuscles: [
+            { muscle: 'quadriceps', role: 'primary' },
+            { muscle: 'glutes', role: 'secondary' },
+          ],
+          category: 'Fuerza',
+          type: 'Basico',
+          equipment: 'Barra',
+          force: 'Sentadilla',
+        } as any,
+        {
+          id: '2',
+          name: 'Press banca',
+          description: '',
+          involvedMuscles: [{ muscle: 'chest', role: 'primary' }],
+          category: 'Fuerza',
+          type: 'Basico',
+          equipment: 'Barra',
+          force: 'Empuje',
+        } as any,
+      ],
+    });
+
+    expect(response.exercises.length).toBeGreaterThan(0);
+    expect(response.exercises[0]?.name).toBe('Sentadilla frontal');
   });
 });

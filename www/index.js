@@ -66200,6 +66200,20 @@ var init_nutritionRecovery = __esm({
   }
 });
 
+// packages/shared-domain/src/auge/classifiers.ts
+var calculateSetStress;
+var init_classifiers = __esm({
+  "packages/shared-domain/src/auge/classifiers.ts"() {
+    "use strict";
+    init_fatigue();
+    calculateSetStress = (set3, info, restTime = 90) => {
+      const defaultTanks = calculatePersonalizedBatteryTanks({});
+      const drain = calculateSetBatteryDrain(set3, info, defaultTanks, 0, restTime);
+      return drain.muscularDrainPct;
+    };
+  }
+});
+
 // packages/shared-domain/src/auge/index.ts
 var computeAugeReadiness;
 var init_auge = __esm({
@@ -66212,6 +66226,7 @@ var init_auge = __esm({
     init_structuralReadiness();
     init_tendonAlerts();
     init_nutritionRecovery();
+    init_classifiers();
     computeAugeReadiness = (config) => {
       const { settings, wellbeing, cnsBattery } = config;
       let recoveryTimeMultiplier = 1;
@@ -66271,13 +66286,15 @@ var init_src = __esm({
 });
 
 // services/fatigueService.ts
-var getDynamicAugeMetrics2, getEffectiveRPE3, calculatePersonalizedBatteryTanks2, calculateSetBatteryDrain2, isSetEffective2, getPrimaryDisplayMuscle, shouldSkipCompletedSet, calculatePredictedSessionDrain, calculateSetStress, calculateCompletedSessionStress, calculateCompletedSessionDrainBreakdown;
+var getDynamicAugeMetrics2, getEffectiveRPE3, calculatePersonalizedBatteryTanks2, calculateSetBatteryDrain2, isSetEffective2, getPrimaryDisplayMuscle, shouldSkipCompletedSet, calculatePredictedSessionDrain, calculateCompletedSessionStress, calculateCompletedSessionDrainBreakdown;
 var init_fatigueService = __esm({
   "services/fatigueService.ts"() {
     "use strict";
     init_exerciseIndex();
     init_inferMusclesFromName();
     init_canonicalMuscles();
+    init_src();
+    init_src();
     init_src();
     getDynamicAugeMetrics2 = getDynamicAugeMetrics;
     getEffectiveRPE3 = getEffectiveRPE;
@@ -66330,11 +66347,6 @@ var init_fatigueService = __esm({
         totalSpinalScore: Math.round(totalSpinalPct * 10)
         // Valor de referencia extra
       };
-    };
-    calculateSetStress = (set3, info, restTime = 90) => {
-      const defaultTanks = calculatePersonalizedBatteryTanks2({});
-      const drain = calculateSetBatteryDrain2(set3, info, defaultTanks, 0, restTime);
-      return drain.muscularDrainPct;
     };
     calculateCompletedSessionStress = (completedExercises, exerciseList) => {
       const tanks = calculatePersonalizedBatteryTanks2({});
@@ -66979,6 +66991,7 @@ var init_recoveryService = __esm({
     init_tendonRecoveryService();
     init_augeAdaptiveService();
     init_canonicalMuscles();
+    init_src();
     ATHLETE_CAPACITY_FLOORS = {
       "enthusiast": 500,
       "hybrid": 650,
@@ -67886,6 +67899,7 @@ var init_auge3 = __esm({
     init_structuralReadinessService();
     init_src2();
     init_fatigueService();
+    init_src();
     getEffectiveVolumeMultiplier = (set3) => {
       const rpe = getEffectiveRPE3(set3);
       if (rpe >= 10) return 1.2;
@@ -71870,6 +71884,7 @@ var init_package = __esm({
         "@google/genai": "^1.16.0",
         "@hello-pangea/dnd": "^18.0.1",
         "@material/material-color-utilities": "^0.4.0",
+        "@react-native-picker/picker": "^2.11.4",
         "@sentry/capacitor": "^3.0.0",
         "@sentry/react": "10.40.0",
         "@supabase/supabase-js": "^2.97.0",
@@ -140251,7 +140266,7 @@ var init_SplitAdvancedEditor = __esm({
     HybridModal = ({ isOpen, selectedSplits, onClose, onApply, onSaveAsCustom }) => {
       const [hybridPattern, setHybridPattern] = (0, import_react125.useState)([]);
       const [hybridName, setHybridName] = (0, import_react125.useState)("Split H\xEDbrido");
-      const [showMigrationModal, setShowMigrationModal2] = (0, import_react125.useState)(false);
+      const [showMigrationModal, setShowMigrationModal] = (0, import_react125.useState)(false);
       const [pendingAction, setPendingAction] = (0, import_react125.useState)("apply");
       const handleCreateHybrid = (0, import_react125.useCallback)(() => {
         if (selectedSplits.length < 2) return;
@@ -140306,11 +140321,11 @@ var init_SplitAdvancedEditor = __esm({
       };
       const handleApplyClick = () => {
         setPendingAction("apply");
-        setShowMigrationModal2(true);
+        setShowMigrationModal(true);
       };
       const handleSaveClick = () => {
         setPendingAction("save");
-        setShowMigrationModal2(true);
+        setShowMigrationModal(true);
       };
       const handleConfirmMigration = (startFromScratch) => {
         if (pendingAction === "apply") {
@@ -140318,7 +140333,7 @@ var init_SplitAdvancedEditor = __esm({
         } else {
           onSaveAsCustom(hybridPattern, hybridName);
         }
-        setShowMigrationModal2(false);
+        setShowMigrationModal(false);
         onClose();
       };
       if (!isOpen) return null;
@@ -140419,8 +140434,8 @@ var init_SplitAdvancedEditor = __esm({
             ] })
           ] })
         ] }),
-        showMigrationModal && /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("div", { className: "fixed inset-0 z-[250] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4", onClick: () => setShowMigrationModal2(false), children: /* @__PURE__ */ (0, import_jsx_runtime92.jsxs)("div", { className: "bg-white rounded-[2rem] w-full max-w-sm p-6 shadow-2xl relative", onClick: (e) => e.stopPropagation(), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("button", { onClick: () => setShowMigrationModal2(false), className: "absolute top-4 right-4 text-zinc-400 hover:text-zinc-600", children: /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(XIcon, { size: 20 }) }),
+        showMigrationModal && /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("div", { className: "fixed inset-0 z-[250] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4", onClick: () => setShowMigrationModal(false), children: /* @__PURE__ */ (0, import_jsx_runtime92.jsxs)("div", { className: "bg-white rounded-[2rem] w-full max-w-sm p-6 shadow-2xl relative", onClick: (e) => e.stopPropagation(), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("button", { onClick: () => setShowMigrationModal(false), className: "absolute top-4 right-4 text-zinc-400 hover:text-zinc-600", children: /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(XIcon, { size: 20 }) }),
           /* @__PURE__ */ (0, import_jsx_runtime92.jsxs)("div", { className: "text-center mb-6", children: [
             /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("div", { className: "w-16 h-16 mx-auto bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(SwapIcon, { size: 32, className: "text-purple-600" }) }),
             /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("h3", { className: "text-lg font-black text-zinc-900 uppercase tracking-tight mb-2", children: pendingAction === "apply" ? "Aplicar Split H\xEDbrido" : "Guardar Split H\xEDbrido" }),
@@ -140466,7 +140481,7 @@ var init_SplitAdvancedEditor = __esm({
           /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(
             "button",
             {
-              onClick: () => setShowMigrationModal2(false),
+              onClick: () => setShowMigrationModal(false),
               className: "w-full py-3 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 hover:text-zinc-700 transition-colors",
               children: "Cancelar"
             }
@@ -140486,10 +140501,10 @@ var init_SplitAdvancedEditor = __esm({
       const [selectedForCompare, setSelectedForCompare] = (0, import_react125.useState)([]);
       const [showCompareModal, setShowCompareModal] = (0, import_react125.useState)(false);
       const [showHybridModal, setShowHybridModal] = (0, import_react125.useState)(false);
-      const [pendingSplit, setPendingSplit2] = (0, import_react125.useState)(null);
-      const [showMigrationModal, setShowMigrationModal2] = (0, import_react125.useState)(false);
-      const [hasSessions, setHasSessions2] = (0, import_react125.useState)(false);
-      const [showIdealSplitWizard, setShowIdealSplitWizard2] = (0, import_react125.useState)(false);
+      const [pendingSplit, setPendingSplit] = (0, import_react125.useState)(null);
+      const [showMigrationModal, setShowMigrationModal] = (0, import_react125.useState)(false);
+      const [hasSessions, setHasSessions] = (0, import_react125.useState)(false);
+      const [showIdealSplitWizard, setShowIdealSplitWizard] = (0, import_react125.useState)(false);
       const [wizardStep, setWizardStep] = (0, import_react125.useState)(0);
       const [wizardAnswers, setWizardAnswers] = (0, import_react125.useState)({
         daysPerWeek: 4,
@@ -140498,7 +140513,7 @@ var init_SplitAdvancedEditor = __esm({
         experience: "intermedio",
         weekStartDay: 1
       });
-      const [wizardRecommendations2, setWizardRecommendations] = (0, import_react125.useState)([]);
+      const [wizardRecommendations, setWizardRecommendations] = (0, import_react125.useState)([]);
       const [showExportImport, setShowExportImport] = (0, import_react125.useState)(false);
       const [splitHistory, setSplitHistory] = (0, import_react125.useState)([]);
       (0, import_react125.useEffect)(() => {
@@ -140532,7 +140547,7 @@ var init_SplitAdvancedEditor = __esm({
           console.error("Error cargando splits personalizados:", e);
         }
       }, []);
-      const checkHasSessions2 = (0, import_react125.useCallback)(() => {
+      const checkHasSessions = (0, import_react125.useCallback)(() => {
         if (!selectedWeekId) return false;
         const block = program.macrocycles[0]?.blocks?.find((b) => b.id === selectedBlockId);
         if (!block) return false;
@@ -140572,10 +140587,10 @@ var init_SplitAdvancedEditor = __esm({
         });
       };
       const handleApplyClick = (split) => {
-        const hasSess = checkHasSessions2();
-        setHasSessions2(hasSess);
-        setPendingSplit2(split);
-        setShowMigrationModal2(true);
+        const hasSess = checkHasSessions();
+        setHasSessions(hasSess);
+        setPendingSplit(split);
+        setShowMigrationModal(true);
       };
       const handleApplySplit = (split, startFromScratch) => {
         const block = program.macrocycles[0]?.blocks?.find((b) => b.id === selectedBlockId) || program.macrocycles[0]?.blocks?.[0];
@@ -140588,10 +140603,10 @@ var init_SplitAdvancedEditor = __esm({
         }
         addToSplitHistory(split.id, split.name, split.pattern);
         const updated = { ...program, splitTrialSeen: false };
-        handleUpdateProgram(updated);
+        onUpdateProgram(updated);
         addToast(`Split "${split.name}" aplicado`, "success");
-        setShowMigrationModal2(false);
-        setPendingSplit2(null);
+        setShowMigrationModal(false);
+        setPendingSplit(null);
         setSelectedForCompare([]);
       };
       const handleRestoreSplitFromHistory = (historyItem) => {
@@ -140703,7 +140718,7 @@ var init_SplitAdvancedEditor = __esm({
         }
         setWizardAnswers((prev) => ({ ...prev, experience }));
         setWizardStep(0);
-        setShowIdealSplitWizard2(true);
+        setShowIdealSplitWizard(true);
       };
       const handleWizardNext = () => {
         if (wizardStep < 5) setWizardStep(wizardStep + 1);
@@ -140711,13 +140726,13 @@ var init_SplitAdvancedEditor = __esm({
       };
       const handleWizardBack = () => {
         if (wizardStep > 0) setWizardStep(wizardStep - 1);
-        else setShowIdealSplitWizard2(false);
+        else setShowIdealSplitWizard(false);
       };
       const handleWizardComplete = () => {
         const recommendedSplits = SPLIT_TEMPLATES.filter((split) => {
           const days = split.pattern.filter((d) => d.toLowerCase() !== "descanso").length;
           const matchesDays = Math.abs(days - wizardAnswers.daysPerWeek) <= 1;
-          const matchesExperience = split.difficulty.toLowerCase() === wizardAnswers.experience || wizardAnswers.experience === "intermedio" && split.difficulty !== "avanzado";
+          const matchesExperience = split.difficulty.toLowerCase() === wizardAnswers.experience || wizardAnswers.experience === "intermedio" && split.difficulty.toLowerCase() !== "avanzado";
           const isMachineHeavy = split.name.includes("M\xE1quina") || split.name.includes("Cable");
           const isFreeWeightHeavy = split.name.includes("Barra") || split.name.includes("Peso Libre") || ["Powerlifting", "5x5", "Texas", "Sheiko", "Bulgarian"].some((kw) => split.name.includes(kw));
           let matchesPreference = true;
@@ -140938,8 +140953,8 @@ var init_SplitAdvancedEditor = __esm({
             onMigrate: () => pendingSplit && handleApplySplit(pendingSplit, false),
             onStartFromScratch: () => pendingSplit && handleApplySplit(pendingSplit, true),
             onCancel: () => {
-              setShowMigrationModal2(false);
-              setPendingSplit2(null);
+              setShowMigrationModal(false);
+              setPendingSplit(null);
             }
           }
         ),
@@ -140969,10 +140984,17 @@ var init_SplitAdvancedEditor = __esm({
             isOpen: showIdealSplitWizard,
             step: wizardStep,
             answers: wizardAnswers,
+            recommendations: wizardRecommendations,
             onAnswerChange: setWizardAnswers,
+            onSelectRecommendation: (split) => {
+              setPendingSplit(split);
+              setHasSessions(checkHasSessions());
+              setShowIdealSplitWizard(false);
+              setShowMigrationModal(true);
+            },
             onNext: handleWizardNext,
             onBack: handleWizardBack,
-            onClose: () => setShowIdealSplitWizard2(false)
+            onClose: () => setShowIdealSplitWizard(false)
           }
         ),
         showExportImport && /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(
@@ -141033,7 +141055,7 @@ var init_SplitAdvancedEditor = __esm({
         ) })
       ] });
     };
-    IdealSplitWizardModal = ({ isOpen, step, answers, onAnswerChange, onNext, onBack, onClose }) => {
+    IdealSplitWizardModal = ({ isOpen, step, answers, recommendations, onAnswerChange, onSelectRecommendation, onNext, onBack, onClose }) => {
       if (!isOpen) return null;
       const DAYS = ["Domingo", "Lunes", "Martes", "Mi\xE9rcoles", "Jueves", "Viernes", "S\xE1bado"];
       const STEPS = [
@@ -141143,7 +141165,7 @@ var init_SplitAdvancedEditor = __esm({
               /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("div", { className: "w-16 h-16 mx-auto bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mb-2", children: /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(CheckIcon, { size: 32, className: "text-green-600" }) }),
               /* @__PURE__ */ (0, import_jsx_runtime92.jsxs)("p", { className: "text-sm text-zinc-600", children: [
                 "Encontramos ",
-                wizardRecommendations.length,
+                recommendations.length,
                 " splits ideales para ti:"
               ] })
             ] }),
@@ -141152,15 +141174,10 @@ var init_SplitAdvancedEditor = __esm({
               /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("strong", { children: "Consejo:" }),
               " Prueba este split por una semana para ver si se ajusta a tus necesidades. Siempre podr\xE1s volver ac\xE1 si necesitas otro."
             ] }) }),
-            wizardRecommendations.map((split, index) => /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(
+            recommendations.map((split, index) => /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(
               "button",
               {
-                onClick: () => {
-                  setPendingSplit(split);
-                  setHasSessions(checkHasSessions());
-                  setShowIdealSplitWizard(false);
-                  setShowMigrationModal(true);
-                },
+                onClick: () => onSelectRecommendation(split),
                 className: "w-full p-4 rounded-2xl border-2 border-zinc-200 hover:border-cyan-500 bg-white hover:bg-gradient-to-br hover:from-cyan-50 hover:to-blue-50 transition-all text-left group",
                 children: /* @__PURE__ */ (0, import_jsx_runtime92.jsxs)("div", { className: "flex items-start justify-between gap-3", children: [
                   /* @__PURE__ */ (0, import_jsx_runtime92.jsxs)("div", { className: "flex-1", children: [
@@ -143394,7 +143411,7 @@ var init_ProgramDetail = __esm({
         handleStartProgram,
         handlePauseProgram,
         handleEditProgram,
-        handleUpdateProgram: handleUpdateProgram2,
+        handleUpdateProgram,
         handleChangeSplit,
         handleReorderSessions,
         addToast,
@@ -143544,7 +143561,7 @@ var init_ProgramDetail = __esm({
               onEdit: handleProgramEdit,
               onStart: () => handleStartProgram(program.id),
               onPause: handlePauseProgram,
-              onUpdateProgram: handleUpdateProgram2,
+              onUpdateProgram: handleUpdateProgram,
               currentWeekIndex,
               totalWeeks,
               totalAdherence
@@ -143602,7 +143619,7 @@ var init_ProgramDetail = __esm({
                       },
                       onDeleteSession: onDeleteSessionHandler,
                       onStartWorkout: (session) => handleStartWorkout(session, program),
-                      onUpdateProgram: handleUpdateProgram2,
+                      onUpdateProgram: handleUpdateProgram,
                       addToast
                     }
                   ),
@@ -143612,7 +143629,7 @@ var init_ProgramDetail = __esm({
                       program,
                       selectedBlockId,
                       selectedWeekId,
-                      onUpdateProgram: handleUpdateProgram2,
+                      onUpdateProgram: handleUpdateProgram,
                       addToast
                     }
                   ),
@@ -143620,7 +143637,7 @@ var init_ProgramDetail = __esm({
                     LoopsView_default,
                     {
                       program,
-                      onUpdateProgram: handleUpdateProgram2,
+                      onUpdateProgram: handleUpdateProgram,
                       addToast
                     }
                   ),
@@ -143628,7 +143645,7 @@ var init_ProgramDetail = __esm({
                     ProtocolsView_default,
                     {
                       program,
-                      onUpdateProgram: handleUpdateProgram2,
+                      onUpdateProgram: handleUpdateProgram,
                       addToast
                     }
                   ),
@@ -143636,7 +143653,7 @@ var init_ProgramDetail = __esm({
                     MacrocycleEditor,
                     {
                       program,
-                      onUpdateProgram: handleUpdateProgram2,
+                      onUpdateProgram: handleUpdateProgram,
                       addToast
                     }
                   ),
@@ -143673,7 +143690,7 @@ var init_ProgramDetail = __esm({
                       adaptiveCache,
                       exerciseList,
                       setSettings,
-                      onUpdateProgram: handleUpdateProgram2,
+                      onUpdateProgram: handleUpdateProgram,
                       addToast,
                       postSessionFeedback
                     }
@@ -159389,15 +159406,15 @@ var init_AdvancedExercisePickerModal = __esm({
                             return /* @__PURE__ */ (0, import_jsx_runtime127.jsxs)(import_jsx_runtime127.Fragment, { children: [
                               /* @__PURE__ */ (0, import_jsx_runtime127.jsxs)("div", { className: "flex justify-between items-center", children: [
                                 /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[9px] text-[#525252]", children: "Metab\xF3lico (EFC)" }),
-                                /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[10px] font-medium text-[#1a1a1a]", children: efc.toFixed(1) })
+                                /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[10px] font-medium text-[#1a1a1a]", children: (efc ?? 0).toFixed(1) })
                               ] }),
                               /* @__PURE__ */ (0, import_jsx_runtime127.jsxs)("div", { className: "flex justify-between items-center", children: [
                                 /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[9px] text-[#525252]", children: "Neural (CNC)" }),
-                                /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[10px] font-medium text-[#1a1a1a]", children: cnc.toFixed(1) })
+                                /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[10px] font-medium text-[#1a1a1a]", children: (cnc ?? 0).toFixed(1) })
                               ] }),
                               /* @__PURE__ */ (0, import_jsx_runtime127.jsxs)("div", { className: "flex justify-between items-center", children: [
                                 /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[9px] text-[#525252]", children: "Espinal (SSC)" }),
-                                /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[10px] font-medium text-[#525252]", children: ssc.toFixed(1) })
+                                /* @__PURE__ */ (0, import_jsx_runtime127.jsx)("span", { className: "text-[10px] font-medium text-[#525252]", children: (ssc ?? 0).toFixed(1) })
                               ] })
                             ] });
                           })() })
@@ -164206,7 +164223,7 @@ var init_WorkoutSession = __esm({
           const actualReps = exercise.trainingMode === "time" ? primaryData.duration || 0 : primaryData.reps || 0;
           const exInfo = exerciseList.find((e) => e.id === exercise.exerciseDbId || e.name === exercise.name);
           const auge = getDynamicAugeMetrics2(exInfo, exercise.name);
-          const fatigueFactor = Math.min(1.5, Math.max(0.4, (auge.cnc + auge.ssc * 0.5) / 3.5));
+          const fatigueFactor = Math.min(1.5, Math.max(0.4, ((auge.cnc ?? 0) + (auge.ssc ?? 0) * 0.5) / 3.5));
           const wasProgrammedAsFailure = set3.intensityMode === "failure" || set3.isAmrap;
           const wasProgrammedNearFailure = (set3.targetRPE ?? 8) >= 9;
           const hadProgrammedDropsets = (set3.dropSets?.length ?? 0) > 0;
@@ -191575,7 +191592,7 @@ var SomatotypeSlider = ({ label, value, onChange }) => /* @__PURE__ */ (0, impor
 ] });
 var AthleteIDDashboard = ({ isOpen, onClose, onNavigate, onSettingsClick }) => {
   const { settings, bodyProgress, history, programs, biomechanicalData, activeSubTabs } = useAppState();
-  const { setSettings, addToast, setBiomechanicalData: setBiomechanicalData2 } = useAppDispatch();
+  const { setSettings, addToast, setBiomechanicalData } = useAppDispatch();
   const [activeTab, setActiveTab] = (0, import_react97.useState)("id");
   const [editSubTab, setEditSubTab] = (0, import_react97.useState)("vitals");
   const [isSharing, setIsSharing] = (0, import_react97.useState)(false);
@@ -191620,7 +191637,7 @@ var AthleteIDDashboard = ({ isOpen, onClose, onNavigate, onSettingsClick }) => {
       const hasBioChanged = Object.keys(localBio).some((k2) => currentBio[k2] !== localBio[k2]);
       const isBioComplete = Object.values(localBio).every((val) => val > 0);
       if (hasBioChanged && isBioComplete) {
-        await setBiomechanicalData2(localBio);
+        await setBiomechanicalData(localBio);
       }
       addToast("Perfil actualizado.", "success");
       setActiveTab("id");
@@ -193499,14 +193516,23 @@ init_AppContext();
 init_icons();
 init_calculations();
 var import_jsx_runtime66 = __toESM(require_jsx_runtime(), 1);
+var EMPTY_BIOMECHANICAL_DATA = {
+  height: 0,
+  wingspan: 0,
+  torsoLength: 0,
+  femurLength: 0,
+  tibiaLength: 0,
+  humerusLength: 0,
+  forearmLength: 0
+};
 var MyProfileView = () => {
   const { settings, bodyProgress, history, programs, biomechanicalData } = useAppState();
-  const { setSettings, addToast } = useAppDispatch();
+  const { setSettings, setBiomechanicalData, addToast } = useAppDispatch();
   const [editMode, setEditMode] = (0, import_react107.useState)(false);
   const [editTab, setEditTab] = (0, import_react107.useState)("vitals");
   const [isPhotoModalOpen, setIsPhotoModalOpen] = (0, import_react107.useState)(false);
   const [localSettings, setLocalSettings] = (0, import_react107.useState)(() => JSON.parse(JSON.stringify(settings)));
-  const [localBio, setLocalBio] = (0, import_react107.useState)(() => JSON.parse(JSON.stringify(biomechanicalData || {})));
+  const [localBio, setLocalBio] = (0, import_react107.useState)(() => JSON.parse(JSON.stringify(biomechanicalData || EMPTY_BIOMECHANICAL_DATA)));
   const latestWeight = (0, import_react107.useMemo)(() => {
     const sorted = [...bodyProgress].filter((l) => l.weight).sort((a2, b) => new Date(b.date).getTime() - new Date(a2.date).getTime());
     return sorted[sorted.length - 1]?.weight || settings.userVitals.weight;
@@ -193517,7 +193543,7 @@ var MyProfileView = () => {
     const bf = settings.userVitals.bodyFatPercentage;
     if (h && w && bf !== void 0) {
       const result = calculateFFMI(h, w, bf);
-      return result ? result.normalizedFfmi.toFixed(1) : "N/A";
+      return result ? result.normalizedFfmi : "N/A";
     }
     return "N/A";
   }, [settings.userVitals, latestWeight]);
@@ -193562,7 +193588,7 @@ var MyProfileView = () => {
   };
   const handleCancel = () => {
     setLocalSettings(JSON.parse(JSON.stringify(settings)));
-    setLocalBio(JSON.parse(JSON.stringify(biomechanicalData || {})));
+    setLocalBio(JSON.parse(JSON.stringify(biomechanicalData || EMPTY_BIOMECHANICAL_DATA)));
     setEditMode(false);
   };
   return /* @__PURE__ */ (0, import_jsx_runtime66.jsxs)("div", { className: "min-h-full flex flex-col bg-[var(--md-sys-color-surface)] pb-8", children: [
@@ -193926,7 +193952,7 @@ var MyRingsView = () => {
   const avgEnergy = (0, import_react108.useMemo)(() => {
     if (!dailyWellbeingLogs || dailyWellbeingLogs.length === 0) return null;
     const recent = dailyWellbeingLogs.slice(0, 7);
-    const total = recent.reduce((sum, log4) => sum + (log4.energyLevel || 0), 0);
+    const total = recent.reduce((sum, log4) => sum + (log4.motivation || 0), 0);
     return Math.round(total / recent.length);
   }, [dailyWellbeingLogs]);
   return /* @__PURE__ */ (0, import_jsx_runtime67.jsxs)("div", { className: "min-h-full flex flex-col bg-[var(--md-sys-color-surface)] pb-8", children: [
@@ -194687,7 +194713,7 @@ var App3 = () => {
     handleSaveBodyLog,
     handleCreateProgram,
     handleEditProgram,
-    handleUpdateProgram: handleUpdateProgram2,
+    handleUpdateProgram,
     removeToast,
     addToast,
     setSaveSessionTrigger,
@@ -194934,7 +194960,7 @@ var App3 = () => {
       case "program-detail": {
         const program = programs.find((p) => p.id === activeProgramId);
         if (!program) return /* @__PURE__ */ (0, import_jsx_runtime202.jsx)("div", { className: "text-center pt-24 text-slate-400", children: "Programa no encontrado." });
-        return /* @__PURE__ */ (0, import_jsx_runtime202.jsx)(ProgramDetail2, { program, history, settings, isOnline, onLogWorkout: handleLogWorkout, onEditProgram: handleEditProgram, onEditSession: handleEditSession, onDeleteSession: handleDeleteSession, onAddSession: handleAddSession, onDeleteProgram: handleDeleteProgram, onUpdateProgram: handleUpdateProgram2 });
+        return /* @__PURE__ */ (0, import_jsx_runtime202.jsx)(ProgramDetail2, { program, history, settings, isOnline, onLogWorkout: handleLogWorkout, onEditProgram: handleEditProgram, onEditSession: handleEditSession, onDeleteSession: handleDeleteSession, onAddSession: handleAddSession, onDeleteProgram: handleDeleteProgram, onUpdateProgram: handleUpdateProgram });
       }
       case "program-editor": {
         const programToEdit = editingProgramId ? programs.find((p) => p.id === editingProgramId) || null : null;
@@ -195517,4 +195543,3 @@ use-sync-external-store/cjs/use-sync-external-store-with-selector.development.js
    * limitations under the License.
    *)
 */
-//# sourceMappingURL=index.js.map

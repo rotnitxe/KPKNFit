@@ -65,7 +65,9 @@ export const NutritionRingsContainer: React.FC<{
   const stroke = 12;
   const spacing = 4;
 
-  const calPct = Math.min(100, (calories / goal) * 100);
+  const safeGoal = goal > 0 ? goal : 1;
+  const rawCalPct = (calories / safeGoal) * 100;
+  const calPct = Number.isFinite(rawCalPct) ? Math.min(100, Math.max(0, rawCalPct)) : 0;
 
   return (
     <View style={styles.container}>

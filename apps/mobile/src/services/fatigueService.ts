@@ -155,32 +155,7 @@ export const calculateCompletedSessionDrainBreakdown = (
     return { totalStress, cnsDrain: totalCns, muscularDrain: totalMuscular, spinalDrain: totalSpinal };
 };
 
-export const calculateExerciseFatigueScale = (exercise: any, info: ExerciseCatalogEntry | undefined): number => {
-    if (!exercise.sets?.length) return 0;
-    const defaultTanks = calculatePersonalizedBatteryTanks({});
-    let totalDrain = 0;
-    exercise.sets.forEach((s: any, idx: number) => {
-        const drain = calculateSetBatteryDrain(s, info as any, defaultTanks, idx, exercise.restTime || 90);
-        totalDrain += drain.cnsDrainPct + (drain.muscularDrainPct * 0.5);
-    });
-    return Math.min(10, Math.round(totalDrain / 2));
-};
-
-export const calculateSetStress = (set: any, info: ExerciseCatalogEntry | undefined, restTime: number = 90): number => {
-    const defaultTanks = calculatePersonalizedBatteryTanks({});
-    const drain = calculateSetBatteryDrain(set, info as any, defaultTanks, 0, restTime);
-    return drain.muscularDrainPct;
-};
-
-export const calculateSpinalScore = (set: any, info: ExerciseCatalogEntry | undefined): number => {
-    const defaultTanks = calculatePersonalizedBatteryTanks({});
-    const drain = calculateSetBatteryDrain(set, info as any, defaultTanks, 0, 90);
-    return drain.spinalDrainPct;
-};
-
-export const normalizeToTenScale = (verroScore: number): number => {
-    return Math.min(10, Math.max(1, parseFloat(((verroScore / 10) * 10).toFixed(1))));
-};
+export { normalizeToTenScale, classifyAcwrZone, ACWR_ZONE_LABELS, ACWR_ZONE_COLORS, calculateSetStress, calculateSpinalScore, calculateExerciseFatigueScale } from '@kpkn/shared-domain';
 
 export const classifyACWR = (acwr: number): { interpretation: string; color: string } => {
     if (acwr < 0.8) return { interpretation: 'Sub-entrenando', color: '#38BDF8' };

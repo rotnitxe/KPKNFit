@@ -2,19 +2,17 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   Image,
   StyleSheet,
-  Dimensions,
   Pressable,
+  Dimensions,
 } from 'react-native';
-import { useColors } from '../../theme';
-import { LiquidGlassCard } from '../ui/LiquidGlassCard';
+import { useColors, useTheme } from '../../theme';
 import { PlayIcon, ChevronRightIcon, ChevronLeftIcon } from '../icons';
 import { CaupolicanIcon } from '../CaupolicanIcon';
 import type { Program, Session } from '../../types/workout';
 
-const { width } = Dimensions.get('window');
+const { width: SCREEN_W } = Dimensions.get('window');
 
 export interface TodaySessionItem {
   session: Session;
@@ -23,6 +21,7 @@ export interface TodaySessionItem {
   isCompleted: boolean;
   dayOfWeek?: number;
   isOngoing?: boolean;
+  log?: any;
 }
 
 interface SessionTodayCardProps {
@@ -42,213 +41,134 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const colors = useColors();
+  const { isDark } = useTheme();
 
+  // ── Empty state ────────────────────────────────────────────────────
   if (sessions.length === 0) {
     return (
-      <TouchableOpacity 
-        onPress={onOpenStartWorkoutModal}
-        activeOpacity={0.9}
-        style={{ paddingHorizontal: 24 }}
-      >
-        <LiquidGlassCard style={styles.emptyCard}>
-          <CaupolicanIcon size={48} color={`${colors.onSurfaceVariant}4D`} />
-          <View style={styles.emptyContent}>
-            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>DÍA DE DESCANSO</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>Configura un programa para hoy</Text>
+      <View style={styles.emptyWrap}>
+        <Pressable
+          onPress={onOpenStartWorkoutModal}
+          style={({ pressed }) => [
+            styles.emptyCard,
+            { backgroundColor: colors.primaryContainer },
+            pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
+          ]}
+        >
+          <CaupolicanIcon size={48} color={colors.onPrimaryContainer} />
+          <View style={styles.emptyTextWrap}>
+            <Text style={[styles.emptyTitle, { color: colors.onPrimaryContainer }]}>Día de descanso</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.onPrimaryContainer, opacity: 0.6 }]}>
+              Configura un programa para hoy
+            </Text>
           </View>
-        </LiquidGlassCard>
-      </TouchableOpacity>
+        </Pressable>
+      </View>
     );
   }
 
-  const currentItem = sessions[activeIndex];
-  const isToday = currentItem.dayOfWeek === currentDayOfWeek;
-  const isOngoing = currentItem.isOngoing;
+  // ── Active session ────────────────────────────────────────────────
+  const current = sessions[activeIndex];
+  const coverImage = current.program.coverImage;
+  const isToday = current.dayOfWeek === currentDayOfWeek;
+  const isOngoing = current.isOngoing;
 
   return (
     <View style={styles.container}>
-      <View style={styles.pagingWrapper}>
-        <LiquidGlassCard style={styles.sessionCard}>
-          {currentItem.program.coverImage ? (
-            <Image 
-              source={{ uri: currentItem.program.coverImage }} 
-              style={[StyleSheet.absoluteFill, { opacity: 0.6 }]} 
-              resizeMode="cover"
-            />
+      {/* Card */}
+      <View style={styles.cardWrap}>
+        <View style={styles.card}>
+          {/* Background */}
+          {coverImage ? (
+            <Image source={{ uri: coverImage }} style={StyleSheet.absoluteFill} resizeMode="cover" />
           ) : (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.primaryContainer, opacity: 0.2 }]} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? '#2A2438' : '#6750A4' }]} />
           )}
-          
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.4)' }]} />
+          {/* Dark overlay */}
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.3)' }]} />
 
-          <View style={styles.cardHeader}>
-            <View style={[styles.statusBadge, { backgroundColor: isOngoing ? colors.primary : 'rgba(255,255,255,0.1)' }]}>
-              <Text style={[styles.statusBadgeText, { color: isOngoing ? 'white' : 'white' }]}>
-                {isOngoing ? 'SESIÓN EN CURSO' : isToday ? 'SESIÓN DE HOY' : 'PRÓXIMA SESIÓN'}
+          {/* Badge */}
+          <View style={styles.badgeWrap}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {isToday ? 'SESIÓN DE HOY' : 'PRÓXIMA SESIÓN'}
               </Text>
             </View>
           </View>
 
-          <View style={styles.cardMain}>
+          {/* Bottom content */}
+          <View style={styles.cardBottom}>
             <View style={styles.textStack}>
               <Text style={styles.programLabel}>{programName.toUpperCase()}</Text>
-              <Text style={styles.sessionTitle} numberOfLines={2}>{currentItem.session.name}</Text>
+              <Text style={styles.sessionName} numberOfLines={2}>{current.session.name}</Text>
             </View>
-            
-            <Pressable 
-              onPress={() => onStartWorkout(currentItem.session, currentItem.program, currentItem.location)}
+
+            <Pressable
+              onPress={() => onStartWorkout(current.session, current.program, current.location)}
               style={({ pressed }) => [
-                styles.actionButton, 
-                { backgroundColor: isOngoing ? colors.primary : 'white' },
-                pressed && { opacity: 0.8 }
+                styles.playBtn,
+                pressed && { transform: [{ scale: 0.9 }] },
               ]}
             >
-              <PlayIcon size={32} color={isOngoing ? 'white' : 'black'} fill={isOngoing ? 'white' : 'black'} />
+              <PlayIcon size={28} color="black" fill="black" />
             </Pressable>
           </View>
-        </LiquidGlassCard>
-
-        {sessions.length > 1 && (
-          <View style={styles.navArrows}>
-             <Pressable 
-              onPress={() => setActiveIndex(prev => (prev > 0 ? prev - 1 : sessions.length - 1))}
-              style={styles.arrowBtn}
-            >
-              <ChevronLeftIcon size={24} color="white" />
-            </Pressable>
-            <Pressable 
-              onPress={() => setActiveIndex(prev => (prev < sessions.length - 1 ? prev + 1 : 0))}
-              style={styles.arrowBtn}
-            >
-              <ChevronRightIcon size={24} color="white" />
-            </Pressable>
-          </View>
-        )}
+        </View>
       </View>
 
+      {/* Pagination */}
       {sessions.length > 1 && (
-        <View style={styles.dotContainer}>
-          {sessions.map((_, i) => (
-            <View 
-              key={i} 
-              style={[
-                styles.dot, 
-                i === activeIndex ? [styles.activeDot, { backgroundColor: colors.primary }] : { backgroundColor: `${colors.onSurface}20` }
-              ]} 
-            />
-          ))}
+        <View style={styles.pagination}>
+          <Pressable
+            onPress={() => setActiveIndex(prev => (prev > 0 ? prev - 1 : sessions.length - 1))}
+            style={({ pressed }) => [styles.arrowBtn, pressed && { opacity: 0.7 }]}
+          >
+            <ChevronLeftIcon size={20} color={colors.onSurfaceVariant} />
+          </Pressable>
+          <View style={styles.dots}>
+            {sessions.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  i === activeIndex
+                    ? [styles.dotActive, { backgroundColor: colors.primary }]
+                    : { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
+                ]}
+              />
+            ))}
+          </View>
+          <Pressable
+            onPress={() => setActiveIndex(prev => (prev < sessions.length - 1 ? prev + 1 : 0))}
+            style={({ pressed }) => [styles.arrowBtn, pressed && { opacity: 0.7 }]}
+          >
+            <ChevronRightIcon size={20} color={colors.onSurfaceVariant} />
+          </Pressable>
         </View>
       )}
     </View>
   );
 };
 
+const CARD_H = Math.round((Math.min(SCREEN_W - 48, 420)) * 9 / 16);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
     gap: 16,
+    alignItems: 'center',
   },
-  pagingWrapper: {
+  emptyWrap: {
     paddingHorizontal: 24,
-    position: 'relative',
-  },
-  sessionCard: {
-    height: 200,
-    borderRadius: 40,
-    overflow: 'hidden',
-    justifyContent: 'space-between',
-    padding: 24,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-  },
-  statusBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-  },
-  cardMain: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-  },
-  textStack: {
-    flex: 1,
-    gap: 4,
-    marginRight: 16,
-  },
-  programLabel: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-  sessionTitle: {
-    color: 'white',
-    fontSize: 28,
-    fontWeight: '900',
-    lineHeight: 32,
-    letterSpacing: -0.5,
-  },
-  actionButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  navArrows: {
-    position: 'absolute',
-    left: 40,
-    right: 40,
-    top: '50%',
-    marginTop: -20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    pointerEvents: 'box-none',
-  },
-  arrowBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dotContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  activeDot: {
-    width: 24,
   },
   emptyCard: {
-    height: 200,
+    height: CARD_H,
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
   },
-  emptyContent: {
+  emptyTextWrap: {
     alignItems: 'center',
     gap: 4,
   },
@@ -256,10 +176,106 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   emptySubtitle: {
     fontSize: 12,
-    fontWeight: '600',
-    opacity: 0.5,
+    fontWeight: '500',
+  },
+  cardWrap: {
+    paddingHorizontal: 24,
+    width: '100%',
+  },
+  card: {
+    width: '100%',
+    height: CARD_H,
+    borderRadius: 40,
+    overflow: 'hidden',
+  },
+  badgeWrap: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+  },
+  badge: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+  },
+  cardBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  textStack: {
+    flex: 1,
+    gap: 4,
+    paddingRight: 16,
+  },
+  programLabel: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 2,
+  },
+  sessionName: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '900',
+    lineHeight: 28,
+    letterSpacing: -0.5,
+  },
+  playBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  pagination: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  arrowBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dots: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dotActive: {
+    width: 24,
   },
 });

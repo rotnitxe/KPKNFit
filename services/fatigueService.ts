@@ -95,33 +95,10 @@ export const calculatePredictedSessionDrain = (session: Session, exerciseList: E
     };
 };
 
-// Funciones Legacy Mantenidas para Retrocompatibilidad temporal en otras vistas
-export const calculateSetStress = (set: any, info: ExerciseMuscleInfo | undefined, restTime: number = 90): number => {
-    const defaultTanks = calculatePersonalizedBatteryTanks({});
-    const drain = calculateSetBatteryDrain(set, info, defaultTanks, 0, restTime);
-    return drain.muscularDrainPct;
-};
+// Re-exported from @kpkn/shared-domain (single source)
+export { calculateSetStress, calculateSpinalScore, calculateExerciseFatigueScale } from '@kpkn/shared-domain';
 
-export const calculateSpinalScore = (set: any, info: ExerciseMuscleInfo | undefined): number => {
-    const defaultTanks = calculatePersonalizedBatteryTanks({});
-    const drain = calculateSetBatteryDrain(set, info, defaultTanks, 0, 90);
-    return drain.spinalDrainPct;
-};
-
-export const normalizeToTenScale = (verroScore: number): number => {
-    return Math.min(10, Math.max(1, parseFloat(((verroScore / 10) * 10).toFixed(1)))); // Aproximación
-};
-
-export const calculateExerciseFatigueScale = (exercise: any, info: ExerciseMuscleInfo | undefined): number => {
-    if (!exercise.sets?.length) return 0;
-    const defaultTanks = calculatePersonalizedBatteryTanks({});
-    let totalDrain = 0;
-    exercise.sets.forEach((s: any, idx: number) => {
-        const drain = calculateSetBatteryDrain(s, info, defaultTanks, idx, exercise.restTime || 90);
-        totalDrain += drain.cnsDrainPct + (drain.muscularDrainPct * 0.5);
-    });
-    return Math.min(10, Math.round(totalDrain / 2));
-};
+export { normalizeToTenScale } from '@kpkn/shared-domain';
 
 /**
  * --- CÁLCULO DE ESTRÉS DE SESIÓN COMPLETADA ---

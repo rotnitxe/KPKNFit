@@ -16,6 +16,7 @@ interface WellbeingTaskSummary {
   id: string;
   title: string;
   completed: boolean;
+  description?: string;
 }
 
 interface WellbeingStoreState {
@@ -28,6 +29,8 @@ interface WellbeingStoreState {
   hydrateFromMigration: () => Promise<void>;
   logWater: (amountMl: number) => Promise<void>;
   toggleTask: (taskId: string) => Promise<void>;
+  addTask: (title: string, description?: string) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
   addDailyCheckIn: (data: { date: string; sleepQuality: number; stressLevel: number; doms: number; motivation: number; moodState?: string }) => Promise<void>;
   clearNotice: () => void;
 }
@@ -62,6 +65,10 @@ function adaptTasks(rawTasks: unknown[]) {
     .map(task => ({
       id: typeof task.id === 'string' ? task.id : generateId(),
       title: typeof task.title === 'string' && task.title.trim() !== '' ? task.title.trim() : 'Tarea',
+      description:
+        typeof task.description === 'string' && task.description.trim() !== ''
+          ? task.description.trim()
+          : undefined,
       completed: task.completed === true,
       completedDate:
         typeof task.completedDate === 'string' && task.completedDate.trim() !== ''
@@ -95,7 +102,12 @@ function buildState() {
     source: getStoredWellbeingSource(),
     status: hasAnyData ? ('ready' as const) : ('empty' as const),
     overview: hasAnyData ? buildWellbeingOverview(payload) : null,
-    tasks: tasks.map(task => ({ id: task.id, title: task.title, completed: task.completed })),
+    tasks: tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      completed: task.completed,
+    })),
     payload,
     droppedDailyLogs,
   };
@@ -171,6 +183,48 @@ export const useWellbeingStore = create<WellbeingStoreState>(set => ({
       tasks: next.tasks,
       droppedDailyLogs: next.droppedDailyLogs,
       notice: toggledTask?.completed ? 'Tarea marcada como lista.' : 'Tarea marcada como pendiente.',
+    });
+  },
+
+  addTask: async (title, description) => {
+    const cleanTitle = title.trim();
+    if (!cleanTitle) return;
+
+    const current = readStoredWellbeingPayload();
+    const nextTasks = [
+      {
+        id: generateId(),
+        title: cleanTitle,
+        description: description?.trim() || undefined,
+        completed: false,
+      },
+      ...current.tasks,
+    ];
+
+    patchStoredWellbeingPayload({ tasks: nextTasks });
+    const next = buildState();
+    set({
+      status: next.status,
+      source: 'rn-owned',
+      overview: next.overview,
+      tasks: next.tasks,
+      droppedDailyLogs: next.droppedDailyLogs,
+      notice: 'Tarea creada.',
+    });
+  },
+
+  deleteTask: async taskId => {
+    const current = readStoredWellbeingPayload();
+    const nextTasks = current.tasks.filter(task => !isRecord(task) || task.id !== taskId);
+    patchStoredWellbeingPayload({ tasks: nextTasks });
+    const next = buildState();
+    set({
+      status: next.status,
+      source: 'rn-owned',
+      overview: next.overview,
+      tasks: next.tasks,
+      droppedDailyLogs: next.droppedDailyLogs,
+      notice: 'Tarea eliminada.',
     });
   },
 

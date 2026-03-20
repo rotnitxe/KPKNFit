@@ -393,11 +393,7 @@ export const calculateDailyReadiness = (
     return computeAugeReadinessShared(config);
 };
 
-export const learnRecoveryRate = (currentMultiplier: number, calculatedScore: number, manualFeel: number): number => {
-    const diff = manualFeel - calculatedScore;
-    const adjustment = diff * 0.005;
-    return clamp(currentMultiplier + adjustment, 0.5, 2.0);
-};
+export { learnRecoveryRate } from '@kpkn/shared-domain';
 
 export const checkPendingSurveys = (history: WorkoutLog[], feedbacks: PostSessionFeedback[]): PendingQuestionnaire[] => {
     const now = Date.now();

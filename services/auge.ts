@@ -131,3 +131,18 @@ export const classifyACWR = (acwr: number): { interpretation: string; color: str
     if (acwr > 1.3) return { interpretation: 'Zona de Riesgo', color: 'text-[#FFD600]' };
     return { interpretation: 'Zona Segura', color: 'text-[#00FF9D]' };
 };
+
+// ─── SHARED RE-EXPORTS: Zona classifiers desde @kpkn/shared-domain ─────────
+// Estos son los equivalentes platform-neutral de classifyACWR / classifyStressLevel.
+// Retornan zonas semánticas + colores hex. Los wrappers de arriba retornan clases Tailwind.
+
+export {
+    classifyAcwrZone,
+    ACWR_ZONE_LABELS,
+    ACWR_ZONE_COLORS,
+    classifyStressZone,
+    STRESS_ZONE_LABELS,
+    STRESS_ZONE_COLORS,
+    type AcwrZone,
+    type StressLevel,
+} from '@kpkn/shared-domain';

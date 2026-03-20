@@ -153,6 +153,32 @@ describe('Wiki secondary views', () => {
     expect(json).toContain('Sin resultados');
   });
 
+  it('does not show empty state when query matches kinetic chains', () => {
+    (useRoute as jest.Mock).mockReturnValue({ params: {} });
+
+    let tree: renderer.ReactTestRenderer;
+    act(() => {
+      tree = renderer.create(
+        <ThemeProvider initialDark={false}>
+          <WikiHomeScreen />
+        </ThemeProvider>,
+      );
+    });
+
+    const searchInput = tree!.root.findByProps({ placeholder: 'Buscar en la Wiki...' });
+    act(() => {
+      searchInput.props.onChangeText('posterior');
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(700);
+    });
+
+    const json = JSON.stringify(tree!.toJSON());
+    expect(json).not.toContain('Sin resultados');
+    expect(json).toContain('Cadena Posterior');
+  });
+
   it('renders chain detail with grouped exercises', () => {
     act(() => {
       useExerciseStore.setState({

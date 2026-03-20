@@ -5,16 +5,25 @@ import { LiquidGlassCard } from '../ui/LiquidGlassCard';
 import { Button } from '../ui/Button';
 import { getLocalDateString } from '../../utils/dateUtils';
 import { patchStoredWellbeingPayload, readStoredWellbeingPayload } from '../../services/mobileDomainStateService';
+import { useWellbeingStore } from '../../stores/wellbeingStore';
 
 const WEEK_DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+type SleepLogEntry = { id?: string; date: string; duration?: number; quality?: number };
+
+function isSleepLogEntry(value: unknown): value is SleepLogEntry {
+  return typeof value === 'object' && value !== null && typeof (value as SleepLogEntry).date === 'string';
+}
 
 export const SleepTrackerWidget = () => {
   const colors = useColors();
+  const hydrateWellbeing = useWellbeingStore(state => state.hydrateFromMigration);
   const [showAddModal, setShowAddModal] = useState(false);
   const [sleepHours, setSleepHours] = useState('');
 
   const wellbeingPayload = readStoredWellbeingPayload();
-  const sleepLogs = Array.isArray(wellbeingPayload.sleepLogs) ? wellbeingPayload.sleepLogs : [];
+  const sleepLogs = Array.isArray(wellbeingPayload.sleepLogs)
+    ? wellbeingPayload.sleepLogs.filter(isSleepLogEntry)
+    : [];
   
   const last7Days = useMemo(() => {
     const today = new Date();
@@ -64,6 +73,7 @@ export const SleepTrackerWidget = () => {
     patchStoredWellbeingPayload({
       sleepLogs: [newLog, ...sleepLogs],
     });
+    void hydrateWellbeing();
     setShowAddModal(false);
     setSleepHours('');
   };

@@ -179,8 +179,19 @@ async function scheduleTimedNotification(params: {
   body: string;
   channelId: string;
   at: Date;
+  target?: string;
 }) {
   if (params.at.getTime() <= Date.now()) return;
+
+  const fallbackTarget =
+    params.channelId === CHANNELS.meals
+      ? 'nutrition-log'
+      : params.channelId === CHANNELS.reminders || params.channelId === CHANNELS.events
+        ? 'workout-main'
+        : params.channelId === CHANNELS.recovery
+          ? 'progress'
+          : 'home';
+  const target = params.target ?? fallbackTarget;
 
   await notifee.createTriggerNotification(
     {
@@ -188,14 +199,7 @@ async function scheduleTimedNotification(params: {
       title: params.title,
       body: params.body,
       data: {
-        screen:
-          params.channelId === CHANNELS.meals
-            ? 'Nutrition'
-            : params.channelId === CHANNELS.reminders || params.channelId === CHANNELS.events
-              ? 'Workout'
-              : params.channelId === CHANNELS.recovery
-                ? 'Progress'
-                : 'Home',
+        screen: target,
       },
       android: {
         channelId: params.channelId,
@@ -217,6 +221,7 @@ async function scheduleMealNotifications(state: NotificationSyncState) {
       body: 'Registra tu primera comida para que el día quede completo.',
       channelId: CHANNELS.meals,
       at: getNextAtTime(state.settings.breakfastReminderTime),
+      target: 'nutrition-log',
     });
   }
 
@@ -227,6 +232,7 @@ async function scheduleMealNotifications(state: NotificationSyncState) {
       body: 'Mantén el seguimiento simple: almuerzo y seguimos.',
       channelId: CHANNELS.meals,
       at: getNextAtTime(state.settings.lunchReminderTime),
+      target: 'nutrition-log',
     });
   }
 
@@ -237,6 +243,7 @@ async function scheduleMealNotifications(state: NotificationSyncState) {
       body: 'Registra tu comida y deja el seguimiento al día.',
       channelId: CHANNELS.meals,
       at: getNextAtTime(state.settings.dinnerReminderTime),
+      target: 'nutrition-log',
     });
   }
 }
@@ -257,6 +264,7 @@ async function scheduleWorkoutNotifications(state: NotificationSyncState) {
       body: `${todaySession.name} · ${state.workoutOverview.activeProgramName ?? 'KPKN'}`,
       channelId: CHANNELS.reminders,
       at: getNextAtTime(state.settings.reminderTime, true),
+      target: 'workout-main',
     });
   }
 
@@ -271,6 +279,7 @@ async function scheduleWorkoutNotifications(state: NotificationSyncState) {
       body: 'Si ya entrenaste, déjalo anotado para que el plan siga limpio.',
       channelId: CHANNELS.reminders,
       at: getNextAtTime(state.settings.missedWorkoutReminderTime, true),
+      target: 'log-workout',
     });
   }
 
@@ -285,6 +294,7 @@ async function scheduleWorkoutNotifications(state: NotificationSyncState) {
       body: `Tu batería RN estimada va en ${Math.round(state.workoutOverview.battery.overall)}%. Vale la pena revisar descanso o volumen.`,
       channelId: CHANNELS.recovery,
       at: getNextAtTime(state.settings.augeBatteryReminderTime, true),
+      target: 'progress',
     });
   }
 
@@ -297,6 +307,7 @@ async function scheduleWorkoutNotifications(state: NotificationSyncState) {
         body: state.workoutOverview.upcomingEvent.title,
         channelId: CHANNELS.events,
         at: eventDate,
+        target: 'programs',
       });
     }
   }
@@ -363,6 +374,7 @@ export async function scheduleRestTimerNotification(durationSeconds: number, lab
     body: label === 'Descanso' ? 'Ya puedes volver a la siguiente serie.' : `${label} listo. Puedes seguir.`,
     channelId: CHANNELS.timers,
     at: new Date(Date.now() + durationSeconds * 1000),
+    target: 'workout-main',
   });
 
   markNotificationsScheduled();

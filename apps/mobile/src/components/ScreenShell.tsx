@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  ScrollView,
   Text,
   View,
   Pressable,
@@ -8,7 +7,9 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useIsDark } from '../theme';
 import { useNavigation } from '@react-navigation/native';
 import { Canvas, LinearGradient, Rect, vec, Circle, Blur } from '@shopify/react-native-skia';
@@ -39,15 +40,18 @@ export function ScreenShell({
   const colors = useColors();
   const isDark = useIsDark();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const gradientColors = isDark
     ? [colors.background, '#1A1820', '#151418']
     : ['#FEF7FF', '#F8F1FB', '#FFFFFF'];
   const primaryBlob = isDark ? 'rgba(167, 146, 255, 0.15)' : 'rgba(103, 80, 164, 0.10)';
   const secondaryBlob = isDark ? 'rgba(239, 184, 200, 0.10)' : 'rgba(208, 188, 255, 0.20)';
+  const baseScrollBottom = 40;
+  const scrollBottom = Math.max(baseScrollBottom, insets.bottom + 124);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: 'transparent' }]}>
       {/* Background Decor Layer */}
       <View style={StyleSheet.absoluteFill}>
         <Canvas style={{ flex: 1 }}>
@@ -71,49 +75,50 @@ export function ScreenShell({
       </View>
 
       <SafeAreaView style={{ flex: 1 }}>
-        {headerContent ? (
-          headerContent
-        ) : (
-          <View style={styles.header}>
-            {showBack && navigation.canGoBack() && (
-              <Pressable
-                onPress={() => navigation.goBack()}
-                style={[styles.backButton, { backgroundColor: `${colors.onSurface}0D` }]}
-              >
-                <Text style={{ color: colors.primary, fontSize: 20 }}>←</Text>
-              </Pressable>
-            )}
-            <View style={styles.titleContainer}>
-              <Text
-                numberOfLines={1}
-                style={[styles.title, { color: colors.onSurface }]}
-              >
-                {title}
-              </Text>
-              {subtitle ? (
-                <Text
-                  numberOfLines={1}
-                  style={[styles.subtitle, { color: colors.onSurfaceVariant }]}
-                >
-                  {subtitle}
-                </Text>
-              ) : null}
-            </View>
-            {showLogo && (
-              <CaupolicanIcon size={32} color={colors.primary} style={{ opacity: 0.8 }} />
-            )}
-          </View>
-        )}
-
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[
             styles.scrollContent, 
             noPadding && { padding: 0, paddingBottom: 0 },
+            { paddingBottom: scrollBottom },
             contentContainerStyle
           ]}
           keyboardShouldPersistTaps="handled"
         >
+          {headerContent ? (
+            headerContent
+          ) : (
+            <View style={styles.header}>
+              {showBack && navigation.canGoBack() && (
+                <Pressable
+                  onPress={() => navigation.goBack()}
+                  style={[styles.backButton, { backgroundColor: `${colors.onSurface}0D` }]}
+                >
+                  <Text style={{ color: colors.primary, fontSize: 20 }}>←</Text>
+                </Pressable>
+              )}
+              <View style={styles.titleContainer}>
+                <Text
+                  numberOfLines={1}
+                  style={[styles.title, { color: colors.onSurface }]}
+                >
+                  {title}
+                </Text>
+                {subtitle ? (
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.subtitle, { color: colors.onSurfaceVariant }]}
+                  >
+                    {subtitle}
+                  </Text>
+                ) : null}
+              </View>
+              {showLogo && (
+                <CaupolicanIcon size={32} color={colors.primary} style={{ opacity: 0.8 }} />
+              )}
+            </View>
+          )}
+
           {children}
         </ScrollView>
       </SafeAreaView>

@@ -289,9 +289,8 @@ export const useWorkoutStore = create<WorkoutStoreState>((set, get) => ({
     try {
       await persistLocalWorkoutLog(quickLog);
       const { overview: nextOverview, reminderSettings } = await loadWorkoutRuntimeState();
-console.log('Setting state after finishActiveSession');
-console.log('Updating state with', {
-           status: nextOverview ? 'ready' : 'empty',
+      set({
+        status: nextOverview ? 'ready' : 'empty',
         overview: nextOverview,
         reminderSettings,
         loggingState: 'idle',
@@ -299,15 +298,13 @@ console.log('Updating state with', {
       });
       await syncWorkoutInfra(nextOverview, reminderSettings);
       set({ notice: 'Sesión de hoy registrada en esta app RN.' });
-} catch (error) {
-        set({
-          loggingState: 'idle',
-          errorMessage: error instanceof Error ? error.message : 'No pudimos registrar la sesión de hoy.',
-        });
-      }
-      // Ensure loggingState reset to idle regardless of outcome
-      set({ loggingState: 'idle' });
-    },
+    } catch (error) {
+      set({
+        loggingState: 'idle',
+        errorMessage: error instanceof Error ? error.message : 'No pudimos registrar la sesión de hoy.',
+      });
+    }
+  },
 
   startRestTimer: async (seconds: number, setId?: string) => {
     const label = get().overview?.todaySession?.name ?? 'Descanso';
@@ -665,14 +662,8 @@ console.log('Updating state with', {
     }
   },
 
-  updateSessionAdjusted1RM: (exerciseId, e1RM, isSource = false) => set((state) => {
+  updateSessionAdjusted1RM: (exerciseId, e1RM, _isSource = false) => set((state) => {
     if (!state.activeSession) return state;
-    
-    // Si es el ejercicio fuente, loguear el cambio para debug
-    if (isSource) {
-      const old1RM = state.activeSession.sessionAdjusted1RMs?.[exerciseId];
-      console.log(`[1RM] ${exerciseId}: ${old1RM || 'N/A'} → ${e1RM} kg (fuente)`);
-    }
     
     const newState = {
       ...state,

@@ -56,6 +56,8 @@ describe('mobileNotificationService', () => {
 
     expect(notifee.createChannels).toHaveBeenCalled();
     expect(notifee.createTriggerNotification).toHaveBeenCalledTimes(3); // Breakfast, Lunch, Dinner
+    const firstCallPayload = (notifee.createTriggerNotification as jest.Mock).mock.calls[0]?.[0];
+    expect(firstCallPayload?.data?.screen).toBe('nutrition-log');
     expect(persistNotificationPermissionSnapshot).toHaveBeenCalled();
   });
 

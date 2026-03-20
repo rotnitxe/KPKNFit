@@ -40,20 +40,32 @@ export function WikiHomeScreen() {
   const filteredJoints = useMemo(() => searchWiki(WIKI_JOINTS, query), [query]);
   const filteredTendons = useMemo(() => searchWiki(WIKI_TENDONS, query), [query]);
   const filteredPatterns = useMemo(() => searchWiki(WIKI_MOVEMENT_PATTERNS, query), [query]);
+  const normalizedQuery = query.trim().toLowerCase();
 
-  const featuredMuscle = filteredMuscles[0] ?? WIKI_MUSCLES[0];
-  const featuredJoint = filteredJoints[0] ?? WIKI_JOINTS[0];
-  const featuredTendon = filteredTendons[0] ?? WIKI_TENDONS[0];
-  const featuredPattern = filteredPatterns[0] ?? WIKI_MOVEMENT_PATTERNS[0];
+  const filteredChains = useMemo(() => {
+    if (!normalizedQuery) return WIKI_CHAIN_DEFINITIONS;
+    return WIKI_CHAIN_DEFINITIONS.filter(chain =>
+      [
+        chain.title,
+        chain.subtitle,
+        chain.description,
+        chain.importance,
+        chain.focusAreas.join(' '),
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedQuery),
+    );
+  }, [normalizedQuery]);
 
-  const hasAnyContent =
-    filteredMuscles.length > 0 ||
-    filteredJoints.length > 0 ||
-    filteredTendons.length > 0 ||
-    filteredPatterns.length > 0;
+  const featuredMuscle = filteredMuscles[0] ?? (normalizedQuery ? undefined : WIKI_MUSCLES[0]);
+  const featuredJoint = filteredJoints[0] ?? (normalizedQuery ? undefined : WIKI_JOINTS[0]);
+  const featuredTendon = filteredTendons[0] ?? (normalizedQuery ? undefined : WIKI_TENDONS[0]);
+  const featuredPattern = filteredPatterns[0] ?? (normalizedQuery ? undefined : WIKI_MOVEMENT_PATTERNS[0]);
 
-  const labCards = useMemo(
-    () => [
+  const allLabCards = useMemo(
+    () => {
+      const cards = [
       {
         key: 'lab-biomechanics',
         title: 'Biomecánica aplicada',
@@ -72,7 +84,10 @@ export function WikiHomeScreen() {
         readTime: '5 min',
         onPress: () => navigation.navigate('WikiMobility'),
       },
-      {
+    ];
+
+      if (featuredMuscle) {
+        cards.push({
         key: `article-muscle-${featuredMuscle.id}`,
         title: featuredMuscle.name,
         category: 'Músculo',
@@ -83,8 +98,11 @@ export function WikiHomeScreen() {
             articleType: 'muscle',
             articleId: featuredMuscle.id,
           }),
-      },
-      {
+        });
+      }
+
+      if (featuredPattern) {
+        cards.push({
         key: `article-pattern-${featuredPattern.id}`,
         title: featuredPattern.name,
         category: 'Patrón',
@@ -95,39 +113,72 @@ export function WikiHomeScreen() {
             articleType: 'pattern',
             articleId: featuredPattern.id,
           }),
-      },
-    ],
+        });
+      }
+
+      return cards;
+    },
     [featuredMuscle, featuredPattern, navigation],
   );
 
+  const filteredLabCards = useMemo(() => {
+    if (!normalizedQuery) return allLabCards;
+    return allLabCards.filter(card =>
+      [card.title, card.category, card.description].join(' ').toLowerCase().includes(normalizedQuery),
+    );
+  }, [allLabCards, normalizedQuery]);
+
+  const hasAnyContent =
+    filteredMuscles.length > 0 ||
+    filteredJoints.length > 0 ||
+    filteredTendons.length > 0 ||
+    filteredPatterns.length > 0 ||
+    filteredLabCards.length > 0 ||
+    filteredChains.length > 0;
+
   const spotlightItems = useMemo(
-    () => [
-      {
+    () => {
+      const items = [];
+
+      if (featuredJoint) {
+        items.push({
         key: `joint-${featuredJoint.id}`,
         title: featuredJoint.name,
         subtitle: featuredJoint.description,
         onPress: () => navigation.navigate('WikiJointDetail', { jointId: featuredJoint.id }),
-      },
-      {
+        });
+      }
+
+      if (featuredTendon) {
+        items.push({
         key: `tendon-${featuredTendon.id}`,
         title: featuredTendon.name,
         subtitle: featuredTendon.description,
         onPress: () => navigation.navigate('WikiTendonDetail', { tendonId: featuredTendon.id }),
-      },
-      {
+        });
+      }
+
+      if (featuredPattern) {
+        items.push({
         key: `pattern-${featuredPattern.id}`,
         title: featuredPattern.name,
         subtitle: featuredPattern.description,
         onPress: () =>
           navigation.navigate('WikiPatternDetail', { patternId: featuredPattern.id }),
-      },
-      {
+        });
+      }
+
+      if (featuredMuscle) {
+        items.push({
         key: `muscle-${featuredMuscle.id}`,
         title: featuredMuscle.name,
         subtitle: featuredMuscle.description,
         onPress: () => navigation.navigate('WikiMuscleDetail', { muscleId: featuredMuscle.id }),
-      },
-    ],
+        });
+      }
+
+      return items;
+    },
     [featuredJoint, featuredMuscle, featuredPattern, featuredTendon, navigation],
   );
 
@@ -213,7 +264,7 @@ export function WikiHomeScreen() {
                 Laboratorios
               </Text>
               <View style={styles.cardsGrid}>
-                {labCards.map((card, index) => (
+                {filteredLabCards.map((card, index) => (
                   <AnimatedArticleCard
                     key={card.key}
                     title={card.title}
@@ -227,18 +278,18 @@ export function WikiHomeScreen() {
               </View>
             </View>
 
-            {WIKI_CHAIN_DEFINITIONS.length > 0 && (
+            {filteredChains.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
                     Cadenas Cinéticas
                   </Text>
                   <Text style={[styles.sectionCount, { color: colors.onSurfaceVariant }]}>
-                    {WIKI_CHAIN_DEFINITIONS.length} Grupos
+                    {filteredChains.length} Grupos
                   </Text>
                 </View>
                 <View style={styles.chainList}>
-                  {WIKI_CHAIN_DEFINITIONS.map((chain, index) => (
+                  {filteredChains.map((chain, index) => (
                     <AnimatedListItem
                       key={chain.id}
                       title={chain.title}

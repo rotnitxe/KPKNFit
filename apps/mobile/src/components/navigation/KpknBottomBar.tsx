@@ -1,42 +1,36 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DumbbellIcon,
+  MealIcon,
   KpknLogoIcon,
-  PlateIcon,
-  SettingsIcon,
-  TripleRingsIcon,
   UserBadgeIcon,
   WikiLabIcon,
 } from '@/components/icons';
-import { useColors } from '@/theme';
+import { useColors, useTheme } from '@/theme';
 import { useSettingsStore } from '@/stores/settingsStore';
 
 type VisibleRouteName =
-  | 'Rings'
   | 'Workout'
   | 'Nutrition'
   | 'Profile'
-  | 'Wiki'
-  | 'Settings';
+  | 'Wiki';
 
 type TabConfig = {
   label: string;
   icon: React.ComponentType<{ size?: number; color?: string }>;
 };
 
-const LEFT_TABS: VisibleRouteName[] = ['Rings', 'Workout', 'Nutrition'];
-const RIGHT_TABS: VisibleRouteName[] = ['Profile', 'Wiki', 'Settings'];
+const LEFT_TABS: VisibleRouteName[] = ['Workout', 'Nutrition'];
+const RIGHT_TABS: VisibleRouteName[] = ['Profile', 'Wiki'];
 
 const TAB_CONFIG: Record<VisibleRouteName, TabConfig> = {
-  Rings: { label: 'Mi RINGS', icon: TripleRingsIcon },
   Workout: { label: 'Entrenar', icon: DumbbellIcon },
-  Nutrition: { label: 'Nutrición', icon: PlateIcon },
+  Nutrition: { label: 'Nutrición', icon: MealIcon },
   Profile: { label: 'Mi Perfil', icon: UserBadgeIcon },
   Wiki: { label: 'WikiLab', icon: WikiLabIcon },
-  Settings: { label: 'Ajustes', icon: SettingsIcon },
 };
 
 function TabButton({
@@ -45,7 +39,6 @@ function TabButton({
   onPress,
   Icon,
   compact = false,
-  showLabel = true,
   testID,
 }: {
   label: string;
@@ -53,10 +46,10 @@ function TabButton({
   onPress: () => void;
   Icon: TabConfig['icon'];
   compact?: boolean;
-  showLabel?: boolean;
   testID?: string;
 }) {
   const colors = useColors();
+  const { isDark } = useTheme();
 
   return (
     <Pressable
@@ -68,35 +61,16 @@ function TabButton({
       style={styles.navButton}
       hitSlop={8}
     >
-      <View
-        style={[
-          styles.iconWrap,
-          compact && styles.iconWrapCompact,
-          active && {
-            backgroundColor: colors.secondaryContainer,
-          },
-        ]}
-      >
+      <View style={[styles.iconWrap, compact && styles.iconWrapCompact]}>
         <Icon
           size={compact ? 18 : 20}
-          color={active ? colors.onSecondaryContainer : colors.onSurfaceVariant}
+          color={active ? (isDark ? '#FFFFFF' : '#111111') : colors.onSurfaceVariant}
         />
       </View>
-      {showLabel ? (
-        <Text
-          style={[
-            styles.label,
-            compact && styles.labelCompact,
-            { color: active ? colors.onSurface : colors.onSurfaceVariant },
-          ]}
-        >
-          {label}
-        </Text>
-      ) : null}
       <View
         style={[
           styles.indicator,
-          { backgroundColor: active ? colors.primary : 'transparent' },
+          { backgroundColor: active ? (isDark ? colors.primary : '#161616') : 'transparent' },
         ]}
       />
     </Pressable>
@@ -105,11 +79,10 @@ function TabButton({
 
 export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
   const colors = useColors();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarStyle = useSettingsStore(state => state.summary?.tabBarStyle ?? 'default');
   const currentRoute = state.routes[state.index]?.name;
-  const isCompact = tabBarStyle === 'compact';
-  const showLabels = tabBarStyle !== 'icons-only';
+  const isCompact = useSettingsStore(state => state.summary?.tabBarStyle === 'compact');
 
   const navigateTo = (routeName: string) => {
     const route = state.routes.find(item => item.name === routeName);
@@ -126,10 +99,12 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
     }
   };
 
+  const isHomeActive = currentRoute === 'Home';
+
   return (
     <View
       pointerEvents="box-none"
-      style={[styles.outer, { paddingBottom: Math.max(insets.bottom, 12) }]}
+      style={[styles.outer, { paddingBottom: Math.max(insets.bottom - 2, 8) }]}
     >
       <View
         accessibilityRole="tablist"
@@ -138,9 +113,8 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
           styles.shell,
           isCompact && styles.shellCompact,
           {
-            backgroundColor: 'rgba(21, 23, 30, 0.92)',
-            borderColor: colors.outlineVariant,
-            shadowColor: '#000000',
+            backgroundColor: isDark ? colors.surfaceContainer : colors.surfaceContainer,
+            borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
           },
         ]}
       >
@@ -155,7 +129,6 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
                 Icon={config.icon}
                 active={currentRoute === routeName}
                 compact={isCompact}
-                showLabel={showLabels}
                 onPress={() => navigateTo(routeName)}
               />
             );
@@ -166,38 +139,33 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
           testID="nav-home"
           accessibilityRole="button"
           accessibilityLabel="Inicio"
-          accessibilityState={{ selected: currentRoute === 'Home' }}
+          accessibilityState={{ selected: isHomeActive }}
           onPress={() => navigateTo('Home')}
           style={styles.homeButton}
           hitSlop={8}
         >
           <View
             style={[
-              styles.homeOrb,
-              isCompact && styles.homeOrbCompact,
+              styles.homePlate,
+              isCompact && styles.homePlateCompact,
               {
-                backgroundColor:
-                  currentRoute === 'Home' ? colors.primaryContainer : colors.surfaceContainer,
-                borderColor: currentRoute === 'Home' ? colors.primary : colors.outlineVariant,
+                backgroundColor: isDark
+                  ? (isHomeActive ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)')
+                  : (isHomeActive ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.04)'),
               },
             ]}
           >
             <KpknLogoIcon
-              size={isCompact ? 24 : 28}
-              color={currentRoute === 'Home' ? colors.primary : colors.onSurface}
+              size={isCompact ? 28 : 32}
+              color={isHomeActive ? (isDark ? '#FFFFFF' : '#111111') : (isDark ? 'rgba(255,255,255,0.4)' : '#404040')}
             />
           </View>
-          {showLabels ? (
-            <Text
-              style={[
-                styles.homeLabel,
-                isCompact && styles.homeLabelCompact,
-                { color: currentRoute === 'Home' ? colors.onSurface : colors.onSurfaceVariant },
-              ]}
-            >
-              Inicio
-            </Text>
-          ) : null}
+          <View
+            style={[
+              styles.homeIndicator,
+              { backgroundColor: isHomeActive ? (isDark ? colors.primary : '#161616') : 'transparent' },
+            ]}
+          />
         </Pressable>
 
         <View style={styles.sideGroup}>
@@ -211,7 +179,6 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
                 Icon={config.icon}
                 active={currentRoute === routeName}
                 compact={isCompact}
-                showLabel={showLabels}
                 onPress={() => navigateTo(routeName)}
               />
             );
@@ -224,94 +191,80 @@ export function KpknBottomBar({ state, navigation }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   outer: {
-    paddingHorizontal: 12,
-    paddingTop: 10,
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
     backgroundColor: 'transparent',
   },
   shell: {
-    minHeight: 92,
-    borderRadius: 32,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    minHeight: 64,
+    borderTopWidth: 1,
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 4,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    shadowOpacity: 0.22,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 14,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   shellCompact: {
-    minHeight: 84,
-    paddingVertical: 8,
+    minHeight: 56,
+    paddingTop: 6,
+    paddingBottom: 2,
   },
   sideGroup: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-evenly',
   },
   navButton: {
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    minWidth: 54,
+    justifyContent: 'center',
+    minWidth: 44,
   },
   iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 26,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconWrapCompact: {
-    width: 36,
-    height: 36,
-  },
-  label: {
-    marginTop: 5,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  labelCompact: {
-    marginTop: 3,
-    fontSize: 8,
+    width: 32,
+    height: 24,
   },
   indicator: {
-    width: 28,
-    height: 2,
+    width: 22,
+    height: 3,
     borderRadius: 99,
-    marginTop: 5,
+    marginTop: 1,
   },
   homeButton: {
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginHorizontal: 4,
+    justifyContent: 'center',
+    marginHorizontal: 1,
   },
-  homeOrb: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    borderWidth: 1,
+  homePlate: {
+    width: 68,
+    height: 56,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  homeOrbCompact: {
-    width: 52,
+  homePlateCompact: {
+    width: 64,
     height: 52,
-    borderRadius: 26,
+    borderRadius: 20,
   },
-  homeLabel: {
-    marginTop: 5,
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  homeLabelCompact: {
-    marginTop: 4,
-    fontSize: 9,
+  homeIndicator: {
+    width: 34,
+    height: 3,
+    borderRadius: 99,
+    marginTop: 1,
   },
 });

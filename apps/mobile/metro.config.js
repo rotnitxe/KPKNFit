@@ -1,6 +1,5 @@
 const path = require('path');
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
-const { withNativeWind } = require('nativewind/metro');
 
 /**
  * Metro configuration
@@ -13,14 +12,23 @@ const workspaceRoot = path.resolve(projectRoot, '../..');
 
 const config = {
   watchFolders: [workspaceRoot],
+  transformer: {
+    getTransformOptions: async () => ({
+      transform: {
+        experimentalImportSupport: false,
+        inlineRequires: true,
+      },
+    }),
+  },
   resolver: {
+    ...getDefaultConfig(projectRoot).resolver,
     disableHierarchicalLookup: true,
     nodeModulesPaths: [
       path.resolve(projectRoot, 'node_modules'),
       path.resolve(workspaceRoot, 'node_modules'),
     ],
     extraNodeModules: {
-      react: path.resolve(projectRoot, 'node_modules/react'),
+      react: path.resolve(workspaceRoot, 'node_modules/react'),
       'react-native': path.resolve(workspaceRoot, 'node_modules/react-native'),
       '@kpkn/shared-types': path.resolve(workspaceRoot, 'packages/shared-types'),
       '@kpkn/shared-domain': path.resolve(workspaceRoot, 'packages/shared-domain'),
@@ -29,6 +37,6 @@ const config = {
   },
 };
 
-module.exports = withNativeWind(mergeConfig(getDefaultConfig(projectRoot), config), {
-  input: './src/styles/global.css',
-});
+process.env.RN_CSS_INTEROP_DISABLE = '1';
+
+module.exports = mergeConfig(getDefaultConfig(projectRoot), config);

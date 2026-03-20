@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenShell } from '../../components/ScreenShell';
 import { CoachConversationList } from '../../components/coach/CoachConversationList';
 import { CoachMessageBubble } from '../../components/coach/CoachMessageBubble';
@@ -22,6 +24,7 @@ import { useBodyStore } from '../../stores/bodyStore';
 import { useMobileNutritionStore } from '../../stores/nutritionStore';
 import { useWellbeingStore } from '../../stores/wellbeingStore';
 import { useColors } from '../../theme';
+import type { CoachStackParamList } from '../../navigation/types';
 
 export function CoachChatScreen() {
   const [inputText, setInputText] = useState('');
@@ -29,6 +32,7 @@ export function CoachChatScreen() {
   const [pendingDeleteConversationId, setPendingDeleteConversationId] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const colors = useColors();
+  const navigation = useNavigation<NativeStackNavigationProp<CoachStackParamList, 'CoachChat'>>();
 
   const {
     conversations,
@@ -130,6 +134,22 @@ export function CoachChatScreen() {
                 accessibilityLabel="Ver briefing del coach"
               >
                 <Text style={[styles.briefingButtonText, { color: colors.onPrimary }]}>Ver informe</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.summaryActionsRow}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Abrir laboratorio de propósitos"
+                onPress={() => navigation.navigate('TrainingPurpose')}
+                style={[
+                  styles.summaryActionButton,
+                  { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainer },
+                ]}
+              >
+                <Text style={[styles.summaryActionText, { color: colors.onSurface }]}>
+                  Laboratorio de propositos
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -313,6 +333,19 @@ const styles = StyleSheet.create({
     gap: 8,
     flexWrap: 'wrap',
   },
+  summaryActionsRow: {
+    flexDirection: 'row',
+  },
+  summaryActionButton: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  summaryActionText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
   summaryChip: {
     flexGrow: 1,
     minWidth: 100,
@@ -414,4 +447,3 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
 });
-

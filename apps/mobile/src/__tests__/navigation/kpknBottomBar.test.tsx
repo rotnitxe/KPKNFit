@@ -11,6 +11,10 @@ jest.mock('../../theme', () => ({
     surface: '#FFFFFF',
     outlineVariant: '#D1D5DB',
   }),
+  useTheme: () => ({
+    isDark: false,
+    toggleDark: jest.fn(),
+  }),
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -18,13 +22,12 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 import React from 'react';
-import { Text } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import { KpknBottomBar } from '../../components/navigation/KpknBottomBar';
 import { useSettingsStore } from '../../stores/settingsStore';
 
 const baseState = {
-  index: 0,
+  index: 2,
   routes: [
     { key: 'rings', name: 'Rings' },
     { key: 'workout', name: 'Workout' },
@@ -58,18 +61,6 @@ function renderBar(overrides: Record<string, any> = {}) {
   return { tree: tree!, navigate, emit };
 }
 
-function collectTextLabels(tree: renderer.ReactTestRenderer) {
-  return tree.root
-    .findAllByType(Text)
-    .flatMap(node => {
-      const children = node.props.children;
-      if (Array.isArray(children)) {
-        return children.filter((child): child is string => typeof child === 'string');
-      }
-      return typeof children === 'string' ? [children] : [];
-    });
-}
-
 describe('KpknBottomBar', () => {
   beforeEach(() => {
     act(() => {
@@ -82,41 +73,19 @@ describe('KpknBottomBar', () => {
     });
   });
 
-  it('renders PWA-matching labels in default mode', () => {
+  it('renders accessible tab buttons for visible routes', () => {
     const { tree } = renderBar();
-    const labels = collectTextLabels(tree);
-    expect(labels).toEqual(
+    const buttons = tree.root
+      .findAllByProps({ accessibilityRole: 'button' })
+      .map(node => node.props.accessibilityLabel)
+      .filter(Boolean);
+    expect(buttons).toEqual(
       expect.arrayContaining([
-        'Mi RINGS',
         'Entrenar',
         'Nutrición',
         'Inicio',
         'Mi Perfil',
         'WikiLab',
-        'Ajustes',
-      ]),
-    );
-  });
-
-  it('hides labels when icons-only style is enabled', () => {
-    act(() => {
-      useSettingsStore.setState({
-        status: 'ready',
-        summary: { tabBarStyle: 'icons-only' } as any,
-      } as any);
-    });
-
-    const { tree } = renderBar();
-    const labels = collectTextLabels(tree);
-    expect(labels).not.toEqual(
-      expect.arrayContaining([
-        'Mi RINGS',
-        'Entrenar',
-        'Nutrición',
-        'Mi Perfil',
-        'WikiLab',
-        'Ajustes',
-        'Inicio',
       ]),
     );
   });
@@ -129,14 +98,18 @@ describe('KpknBottomBar', () => {
       .filter(Boolean);
     expect(testIDs).toEqual(
       expect.arrayContaining([
-        'nav-rings',
         'nav-workout',
         'nav-home',
         'nav-nutrition',
         'nav-profile',
         'nav-wiki',
-        'nav-settings',
       ]),
     );
+  });
+
+  it('marks the active route as selected', () => {
+    const { tree } = renderBar();
+    const homeButton = tree.root.findByProps({ testID: 'nav-home' });
+    expect(homeButton.props.accessibilityState.selected).toBe(true);
   });
 });

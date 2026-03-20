@@ -14,12 +14,84 @@ import NutritionPlanEditorModal from '../../components/nutrition/NutritionPlanEd
 import NutritionWizard from '../../components/nutrition/NutritionWizard';
 import { RegisterFoodDrawer } from '../../components/nutrition/RegisterFoodDrawer';
 import { Button } from '../../components/ui';
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '../../components/icons';
 import { useColors } from '../../theme';
-import { calculateDailyCalorieGoal } from '../../utils/calorieFormulas';
+import { calculateDailyCalorieGoal, getBMRAndTDEE } from '../../utils/calorieFormulas';
+import type { NutritionMealType, SavedNutritionEntry } from '../../types/nutrition';
 
 type NavigationProp = NativeStackNavigationProp<NutritionStackParamList, 'NutritionDashboard'>;
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
+const MEAL_ORDER: NutritionMealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEAL_LABELS: Record<NutritionMealType, string> = {
+  breakfast: 'Desayuno',
+  lunch: 'Almuerzo',
+  dinner: 'Cena',
+  snack: 'Snack',
+};
+
+interface MealSummary {
+  mealType: NutritionMealType;
+  logs: number;
+  totals: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+  };
+  examples: string[];
+}
+
+function shiftDateKey(dateKey: string, days: number) {
+  const date = new Date(`${dateKey}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function buildMealSummaries(logs: SavedNutritionEntry[]): MealSummary[] {
+  const seed: Record<NutritionMealType, MealSummary> = {
+    breakfast: {
+      mealType: 'breakfast',
+      logs: 0,
+      totals: { calories: 0, protein: 0, carbs: 0, fats: 0 },
+      examples: [],
+    },
+    lunch: {
+      mealType: 'lunch',
+      logs: 0,
+      totals: { calories: 0, protein: 0, carbs: 0, fats: 0 },
+      examples: [],
+    },
+    dinner: {
+      mealType: 'dinner',
+      logs: 0,
+      totals: { calories: 0, protein: 0, carbs: 0, fats: 0 },
+      examples: [],
+    },
+    snack: {
+      mealType: 'snack',
+      logs: 0,
+      totals: { calories: 0, protein: 0, carbs: 0, fats: 0 },
+      examples: [],
+    },
+  };
+
+  for (const log of logs) {
+    const mealType: NutritionMealType = log.mealType ?? 'lunch';
+    const summary = seed[mealType];
+    summary.logs += 1;
+    summary.totals.calories += log.totals.calories ?? 0;
+    summary.totals.protein += log.totals.protein ?? 0;
+    summary.totals.carbs += log.totals.carbs ?? 0;
+    summary.totals.fats += log.totals.fats ?? 0;
+    const description = log.description?.trim();
+    if (description && summary.examples.length < 2) {
+      summary.examples.push(description);
+    }
+  }
+
+  return MEAL_ORDER.map(mealType => seed[mealType]);
+}
 
 function logDateKey(log: { loggedDate?: string; createdAt: string }) {
   return log.loggedDate || log.createdAt.slice(0, 10);
@@ -81,10 +153,12 @@ export const NutritionDashboardScreen: React.FC = () => {
   const plannerSummary = useMealPlannerStore(state => state.summary);
 
   const [registerVisible, setRegisterVisible] = useState(false);
+  const [registerMealType, setRegisterMealType] = useState<NutritionMealType>('lunch');
   const [planEditorVisible, setPlanEditorVisible] = useState(false);
   const [goalReachedVisible, setGoalReachedVisible] = useState(false);
   const [wizardDismissed, setWizardDismissed] = useState(false);
   const [shownGoalKey, setShownGoalKey] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(todayKey());
 
   useEffect(() => {
     if (settingsStatus === 'idle') {
@@ -123,8 +197,8 @@ export const NutritionDashboardScreen: React.FC = () => {
   const carbGoal = currentSettings?.dailyCarbGoal ?? nutritionPlan.carbs;
   const fatGoal = currentSettings?.dailyFatGoal ?? nutritionPlan.fats;
 
-  const todayLogs = useMemo(() => getLogsForDate(todayKey()), [getLogsForDate, savedLogs]);
-  const todayTotals = useMemo(() => todayLogs.reduce(
+  const selectedDateLogs = useMemo(() => getLogsForDate(selectedDate), [getLogsForDate, savedLogs, selectedDate]);
+  const todayTotals = useMemo(() => selectedDateLogs.reduce(
     (acc, log) => ({
       calories: acc.calories + (log.totals.calories ?? 0),
       protein: acc.protein + (log.totals.protein ?? 0),
@@ -132,10 +206,22 @@ export const NutritionDashboardScreen: React.FC = () => {
       fats: acc.fats + (log.totals.fats ?? 0),
     }),
     { calories: 0, protein: 0, carbs: 0, fats: 0 },
-  ), [todayLogs]);
+  ), [selectedDateLogs]);
 
   const trendPoints = useMemo(() => buildTrendPoints(savedLogs), [savedLogs]);
-  const mealCount = useMemo(() => buildMealCount(todayLogs), [todayLogs]);
+  const mealCount = useMemo(() => buildMealCount(selectedDateLogs), [selectedDateLogs]);
+  const mealSummaries = useMemo(() => buildMealSummaries(selectedDateLogs), [selectedDateLogs]);
+  const selectedDateLabel = useMemo(
+    () =>
+      new Date(`${selectedDate}T12:00:00`).toLocaleDateString('es-CL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }),
+    [selectedDate],
+  );
+  const selectedDateIsToday = selectedDate === todayKey();
 
   useEffect(() => {
     if (showWizard) {
@@ -143,13 +229,18 @@ export const NutritionDashboardScreen: React.FC = () => {
       return;
     }
 
-    if (calorieGoal > 0 && todayTotals.calories >= calorieGoal) {
+    if (selectedDateIsToday && calorieGoal > 0 && todayTotals.calories >= calorieGoal) {
       const goalKey = todayKey();
       if (shownGoalKey !== goalKey) {
         setGoalReachedVisible(true);
       }
     }
-  }, [calorieGoal, shownGoalKey, showWizard, todayTotals.calories]);
+  }, [calorieGoal, selectedDateIsToday, shownGoalKey, showWizard, todayTotals.calories]);
+
+  const openRegisterDrawer = (mealType: NutritionMealType) => {
+    setRegisterMealType(mealType);
+    setRegisterVisible(true);
+  };
 
   if (showWizard) {
     return <NutritionWizard onClose={() => setWizardDismissed(true)} />;
@@ -158,15 +249,48 @@ export const NutritionDashboardScreen: React.FC = () => {
   return (
     <ScreenShell
       title="Nutrición"
-      subtitle="Tu panel nutricional integral"
+      subtitle="Registra, planifica y revisa tu alimentación"
       contentContainerStyle={styles.content}
     >
+      <View style={[styles.dateCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+        <View style={styles.dateCardHeader}>
+          <View style={styles.dateCardTitleRow}>
+            <CalendarIcon size={16} color={colors.onSurfaceVariant} />
+            <Text style={[styles.dateCardTitle, { color: colors.onSurfaceVariant }]}>Fecha de registro</Text>
+          </View>
+          {!selectedDateIsToday ? (
+            <Pressable
+              onPress={() => setSelectedDate(todayKey())}
+              style={[styles.todayButton, { backgroundColor: `${colors.primary}1A` }]}
+            >
+              <Text style={[styles.todayButtonText, { color: colors.primary }]}>Ir a hoy</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <View style={styles.dateNavigator}>
+          <Pressable
+            onPress={() => setSelectedDate(previous => shiftDateKey(previous, -1))}
+            style={[styles.dateNavButton, { backgroundColor: colors.surfaceContainer }]}
+          >
+            <ChevronLeftIcon size={18} color={colors.onSurface} />
+          </Pressable>
+          <Text style={[styles.selectedDateText, { color: colors.onSurface }]}>{selectedDateLabel}</Text>
+          <Pressable
+            onPress={() => setSelectedDate(previous => shiftDateKey(previous, 1))}
+            disabled={selectedDateIsToday}
+            style={[
+              styles.dateNavButton,
+              { backgroundColor: colors.surfaceContainer, opacity: selectedDateIsToday ? 0.45 : 1 },
+            ]}
+          >
+            <ChevronRightIcon size={18} color={colors.onSurface} />
+          </Pressable>
+        </View>
+      </View>
+
       <NutritionHeroCard
-        dateLabel={new Date().toLocaleDateString('es-CL', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-        })}
+        dateKey={selectedDate}
         caloriesToday={Math.round(todayTotals.calories)}
         calorieGoal={Math.round(calorieGoal)}
         mealCount={mealCount}
@@ -176,10 +300,59 @@ export const NutritionDashboardScreen: React.FC = () => {
         carbGoal={Math.round(carbGoal)}
         fats={Math.round(todayTotals.fats)}
         fatGoal={Math.round(fatGoal)}
-        onPressPrimary={() => setRegisterVisible(true)}
+        onPressPrimary={() => openRegisterDrawer('lunch')}
         onPressSettings={() => setPlanEditorVisible(true)}
         primaryLabel="Registrar comida"
       />
+
+      {/* Metabolism Metrics — aligned with PWA NutritionDashboard */}
+      {(() => {
+        const { bmr, tdee } = getBMRAndTDEE(currentSettings as any, (currentSettings as any).calorieGoalConfig);
+        const deficitSurplus = Math.round(todayTotals.calories) - Math.round(calorieGoal);
+        if (bmr == null && tdee == null) return null;
+        return (
+          <View style={[styles.metabolismCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+            <Text style={[styles.metabolismEyebrow, { color: colors.onSurfaceVariant }]}>Metabolismo</Text>
+            <View style={styles.metabolismGrid}>
+              <View style={styles.metabolismCell}>
+                <Text style={[styles.metabolismLabel, { color: colors.onSurfaceVariant }]}>BMR</Text>
+                <Text style={[styles.metabolismValue, { color: colors.tertiary }]}>
+                  {bmr != null ? `${Math.round(bmr)} kcal` : '—'}
+                </Text>
+              </View>
+              <View style={styles.metabolismCell}>
+                <Text style={[styles.metabolismLabel, { color: colors.onSurfaceVariant }]}>TDEE</Text>
+                <Text style={[styles.metabolismValue, { color: colors.primary }]}>
+                  {tdee != null ? `${tdee} kcal` : '—'}
+                </Text>
+              </View>
+              <View style={styles.metabolismCell}>
+                <Text style={[styles.metabolismLabel, { color: colors.onSurfaceVariant }]}>Balance</Text>
+                <Text style={[styles.metabolismValue, { color: deficitSurplus >= 0 ? colors.primary : colors.error }]}>
+                  {deficitSurplus >= 0 ? '+' : ''}{deficitSurplus} kcal
+                </Text>
+              </View>
+            </View>
+          </View>
+        );
+      })()}
+
+      <View style={[styles.registerCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+        <Text style={[styles.registerCardTitle, { color: colors.onSurfaceVariant }]}>Registro rápido</Text>
+        <View style={styles.registerActions}>
+          {MEAL_ORDER.map(mealType => (
+            <Pressable
+              key={mealType}
+              onPress={() => openRegisterDrawer(mealType)}
+              style={[styles.registerActionButton, { backgroundColor: colors.surfaceContainer }]}
+            >
+              <Text style={[styles.registerActionLabel, { color: colors.onSurface }]}>
+                {MEAL_LABELS[mealType]}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
 
       <View style={styles.quickGrid}>
         <QuickAction
@@ -213,6 +386,54 @@ export const NutritionDashboardScreen: React.FC = () => {
           }}
           colors={colors}
         />
+      </View>
+
+      <View style={[styles.mealCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+        <View style={[styles.mealCardHeader, { borderBottomColor: colors.outlineVariant }]}>
+          <Text style={[styles.mealCardEyebrow, { color: colors.onSurfaceVariant }]}>Registro de alimentos</Text>
+          <Text style={[styles.mealCardTitle, { color: colors.onSurface }]}>Comidas del día por bloque</Text>
+        </View>
+
+        <View style={styles.mealRows}>
+          {mealSummaries.map((mealSummary, index) => {
+            const hasLogs = mealSummary.logs > 0;
+            const isLast = index === mealSummaries.length - 1;
+            return (
+              <Pressable
+                key={mealSummary.mealType}
+                onPress={() => openRegisterDrawer(mealSummary.mealType)}
+                style={[
+                  styles.mealRow,
+                  !isLast && { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
+                ]}
+              >
+                <View style={styles.mealRowTop}>
+                  <View style={styles.mealRowContent}>
+                    <Text style={[styles.mealLabel, { color: colors.onSurfaceVariant }]}>
+                      {MEAL_LABELS[mealSummary.mealType]}
+                    </Text>
+                    <Text style={[styles.mealMeta, { color: colors.onSurface }]}>
+                      {hasLogs
+                        ? `${Math.round(mealSummary.totals.calories)} kcal · P ${Math.round(mealSummary.totals.protein)}g · C ${Math.round(mealSummary.totals.carbs)}g · G ${Math.round(mealSummary.totals.fats)}g`
+                        : 'Sin registros por ahora'}
+                    </Text>
+                  </View>
+                  {hasLogs ? (
+                    <View style={[styles.mealBadge, { backgroundColor: colors.surfaceContainer }]}>
+                      <Text style={[styles.mealBadgeText, { color: colors.onSurfaceVariant }]}>{mealSummary.logs}</Text>
+                    </View>
+                  ) : null}
+                </View>
+
+                {mealSummary.examples.length > 0 ? (
+                  <Text style={[styles.mealExamples, { color: colors.onSurfaceVariant }]}>
+                    {mealSummary.examples.join(' · ')}
+                  </Text>
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       <NutritionMacroProgressCard
@@ -251,7 +472,7 @@ export const NutritionDashboardScreen: React.FC = () => {
       ) : null}
 
       <GoalReachedModal
-        visible={goalReachedVisible}
+        visible={selectedDateIsToday && goalReachedVisible}
         onClose={() => {
           setGoalReachedVisible(false);
           setShownGoalKey(todayKey());
@@ -275,8 +496,8 @@ export const NutritionDashboardScreen: React.FC = () => {
       <RegisterFoodDrawer
         visible={registerVisible}
         onClose={() => setRegisterVisible(false)}
-        selectedDate={todayKey()}
-        mealType="lunch"
+        selectedDate={selectedDate}
+        mealType={registerMealType}
       />
     </ScreenShell>
   );
@@ -313,6 +534,182 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+  },
+  dateCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  dateCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateCardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dateCardTitle: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  todayButton: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  todayButtonText: {
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  dateNavigator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  dateNavButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedDateText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  mealCard: {
+    borderRadius: 22,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  metabolismCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  metabolismEyebrow: {
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1.6,
+  },
+  metabolismGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  metabolismCell: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 3,
+  },
+  metabolismLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  metabolismValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: -0.3,
+  },
+  registerCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  registerCardTitle: {
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1.1,
+  },
+  registerActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  registerActionButton: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  registerActionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  mealCardHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    gap: 4,
+  },
+  mealCardEyebrow: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  mealCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  mealRows: {
+    paddingHorizontal: 16,
+  },
+  mealRow: {
+    paddingVertical: 12,
+    gap: 4,
+  },
+  mealRowTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  mealRowContent: {
+    flex: 1,
+    gap: 3,
+  },
+  mealLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  mealMeta: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
+  },
+  mealBadge: {
+    minWidth: 26,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  mealBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  mealExamples: {
+    fontSize: 11,
+    lineHeight: 15,
   },
   quickAction: {
     width: '48.5%',

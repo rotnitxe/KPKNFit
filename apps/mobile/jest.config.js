@@ -19,6 +19,7 @@ module.exports = {
     '^@kpkn/design-tokens$': '<rootDir>/../../packages/design-tokens/src/index.ts',
   },
   setupFiles: ['./jest.setup.js'],
+  setupFilesAfterEnv: ['./jest.afterEnv.js'],
 
   // ── Coverage ────────────────────────────────────────────────────────────────
   // V8 coverage provider bypasses babel-plugin-istanbul, which crashes on

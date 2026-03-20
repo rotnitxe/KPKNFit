@@ -95,6 +95,23 @@ export const UtensilsIcon: React.FC<IconProps> = ({
   </Svg>
 );
 
+export const MealIcon: React.FC<IconProps> = ({
+  size = 20,
+  color = 'currentColor',
+  strokeWidth = 2,
+  ...props
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+    strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <Path d="M5 3v7" />
+    <Path d="M8 3v7" />
+    <Path d="M5 7h3" />
+    <Path d="M6.5 10v11" />
+    <Path d="M18.5 3c-1.9 1.4-3 3.7-3 6v12" />
+    <Path d="M18.5 3V21" />
+  </Svg>
+);
+
 export const PlateIcon: React.FC<IconProps> = ({
   size = 20,
   color = 'currentColor',
