@@ -67,6 +67,15 @@ www/models/*
 *.bin
 .aider*
 
+# Android Native (android-native/)
+android-native/.gradle/
+android-native/.idea/
+android-native/app/build/
+android-native/build/
+android-native/local.properties
+android-native/**/*.apk
+android-native/**/*.aab
+
 # Debug / test artifacts
 apps/mobile/kpkn-*.png
 apps/mobile/window_dump*.xml
