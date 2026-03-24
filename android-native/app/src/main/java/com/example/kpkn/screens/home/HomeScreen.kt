@@ -348,6 +348,7 @@ private fun HomeTopBar(
                 //                              sesión sube desde abajo (0→1)
                 // Fase 4 — item 3 cortándose: sesión sale por arriba (1→0)
                 //                              nutrición sube desde abajo (0→1)
+                // Transición suave: cuando nutrición entra, sesión sale proporcionalmente
                 val greetingAlpha: Float
                 val greetingSlide: Float
                 val ringsAlpha: Float
@@ -357,27 +358,7 @@ private fun HomeTopBar(
                 val nutritionAlpha: Float
                 val nutritionSlide: Float
 
-                if (nutritionProgress > 0.01f) {
-                    // Fase 4: sesión sale, nutrición entra
-                    sessionAlpha = 0f
-                    sessionSlide = 0f
-                    nutritionAlpha = nutritionProgress
-                    nutritionSlide = (1f - nutritionProgress) * boxHeightPx
-                    ringsAlpha = 0f
-                    ringsSlide = 0f
-                    greetingAlpha = 0f
-                    greetingSlide = 0f
-                } else if (sessionProgress > 0.01f) {
-                    // Fase 3: rings salen, sesión entra
-                    sessionAlpha = sessionProgress
-                    sessionSlide = (1f - sessionProgress) * boxHeightPx
-                    ringsAlpha = 1f - sessionProgress
-                    ringsSlide = -sessionProgress * boxHeightPx
-                    nutritionAlpha = 0f
-                    nutritionSlide = 0f
-                    greetingAlpha = 0f
-                    greetingSlide = 0f
-                } else if (ringsProgress > 0.01f) {
+                if (ringsProgress > 0f) {
                     // Fase 2: saludo sale, rings entran
                     greetingAlpha = 1f - ringsProgress
                     greetingSlide = -ringsProgress * boxHeightPx
@@ -387,6 +368,26 @@ private fun HomeTopBar(
                     sessionSlide = 0f
                     nutritionAlpha = 0f
                     nutritionSlide = 0f
+                } else if (sessionProgress > 0f) {
+                    // Fase 3: rings salen, sesión entra
+                    sessionAlpha = sessionProgress
+                    sessionSlide = (1f - sessionProgress) * boxHeightPx
+                    ringsAlpha = 1f - sessionProgress
+                    ringsSlide = -sessionProgress * boxHeightPx
+                    nutritionAlpha = 0f
+                    nutritionSlide = 0f
+                    greetingAlpha = 0f
+                    greetingSlide = 0f
+                } else if (nutritionProgress > 0f) {
+                    // Fase 4: sesión sale, nutrición entra (transición proporcional)
+                    sessionAlpha = 1f - nutritionProgress
+                    sessionSlide = -nutritionProgress * boxHeightPx
+                    nutritionAlpha = nutritionProgress
+                    nutritionSlide = (1f - nutritionProgress) * boxHeightPx
+                    ringsAlpha = 0f
+                    ringsSlide = 0f
+                    greetingAlpha = 0f
+                    greetingSlide = 0f
                 } else {
                     // Fase 1: saludo entra desde abajo
                     greetingAlpha = greetingProgress
