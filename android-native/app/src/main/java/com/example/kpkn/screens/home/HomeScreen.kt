@@ -407,11 +407,12 @@ private fun HomeTopBar(
                 ) {
                     // Saludo mini
                     Text(
-                        "$greeting, $userName!",
-                        style = MaterialTheme.typography.titleMedium,
+                        "$greeting $userName!",
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Black,
-                        fontSize = 16.sp,
+                        fontSize = 13.sp,
                         maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         modifier = Modifier.graphicsLayer {
                             alpha = greetingAlpha
                             translationY = greetingSlide
