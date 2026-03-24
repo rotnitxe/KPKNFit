@@ -58,6 +58,7 @@ fun HomeScreen(
                     greeting = greeting,
                     userName = userName,
                     onSettingsClick = { /* TODO: navigate to settings */ },
+                    hasPrograms = programs.isNotEmpty(),
                 )
             },
         ) { innerPadding ->
@@ -223,13 +224,13 @@ private fun HomeEmptyState(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.Center,
     ) {
         // CTA Card
         item {
             CreateProgramCard(
                 onClick = onNavigateToEditor,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 32.dp),
+                modifier = Modifier.padding(horizontal = 24.dp),
             )
         }
     }
@@ -244,6 +245,7 @@ private fun HomeTopBar(
     greeting: String,
     userName: String,
     onSettingsClick: () -> Unit,
+    hasPrograms: Boolean = true,
 ) {
     val headerHeight by animateDpAsState(
         if (scrollProgress > 0.5f) 64.dp else 0.dp,
@@ -260,7 +262,7 @@ private fun HomeTopBar(
                 contentAlignment = Alignment.CenterStart,
             ) {
                 AnimatedVisibility(
-                    visible = scrollProgress > 0.6f,
+                    visible = scrollProgress > 0.6f && hasPrograms,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {

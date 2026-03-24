@@ -1,6 +1,6 @@
 package com.example.kpkn.screens.home
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,10 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -23,7 +22,7 @@ fun CreateProgramCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var isPressed by remember { mutableStateOf(false) }
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     Box(modifier = modifier) {
         // Canvas for halo effect
@@ -32,9 +31,22 @@ fun CreateProgramCard(
                 .fillMaxWidth()
                 .height(220.dp)
         ) {
-            drawHaloEffect(
-                primaryColor = MaterialTheme.colorScheme.primary,
-                size = size,
+            val centerX = size.width / 2
+            val centerY = size.height / 2
+            val maxRadius = maxOf(size.width, size.height) * 0.6f
+
+            // Subtle radial glow effect
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        primaryColor.copy(alpha = 0.15f),
+                        Color.Transparent
+                    ),
+                    center = Offset(centerX, centerY),
+                    radius = maxRadius,
+                ),
+                radius = maxRadius,
+                center = Offset(centerX, centerY),
             )
         }
 
@@ -45,17 +57,12 @@ fun CreateProgramCard(
                 .height(220.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onPress = {
-                            isPressed = true
-                            tryAwaitRelease()
-                            isPressed = false
-                        },
                         onTap = { onClick() }
                     )
                 },
             shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-            shadowElevation = 0.dp, // We're doing our own glow effect
+            color = primaryColor.copy(alpha = 0.12f),
+            shadowElevation = 0.dp,
         ) {
             Column(
                 modifier = Modifier
@@ -68,40 +75,18 @@ fun CreateProgramCard(
                     "CREAR PROGRAMA",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = primaryColor,
                     letterSpacing = 2.sp,
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 Text(
-                    "Comienza creando tu primer programa de entrenamiento.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    "Para disfrutar de todas las funciones avanzadas de KPKN para planificar tu rutina, crear macrociclos enteros y funciones automáticas de sobrecarga progresiva crea tu primer programa de entrenamiento.",
+                    style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    lineHeight = 18.sp,
                 )
             }
         }
     }
-}
-
-private fun DrawScope.drawHaloEffect(
-    primaryColor: Color,
-    size: androidx.compose.ui.geometry.Size,
-) {
-    val centerX = size.width / 2
-    val centerY = size.height / 2
-    val maxRadius = maxOf(size.width, size.height) * 0.6f
-
-    // Subtle radial glow effect
-    drawCircle(
-        brush = Brush.radialGradient(
-            colors = listOf(
-                primaryColor.copy(alpha = 0.15f),
-                Color.Transparent
-            ),
-            center = androidx.compose.ui.geometry.Offset(centerX, centerY),
-            radius = maxRadius,
-        ),
-        radius = maxRadius,
-        center = androidx.compose.ui.geometry.Offset(centerX, centerY),
-    )
 }
