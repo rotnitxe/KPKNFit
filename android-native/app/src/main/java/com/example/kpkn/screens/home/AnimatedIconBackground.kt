@@ -55,8 +55,8 @@ fun AnimatedIconBackground(
     // Cargar el PNG como ImageBitmap (cacheado internamente por Compose)
     val kpknBitmap: ImageBitmap = ImageBitmap.imageResource(R.drawable.kpknicon)
 
-    val iconSizePx: Int = with(density) { 44.dp.toPx().toInt() }
-    val spacingPx: Float = with(density) { 90.dp.toPx() }
+    val iconSizePx: Int = with(density) { 56.dp.toPx().toInt() }  // 44 → 56 (más grande)
+    val spacingPx: Float = with(density) { 105.dp.toPx() }       // 90 → 105 (más espacio vertical)
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val w = size.width
@@ -65,19 +65,19 @@ fun AnimatedIconBackground(
         // Muchos más iconos para evitar cortes abruptos y llenar bien
         val count = ceil(h / spacingPx).toInt() + 5
 
-        // 8 columnas PERFECTAMENTE ALTERNADAS: down, up, down, up, down, up, down, up
-        // Todas sincronizadas con sharedProgress
+        // 10 columnas PERFECTAMENTE ALTERNADAS: down, up, down, up, down, up, down, up, down, up
+        // Distribuidas uniformemente de lado a lado (0.06 a 0.96 del ancho)
         val columnConfigs = listOf(
-            0.07f to true,   // col 0: baja
+            0.06f to true,   // col 0: baja
             0.16f to false,  // col 1: sube
-            0.25f to true,   // col 2: baja
-            0.34f to false,  // col 3: sube
-            0.43f to true,   // col 4: baja
-            0.52f to false,  // col 5: sube
-            0.61f to true,   // col 6: baja
-            0.70f to false,  // col 7: sube
-            0.79f to true,   // col 8: baja
-            0.88f to false,  // col 9: sube
+            0.26f to true,   // col 2: baja
+            0.36f to false,  // col 3: sube
+            0.46f to true,   // col 4: baja
+            0.56f to false,  // col 5: sube
+            0.66f to true,   // col 6: baja
+            0.76f to false,  // col 7: sube
+            0.86f to true,   // col 8: baja
+            0.96f to false,  // col 9: sube
         )
 
         columnConfigs.forEach { (xFraction, goingDown) ->
