@@ -1,129 +1,154 @@
 package com.example.kpkn.screens.programs
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.screens.programs.ProgramStats
+import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.ui.components.EmptyStateView
-import com.example.kpkn.ui.components.SectionHeader
 import com.example.kpkn.ui.components.SwipeToDeleteCard
+import com.example.kpkn.ui.components.icons.DumbbellIcon
 
 /**
- * ProgramsScreen — Display all programs (active + inactive).
+ * ProgramsScreen — List of training programs (active + inactive).
  * Equivalent to PWA: ProgramsView.tsx
  *
- * Reactive UI:
- * - Top section: Active program with "Continue" button
- * - Bottom section: Inactive programs list with swipe-to-delete
- * - Empty state if no programs exist
+ * Displays:
+ * - Empty state when no programs
+ * - Header with title and "+ Nuevo" button (when programs exist)
+ * - Active program card with "EJECUTANDO AHORA" badge and pulsing green dot
+ * - Inactive programs list with swipe-to-delete and chevron icons
  *
  * Navigation:
- * - Tap inactive program → navigate to ProgramDetail(programId)
- * - "Continue" button on active program → navigate to ProgramDetail(programId)
- * - Swipe-to-delete → deletes program from repository
+ * - Tap program → onNavigateToProgram(programId)
+ * - Swipe-to-delete → deleteProgram(programId)
+ * - "+ Nuevo" button → onCreateProgram()
  */
 @Composable
 fun ProgramsScreen(
-    viewModel: ProgramsViewModel = viewModel(),
     onNavigateToProgram: (String) -> Unit,
+    onCreateProgram: () -> Unit,
+    viewModel: ProgramsViewModel = viewModel { ProgramsViewModel() },
 ) {
     // ─── Collect reactive state from ViewModel ────────────────────────────
 
+    val programs by viewModel.programs.collectAsState()
     val activeProgram by viewModel.activeProgram.collectAsState()
     val inactivePrograms by viewModel.inactivePrograms.collectAsState()
 
     // ─── Render UI ────────────────────────────────────────────────────────
 
-    Scaffold(
-        topBar = { ProgramsTopBar() },
-    ) { paddingValues ->
-        if (activeProgram == null && inactivePrograms.isEmpty()) {
-            // Empty state: no programs at all
-            EmptyStateView(
-                title = "Sin programas",
-                subtitle = "Crea o importa un programa para comenzar",
-                actionLabel = "Crear Programa",
-                onAction = { /* TODO: navigate to create program */ },
-                modifier = Modifier.padding(paddingValues),
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
-            ) {
-                // ─── Active Program Section ────────────────────────────────
-                if (activeProgram != null) {
-                    item { SectionHeader("Tu Programa Activo") }
-                    item {
-                        ActiveProgramCard(
-                            program = activeProgram!!,
-                            viewModel = viewModel,
-                            onNavigate = onNavigateToProgram,
+    if (programs.isEmpty()) {
+        // Empty state: no programs
+        EmptyStateView(
+            title = "Comienza Hoy",
+            subtitle = "Aún no tienes programas configurados",
+            actionLabel = "Crear primer programa",
+            onAction = onCreateProgram,
+            modifier = Modifier.fillMaxSize(),
+        )
+    } else {
+        // Programs list (active + inactive)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp),
+        ) {
+            // ─── Header (when programs exist) ──────────────────────────────
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = "PROGRAMAS",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "Gestiona tus planes de entrenamiento".uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            letterSpacing = 0.5.sp,
                         )
                     }
-                }
-
-                // ─── Inactive Programs Section ─────────────────────────────
-                if (inactivePrograms.isNotEmpty()) {
-                    item { SectionHeader("Otros Programas") }
-                    items(inactivePrograms) { program ->
-                        InactiveProgramCard(
-                            program = program,
-                            viewModel = viewModel,
-                            onNavigate = onNavigateToProgram,
+                    // "+ Nuevo" button
+                    Button(
+                        onClick = onCreateProgram,
+                        modifier = Modifier.wrapContentWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
                         )
+                        Spacer(Modifier.width(4.dp))
+                        Text("Nuevo", fontWeight = FontWeight.Black, fontSize = 12.sp)
                     }
                 }
-
-                // Bottom spacing
-                item { Spacer(modifier = Modifier.height(16.dp)) }
             }
+
+            // ─── Active Program Section ────────────────────────────────────
+            if (activeProgram != null) {
+                item {
+                    ActiveProgramCard(
+                        program = activeProgram!!,
+                        viewModel = viewModel,
+                        onNavigate = onNavigateToProgram,
+                    )
+                }
+            }
+
+            // ─── Inactive Programs Section ─────────────────────────────────
+            if (inactivePrograms.isNotEmpty()) {
+                items(inactivePrograms) { program ->
+                    InactiveProgramCard(
+                        program = program,
+                        viewModel = viewModel,
+                        onNavigate = onNavigateToProgram,
+                    )
+                }
+            }
+
+            // Bottom spacing
+            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
 /**
- * Top bar for Programs screen.
- * Shows title "Mis Programas" with optional settings button.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ProgramsTopBar() {
-    TopAppBar(
-        title = { Text("Mis Programas", fontWeight = FontWeight.Black) },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-        ),
-    )
-}
-
-/**
- * Card for the active program.
- * Shows:
- * - Program name
- * - Program description
- * - Statistics: weeks and sessions
- * - "Continue" button to navigate to detail
- * - Optional "Pause" button (future enhancement)
+ * Card for the active program (currently running).
+ * Shows "EJECUTANDO AHORA" badge with green pulsing dot.
+ * Has highlighted border with primary color.
  */
 @Composable
 private fun ActiveProgramCard(
@@ -133,76 +158,94 @@ private fun ActiveProgramCard(
 ) {
     val stats = viewModel.getProgramStats(program)
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
+    // Pulsing green dot animation
+    val pulseAlpha by rememberInfiniteTransition(label = "pulse").animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800),
+            repeatMode = RepeatMode.Reverse,
         ),
+        label = "alpha",
+    )
+
+    SwipeToDeleteCard(
+        onDelete = { viewModel.deleteProgram(program.id) },
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .clickable { onNavigate(program.id) },
+            shape = RoundedCornerShape(28.dp),
+            border = androidx.compose.foundation.BorderStroke(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.primary,
+            ),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
         ) {
-            // Program name
-            Text(
-                text = program.name,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // "EJECUTANDO AHORA" badge with pulsing dot
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Color(0xFF22C55E).copy(alpha = pulseAlpha)
+                            ),
+                    )
+                    Text(
+                        text = "EJECUTANDO AHORA",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFF22C55E),
+                        letterSpacing = 1.sp,
+                    )
+                }
 
-            // Program description (if present)
-            if (!program.description.isNullOrBlank()) {
+                // Program name (uppercase)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = program.name.uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Continuar",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+
+                // Stats
                 Text(
-                    text = program.description,
+                    text = "${stats.weeks} semanas · ${stats.sessions} sesiones",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-
-            // Statistics row: weeks + sessions
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                StatBadge(label = "Semanas", value = stats.weeks.toString())
-                StatBadge(label = "Sesiones", value = stats.sessions.toString())
-            }
-
-            // Continue button
-            Button(
-                onClick = { onNavigate(program.id) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                ),
-                shape = RoundedCornerShape(24.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(end = 8.dp),
-                )
-                Text("CONTINUAR", fontWeight = FontWeight.Black)
             }
         }
     }
 }
 
 /**
- * Card for an inactive program (in swipe-to-delete wrapper).
- * Shows:
- * - Program name
- * - Program statistics: weeks and sessions
- * - Tap to navigate to detail
- * - Swipe left to delete
+ * Card for an inactive program.
+ * Shows program name, stats, and chevron icon.
+ * Has normal border with outlineVariant color.
  */
 @Composable
 private fun InactiveProgramCard(
@@ -218,86 +261,46 @@ private fun InactiveProgramCard(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .noRippleClickable { onNavigate(program.id) },
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .clickable { onNavigate(program.id) },
             shape = RoundedCornerShape(28.dp),
+            border = androidx.compose.foundation.BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+            ),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                containerColor = MaterialTheme.colorScheme.surface,
             ),
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(24.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                // Program info (left side)
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
-                        text = program.name,
+                        text = program.name.uppercase(),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Black,
                     )
                     Text(
-                        text = "${stats.weeks} semanas • ${stats.sessions} sesiones",
-                        style = MaterialTheme.typography.labelSmall,
+                        text = "${stats.weeks} semanas · ${stats.sessions} sesiones",
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
-                // Tap indicator (right side, optional)
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
+                    imageVector = Icons.Default.ChevronRight,
                     contentDescription = "Ver detalles",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp),
                 )
             }
         }
     }
 }
-
-/**
- * Small badge showing a statistic label + value.
- * Used in ActiveProgramCard for weeks and sessions.
- */
-@Composable
-private fun StatBadge(label: String, value: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(12.dp),
-            )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Black,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-        )
-    }
-}
-
-/**
- * Clickable modifier that removes ripple effect.
- * Used for custom click feedback (or none).
- */
-private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier =
-    this.then(
-        Modifier.clickable(
-            interactionSource = MutableInteractionSource(),
-            indication = null,
-            onClick = onClick,
-        )
-    )
