@@ -1,7 +1,8 @@
 package com.example.kpkn.screens.home
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,11 +55,11 @@ fun CreateProgramCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(220.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { onClick() }
-                    )
-                },
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(),
+                    onClick = onClick,
+                ),
             shape = RoundedCornerShape(28.dp),
             color = primaryColor.copy(alpha = 0.12f),
             shadowElevation = 0.dp,
