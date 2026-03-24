@@ -222,16 +222,22 @@ private fun HomeEmptyState(
     onNavigateToCard: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        // CTA Card
-        item {
-            CreateProgramCard(
-                onClick = onNavigateToEditor,
-                modifier = Modifier.padding(horizontal = 24.dp),
-            )
+    Box(modifier.fillMaxSize()) {
+        // Animated background with icons
+        AnimatedIconBackground()
+
+        // Content on top
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            // CTA Card
+            item {
+                CreateProgramCard(
+                    onClick = onNavigateToEditor,
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                )
+            }
         }
     }
 }
