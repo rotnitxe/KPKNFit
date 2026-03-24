@@ -357,16 +357,16 @@ private fun HomeTopBar(
                 val sessionSlide: Float
                 val nutritionAlpha: Float
                 val nutritionSlide: Float
-                if (nutritionProgress > 0f) {
-                    // Fase 4: sesión sale hacia arriba, nutrición sube
-                    nutritionAlpha = nutritionProgress
-                    nutritionSlide = (1f - nutritionProgress) * boxHeightPx
-                    sessionAlpha = 1f - nutritionProgress
-                    sessionSlide = -nutritionProgress * boxHeightPx
-                    ringsAlpha = 0f
-                    ringsSlide = 0f
-                    greetingAlpha = 0f
-                    greetingSlide = 0f
+                if (ringsProgress > 0f) {
+                    // Fase 2: saludo sale hacia arriba mientras rings suben
+                    greetingAlpha = 1f - ringsProgress
+                    greetingSlide = -ringsProgress * boxHeightPx
+                    ringsAlpha = ringsProgress
+                    ringsSlide = (1f - ringsProgress) * boxHeightPx
+                    sessionAlpha = 0f
+                    sessionSlide = 0f
+                    nutritionAlpha = 0f
+                    nutritionSlide = 0f
                 } else if (sessionProgress > 0f) {
                     // Fase 3: rings salen hacia arriba, sesión sube
                     sessionAlpha = sessionProgress
@@ -377,16 +377,16 @@ private fun HomeTopBar(
                     nutritionSlide = 0f
                     greetingAlpha = 0f
                     greetingSlide = 0f
-                } else if (ringsProgress > 0f) {
-                    // Fase 2: saludo sale hacia arriba mientras rings suben
-                    greetingAlpha = 1f - ringsProgress
-                    greetingSlide = -ringsProgress * boxHeightPx
-                    ringsAlpha = ringsProgress
-                    ringsSlide = (1f - ringsProgress) * boxHeightPx
+                } else if (nutritionProgress > 0f) {
+                    // Fase 4: sesión sale hacia arriba, nutrición sube (solo después que sesión terminó)
+                    nutritionAlpha = nutritionProgress
+                    nutritionSlide = (1f - nutritionProgress) * boxHeightPx
                     sessionAlpha = 0f
                     sessionSlide = 0f
-                    nutritionAlpha = 0f
-                    nutritionSlide = 0f
+                    ringsAlpha = 0f
+                    ringsSlide = 0f
+                    greetingAlpha = 0f
+                    greetingSlide = 0f
                 } else {
                     // Fase 1: saludo entra desde abajo
                     greetingAlpha = greetingProgress
