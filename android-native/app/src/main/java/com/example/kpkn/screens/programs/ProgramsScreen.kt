@@ -10,7 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,17 +33,6 @@ import com.example.kpkn.ui.components.icons.DumbbellIcon
 /**
  * ProgramsScreen — List of training programs (active + inactive).
  * Equivalent to PWA: ProgramsView.tsx
- *
- * Displays:
- * - Empty state when no programs
- * - Header with title and "+ Nuevo" button (when programs exist)
- * - Active program card with "EJECUTANDO AHORA" badge and pulsing green dot
- * - Inactive programs list with swipe-to-delete and chevron icons
- *
- * Navigation:
- * - Tap program → onNavigateToProgram(programId)
- * - Swipe-to-delete → deleteProgram(programId)
- * - "+ Nuevo" button → onCreateProgram()
  */
 @Composable
 fun ProgramsScreen(
@@ -51,16 +40,11 @@ fun ProgramsScreen(
     onCreateProgram: () -> Unit,
     viewModel: ProgramsViewModel = viewModel { ProgramsViewModel() },
 ) {
-    // ─── Collect reactive state from ViewModel ────────────────────────────
-
     val programs by viewModel.programs.collectAsState()
     val activeProgram by viewModel.activeProgram.collectAsState()
     val inactivePrograms by viewModel.inactivePrograms.collectAsState()
 
-    // ─── Render UI ────────────────────────────────────────────────────────
-
     if (programs.isEmpty()) {
-        // Empty state: no programs
         EmptyStateView(
             title = "Comienza Hoy",
             subtitle = "Aún no tienes programas configurados",
@@ -69,12 +53,10 @@ fun ProgramsScreen(
             modifier = Modifier.fillMaxSize(),
         )
     } else {
-        // Programs list (active + inactive)
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 80.dp),
         ) {
-            // ─── Header (when programs exist) ──────────────────────────────
             item {
                 Row(
                     modifier = Modifier
@@ -97,7 +79,6 @@ fun ProgramsScreen(
                             letterSpacing = 0.5.sp,
                         )
                     }
-                    // "+ Nuevo" button
                     Button(
                         onClick = onCreateProgram,
                         modifier = Modifier.wrapContentWidth(),
@@ -117,7 +98,6 @@ fun ProgramsScreen(
                 }
             }
 
-            // ─── Active Program Section ────────────────────────────────────
             if (activeProgram != null) {
                 item {
                     ActiveProgramCard(
@@ -128,7 +108,6 @@ fun ProgramsScreen(
                 }
             }
 
-            // ─── Inactive Programs Section ─────────────────────────────────
             if (inactivePrograms.isNotEmpty()) {
                 items(inactivePrograms) { program ->
                     InactiveProgramCard(
@@ -139,17 +118,11 @@ fun ProgramsScreen(
                 }
             }
 
-            // Bottom spacing
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
-/**
- * Card for the active program (currently running).
- * Shows "EJECUTANDO AHORA" badge with green pulsing dot.
- * Has highlighted border with primary color.
- */
 @Composable
 private fun ActiveProgramCard(
     program: Program,
@@ -158,7 +131,6 @@ private fun ActiveProgramCard(
 ) {
     val stats = viewModel.getProgramStats(program)
 
-    // Pulsing green dot animation
     val pulseAlpha by rememberInfiniteTransition(label = "pulse").animateFloat(
         initialValue = 0.4f,
         targetValue = 1f,
@@ -190,7 +162,6 @@ private fun ActiveProgramCard(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // "EJECUTANDO AHORA" badge with pulsing dot
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -212,7 +183,6 @@ private fun ActiveProgramCard(
                     )
                 }
 
-                // Program name (uppercase)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -231,7 +201,6 @@ private fun ActiveProgramCard(
                     )
                 }
 
-                // Stats
                 Text(
                     text = "${stats.weeks} semanas · ${stats.sessions} sesiones",
                     style = MaterialTheme.typography.bodySmall,
@@ -242,11 +211,6 @@ private fun ActiveProgramCard(
     }
 }
 
-/**
- * Card for an inactive program.
- * Shows program name, stats, and chevron icon.
- * Has normal border with outlineVariant color.
- */
 @Composable
 private fun InactiveProgramCard(
     program: Program,
@@ -296,7 +260,7 @@ private fun InactiveProgramCard(
                 }
 
                 Icon(
-                    imageVector = Icons.Default.ChevronRight,
+                    imageVector = Icons.Default.KeyboardArrowRight,
                     contentDescription = "Ver detalles",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
