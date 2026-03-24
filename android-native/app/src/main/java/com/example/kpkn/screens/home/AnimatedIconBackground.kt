@@ -17,15 +17,22 @@ import com.example.kpkn.R
 import kotlin.math.ceil
 
 /**
- * Fondo animado con el kpknicon.png moviéndose en hileras verticales.
- * Columnas 1 y 3 bajan, columna 2 sube — todas seamless y a velocidades distintas.
+ * Fondo animado con el kpknicon.png en 10 columnas perfectamente sincronizadas.
  *
- * El truco del wrap seamless:
- *   - El animateFloat va de 0f a 1f con RepeatMode.Restart
- *   - tileOffset = progress * spacingPx  →  0 .. spacingPx
- *   - Los iconos están a exactamente `spacingPx` entre sí
- *   - Al reiniciarse el ciclo (offset vuelve a 0), cada icono ocupa
- *     la posición que tenía el anterior → sin saltos visibles.
+ * SINCRONIZACIÓN PERFECTA:
+ *   - Todas las columnas comparten un único `sharedProgress` (0..1 cada 12s)
+ *   - Las que bajan usan: tileOffset = +progress * spacingPx
+ *   - Las que suben usan: tileOffset = -progress * spacingPx
+ *   - Resultado: cuando progress = 0.5, todas están exactamente a mitad de su ciclo
+ *
+ * PATRÓN ALTERNADO:
+ *   down, up, down, up, down, up, down, up, down, up
+ *   Nunca hay dos columnas consecutivas que vayan en la misma dirección.
+ *
+ * WRAP SEAMLESS (sin saltos):
+ *   - tileOffset progresa de 0 a ±spacingPx
+ *   - Los iconos están exactamente a `spacingPx` entre sí
+ *   - Al reiniciarse (offset → 0), cada icono ocupa la posición del anterior
  */
 @Composable
 fun AnimatedIconBackground(
@@ -34,37 +41,15 @@ fun AnimatedIconBackground(
     val density = LocalDensity.current
     val infiniteTransition = rememberInfiniteTransition(label = "kpkn-bg")
 
-    // Columna 1 — baja — 10 s
-    val progressDown1: Float by infiniteTransition.animateFloat(
+    // UN ÚNICO progress compartido — todas las columnas están sincronizadas perfectamente
+    val sharedProgress: Float by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 10_000, easing = LinearEasing),
+            animation = tween(durationMillis = 12_000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "col1-down",
-    )
-
-    // Columna 2 — sube — 8 s
-    val progressUp: Float by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 8_000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "col2-up",
-    )
-
-    // Columna 3 — baja — 13 s (más lenta para dar profundidad)
-    val progressDown3: Float by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 13_000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "col3-down",
+        label = "shared-scroll",
     )
 
     // Cargar el PNG como ImageBitmap (cacheado internamente por Compose)
@@ -77,23 +62,31 @@ fun AnimatedIconBackground(
         val w = size.width
         val h = size.height
 
-        // Iconos necesarios para cubrir la pantalla + 2 de margen arriba/abajo
-        val count = ceil(h / spacingPx).toInt() + 3
+        // Muchos más iconos para evitar cortes abruptos y llenar bien
+        val count = ceil(h / spacingPx).toInt() + 5
 
-        // 7 columnas que llenan todo el ancho — alternando direcciones y velocidades
-        val columnPositions = listOf(
-            0.08f to Pair(true, progressDown1),    // izq, abajo
-            0.18f to Pair(false, progressUp),      // arriba
-            0.28f to Pair(true, progressDown3),    // abajo
-            0.40f to Pair(false, progressUp),      // arriba
-            0.52f to Pair(true, progressDown1),    // abajo
-            0.64f to Pair(false, progressUp),      // arriba
-            0.76f to Pair(true, progressDown3),    // abajo
-            0.88f to Pair(false, progressUp),      // arriba
+        // 8 columnas PERFECTAMENTE ALTERNADAS: down, up, down, up, down, up, down, up
+        // Todas sincronizadas con sharedProgress
+        val columnConfigs = listOf(
+            0.07f to true,   // col 0: baja
+            0.16f to false,  // col 1: sube
+            0.25f to true,   // col 2: baja
+            0.34f to false,  // col 3: sube
+            0.43f to true,   // col 4: baja
+            0.52f to false,  // col 5: sube
+            0.61f to true,   // col 6: baja
+            0.70f to false,  // col 7: sube
+            0.79f to true,   // col 8: baja
+            0.88f to false,  // col 9: sube
         )
 
-        columnPositions.forEach { (xFraction, directionAndProgress) ->
-            val (goingDown, progress) = directionAndProgress
+        columnConfigs.forEach { (xFraction, goingDown) ->
+            val tileOffset = if (goingDown) {
+                sharedProgress * spacingPx
+            } else {
+                -sharedProgress * spacingPx  // negativo para que suban
+            }
+
             drawIconColumn(
                 bitmap = kpknBitmap,
                 xCenter = w * xFraction,
@@ -102,8 +95,8 @@ fun AnimatedIconBackground(
                 screenHeight = h,
                 count = count,
                 goingDown = goingDown,
-                tileOffset = progress * spacingPx,
-                alpha = 0.08f,
+                tileOffset = tileOffset,
+                alpha = 0.07f,
             )
         }
     }
