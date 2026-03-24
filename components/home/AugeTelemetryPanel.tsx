@@ -293,6 +293,16 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
         const circumference = 2 * Math.PI * radius;
         const offset = circumference - (visualValue / 100) * circumference;
 
+        // Curved text path calculation
+        const textRadius = radius - strokeWidth - 4; // Internally "pegado"
+        const center = size / 2;
+        // SVG path for a circular text (starting from top, clockwise)
+        const textPathData = `
+            M ${center}, ${center - textRadius}
+            A ${textRadius}, ${textRadius} 0 1, 1 ${center}, ${center + textRadius}
+            A ${textRadius}, ${textRadius} 0 1, 1 ${center}, ${center - textRadius}
+        `;
+
         return (
             <div className="relative flex flex-col items-center"
                 style={{
@@ -303,16 +313,16 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
                 }}
             >
                 <div className="h-4 flex items-center justify-center mb-1">
-                    <span className="text-[9px] sm:text-[10px] font-black text-black/40 uppercase tracking-[0.2em] leading-none whitespace-nowrap">
-                        {RING_LABELS_SHORT[id]}
+                    {/* Hide top label as we now have internal curved text */}
+                    <span className="text-[9px] sm:text-[10px] font-black text-black/0 uppercase tracking-[0.2em] leading-none whitespace-nowrap select-none">
+                        &nbsp;
                     </span>
                 </div>
                 <div className="relative" style={{ width: size, height: size }}>
-                    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90 overflow-visible">
+                    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
                         {/* ─── LIQUID GLASS FILTERS ─── */}
                         <defs>
                             <filter id={`liquid-glass-${id}`} x="-50%" y="-50%" width="200%" height="200%">
-                                {/* Subtle outer bloom */}
                                 <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur" />
                                 <feFlood floodColor={color} result="color" />
                                 <feComposite in="color" in2="blur" operator="in" result="glow" />
@@ -324,59 +334,78 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
                                     <feMergeNode in="SourceGraphic" />
                                 </feMerge>
                             </filter>
+                            <path id={`text-path-${id}`} d={textPathData} />
                         </defs>
 
-                        {/* SVG Rings: Value ring and glass overlays */}
-                        <circle cx={size / 2} cy={size / 2} r={radius} stroke={color} strokeWidth={strokeWidth} fill="none"
-                            strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" filter={`url(#liquid-glass-${id})`} className="transition-all duration-300 ease-out" />
+                        {/* Group for rotation of main rings */}
+                        <g className="transform -rotate-90 origin-center">
+                            {/* SVG Rings: Value ring and glass overlays */}
+                            <circle cx={size / 2} cy={size / 2} r={radius} stroke={color} strokeWidth={strokeWidth} fill="none"
+                                strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" filter={`url(#liquid-glass-${id})`} className="transition-all duration-300 ease-out" />
 
-                        {/* 2. Sub-Glow (Liquid Depth) */}
-                        <motion.circle
-                            initial={{ strokeDashoffset: circumference }}
-                            animate={{ strokeDashoffset: offset }}
-                            transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-                            cx={size / 2} cy={size / 2} r={radius}
-                            fill="none"
-                            stroke={color}
-                            strokeWidth={strokeWidth}
-                            strokeDasharray={circumference}
-                            strokeLinecap="round"
-                            filter={`url(#liquid-glass-${id})`}
-                            style={{ strokeOpacity: 0.8 }}
-                        />
+                            {/* 2. Sub-Glow (Liquid Depth) */}
+                            <motion.circle
+                                initial={{ strokeDashoffset: circumference }}
+                                animate={{ strokeDashoffset: offset }}
+                                transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                                cx={size / 2} cy={size / 2} r={radius}
+                                fill="none"
+                                stroke={color}
+                                strokeWidth={strokeWidth}
+                                strokeDasharray={circumference}
+                                strokeLinecap="round"
+                                filter={`url(#liquid-glass-${id})`}
+                                style={{ strokeOpacity: 0.8 }}
+                            />
 
-                        {/* 3. The Highlight (Glass Reflection - Top Sheen) */}
-                        <motion.circle
-                            initial={{ strokeDashoffset: circumference }}
-                            animate={{ strokeDashoffset: offset }}
-                            transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-                            cx={size / 2} cy={size / 2} r={radius}
-                            fill="none"
-                            stroke="white"
-                            strokeWidth={strokeWidth / 3.5}
-                            strokeDasharray={circumference}
-                            strokeLinecap="round"
+                            {/* 3. The Highlight (Glass Reflection - Top Sheen) */}
+                            <motion.circle
+                                initial={{ strokeDashoffset: circumference }}
+                                animate={{ strokeDashoffset: offset }}
+                                transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                                cx={size / 2} cy={size / 2} r={radius}
+                                fill="none"
+                                stroke="white"
+                                strokeWidth={strokeWidth / 3.5}
+                                strokeDasharray={circumference}
+                                strokeLinecap="round"
+                                style={{
+                                    strokeOpacity: 0.6,
+                                    mixBlendMode: 'overlay'
+                                }}
+                            />
+
+                            {/* 4. Sharp Specular (The "Liquid Glare") */}
+                            <motion.circle
+                                initial={{ strokeDashoffset: circumference }}
+                                animate={{ strokeDashoffset: offset }}
+                                transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                                cx={size / 2} cy={size / 2} r={radius - 1}
+                                fill="none"
+                                stroke="white"
+                                strokeWidth={1}
+                                strokeDasharray={circumference}
+                                strokeLinecap="round"
+                                style={{
+                                    strokeOpacity: 0.4,
+                                }}
+                            />
+                        </g>
+
+                        {/* ─── Curved Internal Text ─── */}
+                        <text
+                            className="font-black uppercase tracking-[0.15em] select-none"
                             style={{
-                                strokeOpacity: 0.6,
-                                mixBlendMode: 'overlay'
+                                fontSize: size > 150 ? '8px' : '7.5px',
+                                fill: color,
+                                opacity: 0.7,
+                                textAnchor: 'middle'
                             }}
-                        />
-
-                        {/* 4. Sharp Specular (The "Liquid Glare") */}
-                        <motion.circle
-                            initial={{ strokeDashoffset: circumference }}
-                            animate={{ strokeDashoffset: offset }}
-                            transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-                            cx={size / 2} cy={size / 2} r={radius - 1}
-                            fill="none"
-                            stroke="white"
-                            strokeWidth={1}
-                            strokeDasharray={circumference}
-                            strokeLinecap="round"
-                            style={{
-                                strokeOpacity: 0.4,
-                            }}
-                        />
+                        >
+                            <textPath href={`#text-path-${id}`} startOffset="50%">
+                                {RING_LABELS[id]}
+                            </textPath>
+                        </text>
                     </svg>
                 </div>
                 <div className="h-6 flex items-center justify-center mt-1">

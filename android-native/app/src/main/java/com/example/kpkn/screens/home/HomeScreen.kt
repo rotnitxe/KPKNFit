@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
@@ -49,6 +50,7 @@ fun HomeScreen(
     val ringsViewMode by viewModel.ringsViewMode.collectAsState()
     val programs by viewModel.programs.collectAsState()
     val todaySessions by viewModel.todaySessions.collectAsState()
+    val dailyCalorieGoal by viewModel.dailyCalorieGoal.collectAsState()
     val greeting = viewModel.getGreeting()
 
     val listState = rememberLazyListState()
@@ -106,6 +108,22 @@ fun HomeScreen(
         }
     }
 
+    // Progreso de nutrición: item 3 en LazyColumn
+    val nutritionProgress by remember {
+        derivedStateOf {
+            val item3 = listState.layoutInfo.visibleItemsInfo.find { it.index == 3 }
+            when {
+                item3 == null -> 1f
+                item3.offset > 0 -> 0f
+                else -> {
+                    val cut = (-item3.offset).toFloat()
+                    val visibleHeight = item3.size.toFloat().coerceAtLeast(1f)
+                    (cut / visibleHeight).coerceIn(0f, 1f)
+                }
+            }
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
@@ -115,15 +133,18 @@ fun HomeScreen(
                     greetingProgress = greetingProgress,
                     ringsProgress = ringsProgress,
                     sessionProgress = sessionProgress,
+                    nutritionProgress = nutritionProgress,
                     hasPrograms = programs.isNotEmpty(),
                     muscularProgress = muscularProgress,
                     sncProgress = sncProgress,
                     columnaProgress = columnaProgress,
                     todaySessions = todaySessions,
+                    dailyCalorieGoal = dailyCalorieGoal,
                     onThemeToggle = { /* TODO */ },
                     onSettingsClick = { /* TODO */ },
                     onStartWorkout = { session, program -> /* TODO: navegar a sesión */ },
                     onCreateProgram = { /* TODO: navegar a creador */ },
+                    onAddMeal = { /* TODO: navegar a registro de comidas */ },
                 )
             },
         ) { innerPadding ->
@@ -236,6 +257,15 @@ private fun HomeWithProgram(
         }
 
         item {
+            val dailyCalorieGoal by viewModel.dailyCalorieGoal.collectAsState()
+            HomeNutritionProgressSection(
+                dailyCalorieGoal = dailyCalorieGoal,
+                consumedCalories = 0, // Será actualizado cuando se implemente nutrición
+                onAddMeal = { /* TODO: navegar a registro de comidas */ },
+            )
+        }
+
+        item {
             Spacer(Modifier.height(8.dp))
             HomeCardsSection(
                 viewModel = viewModel,
@@ -271,15 +301,18 @@ private fun HomeTopBar(
     greetingProgress: Float,
     ringsProgress: Float,
     sessionProgress: Float,
+    nutritionProgress: Float,
     hasPrograms: Boolean,
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
     todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
+    dailyCalorieGoal: Int,
     onThemeToggle: () -> Unit,
     onSettingsClick: () -> Unit,
     onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
     onCreateProgram: () -> Unit,
+    onAddMeal: () -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -316,19 +349,33 @@ private fun HomeTopBar(
                 val topBarDensity = LocalDensity.current
                 val boxHeightPx = with(topBarDensity) { boxHeightDp.toPx() }
 
-                // TRES FASES sin mezcla:
+                // CUATRO FASES sin mezcla:
                 // Fase 1 — item 0 cortándose: saludo sube desde abajo (0→1)
                 // Fase 2 — item 1 cortándose: saludo sale por arriba (1→0)
                 //                              rings suben desde abajo (0→1)
                 // Fase 3 — item 2 cortándose: rings salen por arriba (1→0)
                 //                              sesión sube desde abajo (0→1)
+                // Fase 4 — item 3 cortándose: sesión sale por arriba (1→0)
+                //                              nutrición sube desde abajo (0→1)
                 // El crossfade es estrictamente 1:1 con el scroll en cada fase.
                 val greetingAlpha: Float
                 val greetingSlide: Float
                 val ringsAlpha: Float
                 val ringsSlide: Float
-                if (sessionProgress > 0f) {
+                val sessionAlpha: Float
+                val sessionSlide: Float
+                if (nutritionProgress > 0f) {
+                    // Fase 4: sesión sale hacia arriba, nutrición sube
+                    sessionAlpha = 1f - nutritionProgress
+                    sessionSlide = -nutritionProgress * boxHeightPx
+                    ringsAlpha = 0f
+                    ringsSlide = 0f
+                    greetingAlpha = 0f
+                    greetingSlide = 0f
+                } else if (sessionProgress > 0f) {
                     // Fase 3: rings salen hacia arriba, sesión sube
+                    sessionAlpha = sessionProgress
+                    sessionSlide = (1f - sessionProgress) * boxHeightPx
                     ringsAlpha = 1f - sessionProgress
                     ringsSlide = -sessionProgress * boxHeightPx
                     greetingAlpha = 0f
@@ -339,12 +386,16 @@ private fun HomeTopBar(
                     greetingSlide = -ringsProgress * boxHeightPx
                     ringsAlpha = ringsProgress
                     ringsSlide = (1f - ringsProgress) * boxHeightPx
+                    sessionAlpha = 0f
+                    sessionSlide = 0f
                 } else {
                     // Fase 1: saludo entra desde abajo
                     greetingAlpha = greetingProgress
                     greetingSlide = (1f - greetingProgress) * boxHeightPx
                     ringsAlpha = 0f
                     ringsSlide = 0f
+                    sessionAlpha = 0f
+                    sessionSlide = 0f
                 }
 
                 Box(
@@ -386,8 +437,19 @@ private fun HomeTopBar(
                         onStartWorkout = onStartWorkout,
                         onCreateProgram = onCreateProgram,
                         modifier = Modifier.graphicsLayer {
-                            alpha = sessionProgress
-                            translationY = (1f - sessionProgress) * boxHeightPx
+                            alpha = sessionAlpha
+                            translationY = sessionSlide
+                        },
+                    )
+
+                    // Mini nutrition card — entra desde abajo 1:1 con el corte de item 3
+                    MiniNutritionCard(
+                        dailyCalorieGoal = dailyCalorieGoal,
+                        consumedCalories = 0, // Será actualizado cuando se implemente nutrición
+                        onAddMeal = onAddMeal,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = nutritionProgress
+                            translationY = (1f - nutritionProgress) * boxHeightPx
                         },
                     )
                 }
@@ -650,6 +712,62 @@ private fun MiniSessionCard(
                     )
                 }
             }
+        }
+    }
+}
+
+// ─── Mini Nutrition Card ────────────────────────────────────────────────
+
+@Composable
+private fun MiniNutritionCard(
+    dailyCalorieGoal: Int,
+    consumedCalories: Int,
+    onAddMeal: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(44.dp)
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                "Calorías",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    consumedCalories.toString(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 15.sp,
+                )
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    "/ $dailyCalorieGoal",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
+            }
+        }
+
+        IconButton(
+            onClick = onAddMeal,
+            modifier = Modifier.size(32.dp),
+        ) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Agregar comida",
+                modifier = Modifier.size(18.dp),
+            )
         }
     }
 }

@@ -1,0 +1,740 @@
+INFORME MAESTRO 2
+Sistema personalizado de generación de rutinas considerando disponibilidad, tiempo, nutrición y volumen interno
+1) Principio rector del sistema
+
+La IA debe usar esta jerarquía:
+
+Nivel 1: restricciones duras
+
+Son las que no se pueden violar.
+
+días disponibles
+tiempo promedio por sesión
+lesiones / ejercicios no tolerados
+fecha de competencia
+fase del macrociclo
+Nivel 2: restricciones fisiológicas
+déficit / mantención / superávit
+nivel del atleta
+capacidad de recuperación
+fatiga histórica
+tolerancia al volumen por lift
+Nivel 3: objetivo programático
+total powerlifting
+mejora de un lift específico
+hipertrofia con sesgo powerlifting
+peaking para competir
+Nivel 4: preferencia del sistema
+split ideal
+variantes favoritas
+accesorios deseables
+
+Regla maestra:
+Si chocan el volumen recomendado y la capacidad real del usuario, manda la capacidad real, no el volumen teórico.
+
+2) Variables de entrada que la IA debe leer
+
+La IA debe leer al menos estas 4 variables nuevas:
+
+A. Días disponibles
+
+Ejemplo:
+
+lunes, miércoles, viernes
+o 4 días
+o 6 días
+
+Esto define:
+
+frecuencia máxima posible
+distribución de lifts
+cantidad de exposiciones por semana
+posibilidad de separar sesiones pesadas y de volumen
+B. Horas promedio por día
+
+Ejemplo:
+
+45 min
+60 min
+90 min
+2 h
+
+Esto define:
+
+cuántos ejercicios caben
+cuántas series reales caben
+si se pueden meter accesorios
+si conviene full body o upper/lower o SBD split
+C. Objetivo nutricional
+déficit calórico
+mantención
+superávit
+
+Esto modifica sobre todo:
+
+volumen tolerable
+velocidad de progresión
+densidad de sesión
+agresividad del bloque de hipertrofia
+necesidad de recortar accesorios
+
+En déficit, preservar masa magra y rendimiento suele beneficiarse de una programación más cuidadosa del volumen y de una nutrición adecuada, especialmente con proteína relativamente alta; pérdidas de peso más lentas suelen favorecer mejor retención de masa libre de grasa.
+
+D. Volumen interno recomendado por la app
+
+Tu sistema puede recomendar algo como:
+
+squat family: 14 series
+bench family: 18 series
+deadlift family: 8 series
+
+La IA no debe tomar ese número como obligación absoluta.
+Debe tratarlo como volumen objetivo inicial y luego filtrarlo por:
+
+bloque actual
+tiempo disponible
+fase nutricional
+recuperación esperable
+prioridad competitiva
+3) Marco general de decisión
+
+La IA debe hacer esto en orden:
+
+Paso 1. Determinar la capacidad semanal real
+
+Calcular:
+
+Capacidad semanal total (minutos) = suma de minutos disponibles de todos los días
+
+Ejemplo:
+
+4 días
+75 min promedio
+= 300 min/semana
+
+Luego estimar un presupuesto usable de entrenamiento real:
+
+10–15% se pierde en calentamiento/transiciones
+en powerlifting pesado, el tiempo por serie sube por descansos largos
+sesiones con squat/deadlift pesados consumen más minutos que sesiones de accesorios
+
+Por tanto:
+
+Capacidad usable = 80–90% del tiempo total disponible
+
+Ejemplo:
+300 min semanales → ~240–270 min usables
+
+Paso 2. Traducir tiempo a “capacidad de series”
+
+La IA debe tener una estimación interna de minutos por serie efectiva:
+
+Series de lifts principales pesados
+4–6 min por serie efectiva
+Series de lifts principales moderados
+3–5 min por serie efectiva
+Series de variantes
+2.5–4 min por serie efectiva
+Series de accesorios
+1.5–3 min por serie efectiva
+
+Con eso la IA estima si el volumen recomendado entra o no entra.
+
+Paso 3. Aplicar modificador por nutrición
+
+El volumen objetivo se corrige según déficit / mantención / superávit.
+
+Paso 4. Ajustar por bloque
+
+No se programa igual una semana de hipertrofia que una de peaking, aunque el usuario tenga el mismo tiempo.
+
+Paso 5. Elegir el split que mejor convierta tiempo en estímulo útil
+
+No el “más bonito”, sino el más eficiente.
+
+Paso 6. Priorizar
+
+Si no entra todo:
+
+comp lifts
+variantes útiles
+accesorios críticos
+accesorios cosméticos
+4) Cómo debe influir la disponibilidad semanal
+A. Si el usuario tiene 2 días
+
+La IA debe asumir que:
+
+no puede optimizar todo al máximo
+hay que usar full body
+la prioridad es mantener especificidad y estímulo mínimo efectivo
+Reglas
+squat: 1–2 exposiciones
+bench: 2 exposiciones si es posible
+deadlift: 1 exposición fuerte + opcional técnica ligera
+accesorios: mínimos
+Split recomendado
+
+Día 1: squat + bench + accessory breve
+Día 2: deadlift + bench + accessory breve
+
+Uso ideal
+déficit
+mantenimiento
+usuarios con muy poco tiempo
+fases tardías de peaking/taper
+B. Si tiene 3 días
+
+Es una frecuencia muy utilizable para muchos powerlifters.
+
+Reglas
+squat: 2 exposiciones
+bench: 2–3 exposiciones
+deadlift: 1–2 exposiciones
+Split recomendado
+
+Día 1: squat + bench
+Día 2: deadlift + bench
+Día 3: squat/bench + accesorios
+
+Ventaja
+
+Permite una distribución suficiente del volumen sin sesiones eternas.
+
+C. Si tiene 4 días
+
+Este debe ser el default del sistema si el tiempo por sesión es razonable.
+
+Reglas
+mejor balance entre frecuencia, especificidad y fatiga
+ideal para casi todos los bloques
+Split recomendado
+
+Día 1: squat pesado + bench volumen
+Día 2: deadlift pesado + bench técnico
+Día 3: squat volumen/técnica + upper
+Día 4: bench pesado + deadlift técnica
+
+D. Si tiene 5 días
+
+Ideal para:
+
+hipertrofia
+banca alta frecuencia
+distribuir mucho volumen sin sesiones tan largas
+Regla
+
+Agregar un día para:
+
+bench extra
+lower hypertrophy
+accesorios correctivos
+E. Si tiene 6 días
+
+Solo si:
+
+recuperación alta
+experiencia suficiente
+tiempo adecuado
+no está en déficit agresivo
+
+La frecuencia sirve especialmente para repartir mejor el trabajo cuando hay mucho volumen; cuando el volumen total se iguala, la frecuencia por sí sola no siempre cambia radicalmente los resultados, pero sí mejora la logística del programa.
+
+5) Cómo debe influir el tiempo por sesión
+
+La IA debe clasificar las sesiones así:
+
+Sesiones cortas: ≤45 min
+Reglas
+máximo 2 lifts principales o 1 lift + 1 accesorio corto
+casi sin relleno
+usar superseries solo con accesorios compatibles
+evitar meter squat pesado + deadlift pesado juntos
+Prioridad
+principal del día
+bench si hay que elevar frecuencia
+1 accesorio clave
+Adecuado para
+déficit
+peaking
+mantenimiento de fuerza
+usuarios ocupados
+Sesiones medias: 46–75 min
+Reglas
+mejor equilibrio general
+caben 2 lifts o 1 principal + 2–4 accesorios
+suele ser el mejor rango para la mayoría
+Adecuado para
+casi cualquier bloque
+Sesiones largas: 76–105 min
+Reglas
+permiten hipertrofia y volumen alto
+cuidado con fatiga por sesión
+no asumir que más tiempo siempre significa mejor resultado
+
+La evidencia sugiere que hipertrofia responde mejor al aumento de volumen que la fuerza, pero también que meter demasiadas series en una misma sesión puede ser ineficiente o contraproducente frente a una mejor distribución semanal.
+
+Sesiones muy largas: >105 min
+Reglas
+no llenarlas “porque caben”
+dividir volumen si es posible
+reservar para usuarios avanzados o bloques de acumulación
+preferir más frecuencia antes que maratones sistemáticas
+6) Cómo debe influir el objetivo nutricional
+A. Déficit calórico
+Efecto esperado
+menor tolerancia al volumen
+peor recuperación
+más riesgo de caída de rendimiento si el volumen es demasiado alto
+mayor necesidad de priorizar intensidad y especificidad
+
+Durante restricción calórica, preservar masa y rendimiento requiere afinar mejor el balance entre volumen y recuperación; además, en fases de pérdida de grasa suele recomendarse un ritmo moderado de bajada y una proteína relativamente alta.
+
+Regla de ajuste
+
+La IA debe aplicar un multiplicador de volumen:
+
+déficit leve: 0.90–0.95
+déficit moderado: 0.80–0.90
+déficit agresivo: 0.65–0.80
+
+sobre el volumen recomendado por la app
+
+Reglas prácticas
+recortar primero accesorios
+luego variantes secundarias
+mantener comp lifts
+mantener intensidad relativamente alta
+bajar más el volumen del deadlift que el de la banca
+en hipertrofia, evitar “querer crecer como en superávit”
+Reglas por bloque
+Hipertrofia en déficit: usar versión conservadora
+Fuerza Base en déficit: bastante viable
+Volumen Específico en déficit: viable si el volumen está muy bien dosificado
+Peaking en déficit: puede funcionar razonablemente si la fatiga está controlada
+Taper en déficit: normalmente bien, porque el volumen ya cae mucho
+B. Mantención
+Efecto esperado
+punto neutro
+buena tolerancia si el sueño y estrés acompañan
+Regla de ajuste
+
+Multiplicador:
+
+0.95–1.05
+
+La IA puede respetar casi íntegramente el volumen interno recomendado.
+
+C. Superávit
+Efecto esperado
+mejor tolerancia al volumen
+mejor recuperación
+mejor contexto para hipertrofia y acumulación
+Regla de ajuste
+
+Multiplicador:
+
+1.00–1.15
+
+No significa meter basura.
+Solo permite usar el extremo alto del volumen si el tiempo y la recuperación lo soportan.
+
+Reglas prácticas
+ideal para hipertrofia
+puede tolerar más accesorios
+mejor para lifts rezagados con más volumen específico
+
+El superávit no es estrictamente obligatorio para ganar músculo, pero sí puede facilitar la tolerancia al entrenamiento y la disponibilidad energética, especialmente cuando el bloque es muy voluminoso o orientado a hipertrofia.
+
+7) Cómo integrar el sistema interno de recomendación de volumen
+
+Tu sistema interno probablemente ya entrega un valor objetivo.
+La IA debe tratarlo como:
+
+Volumen objetivo bruto
+
+Ejemplo:
+
+squat 14
+bench 18
+deadlift 8
+
+Luego convertirlo en:
+
+Volumen objetivo ajustado
+
+Fórmula sugerida:
+
+Volumen Ajustado = Volumen Base × Mod Nutrición × Mod Tiempo × Mod Bloque × Mod Recuperación
+
+Mod Nutrición
+déficit agresivo: 0.70
+déficit moderado: 0.85
+déficit leve: 0.93
+mantención: 1.00
+superávit leve: 1.05
+superávit moderado: 1.10
+Mod Tiempo
+
+según capacidad semanal real
+
+tiempo muy insuficiente: 0.70–0.85
+tiempo justo: 0.90–0.97
+tiempo suficiente: 1.00
+tiempo abundante: 1.00–1.05
+Mod Bloque
+hipertrofia: 1.00–1.15
+fuerza base: 0.90–1.00
+volumen específico: 0.85–1.00
+peaking: 0.60–0.80
+tapering: 0.35–0.55
+competición: 0.10–0.25
+Mod Recuperación
+baja: 0.80–0.90
+normal: 1.00
+alta: 1.05–1.10
+8) Regla clave: el sistema debe diferenciar “volumen deseado” de “volumen viable”
+
+La IA debe calcular dos cosas:
+
+A. Volumen deseado
+
+Lo que tu sistema recomienda como ideal fisiológico
+
+B. Volumen viable
+
+Lo que realmente cabe y se recupera
+
+La rutina final debe usar:
+
+Volumen Final = min(volumen deseado ajustado, volumen viable)
+
+Eso evita que la IA genere programas imposibles.
+
+9) Cómo calcular el volumen viable desde el tiempo
+
+La IA puede usar una fórmula heurística.
+
+Estimación por sesión
+
+Para cada día:
+
+Tiempo útil = tiempo disponible - calentamiento/transiciones
+
+Aproximación:
+
+sesiones cortas: restar 8–10 min
+medias: restar 10–15 min
+largas: restar 12–18 min
+
+Luego convertir tiempo útil a series posibles:
+
+Si el día tiene principal pesado
+capacidad aproximada: 8–14 series totales
+Si el día tiene principal moderado
+capacidad: 10–18 series
+Si el día es de accesorios/bench volumen
+capacidad: 12–22 series
+
+No todas las series valen lo mismo: 5 series de squat pesado no son equivalentes en fatiga ni en tiempo a 5 series de curl.
+
+10) Regla de priorización cuando el tiempo no alcanza
+
+Si no entra todo el volumen, la IA debe recortar en este orden:
+
+Nunca recortar primero
+frecuencia mínima de comp lifts
+práctica técnica relevante del bloque
+top sets importantes del bloque
+Recortar primero
+accesorios redundantes
+accesorios de bombeo
+variantes secundarias poco específicas
+back-off sets menos importantes
+volumen del lift menos prioritario
+Regla por bloque
+en hipertrofia: recortar especialización cosmética antes que trabajo estructural
+en peaking: recortar casi todo menos comp lifts
+en tapering: recortar todo lo no esencial
+11) Cómo elegir split según tiempo + días + bloque
+
+La IA debería seguir esta matriz:
+
+2 días
+siempre full body SBD
+sirve mejor para fuerza, mantenimiento o taper
+hipertrofia solo en formato muy simplificado
+3 días
+full body powerlifting o híbrido SBD
+muy eficiente si el tiempo por sesión es medio/alto
+4 días
+mejor default general
+muy bueno para todos los bloques
+5 días
+ideal para hipertrofia o banca rezagada
+6 días
+usar solo si el usuario realmente tiene recuperación y adherencia
+12) Reglas específicas por combinación
+Caso 1: pocos días + poco tiempo + déficit
+
+Ejemplo: 3 días, 45 min, déficit moderado
+
+Estrategia
+bajar volumen total
+priorizar intensidad útil
+comp lifts dominantes
+accesorios mínimos
+banca puede aparecer breve más veces si hace falta
+Tipo de plan
+fuerza base / volumen específico conservador
+hipertrofia muy comprimida
+Caso 2: pocos días + mucho tiempo + mantención
+
+Ejemplo: 3 días, 90 min, mantención
+
+Estrategia
+full body potente
+sí caben variantes y accesorios
+buen escenario para bloques completos
+Caso 3: muchos días + poco tiempo + superávit
+
+Ejemplo: 5 días, 45–50 min, superávit
+
+Estrategia
+microdosis frecuentes
+alta eficiencia
+excelente para banca y acumulación de volumen
+sesiones cortas pero frecuentes
+Caso 4: muchos días + mucho tiempo + superávit
+
+Ejemplo: 5–6 días, 90 min, superávit
+
+Estrategia
+máximo potencial para hipertrofia / acumulación
+pero igual controlar calidad y fatiga
+no llenar por llenar
+Caso 5: 4 días + 60–75 min + déficit leve
+Estrategia
+probablemente el escenario más fácil de programar bien
+se puede mantener buena calidad de fuerza y suficiente volumen
+13) Qué debe hacer la IA con el bloque actual cuando cambia la nutrición
+Hipertrofia
+en superávit: usar volumen alto si cabe
+en mantención: volumen medio-alto
+en déficit: hipertrofia conservadora; más énfasis en preservar músculo que en perseguir máximas ganancias
+Fuerza Base
+en déficit: suele seguir funcionando bastante bien
+el énfasis en cargas moderadas-altas lo vuelve robusto
+Volumen Específico
+en déficit: hay que vigilar mucho la acumulación de fatiga
+bench suele aguantar mejor que deadlift
+Peaking
+en déficit: puede ir razonablemente bien si no hubo sobrecarga previa
+la intensidad se conserva y el volumen cae, lo que ayuda
+Tapering
+nutrición importa, pero el volumen tan bajo reduce el conflicto
+14) Sistema de puntuación para que la IA escoja automáticamente una estrategia
+
+Tu IA puede calcular un score simple.
+
+A. Score de disponibilidad
+2 días = 1
+3 días = 2
+4 días = 3
+5 días = 4
+6 días = 5
+B. Score de duración
+≤45 min = 1
+46–60 = 2
+61–75 = 3
+76–90 = 4
+
+90 = 5
+
+C. Score nutricional
+déficit agresivo = 1
+déficit moderado = 2
+déficit leve = 3
+mantención = 4
+superávit = 5
+D. Score de recuperación
+baja = 1
+media = 3
+alta = 5
+Índice de capacidad total
+
+Capacidad = disponibilidad + duración + nutrición + recuperación
+
+Ejemplo:
+4 días (3) + 75 min (3) + mantención (4) + recuperación media (3) = 13
+
+Interpretación
+4–7: capacidad baja
+8–11: capacidad moderada-baja
+12–15: capacidad media
+16–18: capacidad alta
+19–20: capacidad muy alta
+
+La IA usa eso para decidir:
+
+cuánto acercarse al techo de volumen
+cuánto accesorio meter
+qué split usar
+qué tan agresivo puede ser el bloque
+15) Reglas concretas para implementación
+Regla 1
+
+El volumen de la app no es una orden; es una recomendación inicial.
+
+Regla 2
+
+La disponibilidad semanal y el tiempo por sesión determinan el split antes que las preferencias estéticas del programa.
+
+Regla 3
+
+La nutrición modifica el volumen mucho más que la frecuencia mínima de práctica técnica.
+
+Regla 4
+
+En déficit, recorta accesorios antes que comp lifts.
+
+Regla 5
+
+En superávit, no aumentes volumen si el tiempo o la recuperación no lo permiten.
+
+Regla 6
+
+Si el tiempo es corto, aumenta eficiencia:
+
+menos ejercicios
+menos variantes redundantes
+más prioridad a comp lifts
+más frecuencia de microdosis cuando haya suficientes días
+Regla 7
+
+El split debe ser una consecuencia de los recursos del usuario, no un dogma fijo.
+
+Regla 8
+
+Cuando no entre todo, priorizar:
+
+especificidad del bloque
+lift prioritario
+frecuencia mínima útil
+volumen de calidad
+accesorios
+16) Pseudocódigo lógico para tu IA
+INPUT:
+- days_available
+- avg_session_hours
+- nutrition_goal
+- internal_volume_recommendation
+- block
+- competition_date
+- recovery_score
+- athlete_level
+- lift_priorities
+
+STEP 1:
+Convert avg_session_hours to minutes
+weekly_minutes = sum(minutes of available days)
+
+STEP 2:
+Estimate usable weekly minutes
+usable_minutes = weekly_minutes * 0.85
+
+STEP 3:
+Estimate viable weekly set capacity
+Use time-cost model:
+main_heavy_set = 5 min
+main_moderate_set = 4 min
+variation_set = 3 min
+accessory_set = 2 min
+
+STEP 4:
+Get raw volume target from internal system
+raw_S = ...
+raw_B = ...
+raw_D = ...
+
+STEP 5:
+Apply modifiers
+nutrition_mod = ...
+time_mod = ...
+block_mod = ...
+recovery_mod = ...
+
+adj_S = raw_S * nutrition_mod * time_mod * block_mod * recovery_mod
+adj_B = raw_B * nutrition_mod * time_mod * block_mod * recovery_mod
+adj_D = raw_D * nutrition_mod * time_mod * block_mod * recovery_mod
+
+STEP 6:
+Choose split based on days_available + session length + block
+
+STEP 7:
+Allocate minimum effective frequency
+S = 1-3 exposures
+B = 2-4 exposures
+D = 1-2 exposures
+
+STEP 8:
+Distribute adjusted volume across the week
+Prefer more even distribution if time allows
+
+STEP 9:
+Check if estimated session time exceeds available time
+If yes:
+  remove lowest-priority accessories
+  remove redundant variations
+  reduce back-off sets
+  preserve comp lifts and top sets
+
+STEP 10:
+Apply nutrition-specific rules
+If deficit:
+  reduce accessory density
+  maintain intensity
+  lower deadlift volume first
+If surplus:
+  allow upper range of volume if time/recovery permit
+
+STEP 11:
+Generate final plan with
+- split
+- lift frequency
+- exercises
+- sets/reps
+- intensity
+- weekly progression
+- fallback adjustments
+17) Plantilla de reglas internas que puedes pegarle a tu IA
+
+Cuando programes rutinas de powerlifting, trata la disponibilidad semanal y el tiempo por sesión como restricciones duras.
+Toma el volumen recomendado por el sistema interno como punto de partida, no como obligación.
+Ajusta ese volumen por nutrición, tiempo real, bloque del macrociclo y recuperación.
+Si el usuario está en déficit, reduce volumen principalmente en accesorios y variantes secundarias, preservando comp lifts, intensidad útil y práctica técnica.
+Si está en mantención, puedes usar el volumen recomendado casi completo si el tiempo lo permite.
+Si está en superávit, puedes acercarte al extremo alto del volumen solo si hay tiempo y recuperación suficientes.
+Elige el split que mejor convierta tiempo disponible en trabajo útil.
+Si no cabe todo, preserva primero lifts competitivos, frecuencia mínima útil y series principales del bloque.
+Bench puede usar más frecuencia; deadlift debe manejarse con más prudencia de fatiga.
+En bloques cercanos a competencia, la especificidad manda sobre el volumen bruto.
+
+18) Resumen corto del sistema
+
+La IA debe pensar así:
+
+Primero: ¿cuánto puede entrenar realmente esta persona?
+Segundo: ¿cuánto volumen tiene sentido dadas sus calorías y recuperación?
+Tercero: ¿qué parte de ese volumen vale más según el bloque?
+Cuarto: ¿qué split hace que ese trabajo quepa de verdad?
+Quinto: si no cabe todo, cortar lo menos importante primero.
+
+Eso es lo que convierte una rutina “teóricamente buena” en una rutina implementable, personalizada y sostenible.
+
+Puedo darte ahora una versión aún más operativa en formato de especificación de producto, con:
+
+tablas de decisión,
+fórmulas,
+prioridades por bloque,
+y reglas IF/THEN listas para programar en tu app.

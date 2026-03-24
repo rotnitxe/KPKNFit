@@ -1,0 +1,626 @@
+1) Lógica maestra del macrociclo
+Objetivo de cada bloque
+
+Hipertrofia
+
+Crear base muscular.
+Mejorar tolerancia al volumen.
+Corregir puntos débiles.
+Mantener técnica, pero sin obsesionarse aún con la máxima especificidad.
+
+Fuerza Base
+
+Traducir parte de esa masa y capacidad de trabajo a producción de fuerza.
+Aumentar cargas medias-altas.
+Mantener variantes cercanas al gesto competitivo.
+
+Volumen Específico
+
+Aumentar la cantidad de trabajo útil en los 3 levantamientos competitivos.
+Mucha práctica técnica específica sin llegar todavía al pico.
+
+Peaking
+
+Maximizar especificidad.
+Exponer al atleta a singles pesados y trabajo de muy baja repetición.
+Bajar fatiga, subir preparación neural/técnica.
+
+Tapering
+
+Mantener intensidad, reducir drásticamente volumen y fatiga.
+Llegar “fresco” al día de competencia.
+
+Competición
+
+Expresar el rendimiento, no desarrollarlo.
+
+La literatura sobre peaking/taper para fuerza máxima sugiere que la mejora competitiva en el taper suele venir de reducir volumen sin eliminar del todo la intensidad, y las revisiones reportan mejoras de rendimiento competitivas del orden de ~0.5–6%, con promedio cercano al 3% en contextos deportivos.
+
+2) Plantilla base del macrociclo que la IA puede usar por defecto
+
+Usa este modelo estándar de 16 semanas si el usuario no da otra duración:
+
+Semanas 1–4: Hipertrofia
+Semanas 5–7: Fuerza Base
+Semanas 8–10: Volumen Específico
+Semanas 11–13: Peaking
+Semanas 14–15: Tapering
+Semana 16: Competición
+Ajustes automáticos por nivel
+Principiante: 8–12 semanas total; menos bloques separados; hipertrofia y fuerza base pueden fusionarse.
+Intermedio: 12–16 semanas total; estructura completa.
+Avanzado: 16–24 semanas; más fine-tuning, más individualización por lift, más cuidado con fatiga del deadlift.
+3) Reglas de selección de ejercicios por bloque
+Regla general de especificidad
+
+La IA debe mover el menú de ejercicios así:
+
+Hipertrofia: 35–45% competencia exacta, 30–40% variantes, 25–35% accesorios.
+Fuerza Base: 45–60% competencia exacta, 25–35% variantes cercanas, 15–25% accesorios.
+Volumen Específico: 65–75% competencia exacta, 15–25% variantes, 10–15% accesorios.
+Peaking: 80–90% competencia exacta, 10–20% variantes muy cercanas, accesorios mínimos.
+Tapering: 90–100% competencia exacta, casi nada más.
+Competición: solo competencia.
+Biblioteca de ejercicios por lift
+Sentadilla
+
+Competencia
+
+Back squat comp style
+
+Variantes cercanas
+
+Paused squat
+Tempo squat
+Pin squat
+High-bar squat
+Safety bar squat
+
+Accesorios
+
+Leg press
+Bulgarian split squat
+Hack squat
+RDL
+Leg extension
+Hamstring curl
+Back extension
+Abs/bracing
+Banca
+
+Competencia
+
+Bench press comp pause
+
+Variantes cercanas
+
+Close grip bench
+Spoto press
+Larsen press
+Long pause bench
+Feet-up bench
+Pin press
+Incline bench
+
+Accesorios
+
+DB press
+Dips
+Flyes
+Rows
+Pulldowns
+Triceps extensions
+Rear delts
+Rotator cuff
+Peso muerto
+
+Competencia
+
+Deadlift comp style
+
+Variantes cercanas
+
+Paused deadlift
+Deficit deadlift
+Block pull / rack pull
+Tempo deadlift
+Romanian deadlift
+Stiff-leg deadlift
+
+Accesorios
+
+Hip thrust
+Back extension
+Rows
+Ham curl
+Abs
+Grip work
+4) Qué ejercicios escoger en cada semana de cada bloque
+A. Hipertrofia — Semanas 1 a 4
+
+Objetivo: acumular trabajo, construir músculo, mejorar tolerancia al entrenamiento.
+
+Semana 1
+S: high-bar o paused squat + comp squat ligero técnico
+B: comp bench + incline/close grip
+D: RDL o paused deadlift + comp deadlift ligero
+Muchos accesorios
+Semana 2
+Mantener variantes de semana 1
+Añadir una exposición extra de bench
+Accesorios completos
+Semana 3
+Empezar a acercarse un poco más al gesto competitivo
+S: comp squat + variante
+B: comp bench + spoto/close grip
+D: comp deadlift + RDL/paused
+Accesorios aún altos
+Semana 4
+“Pivot” o descarga activa
+Mantener comp lifts y una sola variante por lift
+Reducir bastante accesorios
+B. Fuerza Base — Semanas 5 a 7
+
+Objetivo: subir carga media-alta y reducir repeticiones.
+
+Semana 5
+S: comp squat + paused squat
+B: comp bench + close grip
+D: comp deadlift + paused deadlift
+Accesorios selectivos
+Semana 6
+Mismo esqueleto
+Variante pasa a ser más cercana al sticking point del usuario
+Menos ejercicios totales
+Semana 7
+Más especificidad
+S: comp squat dominante
+B: comp bench dominante
+D: comp deadlift dominante
+Solo 1 variante secundaria por lift
+C. Volumen Específico — Semanas 8 a 10
+
+Objetivo: mucho trabajo en comp lifts con fatiga controlada.
+
+Semana 8
+S: comp squat 2 exposiciones
+B: comp bench 3 exposiciones
+D: comp deadlift 1–2 exposiciones
+Pocas variantes, casi todas muy cercanas
+Semana 9
+Igual estructura
+La segunda exposición de squat/deadlift puede ser paused o tempo muy leve
+Bench sigue alto en frecuencia
+Semana 10
+Mantener comp lifts como núcleo
+Bajar ligeramente accesorios
+Preparar transición a peaking
+D. Peaking — Semanas 11 a 13
+
+Objetivo: especificidad máxima y exposición a singles.
+
+Semana 11
+Solo comp squat, comp bench, comp deadlift
+Variantes opcionales muy pequeñas: paused squat, long pause bench, paused deadlift, con pocas series
+Semana 12
+Más singles pesados
+Menos back-off volume
+Casi sin accesorios
+Semana 13
+Semana de “último estímulo serio”
+Practicar opener-like singles o segundos intentos conservadores según nivel
+Accesorios mínimos o nulos
+E. Tapering — Semanas 14 y 15
+
+Objetivo: sacar fatiga manteniendo sensación de peso.
+
+Semana 14
+Solo comp lifts
+1 single relativamente pesado por lift por sesión principal
+Muy poco back-off
+Semana 15
+Últimas exposiciones ligeras-moderadas
+Técnica, velocidad, confianza
+Nada que produzca agujetas o fatiga residual
+F. Competición — Semana 16
+1–2 sesiones muy ligeras al inicio de semana
+Singles muy fáciles si se usan
+Luego descanso activo hasta competir
+5) Volumen por bloque y por semana
+Cómo medir volumen para la IA
+
+Usa dos capas:
+
+Capa 1: series semanales por lift-familia
+Squat family
+Bench family
+Deadlift/hinge family
+Capa 2: series accesorias por patrón
+Cuádriceps
+Pectoral/hombro/tríceps
+Espalda alta/lats
+Isquios/glúteos
+Core
+Reglas maestras
+El bench tolera más frecuencia y más volumen que deadlift en la mayoría.
+El deadlift genera más fatiga sistémica, así que sube más lento.
+La IA debe preferir subir frecuencia para repartir volumen, no meter todo en una sola sesión. La evidencia sugiere que la mayor frecuencia ayuda sobre todo porque permite meter o distribuir mejor el volumen; cuando el volumen se iguala, la frecuencia por sí sola no siempre gana.
+Volumen semanal por bloque
+Hipertrofia
+Squat family: 12–18 series/semana
+Bench family: 14–22 series/semana
+Deadlift family: 8–14 series/semana
+Accesorios: 10–20 series extra por patrón prioritario
+Fuerza Base
+Squat family: 10–15
+Bench family: 12–18
+Deadlift family: 6–10
+Accesorios: 6–12
+Volumen Específico
+Squat family: 10–14
+Bench family: 12–18
+Deadlift family: 5–8
+Accesorios: 4–8
+Peaking
+Squat family: 6–10
+Bench family: 8–12
+Deadlift family: 4–6
+Accesorios: 0–4
+Tapering
+Squat family: 3–5
+Bench family: 4–6
+Deadlift family: 2–4
+Accesorios: 0–2
+Competición
+Casi nulo
+
+Estas cifras son una síntesis práctica alineada con dos ideas de la evidencia: para hipertrofia en entrenados, 12–20 series semanales suele ser una zona muy útil, y para fuerza máxima no siempre hace falta un volumen enorme; incluso dosis mínimas pueden mantener o mejorar fuerza en ciertos contextos, aunque de forma subóptima frente a una programación mejor diseñada.
+
+Variación semanal dentro de cada bloque
+Hipertrofia
+Sem 1: 85–90% del volumen objetivo del bloque
+Sem 2: 95–100%
+Sem 3: 100–110%
+Sem 4: 55–70% (pivot/deload)
+Fuerza Base
+Sem 5: 90%
+Sem 6: 100%
+Sem 7: 85–95% con más intensidad y menos reps
+Volumen Específico
+Sem 8: 95%
+Sem 9: 100–105%
+Sem 10: 85–90%
+Peaking
+Sem 11: 80–90%
+Sem 12: 70–80%
+Sem 13: 55–70%
+Tapering
+Sem 14: 45–60%
+Sem 15: 25–40%
+6) Intensidad por bloque y cómo debe variar en cada sesión
+Regla maestra
+
+La evidencia apoya que la fuerza máxima se optimiza mejor con cargas altas, mientras que la hipertrofia puede lograrse con un espectro más amplio de cargas si el esfuerzo es suficiente.
+
+Rangos de intensidad por bloque
+Hipertrofia
+Main lifts: 60–72% 1RM
+Variantes: 55–70%
+Accesorios: esfuerzo alto, pero no necesariamente %1RM
+RPE objetivo: 6–8
+Fuerza Base
+Main lifts: 70–82%
+Variantes: 65–77%
+RPE: 6.5–8.5
+Volumen Específico
+Main lifts: 72–85%
+Variantes cercanas: 67–80%
+RPE: 7–8.5
+Peaking
+Main lifts: 82–93%
+Singles: 85–95%, según nivel y proximidad a competencia
+RPE: 7.5–9
+Tapering
+Main lifts: 80–92%, pero con muy pocas series
+La intensidad se mantiene relativamente alta; lo que cae fuerte es el volumen.
+Competición
+Intentos: estrategia de attempts, no entrenamiento
+7) Intensidad por sesión dentro de cada semana
+
+Usa este patrón por defecto de 4 sesiones para casi todo el ciclo:
+
+Día 1: Squat pesado + Bench volumen
+Día 2: Deadlift pesado + Bench pesado/técnico
+Día 3: Squat volumen/técnica + Bench volumen
+Día 4: Bench pesado + Deadlift volumen/técnica
+Hipertrofia
+Semana 1
+D1: S 65–68%, B 62–67%
+D2: D 65–68%, B 67–70%
+D3: S 60–65%, B 60–65%
+D4: B 65–70%, D 60–65%
+Semana 2
+D1: S 67–70%, B 65–68%
+D2: D 67–70%, B 70–72%
+D3: S 62–67%, B 62–67%
+D4: B 67–72%, D 62–67%
+Semana 3
+D1: S 70–72%, B 67–70%
+D2: D 70–72%, B 72–75%
+D3: S 65–68%, B 65–68%
+D4: B 70–75%, D 65–68%
+Semana 4
+Todas las sesiones: 60–67%, menos series
+Fuerza Base
+Semana 5
+D1: S 75–78%, B 70–74%
+D2: D 75–78%, B 77–80%
+D3: S 70–74%, B 70–74%
+D4: B 75–80%, D 70–74%
+Semana 6
+D1: S 78–80%, B 72–75%
+D2: D 78–80%, B 80–82%
+D3: S 72–75%, B 72–75%
+D4: B 78–82%, D 72–75%
+Semana 7
+D1: S 80–82%, B 75–77%
+D2: D 80–82%, B 82–84%
+D3: S 74–77%, B 74–77%
+D4: B 80–84%, D 74–77%
+Volumen Específico
+Semana 8
+D1: S 77–80%, B 72–75%
+D2: D 77–80%, B 80–83%
+D3: S 74–77%, B 74–77%
+D4: B 77–82%, D 72–75%
+Semana 9
+D1: S 80–83%, B 74–77%
+D2: D 80–83%, B 82–85%
+D3: S 75–78%, B 75–78%
+D4: B 80–83%, D 74–77%
+Semana 10
+D1: S 82–84%, B 75–78%
+D2: D 82–84%, B 84–86%
+D3: S 77–80%, B 77–80%
+D4: B 82–84%, D 75–78%
+Peaking
+Semana 11
+D1: S single 85–88% + back-offs 78–82%, B 75–80%
+D2: D single 85–88% + back-offs 78–82%, B single 85–88%
+D3: S 75–80%, B 75–80%
+D4: B single 87–90%, D 72–77%
+Semana 12
+D1: S single 88–90% + back-offs 80–84%, B 77–82%
+D2: D single 88–90% + back-offs 80–84%, B single 88–90%
+D3: S 77–82%, B 77–82%
+D4: B single 90–92%, D 70–75%
+Semana 13
+D1: S single 90–93%, pocas series
+D2: D single 90–92%, B single 90–93%
+D3: S 72–78%, B 72–78%
+D4: B opener-like single 88–91%, D muy ligero o nada
+Tapering
+Semana 14
+D1: S single 87–90% + 1–2 back-offs
+D2: B single 87–90% + 1–2 back-offs
+D3: D single 85–88% + 1–2 back-offs
+D4: Bench técnico 75–80%
+Semana 15
+2–3 sesiones máximo
+Todas entre 70–85%
+1–3 repeticiones
+Nada cerca del fallo
+Cero fatiga acumulada
+Competición
+Solo activación muy ligera al inicio de semana
+8) Repeticiones objetivo por bloque
+Hipertrofia: 6–10 reps en main lifts, 8–15 en accesorios
+Fuerza Base: 4–6 reps
+Volumen Específico: 3–6 reps
+Peaking: 1–4 reps
+Tapering: 1–3 reps
+Competición: singles
+9) Splits semanales recomendados por bloque
+Opción principal por bloque
+Hipertrofia — 5 días
+Día 1: Squat + lower accessories
+Día 2: Bench + upper accessories
+Día 3: Deadlift + posterior chain
+Día 4: Bench volumen + espalda/tríceps
+Día 5: Squat variante + full accessories
+
+Por qué: facilita mucho volumen sin reventar una sola sesión.
+
+Fuerza Base — 4 días
+Día 1: Squat pesado + Bench volumen
+Día 2: Deadlift pesado + Bench técnico
+Día 3: Squat variante + upper
+Día 4: Bench pesado + posterior chain
+Volumen Específico — 4 días
+Día 1: Comp squat + comp bench
+Día 2: Comp deadlift + comp bench
+Día 3: Squat secundaria + bench secundaria
+Día 4: Bench pesada + deadlift técnica
+Peaking — 4 días
+Día 1: Squat single day + bench support
+Día 2: Deadlift single day + bench single day
+Día 3: Squat/bench lighter practice
+Día 4: Bench single + deadlift very light
+Tapering — 2 a 3 días
+Día 1: Squat/bench
+Día 2: Deadlift/bench
+Día 3 opcional: activación ligera
+Competición
+1–2 toques ligeros y luego meet
+Reglas de elección de split
+
+La IA debe escoger split según disponibilidad y tolerancia:
+
+3 días: full body powerlifting
+4 días: default más equilibrado
+5 días: ideal para bench alto y para repartir hipertrofia
+6 días: solo avanzados con gran capacidad de recuperación
+
+Como regla práctica, si el usuario es avanzado o necesita más volumen de banca, tiene sentido usar más frecuencia para repartir trabajo; la evidencia no obliga a una frecuencia concreta cuando el volumen está igualado, pero sí apoya usar la frecuencia como herramienta de distribución de carga.
+
+10) Reglas automáticas por lift
+Sentadilla
+Tolera volumen moderado-alto
+Buena candidata para 2 exposiciones/semana casi todo el ciclo
+En peaking, 1 día pesado + 1 día ligero/técnico suele bastar
+Banca
+Tolera más frecuencia
+Default de IA: 2–4 exposiciones/semana
+Si hay estancamiento en banca, subir frecuencia antes que subir brutalmente volumen por sesión
+Peso muerto
+Más fatiga sistémica
+Default de IA: 1–2 exposiciones/semana
+Una pesada y otra técnica/variante suele funcionar mejor que dos muy duras
+
+La distribución típica observada en powerlifters, con banca más frecuente que squat y deadlift, va en esta línea.
+
+11) Qué debe hacer la IA con los accesorios
+Regla maestra
+
+Los accesorios deben servir para una de estas cuatro cosas:
+
+Aumentar masa muscular útil
+Corregir sticking points
+Mejorar estabilidad/bracing
+Sumar trabajo con baja fatiga técnica
+Prioridad por bloque
+Hipertrofia: accesorios altos
+Fuerza Base: accesorios moderados
+Volumen Específico: accesorios bajos-moderados
+Peaking: casi nada
+Tapering: cero o casi cero
+Cómo elegir accesorios según fallo del lift
+Squat falla abajo: paused squat, pin squat, quad work, bracing
+Squat se inclina adelante: SSB, upper back, abs, paused squat
+Bench falla en pecho: long pause, spoto, pec strength
+Bench falla mitad: pin press, close grip, tríceps
+Deadlift despega mal: deficit, paused off floor, quads, lats
+Deadlift traba en rodilla: block pull, RDL, glúteo/isquio, upper back
+12) Qué información debe explicitar el usuario para mejorar las recomendaciones
+
+La IA debería pedir o usar estas variables antes de programar:
+
+Datos obligatorios
+Edad
+Sexo
+Peso corporal y categoría
+Altura
+Nivel: principiante / intermedio / avanzado
+Años de entrenamiento real en powerlifting
+1RM o e1RM actuales de squat, bench, deadlift
+Fecha de competencia o si no hay competencia
+Días por semana disponibles
+Duración máxima por sesión
+Datos muy importantes
+Estilo de squat, bench y deadlift
+Equipo: raw, sleeves, wraps, equipamiento
+Si compite en federación tested o untested
+Lesiones actuales o históricas
+Ejercicios que irritan dolor
+Calidad de sueño
+Estrés laboral/estudio
+Pasos diarios / actividad extra
+Si hará corte de peso
+Acceso a material: rack, discos calibrados, barras especiales, máquinas
+Datos de personalización fina
+Puntos débiles por lift
+Qué lift responde mejor/peor al volumen
+Qué lift responde mejor/peor a intensidad
+RPE accuracy del usuario
+Velocidad de recuperación entre sesiones
+Historial de éxito o fracaso con:
+frecuencia alta de banca
+deadlift pesado frecuente
+pausas
+tempo
+high bar / low bar
+Próximo objetivo:
+total competitivo
+mejorar 1 lift
+salir de estancamiento
+mantener fuerza mientras baja peso
+Datos que mejoran mucho a la IA
+Videos técnicos
+Últimas 6–12 semanas de entrenamiento
+e1RM por repeticiones recientes
+Fatiga percibida por lift
+Tendencias de rendimiento semanales
+Adherencia real
+13) Reglas de decisión automáticas para la IA
+Si el usuario no compite pronto
+Alargar hipertrofia y fuerza base
+Peaking corto o inexistente
+Si faltan 6–8 semanas para competir
+Ir directo a volumen específico → peaking → taper
+Si faltan 12–16 semanas
+Usar estructura completa
+Si el usuario es principiante
+Menos variantes
+Más práctica comp lift
+Menos bloques separados
+Menos RPE 9
+Si el usuario es avanzado
+Más individualización por lift
+Bench más frecuente
+Deadlift más conservador
+Peaking más fino
+Si el usuario tiene mala recuperación
+Reducir series, no necesariamente frecuencia
+Mantener técnica y especificidad
+Deadlift: bajar volumen antes que squat/bench
+Si el usuario está en déficit o bajando peso
+Reducir volumen 10–20%
+Mantener intensidad relativamente alta
+Hacer peaking algo más conservador
+Si el usuario tiene mucha variabilidad diaria
+Usar top set por RPE + back-offs por %
+No fijar toda la sesión solo por %1RM
+14) Plantilla de salida ideal para la IA
+
+La IA debería generar rutinas con este formato:
+
+Bloque actual
+Objetivo del bloque
+Split semanal
+Frecuencia S/B/D
+Ejercicios principales
+Variantes
+Accesorios
+Series/reps
+%1RM o RPE
+Lógica de progresión semanal
+Criterios para subir/bajar carga
+Indicadores de fatiga
+Ajuste si falla una sesión
+Transición al siguiente bloque
+15) Prompt-regla interno que tu IA debería obedecer
+
+Puedes meterle esto casi tal cual a tu sistema:
+
+Programa powerlifting por bloques en este orden: hipertrofia, fuerza base, volumen específico, peaking, tapering, competición.
+En bloques lejanos a competencia prioriza masa muscular, tolerancia al volumen y variantes; en bloques cercanos prioriza especificidad, singles pesados y reducción progresiva de volumen.
+Usa banca con mayor frecuencia que sentadilla y peso muerto salvo contraindicación individual.
+Usa el peso muerto con manejo conservador de fatiga.
+La intensidad debe subir gradualmente entre bloques y el volumen debe caer gradualmente al acercarse a competición.
+En taper mantén sensación de carga pero reduce claramente el volumen.
+Selecciona accesorios según puntos débiles y elimínalos casi por completo en peaking/taper.
+Personaliza según nivel, fecha de competición, disponibilidad semanal, recuperación, lesiones, historial de respuesta a volumen/frecuencia e indicadores de fatiga.
+
+16) Resumen ejecutivo
+
+Si tu IA tiene que quedarse con pocas reglas, que se quede con estas:
+
+Lejos de competir: más variantes, más accesorios, más series, menos intensidad.
+Cerca de competir: más comp lifts, menos accesorios, menos series, más intensidad.
+Bench suele tolerar y necesitar más frecuencia.
+Deadlift necesita más prudencia con volumen/fatiga.
+Peaking = especificidad + singles + poco volumen.
+Taper = mantener intensidad, bajar volumen fuerte.
+La mejor recomendación depende muchísimo de fecha de meet, nivel, recuperación, técnica, historial de respuesta y puntos débiles.
+
+Si quieres, en el siguiente mensaje te lo convierto en una versión ultra técnica en formato “manual para IA”, con reglas IF/THEN, tablas limpias y un pseudocódigo completo para que lo pegues directo en tu sistema
