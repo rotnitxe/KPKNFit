@@ -3,7 +3,8 @@
     "allow": [
       "Bash(./gradlew assembleDebug)",
       "Bash(tail:*)",
-      "Bash(./gradlew assembleDebug --no-build-cache)"
+      "Bash(./gradlew assembleDebug --no-build-cache)",
+      "Bash(grep:*)"
     ]
   }
 }
