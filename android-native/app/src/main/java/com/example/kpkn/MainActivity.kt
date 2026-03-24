@@ -44,6 +44,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.kpkn.navigation.KpknRoute
+import com.example.kpkn.screens.programs.ProgramsScreen
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
@@ -115,7 +116,11 @@ fun KPKNApp() {
                 composable(KpknRoute.Home.route) {
                     HomeScreenPlaceholder(muscularProgress, sncProgress, columnaProgress) { selectedRingIndex = it }
                 }
-                composable(KpknRoute.Training.route)  { GenericScreen("Entreno") }
+                composable(KpknRoute.Training.route) {
+                    ProgramsScreen { programId ->
+                        navController.navigate(KpknRoute.ProgramDetail.create(programId))
+                    }
+                }
                 composable(KpknRoute.Nutrition.route) { GenericScreen("Nutrición") }
                 composable(KpknRoute.WikiLab.route)   { GenericScreen("WikiLab") }
                 composable(KpknRoute.ProgramDetail.route) { backStack ->
