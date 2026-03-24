@@ -80,44 +80,32 @@ fun AnimatedIconBackground(
         // Iconos necesarios para cubrir la pantalla + 2 de margen arriba/abajo
         val count = ceil(h / spacingPx).toInt() + 3
 
-        // Columna izquierda — hacia abajo
-        drawIconColumn(
-            bitmap = kpknBitmap,
-            xCenter = w * 0.20f,
-            iconSizePx = iconSizePx,
-            spacingPx = spacingPx,
-            screenHeight = h,
-            count = count,
-            goingDown = true,
-            tileOffset = progressDown1 * spacingPx,
-            alpha = 0.08f,
+        // 7 columnas que llenan todo el ancho — alternando direcciones y velocidades
+        val columnPositions = listOf(
+            0.08f to Pair(true, progressDown1),    // izq, abajo
+            0.18f to Pair(false, progressUp),      // arriba
+            0.28f to Pair(true, progressDown3),    // abajo
+            0.40f to Pair(false, progressUp),      // arriba
+            0.52f to Pair(true, progressDown1),    // abajo
+            0.64f to Pair(false, progressUp),      // arriba
+            0.76f to Pair(true, progressDown3),    // abajo
+            0.88f to Pair(false, progressUp),      // arriba
         )
 
-        // Columna central — hacia arriba
-        drawIconColumn(
-            bitmap = kpknBitmap,
-            xCenter = w * 0.50f,
-            iconSizePx = iconSizePx,
-            spacingPx = spacingPx,
-            screenHeight = h,
-            count = count,
-            goingDown = false,
-            tileOffset = progressUp * spacingPx,
-            alpha = 0.08f,
-        )
-
-        // Columna derecha — hacia abajo
-        drawIconColumn(
-            bitmap = kpknBitmap,
-            xCenter = w * 0.80f,
-            iconSizePx = iconSizePx,
-            spacingPx = spacingPx,
-            screenHeight = h,
-            count = count,
-            goingDown = true,
-            tileOffset = progressDown3 * spacingPx,
-            alpha = 0.08f,
-        )
+        columnPositions.forEach { (xFraction, directionAndProgress) ->
+            val (goingDown, progress) = directionAndProgress
+            drawIconColumn(
+                bitmap = kpknBitmap,
+                xCenter = w * xFraction,
+                iconSizePx = iconSizePx,
+                spacingPx = spacingPx,
+                screenHeight = h,
+                count = count,
+                goingDown = goingDown,
+                tileOffset = progress * spacingPx,
+                alpha = 0.08f,
+            )
+        }
     }
 }
 
