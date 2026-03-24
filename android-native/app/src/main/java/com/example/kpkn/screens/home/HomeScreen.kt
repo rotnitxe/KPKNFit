@@ -306,7 +306,7 @@ private fun HomeTopBar(
                 androidx.compose.foundation.Image(
                     painter = painterResource(R.drawable.kpknicon),
                     contentDescription = "KPKN",
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(40.dp),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                 )
 
