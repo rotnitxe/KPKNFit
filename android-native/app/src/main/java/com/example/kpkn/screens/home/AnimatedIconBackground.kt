@@ -3,125 +3,172 @@ package com.example.kpkn.screens.home
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.R
+import kotlin.math.ceil
 
+/**
+ * Fondo animado con el kpknicon.png moviéndose en hileras verticales.
+ * Columnas 1 y 3 bajan, columna 2 sube — todas seamless y a velocidades distintas.
+ *
+ * El truco del wrap seamless:
+ *   - El animateFloat va de 0f a 1f con RepeatMode.Restart
+ *   - tileOffset = progress * spacingPx  →  0 .. spacingPx
+ *   - Los iconos están a exactamente `spacingPx` entre sí
+ *   - Al reiniciarse el ciclo (offset vuelve a 0), cada icono ocupa
+ *     la posición que tenía el anterior → sin saltos visibles.
+ */
 @Composable
 fun AnimatedIconBackground(
     modifier: Modifier = Modifier,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "icon-scroll")
     val density = LocalDensity.current
+    val infiniteTransition = rememberInfiniteTransition(label = "kpkn-bg")
 
-    // Animation offsets for each column
-    val offset1: Float by infiniteTransition.animateFloat(
+    // Columna 1 — baja — 10 s
+    val progressDown1: Float by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = -800f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 8000, easing = LinearEasing),
+            animation = tween(durationMillis = 10_000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "offset-1",
+        label = "col1-down",
     )
 
-    val offset2: Float by infiniteTransition.animateFloat(
+    // Columna 2 — sube — 8 s
+    val progressUp: Float by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 800f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 8000, easing = LinearEasing),
+            animation = tween(durationMillis = 8_000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "offset-2",
+        label = "col2-up",
     )
 
-    val offset3: Float by infiniteTransition.animateFloat(
+    // Columna 3 — baja — 13 s (más lenta para dar profundidad)
+    val progressDown3: Float by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = -800f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 8500, easing = LinearEasing),
+            animation = tween(durationMillis = 13_000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "offset-3",
+        label = "col3-down",
     )
 
-    val iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f)
-    val iconSizePx = with(density) { 48.dp.toPx() }
-    val iconSpacingPx = with(density) { 80.dp.toPx() }
-    val swPx = with(density) { 2.dp.toPx() }
-    val offset4dp = with(density) { 4.dp.toPx() }
-    val offset6dp = with(density) { 6.dp.toPx() }
-    val offset12dp = with(density) { 12.dp.toPx() }
-    val cornerRadiusPx = with(density) { 1.dp.toPx() }
+    // Cargar el PNG como ImageBitmap (cacheado internamente por Compose)
+    val kpknBitmap: ImageBitmap = ImageBitmap.imageResource(R.drawable.kpknicon)
 
-    Canvas(modifier.fillMaxSize()) {
-        val screenWidth = size.width
-        val screenHeight = size.height
+    val iconSizePx: Int = with(density) { 44.dp.toPx().toInt() }
+    val spacingPx: Float = with(density) { 90.dp.toPx() }
 
-        // Column positions (X coordinates)
-        val columnXPositions = listOf(
-            screenWidth * 0.25f,
-            screenWidth * 0.50f,
-            screenWidth * 0.75f,
+    Canvas(modifier = modifier.fillMaxSize()) {
+        val w = size.width
+        val h = size.height
+
+        // Iconos necesarios para cubrir la pantalla + 2 de margen arriba/abajo
+        val count = ceil(h / spacingPx).toInt() + 3
+
+        // Columna izquierda — hacia abajo
+        drawIconColumn(
+            bitmap = kpknBitmap,
+            xCenter = w * 0.20f,
+            iconSizePx = iconSizePx,
+            spacingPx = spacingPx,
+            screenHeight = h,
+            count = count,
+            goingDown = true,
+            tileOffset = progressDown1 * spacingPx,
+            alpha = 0.08f,
         )
 
-        val offsets = listOf(offset1, offset2, offset3)
+        // Columna central — hacia arriba
+        drawIconColumn(
+            bitmap = kpknBitmap,
+            xCenter = w * 0.50f,
+            iconSizePx = iconSizePx,
+            spacingPx = spacingPx,
+            screenHeight = h,
+            count = count,
+            goingDown = false,
+            tileOffset = progressUp * spacingPx,
+            alpha = 0.08f,
+        )
 
-        // Draw each column
-        columnXPositions.forEachIndexed { colIndex, xPos ->
-            val columnOffset = offsets[colIndex]
+        // Columna derecha — hacia abajo
+        drawIconColumn(
+            bitmap = kpknBitmap,
+            xCenter = w * 0.80f,
+            iconSizePx = iconSizePx,
+            spacingPx = spacingPx,
+            screenHeight = h,
+            count = count,
+            goingDown = true,
+            tileOffset = progressDown3 * spacingPx,
+            alpha = 0.08f,
+        )
+    }
+}
 
-            // Draw 12 icons per column
-            repeat(12) { iconIndex ->
-                val baseY = iconIndex * iconSpacingPx + columnOffset
+/**
+ * Dibuja una columna de kpknicons desplazándose verticalmente.
+ *
+ * @param goingDown  true → los iconos bajan; false → suben.
+ * @param tileOffset offset animado en el rango [0, spacingPx).
+ *                   Al reiniciarse el ciclo el wrap es invisible porque
+ *                   los iconos están exactamente a `spacingPx` entre sí.
+ */
+private fun DrawScope.drawIconColumn(
+    bitmap: ImageBitmap,
+    xCenter: Float,
+    iconSizePx: Int,
+    spacingPx: Float,
+    screenHeight: Float,
+    count: Int,
+    goingDown: Boolean,
+    tileOffset: Float,
+    alpha: Float,
+) {
+    val xLeft = (xCenter - iconSizePx / 2f).toInt()
 
-                // Wrap around logic
-                val wrappedY = when {
-                    columnOffset < 0f -> {
-                        val y = baseY
-                        if (y < -iconSizePx) y + (12f * iconSpacingPx) else y
-                    }
-                    else -> {
-                        val y = baseY
-                        if (y > screenHeight) y - (12f * iconSpacingPx) else y
-                    }
-                }
-
-                // Only draw if visible
-                if (wrappedY > -iconSizePx && wrappedY < screenHeight + iconSizePx) {
-                    val x = xPos - iconSizePx / 2f
-                    val h = iconSizePx / 2f
-
-                    // Dumbbell bar
-                    drawLine(
-                        iconColor,
-                        start = Offset(x + offset4dp, wrappedY + h),
-                        end = Offset(x + iconSizePx - offset4dp, wrappedY + h),
-                        strokeWidth = swPx,
-                    )
-
-                    // Left weight
-                    drawRoundRect(
-                        iconColor,
-                        topLeft = Offset(x, wrappedY + h - offset6dp),
-                        size = Size(offset4dp, offset12dp),
-                        cornerRadius = CornerRadius(cornerRadiusPx),
-                    )
-
-                    // Right weight
-                    drawRoundRect(
-                        iconColor,
-                        topLeft = Offset(x + iconSizePx - offset4dp, wrappedY + h - offset6dp),
-                        size = Size(offset4dp, offset12dp),
-                        cornerRadius = CornerRadius(cornerRadiusPx),
-                    )
-                }
+    if (goingDown) {
+        // startY arranca sobre la pantalla; el tileOffset la empuja hacia abajo
+        // Al llegar a spacingPx y reiniciarse, el icono siguiente ocupa su lugar → seamless
+        val startY = -iconSizePx.toFloat() - spacingPx + tileOffset
+        repeat(count) { i ->
+            val y = startY + i * spacingPx
+            if (y > -iconSizePx && y < screenHeight + iconSizePx) {
+                drawImage(
+                    image = bitmap,
+                    dstOffset = IntOffset(xLeft, y.toInt()),
+                    dstSize = IntSize(iconSizePx, iconSizePx),
+                    alpha = alpha,
+                )
+            }
+        }
+    } else {
+        // startY arranca bajo la pantalla; el tileOffset la empuja hacia arriba
+        val startY = screenHeight + spacingPx - tileOffset
+        repeat(count) { i ->
+            val y = startY - i * spacingPx
+            if (y > -iconSizePx && y < screenHeight + iconSizePx) {
+                drawImage(
+                    image = bitmap,
+                    dstOffset = IntOffset(xLeft, y.toInt()),
+                    dstSize = IntSize(iconSizePx, iconSizePx),
+                    alpha = alpha,
+                )
             }
         }
     }
