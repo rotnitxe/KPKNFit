@@ -80,13 +80,10 @@ fun AnimatedIconBackground(
             0.96f to false,  // col 9: sube
         )
 
-        columnConfigs.forEach { (xFraction, goingDown) ->
-            val tileOffset = if (goingDown) {
-                sharedProgress * spacingPx
-            } else {
-                -sharedProgress * spacingPx  // negativo para que suban
-            }
+        // Un único tileOffset positivo — se suma/resta según dirección
+        val tileOffset = sharedProgress * spacingPx
 
+        columnConfigs.forEach { (xFraction, goingDown) ->
             drawIconColumn(
                 bitmap = kpknBitmap,
                 xCenter = w * xFraction,
@@ -153,7 +150,8 @@ private fun DrawScope.drawIconColumn(
             }
         }
     } else {
-        // startY arranca bajo la pantalla; el tileOffset la empuja hacia arriba
+        // goingDown = false: iconos suben
+        // startY disminuye con el tiempo → los iconos se mueven hacia arriba
         val startY = screenHeight + spacingPx - tileOffset
         repeat(count) { i ->
             val y = startY - i * spacingPx
