@@ -25,54 +25,54 @@ fun AnimatedIconBackground(
     val density = LocalDensity.current
 
     // Animation offsets for each column
-    val offset1 by infiniteTransition.animateFloat(
+    val offset1: Float by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = -800f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 8000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "offset-column-1",
+        label = "offset-1",
     )
 
-    val offset2 by infiniteTransition.animateFloat(
+    val offset2: Float by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 800f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 8000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "offset-column-2",
+        label = "offset-2",
     )
 
-    val offset3 by infiniteTransition.animateFloat(
+    val offset3: Float by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = -800f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 8500, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "offset-column-3",
+        label = "offset-3",
     )
 
     val iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f)
     val iconSizePx = with(density) { 48.dp.toPx() }
     val iconSpacingPx = with(density) { 80.dp.toPx() }
+    val swPx = with(density) { 2.dp.toPx() }
+    val offset4dp = with(density) { 4.dp.toPx() }
+    val offset6dp = with(density) { 6.dp.toPx() }
+    val offset12dp = with(density) { 12.dp.toPx() }
+    val cornerRadiusPx = with(density) { 1.dp.toPx() }
 
     Canvas(modifier.fillMaxSize()) {
         val screenWidth = size.width
         val screenHeight = size.height
-        val swPx = 2.dp.toPx()
-        val offset4dp = 4.dp.toPx()
-        val offset6dp = 6.dp.toPx()
-        val offset12dp = 12.dp.toPx()
-        val cornerRadiusPx = 1.dp.toPx()
 
         // Column positions (X coordinates)
         val columnXPositions = listOf(
-            screenWidth * 0.25f,  // 25% from left
-            screenWidth * 0.50f,  // 50% from left
-            screenWidth * 0.75f,  // 75% from left
+            screenWidth * 0.25f,
+            screenWidth * 0.50f,
+            screenWidth * 0.75f,
         )
 
         val offsets = listOf(offset1, offset2, offset3)
@@ -81,33 +81,28 @@ fun AnimatedIconBackground(
         columnXPositions.forEachIndexed { colIndex, xPos ->
             val columnOffset = offsets[colIndex]
 
-            // Draw 12 icons per column to ensure continuous coverage
+            // Draw 12 icons per column
             repeat(12) { iconIndex ->
                 val baseY = iconIndex * iconSpacingPx + columnOffset
 
-                // Wrap around: when icon goes off-screen, reposition it
-                val wrappedY = if (columnOffset < 0) {
-                    val y = baseY
-                    if (y < -iconSizePx) {
-                        y + (12 * iconSpacingPx)
-                    } else {
-                        y
+                // Wrap around logic
+                val wrappedY = when {
+                    columnOffset < 0f -> {
+                        val y = baseY
+                        if (y < -iconSizePx) y + (12f * iconSpacingPx) else y
                     }
-                } else {
-                    val y = baseY
-                    if (y > screenHeight) {
-                        y - (12 * iconSpacingPx)
-                    } else {
-                        y
+                    else -> {
+                        val y = baseY
+                        if (y > screenHeight) y - (12f * iconSpacingPx) else y
                     }
                 }
 
-                // Only draw if icon is within reasonable bounds
+                // Only draw if visible
                 if (wrappedY > -iconSizePx && wrappedY < screenHeight + iconSizePx) {
-                    val x = xPos - iconSizePx / 2
-                    val h = iconSizePx / 2
+                    val x = xPos - iconSizePx / 2f
+                    val h = iconSizePx / 2f
 
-                    // Bar in the middle
+                    // Dumbbell bar
                     drawLine(
                         iconColor,
                         start = Offset(x + offset4dp, wrappedY + h),
