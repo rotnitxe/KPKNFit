@@ -104,6 +104,7 @@ fun AnimatedIconBackground(
 
 /**
  * Dibuja una columna de kpknicons desplazándose verticalmente.
+ * Los iconos que se acercan al fondo se desvanecen gradualmente (fade out).
  *
  * @param goingDown  true → los iconos bajan; false → suben.
  * @param tileOffset offset animado en el rango [0, spacingPx).
@@ -123,6 +124,10 @@ private fun DrawScope.drawIconColumn(
 ) {
     val xLeft = (xCenter - iconSizePx / 2f).toInt()
 
+    // Zona de desvanecimiento en la parte inferior (últimos 120dp)
+    val fadeZoneHeight = 120f
+    val fadeStart = screenHeight - fadeZoneHeight
+
     if (goingDown) {
         // startY arranca sobre la pantalla; el tileOffset la empuja hacia abajo
         // Al llegar a spacingPx y reiniciarse, el icono siguiente ocupa su lugar → seamless
@@ -130,11 +135,20 @@ private fun DrawScope.drawIconColumn(
         repeat(count) { i ->
             val y = startY + i * spacingPx
             if (y > -iconSizePx && y < screenHeight + iconSizePx) {
+                // Calcular alpha con fade-out en la zona inferior
+                val fadeAlpha = when {
+                    y < fadeStart -> alpha  // opaco
+                    else -> {
+                        val fadeProgress = (screenHeight - y) / fadeZoneHeight
+                        (alpha * fadeProgress).coerceIn(0f, alpha)
+                    }
+                }
+
                 drawImage(
                     image = bitmap,
                     dstOffset = IntOffset(xLeft, y.toInt()),
                     dstSize = IntSize(iconSizePx, iconSizePx),
-                    alpha = alpha,
+                    alpha = fadeAlpha,
                 )
             }
         }
@@ -144,11 +158,20 @@ private fun DrawScope.drawIconColumn(
         repeat(count) { i ->
             val y = startY - i * spacingPx
             if (y > -iconSizePx && y < screenHeight + iconSizePx) {
+                // Calcular alpha con fade-out en la zona inferior
+                val fadeAlpha = when {
+                    y < fadeStart -> alpha  // opaco
+                    else -> {
+                        val fadeProgress = (screenHeight - y) / fadeZoneHeight
+                        (alpha * fadeProgress).coerceIn(0f, alpha)
+                    }
+                }
+
                 drawImage(
                     image = bitmap,
                     dstOffset = IntOffset(xLeft, y.toInt()),
                     dstSize = IntSize(iconSizePx, iconSizePx),
-                    alpha = alpha,
+                    alpha = fadeAlpha,
                 )
             }
         }
