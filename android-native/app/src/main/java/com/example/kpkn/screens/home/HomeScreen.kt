@@ -401,8 +401,7 @@ private fun HomeTopBar(
                 Box(
                     modifier = Modifier
                         .height(boxHeightDp)
-                        .weight(1f)
-                        .clipToBounds(),
+                        .weight(1f),
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     // Saludo mini
@@ -412,6 +411,7 @@ private fun HomeTopBar(
                         fontWeight = FontWeight.Black,
                         fontSize = 16.sp,
                         maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         modifier = Modifier.graphicsLayer {
                             alpha = greetingAlpha
                             translationY = greetingSlide
