@@ -5,18 +5,17 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.ui.components.icons.DumbbellIcon
-import kotlin.math.roundToInt
 
 @Composable
 fun AnimatedIconBackground(
@@ -24,13 +23,11 @@ fun AnimatedIconBackground(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "icon-scroll")
     val density = LocalDensity.current
-    val screenHeightDp = 800.dp // Approximate screen height
-    val screenHeightPx = with(density) { screenHeightDp.toPx() }
 
-    // Column 1: Moving UP
+    // Animation offsets for each column
     val offset1 by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = -screenHeightPx,
+        targetValue = -800f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 8000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
@@ -38,10 +35,9 @@ fun AnimatedIconBackground(
         label = "offset-column-1",
     )
 
-    // Column 2: Moving DOWN
     val offset2 by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = screenHeightPx,
+        targetValue = 800f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 8000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
@@ -49,10 +45,9 @@ fun AnimatedIconBackground(
         label = "offset-column-2",
     )
 
-    // Column 3: Moving UP (with phase offset)
     val offset3 by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = -screenHeightPx,
+        targetValue = -800f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 8500, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
@@ -61,77 +56,81 @@ fun AnimatedIconBackground(
     )
 
     val iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f)
-    val iconSize = 48.dp
-    val columnSpacing = 60.dp
-    val iconSpacing = 80.dp
+    val iconSizePx = with(density) { 48.dp.toPx() }
+    val iconSpacingPx = with(density) { 80.dp.toPx() }
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        // Column 1 - Moving UP (25% from left)
-        IconColumn(
-            offset = offset1,
-            xPosition = 0.25f,
-            iconColor = iconColor,
-            iconSize = iconSize,
-            columnSpacing = columnSpacing,
-            iconSpacing = iconSpacing,
+    Canvas(modifier.fillMaxSize()) {
+        val screenWidth = size.width
+        val screenHeight = size.height
+        val swPx = 2.dp.toPx()
+        val offset4dp = 4.dp.toPx()
+        val offset6dp = 6.dp.toPx()
+        val offset12dp = 12.dp.toPx()
+        val cornerRadiusPx = 1.dp.toPx()
+
+        // Column positions (X coordinates)
+        val columnXPositions = listOf(
+            screenWidth * 0.25f,  // 25% from left
+            screenWidth * 0.50f,  // 50% from left
+            screenWidth * 0.75f,  // 75% from left
         )
 
-        // Column 2 - Moving DOWN (50% from left)
-        IconColumn(
-            offset = offset2,
-            xPosition = 0.50f,
-            iconColor = iconColor,
-            iconSize = iconSize,
-            columnSpacing = columnSpacing,
-            iconSpacing = iconSpacing,
-        )
+        val offsets = listOf(offset1, offset2, offset3)
 
-        // Column 3 - Moving UP (75% from left)
-        IconColumn(
-            offset = offset3,
-            xPosition = 0.75f,
-            iconColor = iconColor,
-            iconSize = iconSize,
-            columnSpacing = columnSpacing,
-            iconSpacing = iconSpacing,
-        )
-    }
-}
+        // Draw each column
+        columnXPositions.forEachIndexed { colIndex, xPos ->
+            val columnOffset = offsets[colIndex]
 
-@Composable
-private fun IconColumn(
-    offset: Float,
-    xPosition: Float,
-    iconColor: androidx.compose.ui.graphics.Color,
-    iconSize: androidx.compose.ui.unit.Dp,
-    columnSpacing: androidx.compose.ui.unit.Dp,
-    iconSpacing: androidx.compose.ui.unit.Dp,
-) {
-    val density = LocalDensity.current
-    val iconSpacingPx = with(density) { iconSpacing.toPx() }
+            // Draw 12 icons per column to ensure continuous coverage
+            repeat(12) { iconIndex ->
+                val baseY = iconIndex * iconSpacingPx + columnOffset
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        // Draw multiple icons in this column
-        repeat(8) { index ->
-            val yOffset = (index * iconSpacingPx + offset).roundToInt()
+                // Wrap around: when icon goes off-screen, reposition it
+                val wrappedY = if (columnOffset < 0) {
+                    val y = baseY
+                    if (y < -iconSizePx) {
+                        y + (12 * iconSpacingPx)
+                    } else {
+                        y
+                    }
+                } else {
+                    val y = baseY
+                    if (y > screenHeight) {
+                        y - (12 * iconSpacingPx)
+                    } else {
+                        y
+                    }
+                }
 
-            Box(
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            (with(density) { columnSpacing.toPx() * xPosition }).roundToInt(),
-                            yOffset,
-                        )
-                    },
-            ) {
-                DumbbellIcon(
-                    tint = iconColor,
-                    size = iconSize,
-                )
+                // Only draw if icon is within reasonable bounds
+                if (wrappedY > -iconSizePx && wrappedY < screenHeight + iconSizePx) {
+                    val x = xPos - iconSizePx / 2
+                    val h = iconSizePx / 2
+
+                    // Bar in the middle
+                    drawLine(
+                        iconColor,
+                        start = Offset(x + offset4dp, wrappedY + h),
+                        end = Offset(x + iconSizePx - offset4dp, wrappedY + h),
+                        strokeWidth = swPx,
+                    )
+
+                    // Left weight
+                    drawRoundRect(
+                        iconColor,
+                        topLeft = Offset(x, wrappedY + h - offset6dp),
+                        size = Size(offset4dp, offset12dp),
+                        cornerRadius = CornerRadius(cornerRadiusPx),
+                    )
+
+                    // Right weight
+                    drawRoundRect(
+                        iconColor,
+                        topLeft = Offset(x + iconSizePx - offset4dp, wrappedY + h - offset6dp),
+                        size = Size(offset4dp, offset12dp),
+                        cornerRadius = CornerRadius(cornerRadiusPx),
+                    )
+                }
             }
         }
     }
