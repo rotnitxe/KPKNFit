@@ -348,6 +348,7 @@ private fun HomeTopBar(
                 //                              sesión sube desde abajo (0→1)
                 // Fase 4 — item 3 cortándose: sesión sale por arriba (1→0)
                 //                              nutrición sube desde abajo (0→1)
+                // El crossfade es estrictamente 1:1 con el scroll en cada fase.
                 val greetingAlpha: Float
                 val greetingSlide: Float
                 val ringsAlpha: Float
@@ -356,19 +357,18 @@ private fun HomeTopBar(
                 val sessionSlide: Float
                 val nutritionAlpha: Float
                 val nutritionSlide: Float
-
-                if (nutritionProgress > 0.01f) {
-                    // Fase 4: sesión sale, nutrición entra
-                    sessionAlpha = 0f
-                    sessionSlide = 0f
+                if (nutritionProgress > 0f) {
+                    // Fase 4: sesión sale hacia arriba, nutrición sube
                     nutritionAlpha = nutritionProgress
                     nutritionSlide = (1f - nutritionProgress) * boxHeightPx
+                    sessionAlpha = 1f - nutritionProgress
+                    sessionSlide = -nutritionProgress * boxHeightPx
                     ringsAlpha = 0f
                     ringsSlide = 0f
                     greetingAlpha = 0f
                     greetingSlide = 0f
-                } else if (sessionProgress > 0.01f) {
-                    // Fase 3: rings salen, sesión entra
+                } else if (sessionProgress > 0f) {
+                    // Fase 3: rings salen hacia arriba, sesión sube
                     sessionAlpha = sessionProgress
                     sessionSlide = (1f - sessionProgress) * boxHeightPx
                     ringsAlpha = 1f - sessionProgress
@@ -377,8 +377,8 @@ private fun HomeTopBar(
                     nutritionSlide = 0f
                     greetingAlpha = 0f
                     greetingSlide = 0f
-                } else if (ringsProgress > 0.01f) {
-                    // Fase 2: saludo sale, rings entran
+                } else if (ringsProgress > 0f) {
+                    // Fase 2: saludo sale hacia arriba mientras rings suben
                     greetingAlpha = 1f - ringsProgress
                     greetingSlide = -ringsProgress * boxHeightPx
                     ringsAlpha = ringsProgress
