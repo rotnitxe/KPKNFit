@@ -93,7 +93,7 @@ fun HomeScreen(
     }
 
     // Sesión de hoy: item 2 en LazyColumn
-    // Multiplicador 1.3 para acelerar transición en espacios pequeños sin ser abrupta
+    // Multiplicador 2.0 para transición mucho más rápida (no proporcional al scroll)
     val sessionProgress by remember {
         derivedStateOf {
             val item2 = listState.layoutInfo.visibleItemsInfo.find { it.index == 2 }
@@ -103,14 +103,14 @@ fun HomeScreen(
                 else -> {
                     val cut = (-item2.offset).toFloat()
                     val visibleHeight = item2.size.toFloat().coerceAtLeast(1f)
-                    ((cut / visibleHeight) * 1.3f).coerceIn(0f, 1f)
+                    ((cut / visibleHeight) * 2.0f).coerceIn(0f, 1f)
                 }
             }
         }
     }
 
     // Progreso de nutrición: item 3 en LazyColumn (HomeCardsSection)
-    // Multiplicador 1.3 para acelerar transición en espacios pequeños sin ser abrupta
+    // Multiplicador 2.0 para transición mucho más rápida (no proporcional al scroll)
     val nutritionProgress by remember {
         derivedStateOf {
             val item3 = listState.layoutInfo.visibleItemsInfo.find { it.index == 3 }
@@ -120,7 +120,7 @@ fun HomeScreen(
                 else -> {
                     val cut = (-item3.offset).toFloat()
                     val visibleHeight = item3.size.toFloat().coerceAtLeast(1f)
-                    ((cut / visibleHeight) * 1.3f).coerceIn(0f, 1f)
+                    ((cut / visibleHeight) * 2.0f).coerceIn(0f, 1f)
                 }
             }
         }
