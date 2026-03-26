@@ -11,10 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,17 +32,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
+import com.example.kpkn.screens.auge.AugeViewModel
+import com.example.kpkn.screens.auge.PostSessionSheet
+import com.example.kpkn.ui.theme.AppThemeMode
 
 // ─── Home Screen ────────────────────────────────────────────────────────────
 
 @Composable
 fun HomeScreen(
+    themeMode: AppThemeMode,
+    onThemeChange: (AppThemeMode) -> Unit,
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
     viewModel: HomeViewModel = viewModel { HomeViewModel() },
+    augeViewModel: AugeViewModel = viewModel(),
 ) {
-    val muscularProgress by viewModel.muscularProgress.collectAsState()
-    val sncProgress by viewModel.sncProgress.collectAsState()
-    val columnaProgress by viewModel.columnaProgress.collectAsState()
+    // AUGE batteries (0-100) → ring progress (0-1)
+    val augeBatteries by augeViewModel.batteries.collectAsState()
+    val augePerMuscle by augeViewModel.perMuscle.collectAsState()
+    val augePending by augeViewModel.pendingQuestionnaire.collectAsState()
+
+    // Manual calibration overrides; if not calibrated, use AUGE values
+    val manualMuscular by viewModel.muscularProgress.collectAsState()
+    val manualSnc by viewModel.sncProgress.collectAsState()
+    val manualColumna by viewModel.columnaProgress.collectAsState()
     val selectedRingIndex by viewModel.selectedRingIndex.collectAsState()
+
+    // Use AUGE values unless user has manually calibrated (manualX != 1.0)
+    val muscularProgress = if (manualMuscular < 1.0f) manualMuscular else augeBatteries.muscular / 100f
+    val sncProgress = if (manualSnc < 1.0f) manualSnc else augeBatteries.cnc / 100f
+    val columnaProgress = if (manualColumna < 1.0f) manualColumna else augeBatteries.spinal / 100f
     val userName by viewModel.userName.collectAsState()
     val ringsViewMode by viewModel.ringsViewMode.collectAsState()
     val programs by viewModel.programs.collectAsState()
@@ -56,12 +72,9 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val density = LocalDensity.current
 
-    // Margen interno de cada item (padding antes del contenido visible)
-    val item0TopMarginPx = with(density) { 16.dp.roundToPx() }  // HomeHeaderSection padding(top=16.dp)
-    val item1TopMarginPx = 0  // HomeRingsSection no tiene top padding
+    val item0TopMarginPx = with(density) { 16.dp.roundToPx() }
+    val item1TopMarginPx = 0
 
-    // Progreso 1:1 con el scroll: cut_px / contenido_visible_total
-    // Si el 50% del item está cortado → progress = 0.5 → 50% de visibilidad en topbar
     val greetingProgress by remember(item0TopMarginPx) {
         derivedStateOf {
             val item0 = listState.layoutInfo.visibleItemsInfo.find { it.index == 0 }
@@ -92,8 +105,6 @@ fun HomeScreen(
         }
     }
 
-    // Sesión de hoy: item 2 en LazyColumn
-    // Multiplicador 2.0 para transición mucho más rápida (no proporcional al scroll)
     val sessionProgress by remember {
         derivedStateOf {
             val item2 = listState.layoutInfo.visibleItemsInfo.find { it.index == 2 }
@@ -109,8 +120,6 @@ fun HomeScreen(
         }
     }
 
-    // Progreso de nutrición: item 3 en LazyColumn (HomeCardsSection)
-    // Multiplicador 2.0 para transición mucho más rápida (no proporcional al scroll)
     val nutritionProgress by remember {
         derivedStateOf {
             val item3 = listState.layoutInfo.visibleItemsInfo.find { it.index == 3 }
@@ -126,10 +135,13 @@ fun HomeScreen(
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 HomeTopBar(
+                    themeMode = themeMode,
+                    onThemeChange = onThemeChange,
                     greeting = greeting,
                     userName = userName,
                     greetingProgress = greetingProgress,
@@ -142,11 +154,10 @@ fun HomeScreen(
                     columnaProgress = columnaProgress,
                     todaySessions = todaySessions,
                     dailyCalorieGoal = dailyCalorieGoal,
-                    onThemeToggle = { /* TODO */ },
-                    onSettingsClick = { /* TODO */ },
-                    onStartWorkout = { session, program -> /* TODO: navegar a sesión */ },
-                    onCreateProgram = { /* TODO: navegar a creador */ },
-                    onAddMeal = { /* TODO: navegar a registro de comidas */ },
+                    onSettingsClick = onNavigateToSettings,
+                    onStartWorkout = { session, program -> /* TODO */ },
+                    onCreateProgram = { /* TODO */ },
+                    onAddMeal = { /* TODO */ },
                 )
             },
         ) { innerPadding ->
@@ -155,6 +166,7 @@ fun HomeScreen(
                 muscularProgress = muscularProgress,
                 sncProgress = sncProgress,
                 columnaProgress = columnaProgress,
+                perMuscle = augePerMuscle,
                 ringsViewMode = ringsViewMode,
                 todaySessions = todaySessions,
                 hasActiveProgram = programs.isNotEmpty(),
@@ -163,8 +175,7 @@ fun HomeScreen(
                 greeting = greeting,
                 onRingSelect = { viewModel.selectRing(it) },
                 onRingsViewChange = { viewModel.setRingsViewMode(it) },
-                onThemeToggle = { /* TODO */ },
-                onSettingsClick = { /* TODO */ },
+                onSettingsClick = onNavigateToSettings,
                 onStartWorkout = { _, _ -> /* TODO */ },
                 onResumeWorkout = { /* TODO */ },
                 onNavigateToCard = { /* TODO */ },
@@ -173,7 +184,15 @@ fun HomeScreen(
             )
         }
 
-        // Calibration overlay
+        // PostSessionSheet — shown 2-48h after workout if questionnaire is pending
+        if (augePending != null) {
+            PostSessionSheet(
+                questionnaire = augePending!!,
+                onDismiss = { augeViewModel.dismissPendingQuestionnaire() },
+                onSave = { fb -> augeViewModel.savePostSessionFeedback(fb) },
+            )
+        }
+
         AnimatedVisibility(
             visible = selectedRingIndex != -1,
             enter = fadeIn(),
@@ -193,14 +212,13 @@ fun HomeScreen(
     }
 }
 
-// ─── Home With Program ───────────────────────────────────────────────────────
-
 @Composable
 private fun HomeWithProgram(
     viewModel: HomeViewModel,
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
+    perMuscle: Map<String, com.example.kpkn.data.models.MuscleRecoveryStatus> = emptyMap(),
     ringsViewMode: HomeViewModel.RingsViewMode,
     todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
     hasActiveProgram: Boolean,
@@ -209,7 +227,6 @@ private fun HomeWithProgram(
     greeting: String,
     onRingSelect: (Int) -> Unit,
     onRingsViewChange: (HomeViewModel.RingsViewMode) -> Unit,
-    onThemeToggle: () -> Unit,
     onSettingsClick: () -> Unit,
     onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
     onResumeWorkout: () -> Unit,
@@ -224,19 +241,17 @@ private fun HomeWithProgram(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Item 0 — Saludo (se corta por el header al hacer scroll)
         item {
             HomeHeaderSection(
                 greeting = greeting,
                 userName = userName,
                 ringsViewMode = ringsViewMode,
-                onThemeToggle = onThemeToggle,
+                onThemeToggle = { /* Obsolete */ },
                 onSettingsClick = onSettingsClick,
                 onRingsViewChange = onRingsViewChange,
             )
         }
 
-        // Item 1 — Rings (se corta después del saludo)
         item {
             HomeRingsSection(
                 muscularProgress = muscularProgress,
@@ -244,6 +259,7 @@ private fun HomeWithProgram(
                 columnaProgress = columnaProgress,
                 ringsViewMode = ringsViewMode,
                 hasActiveProgram = hasActiveProgram,
+                perMuscle = perMuscle,
                 onRingSelect = onRingSelect,
             )
         }
@@ -282,13 +298,10 @@ private fun HomeWithProgram(
     }
 }
 
-// ─── Top Bar permanente ──────────────────────────────────────────────────────
-// Siempre visible. Entre el logo y los botones hay una zona dinámica:
-// conforme el saludo se "corta" arriba, el mini saludo sube desde abajo.
-// Conforme los rings se "cortan", los mini rings suben y el saludo baja.
-
 @Composable
 private fun HomeTopBar(
+    themeMode: AppThemeMode,
+    onThemeChange: (AppThemeMode) -> Unit,
     greeting: String,
     userName: String,
     greetingProgress: Float,
@@ -301,56 +314,44 @@ private fun HomeTopBar(
     columnaProgress: Float,
     todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
     dailyCalorieGoal: Int,
-    onThemeToggle: () -> Unit,
     onSettingsClick: () -> Unit,
     onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
     onCreateProgram: () -> Unit,
     onAddMeal: () -> Unit,
 ) {
+    var showThemeMenu by remember { mutableStateOf(false) }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()       // respeta la status bar del sistema
+                .statusBarsPadding()
                 .height(56.dp)
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            // Izquierda: logo + zona dinámica animada
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.weight(1f),
             ) {
-                // KPKN Logo
-                androidx.compose.foundation.Image(
+                Image(
                     painter = painterResource(R.drawable.kpknicon),
                     contentDescription = "KPKN",
                     modifier = Modifier.size(40.dp),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                 )
 
-                // Zona dinámica — clip para que el slide no se desborde
-                // Altura generosa para que el slide desde abajo sea visible
                 val boxHeightDp = 44.dp
                 val topBarDensity = LocalDensity.current
                 val boxHeightPx = with(topBarDensity) { boxHeightDp.toPx() }
 
-                // CUATRO FASES sin mezcla:
-                // Fase 1 — item 0 cortándose: saludo sube desde abajo (0→1)
-                // Fase 2 — item 1 cortándose: saludo sale por arriba (1→0)
-                //                              rings suben desde abajo (0→1)
-                // Fase 3 — item 2 cortándose: rings salen por arriba (1→0)
-                //                              sesión sube desde abajo (0→1)
-                // Fase 4 — item 3 cortándose: sesión sale por arriba (1→0)
-                //                              nutrición sube desde abajo (0→1)
-                // El crossfade es estrictamente 1:1 con el scroll en cada fase.
                 val greetingAlpha: Float
                 val greetingSlide: Float
                 val ringsAlpha: Float
@@ -360,7 +361,6 @@ private fun HomeTopBar(
                 val nutritionAlpha: Float
                 val nutritionSlide: Float
                 if (nutritionProgress > 0f) {
-                    // Fase 4: sesión sale hacia arriba, nutrición sube
                     nutritionAlpha = nutritionProgress
                     nutritionSlide = (1f - nutritionProgress) * boxHeightPx
                     sessionAlpha = 1f - nutritionProgress
@@ -370,7 +370,6 @@ private fun HomeTopBar(
                     greetingAlpha = 0f
                     greetingSlide = 0f
                 } else if (sessionProgress > 0f) {
-                    // Fase 3: rings salen hacia arriba, sesión sube
                     sessionAlpha = sessionProgress
                     sessionSlide = (1f - sessionProgress) * boxHeightPx
                     ringsAlpha = 1f - sessionProgress
@@ -380,7 +379,6 @@ private fun HomeTopBar(
                     greetingAlpha = 0f
                     greetingSlide = 0f
                 } else if (ringsProgress > 0f) {
-                    // Fase 2: saludo sale hacia arriba mientras rings suben
                     greetingAlpha = 1f - ringsProgress
                     greetingSlide = -ringsProgress * boxHeightPx
                     ringsAlpha = ringsProgress
@@ -390,7 +388,6 @@ private fun HomeTopBar(
                     nutritionAlpha = 0f
                     nutritionSlide = 0f
                 } else {
-                    // Fase 1: saludo entra desde abajo
                     greetingAlpha = greetingProgress
                     greetingSlide = (1f - greetingProgress) * boxHeightPx
                     ringsAlpha = 0f
@@ -407,7 +404,6 @@ private fun HomeTopBar(
                         .weight(1f),
                     contentAlignment = Alignment.CenterStart,
                 ) {
-                    // Saludo mini
                     Text(
                         "$greeting, $userName!",
                         style = MaterialTheme.typography.titleMedium,
@@ -421,7 +417,6 @@ private fun HomeTopBar(
                         },
                     )
 
-                    // Mini rings — entran desde abajo 1:1 con el corte de item 1
                     MiniRingsWidget(
                         muscularProgress = muscularProgress,
                         sncProgress = sncProgress,
@@ -433,7 +428,6 @@ private fun HomeTopBar(
                         },
                     )
 
-                    // Mini session card — entra desde abajo 1:1 con el corte de item 2
                     MiniSessionCard(
                         hasPrograms = hasPrograms,
                         todaySessions = todaySessions,
@@ -445,10 +439,9 @@ private fun HomeTopBar(
                         },
                     )
 
-                    // Mini nutrition card — entra desde abajo 1:1 con el corte de item 3
                     MiniNutritionCard(
                         dailyCalorieGoal = dailyCalorieGoal,
-                        consumedCalories = 0, // Será actualizado cuando se implemente nutrición
+                        consumedCalories = 0,
                         onAddMeal = onAddMeal,
                         modifier = Modifier.graphicsLayer {
                             alpha = nutritionAlpha
@@ -458,20 +451,48 @@ private fun HomeTopBar(
                 }
             }
 
-            // Derecha: botones (siempre visibles)
             Row {
-                IconButton(onClick = onThemeToggle) {
-                    Icon(
-                        painterResource(R.drawable.ic_sun),
-                        contentDescription = "Tema",
-                        modifier = Modifier.size(22.dp),
-                    )
+                Box {
+                    IconButton(onClick = { showThemeMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Style, 
+                            contentDescription = "Temas",
+                            modifier = Modifier.size(22.dp),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showThemeMenu,
+                        onDismissRequest = { showThemeMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Claro") },
+                            onClick = { onThemeChange(AppThemeMode.LIGHT); showThemeMenu = false },
+                            leadingIcon = { Icon(Icons.Default.LightMode, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Oscuro") },
+                            onClick = { onThemeChange(AppThemeMode.DARK); showThemeMenu = false },
+                            leadingIcon = { Icon(Icons.Default.DarkMode, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Alto Contraste") },
+                            onClick = { onThemeChange(AppThemeMode.HIGH_CONTRAST); showThemeMenu = false },
+                            leadingIcon = { Icon(Icons.Default.Contrast, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Daltónicos") },
+                            onClick = { onThemeChange(AppThemeMode.COLOR_BLIND); showThemeMenu = false },
+                            leadingIcon = { Icon(Icons.Default.ColorLens, null) }
+                        )
+                    }
                 }
                 IconButton(onClick = { }) {
                     Icon(
                         Icons.Default.Notifications,
                         contentDescription = "Notificaciones",
                         modifier = Modifier.size(22.dp),
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 IconButton(onClick = onSettingsClick) {
@@ -479,14 +500,13 @@ private fun HomeTopBar(
                         Icons.Default.Settings,
                         contentDescription = "Ajustes",
                         modifier = Modifier.size(22.dp),
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
         }
     }
 }
-
-// ─── Calibration Overlay ────────────────────────────────────────────────────
 
 @Composable
 private fun CalibrationOverlay(
@@ -578,8 +598,6 @@ private fun CalibrationOverlay(
     }
 }
 
-// ─── Mini Rings Widget ───────────────────────────────────────────────────────
-
 @Composable
 private fun MiniRingsWidget(
     muscularProgress: Float,
@@ -594,20 +612,16 @@ private fun MiniRingsWidget(
         listOf(Color(0xFF666666), Color(0xFF888888), Color(0xFFAAAAAA))
     val progressValues = listOf(muscularProgress, sncProgress, columnaProgress)
 
-    // Llena el ancho disponible (weight(1f) del padre) con altura fija
     Canvas(modifier = modifier
         .fillMaxWidth()
         .height(38.dp)
     ) {
-        // Radio basado en la altura disponible para que los rings sean grandes
         val r = size.height * 0.38f
         val strokeW = r * 0.28f
-        // Espaciado entre centros: diámetro + pequeño gap para que se vean entrelazados
         val gap = r * 0.35f
         val diameter = r * 2f
-        val spacing = diameter - gap  // se solapan un poco como en la vista grande
+        val spacing = diameter - gap
 
-        // Posicionamos los 3 rings centrados horizontalmente
         val totalWidth = diameter + spacing * 2
         val startX = (size.width - totalWidth) / 2f + r
         val cy = size.height / 2f
@@ -642,8 +656,6 @@ private fun MiniRingsWidget(
     }
 }
 
-// ─── Mini Session Card ───────────────────────────────────────────────────
-
 @Composable
 private fun MiniSessionCard(
     hasPrograms: Boolean,
@@ -662,7 +674,6 @@ private fun MiniSessionCard(
     ) {
         when {
             !hasPrograms -> {
-                // No program: create program button
                 Button(
                     onClick = onCreateProgram,
                     modifier = Modifier
@@ -683,7 +694,6 @@ private fun MiniSessionCard(
                 }
             }
             todaySessions.isEmpty() -> {
-                // Has program but no session today: rest day
                 Text(
                     "Día de descanso",
                     style = MaterialTheme.typography.labelMedium,
@@ -694,7 +704,6 @@ private fun MiniSessionCard(
                 )
             }
             else -> {
-                // Has session: show name + play icon
                 val session = todaySessions.firstOrNull() ?: return
                 Text(
                     session.session.name,
@@ -718,8 +727,6 @@ private fun MiniSessionCard(
         }
     }
 }
-
-// ─── Mini Nutrition Card ────────────────────────────────────────────────
 
 @Composable
 private fun MiniNutritionCard(
@@ -774,4 +781,3 @@ private fun MiniNutritionCard(
         }
     }
 }
-

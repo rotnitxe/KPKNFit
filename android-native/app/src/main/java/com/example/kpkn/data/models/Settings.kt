@@ -43,6 +43,7 @@ data class Settings(
     val dailyProteinGoal: Int? = null,
     val dailyCarbGoal: Int? = null,
     val dailyFatGoal: Int? = null,
+    val calorieGoalObjective: CalorieGoalObjective = CalorieGoalObjective.MAINTENANCE,
 
     // Sueño
     val sleepTargetHours: Double = 8.0,
@@ -52,6 +53,7 @@ data class Settings(
     val algorithmSettings: AlgorithmSettings = AlgorithmSettings(),
 )
 
+enum class CalorieGoalObjective { DEFICIT, MAINTENANCE, SURPLUS }
 enum class WeightUnit { KG, LBS }
 enum class IntensityMetric { RPE, RIR }
 enum class OneRMFormula { BRZYCKI, EPLEY, LANDER }

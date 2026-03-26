@@ -2,8 +2,10 @@ package com.example.kpkn.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.screens.auge.AugeViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +24,11 @@ class HomeViewModel : ViewModel() {
 
     val programs = repository.programs
 
-    // ─── Ring Progress State (MutableStateFlow) ────────────────────────────
+    // ─── AUGE batteries (wired from AugeViewModel at composition) ─────────
+
+    // The actual battery values come from AugeViewModel (AndroidViewModel) which
+    // requires Application context. HomeScreen passes them in via collectAsState().
+    // These manual overrides remain for the calibration long-press gesture.
 
     private val _muscularProgress = MutableStateFlow(1.0f)
     private val _sncProgress = MutableStateFlow(1.0f)

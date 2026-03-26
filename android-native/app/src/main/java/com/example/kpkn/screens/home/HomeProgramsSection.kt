@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.ui.components.SectionHeader
 import com.example.kpkn.ui.components.icons.CaupolicanIcon
 
 // ─── Programs Section ───────────────────────────────────────────────────────

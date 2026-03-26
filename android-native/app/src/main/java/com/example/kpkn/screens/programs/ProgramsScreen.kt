@@ -17,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -73,16 +72,15 @@ fun ProgramsScreen(
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            text = "Gestiona tus planes de entrenamiento".uppercase(),
+                            text = "Gestiona tus planes de entrenamiento",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            letterSpacing = 0.5.sp,
                         )
                     }
                     Button(
                         onClick = onCreateProgram,
                         modifier = Modifier.wrapContentWidth(),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = MaterialTheme.shapes.extraLarge,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                         ),
@@ -149,7 +147,7 @@ private fun ActiveProgramCard(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .clickable { onNavigate(program.id) },
-            shape = RoundedCornerShape(28.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             border = androidx.compose.foundation.BorderStroke(
                 width = 2.dp,
                 color = MaterialTheme.colorScheme.primary,
@@ -171,14 +169,14 @@ private fun ActiveProgramCard(
                             .size(8.dp)
                             .clip(CircleShape)
                             .background(
-                                Color(0xFF22C55E).copy(alpha = pulseAlpha)
+                                MaterialTheme.colorScheme.tertiary.copy(alpha = pulseAlpha)
                             ),
                     )
                     Text(
                         text = "EJECUTANDO AHORA",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
-                        color = Color(0xFF22C55E),
+                        color = MaterialTheme.colorScheme.tertiary,
                         letterSpacing = 1.sp,
                     )
                 }
@@ -189,7 +187,7 @@ private fun ActiveProgramCard(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        text = program.name.uppercase(),
+                        text = program.name,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
                         modifier = Modifier.weight(1f),
@@ -227,7 +225,7 @@ private fun InactiveProgramCard(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .clickable { onNavigate(program.id) },
-            shape = RoundedCornerShape(28.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             border = androidx.compose.foundation.BorderStroke(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outlineVariant,
@@ -248,7 +246,7 @@ private fun InactiveProgramCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
-                        text = program.name.uppercase(),
+                        text = program.name,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Black,
                     )

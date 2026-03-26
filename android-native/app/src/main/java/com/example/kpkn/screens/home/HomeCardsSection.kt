@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.components.SectionHeader
 import com.example.kpkn.ui.components.icons.NutritionIcon
 
 // ─── Home Cards Section ─────────────────────────────────────────────────────

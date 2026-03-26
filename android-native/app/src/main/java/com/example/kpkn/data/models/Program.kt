@@ -26,6 +26,7 @@ data class Program(
     val startDay: Int? = null,
     val weekDays: Int? = null,
     val selectedSplitId: String? = null,
+    val splitTrialSeen: Boolean = false,
     val isDraft: Boolean = false,
 )
 
@@ -134,5 +135,7 @@ data class ProgramEvent(
     val endDate: String? = null,
     val calculatedWeek: Int,
     val createMacrocycle: Boolean = false,
+    @Deprecated("Use loops[] instead")
+    val repeatEveryXCycles: Int? = null,
     val sessions: List<Session> = emptyList(),
 )

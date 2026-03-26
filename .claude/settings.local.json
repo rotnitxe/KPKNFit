@@ -4,7 +4,19 @@
       "Bash(./gradlew assembleDebug)",
       "Bash(tail:*)",
       "Bash(./gradlew assembleDebug --no-build-cache)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find \"C:/Users/valen/Downloads/kpkn-fit-\\(beta-test\\)/android-native/app/src/main/java/com/example/kpkn/\" -type f -name \"*.kt\")",
+      "Bash(find \"C:/Users/valen/Downloads/kpkn-fit-\\(beta-test\\)/android-native/app/src/main\" -type f -name \"*.kt\")",
+      "Bash(cat:*)",
+      "Bash(find \"C:/Users/valen/Downloads/kpkn-fit-\\(beta-test\\)/android-native/app/src/main/java/com/example/kpkn\" -type f -name \"*.kt\")",
+      "Bash(wc:*)",
+      "Bash(find \"C:/Users/valen/Downloads/kpkn-fit-\\(beta-test\\)/android-native/app/src/main/java/com/example/kpkn/screens/program-detail\" -type f -name \"*.kt\")",
+      "Bash(ls -la \"C:/Users/valen/Downloads/kpkn-fit-\\(beta-test\\)/android-native/app/src/main/java/com/example/kpkn/screens/program-detail/\")",
+      "Bash(ls -la \"C:/Users/valen/Downloads/kpkn-fit-\\(beta-test\\)/android-native/app/src/main/java/com/example/kpkn/screens/program-detail/components/\")",
+      "Bash(python3 -c \":*)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Skill(update-config)"
     ]
   }
 }

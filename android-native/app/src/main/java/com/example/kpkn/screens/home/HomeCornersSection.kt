@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.ui.components.SectionHeader
 import com.example.kpkn.ui.components.icons.CaupolicanIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
 

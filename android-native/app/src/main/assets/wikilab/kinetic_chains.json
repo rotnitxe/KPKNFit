@@ -1,0 +1,37 @@
+[
+  {
+    "id": "tren-superior",
+    "name": "Tren Superior",
+    "description": "La división de \"Tren Superior\" se enfoca en todos los músculos de la cintura para arriba: pecho, espalda, hombros y brazos. Es una de las formas más populares y efectivas de organizar el entrenamiento.",
+    "importance": "Fortalecer el tren superior es crucial para la postura, la fuerza funcional en tareas diarias y para crear un físico equilibrado y estético.",
+    "muscles": ["Pectorales", "Dorsales", "Trapecio", "Deltoides", "Tríceps", "Bíceps", "Antebrazo", "Abdomen"]
+  },
+  {
+    "id": "tren-inferior",
+    "name": "Tren Inferior",
+    "description": "La división de \"Tren Inferior\" se concentra en los músculos de las piernas y glúteos: cuádriceps, isquiotibiales, glúteos y gemelos.",
+    "importance": "Un tren inferior fuerte es la base de la potencia atlética (correr, saltar), mejora la estabilidad general, aumenta el gasto calórico y tiene grandes beneficios hormonales.",
+    "muscles": ["Cuádriceps", "Isquiosurales", "Glúteos", "Aductores", "Pantorrillas"]
+  },
+  {
+    "id": "core",
+    "name": "Core",
+    "description": "El Core es un complejo de músculos que estabilizan la columna y la pelvis. No solo incluye los abdominales, sino también la espalda baja, glúteos y el transverso abdominal.",
+    "importance": "Es la base de todo movimiento. Un core fuerte permite transferir eficientemente la fuerza desde el tren inferior al superior. Es la mejor protección contra el dolor de espalda baja.",
+    "muscles": ["Core", "Erectores Espinales", "Abdomen"]
+  },
+  {
+    "id": "cadena-anterior",
+    "name": "Cadena Anterior",
+    "description": "La cadena anterior se refiere al conjunto de músculos en la parte frontal del cuerpo. Son los músculos que \"ves en el espejo\", como el pectoral, cuádriceps, bíceps y abdominales.",
+    "importance": "Es fundamental para los movimientos de empuje, la flexión de cadera y la protección de los órganos vitales. Un desequilibrio con la cadena posterior puede llevar a malas posturas y lesiones.",
+    "muscles": ["Pectorales", "Deltoides", "Abdomen", "Cuádriceps"]
+  },
+  {
+    "id": "cadena-posterior",
+    "name": "Cadena Posterior",
+    "description": "La cadena posterior es el \"motor\" del cuerpo, comprendiendo los músculos de la parte trasera: isquiotibiales, glúteos, espalda baja y alta, y dorsales.",
+    "importance": "Es la fuente de la potencia atlética para correr, saltar y levantar objetos pesados del suelo. Una cadena posterior fuerte es vital para la salud de la espalda y la estabilidad de la cadera.",
+    "muscles": ["Dorsales", "Trapecio", "Erectores Espinales", "Glúteos", "Isquiosurales", "Pantorrillas"]
+  }
+]

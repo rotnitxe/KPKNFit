@@ -15,6 +15,7 @@ data class WorkoutLog(
     val discomforts: List<String> = emptyList(),
     val notes: String? = null,
     val totalVolume: Double = 0.0,         // kg × reps total
+    val sessionStressScore: Double? = null, // AUGE: computed CNC drain for this session
     val weekId: String? = null,
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,
@@ -24,7 +25,9 @@ data class WorkoutLog(
 data class CompletedExercise(
     val exerciseId: String,
     val exerciseName: String,
+    val exerciseDbId: String? = null,  // AUGE: link to ExerciseDatabase for metrics
     val sets: List<CompletedSet> = emptyList(),
+    val restTime: Int = 90,            // AUGE: rest interval in seconds for drain calc
 )
 
 @Serializable

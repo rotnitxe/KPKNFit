@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
+import com.example.kpkn.ui.components.SectionHeader
 
 // ─── Today Session Section ──────────────────────────────────────────────────
 

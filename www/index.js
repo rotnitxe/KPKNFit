@@ -71832,7 +71832,6 @@ var init_package = __esm({
       type: "module",
       description: "Un creador y seguidor de rutinas de gimnasio inteligente.",
       workspaces: [
-        "apps/mobile",
         "packages/shared-types",
         "packages/shared-domain",
         "packages/design-tokens"
@@ -71849,9 +71848,6 @@ var init_package = __esm({
         "cap:add": "npx cap add android",
         "cap:sync": "npm run build:android && node scripts/copyRestSoundToAndroid.cjs && npx cap sync android && node scripts/cleanupAndroidWebModels.cjs",
         "cap:open": "npx cap open android",
-        "mobile:android": "npm --workspace @kpkn/mobile run android",
-        "mobile:start": "npm --workspace @kpkn/mobile run start",
-        "mobile:test": "npm --workspace @kpkn/mobile run test",
         "local-ai:check-model": "node scripts/checkLocalAiModel.cjs",
         "local-ai:stage-model": "node scripts/stageLocalAiModel.cjs",
         "audit:fix-plugin": "npm --prefix plugins/capacitor-widget-bridge update minimatch",
@@ -71884,7 +71880,6 @@ var init_package = __esm({
         "@google/genai": "^1.16.0",
         "@hello-pangea/dnd": "^18.0.1",
         "@material/material-color-utilities": "^0.4.0",
-        "@react-native-picker/picker": "^2.11.4",
         "@sentry/capacitor": "^3.0.0",
         "@sentry/react": "10.40.0",
         "@supabase/supabase-js": "^2.97.0",
@@ -192623,11 +192618,6 @@ var RING_LABELS = {
   cns: "SNC",
   spinal: "Columna"
 };
-var RING_LABELS_SHORT = {
-  muscular: "M\xFAsc.",
-  cns: "SNC",
-  spinal: "Col."
-};
 var RING_DESCRIPTIONS = {
   cns: "Es tu 'bater\xEDa' de energ\xEDa mental y coordinaci\xF3n. Si est\xE1 baja, puedes sentirte m\xE1s lento de reflejos o con la mente cansada despu\xE9s de un d\xEDa intenso o poco sue\xF1o.",
   muscular: "Indica qu\xE9 tan recuperados est\xE1n tus m\xFAsculos. Un nivel bajo significa que tus fibras necesitan descansar para evitar sobrecargas y estar listas para tu pr\xF3ximo reto.",
@@ -192861,6 +192851,13 @@ var AugeTelemetryPanel = ({
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const offset3 = circumference - visualValue / 100 * circumference;
+    const textRadius = radius - strokeWidth - 4;
+    const center = size / 2;
+    const textPathData = `
+            M ${center}, ${center - textRadius}
+            A ${textRadius}, ${textRadius} 0 1, 1 ${center}, ${center + textRadius}
+            A ${textRadius}, ${textRadius} 0 1, 1 ${center}, ${center - textRadius}
+        `;
     return /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)(
       "div",
       {
@@ -192872,89 +192869,107 @@ var AugeTelemetryPanel = ({
           zIndex: focusedRing === id3 ? 20 : focusedRing ? 1 : id3 === "muscular" ? 10 : id3 === "cns" ? 9 : 8
         },
         children: [
-          /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("div", { className: "h-4 flex items-center justify-center mb-1", children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("span", { className: "text-[9px] sm:text-[10px] font-black text-black/40 uppercase tracking-[0.2em] leading-none whitespace-nowrap", children: RING_LABELS_SHORT[id3] }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("div", { className: "relative", style: { width: size, height: size }, children: /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("svg", { width: size, height: size, viewBox: `0 0 ${size} ${size}`, className: "transform -rotate-90 overflow-visible", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("defs", { children: /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("filter", { id: `liquid-glass-${id3}`, x: "-50%", y: "-50%", width: "200%", height: "200%", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feGaussianBlur", { in: "SourceAlpha", stdDeviation: "1.5", result: "blur" }),
-              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feFlood", { floodColor: color3, result: "color" }),
-              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feComposite", { in: "color", in2: "blur", operator: "in", result: "glow" }),
-              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feComponentTransfer", { in: "glow", result: "softGlow", children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feFuncA", { type: "linear", slope: "0.4" }) }),
-              /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("feMerge", { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feMergeNode", { in: "softGlow" }),
-                /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feMergeNode", { in: "SourceGraphic" })
-              ] })
-            ] }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
-              "circle",
-              {
-                cx: size / 2,
-                cy: size / 2,
-                r: radius,
-                stroke: color3,
-                strokeWidth,
-                fill: "none",
-                strokeDasharray: circumference,
-                strokeDashoffset: offset3,
-                strokeLinecap: "round",
-                filter: `url(#liquid-glass-${id3})`,
-                className: "transition-all duration-300 ease-out"
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
-              motion.circle,
-              {
-                initial: { strokeDashoffset: circumference },
-                animate: { strokeDashoffset: offset3 },
-                transition: { duration: 1.5, ease: "easeOut", delay: 0.3 },
-                cx: size / 2,
-                cy: size / 2,
-                r: radius,
-                fill: "none",
-                stroke: color3,
-                strokeWidth,
-                strokeDasharray: circumference,
-                strokeLinecap: "round",
-                filter: `url(#liquid-glass-${id3})`,
-                style: { strokeOpacity: 0.8 }
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
-              motion.circle,
-              {
-                initial: { strokeDashoffset: circumference },
-                animate: { strokeDashoffset: offset3 },
-                transition: { duration: 1.5, ease: "easeOut", delay: 0.3 },
-                cx: size / 2,
-                cy: size / 2,
-                r: radius,
-                fill: "none",
-                stroke: "white",
-                strokeWidth: strokeWidth / 3.5,
-                strokeDasharray: circumference,
-                strokeLinecap: "round",
-                style: {
-                  strokeOpacity: 0.6,
-                  mixBlendMode: "overlay"
+          /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("div", { className: "h-4 flex items-center justify-center mb-1", children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("span", { className: "text-[9px] sm:text-[10px] font-black text-black/0 uppercase tracking-[0.2em] leading-none whitespace-nowrap select-none", children: "\xA0" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("div", { className: "relative", style: { width: size, height: size }, children: /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("svg", { width: size, height: size, viewBox: `0 0 ${size} ${size}`, className: "overflow-visible", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("defs", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("filter", { id: `liquid-glass-${id3}`, x: "-50%", y: "-50%", width: "200%", height: "200%", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feGaussianBlur", { in: "SourceAlpha", stdDeviation: "1.5", result: "blur" }),
+                /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feFlood", { floodColor: color3, result: "color" }),
+                /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feComposite", { in: "color", in2: "blur", operator: "in", result: "glow" }),
+                /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feComponentTransfer", { in: "glow", result: "softGlow", children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feFuncA", { type: "linear", slope: "0.4" }) }),
+                /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("feMerge", { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feMergeNode", { in: "softGlow" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("feMergeNode", { in: "SourceGraphic" })
+                ] })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("path", { id: `text-path-${id3}`, d: textPathData })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("g", { className: "transform -rotate-90 origin-center", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+                "circle",
+                {
+                  cx: size / 2,
+                  cy: size / 2,
+                  r: radius,
+                  stroke: color3,
+                  strokeWidth,
+                  fill: "none",
+                  strokeDasharray: circumference,
+                  strokeDashoffset: offset3,
+                  strokeLinecap: "round",
+                  filter: `url(#liquid-glass-${id3})`,
+                  className: "transition-all duration-300 ease-out"
                 }
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
-              motion.circle,
-              {
-                initial: { strokeDashoffset: circumference },
-                animate: { strokeDashoffset: offset3 },
-                transition: { duration: 1.5, ease: "easeOut", delay: 0.3 },
-                cx: size / 2,
-                cy: size / 2,
-                r: radius - 1,
-                fill: "none",
-                stroke: "white",
-                strokeWidth: 1,
-                strokeDasharray: circumference,
-                strokeLinecap: "round",
-                style: {
-                  strokeOpacity: 0.4
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+                motion.circle,
+                {
+                  initial: { strokeDashoffset: circumference },
+                  animate: { strokeDashoffset: offset3 },
+                  transition: { duration: 1.5, ease: "easeOut", delay: 0.3 },
+                  cx: size / 2,
+                  cy: size / 2,
+                  r: radius,
+                  fill: "none",
+                  stroke: color3,
+                  strokeWidth,
+                  strokeDasharray: circumference,
+                  strokeLinecap: "round",
+                  filter: `url(#liquid-glass-${id3})`,
+                  style: { strokeOpacity: 0.8 }
                 }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+                motion.circle,
+                {
+                  initial: { strokeDashoffset: circumference },
+                  animate: { strokeDashoffset: offset3 },
+                  transition: { duration: 1.5, ease: "easeOut", delay: 0.3 },
+                  cx: size / 2,
+                  cy: size / 2,
+                  r: radius,
+                  fill: "none",
+                  stroke: "white",
+                  strokeWidth: strokeWidth / 3.5,
+                  strokeDasharray: circumference,
+                  strokeLinecap: "round",
+                  style: {
+                    strokeOpacity: 0.6,
+                    mixBlendMode: "overlay"
+                  }
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+                motion.circle,
+                {
+                  initial: { strokeDashoffset: circumference },
+                  animate: { strokeDashoffset: offset3 },
+                  transition: { duration: 1.5, ease: "easeOut", delay: 0.3 },
+                  cx: size / 2,
+                  cy: size / 2,
+                  r: radius - 1,
+                  fill: "none",
+                  stroke: "white",
+                  strokeWidth: 1,
+                  strokeDasharray: circumference,
+                  strokeLinecap: "round",
+                  style: {
+                    strokeOpacity: 0.4
+                  }
+                }
+              )
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+              "text",
+              {
+                className: "font-black uppercase tracking-[0.15em] select-none",
+                style: {
+                  fontSize: size > 150 ? "8px" : "7.5px",
+                  fill: color3,
+                  opacity: 0.7,
+                  textAnchor: "middle"
+                },
+                children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("textPath", { href: `#text-path-${id3}`, startOffset: "50%", children: RING_LABELS[id3] })
               }
             )
           ] }) }),
@@ -195543,3 +195558,4 @@ use-sync-external-store/cjs/use-sync-external-store-with-selector.development.js
    * limitations under the License.
    *)
 */
+//# sourceMappingURL=index.js.map
