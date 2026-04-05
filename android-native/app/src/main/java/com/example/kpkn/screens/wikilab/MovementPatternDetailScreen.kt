@@ -16,8 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.example.kpkn.data.db.KineticChainEntity
-import com.example.kpkn.data.db.MovementPatternEntity
 import com.example.kpkn.data.repository.WikiLabRepository
 
 // ─── MOVEMENT PATTERN DETAIL ──────────────────────────────────────────────
@@ -42,19 +42,54 @@ fun MovementPatternDetailScreen(
 
     val forceTypes = WikiLabRepository.parseStringList(pattern.forceTypes)
     val chainTypes = WikiLabRepository.parseStringList(pattern.chainTypes)
-    val muscleIds = WikiLabRepository.parseStringList(pattern.primaryMuscles)
+    val muscleIds = remember(pattern.primaryMuscles) {
+        WikiLabRepository.parseStringList(pattern.primaryMuscles)
+            .mapNotNull { canonicalWikiLabMuscleIdFromEntityId(it) }
+            .distinct()
+    }
     val jointIds = WikiLabRepository.parseStringList(pattern.primaryJoints)
     val exerciseIds = WikiLabRepository.parseStringList(pattern.exampleExercises)
+    val exampleExercises = remember(exerciseIds) {
+        resolveWikiLabExerciseLinks(exerciseIds)
+    }
+    val insight = remember(pattern.id) { patternInsightFor(pattern.id) }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {},
+            LargeTopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = pattern.name,
+                            fontWeight = FontWeight.Black,
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            forceTypes.forEach { ft ->
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = Color(0xFF43A047).copy(alpha = 0.12f),
+                                ) {
+                                    Text(
+                                        ft,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF43A047),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver")
                     }
                 },
+                scrollBehavior = scrollBehavior
             )
         },
     ) { padding ->
@@ -63,37 +98,43 @@ fun MovementPatternDetailScreen(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // ─── Header ──────────────────────────────────────────────────
+            // ─── Header Description ──────────────────────────────────────
             item {
-                Column {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        forceTypes.forEach { ft ->
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFF43A047).copy(alpha = 0.12f),
-                            ) {
-                                Text(
-                                    ft,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF43A047),
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        pattern.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
+                Text(
+                    pattern.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 20.sp,
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+
+            item {
+                PatternBiomechVisual(
+                    patternId = pattern.id,
+                    patternName = pattern.name,
+                )
+            }
+
+            insight?.let {
+                item {
+                    WikiLabInsightCard(
+                        title = "LECTURA BIOMECÁNICA",
+                        accent = Color(0xFF7E57C2),
+                        icon = Icons.Default.Insights,
+                        summary = it.summary,
+                        bullets = it.mobilityDemands,
+                        footer = "Úsalo para entender qué región suele limitar antes de cambiar la técnica.",
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        pattern.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp,
+                }
+
+                item {
+                    WikiLabInsightCard(
+                        title = "CUES Y ERRORES COMUNES",
+                        accent = Color(0xFFFB8C00),
+                        icon = Icons.Default.Rule,
+                        summary = "Piensa estas pistas como una lista corta de control para enseñar, depurar o revisar el patrón en video.",
+                        bullets = it.setupCues + it.commonErrors.map { error -> "Error frecuente: $error" },
                     )
                 }
             }
@@ -174,14 +215,14 @@ fun MovementPatternDetailScreen(
             }
 
             // ─── Example Exercises ───────────────────────────────────────
-            if (exerciseIds.isNotEmpty()) {
+            if (exampleExercises.isNotEmpty()) {
                 item {
                     PatternEntitiesCard(
                         title = "EJERCICIOS DE EJEMPLO",
                         color = Color(0xFF43A047),
                         icon = Icons.Default.FitnessCenter,
-                        entities = exerciseIds.map { id ->
-                            id to id.replace("db_", "").replace("_", " ").replaceFirstChar { it.uppercase() }
+                        entities = exampleExercises.map { exercise ->
+                            exercise.id to exercise.name
                         },
                         onClick = onNavigateToExercise,
                     )
@@ -248,16 +289,38 @@ fun KineticChainDetailScreen(
 
     val muscles = WikiLabRepository.parseStringList(chain.muscles)
     val allMuscles = WikiLabRepository.muscles.collectAsState().value
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {},
+            LargeTopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = chain.name,
+                            fontWeight = FontWeight.Black,
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF1E88E5).copy(alpha = 0.12f),
+                        ) {
+                            Text(
+                                "Cadena Cinética",
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1E88E5),
+                            )
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver")
                     }
                 },
+                scrollBehavior = scrollBehavior
             )
         },
     ) { padding ->
@@ -267,33 +330,13 @@ fun KineticChainDetailScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                Column {
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFF1E88E5).copy(alpha = 0.12f),
-                    ) {
-                        Text(
-                            "Cadena Cinética",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1E88E5),
-                        )
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        chain.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        chain.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp,
-                    )
-                }
+                Text(
+                    chain.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 20.sp,
+                )
+                Spacer(Modifier.height(8.dp))
             }
 
             // Importance
@@ -345,19 +388,23 @@ fun KineticChainDetailScreen(
                         }
                         Spacer(Modifier.height(8.dp))
 
-                        // Group exercises by primary muscle
-                        muscles.forEach { muscleName ->
-                            val matchingMuscle = allMuscles.find {
-                                it.name.equals(muscleName, ignoreCase = true) ||
-                                it.name.contains(muscleName, ignoreCase = true)
+                        muscles.forEach { muscleRef ->
+                            val matchingMuscle = WikiLabRepository.getMuscleById(muscleRef) ?: allMuscles.find {
+                                it.name.equals(muscleRef, ignoreCase = true) ||
+                                    it.name.contains(muscleRef, ignoreCase = true)
                             }
+                            val displayName = matchingMuscle?.name ?: muscleRef
 
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable {
-                                        matchingMuscle?.let { onNavigateToMuscle(it.id) }
-                                    }
+                                    .then(
+                                        if (matchingMuscle != null) {
+                                            Modifier.clickable { onNavigateToMuscle(matchingMuscle.id) }
+                                        } else {
+                                            Modifier
+                                        }
+                                    )
                                     .padding(vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -369,7 +416,7 @@ fun KineticChainDetailScreen(
                                 Spacer(Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        muscleName,
+                                        displayName,
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.SemiBold,
                                     )

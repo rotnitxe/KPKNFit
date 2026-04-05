@@ -19,7 +19,27 @@ data class WorkoutLog(
     val weekId: String? = null,
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,
+    val clarityRating: Int? = null,        // 1–10: mental clarity / freshness
+    val environmentTags: List<String> = emptyList(), // e.g. "gym", "casa", "cansado", "buen sueño"
+    val planDeviations: List<PlanDeviation> = emptyList(), // deviations from planned session
+    val exerciseTags: Map<String, String> = emptyMap(),    // exerciseId → tag used this session
 )
+
+@Serializable
+data class PlanDeviation(
+    val exerciseId: String,
+    val exerciseName: String,
+    val setIdx: Int,
+    val type: PlanDeviationType,
+    val detail: String,
+)
+
+@Serializable
+enum class PlanDeviationType {
+    WEIGHT_HIGH, WEIGHT_LOW,
+    UNPLANNED_FAILURE, UNPLANNED_DROPSET, UNPLANNED_REST_PAUSE,
+    REPS_HIGH, REPS_LOW,
+}
 
 @Serializable
 data class CompletedExercise(
@@ -40,6 +60,9 @@ data class CompletedSet(
     val isFailure: Boolean = false,
     val isPartial: Boolean = false,
     val partialReps: Int? = null,
+    val dropSets: List<DropSetData> = emptyList(),
+    val restPauses: List<RestPauseData> = emptyList(),
+    val isWarmup: Boolean = false,
     val side: String? = null,      // "left" / "right" for unilateral
     val spinalScore: Double? = null,
     val performanceMode: PerformanceMode? = null,
@@ -60,6 +83,7 @@ data class OngoingWorkoutState(
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,
     val weekId: String? = null,
+    val exerciseTags: Map<String, String> = emptyMap(), // exerciseId → active tag
 )
 
 /** Summary card data for the Home screen "Sesión de hoy" */

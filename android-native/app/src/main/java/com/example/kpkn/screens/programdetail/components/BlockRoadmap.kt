@@ -35,51 +35,55 @@ fun BlockRoadmap(
     onSelectWeek: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        // Block pills
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(
-                onClick = {
-                    val idx = roadmapBlocks.indexOfFirst { it.id == selectedBlockId }
-                    if (idx > 0) onSelectBlock(roadmapBlocks[idx - 1].id)
-                },
-                modifier = Modifier.size(28.dp),
-            ) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Anterior", modifier = Modifier.size(18.dp))
-            }
+    val hasMultipleBlocks = roadmapBlocks.size > 1
 
-            LazyRow(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(roadmapBlocks) { block ->
-                    val isSelected = block.id == selectedBlockId
-                    Surface(
-                        modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable { onSelectBlock(block.id) },
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    ) {
-                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(block.name, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                            Text("${block.totalWeeks}sem", fontSize = 8.sp, color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (hasMultipleBlocks) {
+            // Block pills
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    onClick = {
+                        val idx = roadmapBlocks.indexOfFirst { it.id == selectedBlockId }
+                        if (idx > 0) onSelectBlock(roadmapBlocks[idx - 1].id)
+                    },
+                    modifier = Modifier.size(28.dp),
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Anterior", modifier = Modifier.size(18.dp))
+                }
+
+                LazyRow(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(roadmapBlocks) { block ->
+                        val isSelected = block.id == selectedBlockId
+                        Surface(
+                            modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable { onSelectBlock(block.id) },
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        ) {
+                            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(block.name, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                                Text("${block.totalWeeks}sem", fontSize = 8.sp, color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            }
                         }
                     }
                 }
+
+                IconButton(
+                    onClick = {
+                        val idx = roadmapBlocks.indexOfFirst { it.id == selectedBlockId }
+                        if (idx < roadmapBlocks.size - 1) onSelectBlock(roadmapBlocks[idx + 1].id)
+                    },
+                    modifier = Modifier.size(28.dp),
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Siguiente", modifier = Modifier.size(18.dp))
+                }
             }
 
-            IconButton(
-                onClick = {
-                    val idx = roadmapBlocks.indexOfFirst { it.id == selectedBlockId }
-                    if (idx < roadmapBlocks.size - 1) onSelectBlock(roadmapBlocks[idx + 1].id)
-                },
-                modifier = Modifier.size(28.dp),
-            ) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Siguiente", modifier = Modifier.size(18.dp))
-            }
+            Spacer(Modifier.height(8.dp))
         }
-
-        Spacer(Modifier.height(8.dp))
 
         // Week indicators
         if (currentWeeks.isNotEmpty()) {

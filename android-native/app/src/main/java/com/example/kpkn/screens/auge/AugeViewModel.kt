@@ -3,8 +3,10 @@ package com.example.kpkn.screens.auge
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
@@ -22,6 +24,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val augeRepo = AugeRepository.getInstance(application)
     private val programRepo = ProgramRepository.getInstance()
+    private val nutritionRepo = NutritionRepository.getInstance()
+    private val exerciseDb = EXERCISE_DATABASE_BY_ID
 
     // ─── Public state ─────────────────────────────────────────────────────────
 
@@ -61,11 +65,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         val wellbeing = augeRepo.getTodayWellbeing()
         val feedbacks = augeRepo.getPostSessionFeedbacks()
         val sleepLogs = augeRepo.getLastNSleepLogs(7)
-        val exerciseDb = emptyMap<String, ExerciseMuscleInfo>() // Phase 5: wire ExerciseDatabase
+        val nutritionLogs = nutritionRepo.nutritionLogs.value
 
         val (batteries, perMuscle, readiness, pending, articular) = withContext(Dispatchers.Default) {
-            val bat = AugeRecoveryEngine.calculateGlobalBatteries(history, wellbeing, settings, exerciseDb, sleepLogs)
-            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, wellbeing, settings, exerciseDb, sleepLogs)
+            val bat = AugeRecoveryEngine.calculateGlobalBatteries(history, wellbeing, settings, exerciseDb, sleepLogs, nutritionLogs)
+            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, wellbeing, settings, exerciseDb, sleepLogs, nutritionLogs)
             val (cns, _, _) = AugeRecoveryEngine.calculateSystemicFatigue(history, wellbeing, settings, exerciseDb, sleepLogs)
             val verdict = AugeRecoveryEngine.calculateDailyReadiness(cns, wellbeing)
             val pending = AugeRecoveryEngine.checkPendingSurveys(history, feedbacks)

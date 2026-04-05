@@ -57,14 +57,13 @@ private fun MacroProgressBars(viewModel: HomeViewModel, modifier: Modifier = Mod
     val protGoal by viewModel.dailyProteinGoal.collectAsState()
     val carbGoal by viewModel.dailyCarbGoal.collectAsState()
     val fatGoal by viewModel.dailyFatGoal.collectAsState()
+    val nutritionToday by viewModel.todayNutritionTotals.collectAsState()
 
-    // TODO: Replace with real nutrition log data when available.
-    // For now, show goals as reference values.
     val macros = listOf(
-        MacroItem("Cal", 0, calGoal, MaterialTheme.colorScheme.primary),
-        MacroItem("Prot", 0, protGoal, MaterialTheme.colorScheme.error),
-        MacroItem("Carb", 0, carbGoal, MaterialTheme.colorScheme.tertiary),
-        MacroItem("Fat", 0, fatGoal, MaterialTheme.colorScheme.secondary),
+        MacroItem("Cal", nutritionToday.calories.toInt(), calGoal, MaterialTheme.colorScheme.primary),
+        MacroItem("Prot", nutritionToday.protein.toInt(), protGoal, MaterialTheme.colorScheme.error),
+        MacroItem("Carb", nutritionToday.carbs.toInt(), carbGoal, MaterialTheme.colorScheme.tertiary),
+        MacroItem("Fat", nutritionToday.fats.toInt(), fatGoal, MaterialTheme.colorScheme.secondary),
     )
 
     Card(
@@ -228,13 +227,15 @@ private fun ExerciseMetricCards(
     onNavigateToCard: (String) -> Unit,
 ) {
     val starCount by viewModel.starTargetsCount.collectAsState()
+    val historyCount by viewModel.historyCount.collectAsState()
     val strengthData = viewModel.getRelativeStrengthData()
+    val ipfGlPoints = viewModel.getIpfGlPoints()
 
     val cards = listOf(
         ExerciseCardData("Metas 1RM", "$starCount", "Pendientes", "star-targets"),
         ExerciseCardData("Fuerza Relativa", "${String.format("%.2f", strengthData.relativeStrength)}x", "Total: ${String.format("%.0f", strengthData.totalKg)}kg", "relative-strength"),
-        ExerciseCardData("Historiales", "--", "Explorar todo", "history"),
-        ExerciseCardData("IPF GL", "--", "Puntos", "ipf-gl"),
+        ExerciseCardData("Historiales", "$historyCount", "Sesiones registradas", "history"),
+        ExerciseCardData("IPF GL", if (ipfGlPoints > 0.0) String.format("%.0f", ipfGlPoints) else "--", "Puntos", "ipf-gl"),
     )
 
     LazyRow(

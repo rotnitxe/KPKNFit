@@ -75,7 +75,8 @@ data class ExerciseMuscleInfo(
 data class InvolvedMuscle(
     val muscle: String,
     val role: MuscleRole = MuscleRole.PRIMARY,
-    val activation: Double? = null, // K_rol coefficient
+    @SerialName("activation")
+    val volumeContribution: Double? = null,
     val emphasis: String? = null, // e.g. "anterior", "superior"
 )
 

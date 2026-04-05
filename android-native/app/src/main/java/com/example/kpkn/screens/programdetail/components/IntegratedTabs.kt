@@ -43,10 +43,6 @@ fun IntegratedTabs(
                 add(SubTabItem("Semana", StructureSubTab.SEMANA.name))
                 add(SubTabItem("Split", StructureSubTab.SPLIT.name))
                 add(SubTabItem("Macrociclo", StructureSubTab.MACROCICLO.name))
-                add(
-                    if (isSimpleProgram) SubTabItem("Loops", StructureSubTab.LOOPS.name)
-                    else SubTabItem("Protocolos", StructureSubTab.PROTOCOLOS.name)
-                )
             }
         } else {
             listOf(
@@ -121,7 +117,10 @@ fun IntegratedTabs(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 subTabs.forEach { tab ->
-                    val isActive = activeSubTab == tab.value
+                    val isActive = when {
+                        tab.value == StructureSubTab.MACROCICLO.name && activeSubTab == StructureSubTab.LOOPS.name -> true
+                        else -> activeSubTab == tab.value
+                    }
                     Box(
                         modifier = Modifier
                             .weight(1f)

@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,9 @@ import com.example.kpkn.data.localai.ParseOptions
 import com.example.kpkn.data.localai.parseFreeFormNutrition
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -56,6 +59,7 @@ private data class ResolvedTag(
     val loggedFood: LoggedFood? = null,
     val isResolved: Boolean = false,
     val isFuzzyMatch: Boolean = false,
+    val analysisSource: AnalysisSource = AnalysisSource.RULES,
     val statusText: String = "Pendiente",
     val isExpanded: Boolean = false,
 )
@@ -75,6 +79,7 @@ fun FoodLoggerDrawer(
     if (!isOpen) return
 
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var description by remember { mutableStateOf("") }
     var mealType by remember { mutableStateOf(initialMealType) }
     var logDate by remember { mutableStateOf(initialDate) }
@@ -84,14 +89,20 @@ fun FoodLoggerDrawer(
     var activeTab by remember { mutableIntStateOf(0) } // 0=description, 1=search
     var showSuccess by remember { mutableStateOf(false) }
     var isAnalyzing by remember { mutableStateOf(false) }
+    var localAiStatus by remember { mutableStateOf(LocalAiManager.status()) }
 
     val sheetState = rememberModalBottomSheetState()
+
+    LaunchedEffect(Unit) {
+        localAiStatus = LocalAiManager.initialize(context)
+    }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     fun resolveTags(parsed: ParsedMealDescription) {
         tags = parsed.items.map { item ->
             val food = findFoodByNormalized(item.tag)
+            val source = item.analysisSource
             if (food != null) {
                 val logged = scaleFoodByPortion(food, item.quantity, item.portion, item.amountGrams, item.cookingMethod)
                 ResolvedTag(
@@ -101,13 +112,13 @@ fun FoodLoggerDrawer(
                     amountGrams = item.amountGrams,
                     cookingMethod = item.cookingMethod,
                     foodItem = food,
-                    loggedFood = logged,
+                    loggedFood = logged.copy(analysisSource = AnalysisSource.DATABASE),
                     isResolved = true,
                     isFuzzyMatch = false,
-                    statusText = "✓ Listo",
+                    analysisSource = AnalysisSource.DATABASE,
+                    statusText = "BD ✓",
                 )
             } else if (item.amountGrams != null && item.amountGrams > 0) {
-                // Has grams → create manual entry
                 val mac = item.macroOverrides
                 val logged = createLoggedFood(
                     foodName = item.tag,
@@ -119,6 +130,12 @@ fun FoodLoggerDrawer(
                     portion = item.portion,
                     cookingMethod = item.cookingMethod,
                 )
+                val trustLabel = when {
+                    source == AnalysisSource.LOCAL_AI_ESTIMATE && mac != null -> "IA ~"
+                    source == AnalysisSource.LOCAL_HEURISTIC && mac != null -> "Heur. ~"
+                    mac != null -> "~ Estimado"
+                    else -> "⚠ Sin ref."
+                }
                 ResolvedTag(
                     tag = item.tag,
                     portion = item.portion,
@@ -126,10 +143,11 @@ fun FoodLoggerDrawer(
                     amountGrams = item.amountGrams,
                     cookingMethod = item.cookingMethod,
                     foodItem = null,
-                    loggedFood = logged,
+                    loggedFood = logged.copy(analysisSource = source),
                     isResolved = mac != null,
                     isFuzzyMatch = true,
-                    statusText = if (mac != null) "~ Estimado" else "⚠ Sin referencia",
+                    analysisSource = source,
+                    statusText = trustLabel,
                 )
             } else {
                 ResolvedTag(
@@ -139,7 +157,8 @@ fun FoodLoggerDrawer(
                     foodItem = null,
                     loggedFood = null,
                     isResolved = false,
-                    statusText = "⚠ Sin referencia",
+                    analysisSource = source,
+                    statusText = "⚠ Sin ref.",
                 )
             }
         }
@@ -152,16 +171,19 @@ fun FoodLoggerDrawer(
         isAnalyzing = true
         scope.launch {
             try {
-                val parsed = parseFreeFormNutrition(
-                    description,
-                    ParseOptions(mode = ParseMode.AUTO),
-                )
+                val parsed = withContext(Dispatchers.Default) {
+                    parseFreeFormNutrition(
+                        description,
+                        ParseOptions(mode = ParseMode.AUTO),
+                    )
+                }
                 resolveTags(parsed)
             } catch (e: Exception) {
                 android.util.Log.w("FoodLogger", "Parse failed, using deterministic", e)
                 resolveTags(parseMealDescription(description))
             } finally {
                 isAnalyzing = false
+                localAiStatus = LocalAiManager.status()
             }
         }
     }
@@ -172,10 +194,11 @@ fun FoodLoggerDrawer(
                 val logged = scaleFoodByPortion(food, tag.quantity, tag.portion, tag.amountGrams, tag.cookingMethod)
                 tag.copy(
                     foodItem = food,
-                    loggedFood = logged,
+                    loggedFood = logged.copy(analysisSource = AnalysisSource.DATABASE),
                     isResolved = true,
                     isFuzzyMatch = false,
-                    statusText = "✓ Listo",
+                    analysisSource = AnalysisSource.DATABASE,
+                    statusText = "BD ✓",
                 )
             } else tag
         }
@@ -386,6 +409,17 @@ fun FoodLoggerDrawer(
                                 Text("ANALIZAR")
                             }
                         }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = if (localAiStatus.ready) {
+                                val source = localAiStatus.loadedFromAssetPath ?: "cache interno"
+                                "IA local activa (${localAiStatus.modelVersion ?: "sin versión"}) · fuente: $source"
+                            } else {
+                                "IA local no lista · usando fallback inteligente${localAiStatus.error?.let { ": $it" } ?: ""}"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (localAiStatus.ready) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
@@ -673,7 +707,12 @@ private fun TagCard(
                         Text(
                             text = tag.statusText,
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (tag.isResolved) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
+                            color = when (tag.analysisSource) {
+                                AnalysisSource.DATABASE -> Color(0xFF4CAF50)
+                                AnalysisSource.LOCAL_AI_ESTIMATE -> Color(0xFF2196F3)
+                                AnalysisSource.LOCAL_HEURISTIC -> Color(0xFFFF9800)
+                                else -> if (tag.isResolved) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                            },
                         )
                     }
                     if (logged != null) {

@@ -169,7 +169,23 @@ data class MacroGoals(
     val fatGoal: Int = 70,
 )
 
-fun deriveMacroGoals(settings: Settings): MacroGoals {
+fun deriveMacroGoals(settings: Settings, activePlan: NutritionPlan? = null): MacroGoals {
+    val plan = activePlan
+    if (plan != null) {
+        val planCalories = plan.calorieTarget.takeIf { it > 0 }
+        val planProtein = plan.proteinGoal.takeIf { it > 0 }
+        val planCarbs = plan.carbGoal.takeIf { it > 0 }
+        val planFats = plan.fatGoal.takeIf { it > 0 }
+        if (planCalories != null || planProtein != null || planCarbs != null || planFats != null) {
+            return MacroGoals(
+                calorieGoal = planCalories ?: settings.dailyCalorieGoal ?: 2500,
+                proteinGoal = planProtein ?: settings.dailyProteinGoal ?: 150,
+                carbGoal = planCarbs ?: settings.dailyCarbGoal ?: 250,
+                fatGoal = planFats ?: settings.dailyFatGoal ?: 70,
+            )
+        }
+    }
+
     return MacroGoals(
         calorieGoal = settings.dailyCalorieGoal ?: 2500,
         proteinGoal = settings.dailyProteinGoal ?: 150,

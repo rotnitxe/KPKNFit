@@ -27,6 +27,7 @@ fun PostExerciseSheet(
     var technicalQuality by remember { mutableIntStateOf(8) }
     var mood by remember { mutableIntStateOf(3) }
     val selectedTags = remember { mutableStateListOf<String>() }
+    var showAdvanced by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -70,12 +71,12 @@ fun PostExerciseSheet(
             // ─── RPE ──────────────────────────────────────────────────────────
 
             LabeledSlider(
-                label = "RPE",
+                label = "Fatiga neural de este ejercicio",
                 value = rpe,
                 range = 1..10,
                 onChange = { rpe = it },
-                lowLabel = "Muy fácil",
-                highLabel = "Fallo",
+                lowLabel = "Baja",
+                highLabel = "Muy alta",
             )
 
             // ─── Technical quality ────────────────────────────────────────────
@@ -89,34 +90,51 @@ fun PostExerciseSheet(
                 highLabel = "Perfecta",
             )
 
-            // ─── Mood ─────────────────────────────────────────────────────────
-
-            LabeledSlider(
-                label = "Estado anímico",
-                value = mood,
-                range = 1..5,
-                onChange = { mood = it },
-                lowLabel = "Bajo",
-                highLabel = "Excelente",
-            )
-
-            // ─── Discomfort tags ──────────────────────────────────────────────
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Molestias (opcional)", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                onClick = { showAdvanced = !showAdvanced },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    DISCOMFORT_TAGS.forEach { tag ->
-                        FilterChip(
-                            selected = selectedTags.contains(tag),
-                            onClick = {
-                                if (selectedTags.contains(tag)) selectedTags.remove(tag)
-                                else selectedTags.add(tag)
-                            },
-                            label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
-                        )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Opciones avanzadas", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        Text("Estado anímico y molestias", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(if (showAdvanced) "Ocultar" else "Mostrar", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+
+            if (showAdvanced) {
+                LabeledSlider(
+                    label = "Estado anímico",
+                    value = mood,
+                    range = 1..5,
+                    onChange = { mood = it },
+                    lowLabel = "Bajo",
+                    highLabel = "Excelente",
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Molestias (opcional)", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        DISCOMFORT_TAGS.forEach { tag ->
+                            FilterChip(
+                                selected = selectedTags.contains(tag),
+                                onClick = {
+                                    if (selectedTags.contains(tag)) selectedTags.remove(tag)
+                                    else selectedTags.add(tag)
+                                },
+                                label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
+                            )
+                        }
                     }
                 }
             }

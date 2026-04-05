@@ -1,0 +1,7 @@
+interface:
+  display_name: "KPKN PWA to Kotlin Migrator"
+  short_description: "Translate KPKN PWA into native Kotlin safely."
+  default_prompt: "Use $kpkn-pwa-to-kotlin-migrator to migrate a KPKN PWA feature into native Kotlin/Compose with domain parity and Android-native UX translation."
+
+policy:
+  allow_implicit_invocation: true

@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.auge.PostSessionSheet
 import com.example.kpkn.ui.theme.AppThemeMode
@@ -44,6 +47,12 @@ fun HomeScreen(
     onThemeChange: (AppThemeMode) -> Unit,
     onNavigateToSettings: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToProgram: (String) -> Unit = {},
+    onCreateProgram: () -> Unit = {},
+    onStartWorkout: (Session, Program) -> Unit = { _, _ -> },
+    onResumeWorkout: () -> Unit = {},
+    onNavigateToCard: (String) -> Unit = {},
+    onNavigate: (String) -> Unit = {},
     viewModel: HomeViewModel = viewModel { HomeViewModel() },
     augeViewModel: AugeViewModel = viewModel(),
 ) {
@@ -66,7 +75,10 @@ fun HomeScreen(
     val ringsViewMode by viewModel.ringsViewMode.collectAsState()
     val programs by viewModel.programs.collectAsState()
     val todaySessions by viewModel.todaySessions.collectAsState()
+    val activeProgramId by viewModel.activeProgramId.collectAsState()
+    val hasActiveProgram by viewModel.hasActiveProgram.collectAsState()
     val dailyCalorieGoal by viewModel.dailyCalorieGoal.collectAsState()
+    val todayNutritionTotals by viewModel.todayNutritionTotals.collectAsState()
     val greeting = viewModel.getGreeting()
 
     val listState = rememberLazyListState()
@@ -148,16 +160,17 @@ fun HomeScreen(
                     ringsProgress = ringsProgress,
                     sessionProgress = sessionProgress,
                     nutritionProgress = nutritionProgress,
-                    hasPrograms = programs.isNotEmpty(),
+                    hasPrograms = hasActiveProgram,
                     muscularProgress = muscularProgress,
                     sncProgress = sncProgress,
                     columnaProgress = columnaProgress,
                     todaySessions = todaySessions,
                     dailyCalorieGoal = dailyCalorieGoal,
+                    consumedCalories = todayNutritionTotals.calories.toInt(),
                     onSettingsClick = onNavigateToSettings,
-                    onStartWorkout = { session, program -> /* TODO */ },
-                    onCreateProgram = { /* TODO */ },
-                    onAddMeal = { /* TODO */ },
+                    onStartWorkout = onStartWorkout,
+                    onCreateProgram = onCreateProgram,
+                    onAddMeal = { onNavigate("nutrition") },
                 )
             },
         ) { innerPadding ->
@@ -169,17 +182,20 @@ fun HomeScreen(
                 perMuscle = augePerMuscle,
                 ringsViewMode = ringsViewMode,
                 todaySessions = todaySessions,
-                hasActiveProgram = programs.isNotEmpty(),
+                hasActiveProgram = hasActiveProgram,
+                activeProgramId = activeProgramId,
                 listState = listState,
                 userName = userName,
                 greeting = greeting,
                 onRingSelect = { viewModel.selectRing(it) },
                 onRingsViewChange = { viewModel.setRingsViewMode(it) },
                 onSettingsClick = onNavigateToSettings,
-                onStartWorkout = { _, _ -> /* TODO */ },
-                onResumeWorkout = { /* TODO */ },
-                onNavigateToCard = { /* TODO */ },
-                onNavigate = { /* TODO */ },
+                onStartWorkout = onStartWorkout,
+                onResumeWorkout = onResumeWorkout,
+                onNavigateToProgram = onNavigateToProgram,
+                onCreateProgram = onCreateProgram,
+                onNavigateToCard = onNavigateToCard,
+                onNavigate = onNavigate,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -222,6 +238,7 @@ private fun HomeWithProgram(
     ringsViewMode: HomeViewModel.RingsViewMode,
     todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
     hasActiveProgram: Boolean,
+    activeProgramId: String?,
     listState: androidx.compose.foundation.lazy.LazyListState,
     userName: String,
     greeting: String,
@@ -230,6 +247,8 @@ private fun HomeWithProgram(
     onSettingsClick: () -> Unit,
     onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
     onResumeWorkout: () -> Unit,
+    onNavigateToProgram: (String) -> Unit,
+    onCreateProgram: () -> Unit,
     onNavigateToCard: (String) -> Unit,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -268,7 +287,7 @@ private fun HomeWithProgram(
             HomeSessionSection(
                 sessions = todaySessions,
                 hasActiveProgram = hasActiveProgram,
-                currentDayOfWeek = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK),
+                currentDayOfWeek = com.example.kpkn.domain.calculations.getCurrentDayOfWeek(),
                 onStartWorkout = onStartWorkout,
                 onResumeWorkout = onResumeWorkout,
             )
@@ -286,12 +305,19 @@ private fun HomeWithProgram(
             Spacer(Modifier.height(8.dp))
             HomeProgramsSection(
                 programs = programs,
-                onProgramClick = { },
+                activeProgramId = activeProgramId,
+                onProgramClick = onNavigateToProgram,
+                onCreateProgram = onCreateProgram,
             )
         }
 
         item {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
+            HomeWikiLabSection(onNavigate = onNavigate)
+        }
+
+        item {
+            Spacer(Modifier.height(16.dp))
             HomeCornersSection(onNavigate = onNavigate)
             Spacer(Modifier.height(80.dp))
         }
@@ -314,13 +340,12 @@ private fun HomeTopBar(
     columnaProgress: Float,
     todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
     dailyCalorieGoal: Int,
+    consumedCalories: Int,
     onSettingsClick: () -> Unit,
     onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
     onCreateProgram: () -> Unit,
     onAddMeal: () -> Unit,
 ) {
-    var showThemeMenu by remember { mutableStateOf(false) }
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
@@ -441,7 +466,7 @@ private fun HomeTopBar(
 
                     MiniNutritionCard(
                         dailyCalorieGoal = dailyCalorieGoal,
-                        consumedCalories = 0,
+                        consumedCalories = consumedCalories,
                         onAddMeal = onAddMeal,
                         modifier = Modifier.graphicsLayer {
                             alpha = nutritionAlpha
@@ -452,41 +477,6 @@ private fun HomeTopBar(
             }
 
             Row {
-                Box {
-                    IconButton(onClick = { showThemeMenu = true }) {
-                        Icon(
-                            imageVector = Icons.Default.Style, 
-                            contentDescription = "Temas",
-                            modifier = Modifier.size(22.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = showThemeMenu,
-                        onDismissRequest = { showThemeMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Claro") },
-                            onClick = { onThemeChange(AppThemeMode.LIGHT); showThemeMenu = false },
-                            leadingIcon = { Icon(Icons.Default.LightMode, null) }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Oscuro") },
-                            onClick = { onThemeChange(AppThemeMode.DARK); showThemeMenu = false },
-                            leadingIcon = { Icon(Icons.Default.DarkMode, null) }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Alto Contraste") },
-                            onClick = { onThemeChange(AppThemeMode.HIGH_CONTRAST); showThemeMenu = false },
-                            leadingIcon = { Icon(Icons.Default.Contrast, null) }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Daltónicos") },
-                            onClick = { onThemeChange(AppThemeMode.COLOR_BLIND); showThemeMenu = false },
-                            leadingIcon = { Icon(Icons.Default.ColorLens, null) }
-                        )
-                    }
-                }
                 IconButton(onClick = { }) {
                     Icon(
                         Icons.Default.Notifications,
@@ -735,6 +725,15 @@ private fun MiniNutritionCard(
     onAddMeal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val pct = if (dailyCalorieGoal > 0) {
+        (consumedCalories.toFloat() / dailyCalorieGoal.toFloat()).coerceIn(0f, 1.5f)
+    } else 0f
+    val progressColor = when {
+        pct < 0.9f -> MaterialTheme.colorScheme.tertiary
+        pct <= 1.1f -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.error
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -767,6 +766,16 @@ private fun MiniNutritionCard(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 )
             }
+            LinearProgressIndicator(
+                progress = { pct.coerceAtMost(1f) },
+                modifier = Modifier
+                    .padding(top = 2.dp, end = 8.dp)
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(50)),
+                color = progressColor,
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+            )
         }
 
         IconButton(

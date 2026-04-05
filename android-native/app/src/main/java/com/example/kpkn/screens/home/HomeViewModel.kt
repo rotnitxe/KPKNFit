@@ -3,9 +3,17 @@ package com.example.kpkn.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.MuscleRecoveryStatus
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.TodaySessionItem
+import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.domain.nutrition.deriveMacroGoals
 import com.example.kpkn.screens.auge.AugeViewModel
+import com.example.kpkn.domain.calculations.IpfEquipment
+import com.example.kpkn.domain.calculations.calculateBrzycki1RM
+import com.example.kpkn.domain.calculations.calculateIPFGLPoints
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +29,24 @@ import java.util.Calendar
 class HomeViewModel : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
+    private val nutritionRepository = NutritionRepository.getInstance()
 
     val programs = repository.programs
+    val ongoingWorkout = repository.ongoingWorkout
+
+    val activeProgramId: StateFlow<String?> = repository.activeProgramState
+        .map { state ->
+            if (state?.status == ProgramStatus.ACTIVE) state.programId else null
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val activeProgram: StateFlow<Program?> = combine(repository.programs, activeProgramId) { programs, activeId ->
+        activeId?.let { id -> programs.find { it.id == id } }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val hasActiveProgram: StateFlow<Boolean> = activeProgramId
+        .map { it != null }
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     // ─── AUGE batteries (wired from AugeViewModel at composition) ─────────
 
@@ -90,8 +114,11 @@ class HomeViewModel : ViewModel() {
     // ─── Today Sessions (from Active Program) ──────────────────────────────
 
     val todaySessions: StateFlow<List<TodaySessionItem>> = combine(
-        repository.programs, repository.activeProgramState, repository.history
-    ) { programs, active, history ->
+        repository.programs,
+        repository.activeProgramState,
+        repository.history,
+        repository.ongoingWorkout,
+    ) { programs, active, history, ongoing ->
         if (active == null) return@combine emptyList()
         val program = programs.find { it.id == active.programId } ?: return@combine emptyList()
         val macro = program.macrocycles.getOrNull(active.currentMacrocycleIndex) ?: return@combine emptyList()
@@ -119,12 +146,16 @@ class HomeViewModel : ViewModel() {
                 isCompleted = logForToday != null,
                 dayOfWeek = session.dayOfWeek ?: 1,
                 log = logForToday,
-                isOngoing = false,
+                isOngoing = ongoing?.programId == program.id && ongoing.session.id == session.id,
             )
-        }.sortedWith(compareBy(
-            { if (it.dayOfWeek == currentDay) 0 else 1 },
-            { it.dayOfWeek },
-        ))
+        }.sortedWith(
+            compareBy<TodaySessionItem>(
+                { if (it.isOngoing) 0 else 1 },
+                { if (it.dayOfWeek == currentDay) 0 else 1 },
+                { it.dayOfWeek },
+                { if (it.session.isMainSession) 0 else 1 },
+            )
+        )
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Rings View Mode ───────────────────────────────────────────────────────
@@ -138,21 +169,75 @@ class HomeViewModel : ViewModel() {
 
     // ─── Macro Goals ──────────────────────────────────────────────────────────
 
-    val dailyCalorieGoal: StateFlow<Int> = repository.settings
-        .map { it.dailyCalorieGoal ?: 2500 }
+    val dailyCalorieGoal: StateFlow<Int> = combine(
+        repository.settings,
+        nutritionRepository.nutritionPlans,
+        nutritionRepository.activeNutritionPlanId,
+    ) { settings, plans, activeId ->
+            val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
+            deriveMacroGoals(settings, activePlan).calorieGoal
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, 2500)
 
-    val dailyProteinGoal: StateFlow<Int> = repository.settings
-        .map { it.dailyProteinGoal ?: 150 }
+    val dailyProteinGoal: StateFlow<Int> = combine(
+        repository.settings,
+        nutritionRepository.nutritionPlans,
+        nutritionRepository.activeNutritionPlanId,
+    ) { settings, plans, activeId ->
+            val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
+            deriveMacroGoals(settings, activePlan).proteinGoal
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, 150)
 
-    val dailyCarbGoal: StateFlow<Int> = repository.settings
-        .map { it.dailyCarbGoal ?: 250 }
+    val dailyCarbGoal: StateFlow<Int> = combine(
+        repository.settings,
+        nutritionRepository.nutritionPlans,
+        nutritionRepository.activeNutritionPlanId,
+    ) { settings, plans, activeId ->
+            val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
+            deriveMacroGoals(settings, activePlan).carbGoal
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, 250)
 
-    val dailyFatGoal: StateFlow<Int> = repository.settings
-        .map { it.dailyFatGoal ?: 70 }
+    val dailyFatGoal: StateFlow<Int> = combine(
+        repository.settings,
+        nutritionRepository.nutritionPlans,
+        nutritionRepository.activeNutritionPlanId,
+    ) { settings, plans, activeId ->
+            val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
+            deriveMacroGoals(settings, activePlan).fatGoal
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, 70)
+
+    // ─── Nutrition Snapshot (today) ─────────────────────────────────────────
+
+    val todayNutritionTotals: StateFlow<HomeNutritionSnapshot> = nutritionRepository.nutritionLogs
+        .map { logs ->
+            val today = java.time.LocalDate.now().toString()
+            var calories = 0.0
+            var protein = 0.0
+            var carbs = 0.0
+            var fats = 0.0
+
+            logs.asSequence()
+                .filter { log -> log.date.startsWith(today) && log.status != NutritionStatus.PLANNED }
+                .forEach { log ->
+                    log.foods.forEach { food ->
+                        calories += food.calories
+                        protein += food.protein
+                        carbs += food.carbs
+                        fats += food.fats
+                    }
+                }
+
+            HomeNutritionSnapshot(
+                calories = calories,
+                protein = protein,
+                carbs = carbs,
+                fats = fats,
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, HomeNutritionSnapshot())
 
     // ─── Body Metrics ────────────────────────────────────────────────────────────
 
@@ -222,6 +307,10 @@ class HomeViewModel : ViewModel() {
         count
     }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
+    val historyCount: StateFlow<Int> = repository.history
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
     // ─── Relative Strength from History ────────────────────────────────────────
 
     private fun findBest1RM(patterns: List<String>): Double {
@@ -230,9 +319,7 @@ class HomeViewModel : ViewModel() {
             log.completedExercises.forEach { ex ->
                 if (patterns.any { ex.exerciseName.lowercase().contains(it) }) {
                     ex.sets.forEach { s ->
-                        val rm = com.example.kpkn.domain.calculations.calculateBrzycki1RM(
-                            s.weight ?: 0.0, s.reps
-                        )
+                        val rm = calculateBrzycki1RM(s.weight, s.reps)
                         if (rm > best) best = rm
                     }
                 }
@@ -255,6 +342,21 @@ class HomeViewModel : ViewModel() {
             relativeStrength = if (bw > 0) total / bw else 0.0,
         )
     }
+
+    fun getIpfGlPoints(): Double {
+        val strength = getRelativeStrengthData()
+        val bodyWeight = repository.settings.value.userVitals.weight ?: return 0.0
+        if (strength.totalKg <= 0.0) return 0.0
+        return calculateIPFGLPoints(
+            totalLifted = strength.totalKg,
+            bodyWeight = bodyWeight,
+            gender = when (repository.settings.value.userVitals.gender) {
+                com.example.kpkn.data.models.Gender.FEMALE -> "female"
+                else -> "male"
+            },
+            equipment = IpfEquipment.CLASSIC,
+        )
+    }
 }
 
 data class RelativeStrengthData(
@@ -263,4 +365,11 @@ data class RelativeStrengthData(
     val deadliftRM: Double,
     val totalKg: Double,
     val relativeStrength: Double,
+)
+
+data class HomeNutritionSnapshot(
+    val calories: Double = 0.0,
+    val protein: Double = 0.0,
+    val carbs: Double = 0.0,
+    val fats: Double = 0.0,
 )

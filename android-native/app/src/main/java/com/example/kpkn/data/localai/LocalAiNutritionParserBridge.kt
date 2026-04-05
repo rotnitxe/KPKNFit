@@ -94,6 +94,16 @@ private fun convertAiItems(items: List<LocalAiNutritionItem>): List<ParsedMealIt
         val food = findFoodByNormalized(item.canonicalName)
         val cookingMethod = mapCookingMethod(item.preparation)
 
+        val macroOverrides = if (food == null && item.nutritionPer100g != null && item.grams != null && item.grams > 0) {
+            val scale = item.grams / 100.0
+            MacroOverrides(
+                calories = item.nutritionPer100g.calories * scale,
+                protein = item.nutritionPer100g.protein * scale,
+                carbs = item.nutritionPer100g.carbs * scale,
+                fats = item.nutritionPer100g.fats * scale,
+            )
+        } else null
+
         ParsedMealItem(
             tag = item.canonicalName,
             quantity = item.quantity ?: 1,
@@ -101,6 +111,7 @@ private fun convertAiItems(items: List<LocalAiNutritionItem>): List<ParsedMealIt
             cookingMethod = cookingMethod,
             portion = PortionPreset.MEDIUM,
             isFuzzyMatch = food == null,
+            macroOverrides = macroOverrides,
             analysisSource = if (food != null) AnalysisSource.DATABASE else AnalysisSource.LOCAL_AI_ESTIMATE,
             analysisConfidence = item.confidence,
             reviewRequired = item.reviewRequired,

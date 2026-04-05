@@ -187,4 +187,12 @@ interface NutritionDao {
 
     @Query("DELETE FROM nutrition_custom_foods WHERE id = :id")
     suspend fun deleteCustomFood(id: String)
+
+    @Transaction
+    suspend fun activatePlanAtomic(planId: String, plans: List<NutritionPlanEntity>) {
+        plans.forEach { plan ->
+            upsertPlan(plan)
+        }
+        upsertActiveState(NutritionActiveStateEntity(activePlanId = planId))
+    }
 }

@@ -1,20 +1,18 @@
 package com.example.kpkn.screens.programdetail.components
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,13 +21,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.domain.training.WeekWithMeta
 
 data class DayInfo(
     val id: Int,
@@ -44,7 +43,7 @@ val DAYS_OF_WEEK = listOf(
     DayInfo(4, "Jueves", "Jue"),
     DayInfo(5, "Viernes", "Vie"),
     DayInfo(6, "Sábado", "Sáb"),
-    DayInfo(0, "Domingo", "Dom"),
+    DayInfo(7, "Domingo", "Dom"),
 )
 
 fun getDynamicDays(startDay: Int, weekDays: Int): List<DayInfo> {
@@ -73,12 +72,15 @@ private data class DragState(
 @Composable
 fun DayView(
     program: Program,
+    selectedWeek: WeekWithMeta?,
     sessions: List<Session>,
     onEditSession: (String) -> Unit,
     onAddSession: (Int) -> Unit,
     onDeleteSession: (String) -> Unit,
     onStartWorkout: (Session) -> Unit,
     onReorderSessions: (Int, Int) -> Unit,   // (fromIndex, toIndex) global week indices
+    onUpdateStartDay: (Int) -> Unit,
+    onUpdateWeekMetadata: (String, String, String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val startDay = program.startDay ?: 1
@@ -101,6 +103,20 @@ fun DayView(
         modifier = modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        WeekStartSelector(
+            selectedDay = startDay,
+            onSelectDay = onUpdateStartDay,
+        )
+
+        if (selectedWeek != null) {
+            WeekIdentityCard(
+                week = selectedWeek,
+                onSave = { name, description ->
+                    onUpdateWeekMetadata(selectedWeek.id, name, description)
+                },
+            )
+        }
+
         days.forEach { day ->
             val dayPairs = dayToGlobalPairs[day.id] ?: emptyList()
             val daySessions = dayPairs.map { it.first }
@@ -126,6 +142,185 @@ fun DayView(
                     }
                 },
             )
+        }
+    }
+}
+
+@Composable
+private fun WeekStartSelector(
+    selectedDay: Int,
+    onSelectDay: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLabel = DAYS_OF_WEEK.firstOrNull { it.id == selectedDay }?.name ?: "Lunes"
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "La semana empieza en",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Box {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = true },
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Today,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                selectedLabel,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                ) {
+                    DAYS_OF_WEEK.forEach { day ->
+                        DropdownMenuItem(
+                            text = { Text(day.name) },
+                            onClick = {
+                                onSelectDay(day.id)
+                                expanded = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeekIdentityCard(
+    week: WeekWithMeta,
+    onSave: (String, String?) -> Unit,
+) {
+    var isEditing by remember(week.id) { mutableStateOf(false) }
+    var draftName by remember(week.id, week.name) { mutableStateOf(TextFieldValue(week.name)) }
+    var draftDescription by remember(week.id, week.description) {
+        mutableStateOf(TextFieldValue(week.description.orEmpty()))
+    }
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = week.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Black,
+                    )
+                    if (!week.description.isNullOrBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = week.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                IconButton(onClick = { isEditing = !isEditing }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar semana",
+                    )
+                }
+            }
+
+            if (isEditing) {
+                OutlinedTextField(
+                    value = draftName,
+                    onValueChange = { draftName = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Nombre visible de la semana") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                )
+                OutlinedTextField(
+                    value = draftDescription,
+                    onValueChange = { draftDescription = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Descripción opcional") },
+                    minLines = 2,
+                    maxLines = 3,
+                    shape = RoundedCornerShape(16.dp),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(
+                        onClick = {
+                            draftName = TextFieldValue(week.name)
+                            draftDescription = TextFieldValue(week.description.orEmpty())
+                            isEditing = false
+                        },
+                    ) {
+                        Text("Cancelar")
+                    }
+                    TextButton(
+                        onClick = {
+                            onSave(draftName.text, draftDescription.text)
+                            isEditing = false
+                        },
+                    ) {
+                        Text("Guardar")
+                    }
+                }
+            }
         }
     }
 }
@@ -193,7 +388,7 @@ private fun DayColumn(
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            if (sessions.isEmpty()) "Descanso" else "${sessions.size} sesión${if (sessions.size > 1) "es" else ""}",
+                            if (sessions.isEmpty()) "Sin sesiones todavía" else "${sessions.size} sesión${if (sessions.size > 1) "es" else ""}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -226,7 +421,7 @@ private fun DayColumn(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            "Día de descanso \uD83C\uDFC3\u200D\u2642\uFE0F",
+                            "Sin sesiones todavía. Toca + para agregar una.",
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         )

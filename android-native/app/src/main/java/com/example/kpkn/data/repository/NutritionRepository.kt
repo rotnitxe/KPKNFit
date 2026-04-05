@@ -35,17 +35,44 @@ class NutritionRepository private constructor(context: Context) {
 
     fun addNutritionLog(log: NutritionLog) {
         _nutritionLogs.update { it + log }
-        scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
+        scope.launch {
+            try {
+                db.nutritionDao().upsertLog(log.toEntity())
+            } catch (e: Exception) {
+                android.util.Log.e("NutritionRepo", "Room write failed for addLog", e)
+                _nutritionLogs.update { current -> current.filter { it.id != log.id } }
+            }
+        }
     }
 
     fun updateNutritionLog(log: NutritionLog) {
+        val previous = _nutritionLogs.value.find { it.id == log.id }
         _nutritionLogs.update { list -> list.map { if (it.id == log.id) log else it } }
-        scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
+        scope.launch {
+            try {
+                db.nutritionDao().upsertLog(log.toEntity())
+            } catch (e: Exception) {
+                android.util.Log.e("NutritionRepo", "Room write failed for updateLog", e)
+                if (previous != null) {
+                    _nutritionLogs.update { list -> list.map { if (it.id == log.id) previous else it } }
+                }
+            }
+        }
     }
 
     fun deleteNutritionLog(logId: String) {
+        val removed = _nutritionLogs.value.find { it.id == logId }
         _nutritionLogs.update { list -> list.filter { it.id != logId } }
-        scope.launch { db.nutritionDao().deleteLog(logId) }
+        scope.launch {
+            try {
+                db.nutritionDao().deleteLog(logId)
+            } catch (e: Exception) {
+                android.util.Log.e("NutritionRepo", "Room delete failed for log $logId", e)
+                if (removed != null) {
+                    _nutritionLogs.update { it + removed }
+                }
+            }
+        }
     }
 
     fun clearNutritionLogs() {
@@ -103,14 +130,20 @@ class NutritionRepository private constructor(context: Context) {
     }
 
     fun activatePlan(planId: String) {
+        val previousPlans = _nutritionPlans.value
+        val previousActiveId = _activeNutritionPlanId.value
         _nutritionPlans.update { list ->
             list.map { it.copy(isActive = it.id == planId) }
         }
         _activeNutritionPlanId.value = planId
         scope.launch {
-            // Update all plans isActive state
-            _nutritionPlans.value.forEach { db.nutritionDao().upsertPlan(it.toEntity()) }
-            db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = planId))
+            try {
+                db.nutritionDao().activatePlanAtomic(planId, _nutritionPlans.value.map { it.toEntity() })
+            } catch (e: Exception) {
+                android.util.Log.e("NutritionRepo", "Room write failed for activatePlan", e)
+                _nutritionPlans.value = previousPlans
+                _activeNutritionPlanId.value = previousActiveId
+            }
         }
     }
 

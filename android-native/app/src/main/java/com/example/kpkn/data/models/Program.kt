@@ -26,6 +26,15 @@ data class Program(
     val startDay: Int? = null,
     val weekDays: Int? = null,
     val selectedSplitId: String? = null,
+    val customSplitPattern: List<String> = emptyList(),
+    val blockSplitSelections: Map<String, String> = emptyMap(),
+    val structureTemplateId: String? = null,
+    val timelineStartDate: String? = null,
+    val keyDates: List<ProgramKeyDate> = emptyList(),
+    val volumeRecommendations: List<VolumeRecommendation> = emptyList(),
+    val athleteProfileScore: AthleteProfileScore? = null,
+    val volumeAlertsEnabled: Boolean = true,
+    val volumeSetupPromptSeen: Boolean = false,
     val splitTrialSeen: Boolean = false,
     val isDraft: Boolean = false,
 )
@@ -34,6 +43,29 @@ enum class ProgramMode { POWERLIFTING, HYPERTROPHY, POWERBUILDING }
 enum class ProgramStructure { SIMPLE, COMPLEX }
 enum class TrainingPhase { ACCUMULATION, TRANSFORMATION, REALIZATION }
 enum class VolumeSystem { ISRAETEL, KPNK, MANUAL }
+
+@Serializable
+data class VolumeRecommendation(
+    val muscleGroup: String,
+    val minEffectiveVolume: Int,
+    val maxAdaptiveVolume: Int,
+    val maxRecoverableVolume: Int,
+    val frequencyCap: Int = 4,
+)
+
+@Serializable
+data class AthleteProfileScore(
+    val technicalScore: Int,
+    val consistencyScore: Int,
+    val strengthScore: Int,
+    val mobilityScore: Int,
+    val trainingStyle: TrainingStyle,
+    val totalScore: Int,
+    val profileLevel: AthleteProfileLevel,
+)
+
+enum class TrainingStyle { BODYBUILDER, POWERBUILDER, POWERLIFTER }
+enum class AthleteProfileLevel { BEGINNER, ADVANCED }
 
 @Serializable
 data class ProgramGoals(
@@ -91,6 +123,7 @@ enum class MesocycleGoal(val label: String) {
 data class ProgramWeek(
     val id: String,
     val name: String,
+    val description: String? = null,
     val sessions: List<Session> = emptyList(),
     val variant: WeekVariant? = null,
     val isLoopWeek: Boolean = false,
@@ -127,6 +160,24 @@ data class LoopActivation(
 enum class LoopStatus { SCHEDULED, ACTIVE, COMPLETED, POSTPONED, CANCELLED }
 
 @Serializable
+data class ProgramKeyDate(
+    val id: String,
+    val title: String,
+    val type: KeyDateType = KeyDateType.CUSTOM,
+    val startDate: String,
+    val endDate: String? = null,
+    val notes: String? = null,
+)
+
+enum class KeyDateType {
+    COMPETITION,
+    EXAMS,
+    VACATION,
+    TRAVEL,
+    CUSTOM,
+}
+
+@Serializable
 data class ProgramEvent(
     val id: String? = null,
     val title: String,
@@ -139,3 +190,40 @@ data class ProgramEvent(
     val repeatEveryXCycles: Int? = null,
     val sessions: List<Session> = emptyList(),
 )
+
+val Program.totalBlockCount: Int
+    get() = macrocycles.sumOf { it.blocks.size }
+
+val Program.totalMesocycleCount: Int
+    get() = macrocycles.sumOf { macro -> macro.blocks.sumOf { it.mesocycles.size } }
+
+val Program.totalProgramWeeks: Int
+    get() = macrocycles.sumOf { macro -> macro.blocks.sumOf { block -> block.mesocycles.sumOf { it.weeks.size } } }
+
+val Program.isSimpleTemporalProgram: Boolean
+    get() = macrocycles.size == 1 && totalBlockCount == 1
+
+val Program.simpleCycleWeeks: Int?
+    get() = if (isSimpleTemporalProgram) totalProgramWeeks else null
+
+val Program.primaryLoopCadenceCycles: Int?
+    get() = when {
+        loops.isNotEmpty() -> loops.minOf { it.repeatEveryXLoops.coerceAtLeast(1) }
+        events.isNotEmpty() -> events.mapNotNull { it.repeatEveryXCycles }.minOrNull()?.coerceAtLeast(1)
+        else -> null
+    }
+
+val Program.primaryLoopLengthWeeks: Int?
+    get() = simpleCycleWeeks?.let { cycleWeeks ->
+        primaryLoopCadenceCycles?.let { cadence -> cycleWeeks * cadence }
+    }
+
+fun Program.normalizedTemporalStructure(): Program {
+    val shouldBeSimple = isSimpleTemporalProgram
+    return copy(
+        structure = if (shouldBeSimple) ProgramStructure.SIMPLE else ProgramStructure.COMPLEX,
+        loops = if (shouldBeSimple) loops else emptyList(),
+        loopState = if (shouldBeSimple) loopState else null,
+        events = if (shouldBeSimple) events else emptyList(),
+    )
+}

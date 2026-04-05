@@ -4,13 +4,21 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.totalProgramWeeks
 
 data class MuscleVolumeEntry(
     val muscleId: String,
     val muscleName: String,
     val displayVolume: Double,
     val sets: Int,
+)
+
+data class CanonicalMuscleVolumeEntry(
+    val muscleId: String,
+    val muscleName: String,
+    val weeklySets: Double,
 )
 
 object VolumeCalculator {
@@ -82,6 +90,36 @@ object VolumeCalculator {
         return specificMuscle.replaceFirstChar { it.uppercase() }
     }
 
+    fun normalizeCanonicalMuscleGroup(specificMuscle: String, emphasis: String? = null): String {
+        if (specificMuscle.isBlank()) return ""
+
+        val lower = specificMuscle
+            .lowercase()
+            .replace("-", " ")
+            .replace("_", " ")
+            .trim()
+        val emphasisLower = emphasis?.lowercase()?.trim().orEmpty()
+
+        if (lower.contains("deltoides") || lower.contains("hombro")) return "Deltoides"
+        if ((lower.contains("bíceps") || lower.contains("biceps") || lower.contains("braquial")) && !lower.contains("femoral")) return "Bíceps"
+        if (lower.contains("tríceps") || lower.contains("triceps")) return "Tríceps"
+        if (lower.contains("antebrazo") || lower.contains("braquiorradial")) return "Antebrazo"
+        if (lower.contains("trapecio") || lower.contains("romboides")) return "Trapecio"
+        if (lower.contains("dorsal") || lower.contains("lat") || lower.contains("redondo") || lower.contains("espalda")) return "Dorsales"
+        if (lower.contains("erector") || lower.contains("lumbar")) return "Erectores Espinales"
+        if (lower.contains("pectoral") || lower.contains("pecho")) return "Pectorales"
+        if (lower.contains("cuádriceps") || lower.contains("cuadriceps") || lower.contains("recto femoral") || lower.contains("vasto")) return "Cuádriceps"
+        if (lower.contains("isquio") || lower.contains("femoral") || lower.contains("semitendinoso") || lower.contains("semimembranoso")) return "Isquiosurales"
+        if (lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata")) return "Glúteos"
+        if (lower.contains("adductor") || lower.contains("aductor") || lower.contains("pectíneo") || lower.contains("pectineo")) return "Aductores"
+        if (lower.contains("gemelo") || lower.contains("pantorrilla") || lower.contains("gastrocnemio") || lower.contains("sóleo") || lower.contains("soleo")) return "Pantorrillas"
+        if (lower.contains("cuello") || lower.contains("cervical")) return "Cuello"
+        if (lower == "core" || lower.contains("transverso") || lower.contains("serrato") || emphasisLower.contains("core")) return "Core"
+        if (lower.contains("abdominal") || lower.contains("abdomen") || lower.contains("oblicuo")) return "Abdomen"
+
+        return normalizeMuscleGroup(specificMuscle, emphasis)
+    }
+
     fun calculateUnifiedMuscleVolume(
         sessions: List<Session>,
         exerciseList: List<ExerciseMuscleInfo>,
@@ -137,5 +175,63 @@ object VolumeCalculator {
                 )
             }
             .sortedByDescending { it.displayVolume }
+    }
+
+    fun calculateCanonicalWeeklyMuscleVolume(
+        program: Program,
+        exerciseList: List<ExerciseMuscleInfo>,
+    ): List<CanonicalMuscleVolumeEntry> {
+        val totalWeeks = program.totalProgramWeeks.coerceAtLeast(1)
+        val sessions = program.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .flatMap { it.sessions }
+
+        val exerciseIndex = exerciseList.associateBy { it.id.lowercase() }
+        val volumeMap = mutableMapOf<String, Double>()
+
+        for (session in sessions) {
+            val allExercises = if (session.parts.isNotEmpty()) {
+                session.parts.flatMap { it.exercises }
+            } else {
+                session.exercises
+            }
+
+            for (exercise in allExercises) {
+                val effectiveSets = exercise.sets.count { set ->
+                    !set.isIneffective && ((set.completedReps ?: set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
+                }
+                if (effectiveSets <= 0) continue
+
+                val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: continue
+                if (dbInfo.involvedMuscles.isEmpty()) continue
+
+                val perExerciseMuscles = mutableMapOf<String, Double>()
+                dbInfo.involvedMuscles.forEach { muscle ->
+                    val canonicalMuscle = normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
+                    val multiplier = HYPERTROPHY_ROLE_MULTIPLIERS[muscle.role] ?: 0.5
+                    val current = perExerciseMuscles[canonicalMuscle] ?: 0.0
+                    if (multiplier > current) {
+                        perExerciseMuscles[canonicalMuscle] = multiplier
+                    }
+                }
+
+                perExerciseMuscles.forEach { (muscleName, multiplier) ->
+                    val current = volumeMap[muscleName] ?: 0.0
+                    volumeMap[muscleName] = current + (effectiveSets * multiplier)
+                }
+            }
+        }
+
+        return volumeMap.entries
+            .map { (muscleName, totalSets) ->
+                CanonicalMuscleVolumeEntry(
+                    muscleId = muscleName.lowercase().replace(" ", "-"),
+                    muscleName = muscleName,
+                    weeklySets = ((totalSets / totalWeeks) * 10.0).toInt() / 10.0,
+                )
+            }
+            .sortedByDescending { it.weeklySets }
     }
 }

@@ -5,99 +5,142 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.*
+import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.KeyDateType
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.MesocycleGoal
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramKeyDate
+import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.models.normalizedTemporalStructure
+import com.example.kpkn.data.models.primaryLoopCadenceCycles
+import com.example.kpkn.data.models.primaryLoopLengthWeeks
+import com.example.kpkn.data.models.simpleCycleWeeks
+import com.example.kpkn.data.models.totalBlockCount
+import com.example.kpkn.data.models.totalMesocycleCount
+import com.example.kpkn.data.models.totalProgramWeeks
+import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
+import com.example.kpkn.data.programs.ProgramTemplateOption
+import com.example.kpkn.data.programs.buildProgramDraft
+import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.Protocol
+import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun MacrocycleEditor(
     program: Program,
     onUpdateProgram: (Program) -> Unit,
+    onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     var expandedBlocks by remember { mutableStateOf(setOf("0")) }
     var editingBlock by remember { mutableStateOf<EditingItem?>(null) }
     var editingMeso by remember { mutableStateOf<EditingItem?>(null) }
     var editingWeek by remember { mutableStateOf<EditingItem?>(null) }
+    var editingKeyDate by remember { mutableStateOf<ProgramKeyDate?>(null) }
     var pendingDelete by remember { mutableStateOf<DeleteTarget?>(null) }
+    var pendingSimpleToAdvanced by remember { mutableStateOf(false) }
+    var editingTimelineStartDate by remember { mutableStateOf(program.timelineStartDate ?: "") }
+    var showKeyDatesSheet by remember { mutableStateOf(false) }
+    var showAdvancedRoadmap by remember { mutableStateOf(false) }
+    var showLibrarySheet by remember { mutableStateOf(false) }
+    var showLoopsSheet by remember { mutableStateOf(false) }
 
-    val isSimple = remember(program) {
-        program.structure == ProgramStructure.SIMPLE ||
-            (program.macrocycles.size == 1 && (program.macrocycles.firstOrNull()?.blocks?.size ?: 0) <= 1)
-    }
+    val temporalInsight = remember(program) { program.toTemporalInsight() }
+    val stats = remember(program) { program.toProgramStats() }
+    val advancedRoadmap = remember(program) { buildAdvancedRoadmap(program) }
 
-    val stats = remember(program) {
-        var weeks = 0; var sessions = 0; var mesos = 0; var blocks = 0
-        program.macrocycles.forEach { macro ->
-            macro.blocks.forEach { block ->
-                blocks++
-                block.mesocycles.forEach { meso ->
-                    mesos++
-                    weeks += meso.weeks.size
-                    sessions += meso.weeks.sumOf { it.sessions.size }
-                }
-            }
-        }
-        ProgramStats(weeks, sessions, mesos, blocks)
-    }
-
-    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        // Stats summary
-        Text("Editor de Estructura", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-        Spacer(Modifier.height(6.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatChip("Bloques", "${stats.blocks}")
-            StatChip("Mesos", "${stats.mesos}")
-            StatChip("Semanas", "${stats.weeks}")
-            StatChip("Sesiones", "${stats.sessions}")
-        }
-        Spacer(Modifier.height(8.dp))
-
-        // Simple warning
-        if (isSimple) {
-            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFBBF24).copy(alpha = 0.15f))) {
-                Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("\u26A0\uFE0F", fontSize = 14.sp)
-                    Spacer(Modifier.width(6.dp))
-                    Text("Programa simple. Agregar más de 1 bloque lo convertirá en complejo.", fontSize = 9.sp, color = Color(0xFF92400E))
-                }
-            }
-            Spacer(Modifier.height(8.dp))
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        MacrocycleSummaryCard(
+            insight = temporalInsight,
+            stats = stats,
+            keyDatesCount = program.keyDates.size,
+            hasTimelineStartDate = !program.timelineStartDate.isNullOrBlank(),
+            showAdvancedActions = !temporalInsight.isSimple,
+            showRoadmap = showAdvancedRoadmap,
+            onToggleRoadmap = { showAdvancedRoadmap = !showAdvancedRoadmap },
+            onOpenKeyDates = { showKeyDatesSheet = true },
+            onOpenLibrary = { showLibrarySheet = true },
+            onOpenLoops = { showLoopsSheet = true },
+        )
+        if (!temporalInsight.isSimple && showAdvancedRoadmap) {
+            AdvancedRoadmapCard(
+                roadmap = advancedRoadmap,
+                onFocusWeek = onFocusWeek,
+            )
         }
 
-        // Add block button
         OutlinedButton(
             onClick = {
-                editingBlock = EditingItem(type = EditType.ADD, blockIndex = null)
+                if (temporalInsight.isSimple) pendingSimpleToAdvanced = true
+                else editingBlock = EditingItem(type = EditType.ADD, macroIndex = 0)
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Icon(Icons.Default.Add, null, Modifier.size(14.dp))
-            Spacer(Modifier.width(4.dp))
-            Text("Agregar Bloque", fontSize = 10.sp)
+            Icon(Icons.Default.Add, null)
+            Spacer(Modifier.width(8.dp))
+            Text(if (temporalInsight.isSimple) "Agregar bloque y convertir a avanzado" else "Agregar bloque")
         }
-        Spacer(Modifier.height(8.dp))
 
-        // Tree view
-        program.macrocycles.forEachIndexed { macroIdx, macro ->
+        program.ensureMacrocycle().macrocycles.forEachIndexed { macroIdx, macro ->
+            MacroHeader(macro = macro, macroIndex = macroIdx, isSimple = temporalInsight.isSimple)
+
             macro.blocks.forEachIndexed { blockIdx, block ->
                 val blockKey = "$macroIdx-$blockIdx"
                 val isExpanded = blockKey in expandedBlocks
@@ -111,56 +154,55 @@ fun MacrocycleEditor(
                         expandedBlocks = if (isExpanded) expandedBlocks - blockKey else expandedBlocks + blockKey
                     },
                     onEditBlock = {
-                        editingBlock = EditingItem(type = EditType.EDIT, blockIndex = blockIdx, data = block)
+                        editingBlock = EditingItem(
+                            type = EditType.EDIT,
+                            macroIndex = macroIdx,
+                            blockIndex = blockIdx,
+                            data = block,
+                        )
                     },
-                    onDeleteBlock = {
-                        pendingDelete = DeleteTarget.Block(macroIdx, blockIdx)
-                    },
+                    onDeleteBlock = { pendingDelete = DeleteTarget.Block(macroIdx, blockIdx) },
                     onAddMeso = {
-                        editingMeso = EditingItem(type = EditType.ADD, blockIndex = blockIdx)
+                        editingMeso = EditingItem(type = EditType.ADD, macroIndex = macroIdx, blockIndex = blockIdx)
                     },
                     onEditMeso = { mesoIdx, meso ->
-                        editingMeso = EditingItem(type = EditType.EDIT, blockIndex = blockIdx, mesoIndex = mesoIdx, data = meso)
+                        editingMeso = EditingItem(
+                            type = EditType.EDIT,
+                            macroIndex = macroIdx,
+                            blockIndex = blockIdx,
+                            mesoIndex = mesoIdx,
+                            data = meso,
+                        )
                     },
-                    onDeleteMeso = { mesoIdx ->
-                        pendingDelete = DeleteTarget.Mesocycle(macroIdx, blockIdx, mesoIdx)
-                    },
+                    onDeleteMeso = { mesoIdx -> pendingDelete = DeleteTarget.Mesocycle(macroIdx, blockIdx, mesoIdx) },
                     onAddWeek = { mesoIdx ->
-                        editingWeek = EditingItem(type = EditType.ADD, blockIndex = blockIdx, mesoIndex = mesoIdx)
+                        editingWeek = EditingItem(
+                            type = EditType.ADD,
+                            macroIndex = macroIdx,
+                            blockIndex = blockIdx,
+                            mesoIndex = mesoIdx,
+                        )
                     },
                     onDeleteWeek = { mesoIdx, weekIdx ->
                         pendingDelete = DeleteTarget.Week(macroIdx, blockIdx, mesoIdx, weekIdx)
                     },
                 )
-                Spacer(Modifier.height(8.dp))
             }
         }
 
         Spacer(Modifier.height(120.dp))
     }
 
-    // Edit dialogs
     editingBlock?.let { item ->
         BlockEditDialog(
-            block = if (item.type == EditType.EDIT) item.data as? Block else null,
+            block = item.data as? Block,
             onSave = { name ->
                 val updated = if (item.type == EditType.ADD) {
-                    val newBlock = Block(id = "block_${System.nanoTime()}", name = name, mesocycles = listOf(
-                        Mesocycle(id = "meso_${System.nanoTime()}", name = "Meso 1", goal = MesocycleGoal.ACCUMULATION, weeks = listOf(
-                            ProgramWeek(id = "week_${System.nanoTime()}", name = "Semana 1"),
-                        )),
-                    ))
-                    program.copy(macrocycles = program.macrocycles.map { macro ->
-                        macro.copy(blocks = macro.blocks + newBlock)
-                    })
+                    program.ensureMacrocycle().addBlockToMacro(item.macroIndex ?: 0, name)
                 } else {
-                    program.copy(macrocycles = program.macrocycles.map { macro ->
-                        macro.copy(blocks = macro.blocks.mapIndexed { i, b ->
-                            if (i == item.blockIndex) b.copy(name = name) else b
-                        })
-                    })
+                    program.renameBlock(item.macroIndex ?: 0, item.blockIndex ?: 0, name)
                 }
-                onUpdateProgram(updated)
+                onUpdateProgram(updated.normalizedTemporalStructure())
                 editingBlock = null
             },
             onDismiss = { editingBlock = null },
@@ -169,20 +211,14 @@ fun MacrocycleEditor(
 
     editingMeso?.let { item ->
         MesoEditDialog(
+            meso = item.data as? Mesocycle,
             onSave = { name, goal ->
-                val newMeso = Mesocycle(id = "meso_${System.nanoTime()}", name = name, goal = goal, weeks = listOf(
-                    ProgramWeek(id = "week_${System.nanoTime()}", name = "Semana 1"),
-                ))
-                val updated = program.copy(macrocycles = program.macrocycles.map { macro ->
-                    macro.copy(blocks = macro.blocks.mapIndexed { bi, block ->
-                        if (bi != item.blockIndex) block
-                        else if (item.type == EditType.ADD) block.copy(mesocycles = block.mesocycles + newMeso)
-                        else block.copy(mesocycles = block.mesocycles.mapIndexed { mi, meso ->
-                            if (mi == item.mesoIndex) meso.copy(name = name, goal = goal) else meso
-                        })
-                    })
-                })
-                onUpdateProgram(updated)
+                val updated = if (item.type == EditType.ADD) {
+                    program.addMesocycle(item.macroIndex ?: 0, item.blockIndex ?: 0, name, goal)
+                } else {
+                    program.renameMesocycle(item.macroIndex ?: 0, item.blockIndex ?: 0, item.mesoIndex ?: 0, name, goal)
+                }
+                onUpdateProgram(updated.normalizedTemporalStructure())
                 editingMeso = null
             },
             onDismiss = { editingMeso = null },
@@ -192,20 +228,27 @@ fun MacrocycleEditor(
     editingWeek?.let { item ->
         WeekEditDialog(
             onSave = { name ->
-                val newWeek = ProgramWeek(id = "week_${System.nanoTime()}", name = name)
-                val updated = program.copy(macrocycles = program.macrocycles.map { macro ->
-                    macro.copy(blocks = macro.blocks.mapIndexed { bi, block ->
-                        if (bi != item.blockIndex) block
-                        else block.copy(mesocycles = block.mesocycles.mapIndexed { mi, meso ->
-                            if (mi != item.mesoIndex) meso
-                            else meso.copy(weeks = meso.weeks + newWeek)
-                        })
-                    })
-                })
-                onUpdateProgram(updated)
+                val updated = program.addWeek(item.macroIndex ?: 0, item.blockIndex ?: 0, item.mesoIndex ?: 0, name)
+                onUpdateProgram(updated.normalizedTemporalStructure())
                 editingWeek = null
             },
             onDismiss = { editingWeek = null },
+        )
+    }
+
+    editingKeyDate?.let { keyDate ->
+        KeyDateEditSheet(
+            keyDate = keyDate,
+            onSave = { updatedKeyDate ->
+                val updatedDates = program.keyDates
+                    .filterNot { it.id == updatedKeyDate.id }
+                    .plus(updatedKeyDate)
+                    .sortedBy { it.startDate }
+                onUpdateProgram(program.copy(keyDates = updatedDates))
+                editingKeyDate = null
+                showKeyDatesSheet = true
+            },
+            onDismiss = { editingKeyDate = null },
         )
     }
 
@@ -213,39 +256,586 @@ fun MacrocycleEditor(
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
             title = { Text("Eliminar", fontWeight = FontWeight.Bold) },
-            text = { Text("¿Eliminar este elemento?") },
-            confirmButton = {
-                Button(onClick = {
-                    val updated = when (target) {
-                        is DeleteTarget.Block -> program.copy(macrocycles = program.macrocycles.map { macro ->
-                            macro.copy(blocks = macro.blocks.filterIndexed { i, _ -> i != target.blockIndex })
-                        })
-                        is DeleteTarget.Mesocycle -> program.copy(macrocycles = program.macrocycles.map { macro ->
-                            macro.copy(blocks = macro.blocks.mapIndexed { bi, block ->
-                                if (bi != target.blockIndex) block
-                                else block.copy(mesocycles = block.mesocycles.filterIndexed { i, _ -> i != target.mesoIndex })
-                            })
-                        })
-                        is DeleteTarget.Week -> program.copy(macrocycles = program.macrocycles.map { macro ->
-                            macro.copy(blocks = macro.blocks.mapIndexed { bi, block ->
-                                if (bi != target.blockIndex) block
-                                else block.copy(mesocycles = block.mesocycles.mapIndexed { mi, meso ->
-                                    if (mi != target.mesoIndex) meso
-                                    else meso.copy(weeks = meso.weeks.filterIndexed { i, _ -> i != target.weekIndex })
-                                })
-                            })
-                        })
+            text = {
+                Text(
+                    when (target) {
+                        is DeleteTarget.Block -> "Eliminar este bloque puede cambiar la lógica temporal del programa."
+                        is DeleteTarget.Mesocycle -> "Eliminar este mesociclo quitará sus semanas y sesiones."
+                        is DeleteTarget.Week -> "Eliminar esta semana quitará sus sesiones."
                     }
-                    onUpdateProgram(updated)
-                    pendingDelete = null
-                }) { Text("Eliminar") }
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val updated = when (target) {
+                            is DeleteTarget.Block -> program.removeBlock(target.macroIndex, target.blockIndex)
+                            is DeleteTarget.Mesocycle -> program.removeMesocycle(target.macroIndex, target.blockIndex, target.mesoIndex)
+                            is DeleteTarget.Week -> program.removeWeek(target.macroIndex, target.blockIndex, target.mesoIndex, target.weekIndex)
+                        }.normalizedTemporalStructure()
+                        onUpdateProgram(updated)
+                        pendingDelete = null
+                    },
+                ) { Text("Eliminar") }
             },
             dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text("Cancelar") } },
         )
     }
+
+    if (pendingSimpleToAdvanced) {
+        AlertDialog(
+            onDismissRequest = { pendingSimpleToAdvanced = false },
+            title = { Text("Convertir a programa avanzado", fontWeight = FontWeight.Black) },
+            text = {
+                Text(
+                    "Agregar un segundo bloque hace que este programa deje de ser simple. " +
+                        "La estructura pasa a ser lineal, se terminan los loops y los eventos cíclicos dejan de ser compatibles."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val updated = program
+                            .ensureMacrocycle()
+                            .addBlockToMacro(0, "Bloque 2")
+                            .copy(structure = ProgramStructure.COMPLEX)
+                            .normalizedTemporalStructure()
+                        onUpdateProgram(updated)
+                        pendingSimpleToAdvanced = false
+                    },
+                ) { Text("Convertir") }
+            },
+            dismissButton = { TextButton(onClick = { pendingSimpleToAdvanced = false }) { Text("Cancelar") } },
+        )
+    }
+
+    if (!temporalInsight.isSimple && showKeyDatesSheet && editingKeyDate == null) {
+        KeyDatesManagementSheet(
+            timelineStartDate = editingTimelineStartDate,
+            keyDates = program.keyDates,
+            onTimelineStartDateChange = { editingTimelineStartDate = it },
+            onSaveTimeline = {
+                onUpdateProgram(program.copy(timelineStartDate = editingTimelineStartDate.trim().ifBlank { null }))
+            },
+            onAddKeyDate = {
+                editingKeyDate = ProgramKeyDate(
+                    id = "keydate_${System.nanoTime()}",
+                    title = "",
+                    startDate = editingTimelineStartDate,
+                )
+            },
+            onEditKeyDate = { editingKeyDate = it },
+            onDeleteKeyDate = { keyDateId ->
+                onUpdateProgram(program.copy(keyDates = program.keyDates.filterNot { it.id == keyDateId }))
+            },
+            onDismiss = { showKeyDatesSheet = false },
+        )
+    }
+
+    if (showLibrarySheet) {
+        TemplatesProtocolsSheet(
+            currentProgram = program,
+            onApplyTemplate = { template ->
+                val updated = template
+                    .buildProgramDraft(program)
+                    .copy(structureTemplateId = template.id)
+                    .normalizedTemporalStructure()
+                onUpdateProgram(updated)
+                showLibrarySheet = false
+            },
+            onApplyProtocol = { protocol ->
+                val updated = buildProgramFromProtocol(program, protocol).normalizedTemporalStructure()
+                onUpdateProgram(updated)
+                showLibrarySheet = false
+            },
+            onDismiss = { showLibrarySheet = false },
+        )
+    }
+
+    if (temporalInsight.isSimple && showLoopsSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showLoopsSheet = false },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text("Crear/ver loops", fontSize = 18.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        "Los loops viven solo en programas simples y te permiten repetir ciclos con eventos programados.",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                LoopsView(
+                    program = program,
+                    onUpdateProgram = onUpdateProgram,
+                )
+            }
+        }
+    }
 }
 
-// ─── Block Node ─────────────────────────────────────────────────────────────
+@Composable
+private fun MacrocycleSummaryCard(
+    insight: TemporalInsight,
+    stats: ProgramStats,
+    keyDatesCount: Int,
+    hasTimelineStartDate: Boolean,
+    showAdvancedActions: Boolean,
+    showRoadmap: Boolean,
+    onToggleRoadmap: () -> Unit,
+    onOpenKeyDates: () -> Unit,
+    onOpenLibrary: () -> Unit,
+    onOpenLoops: () -> Unit,
+) {
+    val container = if (insight.isSimple) Color(0xFF1E3A2F) else Color(0xFF271C3D)
+    val accent = if (insight.isSimple) Color(0xFF6EE7B7) else Color(0xFFC4B5FD)
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = container),
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    if (insight.isSimple) "Programa simple" else "Programa avanzado",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                )
+                if (insight.isSimple) {
+                    Text(
+                        "${insight.cycleWeeks ?: 0} sem/ciclo",
+                        color = accent,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                    )
+                } else {
+                    Text(
+                        if (hasTimelineStartDate) "$keyDatesCount fechas clave" else "Sin calendario",
+                        color = accent,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                InsightChip("Bloques", "${stats.blocks}", accent)
+                InsightChip("Mesos", "${stats.mesos}", accent)
+                InsightChip("Semanas", "${stats.weeks}", accent)
+                InsightChip("Sesiones", "${stats.sessions}", accent)
+            }
+            if (insight.isSimple) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onOpenLoops) { Text("Crear/ver loops") }
+                }
+            } else if (showAdvancedActions) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas / protocolos") }
+                    OutlinedButton(onClick = onOpenKeyDates) { Text("Fechas clave") }
+                    OutlinedButton(onClick = onToggleRoadmap) { Text(if (showRoadmap) "Ocultar roadmap" else "Ver roadmap") }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun KeyDatesManagementSheet(
+    timelineStartDate: String,
+    keyDates: List<ProgramKeyDate>,
+    onTimelineStartDateChange: (String) -> Unit,
+    onSaveTimeline: () -> Unit,
+    onAddKeyDate: () -> Unit,
+    onEditKeyDate: (ProgramKeyDate) -> Unit,
+    onDeleteKeyDate: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("Fechas clave", fontWeight = FontWeight.Black, fontSize = 18.sp)
+            OutlinedTextField(
+                value = timelineStartDate,
+                onValueChange = onTimelineStartDateChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Inicio del macrociclo (YYYY-MM-DD)") },
+                singleLine = true,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onSaveTimeline) { Text("Guardar inicio") }
+                OutlinedButton(onClick = onAddKeyDate) {
+                    Icon(Icons.Default.Add, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Agregar fecha clave")
+                }
+            }
+            if (keyDates.isEmpty()) {
+                Text(
+                    "Todavía no hay fechas clave.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                keyDates.sortedBy { it.startDate }.forEach { keyDate ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(keyDate.title.ifBlank { "Fecha clave" }, fontWeight = FontWeight.Bold)
+                                Text(
+                                    keyDate.dateSummary(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                KeyDateTypeBadge(type = keyDate.type)
+                            }
+                            IconButton(onClick = { onEditKeyDate(keyDate) }) { Icon(Icons.Default.Edit, "Editar") }
+                            IconButton(onClick = { onDeleteKeyDate(keyDate.id) }) {
+                                Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFEF4444))
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun AdvancedRoadmapCard(
+    roadmap: AdvancedRoadmap,
+    onFocusWeek: (blockId: String, weekId: String) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    ) {
+        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Roadmap interactivo", fontWeight = FontWeight.Black, fontSize = 16.sp)
+            if (roadmap.startDate == null) {
+                Text(
+                    "Guarda primero la fecha de inicio.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else if (roadmap.keyDateTracks.isNotEmpty()) {
+                roadmap.keyDateTracks.forEach { track ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(track.keyDate.title, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        track.keyDate.dateSummary(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                KeyDateTypeBadge(track.keyDate.type)
+                            }
+                            track.slots.forEach { slot ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onFocusWeek(slot.blockId, slot.weekId) },
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                ) {
+                                    Text(
+                                        slot.relativeLabel,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.width(56.dp),
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(16.dp)
+                                            .background(
+                                                when (slot.trackKind) {
+                                                    KeyDateTrackKind.BEFORE -> MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
+                                                    KeyDateTrackKind.INSIDE -> Color(0xFFF59E0B)
+                                                    KeyDateTrackKind.AFTER -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.28f)
+                                                },
+                                                RoundedCornerShape(999.dp),
+                                            )
+                                    )
+                                    Text(
+                                        slot.weekName,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.width(104.dp),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                roadmap.weekSlots.forEach { slot ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onFocusWeek(slot.blockId, slot.weekId) },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(slot.weekName, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        "${slot.blockName} · ${slot.dateRangeLabel}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                if (slot.marks.any { it.kind == KeyDateMarkKind.SPECIAL_WEEK }) {
+                                    Text("Semana especial", color = Color(0xFFF59E0B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                } else if (slot.marks.any { it.kind == KeyDateMarkKind.SPECIAL_SESSION }) {
+                                    Text("Sesión especial", color = Color(0xFF38BDF8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            slot.marks.forEach { mark ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    KeyDateTypeBadge(type = mark.type)
+                                    Text(
+                                        mark.title,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                            if (slot.marks.any { it.type == KeyDateType.COMPETITION }) {
+                                Text(
+                                    "Esta semana contiene competición. Aquí después habilitaremos la creación de sesión de competición.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFFFCA5A5),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun KeyDateTypeBadge(type: KeyDateType) {
+    val text = when (type) {
+        KeyDateType.COMPETITION -> "Competición"
+        KeyDateType.EXAMS -> "Exámenes"
+        KeyDateType.VACATION -> "Vacaciones"
+        KeyDateType.TRAVEL -> "Viaje"
+        KeyDateType.CUSTOM -> "Personalizada"
+    }
+    Box(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    ) {
+        Text(text, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun KeyDateEditSheet(
+    keyDate: ProgramKeyDate,
+    onSave: (ProgramKeyDate) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var title by remember(keyDate.id) { mutableStateOf(keyDate.title) }
+    var startDate by remember(keyDate.id) { mutableStateOf(keyDate.startDate) }
+    var endDate by remember(keyDate.id) { mutableStateOf(keyDate.endDate ?: "") }
+    var notes by remember(keyDate.id) { mutableStateOf(keyDate.notes ?: "") }
+    var type by remember(keyDate.id) { mutableStateOf(keyDate.type) }
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text("Fecha clave", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") }, singleLine = true)
+                OutlinedTextField(value = startDate, onValueChange = { startDate = it }, label = { Text("Inicio (YYYY-MM-DD)") }, singleLine = true)
+                OutlinedTextField(value = endDate, onValueChange = { endDate = it }, label = { Text("Fin opcional (YYYY-MM-DD)") }, singleLine = true)
+                OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas opcionales") })
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    KeyDateType.entries.forEach { entry ->
+                        FilterChip(selected = type == entry, onClick = { type = entry }, label = { Text(entry.name.lowercase().replaceFirstChar { it.uppercase() }) })
+                    }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = {
+                        onSave(
+                            keyDate.copy(
+                                title = title.trim(),
+                                type = type,
+                                startDate = startDate.trim(),
+                                endDate = endDate.trim().ifBlank { null },
+                                notes = notes.trim().ifBlank { null },
+                            )
+                        )
+                    },
+                    enabled = title.isNotBlank() && startDate.isNotBlank(),
+                ) { Text("Guardar") }
+                TextButton(onClick = onDismiss) { Text("Cancelar") }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun TemplatesProtocolsSheet(
+    currentProgram: Program,
+    onApplyTemplate: (ProgramTemplateOption) -> Unit,
+    onApplyProtocol: (Protocol) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var selectedTab by remember { mutableStateOf(0) }
+    val advancedTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.COMPLEX } }
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("Plantillas / protocolos", fontWeight = FontWeight.Black, fontSize = 20.sp)
+            TabRow(selectedTabIndex = selectedTab) {
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Plantillas de programa") })
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Protocolos de entrenamiento") })
+            }
+            if (selectedTab == 0) {
+                advancedTemplates.forEach { template ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onApplyTemplate(template) },
+                        shape = RoundedCornerShape(18.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(template.name, fontWeight = FontWeight.Black)
+                            Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                "${template.trackLabel ?: "Programa"} · ${template.blockNames.size} bloques · ${template.weeks} semanas",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+            } else {
+                PROTOCOL_LIBRARY.forEach { protocol ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onApplyProtocol(protocol) },
+                        shape = RoundedCornerShape(18.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(protocol.name, fontWeight = FontWeight.Black)
+                            Text(protocol.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                "${protocol.blocks.sumOf { it.weeks }} semanas · ${protocol.blocks.size} bloques · ${protocol.sessionCategories.size} partes por sesión",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            if (protocol.sessionCategories.isNotEmpty()) {
+                                Text(
+                                    protocol.sessionCategories.joinToString(" · "),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun MacroHeader(
+    macro: Macrocycle,
+    macroIndex: Int,
+    isSimple: Boolean,
+) {
+    val title = if (isSimple) "Macrociclo base" else macro.name
+    Text(
+        text = if (macroIndex == 0) title else "${macro.name} · ${macroIndex + 1}",
+        fontWeight = FontWeight.Black,
+        fontSize = 14.sp,
+        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
+    )
+}
+
+@Composable
+private fun InsightChip(label: String, value: String, accent: Color) {
+    Box(
+        modifier = Modifier
+            .background(accent.copy(alpha = 0.16f), RoundedCornerShape(999.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(value, fontWeight = FontWeight.Black, color = accent)
+            Text(label, fontSize = 10.sp, color = Color.White.copy(alpha = 0.86f))
+        }
+    }
+}
 
 @Composable
 private fun BlockNode(
@@ -262,34 +852,35 @@ private fun BlockNode(
     onAddWeek: (Int) -> Unit,
     onDeleteWeek: (Int, Int) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
         Column {
-            // Block header
             Row(
-                modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onToggle)
+                    .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     null,
-                    modifier = Modifier.size(18.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(block.name, fontSize = 12.sp, fontWeight = FontWeight.Black)
-                    Text("${block.mesocycles.size} meso${if (block.mesocycles.size != 1) "s" else ""} · ${block.mesocycles.sumOf { it.weeks.size }} semanas", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(block.name, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        "${block.mesocycles.size} meso${if (block.mesocycles.size != 1) "s" else ""} · ${block.mesocycles.sumOf { it.weeks.size }} semanas",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-                IconButton(onClick = onEditBlock, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Edit, "Editar", modifier = Modifier.size(14.dp))
-                }
-                IconButton(onClick = onDeleteBlock, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Delete, "Eliminar", modifier = Modifier.size(14.dp), tint = Color(0xFFEF4444))
-                }
+                IconButton(onClick = onEditBlock) { Icon(Icons.Default.Edit, "Editar") }
+                IconButton(onClick = onDeleteBlock) { Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFEF4444)) }
             }
 
             AnimatedVisibility(visible = isExpanded, enter = expandVertically(), exit = shrinkVertically()) {
-                Column(modifier = Modifier.padding(start = 24.dp, end = 12.dp, bottom = 12.dp)) {
+                Column(modifier = Modifier.padding(start = 24.dp, end = 14.dp, bottom = 14.dp)) {
                     block.mesocycles.forEachIndexed { mesoIdx, meso ->
                         MesoNode(
                             meso = meso,
@@ -298,12 +889,12 @@ private fun BlockNode(
                             onAddWeek = { onAddWeek(mesoIdx) },
                             onDeleteWeek = { weekIdx -> onDeleteWeek(mesoIdx, weekIdx) },
                         )
-                        Spacer(Modifier.height(6.dp))
+                        Spacer(Modifier.height(8.dp))
                     }
                     OutlinedButton(onClick = onAddMeso, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Add, null, Modifier.size(12.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Mesociclo", fontSize = 9.sp)
+                        Icon(Icons.Default.Add, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Agregar mesociclo")
                     }
                 }
             }
@@ -319,102 +910,565 @@ private fun MesoNode(
     onAddWeek: () -> Unit,
     onDeleteWeek: (Int) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.padding(10.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(Modifier.padding(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(meso.name, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    Text("${meso.goal.name} · ${meso.weeks.size} sem", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(meso.name, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "${meso.goal.label} · ${meso.weeks.size} semanas",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-                IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Default.Edit, "Editar", modifier = Modifier.size(12.dp))
-                }
-                IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Default.Delete, "Eliminar", modifier = Modifier.size(12.dp), tint = Color(0xFFEF4444))
-                }
+                IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, "Editar") }
+                IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFEF4444)) }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
                 meso.weeks.forEachIndexed { idx, week ->
                     Box(
-                        Modifier.clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)).padding(horizontal = 6.dp, vertical = 3.dp).clickable { onDeleteWeek(idx) },
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
+                            .clickable { onDeleteWeek(idx) }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
                     ) {
-                        Text(week.name, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                        Text(week.name, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
-                IconButton(onClick = onAddWeek, modifier = Modifier.size(20.dp)) {
-                    Icon(Icons.Default.Add, "Agregar semana", modifier = Modifier.size(10.dp))
-                }
+                IconButton(onClick = onAddWeek) { Icon(Icons.Default.Add, "Agregar semana") }
             }
         }
     }
 }
 
-// ─── Edit Dialogs ───────────────────────────────────────────────────────────
-
 @Composable
-private fun BlockEditDialog(block: Block?, onSave: (String) -> Unit, onDismiss: () -> Unit) {
-    var name by remember { mutableStateOf(block?.name ?: "Nuevo Bloque") }
+private fun BlockEditDialog(
+    block: Block?,
+    onSave: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember { mutableStateOf(block?.name ?: "Nuevo bloque") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (block != null) "Editar Bloque" else "Nuevo Bloque", fontWeight = FontWeight.Bold) },
-        text = { OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, singleLine = true) },
-        confirmButton = { Button(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text("Guardar") } },
+        title = { Text(if (block != null) "Editar bloque" else "Nuevo bloque", fontWeight = FontWeight.Bold) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre") },
+                singleLine = true,
+            )
+        },
+        confirmButton = { Button(onClick = { onSave(name.trim()) }, enabled = name.isNotBlank()) { Text("Guardar") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
     )
 }
 
 @Composable
-private fun MesoEditDialog(onSave: (String, MesocycleGoal) -> Unit, onDismiss: () -> Unit) {
-    var name by remember { mutableStateOf("Nuevo Mesociclo") }
-    var goal by remember { mutableStateOf(MesocycleGoal.ACCUMULATION) }
+private fun MesoEditDialog(
+    meso: Mesocycle?,
+    onSave: (String, MesocycleGoal) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember { mutableStateOf(meso?.name ?: "Nuevo mesociclo") }
+    var goal by remember { mutableStateOf(meso?.goal ?: MesocycleGoal.ACCUMULATION) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Mesociclo", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, singleLine = true)
-                Text("Objetivo", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                )
+                Text("Objetivo", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    MesocycleGoal.entries.forEach { g ->
-                        FilterChip(selected = goal == g, onClick = { goal = g }, label = { Text(g.name, fontSize = 9.sp) })
+                    MesocycleGoal.entries.forEach { entry ->
+                        FilterChip(
+                            selected = goal == entry,
+                            onClick = { goal = entry },
+                            label = { Text(entry.label, fontSize = 11.sp) },
+                        )
                     }
                 }
             }
         },
-        confirmButton = { Button(onClick = { onSave(name, goal) }, enabled = name.isNotBlank()) { Text("Guardar") } },
+        confirmButton = { Button(onClick = { onSave(name.trim(), goal) }, enabled = name.isNotBlank()) { Text("Guardar") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
     )
 }
 
 @Composable
-private fun WeekEditDialog(onSave: (String) -> Unit, onDismiss: () -> Unit) {
-    var name by remember { mutableStateOf("Nueva Semana") }
+private fun WeekEditDialog(
+    onSave: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember { mutableStateOf("Nueva semana") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Semana", fontWeight = FontWeight.Bold) },
-        text = { OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, singleLine = true) },
-        confirmButton = { Button(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text("Guardar") } },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre") },
+                singleLine = true,
+            )
+        },
+        confirmButton = { Button(onClick = { onSave(name.trim()) }, enabled = name.isNotBlank()) { Text("Guardar") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
     )
 }
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
 @Composable
 private fun StatChip(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-        Text(label, fontSize = 7.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, fontSize = 16.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+        Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 private data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: Int, val blocks: Int)
 
+private data class TemporalInsight(
+    val isSimple: Boolean,
+    val cycleWeeks: Int?,
+    val loopCadenceCycles: Int?,
+    val loopLengthWeeks: Int?,
+    val blocks: Int,
+    val mesocycles: Int,
+    val weeks: Int,
+    val hadLoopsOrEvents: Boolean,
+)
+
 private enum class EditType { ADD, EDIT }
-private data class EditingItem(val type: EditType, val blockIndex: Int?, val mesoIndex: Int? = null, val data: Any? = null)
+
+private data class EditingItem(
+    val type: EditType,
+    val macroIndex: Int?,
+    val blockIndex: Int? = null,
+    val mesoIndex: Int? = null,
+    val data: Any? = null,
+)
 
 private sealed class DeleteTarget {
     data class Block(val macroIndex: Int, val blockIndex: Int) : DeleteTarget()
     data class Mesocycle(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int) : DeleteTarget()
     data class Week(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int, val weekIndex: Int) : DeleteTarget()
+}
+
+private fun Program.toProgramStats(): ProgramStats {
+    val sessions = macrocycles.sumOf { macro ->
+        macro.blocks.sumOf { block ->
+            block.mesocycles.sumOf { meso -> meso.weeks.sumOf { it.sessions.size } }
+        }
+    }
+    return ProgramStats(
+        weeks = totalProgramWeeks,
+        sessions = sessions,
+        mesos = totalMesocycleCount,
+        blocks = totalBlockCount,
+    )
+}
+
+private fun Program.toTemporalInsight(): TemporalInsight {
+    return TemporalInsight(
+        isSimple = isSimpleTemporalProgram,
+        cycleWeeks = simpleCycleWeeks,
+        loopCadenceCycles = primaryLoopCadenceCycles,
+        loopLengthWeeks = primaryLoopLengthWeeks,
+        blocks = totalBlockCount,
+        mesocycles = totalMesocycleCount,
+        weeks = totalProgramWeeks,
+        hadLoopsOrEvents = loops.isNotEmpty() || events.isNotEmpty(),
+    )
+}
+
+private fun Program.ensureMacrocycle(): Program {
+    if (macrocycles.isNotEmpty()) return this
+    return copy(
+        macrocycles = listOf(
+            Macrocycle(
+                id = "macro_${System.nanoTime()}",
+                name = "Macrociclo 1",
+                blocks = listOf(defaultBlock("Bloque 1")),
+            )
+        )
+    )
+}
+
+private fun defaultBlock(name: String): Block {
+    return Block(
+        id = "block_${System.nanoTime()}",
+        name = name,
+        mesocycles = listOf(defaultMesocycle()),
+    )
+}
+
+private fun defaultMesocycle(
+    name: String = "Mesociclo 1",
+    goal: MesocycleGoal = MesocycleGoal.ACCUMULATION,
+): Mesocycle {
+    return Mesocycle(
+        id = "meso_${System.nanoTime()}",
+        name = name,
+        goal = goal,
+        weeks = listOf(defaultWeek("Semana 1")),
+    )
+}
+
+private fun defaultWeek(name: String): ProgramWeek {
+    return ProgramWeek(id = "week_${System.nanoTime()}", name = name)
+}
+
+private fun Program.addBlockToMacro(macroIndex: Int, blockName: String): Program {
+    return copy(
+        macrocycles = macrocycles.mapIndexed { index, macro ->
+            if (index != macroIndex) macro
+            else macro.copy(blocks = macro.blocks + defaultBlock(blockName))
+        }
+    )
+}
+
+private fun Program.renameBlock(macroIndex: Int, blockIndex: Int, name: String): Program {
+    return copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) macro
+            else macro.copy(
+                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
+                    if (currentBlockIndex == blockIndex) block.copy(name = name) else block
+                }
+            )
+        }
+    )
+}
+
+private fun Program.addMesocycle(macroIndex: Int, blockIndex: Int, name: String, goal: MesocycleGoal): Program {
+    val mesocycle = defaultMesocycle(name = name, goal = goal)
+    return copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) macro
+            else macro.copy(
+                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
+                    if (currentBlockIndex != blockIndex) block
+                    else block.copy(mesocycles = block.mesocycles + mesocycle)
+                }
+            )
+        }
+    )
+}
+
+private fun Program.renameMesocycle(
+    macroIndex: Int,
+    blockIndex: Int,
+    mesoIndex: Int,
+    name: String,
+    goal: MesocycleGoal,
+): Program {
+    return copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) macro
+            else macro.copy(
+                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
+                    if (currentBlockIndex != blockIndex) block
+                    else block.copy(
+                        mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
+                            if (currentMesoIndex == mesoIndex) meso.copy(name = name, goal = goal) else meso
+                        }
+                    )
+                }
+            )
+        }
+    )
+}
+
+private fun Program.addWeek(macroIndex: Int, blockIndex: Int, mesoIndex: Int, name: String): Program {
+    val week = defaultWeek(name)
+    return copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) macro
+            else macro.copy(
+                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
+                    if (currentBlockIndex != blockIndex) block
+                    else block.copy(
+                        mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
+                            if (currentMesoIndex != mesoIndex) meso
+                            else meso.copy(weeks = meso.weeks + week)
+                        }
+                    )
+                }
+            )
+        }
+    )
+}
+
+private fun Program.removeBlock(macroIndex: Int, blockIndex: Int): Program {
+    return copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) macro
+            else macro.copy(blocks = macro.blocks.filterIndexed { index, _ -> index != blockIndex })
+        }.filter { it.blocks.isNotEmpty() }
+    ).ensureMacrocycle()
+}
+
+private fun Program.removeMesocycle(macroIndex: Int, blockIndex: Int, mesoIndex: Int): Program {
+    return copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) macro
+            else macro.copy(
+                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
+                    if (currentBlockIndex != blockIndex) block
+                    else block.copy(mesocycles = block.mesocycles.filterIndexed { index, _ -> index != mesoIndex })
+                }
+            )
+        }
+    )
+}
+
+private fun Program.removeWeek(macroIndex: Int, blockIndex: Int, mesoIndex: Int, weekIndex: Int): Program {
+    return copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) macro
+            else macro.copy(
+                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
+                    if (currentBlockIndex != blockIndex) block
+                    else block.copy(
+                        mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
+                            if (currentMesoIndex != mesoIndex) meso
+                            else meso.copy(weeks = meso.weeks.filterIndexed { index, _ -> index != weekIndex })
+                        }
+                    )
+                }
+            )
+        }
+    )
+}
+
+private data class AdvancedRoadmap(
+    val startDate: LocalDate?,
+    val weekSlots: List<AdvancedWeekSlot>,
+    val keyDateTracks: List<KeyDateTrack> = emptyList(),
+)
+
+private data class AdvancedWeekSlot(
+    val blockId: String,
+    val blockName: String,
+    val weekId: String,
+    val weekName: String,
+    val weekStart: LocalDate,
+    val weekEnd: LocalDate,
+    val marks: List<KeyDateMark>,
+) {
+    val dateRangeLabel: String
+        get() = "${weekStart} → ${weekEnd}"
+}
+
+private data class KeyDateMark(
+    val keyDateId: String,
+    val title: String,
+    val type: KeyDateType,
+    val kind: KeyDateMarkKind,
+)
+
+private enum class KeyDateMarkKind { SPECIAL_WEEK, SPECIAL_SESSION }
+private enum class KeyDateTrackKind { BEFORE, INSIDE, AFTER }
+
+private data class KeyDateTrack(
+    val keyDate: ProgramKeyDate,
+    val slots: List<KeyDateTrackSlot>,
+)
+
+private data class KeyDateTrackSlot(
+    val blockId: String,
+    val weekId: String,
+    val weekName: String,
+    val relativeLabel: String,
+    val trackKind: KeyDateTrackKind,
+)
+
+private fun buildAdvancedRoadmap(program: Program): AdvancedRoadmap {
+    if (program.isSimpleTemporalProgram) return AdvancedRoadmap(startDate = null, weekSlots = emptyList())
+    val startDate = parseProgramDate(program.timelineStartDate)
+    if (startDate == null) return AdvancedRoadmap(startDate = null, weekSlots = emptyList())
+
+    var currentStart: LocalDate = startDate
+    val slots = mutableListOf<AdvancedWeekSlot>()
+
+    program.macrocycles.forEach { macro ->
+        macro.blocks.forEach { block ->
+            block.mesocycles.forEach { meso ->
+                meso.weeks.forEach { week ->
+                    val weekEnd = currentStart.plusDays(6)
+                    val marks = program.keyDates.mapNotNull { keyDate ->
+                        buildKeyDateMark(keyDate, currentStart, weekEnd)
+                    }
+                    slots += AdvancedWeekSlot(
+                        blockId = block.id,
+                        blockName = block.name,
+                        weekId = week.id,
+                        weekName = week.name,
+                        weekStart = currentStart,
+                        weekEnd = weekEnd,
+                        marks = marks,
+                    )
+                    currentStart = currentStart.plusWeeks(1)
+                }
+            }
+        }
+    }
+
+    val tracks = program.keyDates.mapNotNull { keyDate ->
+        buildKeyDateTrack(keyDate, slots)
+    }
+
+    return AdvancedRoadmap(startDate = startDate, weekSlots = slots, keyDateTracks = tracks)
+}
+
+private fun buildKeyDateMark(
+    keyDate: ProgramKeyDate,
+    weekStart: LocalDate,
+    weekEnd: LocalDate,
+): KeyDateMark? {
+    val start = parseProgramDate(keyDate.startDate) ?: return null
+    val end = parseProgramDate(keyDate.endDate) ?: start
+    if (end < weekStart || start > weekEnd) return null
+    val kind = if (start == end) KeyDateMarkKind.SPECIAL_SESSION else KeyDateMarkKind.SPECIAL_WEEK
+    return KeyDateMark(
+        keyDateId = keyDate.id,
+        title = keyDate.title,
+        type = keyDate.type,
+        kind = kind,
+    )
+}
+
+private fun parseProgramDate(raw: String?): LocalDate? {
+    if (raw.isNullOrBlank()) return null
+    return try {
+        LocalDate.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE)
+    } catch (_: DateTimeParseException) {
+        null
+    }
+}
+
+private fun buildKeyDateTrack(
+    keyDate: ProgramKeyDate,
+    slots: List<AdvancedWeekSlot>,
+): KeyDateTrack? {
+    val start = parseProgramDate(keyDate.startDate) ?: return null
+    val end = parseProgramDate(keyDate.endDate) ?: start
+    val relevantSlots = slots.filter { slot ->
+        val distanceBefore = java.time.temporal.ChronoUnit.DAYS.between(slot.weekEnd, start)
+        val distanceAfter = java.time.temporal.ChronoUnit.DAYS.between(end, slot.weekStart)
+        slot.weekStart <= end && slot.weekEnd >= start || distanceBefore in 0..13 || distanceAfter in 0..13
+    }
+    if (relevantSlots.isEmpty()) return null
+    return KeyDateTrack(
+        keyDate = keyDate,
+        slots = relevantSlots.map { slot ->
+            val kind = when {
+                slot.weekStart <= end && slot.weekEnd >= start -> KeyDateTrackKind.INSIDE
+                slot.weekEnd < start -> KeyDateTrackKind.BEFORE
+                else -> KeyDateTrackKind.AFTER
+            }
+            KeyDateTrackSlot(
+                blockId = slot.blockId,
+                weekId = slot.weekId,
+                weekName = slot.weekName,
+                relativeLabel = when (kind) {
+                    KeyDateTrackKind.INSIDE -> "Objetivo"
+                    KeyDateTrackKind.BEFORE -> "-${java.time.temporal.ChronoUnit.WEEKS.between(slot.weekStart, start).coerceAtLeast(0)} sem"
+                    KeyDateTrackKind.AFTER -> "+${java.time.temporal.ChronoUnit.WEEKS.between(end, slot.weekStart).coerceAtLeast(0)} sem"
+                },
+                trackKind = kind,
+            )
+        }
+    )
+}
+
+private fun ProgramKeyDate.dateSummary(): String {
+    return if (endDate.isNullOrBlank() || endDate == startDate) {
+        startDate
+    } else {
+        "$startDate → $endDate"
+    }
+}
+
+private fun buildProgramFromProtocol(program: Program, protocol: Protocol): Program {
+    val splitPattern = SPLIT_TEMPLATES.firstOrNull { it.id == protocol.defaultSplit }?.pattern.orEmpty()
+    val sessionParts = protocol.sessionCategories.ifEmpty {
+        listOf("Parte principal", "Suplementario", "Accesorios")
+    }
+
+    val blocks = protocol.blocks.map { protocolBlock ->
+        val goal = when (protocolBlock.goal.lowercase()) {
+            "acumulación" -> MesocycleGoal.ACCUMULATION
+            "intensificación" -> MesocycleGoal.INTENSIFICATION
+            "realización" -> MesocycleGoal.REALIZATION
+            "descarga" -> MesocycleGoal.DELOAD
+            else -> MesocycleGoal.CUSTOM
+        }
+        Block(
+            id = "block_${System.nanoTime()}_${protocolBlock.name}",
+            name = protocolBlock.name,
+            mesocycles = listOf(
+                Mesocycle(
+                    id = "meso_${System.nanoTime()}_${protocolBlock.name}",
+                    name = protocolBlock.name,
+                    goal = goal,
+                    weeks = (1..protocolBlock.weeks).map { weekNumber ->
+                        ProgramWeek(
+                            id = "week_${System.nanoTime()}_${weekNumber}",
+                            name = "Semana $weekNumber",
+                            sessions = buildProtocolSessions(splitPattern, sessionParts, protocol),
+                        )
+                    },
+                )
+            ),
+        )
+    }
+
+    return program.copy(
+        structure = ProgramStructure.COMPLEX,
+        structureTemplateId = protocol.id,
+        macrocycles = listOf(
+            Macrocycle(
+                id = "macro_${System.nanoTime()}",
+                name = protocol.name,
+                blocks = blocks,
+            )
+        ),
+    )
+}
+
+private fun buildProtocolSessions(
+    splitPattern: List<String>,
+    parts: List<String>,
+    protocol: Protocol,
+): List<Session> {
+    val effectivePattern = splitPattern
+        .mapIndexedNotNull { index, label ->
+            if (label.equals("Descanso", ignoreCase = true)) null else (index + 1) to label
+        }
+        .ifEmpty { listOf(1 to protocol.name) }
+
+    return effectivePattern.mapIndexed { sessionIndex, day ->
+        Session(
+            id = "session_${System.nanoTime()}_${sessionIndex}",
+            name = day.second,
+            dayOfWeek = day.first,
+            assignedDays = listOf(day.first),
+            parts = parts.mapIndexed { partIndex, partName ->
+                SessionPart(
+                    id = "part_${System.nanoTime()}_${partIndex}",
+                    name = partName,
+                )
+            },
+        )
+    }
 }

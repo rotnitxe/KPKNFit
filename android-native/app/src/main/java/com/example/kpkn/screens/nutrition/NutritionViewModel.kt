@@ -7,6 +7,7 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
@@ -35,10 +36,6 @@ class NutritionViewModel : ViewModel() {
 
     // ─── Derived: Goals ─────────────────────────────────────────────────────
 
-    val goals: StateFlow<MacroGoals> = programRepo.settings
-        .map { deriveMacroGoals(it) }
-        .stateIn(viewModelScope, SharingStarted.Lazily, MacroGoals())
-
     // ─── Derived: Active Plan ───────────────────────────────────────────────
 
     val activePlan: StateFlow<NutritionPlan?> = nutritionRepo.nutritionPlans
@@ -46,6 +43,14 @@ class NutritionViewModel : ViewModel() {
             plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val goals: StateFlow<MacroGoals> = combine(
+        programRepo.settings,
+        activePlan,
+    ) { settings, plan ->
+        deriveMacroGoals(settings, plan)
+    }
+        .stateIn(viewModelScope, SharingStarted.Lazily, MacroGoals())
 
     // ─── Derived: Today Logs ────────────────────────────────────────────────
 
@@ -97,12 +102,21 @@ class NutritionViewModel : ViewModel() {
     }
 
     fun createPlan(plan: NutritionPlan) {
-        nutritionRepo.addNutritionPlan(plan)
-        nutritionRepo.activatePlan(plan.id)
+        val withStart = plan.copy(startValue = programRepo.settings.value.userVitals.weight)
+        nutritionRepo.addNutritionPlan(withStart)
+        nutritionRepo.activatePlan(withStart.id)
+        applyPlanToSettings(withStart)
     }
 
     fun activatePlan(planId: String) {
         nutritionRepo.activatePlan(planId)
+        nutritionRepo.nutritionPlans.value.find { it.id == planId }?.let { plan ->
+            applyPlanToSettings(plan)
+        }
+    }
+
+    fun syncActivePlanGoalsToSettings() {
+        activePlan.value?.let { applyPlanToSettings(it) }
     }
 
     fun deletePlan(planId: String) {
@@ -144,12 +158,16 @@ class NutritionViewModel : ViewModel() {
     ) { plan, settings ->
         if (plan == null) return@combine 0
         val goalValue = plan.primaryGoal?.value ?: plan.goalValue
-        val startWeight = settings.userVitals.weight ?: return@combine 0
-        val goal = goalValue
-        if (startWeight == goal) return@combine 100
-        val totalDistance = kotlin.math.abs(goal - startWeight)
-        if (totalDistance == 0.0) return@combine 100
-        (kotlin.math.round((1 - kotlin.math.abs(goal - startWeight) / totalDistance) * 100)).toInt().coerceIn(0, 100)
+        val currentWeight = settings.userVitals.weight ?: return@combine 0
+        val startValue = plan.startValue ?: currentWeight
+
+        if (goalValue == 0.0) return@combine 0
+        val totalDistance = kotlin.math.abs(goalValue - startValue)
+        if (totalDistance < 0.01) return@combine 100
+
+        val currentDistance = kotlin.math.abs(goalValue - currentWeight)
+        val progress = ((totalDistance - currentDistance) / totalDistance * 100)
+        progress.toInt().coerceIn(0, 100)
     }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     // ─── Wizard State ───────────────────────────────────────────────────────
@@ -159,5 +177,26 @@ class NutritionViewModel : ViewModel() {
 
     fun setShowWizard(show: Boolean) {
         _showWizard.value = show
+    }
+
+    private fun applyPlanToSettings(plan: NutritionPlan) {
+        val currentWeight = programRepo.settings.value.userVitals.weight
+        val targetValue = plan.primaryGoal?.value ?: plan.goalValue
+        val goalObjective = when {
+            currentWeight != null && targetValue > 0 && targetValue < currentWeight -> CalorieGoalObjective.DEFICIT
+            currentWeight != null && targetValue > currentWeight -> CalorieGoalObjective.SURPLUS
+            else -> CalorieGoalObjective.MAINTENANCE
+        }
+        viewModelScope.launch {
+            programRepo.updateSettings { current ->
+                current.copy(
+                    dailyCalorieGoal = plan.calorieTarget.takeIf { it > 0 } ?: current.dailyCalorieGoal,
+                    dailyProteinGoal = plan.proteinGoal.takeIf { it > 0 } ?: current.dailyProteinGoal,
+                    dailyCarbGoal = plan.carbGoal.takeIf { it > 0 } ?: current.dailyCarbGoal,
+                    dailyFatGoal = plan.fatGoal.takeIf { it > 0 } ?: current.dailyFatGoal,
+                    calorieGoalObjective = goalObjective,
+                )
+            }
+        }
     }
 }

@@ -88,7 +88,11 @@ object AugeFatigueEngine {
         if (name.contains("déficit") || name.contains("deficit")) { ssc = min(2.0, ssc + 0.2); efc = min(5.0, efc + 0.3) }
         if (name.contains("parcial") || name.contains("rack pull")) { ssc = min(2.0, ssc + 0.2); efc = max(1.0, efc - 0.2) }
 
-        return AugeMetrics(efc = efc, ssc = ssc, cnc = cnc)
+        return AugeMetrics(
+            efc = efc.coerceIn(1.0, 5.0),
+            ssc = ssc.coerceIn(0.0, 2.0),
+            cnc = cnc.coerceIn(1.0, 5.0),
+        )
     }
 
     // ─── RPE efectivo (traduce RPE / RIR / failure) ──────────────────────────
@@ -137,10 +141,10 @@ object AugeFatigueEngine {
             else           -> 0.9
         }
 
-        // EFC es cuán intenso es metabólicamente (1-5 → 0.2–1.0)
-        val efcRatio = metrics.efc / 5.0
-        val cncRatio = metrics.cnc / 5.0
-        val sscRatio = metrics.ssc / 2.0
+        // EFC/CNC/SSC normalizados antes de drenar baterías
+        val efcRatio = metrics.efc.coerceIn(1.0, 5.0) / 5.0
+        val cncRatio = metrics.cnc.coerceIn(1.0, 5.0) / 5.0
+        val sscRatio = metrics.ssc.coerceIn(0.0, 2.0) / 2.0
 
         val muscularDrain = efcRatio * rpeRatio * volumeFactor * densityFactor * 3.5
         val cnsDrain      = cncRatio  * rpeRatio * volumeFactor * densityFactor * 3.0
@@ -166,7 +170,10 @@ object AugeFatigueEngine {
         completedExercises.forEach { ex ->
             val dbInfo = exerciseDb[ex.exerciseDbId ?: ex.exerciseId]
             val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment)
-            val primaryMuscle = dbInfo?.involvedMuscles?.find { it.role == MuscleRole.PRIMARY }?.muscle ?: "Core"
+            val primaryMuscle = dbInfo?.involvedMuscles
+                ?.find { it.role == MuscleRole.PRIMARY }
+                ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+                ?: "Core"
             var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
 
             ex.sets.forEach { s ->
@@ -200,7 +207,10 @@ object AugeFatigueEngine {
                 it.name.equals(ex.name, ignoreCase = true)
             }
             val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment)
-            val primaryMuscle = dbInfo?.involvedMuscles?.find { it.role == MuscleRole.PRIMARY }?.muscle ?: "Core"
+            val primaryMuscle = dbInfo?.involvedMuscles
+                ?.find { it.role == MuscleRole.PRIMARY }
+                ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+                ?: "Core"
             var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
 
             ex.sets.forEach { s ->

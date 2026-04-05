@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-KPKN Fit (`yourprime-v2`) is an intelligent gym routine creator and tracker. It is a PWA bundled with Capacitor for Android, with a feature-complete and optimized **React Native app in `apps/mobile`** (Production Ready). The UI language is Spanish.
+KPKN Fit (`yourprime-v2`) is an intelligent gym routine creator and tracker. It is a PWA bundled with Capacitor for Android. A previous React Native migration was cancelled; there is currently **no active `apps/mobile` workspace** in this repository, and ongoing native migration work targets Kotlin/Android. The UI language is Spanish.
 
 ## Commands
 
@@ -14,9 +14,7 @@ npm run dev                  # Initial build + file watchers + static server at 
 npm run build                # Production build to www/
 npm run serve                # Serve www/ on port 5500 (no watching)
 npx tsc --noEmit             # TypeScript type-check (root project)
-npm --workspace @kpkn/mobile run typecheck  # Type-check the React Native mobile app
 npm run test:nutrition-logging  # Regression tests for nutrition parsing pipeline
-npm run mobile:test          # Jest tests for @kpkn/mobile workspace
 ```
 
 ### Android
@@ -40,9 +38,10 @@ No Vite or webpack. **esbuild** bundles two entry points: `index.tsx` (main app)
 
 ### Monorepo workspaces
 - `packages/shared-types` — migration types and nutrition types shared across targets
-- `packages/shared-domain` — nutrition analysis logic and local Chilean food catalog (shared with mobile)
-- `packages/design-tokens` — design system constants for React Native
-- `apps/mobile` — React Native app (`@kpkn/mobile`); consumes the three packages above
+- `packages/shared-domain` — nutrition analysis logic and local Chilean food catalog shared across web and migration efforts
+- `packages/design-tokens` — shared design constants used by the current codebase and Kotlin migration support tooling when applicable
+
+There is no active React Native workspace in the current repo snapshot. Do not assume `apps/mobile` exists unless it is reintroduced explicitly.
 
 ### State management
 State lives in **Zustand stores** (`stores/`). `contexts/AppContext.tsx` is a **migration bridge layer** — components still call `useAppState()`/`useAppDispatch()`, but internally those hooks read from Zustand. Do not add new state to `AppContext` directly; add it to the appropriate Zustand store.
@@ -65,11 +64,7 @@ On-device inference via `kpkn-food-fg270m-v1` (FunctionGemma 270M). Pipeline: `R
 
 ### Theming
 **PWA Target:** Material You (M3) dynamic theming via CSS variables and Tailwind.
-**Mobile Target (`apps/mobile`):** Strictly uses **Native StyleSheet** and the `useColors()` hook for M3 dynamic theming.
-- **Tailwind is FORBIDDEN** in the mobile workspace (no `className`).
-- Styles must be encapsulated in `StyleSheet.create`.
-- Use `React.memo` and `useCallback` for performance optimization in complex components.
-- Color tokens are governed by `apps/mobile/src/theme/colors.ts`.
+**Native/Kotlin migration:** Do not introduce React Native-specific styling assumptions. Follow the styling and theming conventions of the Kotlin/Android module you are working in.
 
 ### Optional backend (`backend/`)
 FastAPI server (`main.py`) with routers for volume, fatigue, recovery, analysis, AI proxying, and the AUGE adaptive engine. The client proxy is `services/backendAIService.ts` (defaults to `http://localhost:8000`). The backend is **not required** for web/PWA development — all AUGE computations have client-side implementations.

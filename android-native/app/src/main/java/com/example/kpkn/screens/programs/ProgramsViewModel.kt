@@ -3,6 +3,7 @@ package com.example.kpkn.screens.programs
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.calculations.getTotalWeeks
 import com.example.kpkn.domain.calculations.getSessionExerciseCount
@@ -42,25 +43,33 @@ class ProgramsViewModel : ViewModel() {
         repository.activeProgramState
 
     /**
+     * ID of the currently active program, only when the stored state is truly ACTIVE.
+     * Paused/completed programs stay in the regular list.
+     */
+    private val activeProgramId: StateFlow<String?> = combine(activeProgramState, programs) { active, _ ->
+        if (active?.status == ProgramStatus.ACTIVE) active.programId else null
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    /**
      * Currently active Program object (derived from activeProgramState + programs).
      * Null if no active program found or activeProgramState is null.
      *
      * Combines: activeProgramState + programs.
      * Updates whenever either changes.
      */
-    val activeProgram: StateFlow<Program?> = combine(activeProgramState, programs) { active, all ->
-        if (active != null) all.find { it.id == active.programId } else null
+    val activeProgram: StateFlow<Program?> = combine(programs, activeProgramId) { all, activeId ->
+        activeId?.let { id -> all.find { it.id == id } }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     /**
      * All programs that are NOT currently active (for display in list).
-     * Derived: filters programs where id != activeProgramState.programId.
+     * Derived: filters programs where id != activeProgramId.
      *
-     * Combines: programs + activeProgramState.
+     * Combines: programs + activeProgramId.
      * Updates whenever either changes.
      */
-    val inactivePrograms: StateFlow<List<Program>> = combine(programs, activeProgramState) { all, active ->
-        all.filter { it.id != active?.programId }
+    val inactivePrograms: StateFlow<List<Program>> = combine(programs, activeProgramId) { all, activeId ->
+        all.filter { it.id != activeId }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Business Logic ────────────────────────────────────────────────────

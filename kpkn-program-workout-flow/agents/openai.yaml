@@ -1,0 +1,4 @@
+interface:
+  display_name: "KPKN Program & Workout Flow"
+  short_description: "Translate and harden KPKN training flows."
+  default_prompt: "Use $kpkn-program-workout-flow to translate, refine, debug, or validate ProgramEditor, SessionEditor, and Workout flow work in android-native while preserving KPKN behavior and adapting the UX to native Android."

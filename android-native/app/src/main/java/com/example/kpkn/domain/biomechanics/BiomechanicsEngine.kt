@@ -127,9 +127,9 @@ object BiomechanicsEngine {
         val bp = barPosition.coerceIn(0.0, 1.0)
 
         return when (lift) {
-            LiftType.SQUAT_LOW_BAR -> solveSquat(d, anthropometry, barWeightKg, w, barPosHigh = false)
-            LiftType.SQUAT_HIGH_BAR -> solveSquat(d, anthropometry, barWeightKg, w, barPosHigh = true)
-            LiftType.SQUAT_FRONT -> solveSquat(d, anthropometry, barWeightKg, w, barPosHigh = true, frontSquat = true)
+            LiftType.SQUAT_LOW_BAR -> solveSquat(d, anthropometry, barWeightKg, w, barBias = bp * 0.45)
+            LiftType.SQUAT_HIGH_BAR -> solveSquat(d, anthropometry, barWeightKg, w, barBias = 0.45 + bp * 0.4)
+            LiftType.SQUAT_FRONT -> solveSquat(d, anthropometry, barWeightKg, w, barBias = 1.0, frontSquat = true)
             LiftType.DEADLIFT_CONVENTIONAL -> solveDeadlift(d, anthropometry, barWeightKg, wide = false)
             LiftType.DEADLIFT_SUMO -> solveDeadlift(d, anthropometry, barWeightKg, wide = true)
             LiftType.BENCH_PRESS -> solveBench(d, anthropometry, barWeightKg)
@@ -177,53 +177,76 @@ object BiomechanicsEngine {
         anthro: Anthropometry,
         weightKg: Double,
         stanceWidth: Double,
-        barPosHigh: Boolean,
+        barBias: Double,
         frontSquat: Boolean = false,
     ): BiomechanicalSolve {
-        val femurAngle = 30.0 + depth * 60.0 // degrees
-        val torsoAngle = if (barPosHigh) {
-            15.0 + depth * 30.0
-        } else {
-            20.0 + depth * 40.0
-        }
-        val hipHeight = anthro.femurLengthCm * cos(Math.toRadians(femurAngle)) +
-                anthro.tibiaLengthCm
+        val effectiveBarBias = barBias.coerceIn(0.0, 1.0)
+        val stanceCentered = ((stanceWidth - 0.35) / 0.35).coerceIn(-0.7, 1.2)
+        val kneeForwardBias = 0.18 + effectiveBarBias * 0.18 - stanceCentered * 0.11 + if (frontSquat) 0.08 else 0.0
+        val hipBackwardBias = 0.20 + (1.0 - effectiveBarBias) * 0.16 + stanceCentered * 0.08
 
-        val barHeight = anthro.torsoLengthCm * sin(Math.toRadians(torsoAngle)) + hipHeight +
-                if (barPosHigh) 15.0 else 5.0
+        val femurAngle = (
+            28.0 +
+                depth * (56.0 - stanceCentered * 5.0 + if (frontSquat) 4.0 else 0.0)
+            ).coerceIn(24.0, 92.0)
+        val torsoAngle = (
+            18.0 +
+                depth * (34.0 - effectiveBarBias * 12.0 + stanceCentered * 4.5) +
+                (1.0 - effectiveBarBias) * 6.0 -
+                if (frontSquat) 8.0 else 0.0
+            ).coerceIn(8.0, 60.0)
+        val kneeAngle = (
+            femurAngle + 14.0 + kneeForwardBias * 34.0
+            ).coerceIn(28.0, 122.0)
+        val hipAngle = (
+            torsoAngle + femurAngle * 0.58 + hipBackwardBias * 18.0
+            ).coerceIn(32.0, 130.0)
+        val ankleAngle = (
+            8.0 + femurAngle * 0.22 + effectiveBarBias * 8.0 - stanceCentered * 4.0
+            ).coerceIn(6.0, 42.0)
+
+        val hipHeight = (
+            anthro.tibiaLengthCm * cos(Math.toRadians(kneeAngle * 0.42)) +
+                anthro.femurLengthCm * cos(Math.toRadians(femurAngle))
+            ).coerceAtLeast(18.0)
+
+        val barHeight = (
+            anthro.torsoLengthCm * cos(Math.toRadians(torsoAngle)) + hipHeight +
+                6.0 + effectiveBarBias * 12.0 + if (frontSquat) 6.0 else 0.0
+            ).coerceAtLeast(hipHeight + 12.0)
 
         val totalWeightN = (weightKg + anthro.weightKg * 0.6) * GRAVITY
 
         val jointAngles = listOf(
             JointAngle(
                 joint = "rodilla",
-                angleDegrees = femurAngle + 20.0,
+                angleDegrees = kneeAngle,
                 leverType = LeverType.FIRST_CLASS,
-                momentArm = momentArm(anthro.tibiaLengthCm, femurAngle),
-                mechanicalAdvantage = 1.0 / (1.0 + femurAngle / 90.0),
-                torqueRatio = femurAngle / 90.0,
+                momentArm = momentArm(anthro.tibiaLengthCm, kneeAngle * (0.55 + effectiveBarBias * 0.1)),
+                mechanicalAdvantage = 1.0 / (1.0 + kneeAngle / 120.0),
+                torqueRatio = kneeAngle / 120.0,
             ),
             JointAngle(
                 joint = "cadera",
-                angleDegrees = torsoAngle + femurAngle * 0.5,
+                angleDegrees = hipAngle,
                 leverType = LeverType.THIRD_CLASS,
-                momentArm = momentArm(anthro.femurLengthCm, torsoAngle),
-                mechanicalAdvantage = 1.0 / (1.0 + torsoAngle / 90.0),
-                torqueRatio = (torsoAngle + femurAngle) / 180.0,
+                momentArm = momentArm(anthro.femurLengthCm, torsoAngle + hipBackwardBias * 18.0),
+                mechanicalAdvantage = 1.0 / (1.0 + hipAngle / 120.0),
+                torqueRatio = hipAngle / 130.0,
             ),
             JointAngle(
                 joint = "tobillo",
-                angleDegrees = femurAngle * 0.3 + 10.0,
+                angleDegrees = ankleAngle,
                 leverType = LeverType.SECOND_CLASS,
-                momentArm = momentArm(anthro.tibiaLengthCm, 30.0),
-                mechanicalAdvantage = 1.2,
-                torqueRatio = femurAngle * 0.3 / 90.0,
+                momentArm = momentArm(anthro.tibiaLengthCm, ankleAngle + 10.0),
+                mechanicalAdvantage = 1.1 + effectiveBarBias * 0.15,
+                torqueRatio = ankleAngle / 45.0,
             ),
         )
 
         val torqueMap = mapOf(
-            "rodilla" to torque(totalWeightN, jointAngles[0].momentArm),
-            "cadera" to torque(totalWeightN, jointAngles[1].momentArm),
+            "rodilla" to torque(totalWeightN * (0.92 + effectiveBarBias * 0.16 - stanceCentered * 0.12 + if (frontSquat) 0.12 else 0.0), jointAngles[0].momentArm),
+            "cadera" to torque(totalWeightN * (0.95 + (1.0 - effectiveBarBias) * 0.18 + stanceCentered * 0.16 - if (frontSquat) 0.08 else 0.0), jointAngles[1].momentArm),
             "tobillo" to torque(totalWeightN * 0.3, jointAngles[2].momentArm),
         )
 
@@ -233,10 +256,13 @@ object BiomechanicsEngine {
             "tobillo" to LeverType.SECOND_CLASS,
         )
 
-        val difficulty = (femurAngle / 90.0 * 0.5 + torsoAngle / 90.0 * 0.5)
+        val difficulty = (
+            jointAngles.map { it.torqueRatio }.average() * 0.55 +
+                torqueMap.values.maxOrNull()!!.div((weightKg + anthro.weightKg) * 1.8).coerceIn(0.0, 1.0) * 0.45
+            )
 
         return BiomechanicalSolve(
-            liftType = if (frontSquat) LiftType.SQUAT_FRONT else if (barPosHigh) LiftType.SQUAT_HIGH_BAR else LiftType.SQUAT_LOW_BAR,
+            liftType = if (frontSquat) LiftType.SQUAT_FRONT else if (effectiveBarBias >= 0.45) LiftType.SQUAT_HIGH_BAR else LiftType.SQUAT_LOW_BAR,
             jointAngles = jointAngles,
             femurAngle = femurAngle,
             torsoAngle = torsoAngle,

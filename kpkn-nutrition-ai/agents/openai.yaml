@@ -1,0 +1,4 @@
+interface:
+  display_name: "KPKN Nutrition AI"
+  short_description: "Translate and harden KPKN nutrition AI."
+  default_prompt: "Use $kpkn-nutrition-ai to translate, refine, debug, or validate KPKN free-form food logging, Local AI nutrition parsing, fallback behavior, and nutrition persistence in android-native while using the PWA as a behavior oracle."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "KPKN Compose UI"
+  short_description: "Design KPKN-native Compose screens, not web clones."
+  default_prompt: "Use $kpkn-compose-kpkn-ui to translate, design, refine, or review android-native Compose UI in KPKN, preserving product intent, Spanish copy, strong mobile UX, and the repo's visual language without cloning the PWA."

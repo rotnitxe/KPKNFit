@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine.calculateSetBatteryDrain
 import com.example.kpkn.domain.auge.AugeFatigueEngine.getDynamicAugeMetrics
 import com.example.kpkn.domain.auge.AugeFatigueEngine.isSetEffective
@@ -69,11 +70,8 @@ object AugeRecoveryEngine {
         } catch (e2: Exception) { 0L }
     }
 
-    // Verifica si un músculo pertenece a una categoría (normalización básica)
     private fun muscleMatchesCategory(specificMuscle: String, category: String): Boolean {
-        val s = normKey(specificMuscle)
-        val c = normKey(category)
-        return s == c || s.contains(c) || c.contains(s)
+        return matchesAugeMuscleTarget(specificMuscle, category)
     }
 
     /**
@@ -408,19 +406,27 @@ object AugeRecoveryEngine {
         settings: Settings,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         sleepLogs: List<SleepLog> = emptyList(),
+        nutritionLogs: List<NutritionLog> = emptyList(),
     ): GlobalBatteries {
+        val stressLevel = wellbeing?.stressLevel ?: 3
+        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
+
         val pillarBatteries = PILLAR_MUSCLES.map { muscle ->
-            calculateMuscleBattery(muscle, history, wellbeing, settings, exerciseDb, sleepLogs = sleepLogs).recoveryScore
+            calculateMuscleBattery(muscle, history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs).recoveryScore
         }
         val muscularAvg = if (pillarBatteries.isEmpty()) 100 else pillarBatteries.average().toInt()
 
         val (cncBattery, _, _) = calculateSystemicFatigue(history, wellbeing, settings, exerciseDb, sleepLogs)
         val spinalBattery = calculateSpinalBattery(history, settings, exerciseDb)
 
+        val manualMuscular = wellbeing?.manualMuscularBattery
+        val manualNeural = wellbeing?.manualNeuralBattery
+        val manualSpinal = wellbeing?.manualSpinalBattery
+
         return GlobalBatteries(
-            muscular = muscularAvg.coerceIn(0, 100),
-            cnc      = cncBattery.coerceIn(0, 100),
-            spinal   = spinalBattery.coerceIn(0, 100),
+            muscular = (manualMuscular ?: muscularAvg).coerceIn(0, 100),
+            cnc      = (manualNeural ?: cncBattery).coerceIn(0, 100),
+            spinal   = (manualSpinal ?: spinalBattery).coerceIn(0, 100),
         )
     }
 
@@ -432,9 +438,16 @@ object AugeRecoveryEngine {
         settings: Settings,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         sleepLogs: List<SleepLog> = emptyList(),
+        nutritionLogs: List<NutritionLog> = emptyList(),
     ): Map<String, MuscleRecoveryStatus> {
+        val stressLevel = wellbeing?.stressLevel ?: 3
+        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
         return PILLAR_MUSCLES.associateWith { muscle ->
-            calculateMuscleBattery(muscle, history, wellbeing, settings, exerciseDb, sleepLogs = sleepLogs)
+            val computed = calculateMuscleBattery(muscle, history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs)
+            val manual = wellbeing?.manualMuscleBatteries?.get(muscle)
+            if (manual != null) {
+                computed.copy(recoveryScore = manual.coerceIn(0, 100))
+            } else computed
         }
     }
 
@@ -547,18 +560,20 @@ object AugeRecoveryEngine {
     }
 
     // ─── 9. MULTIPLICADOR NUTRICIONAL ────────────────────────────────────────
-    // Sin logs de nutrición activos, usa el objetivo calórico configurado.
-    // Equivalente al fallback de computeNutritionRecoveryMultiplier() en nutritionRecovery.ts.
-    // Cuando se migre el módulo de nutrición, pasar NutritionLog[] y activar el cálculo completo.
 
-    fun getNutritionMultiplier(settings: Settings): Double {
+    fun getNutritionMultiplier(
+        settings: Settings,
+        nutritionLogs: List<NutritionLog> = emptyList(),
+        stressLevel: Int = 3,
+    ): Double {
         if (!settings.algorithmSettings.augeEnableNutritionTracking) return 1.0
-        // Fallback: inferir multiplicador del objetivo calórico en settings
-        return when (settings.calorieGoalObjective) {
-            CalorieGoalObjective.DEFICIT     -> 1.25  // Déficit: recuperación 25% más lenta
-            CalorieGoalObjective.SURPLUS     -> 0.95  // Superávit: leve aceleración
-            CalorieGoalObjective.MAINTENANCE -> 1.0   // Mantenimiento: sin ajuste
-        }
+        val activePlan = runCatching { NutritionRepository.getInstance().activeNutritionPlan }.getOrNull()
+        return NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
+            nutritionLogs = nutritionLogs,
+            settings = settings,
+            activePlan = activePlan,
+            stressLevel = stressLevel,
+        ).recoveryTimeMultiplier
     }
 
     // Expose PILLAR_MUSCLES para la UI

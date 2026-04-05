@@ -16,6 +16,10 @@ data class DailyWellbeingLog(
     val moodState: MoodState? = null,
     val workIntensity: IntensityLevel? = null,
     val studyIntensity: IntensityLevel? = null,
+    val manualMuscularBattery: Int? = null,
+    val manualNeuralBattery: Int? = null,
+    val manualSpinalBattery: Int? = null,
+    val manualMuscleBatteries: Map<String, Int> = emptyMap(),
     val notes: String? = null,
 )
 

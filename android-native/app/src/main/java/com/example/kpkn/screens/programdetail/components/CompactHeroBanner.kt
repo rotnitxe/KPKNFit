@@ -1,355 +1,596 @@
 package com.example.kpkn.screens.programdetail.components
 
+import android.app.Activity
+import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import coil.compose.AsyncImage
+import com.example.kpkn.data.models.AthleteProfileScore
+import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.VolumeRecommendation
 
-data class GradientTheme(
+private data class CoverGradient(
     val id: String,
     val name: String,
     val colors: List<Color>,
 )
 
-val GRADIENT_THEMES = listOf(
-    GradientTheme("purple", "Púrpura", listOf(Color(0xFF6750A4), Color(0xFFD0BCFF), Color(0xFFFEF7FF))),
-    GradientTheme("sunset", "Cálido", listOf(Color(0xFFFF6B35), Color(0xFFFFB347), Color(0xFFFFF3E0))),
-    GradientTheme("ocean", "Frío", listOf(Color(0xFF006994), Color(0xFF4FC3F7), Color(0xFFE1F5FE))),
-    GradientTheme("forest", "Bosque", listOf(Color(0xFF2E5D4B), Color(0xFF66BB6A), Color(0xFFE8F5E9))),
-    GradientTheme("midnight", "Oscuro", listOf(Color(0xFF1A1A2E), Color(0xFF4A4A6A), Color(0xFF2D2D44))),
-    GradientTheme("rose", "Rosa", listOf(Color(0xFFC2185B), Color(0xFFF48FB1), Color(0xFFFCE4EC))),
+private data class FocusOption(
+    val mode: ProgramMode,
+    val label: String,
 )
 
-data class FocusOption(val value: String, val label: String)
-
-val FOCUS_OPTIONS = listOf(
-    FocusOption("powerlifting", "Powerlifting"),
-    FocusOption("powerbuilding", "Powerbuilding"),
-    FocusOption("hypertrophy", "Hipertrofia"),
+private val heroCoverGradients = listOf(
+    CoverGradient("gradient://ember", "Ember", listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))),
+    CoverGradient("gradient://lagoon", "Lagoon", listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))),
+    CoverGradient("gradient://velvet", "Velvet", listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))),
+    CoverGradient("gradient://forest", "Forest", listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))),
 )
 
+private val focusOptions = listOf(
+    FocusOption(ProgramMode.POWERLIFTING, "Powerlifting"),
+    FocusOption(ProgramMode.POWERBUILDING, "Powerbuilding"),
+    FocusOption(ProgramMode.HYPERTROPHY, "Hipertrofia"),
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompactHeroBanner(
     programName: String,
     programDescription: String?,
+    coverValue: String?,
     isActive: Boolean,
     isPaused: Boolean,
-    currentWeekIndex: Int,
-    totalWeeks: Int,
-    totalAdherence: Int,
     focusMode: String,
+    muscularBattery: Int,
+    sncBattery: Int,
+    spinalBattery: Int,
+    isVolumeCalibrated: Boolean,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onStartPause: () -> Unit,
     onFocusChange: (String) -> Unit,
+    onCoverChange: (String) -> Unit,
+    onApplyVolumeCalibration: (ProgramMode, AthleteProfileScore, List<VolumeRecommendation>) -> Unit,
+    onIncreaseVolumeCurrentWeek: () -> Unit,
+    onReduceVolumeCurrentWeek: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var selectedTheme by remember { mutableStateOf(GRADIENT_THEMES[0]) }
-    var showFocusSelector by remember { mutableStateOf(false) }
-    var showThemeSelector by remember { mutableStateOf(false) }
-
-    val statusLabel = when {
-        isActive -> "Activo"
+    val coverGradient = remember(coverValue) { resolveGradient(coverValue) }
+    val usesGradient = remember(coverValue) { isGradientCover(coverValue) }
+    val darkIcons = remember(coverGradient, usesGradient) {
+        usesGradient && coverGradient.colors.firstOrNull()?.luminance()?.let { it > 0.72f } == true
+    }
+    val labelColor = if (darkIcons) Color(0xFF1C1B1F).copy(alpha = 0.74f) else Color.White.copy(alpha = 0.72f)
+    val primaryTextColor = if (darkIcons) Color(0xFF141218) else Color.White
+    val glassColor = if (darkIcons) Color.White.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.14f)
+    val strokeColor = if (darkIcons) Color(0xFF141218).copy(alpha = 0.14f) else Color.White.copy(alpha = 0.18f)
+    val actionContainer = if (darkIcons) Color.White.copy(alpha = 0.92f) else Color.White.copy(alpha = 0.18f)
+    val actionContent = if (darkIcons) Color(0xFF141218) else Color.White
+    val statusText = when {
+        isActive && !isPaused -> "Activo"
         isPaused -> "Pausado"
         else -> "Borrador"
     }
-    val statusColor = when {
-        isActive -> Color(0xFF10B981)
-        isPaused -> Color(0xFFF59E0B)
-        else -> Color.White.copy(alpha = 0.5f)
+    val statusAccent = when {
+        isActive && !isPaused -> Color(0xFF34D399)
+        isPaused -> Color(0xFFFBBF24)
+        else -> Color(0xFFCBD5E1)
     }
-    val adherenceValue = if (totalWeeks > 0) totalAdherence else 0
-    val isDark = selectedTheme.id == "midnight"
-    val labelColor = if (isDark) Color.White.copy(alpha = 0.6f) else Color.White.copy(alpha = 0.7f)
+    var showFocusMenu by remember { mutableStateOf(false) }
+    var showCoverSheet by remember { mutableStateOf(false) }
+    var showVolumeSheet by remember { mutableStateOf(false) }
+    var pendingFocusMode by remember { mutableStateOf<ProgramMode?>(null) }
+    var showFocusRecalibrationDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        Box(
+    HeroSystemBars(darkIcons = darkIcons)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+            .background(Color.Transparent),
+    ) {
+        HeroBackground(
+            coverValue = coverValue,
+            coverGradient = coverGradient,
+            usesGradient = usesGradient,
+        )
+
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.linearGradient(selectedTheme.colors)),
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 18.dp),
         ) {
-            // Overlay oscuro sutil
-            Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.1f)))
-
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
-                // ─── Nav buttons row ──────────────────────────────────────
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(actionContainer)
+                        .clickable(onClick = onBack),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    CircleIconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White, modifier = Modifier.size(16.dp))
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircleIconButton(onClick = { showThemeSelector = !showThemeSelector }) {
-                            Text("🎨", fontSize = 12.sp)
-                        }
-                        Spacer(Modifier.width(6.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(50))
-                                .background(statusColor.copy(alpha = 0.2f))
-                                .padding(horizontal = 8.dp, vertical = 3.dp),
-                        ) {
-                            Text(
-                                statusLabel.uppercase(),
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 2.sp,
-                                color = Color.White,
-                            )
-                        }
-                        Spacer(Modifier.width(6.dp))
-                        CircleIconButton(onClick = onEdit) {
-                            Icon(Icons.Default.Edit, "Editar", tint = Color.White, modifier = Modifier.size(16.dp))
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = actionContent,
+                    )
                 }
 
-                Spacer(Modifier.height(8.dp))
-
-                // ─── Title + Play/Pause ───────────────────────────────────
                 Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Column(Modifier.weight(1f).padding(end = 8.dp)) {
-                        Text(
-                            programName,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                            maxLines = 2,
-                        )
-                        if (!programDescription.isNullOrBlank()) {
-                            Text(
-                                programDescription,
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.8f),
-                                maxLines = 2,
-                                lineHeight = 16.sp,
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .clickable { onStartPause() },
-                        contentAlignment = Alignment.Center,
+                    StatusPill(
+                        label = statusText,
+                        accent = statusAccent,
+                        contentColor = primaryTextColor,
+                        containerColor = glassColor,
+                        borderColor = strokeColor,
+                    )
+
+                    HeroIconAction(
+                        onClick = { showCoverSheet = true },
+                        containerColor = actionContainer,
+                        contentColor = actionContent,
+                        icon = Icons.Default.Palette,
+                        contentDescription = "Cambiar color",
+                    )
+
+                    HeroIconAction(
+                        onClick = onEdit,
+                        containerColor = actionContainer,
+                        contentColor = actionContent,
+                        icon = Icons.Default.Edit,
+                        contentDescription = "Editar programa",
+                    )
+
+                    FilledIconButton(
+                        onClick = onStartPause,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = if (darkIcons) MaterialTheme.colorScheme.primary else Color.White,
+                            contentColor = if (darkIcons) MaterialTheme.colorScheme.onPrimary else Color(0xFF141218),
+                        ),
                     ) {
-                        if (isActive && !isPaused) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Box(Modifier.size(3.dp, 14.dp).background(Color.Black, RoundedCornerShape(1.dp)))
-                                Box(Modifier.size(3.dp, 14.dp).background(Color.Black, RoundedCornerShape(1.dp)))
-                            }
-                        } else {
-                            Icon(Icons.Default.PlayArrow, "Iniciar", tint = Color.Black, modifier = Modifier.size(18.dp))
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(8.dp))
-
-                // ─── KPIs ─────────────────────────────────────────────────
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, Color.White.copy(alpha = 0.25f))
-                        .padding(top = 10.dp, bottom = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // Semana
-                    KpiColumn("Semana", "${currentWeekIndex + 1} / $totalWeeks", labelColor)
-                    // Adherencia
-                    KpiColumn("Adherencia", "$adherenceValue%", labelColor)
-                    // Enfoque (dropdown)
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            "Enfoque",
-                            fontSize = 7.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 2.sp,
-                            color = labelColor,
-                            modifier = Modifier.padding(bottom = 4.dp),
+                        Icon(
+                            imageVector = if (isActive && !isPaused) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isActive && !isPaused) "Pausar programa" else "Activar programa",
                         )
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .border(1.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(50))
-                                .background(Color.White.copy(alpha = 0.15f))
-                                .clickable { showFocusSelector = !showFocusSelector }
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    FOCUS_OPTIONS.find { it.value == focusMode }?.label ?: focusMode,
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.sp,
-                                    color = Color.White,
-                                    modifier = Modifier.weight(1f, fill = false),
-                                )
-                                Spacer(Modifier.width(4.dp))
-                                Icon(Icons.Default.KeyboardArrowDown, null, tint = Color.White, modifier = Modifier.size(10.dp))
-                            }
-                        }
                     }
                 }
             }
-        }
 
-        // ─── Focus Selector Dropdown ──────────────────────────────────────
-        if (showFocusSelector) {
-            Card(
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                text = programName,
+                color = primaryTextColor,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            if (!programDescription.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = programDescription,
+                    color = labelColor,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            Box {
+                AssistChip(
+                    onClick = { showFocusMenu = true },
+                    label = {
+                        Text(
+                            text = focusOptions.find { it.mode.name.equals(focusMode, ignoreCase = true) }?.label
+                                ?: focusMode.replaceFirstChar { it.uppercase() },
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    },
+                    leadingIcon = {
+                        Text(
+                            text = "Enfoque",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = labelColor,
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                        )
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = glassColor,
+                        labelColor = primaryTextColor,
+                        leadingIconContentColor = primaryTextColor,
+                        trailingIconContentColor = primaryTextColor,
+                    ),
+                    border = AssistChipDefaults.assistChipBorder(
+                        borderColor = strokeColor,
+                        enabled = true,
+                    ),
+                )
+
+                DropdownMenu(
+                    expanded = showFocusMenu,
+                    onDismissRequest = { showFocusMenu = false },
+                ) {
+                    focusOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option.label) },
+                            onClick = {
+                                if (!option.mode.name.equals(focusMode, ignoreCase = true)) {
+                                    pendingFocusMode = option.mode
+                                    showFocusRecalibrationDialog = true
+                                }
+                                showFocusMenu = false
+                            },
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            HeroWidgetsSection(
+                muscularBattery = muscularBattery,
+                sncBattery = sncBattery,
+                spinalBattery = spinalBattery,
+                isVolumeCalibrated = isVolumeCalibrated,
+                onOpenVolumeSetup = { showVolumeSheet = true },
+                onIncreaseVolumeCurrentWeek = onIncreaseVolumeCurrentWeek,
+                onReduceVolumeCurrentWeek = onReduceVolumeCurrentWeek,
+            )
+        }
+    }
+
+    if (showCoverSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCoverSheet = false },
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clickable { showFocusSelector = false },
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(8.dp),
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Column {
-                    Text(
-                        "Enfoque",
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    )
-                    FOCUS_OPTIONS.forEach { option ->
-                        val isSelected = focusMode == option.value
-                        Box(
+                Text(
+                    text = "Colores de portada",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                )
+                Text(
+                    text = "Elige una base para el header del programa. Si usas una foto, esta acción volverá a una portada con gradiente.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                heroCoverGradients.forEach { option ->
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onCoverChange(option.id)
+                                showCoverSheet = false
+                            },
+                        shape = RoundedCornerShape(22.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ) {
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(if (isSelected) Color.Black else Color.Transparent)
-                                .clickable {
-                                    onFocusChange(option.value)
-                                    showFocusSelector = false
-                                }
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
-                                .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                option.label,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        // ─── Theme Selector Dropdown ──────────────────────────────────────
-        if (showThemeSelector) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(8.dp),
-            ) {
-                Column {
-                    Text(
-                        "Tema",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    )
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        GRADIENT_THEMES.forEach { theme ->
                             Box(
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(1.2f)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Brush.linearGradient(theme.colors))
-                                    .then(
-                                        if (selectedTheme.id == theme.id) Modifier.border(
-                                            2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)
-                                        ) else Modifier
-                                    )
-                                    .clickable { selectedTheme = theme; showThemeSelector = false },
-                                contentAlignment = Alignment.Center,
-                            ) {
+                                    .size(width = 92.dp, height = 64.dp)
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(Brush.linearGradient(option.colors)),
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(option.name, fontWeight = FontWeight.Bold)
                                 Text(
-                                    theme.name,
-                                    fontSize = 7.sp,
+                                    if (coverValue == option.id) "Actual" else "Aplicar a la portada",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            if (coverValue == option.id) {
+                                Text(
+                                    text = "Seleccionado",
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White,
                                 )
                             }
                         }
                     }
                 }
+
+                Spacer(Modifier.height(24.dp))
+            }
+        }
+    }
+
+    if (showVolumeSheet) {
+        VolumeCalibrationSheet(
+            currentMode = pendingFocusMode ?: runCatching { ProgramMode.valueOf(focusMode.uppercase()) }.getOrDefault(ProgramMode.HYPERTROPHY),
+            onDismiss = {
+                showVolumeSheet = false
+                pendingFocusMode = null
+            },
+            onSave = { result ->
+                onApplyVolumeCalibration(result.mode, result.score, result.recommendations)
+                showVolumeSheet = false
+                pendingFocusMode = null
+            },
+        )
+    }
+
+    if (showFocusRecalibrationDialog && pendingFocusMode != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showFocusRecalibrationDialog = false
+                pendingFocusMode = null
+            },
+            title = { Text("Cambiar enfoque", fontWeight = FontWeight.Black) },
+            text = {
+                Text("¿Deseas recalibrar el volumen de entrenamiento después de cambiar el enfoque del programa?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val newMode = pendingFocusMode ?: return@Button
+                        onFocusChange(newMode.name.lowercase())
+                        showFocusRecalibrationDialog = false
+                        showVolumeSheet = true
+                    },
+                ) {
+                    Text("Sí, recalibrar")
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(
+                        onClick = {
+                            val newMode = pendingFocusMode ?: return@TextButton
+                            onFocusChange(newMode.name.lowercase())
+                            showFocusRecalibrationDialog = false
+                            pendingFocusMode = null
+                        },
+                    ) {
+                        Text("Solo cambiar")
+                    }
+                    TextButton(
+                        onClick = {
+                            showFocusRecalibrationDialog = false
+                            pendingFocusMode = null
+                        },
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun HeroBackground(
+    coverValue: String?,
+    coverGradient: CoverGradient,
+    usesGradient: Boolean,
+) {
+    Box(modifier = Modifier.fillMaxWidth().height(360.dp)) {
+        if (usesGradient) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = coverGradient.colors,
+                            start = Offset.Zero,
+                            end = Offset(960f, 640f),
+                        ),
+                    ),
+            )
+        } else {
+            AsyncImage(
+                model = coverValue,
+                contentDescription = "Portada del programa",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color.Black.copy(alpha = if (usesGradient) 0.12f else 0.22f),
+                            Color.Black.copy(alpha = if (usesGradient) 0.24f else 0.38f),
+                            Color.Black.copy(alpha = if (usesGradient) 0.32f else 0.52f),
+                            MaterialTheme.colorScheme.background.copy(alpha = 0.92f),
+                        ),
+                    ),
+                ),
+        )
+    }
+}
+
+@Composable
+private fun StatusPill(
+    label: String,
+    accent: Color,
+    contentColor: Color,
+    containerColor: Color,
+    borderColor: Color,
+) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = containerColor,
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp,
+        modifier = Modifier.border(1.dp, borderColor, RoundedCornerShape(999.dp)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(accent),
+            )
+            Text(
+                text = label,
+                color = contentColor,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun HeroIconAction(
+    onClick: () -> Unit,
+    containerColor: Color,
+    contentColor: Color,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+) {
+    Surface(
+        modifier = Modifier.size(40.dp),
+        shape = CircleShape,
+        color = containerColor,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        IconButton(onClick = onClick) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = contentColor,
+            )
+        }
+    }
+}
+
+@Composable
+private fun HeroSystemBars(darkIcons: Boolean) {
+    val view = LocalView.current
+    val context = LocalContext.current
+    DisposableEffect(view, darkIcons, context) {
+        val activity = context.findActivity()
+        val window = activity?.window
+        val previousColor = window?.statusBarColor
+        val controller = window?.let { WindowCompat.getInsetsController(it, view) }
+        val previousLightStatus = controller?.isAppearanceLightStatusBars
+
+        if (window != null && controller != null) {
+            window.statusBarColor = AndroidColor.TRANSPARENT
+            controller.isAppearanceLightStatusBars = darkIcons
+        }
+
+        onDispose {
+            if (window != null && controller != null && previousColor != null && previousLightStatus != null) {
+                window.statusBarColor = previousColor
+                controller.isAppearanceLightStatusBars = previousLightStatus
             }
         }
     }
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-@Composable
-private fun CircleIconButton(onClick: () -> Unit, content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.2f))
-            .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
-    }
+private fun resolveGradient(coverValue: String?): CoverGradient {
+    return heroCoverGradients.firstOrNull { it.id == coverValue } ?: heroCoverGradients.first()
 }
 
-@Composable
-private fun KpiColumn(label: String, value: String, labelColor: Color) {
-    Column {
-        Text(
-            label,
-            fontSize = 7.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 2.sp,
-            color = labelColor,
-        )
-        Text(
-            value,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Black,
-            color = Color.White,
-        )
-    }
+private fun isGradientCover(coverValue: String?): Boolean {
+    return coverValue.isNullOrBlank() || coverValue.startsWith("gradient://")
+}
+
+private tailrec fun android.content.Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is android.content.ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

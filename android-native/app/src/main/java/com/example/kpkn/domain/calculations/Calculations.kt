@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import kotlin.math.exp
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 // ─── 1RM Formulas ────────────────────────────────────────────────────────────
 // 1:1 port from utils/calculations.ts
@@ -168,4 +169,54 @@ fun calculateIPFGLPoints(
 fun roundWeight(weight: Double, unit: String = "kg"): Double {
     val increment = if (unit == "lbs") 2.5 else 1.25
     return (weight / increment).toLong() * increment
+}
+
+fun estimatePercent1RM(repsToFailure: Int): Double {
+    if (repsToFailure <= 0) return 100.0
+    val percent = when {
+        repsToFailure <= 1 -> 100.0
+        repsToFailure <= 3 -> 100.0 - ((repsToFailure - 1) * 4.0)
+        repsToFailure <= 6 -> 92.0 - ((repsToFailure - 3) * 3.0)
+        repsToFailure <= 10 -> 83.0 - ((repsToFailure - 6) * 2.0)
+        else -> maxOf(45.0, 75.0 - ((repsToFailure - 10) * 1.3))
+    }
+    return (percent * 10).roundToInt() / 10.0
+}
+
+fun getEffectiveRepsForRM(set: ExerciseSet): Int? {
+    val reps = set.targetReps ?: return null
+    return when (set.intensityMode) {
+        IntensityMode.FAILURE, IntensityMode.AMRAP, IntensityMode.SOLO_RM -> reps
+        IntensityMode.RIR -> reps + (set.targetRIR ?: 0)
+        IntensityMode.RPE -> reps + (10 - (set.targetRPE ?: 8.0)).roundToInt()
+        else -> reps + 2
+    }.coerceAtLeast(1)
+}
+
+fun suggestRestSeconds(
+    setCount: Int,
+    averageRpe: Double = 8.0,
+    averagePercent1RM: Double? = null,
+): Int {
+    val base = when {
+        averagePercent1RM != null && averagePercent1RM >= 88 -> 240
+        averagePercent1RM != null && averagePercent1RM >= 80 -> 180
+        averageRpe >= 9.5 -> 210
+        averageRpe >= 8.5 -> 150
+        averageRpe >= 7.5 -> 120
+        else -> 90
+    }
+    val densityPenalty = when {
+        setCount >= 8 -> 30
+        setCount >= 5 -> 15
+        else -> 0
+    }
+    return (base + densityPenalty).coerceIn(45, 300)
+}
+
+fun estimateSessionDurationMinutes(totalSets: Int, averageRestSeconds: Int): Int {
+    val workSeconds = totalSets * 55
+    val restSeconds = totalSets * averageRestSeconds
+    val transitions = (totalSets / 3) * 20
+    return ((workSeconds + restSeconds + transitions) / 60.0).roundToInt().coerceAtLeast(5)
 }

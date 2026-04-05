@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,31 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeTtcEngine
 
-// ─── MUSCLE COLOR MAP ─────────────────────────────────────────────────────
-
-private val MUSCLE_COLORS = mapOf(
-    "Pecho" to Color(0xFFE53935), "Pecho Superior" to Color(0xFFE53935),
-    "Dorsal" to Color(0xFF1E88E5), "Dorsal Ancho" to Color(0xFF1E88E5),
-    "Espalda Baja" to Color(0xFF1565C0),
-    "Hombro Anterior" to Color(0xFFFF8F00), "Hombro Lateral" to Color(0xFFFFA000),
-    "Hombro Posterior" to Color(0xFFFFB300), "Deltoides Anterior" to Color(0xFFFF8F00),
-    "Deltoides Lateral" to Color(0xFFFFA000), "Deltoides Posterior" to Color(0xFFFFB300),
-    "Cuádriceps" to Color(0xFF43A047), "Isquiotibiales" to Color(0xFF2E7D32),
-    "Glúteos" to Color(0xFF558B2F), "Gemelos" to Color(0xFF33691E),
-    "Bíceps" to Color(0xFF8E24AA), "Tríceps" to Color(0xFF7B1FA2),
-    "Braquial" to Color(0xFF9C27B0), "Manguito Rotador" to Color(0xFFFF6F00),
-    "Core" to Color(0xFF00897B), "Abdomen" to Color(0xFF00897B),
-    "Oblicuos" to Color(0xFF00695C), "Trapecio Medio" to Color(0xFF1976D2),
-    "Trapecios" to Color(0xFF1976D2), "Trapecio Superior" to Color(0xFF1976D2),
-    "Trapecio Inferior" to Color(0xFF1976D2), "Romboides" to Color(0xFF1976D2),
-    "Antebrazo" to Color(0xFF795548), "Espalda" to Color(0xFF1565C0),
-    "Erectores Espinales" to Color(0xFF1565C0),
-    "Serrato Anterior" to Color(0xFFFF6F00),
-    "Cuello" to Color(0xFF795548),
-)
-
-private fun muscleColor(name: String): Color =
-    MUSCLE_COLORS[name] ?: Color(0xFF757575)
+private fun muscleColor(name: String): Color = wikilabMuscleColor(name)
 
 // ─── MAIN SCREEN ──────────────────────────────────────────────────────────
 
@@ -58,22 +35,62 @@ fun ExerciseDetailScreen(
     onNavigateToJoint: ((String) -> Unit)? = null,
     onBack: () -> Unit,
 ) {
-    val primaryMuscles = exercise.involvedMuscles.filter { it.role == MuscleRole.PRIMARY }
-    val secondaryMuscles = exercise.involvedMuscles.filter { it.role == MuscleRole.SECONDARY }
-    val stabilizerMuscles = exercise.involvedMuscles.filter { it.role == MuscleRole.STABILIZER }
+    val canonicalInvolved = remember(exercise.id, exercise.involvedMuscles) {
+        collapseInvolvedMusclesToCanonical(exercise.involvedMuscles)
+    }
+    val primaryMuscles = canonicalInvolved.filter { it.role == MuscleRole.PRIMARY }
+    val secondaryMuscles = canonicalInvolved.filter { it.role == MuscleRole.SECONDARY }
+    val stabilizerMuscles = canonicalInvolved.filter { it.role == MuscleRole.STABILIZER }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {},
+            LargeTopAppBar(
+                title = {
+                    Column {
+                        Text(exercise.name, fontWeight = FontWeight.Black)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            exercise.category?.let { cat ->
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                ) {
+                                    Text(
+                                        cat,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    )
+                                }
+                            }
+                            exercise.type?.let { t ->
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                ) {
+                                    Text(
+                                        t,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface,
                 ),
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->
@@ -87,6 +104,10 @@ fun ExerciseDetailScreen(
             // ─── Header ──────────────────────────────────────────────────
             item {
                 HeaderSection(exercise)
+            }
+
+            item {
+                ExerciseBiomechVisual(exercise)
             }
 
             // ─── AUGE Metrics ────────────────────────────────────────────
@@ -311,18 +332,22 @@ private fun AugeMetricsSection(exercise: ExerciseMuscleInfo) {
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(16.dp),
     ) {
-        Text(
-            "MÉTRICAS AUGE",
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.ExtraBold,
-            letterSpacing = (0.1f).sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Analytics, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(7.dp))
+            Text(
+                "MÉTRICAS AUGE",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 0.8.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         Spacer(Modifier.height(12.dp))
 
         // EFC — Fatiga Local
-        exercise.efc?.let { efc ->
+        exercise.efc?.coerceIn(1.0, 5.0)?.let { efc ->
             MetricRow(
                 label = "EFC — Fatiga Local",
                 value = efc,
@@ -334,7 +359,7 @@ private fun AugeMetricsSection(exercise: ExerciseMuscleInfo) {
         }
 
         // CNC — Costo Neural
-        exercise.cnc?.let { cnc ->
+        exercise.cnc?.coerceIn(1.0, 5.0)?.let { cnc ->
             MetricRow(
                 label = "CNC — Costo Neural",
                 value = cnc,
@@ -346,7 +371,7 @@ private fun AugeMetricsSection(exercise: ExerciseMuscleInfo) {
         }
 
         // SSC — Costo Estructural
-        exercise.ssc?.let { ssc ->
+        exercise.ssc?.coerceIn(0.0, 2.0)?.let { ssc ->
             MetricRow(
                 label = "SSC — Costo Estructural",
                 value = ssc,
@@ -495,6 +520,13 @@ private fun MuscleSection(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Aporte al volumen = cuánto cuenta este músculo dentro de tus series efectivas.",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
         Spacer(Modifier.height(8.dp))
 
         muscles.forEach { m ->
@@ -510,8 +542,10 @@ private fun MuscleSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
-                        if (onNavigateToMuscle != null) {
-                            Modifier.clickable { onNavigateToMuscle(m.muscle) }
+                        if (onNavigateToMuscle != null && canonicalWikiLabMuscleId(m.muscle, m.emphasis) != null) {
+                            Modifier.clickable {
+                                canonicalWikiLabMuscleId(m.muscle, m.emphasis)?.let(onNavigateToMuscle)
+                            }
                         } else {
                             Modifier
                         }
@@ -546,13 +580,13 @@ private fun MuscleSection(
                     }
                 }
 
-                m.activation?.let { act ->
+                m.volumeContribution?.let { act ->
                     Surface(
                         shape = RoundedCornerShape(6.dp),
                         color = color.copy(alpha = 0.1f),
                     ) {
                         Text(
-                            "K=${"%.2f".format(act)}",
+                            "Aporte al volumen ${"%.2f".format(act)}",
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = color,

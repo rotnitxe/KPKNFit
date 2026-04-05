@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,16 +41,39 @@ fun TendonDetailScreen(
 
     val injuries = WikiLabRepository.parseInjuries(tendon.commonInjuries)
     val protectionIds = WikiLabRepository.parseStringList(tendon.protectiveExercises)
+    val protectiveExercises = remember(protectionIds) {
+        resolveWikiLabExerciseLinks(protectionIds)
+    }
+    val tendonGuide = remember(tendon.id) { buildTendonGuide(tendon) }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {},
+            LargeTopAppBar(
+                title = {
+                    Column {
+                        Text(tendon.name, fontWeight = FontWeight.Black)
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFFF8F00).copy(alpha = 0.12f),
+                        ) {
+                            Text(
+                                "Tendon",
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFF8F00),
+                            )
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver")
                     }
                 },
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->
@@ -61,26 +85,8 @@ fun TendonDetailScreen(
             // ─── Header ──────────────────────────────────────────────────
             item {
                 Column {
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFFFF8F00).copy(alpha = 0.12f),
-                    ) {
-                        Text(
-                            "Tendón",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFF8F00),
-                        )
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        tendon.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
-                    )
                     tendon.description?.let {
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(2.dp))
                         Text(
                             it,
                             style = MaterialTheme.typography.bodyMedium,
@@ -91,9 +97,20 @@ fun TendonDetailScreen(
                 }
             }
 
+            item {
+                WikiLabInsightCard(
+                    title = tendonGuide.title,
+                    accent = tendonGuide.accent,
+                    icon = tendonGuide.icon,
+                    summary = tendonGuide.summary,
+                    bullets = tendonGuide.bullets,
+                )
+            }
+
             // ─── Related Muscle ──────────────────────────────────────────
             tendon.muscleId?.let { muscleId ->
-                val muscle = WikiLabRepository.getMuscleById(muscleId)
+                val canonicalMuscleId = canonicalWikiLabMuscleIdFromEntityId(muscleId) ?: muscleId
+                val muscle = WikiLabRepository.getMuscleById(canonicalMuscleId)
                 if (muscle != null) {
                     item {
                         Column(
@@ -101,7 +118,7 @@ fun TendonDetailScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                                .clickable { onNavigateToMuscle(muscleId) }
+                                .clickable { onNavigateToMuscle(canonicalMuscleId) }
                                 .padding(16.dp),
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -167,7 +184,7 @@ fun TendonDetailScreen(
             }
 
             // ─── Protective Exercises ────────────────────────────────────
-            if (protectionIds.isNotEmpty()) {
+            if (protectiveExercises.isNotEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
@@ -188,15 +205,15 @@ fun TendonDetailScreen(
                             )
                         }
                         Spacer(Modifier.height(8.dp))
-                        protectionIds.forEach { id ->
+                        protectiveExercises.forEach { exercise ->
                             Row(
-                                modifier = Modifier.fillMaxWidth().clickable { onNavigateToExercise(id) }.padding(vertical = 5.dp),
+                                modifier = Modifier.fillMaxWidth().clickable { onNavigateToExercise(exercise.id) }.padding(vertical = 5.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Surface(Modifier.size(8.dp), RoundedCornerShape(50), Color(0xFF43A047)) {}
                                 Spacer(Modifier.width(10.dp))
                                 Text(
-                                    id.replace("db_", "").replace("_", " ").replaceFirstChar { it.uppercase() },
+                                    exercise.name,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.weight(1f),

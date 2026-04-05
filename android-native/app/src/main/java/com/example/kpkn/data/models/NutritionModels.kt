@@ -85,6 +85,7 @@ data class LoggedFood(
     val portionPreset: PortionPreset? = null,
     val cookingMethod: CookingMethod? = null,
     val quantity: Int = 1,
+    val analysisSource: AnalysisSource? = null,
 )
 
 // ─── NutritionLog ─────────────────────────────────────────────────────────────
@@ -129,6 +130,7 @@ data class NutritionPlan(
     val primaryGoal: NutritionGoal? = null,
     val estimatedEndDate: String? = null,
     val weeklyChangeKg: Double = 0.5,
+    val startValue: Double? = null,
 )
 
 enum class GoalMetric { WEIGHT, BODY_FAT, MUSCLE_MASS }

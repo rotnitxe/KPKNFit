@@ -82,3 +82,30 @@ apps/mobile/window_dump*.xml
 apps/mobile/.bundle/
 tmp/
 playwright-*.png
+
+# Repo organization guardrails
+artifacts/
+.codex_tmp/root-scratch/
+
+# Root-level generated outputs and ad-hoc diagnostics
+/computeWorker.js
+/index.js
+/index.js.map
+/output.css
+/emulator-screen*.png
+/figma_output*.json
+/figma_tree*.txt
+/git_status*.txt
+/git2*.txt
+/history*.txt
+/dbcheck*.txt
+/dbdiff*.txt
+/dblog2*.txt
+/diff*.txt
+/e1_head_utf8.txt
+/recent_diff.txt
+/react_grep.txt
+/ts_errors.txt
+/tsc_*.txt
+/tserr.txt
+/typecheck_*.txt

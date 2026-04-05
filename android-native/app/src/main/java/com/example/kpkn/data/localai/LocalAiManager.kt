@@ -29,6 +29,9 @@ data class LocalAiStatus(
     val ready: Boolean = false,
     val modelVersion: String? = null,
     val error: String? = null,
+    val modelPath: String? = null,
+    val modelSizeBytes: Long? = null,
+    val loadedFromAssetPath: String? = null,
 )
 
 data class LocalAiNutritionRequest(
@@ -66,20 +69,32 @@ data class LocalAiNutritionResult(
 
 private const val TAG = "LocalAiManager"
 private const val MODEL_NAME = "kpkn-food-fg270m-v1.litertlm"
-private const val ASSET_PATH = "install-time-models/$MODEL_NAME"
+private val ASSET_CANDIDATES = listOf(
+    "install-time-models/$MODEL_NAME",
+    "install time models/$MODEL_NAME",
+    "models/$MODEL_NAME",
+)
 private const val MAX_TOKENS = 384
 private const val TOP_K = 8
 private const val TEMPERATURE = 0.05f
 private const val INFERENCE_TIMEOUT_MS = 8000L
 private const val FILE_COPY_BUFFER = 32768
+private const val MAX_JSON_LENGTH = 8192
+private const val INIT_RETRIES = 3
 
 // ─── Singleton ───────────────────────────────────────────────────────────────
 
 object LocalAiManager {
 
+    private data class PreparedModelFile(
+        val file: File,
+        val loadedFromAssetPath: String? = null,
+    )
+
     @Volatile private var engine: LlmInference? = null
     @Volatile private var status: LocalAiStatus = LocalAiStatus()
     @Volatile private var initialized = false
+    @Volatile private var appCtx: Context? = null
     private val initMutex = Mutex()
     private val inferenceMutex = Mutex()
 
@@ -92,9 +107,10 @@ object LocalAiManager {
      * First call loads the model. Subsequent calls are no-ops.
      */
     suspend fun initialize(context: Context): LocalAiStatus {
-        if (initialized) return status
+        appCtx = context.applicationContext
+        if (initialized && status.ready) return status
         initMutex.withLock {
-            if (initialized) return status
+            if (initialized && status.ready) return status
             doInit(context.applicationContext)
         }
         return status
@@ -106,6 +122,9 @@ object LocalAiManager {
      */
     suspend fun analyze(request: LocalAiNutritionRequest): LocalAiNutritionResult {
         val start = System.currentTimeMillis()
+        if (engine == null && appCtx != null && (!initialized || !status.ready)) {
+            initialize(appCtx!!)
+        }
         val eng = engine ?: return LocalAiNutritionResult(elapsedMs = System.currentTimeMillis() - start)
 
         return inferenceMutex.withLock {
@@ -134,30 +153,57 @@ object LocalAiManager {
     // ─── Init ────────────────────────────────────────────────────────────────
 
     private fun doInit(context: Context) {
-        val modelFile = prepareModelFile(context)
-        if (modelFile == null) {
-            status = LocalAiStatus(error = "Modelo no encontrado en asset pack")
-            initialized = true
-            android.util.Log.e(TAG, "Model file not found at $ASSET_PATH")
+        try { engine?.close() } catch (_: Exception) {}
+        engine = null
+
+        val preparedModel = prepareModelFile(context)
+        if (preparedModel == null) {
+            status = LocalAiStatus(error = "Modelo no encontrado en assets: ${ASSET_CANDIDATES.joinToString()}")
+            initialized = false
+            android.util.Log.e(TAG, "Model file not found in candidates: ${ASSET_CANDIDATES.joinToString()}")
             return
         }
 
-        try {
-            android.util.Log.d(TAG, "Loading model from ${modelFile.absolutePath} (${modelFile.length() / 1024 / 1024}MB)")
+        val modelFile = preparedModel.file
 
-            val opts = LlmInferenceOptions.builder()
-                .setModelPath(modelFile.absolutePath)
-                .setMaxTokens(MAX_TOKENS)
-                .build()
+        val opts = LlmInferenceOptions.builder()
+            .setModelPath(modelFile.absolutePath)
+            .setMaxTokens(MAX_TOKENS)
+            .build()
 
-            engine = LlmInference.createFromOptions(context, opts)
-            status = LocalAiStatus(ready = true, modelVersion = MODEL_NAME.removeSuffix(".litertlm"))
-            android.util.Log.d(TAG, "Model loaded successfully")
-        } catch (e: Exception) {
-            status = LocalAiStatus(error = "Error cargando modelo: ${e.message}")
-            android.util.Log.e(TAG, "Failed to load model", e)
+        var loaded = false
+        var lastError: Throwable? = null
+        repeat(INIT_RETRIES) { attempt ->
+            try {
+                android.util.Log.d(TAG, "Loading model from ${modelFile.absolutePath} (${modelFile.length() / 1024 / 1024}MB), attempt=${attempt + 1}")
+                engine = LlmInference.createFromOptions(context, opts)
+                status = LocalAiStatus(
+                    ready = true,
+                    modelVersion = MODEL_NAME.removeSuffix(".litertlm"),
+                    modelPath = modelFile.absolutePath,
+                    modelSizeBytes = modelFile.length(),
+                    loadedFromAssetPath = preparedModel.loadedFromAssetPath,
+                )
+                android.util.Log.d(TAG, "Model loaded successfully")
+                loaded = true
+                return@repeat
+            } catch (t: Throwable) {
+                lastError = t
+                android.util.Log.e(TAG, "Failed to load model on attempt=${attempt + 1}", t)
+                try { engine?.close() } catch (_: Exception) {}
+                engine = null
+            }
         }
-        initialized = true
+
+        if (!loaded) {
+            status = LocalAiStatus(
+                error = "Error cargando modelo (${android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "abi-desconocida"}): ${lastError?.message}",
+                modelPath = modelFile.absolutePath,
+                modelSizeBytes = modelFile.length(),
+                loadedFromAssetPath = preparedModel.loadedFromAssetPath,
+            )
+        }
+        initialized = status.ready
     }
 
     /**
@@ -165,35 +211,44 @@ object LocalAiManager {
      * MediaPipe requires a file path, not an asset stream.
      * Skips copy if file already exists with size > 0.
      */
-    private fun prepareModelFile(context: Context): File? {
+    private fun prepareModelFile(context: Context): PreparedModelFile? {
         val dir = File(context.filesDir, "models")
         val target = File(dir, MODEL_NAME)
 
         if (target.exists() && target.length() > 100_000_000) {
             android.util.Log.d(TAG, "Model already cached: ${target.length() / 1024 / 1024}MB")
-            return target
+            return PreparedModelFile(file = target, loadedFromAssetPath = null)
         }
 
         dir.mkdirs()
-        return try {
-            context.assets.open(ASSET_PATH).use { input ->
-                FileOutputStream(target).use { output ->
-                    val buf = ByteArray(FILE_COPY_BUFFER)
-                    var read: Int
-                    var total = 0L
-                    while (input.read(buf).also { read = it } != -1) {
-                        output.write(buf, 0, read)
-                        total += read
+
+        for (assetPath in ASSET_CANDIDATES) {
+            try {
+                context.assets.open(assetPath).use { input ->
+                    FileOutputStream(target).use { output ->
+                        val buf = ByteArray(FILE_COPY_BUFFER)
+                        var read: Int
+                        var total = 0L
+                        while (input.read(buf).also { read = it } != -1) {
+                            output.write(buf, 0, read)
+                            total += read
+                        }
+                        android.util.Log.d(TAG, "Model copied from $assetPath: ${total / 1024 / 1024}MB")
                     }
-                    android.util.Log.d(TAG, "Model copied: ${total / 1024 / 1024}MB")
                 }
+                if (!target.exists() || target.length() <= 100_000_000) {
+                    target.delete()
+                    throw IllegalStateException("Modelo copiado incompleto desde $assetPath (${target.length()} bytes)")
+                }
+                return PreparedModelFile(file = target, loadedFromAssetPath = assetPath)
+            } catch (_: Exception) {
+                android.util.Log.d(TAG, "Asset not found at $assetPath, trying next")
             }
-            target
-        } catch (e: Exception) {
-            target.delete()
-            android.util.Log.e(TAG, "Failed to copy model", e)
-            null
         }
+
+        target.delete()
+        android.util.Log.e(TAG, "Model not found in any asset path: ${ASSET_CANDIDATES.joinToString()}")
+        return null
     }
 
     // ─── Inference ───────────────────────────────────────────────────────────
@@ -256,15 +311,15 @@ RESPUESTA:""".trimIndent()
     }
 
     private fun extractJson(output: String): String? {
-        // Find first balanced JSON object
         val start = output.indexOf('{')
         if (start < 0) return null
 
         var depth = 0
         var inString = false
         var escape = false
+        var lastValidClose = -1
 
-        for (i in start until output.length) {
+        for (i in start until minOf(output.length, start + MAX_JSON_LENGTH)) {
             val c = output[i]
             if (escape) { escape = false; continue }
             if (c == '\\' && inString) { escape = true; continue }
@@ -276,8 +331,12 @@ RESPUESTA:""".trimIndent()
                 '}' -> {
                     depth--
                     if (depth == 0) return output.substring(start, i + 1)
+                    if (depth > 0) lastValidClose = i
                 }
             }
+        }
+        if (lastValidClose > 0) {
+            return output.substring(start, lastValidClose + 1)
         }
         return null
     }
@@ -365,12 +424,12 @@ RESPUESTA:""".trimIndent()
     // ─── JSON Field Extractors ───────────────────────────────────────────────
 
     private fun str(json: String, key: String): String? {
-        val pattern = """"$key"\s*:\s*"([^"]*)"""".toRegex()
+        val pattern = """"$key"\s*:\s*"((?:[^"\\]|\\.)*)"""".toRegex()
         return pattern.find(json)?.groupValues?.get(1)
     }
 
     private fun dbl(json: String, key: String): Double? {
-        val pattern = """"$key"\s*:\s*([\d.]+)""".toRegex()
+        val pattern = """"$key"\s*:\s*(-?[\d.]+(?:[eE][+-]?\d+)?)""".toRegex()
         return pattern.find(json)?.groupValues?.get(1)?.toDoubleOrNull()
     }
 

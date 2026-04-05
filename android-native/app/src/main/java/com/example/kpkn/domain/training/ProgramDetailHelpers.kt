@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.domain.calculations.getTotalWeeks
 
 data class RoadmapBlock(
@@ -19,6 +20,7 @@ data class RoadmapBlock(
 data class WeekWithMeta(
     val id: String,
     val name: String,
+    val description: String? = null,
     val sessions: List<Session>,
     val mesoGoal: MesocycleGoal,
     val mesoIndex: Int,
@@ -40,8 +42,7 @@ data class WeekAdherence(
 object ProgramDetailHelpers {
 
     fun isSimpleProgram(program: Program): Boolean {
-        return program.structure.name == "SIMPLE" ||
-            (program.macrocycles.size == 1 && (program.macrocycles.firstOrNull()?.blocks?.size ?: 0) <= 1)
+        return program.isSimpleTemporalProgram
     }
 
     fun buildRoadmapBlocks(program: Program): List<RoadmapBlock> {
@@ -92,6 +93,7 @@ object ProgramDetailHelpers {
                     WeekWithMeta(
                         id = week.id,
                         name = week.name,
+                        description = week.description,
                         sessions = week.sessions,
                         mesoGoal = meso.goal,
                         mesoIndex = mesoOffset + localMesoIdx,
