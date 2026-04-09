@@ -16,7 +16,7 @@ import java.time.LocalDate
 
 /**
  * PostSessionSheet — Post-workout recovery questionnaire.
- * Shows 2-48h after a session. Captures CNC recovery (1-10) and
+ * Shows 2-48h after a session. Captures system freshness (1-10) and
  * per-muscle DOMS/strength feedback.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,14 +74,14 @@ fun PostSessionSheet(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            // ─── CNC Recovery ─────────────────────────────────────────────────
+            // ─── System recovery ─────────────────────────────────────────────
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text("Energía mental / SNC", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    Text("Sistema / frescura general", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                     Text("$cnsRecovery / 10", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 }
                 Slider(

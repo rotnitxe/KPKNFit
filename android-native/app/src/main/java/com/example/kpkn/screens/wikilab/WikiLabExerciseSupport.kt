@@ -41,7 +41,7 @@ internal fun resolveWikiLabExerciseLinks(
 ): List<WikiLabExerciseLink> {
     val seen = linkedSetOf<String>()
     return ids.mapNotNull { requestedId ->
-        val exercise = resolveExercise(requestedId) ?: return@mapNotNull null
+        val exercise = resolveExercise(requestedId) ?: resolveExerciseFromNaturalLanguage(requestedId) ?: return@mapNotNull null
         if (!seen.add(exercise.id)) return@mapNotNull null
         WikiLabExerciseLink(
             id = exercise.id,
@@ -50,6 +50,46 @@ internal fun resolveWikiLabExerciseLinks(
         )
     }
 }
+
+private fun resolveExerciseFromNaturalLanguage(raw: String): com.example.kpkn.data.models.ExerciseMuscleInfo? {
+    val query = normalizeForLookup(raw)
+    if (query.isBlank()) return null
+
+    val normalizedTokens = query.split(" ").filter { it.isNotBlank() }
+    if (normalizedTokens.isEmpty()) return null
+
+    return com.example.kpkn.data.exercises.EXERCISE_DATABASE
+        .asSequence()
+        .map { exercise ->
+            val name = normalizeForLookup(exercise.name)
+            val alias = normalizeForLookup(exercise.alias.orEmpty())
+            val haystack = "$name $alias"
+            val tokenHits = normalizedTokens.count { token -> haystack.contains(token) }
+            val score = when {
+                name == query || alias == query -> 200
+                name.contains(query) || alias.contains(query) -> 150
+                else -> tokenHits * 22
+            }
+            exercise to score
+        }
+        .filter { (_, score) -> score > 0 }
+        .sortedWith(compareByDescending<Pair<com.example.kpkn.data.models.ExerciseMuscleInfo, Int>> { it.second }.thenBy { it.first.name.length })
+        .map { it.first }
+        .firstOrNull()
+}
+
+private fun normalizeForLookup(raw: String): String =
+    raw.lowercase()
+        .replace("á", "a")
+        .replace("é", "e")
+        .replace("í", "i")
+        .replace("ó", "o")
+        .replace("ú", "u")
+        .replace("ü", "u")
+        .replace("ñ", "n")
+        .replace("-", " ")
+        .replace("_", " ")
+        .trim()
 
 internal fun resolveWikiLabMuscleId(muscleName: String): String? = when (muscleName) {
     "Pectorales" -> "pectoral"

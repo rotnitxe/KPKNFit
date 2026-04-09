@@ -2,10 +2,13 @@ package com.example.kpkn.screens.nutrition
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -18,12 +21,14 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import java.util.UUID
 
 // ═══════════════════════════════════════════════════════════════════════
 // COLORS
@@ -83,10 +88,15 @@ private val FFMI_GAUGE_SEGMENTS = listOf(
 fun BodyProgressScreen(
     onBack: () -> Unit,
 ) {
+    val nutritionRepo = NutritionRepository.getInstance()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val vitals = settings.userVitals
-    val plans by NutritionRepository.getInstance().nutritionPlans.collectAsState()
+    val plans by nutritionRepo.nutritionPlans.collectAsState()
     val activePlan = plans.lastOrNull { it.isActive } ?: plans.lastOrNull()
+    val bodyMeasurements by nutritionRepo.bodyMeasurements.collectAsState()
+    val measurementSchedule by nutritionRepo.measurementSchedule.collectAsState()
+
+    var showAddMeasurement by remember { mutableStateOf(false) }
 
     // Compute derived body metrics
     val weight = vitals.weight
@@ -111,6 +121,15 @@ fun BodyProgressScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Volver") }
                 },
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { showAddMeasurement = true },
+                icon = { Icon(Icons.Default.Add, null) },
+                text = { Text("Registrar medición") },
+                containerColor = TEAL,
+                contentColor = Color.White,
             )
         },
     ) { padding ->
@@ -184,7 +203,100 @@ fun BodyProgressScreen(
             item {
                 TipsCard(bodyFat = bodyFat, ffmi = ffmi, bmi = bmi)
             }
+
+            // ── Programar próxima medición ───────────────────────────────
+            item {
+                MeasurementScheduleCard(
+                    schedule = measurementSchedule,
+                    onUpdate = nutritionRepo::updateMeasurementSchedule,
+                )
+            }
+
+            // ── Historial de mediciones ──────────────────────────────────
+            item {
+                Text(
+                    "HISTORIAL DE MEDIDAS",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 1.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                )
+            }
+
+            if (bodyMeasurements.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        ),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Icon(
+                                Icons.Default.MonitorWeight,
+                                null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(32.dp),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Sin mediciones registradas",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Usa el botón + para registrar tu primera medición",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(bodyMeasurements.sortedByDescending { it.date }) { entry ->
+                    MeasurementEntryCard(
+                        entry = entry,
+                        onDelete = { nutritionRepo.deleteBodyMeasurement(entry.id) },
+                    )
+                }
+            }
+
+            item { Spacer(Modifier.height(100.dp)) }
         }
+    }
+
+    // ── Add Measurement Sheet ────────────────────────────────────────────────
+    if (showAddMeasurement) {
+        AddMeasurementSheet(
+            onDismiss = { showAddMeasurement = false },
+            onSave = { entry ->
+                nutritionRepo.addBodyMeasurement(entry)
+                // Actualizar vitals con el peso más reciente si se proveyó
+                if (entry.weight != null) {
+                    ProgramRepository.getInstance().let { repo ->
+                        repo.updateSettings { s ->
+                            s.copy(
+                                userVitals = s.userVitals.copy(
+                                    weight = entry.weight,
+                                    bodyFatPercentage = entry.bodyFat ?: s.userVitals.bodyFatPercentage,
+                                    muscleMassPercentage = entry.muscleMass ?: s.userVitals.muscleMassPercentage,
+                                ),
+                            )
+                        }
+                    }
+                }
+                showAddMeasurement = false
+            },
+        )
     }
 }
 
@@ -732,6 +844,321 @@ private fun TipsCard(bodyFat: Double?, ffmi: Double?, bmi: Double?) {
             }
         }
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MEASUREMENT SCHEDULE CARD
+// ═══════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun MeasurementScheduleCard(
+    schedule: MeasurementSchedule,
+    onUpdate: (MeasurementSchedule) -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = TEAL.copy(alpha = 0.08f)),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CalendarMonth, null, tint = TEAL, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Programar mediciones", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                }
+                Switch(
+                    checked = schedule.enabled,
+                    onCheckedChange = { onUpdate(schedule.copy(enabled = it)) },
+                    colors = SwitchDefaults.colors(checkedThumbColor = TEAL, checkedTrackColor = TEAL.copy(alpha = 0.3f)),
+                )
+            }
+
+            if (schedule.enabled) {
+                Spacer(Modifier.height(12.dp))
+
+                // Interval selector
+                Text("Frecuencia", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(7 to "Semanal", 14 to "Quincenal", 30 to "Mensual").forEach { (days, label) ->
+                        val sel = schedule.intervalDays == days
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (sel) TEAL else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.clickable { onUpdate(schedule.copy(intervalDays = days)) },
+                        ) {
+                            Text(
+                                label,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (sel) FontWeight.Black else FontWeight.SemiBold,
+                                color = if (sel) Color.White else MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
+                }
+
+                if (schedule.nextDate != null) {
+                    Spacer(Modifier.height(10.dp))
+                    val label = try {
+                        java.time.LocalDate.parse(schedule.nextDate)
+                            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale("es")))
+                            .replaceFirstChar { it.uppercase() }
+                    } catch (_: Exception) { schedule.nextDate }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Schedule, null, tint = TEAL, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Próxima: $label", style = MaterialTheme.typography.labelMedium, color = TEAL, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(Modifier.height(10.dp))
+                OutlinedButton(
+                    onClick = {
+                        val next = java.time.LocalDate.now().plusDays(schedule.intervalDays.toLong()).toString()
+                        onUpdate(schedule.copy(nextDate = next))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Icon(Icons.Default.Event, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Programar próxima medición", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MEASUREMENT ENTRY CARD
+// ═══════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun MeasurementEntryCard(
+    entry: BodyMeasurementEntry,
+    onDelete: () -> Unit,
+) {
+    val dateLabel = try {
+        java.time.LocalDate.parse(entry.date)
+            .format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale("es")))
+    } catch (_: Exception) { entry.date }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 3.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CalendarToday, null, tint = TEAL, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(dateLabel, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                }
+                IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Default.DeleteOutline, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            // Main metrics row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                entry.weight?.let { MeasurementChip("Peso", "${r1(it)} kg", WEIGHT_COLOR) }
+                entry.bodyFat?.let { MeasurementChip("% Grasa", "${r1(it)}%", BODYFAT_COLOR) }
+                entry.muscleMass?.let { MeasurementChip("% Músculo", "${r1(it)}%", MUSCLE_COLOR) }
+            }
+            // Circumferences
+            val hasCirfs = listOf(entry.waistCm, entry.hipCm, entry.chestCm, entry.armCm, entry.thighCm).any { it != null }
+            if (hasCirfs) {
+                Spacer(Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    entry.waistCm?.let { MeasurementChip("Cintura", "${r1(it)} cm", Color(0xFF78909C)) }
+                    entry.hipCm?.let { MeasurementChip("Cadera", "${r1(it)} cm", Color(0xFF78909C)) }
+                    entry.chestCm?.let { MeasurementChip("Pecho", "${r1(it)} cm", Color(0xFF78909C)) }
+                    entry.armCm?.let { MeasurementChip("Brazo", "${r1(it)} cm", Color(0xFF78909C)) }
+                    entry.thighCm?.let { MeasurementChip("Muslo", "${r1(it)} cm", Color(0xFF78909C)) }
+                }
+            }
+            if (entry.notes != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(entry.notes, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MeasurementChip(label: String, value: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = color)
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADD MEASUREMENT SHEET
+// ═══════════════════════════════════════════════════════════════════════
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddMeasurementSheet(
+    onDismiss: () -> Unit,
+    onSave: (BodyMeasurementEntry) -> Unit,
+) {
+    var weight by remember { mutableStateOf("") }
+    var bodyFat by remember { mutableStateOf("") }
+    var muscleMass by remember { mutableStateOf("") }
+    var waist by remember { mutableStateOf("") }
+    var hip by remember { mutableStateOf("") }
+    var chest by remember { mutableStateOf("") }
+    var arm by remember { mutableStateOf("") }
+    var thigh by remember { mutableStateOf("") }
+    var neck by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item {
+                Text("Registrar Medición", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+                Text(
+                    java.time.LocalDate.now().format(
+                        java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM yyyy", java.util.Locale("es"))
+                    ).replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            item { MeasurementSectionLabel("Peso y composición") }
+
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    MeasurementField("Peso (kg)", weight, { weight = it }, Modifier.weight(1f))
+                    MeasurementField("% Grasa", bodyFat, { bodyFat = it }, Modifier.weight(1f))
+                    MeasurementField("% Músculo", muscleMass, { muscleMass = it }, Modifier.weight(1f))
+                }
+            }
+
+            item { MeasurementSectionLabel("Circunferencias (cm) — opcional") }
+
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    MeasurementField("Cintura", waist, { waist = it }, Modifier.weight(1f))
+                    MeasurementField("Cadera", hip, { hip = it }, Modifier.weight(1f))
+                    MeasurementField("Pecho", chest, { chest = it }, Modifier.weight(1f))
+                }
+            }
+
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    MeasurementField("Brazo", arm, { arm = it }, Modifier.weight(1f))
+                    MeasurementField("Muslo", thigh, { thigh = it }, Modifier.weight(1f))
+                    MeasurementField("Cuello", neck, { neck = it }, Modifier.weight(1f))
+                }
+            }
+
+            item {
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Notas (opcional)") },
+                    maxLines = 2,
+                )
+            }
+
+            item {
+                val hasData = weight.isNotBlank() || bodyFat.isNotBlank() || waist.isNotBlank()
+                Button(
+                    onClick = {
+                        val entry = BodyMeasurementEntry(
+                            id = UUID.randomUUID().toString(),
+                            date = java.time.LocalDate.now().toString(),
+                            weight = weight.replace(",", ".").toDoubleOrNull(),
+                            bodyFat = bodyFat.replace(",", ".").toDoubleOrNull(),
+                            muscleMass = muscleMass.replace(",", ".").toDoubleOrNull(),
+                            waistCm = waist.replace(",", ".").toDoubleOrNull(),
+                            hipCm = hip.replace(",", ".").toDoubleOrNull(),
+                            chestCm = chest.replace(",", ".").toDoubleOrNull(),
+                            armCm = arm.replace(",", ".").toDoubleOrNull(),
+                            thighCm = thigh.replace(",", ".").toDoubleOrNull(),
+                            neckCm = neck.replace(",", ".").toDoubleOrNull(),
+                            notes = notes.ifBlank { null },
+                        )
+                        onSave(entry)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = hasData,
+                ) {
+                    Icon(Icons.Default.Save, null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("GUARDAR MEDICIÓN", fontWeight = FontWeight.Black)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MeasurementSectionLabel(label: String) {
+    Text(
+        label.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.ExtraBold,
+        letterSpacing = 1.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+}
+
+@Composable
+private fun MeasurementField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+    )
 }
 
 // ═══════════════════════════════════════════════════════════════════════

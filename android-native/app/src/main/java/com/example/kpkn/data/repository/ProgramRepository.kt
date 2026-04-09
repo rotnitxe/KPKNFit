@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Calendar
+import java.util.UUID
 
 /**
  * ProgramRepository — Single source of truth para programas, historial,
@@ -61,7 +63,9 @@ class ProgramRepository private constructor(context: Context) {
     val activeProgramState: StateFlow<ActiveProgramState?> = _activeProgramState.asStateFlow()
 
     fun startProgram(programId: String) {
-        val state = ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE)
+        val program = _programs.value.find { it.id == programId }
+        val resolved = program?.let { buildDefaultActiveProgramState(it, programId) }
+        val state = resolved ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE)
         _activeProgramState.value = state
         scope.launch { db.stateDao().upsertActiveProgram(state.toEntity()) }
     }
@@ -127,9 +131,90 @@ class ProgramRepository private constructor(context: Context) {
     private val _settings = MutableStateFlow(Settings())
     val settings: StateFlow<Settings> = _settings.asStateFlow()
 
+    // ─── Workout V2: Context performance + replacement decisions ─────────────
+
+    private val _contextPerformance = MutableStateFlow<Map<String, ContextPerformanceStateV2>>(emptyMap())
+    val contextPerformance: StateFlow<Map<String, ContextPerformanceStateV2>> = _contextPerformance.asStateFlow()
+
+    private val _globalPerformance = MutableStateFlow<Map<String, GlobalPerformanceStateV3>>(emptyMap())
+    val globalPerformance: StateFlow<Map<String, GlobalPerformanceStateV3>> = _globalPerformance.asStateFlow()
+
+    private val _contextProfiles = MutableStateFlow<Map<String, WorkoutContextProfile>>(emptyMap())
+    val contextProfiles: StateFlow<Map<String, WorkoutContextProfile>> = _contextProfiles.asStateFlow()
+
+    private val _replacementDecisions = MutableStateFlow<List<ExerciseReplacementDecisionV2>>(emptyList())
+    val replacementDecisions: StateFlow<List<ExerciseReplacementDecisionV2>> = _replacementDecisions.asStateFlow()
+
     fun updateSettings(update: (Settings) -> Settings) {
         _settings.update(update)
         scope.launch { db.settingsDao().upsert(_settings.value.toEntity()) }
+    }
+
+    fun getContextPerformanceState(contextKey: String): ContextPerformanceStateV2? =
+        _contextPerformance.value[contextKey]
+
+    fun upsertContextPerformanceState(state: ContextPerformanceStateV2) {
+        _contextPerformance.update { it + (state.contextKey to state) }
+        scope.launch { db.workoutV2Dao().upsertContextPerformance(state.toEntity()) }
+    }
+
+    fun getGlobalPerformanceState(globalKey: String): GlobalPerformanceStateV3? =
+        _globalPerformance.value[globalKey]
+
+    fun upsertGlobalPerformanceState(state: GlobalPerformanceStateV3) {
+        _globalPerformance.update { it + (state.globalKey to state) }
+        scope.launch { db.workoutV2Dao().upsertGlobalPerformance(state.toEntity()) }
+    }
+
+    fun getContextProfilesForExercise(exerciseKey: String): List<WorkoutContextProfile> =
+        _contextProfiles.value.values
+            .filter { it.exerciseKey == exerciseKey }
+            .sortedByDescending { it.lastUsedAtIso.orEmpty() }
+
+    fun upsertContextProfile(profile: WorkoutContextProfile) {
+        _contextProfiles.update { it + (profile.id to profile) }
+        scope.launch { db.workoutV2Dao().upsertContextProfile(profile.toEntity()) }
+    }
+
+    fun getReplacementDecisions(programId: String): List<ExerciseReplacementDecisionV2> =
+        _replacementDecisions.value.filter { it.programId == programId }
+
+    fun saveReplacementDecision(decision: ExerciseReplacementDecisionV2) {
+        _replacementDecisions.update { current ->
+            val filtered = current.filterNot { it.id == decision.id }
+            listOf(decision) + filtered
+        }
+        scope.launch { db.workoutV2Dao().upsertReplacementDecision(decision.toEntity()) }
+    }
+
+    fun createAndSaveReplacementDecision(
+        programId: String,
+        sessionId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        weekId: String,
+        sessionSlot: Int,
+        exerciseSlot: Int,
+        fromExerciseDbId: String,
+        toExerciseDbId: String,
+        scopeType: ReplacementPersistenceScopeV2,
+    ): ExerciseReplacementDecisionV2 {
+        val decision = ExerciseReplacementDecisionV2(
+            id = UUID.randomUUID().toString(),
+            programId = programId,
+            sessionId = sessionId,
+            macroIndex = macroIndex,
+            mesoIndex = mesoIndex,
+            weekId = weekId,
+            sessionSlot = sessionSlot,
+            exerciseSlot = exerciseSlot,
+            fromExerciseDbId = fromExerciseDbId,
+            toExerciseDbId = toExerciseDbId,
+            scope = scopeType,
+            createdAtIso = java.time.Instant.now().toString(),
+        )
+        saveReplacementDecision(decision)
+        return decision
     }
 
     // ─── Bootstrap ────────────────────────────────────────────────────────────
@@ -142,15 +227,133 @@ class ProgramRepository private constructor(context: Context) {
             val settings = db.settingsDao().get()?.toSettings() ?: Settings()
             val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
             val ongoingWorkout = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()
+            val contextPerformance = db.workoutV2Dao().getAllContextPerformance()
+                .map { it.toContextPerformanceStateV2() }
+                .associateBy { it.contextKey }
+            val globalPerformance = db.workoutV2Dao().getAllGlobalPerformance()
+                .map { it.toGlobalPerformanceStateV3() }
+                .associateBy { it.globalKey }
+            val contextProfiles = db.workoutV2Dao().getAllContextProfiles()
+                .map { it.toWorkoutContextProfile() }
+                .associateBy { it.id }
+            val replacementDecisions = db.workoutV2Dao().getAllReplacementDecisions()
+                .map { it.toExerciseReplacementDecisionV2() }
+            val normalizedActiveProgram = normalizeActiveProgramState(programs, activeProgram)
+
+            if (normalizedActiveProgram != activeProgram && normalizedActiveProgram != null) {
+                scope.launch { db.stateDao().upsertActiveProgram(normalizedActiveProgram.toEntity()) }
+            }
 
             withContext(Dispatchers.Main) {
                 _programs.value = programs
                 _history.value = logs
                 _settings.value = settings
-                _activeProgramState.value = activeProgram
+                _activeProgramState.value = normalizedActiveProgram
                 _ongoingWorkout.value = ongoingWorkout
+                _contextPerformance.value = contextPerformance
+                _globalPerformance.value = globalPerformance
+                _contextProfiles.value = contextProfiles
+                _replacementDecisions.value = replacementDecisions
             }
         }
+    }
+
+    private data class ProgramWeekLocation(
+        val macroIndex: Int,
+        val blockIndex: Int,
+        val mesocycleIndex: Int,
+        val week: ProgramWeek,
+    )
+
+    private fun Program.allWeekLocations(): List<ProgramWeekLocation> {
+        val locations = mutableListOf<ProgramWeekLocation>()
+        var mesoIndex = 0
+        macrocycles.forEachIndexed { macroIndex, macro ->
+            macro.blocks.forEachIndexed { blockIndex, block ->
+                block.mesocycles.forEach { meso ->
+                    meso.weeks.forEach { week ->
+                        locations += ProgramWeekLocation(
+                            macroIndex = macroIndex,
+                            blockIndex = blockIndex,
+                            mesocycleIndex = mesoIndex,
+                            week = week,
+                        )
+                    }
+                    mesoIndex++
+                }
+            }
+        }
+        return locations
+    }
+
+    private fun Session.matchesDay(dayOfWeek: Int): Boolean =
+        this.dayOfWeek == dayOfWeek || assignedDays.contains(dayOfWeek)
+
+    private fun currentDayOfWeek(): Int {
+        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        return if (today == Calendar.SUNDAY) 7 else today - 1
+    }
+
+    private fun Program.resolveDefaultActiveProgramState(
+        programId: String,
+    ): ActiveProgramState? {
+        val preferred = resolveDefaultWeekLocation() ?: return null
+
+        return ActiveProgramState(
+            programId = programId,
+            status = ProgramStatus.ACTIVE,
+            currentMacrocycleIndex = preferred.macroIndex,
+            currentBlockIndex = preferred.blockIndex,
+            currentMesocycleIndex = preferred.mesocycleIndex,
+            currentWeekId = preferred.week.id,
+        )
+    }
+
+    private fun Program.resolveDefaultWeekLocation(
+        dayOfWeek: Int = currentDayOfWeek(),
+    ): ProgramWeekLocation? {
+        val locations = allWeekLocations()
+        if (locations.isEmpty()) return null
+        return locations.firstOrNull { location ->
+            location.week.sessions.any { it.matchesDay(dayOfWeek) }
+        } ?: locations.first()
+    }
+
+    private fun buildDefaultActiveProgramState(
+        program: Program,
+        programId: String,
+    ): ActiveProgramState? = program.resolveDefaultActiveProgramState(programId)
+
+    private fun normalizeActiveProgramState(
+        programs: List<Program>,
+        state: ActiveProgramState?,
+    ): ActiveProgramState? {
+        if (state == null) return null
+        val program = programs.find { it.id == state.programId } ?: return state
+        val locations = program.allWeekLocations()
+        if (locations.isEmpty()) return state
+
+        val exact = locations.firstOrNull { location ->
+            location.macroIndex == state.currentMacrocycleIndex &&
+                location.blockIndex == state.currentBlockIndex &&
+                location.mesocycleIndex == state.currentMesocycleIndex &&
+                location.week.id == state.currentWeekId
+        }
+        if (exact != null) return state
+
+        val sameContainer = locations.firstOrNull { location ->
+            location.macroIndex == state.currentMacrocycleIndex &&
+                location.blockIndex == state.currentBlockIndex &&
+                location.mesocycleIndex == state.currentMesocycleIndex
+        } ?: program.resolveDefaultWeekLocation()
+            ?: locations.first()
+
+        return state.copy(
+            currentMacrocycleIndex = sameContainer.macroIndex,
+            currentBlockIndex = sameContainer.blockIndex,
+            currentMesocycleIndex = sameContainer.mesocycleIndex,
+            currentWeekId = sameContainer.week.id,
+        )
     }
 
     // ─── Singleton ────────────────────────────────────────────────────────────

@@ -19,3 +19,21 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# ── LiteRT-LM (Gemma 4) ──────────────────────────────────────────────────────
+-keep class com.google.ai.edge.litertlm.** { *; }
+-keep interface com.google.ai.edge.litertlm.** { *; }
+-dontwarn com.google.ai.edge.litertlm.**
+
+# Protobuf Lite — field names must survive obfuscation
+-keep class com.google.protobuf.** { *; }
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
+    <fields>;
+}
+-dontwarn com.google.protobuf.**
+
+# LiteRT runtime (formerly TensorFlow Lite)
+-keep class org.tensorflow.** { *; }
+-dontwarn org.tensorflow.**
+-keep class com.google.android.gms.tflite.** { *; }
+-dontwarn com.google.android.gms.tflite.**

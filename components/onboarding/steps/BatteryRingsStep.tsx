@@ -8,7 +8,21 @@ import type { Settings } from '../../../types';
 import type { ExerciseMuscleInfo } from '../../../types';
 
 // Subcomponente de los Anillos (Estética "Tú")
-const RingProgress = ({ value, color, label, icon: Icon, onChange }: { value: number, color: string, label: string, icon: any, onChange: (val: number) => void }) => {
+const RingProgress = ({
+  value,
+  color,
+  label,
+  icon: Icon,
+  onChange,
+  editable = true,
+}: {
+  value: number,
+  color: string,
+  label: string,
+  icon: any,
+  onChange?: (val: number) => void,
+  editable?: boolean,
+}) => {
   const radius = 35;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (value / 100) * circumference;
@@ -30,10 +44,19 @@ const RingProgress = ({ value, color, label, icon: Icon, onChange }: { value: nu
       </div>
       <div className="w-full px-2 flex flex-col items-center gap-1">
         <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">{label}</span>
-        <input 
-          type="range" min="0" max="100" value={value} onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer mt-1" style={{ accentColor: color }}
-        />
+        {editable ? (
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={value}
+            onChange={(e) => onChange?.(Number(e.target.value))}
+            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer mt-1"
+            style={{ accentColor: color }}
+          />
+        ) : (
+          <div className="w-full h-1.5 mt-1 rounded-lg bg-white/10" />
+        )}
       </div>
     </div>
   );
@@ -95,17 +118,9 @@ export const BatteryRingsStep: React.FC<BatteryRingsStepProps> = ({
     const finalCnsDelta = 100 - snc;
     const finalSpinalDelta = 100 - spinal;
     
-    // Si el usuario modificó manualmente el anillo periférico general, ajustamos los músculos proporcionalmente
     const finalMuscularDelta = { ...muscleBreakdown };
-    const muscleKeys = Object.keys(finalMuscularDelta);
-    const finalAverageDelta = 100 - peripheral;
-    
-    if (muscleKeys.length > 0) {
-      muscleKeys.forEach(m => {
-        finalMuscularDelta[m] = finalAverageDelta; 
-      });
-    } else if (finalAverageDelta > 0) {
-      finalMuscularDelta['general'] = finalAverageDelta;
+    if (Object.keys(finalMuscularDelta).length === 0 && peripheral < 100) {
+      finalMuscularDelta['general'] = 100 - peripheral;
     }
 
     onApplyCalibration({
@@ -152,12 +167,12 @@ export const BatteryRingsStep: React.FC<BatteryRingsStepProps> = ({
             </div>
           </div>
 
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-3xl p-5 flex flex-col items-center">
-            <div className="flex items-center gap-2 mb-4">
-              <Info size={16} className="text-white/40" />
-              <span className="text-xs font-medium text-white/40 uppercase tracking-wider">Fatiga Muscular Global</span>
-            </div>
-            <RingProgress value={peripheral} color="#ef4444" label="PERIFÉRICO" icon={Battery} onChange={setPeripheral} />
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-3xl p-5 flex flex-col items-center">
+              <div className="flex items-center gap-2 mb-4">
+                <Info size={16} className="text-white/40" />
+                <span className="text-xs font-medium text-white/40 uppercase tracking-wider">Fatiga Muscular Global</span>
+              </div>
+              <RingProgress value={peripheral} color="#ef4444" label="PERIFÉRICO" icon={Battery} editable={false} />
             
             {/* Desglose de músculos involucrados */}
             {Object.keys(muscleBreakdown).length > 0 ? (

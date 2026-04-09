@@ -52,6 +52,9 @@ import com.example.kpkn.screens.settings.SettingsScreen
 import com.example.kpkn.screens.settings.SettingsTrainingScreen
 import com.example.kpkn.screens.wikilab.*
 import com.example.kpkn.screens.workout.WorkoutScreen
+import com.example.kpkn.screens.workout.ReadinessGateScreen
+import com.example.kpkn.screens.auge.AugeViewModel
+import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
@@ -60,7 +63,6 @@ import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,6 +75,21 @@ class MainActivity : ComponentActivity() {
 
         runCatching {
             WorkoutRestAlertManager(this).ensureChannels()
+        }.onFailure { it.printStackTrace() }
+
+        // Setup nutrition notification channels + reminders based on settings
+        runCatching {
+            val nutritionNotifManager = com.example.kpkn.services.nutrition.NutritionNotificationManager(this)
+            nutritionNotifManager.createChannels()
+            val settings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value
+            if (settings.mealReminderEnabled) {
+                nutritionNotifManager.scheduleMealReminders(
+                    breakfastTime = settings.mealReminderBreakfast,
+                    lunchTime = settings.mealReminderLunch,
+                    dinnerTime = settings.mealReminderDinner,
+                )
+                nutritionNotifManager.scheduleDailyMacroCheck()
+            }
         }.onFailure { it.printStackTrace() }
 
         // Initialize repositories (loads Room data → StateFlows)
@@ -88,23 +105,20 @@ class MainActivity : ComponentActivity() {
             com.example.kpkn.data.repository.WikiLabRepository.initialize(this, db)
         }.onFailure { it.printStackTrace() }
 
-        // Initialize Local AI at app startup (non-blocking)
+        // Initialize Local AI at app startup (non-blocking, optional feature)
         val context = this
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
-                com.example.kpkn.data.localai.LocalAiManager.initialize(context)
-            }.onFailure { it.printStackTrace() }
+                com.example.kpkn.data.localai.LocalAiManager.ensureReady(context, retries = 3)
+            }.onFailure {
+                android.util.Log.e("MainActivity", "Fallo inicializando IA local", it)
+            }
 
             val status = com.example.kpkn.data.localai.LocalAiManager.status()
-            if (!status.ready) {
-                android.util.Log.e("MainActivity", "Local AI no lista al arranque: ${status.error}")
-                withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(
-                        context,
-                        "IA local no pudo inicializarse en este dispositivo: ${status.error ?: "error desconocido"}",
-                        android.widget.Toast.LENGTH_LONG,
-                    ).show()
-                }
+            if (status.ready) {
+                android.util.Log.d("MainActivity", "Local AI lista: ${status.modelVersion} · ${(status.modelSizeBytes ?: 0) / 1024 / 1024}MB")
+            } else {
+                android.util.Log.e("MainActivity", "Local AI no lista: ${status.error}")
             }
         }
 
@@ -163,7 +177,9 @@ fun KPKNApp(
     val isFullscreenWizard = (currentRoute == KpknRoute.ProgramEditor.route &&
         currentBackStack?.arguments?.getString(KpknRoute.ProgramEditor.ARG_PROGRAM_ID) == "new") ||
         currentRoute == KpknRoute.NutritionWizard.route ||
-        currentRoute?.startsWith("session-editor") == true
+        currentRoute?.startsWith("session-editor") == true ||
+        currentRoute?.startsWith("readiness-gate") == true ||
+        currentRoute?.startsWith("workout") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
 
     val currentTab = when {
@@ -172,6 +188,7 @@ fun KPKNApp(
         currentRoute?.startsWith("program-metric-") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("program-editor") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("session-editor") == true -> KpknRoute.Training.route
+        currentRoute?.startsWith("readiness-gate") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("workout") == true -> KpknRoute.Training.route
         currentRoute == KpknRoute.ProgramDetail.route -> KpknRoute.Training.route
         currentRoute == "log-workout" -> KpknRoute.Training.route
@@ -258,7 +275,7 @@ private fun KPKNNavGraph(
                     navController.navigate(KpknRoute.ProgramEditor.create("new"))
                 },
                 onStartWorkout = { session, program ->
-                    navController.navigate(KpknRoute.Workout.create(program.id, session.id))
+                    navController.navigate(KpknRoute.ReadinessGate.create(program.id, session.id))
                 },
                 onResumeWorkout = {
                     val ongoing = com.example.kpkn.data.repository.ProgramRepository.getInstance().ongoingWorkout.value
@@ -518,7 +535,7 @@ private fun KPKNNavGraph(
                 programId = id,
                 onBack = { navController.popBackStack() },
                 onStartWorkout = { session, program ->
-                    navController.navigate(KpknRoute.Workout.create(program.id, session.id))
+                    navController.navigate(KpknRoute.ReadinessGate.create(program.id, session.id))
                 },
                 onEditSession = { sessionId ->
                     navController.navigate(KpknRoute.SessionEditor.create(id, sessionId))
@@ -535,8 +552,8 @@ private fun KPKNNavGraph(
                         )
                     )
                 },
-                onEditProgram = {
-                    navController.navigate(KpknRoute.ProgramEditor.create(id))
+                onEditProgram = { targetId ->
+                    navController.navigate(KpknRoute.ProgramEditor.create(targetId))
                 },
             )
         }
@@ -557,6 +574,20 @@ private fun KPKNNavGraph(
                 draftDayOfWeek = dayOfWeek,
             )
         }
+        composable(KpknRoute.ReadinessGate.route) { backStack ->
+            val programId = backStack.arguments?.getString(KpknRoute.ReadinessGate.ARG_PROGRAM_ID) ?: ""
+            val sessionId = backStack.arguments?.getString(KpknRoute.ReadinessGate.ARG_SESSION_ID) ?: ""
+            ReadinessGateScreen(
+                programId = programId,
+                sessionId = sessionId,
+                onBack = { navController.popBackStack() },
+                onReady = {
+                    navController.navigate(KpknRoute.Workout.create(programId, sessionId)) {
+                        popUpTo(KpknRoute.ReadinessGate.route) { inclusive = true }
+                    }
+                },
+            )
+        }
         composable(KpknRoute.Workout.route) { backStack ->
             val programId = backStack.arguments?.getString(KpknRoute.Workout.ARG_PROGRAM_ID) ?: ""
             val sessionId = backStack.arguments?.getString(KpknRoute.Workout.ARG_SESSION_ID) ?: ""
@@ -564,6 +595,9 @@ private fun KPKNNavGraph(
                 programId = programId,
                 sessionId = sessionId,
                 onBack = { navController.popBackStack() },
+                onNavigateToWikiLab = { exerciseDbId ->
+                    navController.navigate(KpknRoute.WikiLabExerciseDetail.create(exerciseDbId))
+                },
             )
         }
         composable(KpknRoute.ProgramEditor.route) { backStack ->

@@ -61,7 +61,6 @@ const SystemBatteryWidget: React.FC = () => {
     const [auditTab, setAuditTab] = useState<'logs' | 'precision'>('logs');
     
     const [calibCns, setCalibCns] = useState(0);
-    const [calibMusc, setCalibMusc] = useState(0);
     const [calibSpinal, setCalibSpinal] = useState(0);
 
     const [batteries, setBatteries] = useState<Awaited<ReturnType<typeof calculateGlobalBatteriesAsync>> | null>(null);
@@ -84,18 +83,22 @@ const SystemBatteryWidget: React.FC = () => {
 
     const openCalibration = () => {
         setCalibCns(batteries.cns);
-        setCalibMusc(batteries.muscular);
         setCalibSpinal(batteries.spinal);
         setIsCalibrating(true);
     };
 
     const handleSaveCalibration = () => {
         const cnsDelta = calibCns - (batteries.cns - (settings.batteryCalibration?.cnsDelta || 0));
-        const muscularDelta = calibMusc - (batteries.muscular - (settings.batteryCalibration?.muscularDelta || 0));
         const spinalDelta = calibSpinal - (batteries.spinal - (settings.batteryCalibration?.spinalDelta || 0));
+        const currentCalibration = settings.batteryCalibration || { cnsDelta: 0, muscularDelta: 0, spinalDelta: 0 };
         
         setSettings({
-            batteryCalibration: { cnsDelta, muscularDelta, spinalDelta, lastCalibrated: new Date().toISOString() }
+            batteryCalibration: {
+                ...currentCalibration,
+                cnsDelta,
+                spinalDelta,
+                lastCalibrated: new Date().toISOString()
+            }
         });
         addToast("Sistemas biológicos recalibrados", "success");
         setIsCalibrating(false);
@@ -163,16 +166,12 @@ const SystemBatteryWidget: React.FC = () => {
                         {isCalibrating ? (
                             <div className="bg-[#ECE6F0] border border-blue-500/30 p-5 rounded-2xl space-y-6 animate-fade-in shadow-[0_0_30px_rgba(59,130,246,0.1)]">
                                 <h3 className="text-xs font-black uppercase tracking-widest text-blue-400 text-center">Sobreescritura Manual</h3>
-                                <p className="text-[9px] text-[#49454F] text-center px-4">Si las matemáticas no coinciden con cómo te sientes hoy, ajusta las barras. El sistema aprenderá de tus correcciones (Deltas).</p>
+                                <p className="text-[9px] text-[#49454F] text-center px-4">Si las matemáticas no coinciden con cómo te sientes hoy, ajusta SNC y axial. La batería muscular se calibra por músculo.</p>
                                 
                                 <div className="space-y-5">
                                     <div>
                                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2"><span className="text-sky-400">SNC</span><span>{calibCns}%</span></div>
                                         <input type="range" min="0" max="100" value={calibCns} onChange={e => setCalibCns(parseInt(e.target.value))} className="w-full accent-sky-400 h-2 bg-zinc-900 rounded-lg appearance-none" />
-                                    </div>
-                                    <div>
-                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2"><span className="text-rose-400">Muscular</span><span>{calibMusc}%</span></div>
-                                        <input type="range" min="0" max="100" value={calibMusc} onChange={e => setCalibMusc(parseInt(e.target.value))} className="w-full accent-rose-400 h-2 bg-zinc-900 rounded-lg appearance-none" />
                                     </div>
                                     <div>
                                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2"><span className="text-amber-400">Axial / Espinal</span><span>{calibSpinal}%</span></div>

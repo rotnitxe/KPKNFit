@@ -9,6 +9,7 @@ import { BrainIcon, ActivityIcon, TargetIcon, ZapIcon, InfoIcon } from '../icons
 import SkeletonLoader from '../ui/SkeletonLoader';
 
 type BatteryId = 'cns' | 'muscular' | 'spinal';
+type CalibratableBatteryId = 'cns' | 'spinal';
 
 const getStatusColor = (value: number): string => {
     if (value >= 70) return 'text-emerald-400';
@@ -107,9 +108,8 @@ export const BatteryCockpitWidget: React.FC = () => {
     const [adaptiveCache, setAdaptiveCache] = useState<AugeAdaptiveCache | null>(null);
     const versionRef = useRef(0);
 
-    const [calibratingId, setCalibratingId] = useState<BatteryId | null>(null);
+    const [calibratingId, setCalibratingId] = useState<CalibratableBatteryId | null>(null);
     const [calibCns, setCalibCns] = useState(0);
-    const [calibMusc, setCalibMusc] = useState(0);
     const [calibSpinal, setCalibSpinal] = useState(0);
     const pressTimerRef = useRef<number | null>(null);
 
@@ -130,10 +130,10 @@ export const BatteryCockpitWidget: React.FC = () => {
 
     const handlePointerDown = (id: BatteryId) => {
         if (calibratingId) return;
+        if (id === 'muscular') return;
         pressTimerRef.current = window.setTimeout(() => {
             setCalibratingId(id);
             setCalibCns(batteries?.cns ?? 0);
-            setCalibMusc(batteries?.muscular ?? 0);
             setCalibSpinal(batteries?.spinal ?? 0);
             pressTimerRef.current = null;
         }, 500);
@@ -150,13 +150,11 @@ export const BatteryCockpitWidget: React.FC = () => {
         if (!batteries || !calibratingId) return;
         const calib = settings.batteryCalibration || { cnsDelta: 0, muscularDelta: 0, spinalDelta: 0 };
         let cnsDelta = calib.cnsDelta ?? 0;
-        let muscularDelta = calib.muscularDelta ?? 0;
         let spinalDelta = calib.spinalDelta ?? 0;
         if (calibratingId === 'cns') cnsDelta = calibCns - (batteries.cns - cnsDelta);
-        else if (calibratingId === 'muscular') muscularDelta = calibMusc - (batteries.muscular - muscularDelta);
         else if (calibratingId === 'spinal') spinalDelta = calibSpinal - (batteries.spinal - spinalDelta);
         setSettings({
-            batteryCalibration: { cnsDelta, muscularDelta, spinalDelta, lastCalibrated: new Date().toISOString() }
+            batteryCalibration: { ...calib, cnsDelta, spinalDelta, lastCalibrated: new Date().toISOString() }
         });
         addToast("Sistema recalibrado", "success");
         setCalibratingId(null);
@@ -166,15 +164,13 @@ export const BatteryCockpitWidget: React.FC = () => {
         setCalibratingId(null);
     };
 
-    const getCalibValue = (id: BatteryId) => {
+    const getCalibValue = (id: CalibratableBatteryId) => {
         if (id === 'cns') return calibCns;
-        if (id === 'muscular') return calibMusc;
         return calibSpinal;
     };
 
-    const setCalibValue = (id: BatteryId, v: number) => {
+    const setCalibValue = (id: CalibratableBatteryId, v: number) => {
         if (id === 'cns') setCalibCns(v);
-        else if (id === 'muscular') setCalibMusc(v);
         else setCalibSpinal(v);
     };
 
@@ -209,9 +205,9 @@ export const BatteryCockpitWidget: React.FC = () => {
                         label="Muscular"
                         value={batteries.muscular}
                         icon={<ActivityIcon size={18} className="text-rose-400" />}
-                        isCalibrating={calibratingId === 'muscular'}
-                        calibValue={calibMusc}
-                        onCalibChange={v => setCalibValue('muscular', v)}
+                        isCalibrating={false}
+                        calibValue={batteries.muscular}
+                        onCalibChange={() => {}}
                         onPointerDown={() => handlePointerDown('muscular')}
                         onPointerUp={handlePointerUp}
                         onSave={handleSaveCalibration}
@@ -244,7 +240,7 @@ export const BatteryCockpitWidget: React.FC = () => {
                     </div>
                 )}
 
-                <p className="text-[7px] text-zinc-600 mt-2 font-mono">Mantén pulsado para calibrar</p>
+                <p className="text-[7px] text-zinc-600 mt-2 font-mono">Mantén pulsado para calibrar SNC y axial. Muscular se ajusta por músculo.</p>
             </div>
         </div>
     );

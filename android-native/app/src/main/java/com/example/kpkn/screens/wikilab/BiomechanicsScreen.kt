@@ -1,4 +1,4 @@
-package com.example.kpkn.screens.wikilab
+﻿package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -1281,7 +1281,7 @@ private fun BiomechanicsInterpretationCard(solve: BiomechanicalSolve) {
         bullets = listOf(
             uprightBias,
             limiter,
-            "Si cambias una sola variable, revisa qué articulación gana o pierde torque antes de concluir que una variante es “mejor”.",
+            "Si cambias una sola variable, revisa qué articulación gana o pierde torque antes de concluir que una variante es \"mejor\".",
         ),
         footer = "Esta lectura es comparativa y educativa; no es un diagnóstico ni una prescripción clínica.",
     )
@@ -1647,7 +1647,7 @@ private fun BiomechanicsDisclaimerCard() {
             lineHeight = 18.sp,
         )
         Text(
-            "No sustituye evaluación clínica, videoanálisis completo ni prescripción individual. Si ves una zona “alta”, léela como mayor demanda relativa de la postura actual.",
+            "No sustituye evaluación clínica, videoanálisis completo ni prescripción individual. Si ves una zona \"alta\", léela como mayor demanda relativa de la postura actual.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 18.sp,

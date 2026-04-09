@@ -16,6 +16,8 @@ data class DailyWellbeingLog(
     val moodState: MoodState? = null,
     val workIntensity: IntensityLevel? = null,
     val studyIntensity: IntensityLevel? = null,
+    // Legacy field kept only for backward compatibility with stored logs.
+    // AUGE 3.0 never reads or exposes a globally editable muscular battery.
     val manualMuscularBattery: Int? = null,
     val manualNeuralBattery: Int? = null,
     val manualSpinalBattery: Int? = null,
@@ -63,7 +65,10 @@ data class GlobalBatteries(
     val muscular: Int,  // 0-100
     val cnc: Int,       // 0-100 (Central Nervous System)
     val spinal: Int,    // 0-100
-)
+) {
+    val system: Int get() = cnc
+    val structure: Int get() = spinal
+}
 
 data class MuscleRecoveryStatus(
     val muscleName: String,
@@ -81,9 +86,37 @@ data class AugeReadinessVerdict(
     val label: String,
     val color: ReadinessColor,
     val details: List<String> = emptyList(),
+    val action: String = "",
+    val confidenceLabel: String = "Media",
 )
 
 enum class ReadinessColor { GREEN, YELLOW, RED }
+
+enum class RecoveryChannelId { MUSCULAR, SYSTEM, STRUCTURE }
+
+enum class RecoveryBand { HIGH, NORMAL, MODERATE, LOW, CRITICAL }
+
+data class RecoveryChannelSnapshot(
+    val id: RecoveryChannelId,
+    val title: String,
+    val shortTitle: String,
+    val score: Int,
+    val band: RecoveryBand,
+    val description: String,
+    val action: String,
+    val causes: List<String> = emptyList(),
+    val confidence: Int = 50,
+    val editable: Boolean = true,
+)
+
+data class RecoveryDashboard(
+    val overallScore: Int,
+    val headline: String,
+    val summary: String,
+    val recommendation: String,
+    val confidenceLabel: String,
+    val channels: List<RecoveryChannelSnapshot> = emptyList(),
+)
 
 // ─── AUGE Metrics (per-exercise) ─────────────────────────────────────────────
 

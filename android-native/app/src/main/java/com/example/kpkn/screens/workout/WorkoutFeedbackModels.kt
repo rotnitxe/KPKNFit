@@ -10,19 +10,28 @@ import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.HistoryColorV2
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.time.LocalDate
 
 data class SetAdvancedFeedback(
     val rir: Int? = null,
-    val isFailure: Boolean = false,
+    val reachedFailure: Boolean = false,
+    val isFailedSet: Boolean = false,
+    val failureReason: String? = null,
     val isPartial: Boolean = false,
     val partialReps: Int? = null,
     val dropSets: List<DropSetEntry> = emptyList(),
-    val restPauseReps: List<Int> = emptyList(),
+    val restPauses: List<RestPauseEntry> = emptyList(),
     val isWarmup: Boolean = false,
+    val actualIntensityMode: IntensityMode? = null,
+    val actualIntensityValue: Double? = null,
+    val timerElapsedSeconds: Int? = null,
+    val timerTargetSeconds: Int? = null,
 )
 
 data class DropSetEntry(
@@ -30,22 +39,31 @@ data class DropSetEntry(
     val reps: Int,
 )
 
+data class RestPauseEntry(
+    val reps: Int,
+    val restSeconds: Int,
+)
+
 data class PostExerciseFeedback(
     val exerciseId: String,
+    val exerciseDbId: String? = null,
     val exerciseName: String,
-    val neuralFatigue: Int,
     val technicalQuality: Int,
-    val discomforts: List<String>,
+    val discomfortIds: List<String> = emptyList(),
 )
 
 data class SessionClosingFeedback(
     val overallFatigue: Int,
-    val neuralDrain: Int,
-    val muscularDrain: Int,
-    val spinalDrain: Int,
+    val systemAdjustment: Int,
+    val muscularAdjustment: Int,
+    val structureAdjustment: Int,
     val discomforts: List<String>,
     val clarityRating: Int = 5,           // 1–10: mental clarity / freshness at end
     val environmentTags: List<String> = emptyList(), // e.g. "buen sueño", "estresado"
+    val finalNeuralBattery: Int? = null,
+    val finalSpinalBattery: Int? = null,
+    val finalMuscleBatteries: Map<String, Int> = emptyMap(),
+    val additionalDiscomfortNote: String? = null,
 )
 
 data class ExerciseHistoryEntry(
@@ -53,6 +71,9 @@ data class ExerciseHistoryEntry(
     val sets: List<CompletedSet>,
     val e1rm: Double?,
     val tag: String? = null,  // tag usado en esa sesión para ese ejercicio
+    val latestHistoryColor: HistoryColorV2? = null,
+    val latestMetricType: String? = null,
+    val latestMetricValue: Double? = null,
 )
 
 data class WeightSuggestion(
@@ -86,9 +107,9 @@ object WorkoutPlanDeviationSupport {
             else if (actualReps < targetReps - 3) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_LOW, "$actualReps vs $targetReps objetivo"))
         }
 
-        if (advanced.isFailure && !plannedSet.isFailure) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.UNPLANNED_FAILURE, "Fallo no programado"))
+        if (advanced.reachedFailure && !plannedSet.isFailure) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.UNPLANNED_FAILURE, "Fallo no programado"))
         if (advanced.dropSets.isNotEmpty() && plannedSet.dropSets.isEmpty()) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.UNPLANNED_DROPSET, "Dropset no programado"))
-        if (advanced.restPauseReps.isNotEmpty() && plannedSet.restPauses.isEmpty()) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.UNPLANNED_REST_PAUSE, "Rest-pause no programado"))
+        if (advanced.restPauses.isNotEmpty() && plannedSet.restPauses.isEmpty()) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.UNPLANNED_REST_PAUSE, "Rest-pause no programado"))
 
         return deviations
     }
@@ -100,13 +121,37 @@ fun applyAdvancedFeedback(
 ): CompletedSet {
     return base.copy(
         rir = advanced.rir,
-        isFailure = advanced.isFailure,
+        isFailure = advanced.reachedFailure,
+        isFailedSet = advanced.isFailedSet,
+        failureReason = advanced.failureReason,
         isPartial = advanced.isPartial,
         partialReps = advanced.partialReps,
         dropSets = advanced.dropSets.map { DropSetData(weight = it.weight, reps = it.reps) },
-        restPauses = advanced.restPauseReps.map { RestPauseData(restTime = 15, reps = it) },
+        restPauses = advanced.restPauses.map { RestPauseData(restTime = it.restSeconds, reps = it.reps) },
         isWarmup = advanced.isWarmup,
+        actualIntensityMode = advanced.actualIntensityMode,
+        actualIntensityValue = advanced.actualIntensityValue,
     )
+}
+
+fun calculateUnifiedSessionEffortSignal(
+    sets: List<CompletedSet>,
+): Double {
+    val effectiveSets = sets.filter { set ->
+        !set.isWarmup && AugeFatigueEngine.isSetEffective(set)
+    }
+    if (effectiveSets.isEmpty()) return 7.0
+
+    return effectiveSets
+        .map { set ->
+            var signal = AugeFatigueEngine.getEffectiveRPE(set)
+            if (set.isFailure) signal += 0.6
+            if (set.dropSets.isNotEmpty()) signal += 0.4
+            if (set.restPauses.isNotEmpty()) signal += 0.5
+            signal.coerceIn(1.0, 12.0)
+        }
+        .average()
+        .coerceIn(1.0, 12.0)
 }
 
 fun mapWorkoutToPostSessionFeedback(
@@ -126,22 +171,18 @@ fun mapWorkoutToPostSessionFeedback(
     }
 
     val feedbackByMuscle = grouped.mapValues { (_, list) ->
-        val avgNeural = if (list.isEmpty()) 7 else list.map { it.neuralFatigue }.average().toInt().coerceIn(1, 10)
+        val avgDemand = 7
         val avgTech = if (list.isEmpty()) 8 else list.map { it.technicalQuality }.average().toInt().coerceIn(1, 10)
-        val hasJointPain = list.any { it.discomforts.any { d -> d.contains("dolor", ignoreCase = true) || d.contains("molestia", ignoreCase = true) } }
+        val hasJointPain = list.any { it.discomfortIds.any { d -> d != "none" } }
         MuscleFeedbackEntry(
             doms = (11 - avgTech).coerceIn(1, 5),
             jointPain = hasJointPain,
-            strengthCapacity = avgNeural,
-            notes = list.flatMap { it.discomforts }.distinct().joinToString().takeIf { it.isNotBlank() } ?: "",
+            strengthCapacity = avgDemand,
+            notes = list.flatMap { it.discomfortIds }.filter { it != "none" }.distinct().joinToString().takeIf { it.isNotBlank() } ?: "",
         )
     }
 
-    val cnsRecovery = if (postExerciseFeedback.isEmpty()) {
-        7
-    } else {
-        postExerciseFeedback.map { it.neuralFatigue }.average().toInt().coerceIn(1, 10)
-    }
+    val cnsRecovery = 7
 
     return PostSessionFeedback(
         logId = log.id,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.food.findFoodByNormalized
@@ -29,6 +31,7 @@ import com.example.kpkn.data.localai.ParseMode
 import com.example.kpkn.data.localai.ParseOptions
 import com.example.kpkn.data.localai.parseFreeFormNutrition
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.nutrition.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,6 +39,12 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 
 // ─── Constants ───────────────────────────────────────────────────────────────
+
+private const val PREF_FILE = "kpkn_nutrition_prefs"
+private const val PREF_ANALYSIS_MODE = "analysis_mode"
+private const val MODE_BASIC = "BASIC"
+private const val MODE_PRO = "PRO"
+private const val MODE_UNSET = "UNSET"
 
 private val MEAL_OPTIONS = listOf(
     MealType.BREAKFAST to "Desayuno",
@@ -47,6 +56,7 @@ private val MEAL_OPTIONS = listOf(
 private val PROTEIN_COLOR = Color(0xFFB3261E)
 private val CARBS_COLOR = Color(0xFF6750A4)
 private val FATS_COLOR = Color(0xFF006A6A)
+private val PRO_COLOR = Color(0xFF7C3AED)
 
 private data class ResolvedTag(
     val id: String = UUID.randomUUID().toString(),
@@ -80,24 +90,70 @@ fun FoodLoggerDrawer(
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(PREF_FILE, android.content.Context.MODE_PRIVATE) }
+    val nutritionRepo = NutritionRepository.getInstance()
+
     var description by remember { mutableStateOf("") }
     var mealType by remember { mutableStateOf(initialMealType) }
     var logDate by remember { mutableStateOf(initialDate) }
     var tags by remember { mutableStateOf(emptyList<ResolvedTag>()) }
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf(emptyList<FoodItem>()) }
-    var activeTab by remember { mutableIntStateOf(0) } // 0=description, 1=search
+    var activeTab by remember { mutableIntStateOf(0) }
     var showSuccess by remember { mutableStateOf(false) }
     var isAnalyzing by remember { mutableStateOf(false) }
     var localAiStatus by remember { mutableStateOf(LocalAiManager.status()) }
 
-    val sheetState = rememberModalBottomSheetState()
+    // Modo de análisis: UNSET → mostrar selector, BASIC / PRO → usar directo
+    var analysisMode by remember {
+        mutableStateOf(prefs.getString(PREF_ANALYSIS_MODE, MODE_UNSET) ?: MODE_UNSET)
+    }
+    var showModeDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        localAiStatus = LocalAiManager.initialize(context)
+    // Progreso de copia del modelo (0.0–1.0)
+    val copyProgress by LocalAiManager.copyProgress.collectAsState()
+
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { value ->
+            // Prevent accidental dismiss when there's content (description typed or foods added)
+            if (value == SheetValue.Hidden) description.isBlank() && tags.isEmpty()
+            else true
+        },
+    )
+    val listState = rememberLazyListState()
+
+    // Auto-scroll to show newly detected foods when analysis finishes
+    LaunchedEffect(isAnalyzing) {
+        if (!isAnalyzing && tags.isNotEmpty()) {
+            val lastIndex = (listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
+            listState.animateScrollToItem(lastIndex)
+        }
+    }
+
+    // Mostrar diálogo de selección si es la primera vez en tab Descripción
+    LaunchedEffect(activeTab) {
+        if (activeTab == 0 && analysisMode == MODE_UNSET) {
+            showModeDialog = true
+        }
+    }
+
+    // Pre-cargar modelo sólo si modo PRO ya fue seleccionado
+    LaunchedEffect(analysisMode) {
+        if (analysisMode == MODE_PRO) {
+            localAiStatus = LocalAiManager.ensureReady(context, retries = 3)
+        }
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    fun saveMode(mode: String) {
+        analysisMode = mode
+        prefs.edit().putString(PREF_ANALYSIS_MODE, mode).apply()
+        if (mode == MODE_PRO) {
+            scope.launch { localAiStatus = LocalAiManager.ensureReady(context, retries = 3) }
+        }
+    }
 
     fun resolveTags(parsed: ParsedMealDescription) {
         tags = parsed.items.map { item ->
@@ -164,22 +220,63 @@ fun FoodLoggerDrawer(
         }
     }
 
-    // ─── Unified analyze action ──────────────────────────────────────────────
-
     fun analyzeDescription() {
         if (description.isBlank() || isAnalyzing) return
+
+        nutritionRepo.findMealTemplateMatch(description)?.let { template ->
+            tags = template.foods.map { food ->
+                val foodItem = findFoodByNormalized(food.foodName)
+                ResolvedTag(
+                    tag = food.foodName,
+                    portion = food.portionPreset ?: PortionPreset.MEDIUM,
+                    quantity = food.quantity,
+                    amountGrams = food.amount.takeIf { it > 0 },
+                    cookingMethod = food.cookingMethod,
+                    foodItem = foodItem,
+                    loggedFood = food.copy(analysisSource = AnalysisSource.USER_MEMORY),
+                    isResolved = true,
+                    isFuzzyMatch = true,
+                    analysisSource = AnalysisSource.USER_MEMORY,
+                    statusText = "Memoria ✓",
+                )
+            }
+            localAiStatus = LocalAiManager.status()
+            return
+        }
+
         isAnalyzing = true
         scope.launch {
             try {
+                val userKnownFoods = nutritionRepo.mealTemplates.value.flatMap { template ->
+                    buildList {
+                        add(template.name)
+                        if (template.description.isNotBlank()) add(template.description)
+                        template.foods.forEach { food ->
+                            add(food.foodName)
+                        }
+                    }
+                }
                 val parsed = withContext(Dispatchers.Default) {
-                    parseFreeFormNutrition(
-                        description,
-                        ParseOptions(mode = ParseMode.AUTO),
-                    )
+                    when (analysisMode) {
+                        MODE_PRO -> parseFreeFormNutrition(
+                            description,
+                            ParseOptions(
+                                mode = ParseMode.LOCAL_AI,
+                                knownFoods = userKnownFoods,
+                            ),
+                        )
+                        else -> parseFreeFormNutrition(
+                            description,
+                            ParseOptions(
+                                mode = ParseMode.RULES,
+                                knownFoods = userKnownFoods,
+                            ),
+                        )
+                    }
                 }
                 resolveTags(parsed)
             } catch (e: Exception) {
-                android.util.Log.w("FoodLogger", "Parse failed, using deterministic", e)
+                android.util.Log.w("FoodLogger", "Parse failed, usando determinístico", e)
                 resolveTags(parseMealDescription(description))
             } finally {
                 isAnalyzing = false
@@ -208,10 +305,14 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val food = tag.foodItem
-                val logged = if (food != null) {
-                    scaleFoodByPortion(food, tag.quantity, portion, tag.amountGrams, tag.cookingMethod)
-                } else null
-                tag.copy(portion = portion, loggedFood = logged)
+                if (food != null) {
+                    val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
+                    val newGrams = food.servingSize * tag.quantity * multiplier
+                    val logged = scaleFoodByPortion(food, tag.quantity, portion, newGrams, tag.cookingMethod)
+                    tag.copy(portion = portion, amountGrams = newGrams, loggedFood = logged)
+                } else {
+                    tag.copy(portion = portion)
+                }
             } else tag
         }
     }
@@ -220,9 +321,7 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val food = tag.foodItem
-                val logged = if (food != null) {
-                    scaleFoodByPortion(food, tag.quantity, tag.portion, grams, tag.cookingMethod)
-                } else null
+                val logged = if (food != null) scaleFoodByPortion(food, tag.quantity, tag.portion, grams, tag.cookingMethod) else null
                 tag.copy(amountGrams = grams, loggedFood = logged)
             } else tag
         }
@@ -230,44 +329,29 @@ fun FoodLoggerDrawer(
 
     fun updateTagCalories(tagId: String, calories: Double) {
         tags = tags.map { tag ->
-            if (tag.id == tagId) {
-                val old = tag.loggedFood ?: return@map tag
-                tag.copy(loggedFood = old.copy(calories = calories))
-            } else tag
+            if (tag.id == tagId) { val old = tag.loggedFood ?: return@map tag; tag.copy(loggedFood = old.copy(calories = calories)) } else tag
         }
     }
 
     fun updateTagProtein(tagId: String, protein: Double) {
         tags = tags.map { tag ->
-            if (tag.id == tagId) {
-                val old = tag.loggedFood ?: return@map tag
-                tag.copy(loggedFood = old.copy(protein = protein))
-            } else tag
+            if (tag.id == tagId) { val old = tag.loggedFood ?: return@map tag; tag.copy(loggedFood = old.copy(protein = protein)) } else tag
         }
     }
 
     fun updateTagCarbs(tagId: String, carbs: Double) {
         tags = tags.map { tag ->
-            if (tag.id == tagId) {
-                val old = tag.loggedFood ?: return@map tag
-                tag.copy(loggedFood = old.copy(carbs = carbs))
-            } else tag
+            if (tag.id == tagId) { val old = tag.loggedFood ?: return@map tag; tag.copy(loggedFood = old.copy(carbs = carbs)) } else tag
         }
     }
 
     fun updateTagFats(tagId: String, fats: Double) {
         tags = tags.map { tag ->
-            if (tag.id == tagId) {
-                val old = tag.loggedFood ?: return@map tag
-                tag.copy(loggedFood = old.copy(fats = fats))
-            } else tag
+            if (tag.id == tagId) { val old = tag.loggedFood ?: return@map tag; tag.copy(loggedFood = old.copy(fats = fats)) } else tag
         }
     }
 
-    fun removeTag(tagId: String) {
-        tags = tags.filter { it.id != tagId }
-    }
-
+    fun removeTag(tagId: String) { tags = tags.filter { it.id != tagId } }
     fun toggleTagExpanded(tagId: String) {
         tags = tags.map { if (it.id == tagId) it.copy(isExpanded = !it.isExpanded) else it }
     }
@@ -284,7 +368,6 @@ fun FoodLoggerDrawer(
     fun saveLog() {
         val resolvedFoods = tags.mapNotNull { it.loggedFood }
         if (resolvedFoods.isEmpty()) return
-
         val log = NutritionLog(
             id = UUID.randomUUID().toString(),
             date = "${logDate}T12:00:00.000Z",
@@ -302,6 +385,58 @@ fun FoodLoggerDrawer(
             protein = tags.sumOf { it.loggedFood?.protein ?: 0.0 },
             carbs = tags.sumOf { it.loggedFood?.carbs ?: 0.0 },
             fats = tags.sumOf { it.loggedFood?.fats ?: 0.0 },
+        )
+    }
+
+    // ─── Diálogo Selector de Modo ────────────────────────────────────────────
+
+    if (showModeDialog) {
+        AlertDialog(
+            onDismissRequest = { /* No cerrar sin seleccionar */ },
+            title = {
+                Text(
+                    text = "¿Cómo analizar tu comida?",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Elige cómo quieres que KPKN interprete tu descripción. Puedes cambiar esto después.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    // Opción BÁSICO
+                    ModeOptionCard(
+                        icon = Icons.Default.FlashOn,
+                        iconTint = Color(0xFFF59E0B),
+                        title = "Básico",
+                        subtitle = "Rápido y siempre disponible. Usa la base de datos local para identificar alimentos.",
+                        badge = null,
+                        onClick = {
+                            showModeDialog = false
+                            saveMode(MODE_BASIC)
+                        },
+                    )
+
+                    // Opción PRO
+                    ModeOptionCard(
+                        icon = Icons.Default.AutoAwesome,
+                        iconTint = PRO_COLOR,
+                        title = "Pro · IA Local",
+                        subtitle = "Análisis con Gemma 4 en tu dispositivo. Más preciso para descripciones libres.",
+                        badge = "GEMMA 4",
+                        onClick = {
+                            showModeDialog = false
+                            saveMode(MODE_PRO)
+                        },
+                    )
+                }
+            },
+            confirmButton = {},
+            shape = RoundedCornerShape(24.dp),
         )
     }
 
@@ -323,27 +458,62 @@ fun FoodLoggerDrawer(
         },
     ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .padding(bottom = 24.dp),
+                .padding(bottom = 24.dp)
+                .imePadding(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // ── Header ───────────────────────────────────────────────────────
             item {
-                Text(
-                    text = "Registrar Comida",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Registrar Comida",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                    )
+                    // Badge de modo actual (toca para cambiar)
+                    if (analysisMode != MODE_UNSET) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (analysisMode == MODE_PRO) PRO_COLOR.copy(alpha = 0.12f)
+                                    else MaterialTheme.colorScheme.surfaceContainer,
+                            modifier = Modifier.clickable { showModeDialog = true },
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Icon(
+                                    if (analysisMode == MODE_PRO) Icons.Default.AutoAwesome else Icons.Default.FlashOn,
+                                    null,
+                                    modifier = Modifier.size(12.dp),
+                                    tint = if (analysisMode == MODE_PRO) PRO_COLOR else Color(0xFFF59E0B),
+                                )
+                                Text(
+                                    text = if (analysisMode == MODE_PRO) "Pro" else "Básico",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (analysisMode == MODE_PRO) PRO_COLOR
+                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // ── Meal Type Selector ───────────────────────────────────────────
-            item {
-                MealTypeSelector(mealType = mealType, onSelect = { mealType = it })
-            }
+            item { MealTypeSelector(mealType = mealType, onSelect = { mealType = it }) }
 
-            // ── Date Picker ─────────────────────────────────────────────────
+            // ── Date ────────────────────────────────────────────────────────
             item {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -372,28 +542,71 @@ fun FoodLoggerDrawer(
                 }
             }
 
-            // ── Description Input ────────────────────────────────────────────
+            // ── Description Tab ──────────────────────────────────────────────
             if (activeTab == 0) {
                 item {
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = description,
                             onValueChange = { description = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Ej: 200g pechuga de pollo a la plancha, 150g arroz") },
+                            placeholder = {
+                                Text(
+                                    if (analysisMode == MODE_PRO)
+                                        "Ej: almorcé pollo a la plancha con arroz y una palta"
+                                    else
+                                        "Ej: 200g pechuga de pollo, 150g arroz blanco cocido"
+                                )
+                            },
                             minLines = 2,
                             maxLines = 4,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = {
-                                analyzeDescription()
-                            }),
+                            keyboardActions = KeyboardActions(onDone = { analyzeDescription() }),
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Barra de progreso de copia del modelo (sólo modo PRO mientras copia)
+                        AnimatedVisibility(
+                            visible = analysisMode == MODE_PRO && copyProgress > 0f && copyProgress < 1f,
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(
+                                        text = "Preparando Gemma 4...",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = PRO_COLOR,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                    Text(
+                                        text = "${(copyProgress * 100).toInt()}%",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = PRO_COLOR,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                                LinearProgressIndicator(
+                                    progress = { copyProgress },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(3.dp)),
+                                    color = PRO_COLOR,
+                                )
+                            }
+                        }
+
                         Button(
                             onClick = { analyzeDescription() },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            enabled = description.isNotBlank() && !isAnalyzing,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (analysisMode == MODE_PRO) PRO_COLOR
+                                                 else MaterialTheme.colorScheme.primary,
+                            ),
+                            enabled = description.isNotBlank() && !isAnalyzing &&
+                                      (analysisMode != MODE_PRO || copyProgress >= 1f || localAiStatus.ready || !LocalAiManager.status().ready.not()),
                         ) {
                             if (isAnalyzing) {
                                 CircularProgressIndicator(
@@ -404,64 +617,80 @@ fun FoodLoggerDrawer(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("ANALIZANDO...")
                             } else {
-                                Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(18.dp))
+                                Icon(
+                                    if (analysisMode == MODE_PRO) Icons.Default.AutoAwesome else Icons.Default.FlashOn,
+                                    null,
+                                    modifier = Modifier.size(18.dp),
+                                )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("ANALIZAR")
+                                Text(if (analysisMode == MODE_PRO) "ANALIZAR CON IA" else "ANALIZAR")
                             }
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = if (localAiStatus.ready) {
-                                val source = localAiStatus.loadedFromAssetPath ?: "cache interno"
-                                "IA local activa (${localAiStatus.modelVersion ?: "sin versión"}) · fuente: $source"
-                            } else {
-                                "IA local no lista · usando fallback inteligente${localAiStatus.error?.let { ": $it" } ?: ""}"
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (localAiStatus.ready) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+
+                        // Status line
+                        when (analysisMode) {
+                            MODE_PRO -> {
+                                val statusText = when {
+                                    copyProgress > 0f && copyProgress < 1f ->
+                                        "Copiando modelo al dispositivo (primera vez)..."
+                                    localAiStatus.ready ->
+                                        "Gemma 4 activa · ${localAiStatus.modelVersion}"
+                                    localAiStatus.error != null ->
+                                        "IA no disponible · usando fallback inteligente"
+                                    else -> "Cargando Gemma 4..."
+                                }
+                                Text(
+                                    text = statusText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = when {
+                                        localAiStatus.ready -> Color(0xFF4CAF50)
+                                        localAiStatus.error != null -> MaterialTheme.colorScheme.error
+                                        else -> PRO_COLOR
+                                    },
+                                )
+                            }
+                            MODE_BASIC -> Text(
+                                text = "Modo Básico · base de datos local (${foodDatabase.size} alimentos)",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }
 
-            // ── Search Input ────────────────────────────────────────────────
+            // ── Search Tab ──────────────────────────────────────────────────
             if (activeTab == 1) {
                 item {
-                    Column {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Buscar alimento...") },
-                            singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Search, null) },
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(onSearch = { performSearch() }),
-                        )
-                    }
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Buscar alimento...") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = { performSearch() }),
+                    )
                 }
                 items(searchResults) { food ->
-                    FoodSearchResultCard(
-                        food = food,
-                        onClick = {
-                            val logged = scaleFoodByPortion(food)
-                            val tag = ResolvedTag(
-                                tag = food.name,
-                                portion = PortionPreset.MEDIUM,
-                                quantity = 1,
-                                amountGrams = food.servingSize,
-                                foodItem = food,
-                                loggedFood = logged,
-                                isResolved = true,
-                                isFuzzyMatch = false,
-                                statusText = "✓ Listo",
-                            )
-                            tags = tags + tag
-                            searchQuery = ""
-                            searchResults = emptyList()
-                            activeTab = 0
-                        },
-                    )
+                    FoodSearchResultCard(food = food, onClick = {
+                        val logged = scaleFoodByPortion(food)
+                        val tag = ResolvedTag(
+                            tag = food.name,
+                            portion = PortionPreset.MEDIUM,
+                            quantity = 1,
+                            amountGrams = food.servingSize,
+                            foodItem = food,
+                            loggedFood = logged,
+                            isResolved = true,
+                            statusText = "✓ Listo",
+                        )
+                        tags = tags + tag
+                        searchQuery = ""
+                        searchResults = emptyList()
+                        activeTab = 0
+                    })
                 }
             }
 
@@ -476,21 +705,22 @@ fun FoodLoggerDrawer(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-
-                items(tags) { tag ->
-                    TagCard(
-                        tag = tag,
-                        onToggleExpanded = { toggleTagExpanded(tag.id) },
-                        onPortionChange = { updateTagPortion(tag.id, it) },
-                        onGramsChange = { updateTagGrams(tag.id, it) },
-                        onCaloriesChange = { updateTagCalories(tag.id, it) },
-                        onProteinChange = { updateTagProtein(tag.id, it) },
-                        onCarbsChange = { updateTagCarbs(tag.id, it) },
-                        onFatsChange = { updateTagFats(tag.id, it) },
-                        onRemove = { removeTag(tag.id) },
-                        foodDatabase = foodDatabase,
-                        onResolve = { food -> resolveFood(tag.id, food) },
-                    )
+                items(tags, key = { it.id }) { tag ->
+                    Box(modifier = Modifier.animateItem()) {
+                        TagCard(
+                            tag = tag,
+                            onToggleExpanded = { toggleTagExpanded(tag.id) },
+                            onPortionChange = { updateTagPortion(tag.id, it) },
+                            onGramsChange = { updateTagGrams(tag.id, it) },
+                            onCaloriesChange = { updateTagCalories(tag.id, it) },
+                            onProteinChange = { updateTagProtein(tag.id, it) },
+                            onCarbsChange = { updateTagCarbs(tag.id, it) },
+                            onFatsChange = { updateTagFats(tag.id, it) },
+                            onRemove = { removeTag(tag.id) },
+                            foodDatabase = foodDatabase,
+                            onResolve = { food -> resolveFood(tag.id, food) },
+                        )
+                    }
                 }
             }
 
@@ -511,17 +741,8 @@ fun FoodLoggerDrawer(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column {
-                                Text(
-                                    text = "TOTAL",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = (0.1f).sp,
-                                )
-                                Text(
-                                    text = "${kotlin.math.round(tagTotals.calories)} kcal",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Black,
-                                )
+                                Text("TOTAL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.1f.sp)
+                                Text("${kotlin.math.round(tagTotals.calories)} kcal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 MacroBadge("P", "${kotlin.math.round(tagTotals.protein)}g", PROTEIN_COLOR)
@@ -533,16 +754,13 @@ fun FoodLoggerDrawer(
                 }
             }
 
-            // ── Save Button ─────────────────────────────────────────────────
+            // ── Save ────────────────────────────────────────────────────────
             item {
-                val hasResolved = tags.any { it.loggedFood != null }
                 Button(
                     onClick = { saveLog() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(16.dp),
-                    enabled = hasResolved,
+                    enabled = tags.any { it.loggedFood != null },
                 ) {
                     Icon(Icons.Default.Check, null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
@@ -561,10 +779,7 @@ fun FoodLoggerDrawer(
             showSuccess = false
             onDismiss()
         }
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter,
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             Snackbar(
                 modifier = Modifier.padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
@@ -581,6 +796,69 @@ fun FoodLoggerDrawer(
     }
 }
 
+// ─── Mode Option Card ────────────────────────────────────────────────────────
+
+@Composable
+private fun ModeOptionCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: Color,
+    title: String,
+    subtitle: String,
+    badge: String?,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(iconTint.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, null, tint = iconTint, modifier = Modifier.size(22.dp))
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
+                    if (badge != null) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = PRO_COLOR,
+                        ) {
+                            Text(
+                                text = badge,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                }
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
 // ─── Sub-composables ─────────────────────────────────────────────────────────
 
 @Composable
@@ -590,8 +868,7 @@ private fun MealTypeSelector(mealType: MealType, onSelect: (MealType) -> Unit) {
             val selected = type == mealType
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = if (selected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.surfaceContainer,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
                 modifier = Modifier.clickable { onSelect(type) },
             ) {
                 Text(
@@ -599,8 +876,7 @@ private fun MealTypeSelector(mealType: MealType, onSelect: (MealType) -> Unit) {
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
-                    color = if (selected) MaterialTheme.colorScheme.onPrimary
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -611,8 +887,7 @@ private fun MealTypeSelector(mealType: MealType, onSelect: (MealType) -> Unit) {
 private fun TabChip(label: String, active: Boolean, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = if (active) MaterialTheme.colorScheme.secondaryContainer
-        else MaterialTheme.colorScheme.surfaceContainer,
+        color = if (active) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.clickable(onClick = onClick),
     ) {
         Text(
@@ -627,35 +902,20 @@ private fun TabChip(label: String, active: Boolean, onClick: () -> Unit) {
 @Composable
 private fun MacroBadge(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-            fontWeight = FontWeight.ExtraBold,
-            color = color,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-        )
+        Text(text = label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), fontWeight = FontWeight.ExtraBold, color = color)
+        Text(text = value, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
 private fun FoodSearchResultCard(food: FoodItem, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = food.name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+            Text(text = food.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             Text(
                 text = "${kotlin.math.round(food.calories)} kcal · P ${food.protein}g · C ${food.carbs}g · G ${food.fats}g / ${food.servingSize}${food.unit}",
                 style = MaterialTheme.typography.labelSmall,
@@ -680,7 +940,6 @@ private fun TagCard(
     onResolve: (FoodItem) -> Unit,
 ) {
     val logged = tag.loggedFood
-    val isExpanded = tag.isExpanded
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -690,7 +949,6 @@ private fun TagCard(
         ),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Header row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -698,18 +956,14 @@ private fun TagCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = tag.tag,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
+                        Text(text = tag.tag, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = tag.statusText,
                             style = MaterialTheme.typography.labelSmall,
                             color = when (tag.analysisSource) {
                                 AnalysisSource.DATABASE -> Color(0xFF4CAF50)
-                                AnalysisSource.LOCAL_AI_ESTIMATE -> Color(0xFF2196F3)
+                                AnalysisSource.LOCAL_AI_ESTIMATE -> PRO_COLOR
                                 AnalysisSource.LOCAL_HEURISTIC -> Color(0xFFFF9800)
                                 else -> if (tag.isResolved) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
                             },
@@ -725,11 +979,7 @@ private fun TagCard(
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconButton(onClick = onToggleExpanded, modifier = Modifier.size(32.dp)) {
-                        Icon(
-                            if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            null,
-                            modifier = Modifier.size(18.dp),
-                        )
+                        Icon(if (tag.isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, modifier = Modifier.size(18.dp))
                     }
                     IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
@@ -737,17 +987,10 @@ private fun TagCard(
                 }
             }
 
-            // Expanded details
-            AnimatedVisibility(visible = isExpanded) {
+            AnimatedVisibility(visible = tag.isExpanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Spacer(modifier = Modifier.height(4.dp))
-
-                    // Portion selector
-                    Text(
-                        text = "Porción",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
+                    Text("Porción", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         PortionPreset.entries.forEach { preset ->
                             val label = when (preset) {
@@ -758,87 +1001,52 @@ private fun TagCard(
                             }
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
-                                color = if (tag.portion == preset) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceContainer,
+                                color = if (tag.portion == preset) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
                                 modifier = Modifier.clickable { onPortionChange(preset) },
                             ) {
                                 Text(
                                     text = label,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (tag.portion == preset) MaterialTheme.colorScheme.onPrimary
-                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = if (tag.portion == preset) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
                     }
 
-                    // Grams override
                     if (tag.amountGrams != null || tag.loggedFood != null) {
-                        Text(
-                            text = "Gramos (${kotlin.math.round(tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0)}g)",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
+                        Text("Gramos (${kotlin.math.round(tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0)}g)", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                         Slider(
-                            value = ((tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0) / 500.0).toFloat(),
-                            onValueChange = { pct ->
-                                val newGrams = pct * 500.0
-                                onGramsChange(kotlin.math.round(newGrams).toDouble())
-                            },
+                            value = ((tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0) / 500.0).toFloat().coerceIn(0f, 1f),
+                            onValueChange = { onGramsChange(kotlin.math.round(it * 500.0)) },
                             valueRange = 0f..1f,
                         )
                     }
 
-                    // Manual macro overrides
-                    Text(
-                        text = "Ajustar macros",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
+                    Text("Ajustar macros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                     MacroOverrideRow("Calorías", logged?.calories ?: 0.0, onCaloriesChange)
                     MacroOverrideRow("Proteína", logged?.protein ?: 0.0, onProteinChange)
                     MacroOverrideRow("Carbohidratos", logged?.carbs ?: 0.0, onCarbsChange)
                     MacroOverrideRow("Grasas", logged?.fats ?: 0.0, onFatsChange)
 
-                    // Resolve suggestions
                     if (!tag.isResolved) {
-                        Text(
-                            text = "Resoluciones sugeridas:",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
+                        Text("Resoluciones sugeridas:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                         val suggestions = foodDatabase.filter { food ->
                             val n = tag.tag.lowercase()
                             food.name.lowercase().contains(n) || n.contains(food.name.lowercase())
                         }.take(5)
-
                         if (suggestions.isEmpty()) {
-                            Text(
-                                text = "No se encontraron coincidencias. Escribe el nombre exacto o agrega gramos.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.error,
-                            )
+                            Text("No se encontraron coincidencias.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                         } else {
                             suggestions.forEach { food ->
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
                                     color = MaterialTheme.colorScheme.surfaceContainer,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onResolve(food) },
+                                    modifier = Modifier.fillMaxWidth().clickable { onResolve(food) },
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp)) {
-                                        Text(
-                                            text = food.name,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontWeight = FontWeight.SemiBold,
-                                        )
-                                        Text(
-                                            text = "${kotlin.math.round(food.calories)} kcal / ${food.servingSize}${food.unit}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
+                                        Text(food.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                                        Text("${kotlin.math.round(food.calories)} kcal / ${food.servingSize}${food.unit}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
                             }
@@ -859,10 +1067,7 @@ private fun MacroOverrideRow(label: String, value: Double, onChange: (Double) ->
     ) {
         Text(text = label, style = MaterialTheme.typography.labelSmall)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(
-                onClick = { onChange((value - 5).coerceAtLeast(0.0)) },
-                modifier = Modifier.size(28.dp),
-            ) {
+            IconButton(onClick = { onChange((value - 5).coerceAtLeast(0.0)) }, modifier = Modifier.size(28.dp)) {
                 Icon(Icons.Default.Remove, null, modifier = Modifier.size(14.dp))
             }
             Text(
@@ -870,12 +1075,9 @@ private fun MacroOverrideRow(label: String, value: Double, onChange: (Double) ->
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(40.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
             )
-            IconButton(
-                onClick = { onChange((value + 5).coerceAtMost(9999.0)) },
-                modifier = Modifier.size(28.dp),
-            ) {
+            IconButton(onClick = { onChange((value + 5).coerceAtMost(9999.0)) }, modifier = Modifier.size(28.dp)) {
                 Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp))
             }
         }

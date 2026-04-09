@@ -12,7 +12,7 @@
       {"name": "Impingement subacromial", "description": "Compresión del manguito rotador bajo el acromion.", "riskExercises": ["db_bench_press_tng", "db_overhead_press"], "contraindications": ["Evitar elevaciones por encima de 90° con carga en fase aguda"], "returnProgressions": ["Pendulums de Codman", "Rotaciones externas con banda", "Press con agarre neutro"]},
       {"name": "Tendinopatía del manguito", "description": "Degeneración o inflamación de los tendones del manguito rotador.", "riskExercises": ["db_dips", "db_overhead_press"], "contraindications": ["Evitar movimientos overhead repetitivos"], "returnProgressions": ["Face pulls", "Rotaciones externas", "Progresión a press por encima de la cabeza"]}
     ],
-    "protectiveExercises": ["db_exp_face_pull", "db_plank", "db_lateral_raise", "db_seated_cable_row", "db_overhead_press"]
+    "protectiveExercises": ["db_exp_face_pull", "db_plank", "db_lateral_raise", "db_seated_cable_row", "db_overhead_press", "tren_superior_face_pull_polea", "tren_superior_remo_sentado_polea_baja", "tren_superior_press_hombros_sentado_mancuernas"]
   },
   {
     "id": "acromioclavicular",
@@ -51,7 +51,7 @@
       {"name": "Codo de tenista (epicondilitis lateral)", "description": "Inflamación de los tendones extensores.", "riskExercises": ["Curl con barra", "Extensión de tríceps"], "contraindications": ["Evitar agarre prono repetitivo con carga"], "returnProgressions": ["Ejercicios excéntricos de extensores", "Curl martillo", "Progresión a curl con barra"]},
       {"name": "Codo de golfista (epicondilitis medial)", "description": "Inflamación de los tendones flexores.", "riskExercises": ["Curl con barra", "Remo"], "contraindications": ["Evitar agarre fuerte repetitivo"], "returnProgressions": ["Ejercicios excéntricos de flexores", "Estiramientos de muñeca"]}
     ],
-    "protectiveExercises": ["db_exp_hammer_curl", "db_plank", "db_triceps_pushdown", "db_seated_cable_row"]
+    "protectiveExercises": ["db_exp_hammer_curl", "db_plank", "db_triceps_pushdown", "db_seated_cable_row", "tren_superior_curl_martillo_mancuernas", "tren_superior_extension_triceps_polea_cuerda", "tren_superior_remo_sentado_polea_baja"]
   },
   {
     "id": "radiocubital-proximal",
@@ -114,7 +114,7 @@
       {"name": "Lumbalgia mecánica", "description": "Dolor lumbar por disfunción muscular o postural.", "riskExercises": ["Peso muerto convencional", "Sentadilla frontal"], "contraindications": ["Evitar flexión lumbar repetitiva bajo carga"], "returnProgressions": ["Bird dogs", "Planchas", "Puentes de glúteo", "Progresión a bisagras"]},
       {"name": "Hernia discal lumbar", "description": "Protrusión del disco intervertebral.", "riskExercises": ["Peso muerto", "Sentadilla"], "contraindications": ["Evitar flexión y compresión axial en fase aguda"], "returnProgressions": ["McKenzie extensiones", "Estabilización core", "Progresión muy gradual"]}
     ],
-    "protectiveExercises": ["db_plank", "db_ab_wheel", "db_hanging_leg_raises", "db_romanian_deadlift", "db_goblet_squat"]
+    "protectiveExercises": ["db_plank", "db_ab_wheel", "db_hanging_leg_raises", "db_romanian_deadlift", "db_goblet_squat", "ultimo_plancha_frontal", "ultimo_plancha_rodillo", "tren_inferior_peso_muerto_rumano", "tren_inferior_sentadilla_goblet_mancuerna"]
   },
   {
     "id": "sacroiliaca",
@@ -157,7 +157,7 @@
       {"name": "Tendinopatía rotuliana", "description": "Dolor en el tendón rotuliano por sobrecarga.", "riskExercises": ["Sentadilla", "Salto"], "contraindications": ["Evitar saltos y sentadillas profundas en fase aguda"], "returnProgressions": ["Ejercicios excéntricos", "Sentadilla isométrica", "Progresión a sentadilla"]},
       {"name": "Síndrome patelofemoral", "description": "Dolor anterior de rodilla por mala alineación de la rótula.", "riskExercises": ["Sentadilla", "Estocadas"], "contraindications": ["Evitar flexión profunda con valgo"], "returnProgressions": ["Vasto medial", "Glúteo medio", "Progresión a sentadilla"]}
     ],
-    "protectiveExercises": ["db_goblet_squat", "db_plank", "db_romanian_deadlift", "db_squat_high_bar", "db_exp_hammer_curl"]
+    "protectiveExercises": ["db_goblet_squat", "db_plank", "db_romanian_deadlift", "db_squat_high_bar", "db_exp_hammer_curl", "tren_inferior_sentadilla_goblet_mancuerna", "tren_inferior_peso_muerto_rumano", "tren_inferior_sentadilla_barra_alta"]
   },
   {
     "id": "tobillo",
@@ -172,7 +172,7 @@
       {"name": "Tendinopatía aquílea", "description": "Degeneración del tendón de Aquiles.", "riskExercises": ["Elevación de talones", "Salto"], "contraindications": ["Evitar saltos y carreras en fase aguda"], "returnProgressions": ["Ejercicios excéntricos de sóleo", "Progresión a elevaciones", "Pliometría gradual"]},
       {"name": "Esguince de tobillo", "description": "Lesión de los ligamentos laterales del tobillo.", "contraindications": ["Evitar inestabilidad en fase aguda"], "returnProgressions": ["Movilidad", "Equilibrio monopodal", "Progresión a carga"]}
     ],
-    "protectiveExercises": ["db_goblet_squat", "db_romanian_deadlift"]
+    "protectiveExercises": ["db_goblet_squat", "db_romanian_deadlift", "tren_inferior_elevacion_talones_sentado", "tren_inferior_elevacion_talones_pie_maquina"]
   },
   {
     "id": "subtalar",
@@ -197,6 +197,6 @@
     "commonInjuries": [
       {"name": "Escápula alada", "description": "Protrusión anormal del borde medial de la escápula por debilidad del serrato.", "riskExercises": ["Press por encima de la cabeza"], "returnProgressions": ["Fortalecimiento del serrato", "Protuberancias", "Progresión a press"]}
     ],
-    "protectiveExercises": ["db_exp_face_pull", "db_seated_cable_row", "db_overhead_press"]
+    "protectiveExercises": ["db_exp_face_pull", "db_seated_cable_row", "db_overhead_press", "tren_superior_face_pull_polea", "tren_superior_remo_sentado_polea_baja", "tren_superior_press_militar_pie_barra"]
   }
 ]

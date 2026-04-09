@@ -4,14 +4,14 @@
     "name": "Tren Superior",
     "description": "Cadena funcional de cintura escapular y miembros superiores. Integra patrones de empuje, tirón y estabilización escapular para producir fuerza eficiente en tareas por encima y frente al torso.",
     "importance": "Es clave para postura, rendimiento en empujes/tirones y salud del hombro. Debe programarse con equilibrio entre cadenas anterior y posterior para evitar desbalances.",
-    "muscles": ["pectoral", "espalda", "hombros", "brazos", "antebrazo", "serrato-anterior"]
+    "muscles": ["pectoral", "espalda", "hombros", "brazos", "antebrazo", "serrato-anterior", "trapecio"]
   },
   {
     "id": "tren-inferior",
     "name": "Tren Inferior",
     "description": "Cadena locomotora principal que integra cadera, rodilla y tobillo en patrones de sentadilla, bisagra, zancada y salto.",
     "importance": "Base de potencia y capacidad funcional. Aporta mayor transferencia a rendimiento atlético, metabolismo y resiliencia articular de miembro inferior.",
-    "muscles": ["piernas", "cuádriceps", "isquiosurales", "glúteos", "pantorrillas", "aductores", "tibial-anterior"]
+    "muscles": ["piernas", "cuádriceps", "isquiosurales", "glúteos", "pantorrillas", "aductores", "tibial-anterior", "glúteo-medio"]
   },
   {
     "id": "core",

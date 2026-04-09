@@ -7,6 +7,14 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
+    <!-- Voz: reconocimiento de descripción nutricional -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Cámara: análisis nutricional por foto -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -39,6 +47,11 @@
 
         <receiver
             android:name=".services.workout.RestTimerFinishedReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
+            android:name=".services.nutrition.NutritionAlertReceiver"
             android:enabled="true"
             android:exported="false" />
     </application>

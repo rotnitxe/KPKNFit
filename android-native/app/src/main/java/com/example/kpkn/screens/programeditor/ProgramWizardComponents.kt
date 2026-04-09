@@ -94,10 +94,10 @@ private data class CoverGradientOption(
 )
 
 private val coverGradients = listOf(
-    CoverGradientOption("gradient://ember", "Ember", listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))),
-    CoverGradientOption("gradient://lagoon", "Lagoon", listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))),
-    CoverGradientOption("gradient://velvet", "Velvet", listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))),
-    CoverGradientOption("gradient://forest", "Forest", listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))),
+    CoverGradientOption("gradient://ember", "Ember", listOf(Color(0xFF1A1D22), Color(0xFF2A2F37), Color(0xFF3B4350))),
+    CoverGradientOption("gradient://lagoon", "Lagoon", listOf(Color(0xFF12161D), Color(0xFF1E2633), Color(0xFF2E3A4D))),
+    CoverGradientOption("gradient://velvet", "Velvet", listOf(Color(0xFF17171D), Color(0xFF232730), Color(0xFF343A46))),
+    CoverGradientOption("gradient://forest", "Forest", listOf(Color(0xFF141B1B), Color(0xFF202B2B), Color(0xFF313F3F))),
 )
 
 private data class WizardDay(
@@ -547,19 +547,23 @@ private fun ProgramIdentityEditorCard(
     onClearImage: () -> Unit,
 ) {
     Surface(
-        shape = RoundedCornerShape(26.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+        ),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ProgramCoverArt(
                 coverValue = coverValue,
                 gradient = selectedGradient,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(236.dp),
+                    .height(196.dp),
             )
 
             OutlinedTextField(
@@ -578,9 +582,9 @@ private fun ProgramIdentityEditorCard(
                 label = { Text("Descripción") },
                 placeholder = { Text("Qué busca este programa, para quién es o cómo se va a usar.") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 4,
-                maxLines = 6,
-                shape = RoundedCornerShape(18.dp),
+                minLines = 3,
+                maxLines = 5,
+                shape = RoundedCornerShape(14.dp),
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -621,7 +625,7 @@ private fun ProgramIdentityPreviewCard(
         ?: "Añade una portada, un nombre claro y una descripción breve."
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -631,14 +635,14 @@ private fun ProgramIdentityPreviewCard(
                 gradient = gradient,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp),
+                    .height(170.dp),
             )
 
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text(displayName, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                Text(displayName, fontSize = 18.sp, fontWeight = FontWeight.Black)
                 Text(displayDescription, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -653,7 +657,7 @@ private fun ProgramCoverArt(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(Brush.linearGradient(gradient.colors)),
     ) {
         if (!isGradientCover(coverValue)) {
@@ -674,7 +678,7 @@ private fun ProgramCoverArt(
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .size(128.dp)
+                    .size(92.dp)
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.08f)),
             )
@@ -684,7 +688,7 @@ private fun ProgramCoverArt(
                 colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.96f)),
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .size(122.dp),
+                    .size(84.dp),
             )
         }
     }
@@ -698,10 +702,10 @@ private fun GradientSwatch(
 ) {
     Surface(
         modifier = Modifier
-            .width(108.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .width(96.dp)
+            .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surface,
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
@@ -712,7 +716,7 @@ private fun GradientSwatch(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(76.dp)
+                    .height(62.dp)
                     .background(Brush.linearGradient(option.colors)),
             ) {
                 Icon(
@@ -721,13 +725,13 @@ private fun GradientSwatch(
                     tint = Color.White.copy(alpha = 0.92f),
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(30.dp),
+                        .size(24.dp),
                 )
             }
             Text(
                 text = option.name,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
-                fontSize = 10.sp,
+                fontSize = 9.sp,
                 fontWeight = FontWeight.Bold,
             )
         }

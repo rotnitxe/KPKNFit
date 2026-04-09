@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ─── Types & Constants ──────────────────────────────────────────────────────
 
 type RingId = 'muscular' | 'cns' | 'spinal';
+type CalibratableRingId = 'cns' | 'spinal';
 export type RingsViewMode = 'rings' | 'individual';
 
 const RING_COLORS = {
@@ -160,9 +161,8 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
     const [focusedRing, setFocusedRing] = useState<RingId | null>(null);
     const [carouselIndex, setCarouselIndex] = useState(0);
     const [isMuscleAccordionOpen, setIsMuscleAccordionOpen] = useState(false);
-    const [calibratingId, setCalibratingId] = useState<RingId | null>(null);
+    const [calibratingId, setCalibratingId] = useState<CalibratableRingId | null>(null);
     const [calibCns, setCalibCns] = useState(0);
-    const [calibMusc, setCalibMusc] = useState(0);
     const [calibSpinal, setCalibSpinal] = useState(0);
     const pressTimerRef = useRef<number | null>(null);
     const wasLongPressRef = useRef(false);
@@ -213,14 +213,12 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
         const cur = settings.batteryCalibration || { cnsDelta: 0, muscularDelta: 0, spinalDelta: 0, lastCalibrated: '', muscleDeltas: {} };
         let cnsDelta = cur.cnsDelta || 0;
         let spinalDelta = cur.spinalDelta || 0;
-        let muscularDelta = cur.muscularDelta || 0;
 
         if (calibratingId === 'cns') cnsDelta = calibCns - (cnsValue - cnsDelta);
-        if (calibratingId === 'muscular') muscularDelta = calibMusc - (muscularValue - muscularDelta);
         if (calibratingId === 'spinal') spinalDelta = calibSpinal - (spinalValue - spinalDelta);
 
         setSettings({
-            batteryCalibration: { cnsDelta, muscularDelta, spinalDelta, muscleDeltas: cur.muscleDeltas, lastCalibrated: new Date().toISOString() },
+            batteryCalibration: { ...cur, cnsDelta, spinalDelta, lastCalibrated: new Date().toISOString() },
             hasPrecalibratedBattery: true
         });
         addToast(`${RING_LABELS[calibratingId]} recalibrado`, 'success');
@@ -242,7 +240,11 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
     const handleRingPointerDown = (e: React.PointerEvent<HTMLDivElement>, id: RingId) => {
         if (viewMode === 'rings') {
             wasLongPressRef.current = false;
-            pressTimerRef.current = window.setTimeout(() => { wasLongPressRef.current = true; setCalibratingId(id); }, 600);
+            pressTimerRef.current = window.setTimeout(() => {
+                if (id === 'muscular') return;
+                wasLongPressRef.current = true;
+                setCalibratingId(id);
+            }, 600);
             return;
         }
         if (id === 'muscular') return;
@@ -429,8 +431,8 @@ export const AugeTelemetryPanel: React.FC<AugeTelemetryPanelProps> = ({
                     <CalibrationModal
                         id={calibratingId}
                         currentValue={systemValues[calibratingId]}
-                        calibValue={calibratingId === 'cns' ? calibCns : calibratingId === 'muscular' ? calibMusc : calibSpinal}
-                        onCalibChange={v => { if (calibratingId === 'cns') setCalibCns(v); if (calibratingId === 'muscular') setCalibMusc(v); if (calibratingId === 'spinal') setCalibSpinal(v); }}
+                        calibValue={calibratingId === 'cns' ? calibCns : calibSpinal}
+                        onCalibChange={v => { if (calibratingId === 'cns') setCalibCns(v); else setCalibSpinal(v); }}
                         onSave={handleSaveCalibration}
                         onCancel={() => setCalibratingId(null)}
                     />

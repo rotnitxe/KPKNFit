@@ -23,6 +23,20 @@ data class WorkoutLog(
     val environmentTags: List<String> = emptyList(), // e.g. "gym", "casa", "cansado", "buen sueño"
     val planDeviations: List<PlanDeviation> = emptyList(), // deviations from planned session
     val exerciseTags: Map<String, String> = emptyMap(),    // exerciseId → tag used this session
+    val contextualPerformanceStateV2: Map<String, ContextPerformanceStateV2> = emptyMap(),
+    val globalPerformanceStateV3: Map<String, GlobalPerformanceStateV3> = emptyMap(),
+    val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
+    val replacementDecisionsV2: List<ExerciseReplacementDecisionV2> = emptyList(),
+    val postExerciseReports: List<ExerciseDiscomfortReport> = emptyList(),
+)
+
+@Serializable
+data class ExerciseDiscomfortReport(
+    val exerciseId: String,
+    val exerciseDbId: String? = null,
+    val exerciseName: String,
+    val technicalQuality: Int,
+    val discomfortIds: List<String> = emptyList(),
 )
 
 @Serializable
@@ -48,6 +62,7 @@ data class CompletedExercise(
     val exerciseDbId: String? = null,  // AUGE: link to ExerciseDatabase for metrics
     val sets: List<CompletedSet> = emptyList(),
     val restTime: Int = 90,            // AUGE: rest interval in seconds for drain calc
+    val supersetId: String? = null,
 )
 
 @Serializable
@@ -55,9 +70,12 @@ data class CompletedSet(
     val id: String,
     val weight: Double = 0.0,
     val reps: Int = 0,
+    val timeSeconds: Int? = null,
     val rpe: Double? = null,
     val rir: Int? = null,
     val isFailure: Boolean = false,
+    val isFailedSet: Boolean = false,
+    val failureReason: String? = null,
     val isPartial: Boolean = false,
     val partialReps: Int? = null,
     val dropSets: List<DropSetData> = emptyList(),
@@ -66,6 +84,16 @@ data class CompletedSet(
     val side: String? = null,      // "left" / "right" for unilateral
     val spinalScore: Double? = null,
     val performanceMode: PerformanceMode? = null,
+    val actualIntensityMode: IntensityMode? = null,
+    val actualIntensityValue: Double? = null,
+    val debt: Double = 0.0,
+    val contextProfileId: String? = null,
+    val tagId: String? = null,
+    val setupProfileId: String? = null,
+    val machineBrand: String? = null,
+    val recordedPayloadV3: RecordedSetPayload? = null,
+    val homologatedResultV3: HomologatedPerformanceResult? = null,
+    val setOutcomeV2: SetOutcomeV2? = null,
 )
 
 @Serializable
@@ -84,6 +112,8 @@ data class OngoingWorkoutState(
     val mesoIndex: Int? = null,
     val weekId: String? = null,
     val exerciseTags: Map<String, String> = emptyMap(), // exerciseId → active tag
+    val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
+    val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),
 )
 
 /** Summary card data for the Home screen "Sesión de hoy" */

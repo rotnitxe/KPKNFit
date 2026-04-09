@@ -3,6 +3,7 @@ package com.example.kpkn.screens.sessioneditor
 enum class SessionEditorSheet {
     NONE,
     EXERCISE_PICKER,
+    QUICK_ACTIONS,
     BACKGROUND,
     HISTORY,
     RULES,
@@ -10,6 +11,7 @@ enum class SessionEditorSheet {
     SAVE,
     AUGE,
     WARMUP,
+    SUPERSERIE_MANAGER,
 }
 
 data class SessionDraftBundle(

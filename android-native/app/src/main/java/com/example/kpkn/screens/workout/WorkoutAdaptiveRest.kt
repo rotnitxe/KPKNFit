@@ -16,9 +16,10 @@ object WorkoutAdaptiveRest {
 
     fun compute(baseRestSeconds: Int, advanced: SetAdvancedFeedback): Int {
         var factor = 1.0
-        if (advanced.isFailure) factor *= 1.30
+        if (advanced.reachedFailure) factor *= 1.30
+        if (advanced.isFailedSet) factor *= 1.20
         if (advanced.isPartial) factor *= 1.15
-        if (advanced.restPauseReps.isNotEmpty()) factor *= 1.20
+        if (advanced.restPauses.isNotEmpty()) factor *= 1.20
         if (advanced.dropSets.isNotEmpty()) factor *= 1.10
         return (baseRestSeconds * factor).toInt().coerceIn(MIN_REST, MAX_REST)
     }

@@ -59,6 +59,7 @@ fun ProgramDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showVolumeSetupNotice by remember { mutableStateOf(false) }
+    var openVolumeSheetToken by remember { mutableIntStateOf(0) }
 
     // Edge case: program not found
     val p = program
@@ -82,9 +83,6 @@ fun ProgramDetailScreen(
             showVolumeSetupNotice = true
         }
     }
-
-    // Welcome Tour (uses SharedPreferences — single source of truth)
-    val tourState = rememberTourState(programId)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
@@ -181,6 +179,7 @@ fun ProgramDetailScreen(
                         }
                     }
                 },
+                openVolumeSheetToken = openVolumeSheetToken,
             )
 
             // Integrated Tabs
@@ -241,20 +240,26 @@ fun ProgramDetailScreen(
         }
     }
 
-    WelcomeTourDialog(tourState = tourState)
-
     if (showVolumeSetupNotice) {
         AlertDialog(
             onDismissRequest = { showVolumeSetupNotice = false },
-            title = { Text("Tu programa ya está listo", fontWeight = FontWeight.Black) },
+            title = { Text("Calibrar volumen del programa", fontWeight = FontWeight.Black) },
             text = {
                 Text(
-                    "¿Deseas saber cuántas son tus series semanales recomendadas por músculo?\n\nTe lo recomendamos para que puedas agregar tus ejercicios con una guía clara y evitar sobreentrenamientos. Más adelante armaremos este recomendador dentro de KPKN."
+                    "Para ajustar recomendaciones por músculo y activar automatizaciones de volumen, completa tu calibración inicial ahora."
                 )
             },
             confirmButton = {
-                Button(onClick = { showVolumeSetupNotice = false }) {
-                    Text("Entendido")
+                Button(onClick = {
+                    showVolumeSetupNotice = false
+                    openVolumeSheetToken++
+                }) {
+                    Text("Calibrar ahora")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showVolumeSetupNotice = false }) {
+                    Text("Más tarde")
                 }
             },
         )
@@ -332,10 +337,10 @@ private fun TrainingPanel(
                         }
                     },
                     onStartWorkout = { onStartWorkout(it, program) },
-                    onReorderSessions = { fromIdx, toIdx ->
+                    onApplySessionsLayout = { updatedSessions ->
                         val weekId = selectedWeekId ?: ""
                         if (weekId.isNotEmpty()) {
-                            viewModel.reorderSessions(weekId, fromIdx, toIdx)
+                            viewModel.replaceWeekSessions(weekId, updatedSessions)
                         }
                     },
                     onUpdateStartDay = { startDay ->
@@ -397,6 +402,7 @@ private fun AnalyticsPanel(
         when (analyticsSubTab) {
             AnalyticsSubTab.VOLUMEN -> {
                 val programDiscomforts by viewModel.programDiscomforts.collectAsState()
+                val exerciseDiscomfortAssociations by viewModel.exerciseDiscomfortAssociations.collectAsState()
                 VolumeView(
                     program = program,
                     isProgramActive = isProgramActive,
@@ -429,6 +435,7 @@ private fun AnalyticsPanel(
                         )
                     },
                     programDiscomforts = programDiscomforts,
+                    exerciseDiscomfortAssociations = exerciseDiscomfortAssociations,
                 )
             }
             AnalyticsSubTab.PROGRESO -> {

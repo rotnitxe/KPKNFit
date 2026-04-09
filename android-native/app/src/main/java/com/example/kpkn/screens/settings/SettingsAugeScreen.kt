@@ -43,7 +43,7 @@ fun SettingsAugeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Sistema AUGE", fontWeight = FontWeight.Black) },
+                title = { Text("Estado de recuperación (AUGE)", fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")

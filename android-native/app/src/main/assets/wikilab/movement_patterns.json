@@ -7,7 +7,7 @@
     "chainTypes": ["anterior"],
     "primaryMuscles": ["pectoral", "deltoides-anterior", "tríceps"],
     "primaryJoints": ["glenohumeral", "codo", "escapulotoracica"],
-    "exampleExercises": ["db_bench_press_tng", "db_dumbbell_bench_press", "db_push_up", "db_dips"]
+    "exampleExercises": ["db_bench_press_tng", "db_dumbbell_bench_press", "db_push_up", "db_dips", "tren_superior_press_banca_plano_mancuernas", "tren_superior_press_banca_inclinado_mancuernas"]
   },
   {
     "id": "horizontal-pull",
@@ -17,7 +17,7 @@
     "chainTypes": ["posterior"],
     "primaryMuscles": ["dorsal-ancho", "trapecio", "deltoides-posterior", "bíceps"],
     "primaryJoints": ["glenohumeral", "codo", "escapulotoracica"],
-    "exampleExercises": ["db_barbell_row", "db_dumbbell_row", "db_seated_cable_row", "db_exp_face_pull"]
+    "exampleExercises": ["db_barbell_row", "db_dumbbell_row", "db_seated_cable_row", "db_exp_face_pull", "tren_superior_remo_sentado_polea_baja", "tren_superior_remo_una_mano_mancuerna"]
   },
   {
     "id": "vertical-push",
@@ -27,7 +27,7 @@
     "chainTypes": ["anterior"],
     "primaryMuscles": ["deltoides-anterior", "deltoides-lateral", "tríceps", "trapecio-superior"],
     "primaryJoints": ["glenohumeral", "codo", "escapulotoracica"],
-    "exampleExercises": ["db_overhead_press", "db_dumbbell_shoulder_press", "db_dips"]
+    "exampleExercises": ["db_overhead_press", "db_dumbbell_shoulder_press", "db_dips", "tren_superior_press_militar_pie_barra", "tren_superior_press_hombros_sentado_mancuernas"]
   },
   {
     "id": "vertical-pull",
@@ -37,7 +37,7 @@
     "chainTypes": ["posterior"],
     "primaryMuscles": ["dorsal-ancho", "bíceps", "trapecio"],
     "primaryJoints": ["glenohumeral", "codo", "escapulotoracica"],
-    "exampleExercises": ["db_pull_up", "db_chin_up", "db_lat_pulldown"]
+    "exampleExercises": ["db_pull_up", "db_chin_up", "db_lat_pulldown", "tren_superior_dominadas_supinas", "tren_superior_jalon_pecho_prono"]
   },
   {
     "id": "squat",
@@ -47,7 +47,7 @@
     "chainTypes": ["anterior", "posterior", "full"],
     "primaryMuscles": ["cuádriceps", "glúteo-mayor", "glúteo-medio", "erectores-espinales", "aductores"],
     "primaryJoints": ["cadera", "rodilla", "columna-lumbar"],
-    "exampleExercises": ["db_squat_high_bar", "db_squat_low_bar", "db_front_squat", "db_goblet_squat"]
+    "exampleExercises": ["db_squat_high_bar", "db_squat_low_bar", "db_front_squat", "db_goblet_squat", "tren_inferior_sentadilla_barra_alta", "tren_inferior_sentadilla_frontal", "tren_inferior_bulgara_mancuernas"]
   },
   {
     "id": "hinge",
@@ -57,7 +57,7 @@
     "chainTypes": ["posterior"],
     "primaryMuscles": ["erectores-espinales", "glúteo-mayor", "bíceps-femoral", "semitendinoso", "semimembranoso"],
     "primaryJoints": ["cadera", "columna-lumbar", "rodilla"],
-    "exampleExercises": ["db_deadlift", "db_romanian_deadlift", "db_sumo_deadlift"]
+    "exampleExercises": ["db_deadlift", "db_romanian_deadlift", "db_sumo_deadlift", "tren_inferior_peso_muerto_convencional", "tren_inferior_peso_muerto_rumano", "tren_inferior_peso_muerto_barra_hexagonal", "tren_inferior_hip_thrust_barra"]
   },
   {
     "id": "lunge",
@@ -67,7 +67,7 @@
     "chainTypes": ["full"],
     "primaryMuscles": ["cuádriceps", "glúteo-mayor", "glúteo-medio", "bíceps-femoral"],
     "primaryJoints": ["cadera", "rodilla"],
-    "exampleExercises": ["db_goblet_squat", "db_squat_high_bar"]
+    "exampleExercises": ["db_goblet_squat", "db_squat_high_bar", "tren_inferior_zancada_caminando_mancuernas", "tren_inferior_zancada_inversa_mancuernas", "tren_inferior_subida_cajon_mancuernas"]
   },
   {
     "id": "extension",
@@ -77,7 +77,7 @@
     "chainTypes": ["anterior", "posterior"],
     "primaryMuscles": ["cuádriceps", "glúteo-mayor", "gastrocnemio", "sóleo"],
     "primaryJoints": ["rodilla", "cadera", "tobillo"],
-    "exampleExercises": ["db_squat_high_bar", "db_romanian_deadlift"]
+    "exampleExercises": ["db_squat_high_bar", "db_romanian_deadlift", "tren_inferior_extension_cuadriceps", "tren_inferior_curl_femoral_sentado", "tren_inferior_elevacion_talones_sentado"]
   },
   {
     "id": "anti-extension",
@@ -87,7 +87,7 @@
     "chainTypes": ["anterior"],
     "primaryMuscles": ["recto-abdominal", "transverso-abdominal", "oblicuos"],
     "primaryJoints": ["columna-lumbar"],
-    "exampleExercises": ["db_plank", "db_ab_wheel"]
+    "exampleExercises": ["db_plank", "db_ab_wheel", "ultimo_plancha_frontal", "ultimo_plancha_rodillo", "ultimo_bicho_muerto"]
   },
   {
     "id": "anti-rotation",
@@ -97,7 +97,7 @@
     "chainTypes": ["anterior"],
     "primaryMuscles": ["oblicuos", "transverso-abdominal", "multífidos"],
     "primaryJoints": ["columna-lumbar", "columna-toracica"],
-    "exampleExercises": ["db_plank"]
+    "exampleExercises": ["db_plank", "ultimo_press_pallof_arrodillado", "ultimo_lenador_polea"]
   },
   {
     "id": "rotation",
@@ -107,7 +107,7 @@
     "chainTypes": ["anterior"],
     "primaryMuscles": ["oblicuos", "recto-abdominal", "serrato-anterior"],
     "primaryJoints": ["columna-toracica", "columna-lumbar"],
-    "exampleExercises": []
+    "exampleExercises": ["ultimo_lanzamiento_rotacional_balon", "ultimo_press_landmine_rotacional"]
   },
   {
     "id": "carry",
@@ -117,7 +117,7 @@
     "chainTypes": ["full"],
     "primaryMuscles": ["trapecio-superior", "trapecio-medio", "erectores-espinales", "transverso-abdominal", "flexores-de-antebrazo"],
     "primaryJoints": ["columna-lumbar", "glenohumeral"],
-    "exampleExercises": []
+    "exampleExercises": ["ultimo_paseo_granjero_mancuernas", "ultimo_paseo_granjero_unilateral", "nuevo_farmer_walk_kettlebells"]
   },
   {
     "id": "jump",
@@ -127,6 +127,6 @@
     "chainTypes": ["full"],
     "primaryMuscles": ["cuádriceps", "glúteo-mayor", "gastrocnemio", "sóleo"],
     "primaryJoints": ["rodilla", "cadera", "tobillo"],
-    "exampleExercises": []
+    "exampleExercises": ["tren_inferior_salto_cajon", "tren_inferior_salto_longitud", "tren_inferior_salto_caida"]
   }
 ]

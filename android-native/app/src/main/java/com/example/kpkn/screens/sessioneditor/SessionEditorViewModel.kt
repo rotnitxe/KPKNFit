@@ -117,6 +117,7 @@ data class SessionEditorAugeSummary(
     val alerts: List<SessionEditorAugeAlert> = emptyList(),
     val suggestions: List<SessionEditorAugeAlert> = emptyList(),
     val topExercises: List<SessionEditorAugeExerciseInsight> = emptyList(),
+    val muscleDrainProjection: Map<String, Int> = emptyMap(),
 ) {
     val alertCount: Int
         get() = alerts.count { it.severity != SessionEditorAugeAlertSeverity.INFO }
@@ -147,6 +148,8 @@ data class SessionEditorUiState(
     val pickerTargetPartId: String? = null,
     val pickerTargetExerciseId: String? = null,
     val warmupExerciseId: String? = null,
+    val quickActionsPartId: String? = null,
+    val quickActionsExerciseId: String? = null,
     val collapsedPartIds: Set<String> = emptySet(),
     val hasUnsavedChanges: Boolean = false,
     val estimatedDurationMinutes: Int = 0,
@@ -155,6 +158,8 @@ data class SessionEditorUiState(
     val ruleDefaults: SessionEditorRuleDefaults = SessionEditorRuleDefaults(),
     val ruleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
     val pendingSessionSwitchId: String? = null,
+    val supersetManagerPartId: String? = null,
+    val supersetManagerSupersetId: String? = null,
 )
 
 data class SessionEditorSaveResult(
@@ -402,7 +407,15 @@ class SessionEditorViewModel(
     }
     fun updateSessionMeetBodyweight(bodyweight: Double?) = updateSession { it.copy(meetBodyweight = bodyweight) }
     fun updateDayOfWeek(dayOfWeek: Int) = updateSession { it.copy(dayOfWeek = dayOfWeek) }
-    fun openSheet(sheet: SessionEditorSheet) { _uiState.update { it.copy(sheet = sheet) } }
+    fun openSheet(sheet: SessionEditorSheet) {
+        _uiState.update { state ->
+            state.copy(
+                sheet = sheet,
+                quickActionsPartId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsPartId else null,
+                quickActionsExerciseId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsExerciseId else null,
+            )
+        }
+    }
     fun closeSheet() {
         _uiState.update {
             it.copy(
@@ -411,6 +424,20 @@ class SessionEditorViewModel(
                 pickerTargetPartId = null,
                 pickerTargetExerciseId = null,
                 warmupExerciseId = null,
+                quickActionsPartId = null,
+                quickActionsExerciseId = null,
+                supersetManagerPartId = null,
+                supersetManagerSupersetId = null,
+            )
+        }
+    }
+
+    fun openSupersetManager(partId: String?, supersetId: String) {
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.SUPERSERIE_MANAGER,
+                supersetManagerPartId = partId,
+                supersetManagerSupersetId = supersetId,
             )
         }
     }
@@ -426,7 +453,7 @@ class SessionEditorViewModel(
         val currentParts = _uiState.value.session?.parts.orEmpty()
         val nextColor = PART_COLORS[currentParts.size % PART_COLORS.size]
         updateSession {
-            it.copy(parts = it.parts + SessionPart(UUID.randomUUID().toString(), "Categoría ${it.parts.count { part -> !part.isUncategorized() } + 1}", color = nextColor))
+            it.copy(parts = it.parts + SessionPart(UUID.randomUUID().toString(), "Grupo ${it.parts.size + 1}", color = nextColor))
         }
     }
 
@@ -434,24 +461,10 @@ class SessionEditorViewModel(
         val removedPart = session.parts.firstOrNull { it.id == partId } ?: return@updateSession session
         val remaining = session.parts.filterNot { it.id == partId }
 
-        val normalized = when {
-            remaining.isEmpty() && keepExercises -> listOf(defaultPart().copy(exercises = removedPart.exercises))
-            remaining.isEmpty() -> listOf(defaultPart())
-            keepExercises -> {
-                val uncategorized = remaining.firstOrNull { it.isUncategorized() }
-                if (uncategorized != null) {
-                    remaining.map { part ->
-                        if (part.id == uncategorized.id) part.copy(exercises = part.exercises + removedPart.exercises)
-                        else part
-                    }
-                } else {
-                    listOf(defaultPart().copy(exercises = removedPart.exercises)) + remaining
-                }
-            }
-            else -> remaining
-        }
-
-        session.copy(parts = normalized)
+        session.copy(
+            parts = remaining,
+            exercises = if (keepExercises) session.exercises + removedPart.exercises else session.exercises,
+        )
     }
 
     fun updatePartName(partId: String, name: String) = updateSession { session ->
@@ -485,13 +498,20 @@ class SessionEditorViewModel(
                 pickerTargetPartId = partId,
                 pickerTargetExerciseId = exerciseId,
                 searchQuery = "",
+                quickActionsPartId = null,
+                quickActionsExerciseId = null,
             )
         }
     }
 
+    /** Abre el picker para añadir ejercicios sueltos (sin grupo). */
+    fun openPickerForUncategorized() {
+        openPicker(partId = null)
+    }
+
     fun setSearchQuery(query: String) { _uiState.update { it.copy(searchQuery = query) } }
 
-    fun addExerciseToPart(partId: String, info: ExerciseMuscleInfo) {
+    fun addExerciseToPart(partId: String?, info: ExerciseMuscleInfo): String {
         val newExercise = Exercise(
             id = UUID.randomUUID().toString(),
             name = info.name,
@@ -503,12 +523,17 @@ class SessionEditorViewModel(
             executionCues = info.executionCues.orEmpty(),
         )
         updateSession { session ->
-            session.copy(parts = session.parts.map { if (it.id == partId) it.copy(exercises = it.exercises + newExercise) else it })
+            if (partId == null) {
+                session.copy(exercises = session.exercises + newExercise)
+            } else {
+                session.copy(parts = session.parts.map { if (it.id == partId) it.copy(exercises = it.exercises + newExercise) else it })
+            }
         }
         closeSheet()
+        return newExercise.id
     }
 
-    fun replaceExerciseInPart(partId: String, exerciseId: String, info: ExerciseMuscleInfo) {
+    fun replaceExerciseInPart(partId: String?, exerciseId: String, info: ExerciseMuscleInfo) {
         updateExercise(partId, exerciseId) { current ->
             current.copy(
                 name = info.name,
@@ -520,56 +545,86 @@ class SessionEditorViewModel(
         closeSheet()
     }
 
-    fun removeExercise(partId: String, exerciseId: String) = updateSession { session ->
-        session.copy(parts = session.parts.map { if (it.id == partId) it.copy(exercises = it.exercises.filterNot { ex -> ex.id == exerciseId }) else it })
+    fun removeExercise(partId: String?, exerciseId: String) = updateSession { session ->
+        if (partId == null) {
+            session.copy(exercises = session.exercises.filterNot { ex -> ex.id == exerciseId })
+        } else {
+            session.copy(parts = session.parts.map { if (it.id == partId) it.copy(exercises = it.exercises.filterNot { ex -> ex.id == exerciseId }) else it })
+        }
     }
 
-    fun moveExercise(partId: String, exerciseId: String, direction: Int) = updateSession { session ->
-        session.copy(parts = session.parts.map { part ->
-            if (part.id == partId) part.copy(exercises = moveItem(part.exercises, exerciseId, direction) { it.id }) else part
-        })
+    fun moveExercise(partId: String?, exerciseId: String, direction: Int) = updateSession { session ->
+        if (partId == null) {
+            session.copy(exercises = moveItem(session.exercises, exerciseId, direction) { it.id })
+        } else {
+            session.copy(parts = session.parts.map { part ->
+                if (part.id == partId) part.copy(exercises = moveItem(part.exercises, exerciseId, direction) { it.id }) else part
+            })
+        }
     }
 
     fun moveExerciseToPart(
-        sourcePartId: String,
+        sourcePartId: String?,
         exerciseId: String,
-        targetPartId: String,
+        targetPartId: String?,
         targetIndex: Int? = null,
     ) = updateSession { session ->
         if (sourcePartId == targetPartId && targetIndex == null) return@updateSession session
 
         var movedExercise: Exercise? = null
-        val strippedParts = session.parts.map { part ->
-            if (part.id != sourcePartId) part
-            else part.copy(
-                exercises = part.exercises.filterNot { exercise ->
-                    val shouldMove = exercise.id == exerciseId
-                    if (shouldMove) movedExercise = exercise
-                    shouldMove
+        val strippedSession = if (sourcePartId == null) {
+            val remainingExercises = session.exercises.filterNot { exercise ->
+                val shouldMove = exercise.id == exerciseId
+                if (shouldMove) movedExercise = exercise
+                shouldMove
+            }
+            session.copy(exercises = remainingExercises)
+        } else {
+            val strippedParts = session.parts.map { part ->
+                if (part.id != sourcePartId) part
+                else part.copy(
+                    exercises = part.exercises.filterNot { exercise ->
+                        val shouldMove = exercise.id == exerciseId
+                        if (shouldMove) movedExercise = exercise
+                        shouldMove
+                    }
+                )
+            }
+            session.copy(parts = strippedParts)
+        }
+        val dragged = movedExercise ?: return@updateSession session
+
+        if (targetPartId == null) {
+            val mutable = strippedSession.exercises.toMutableList()
+            val safeIndex = (targetIndex ?: mutable.size).coerceIn(0, mutable.size)
+            mutable.add(safeIndex, dragged)
+            strippedSession.copy(exercises = mutable.toList())
+        } else {
+            strippedSession.copy(
+                parts = strippedSession.parts.map { part ->
+                    if (part.id != targetPartId) part
+                    else {
+                        val mutable = part.exercises.toMutableList()
+                        val safeIndex = (targetIndex ?: mutable.size).coerceIn(0, mutable.size)
+                        mutable.add(safeIndex, dragged)
+                        part.copy(exercises = mutable.toList())
+                    }
                 }
             )
         }
-        val dragged = movedExercise ?: return@updateSession session
-        session.copy(
-            parts = strippedParts.map { part ->
-                if (part.id != targetPartId) part
-                else {
-                    val mutable = part.exercises.toMutableList()
-                    val safeIndex = (targetIndex ?: mutable.size).coerceIn(0, mutable.size)
-                    mutable.add(safeIndex, dragged)
-                    part.copy(exercises = mutable.toList())
-                }
-            }
-        )
     }
 
-    fun updateExercise(partId: String, exerciseId: String, transform: (Exercise) -> Exercise) = updateSession { session ->
-        session.copy(parts = session.parts.map { part ->
-            if (part.id != partId) part else part.copy(exercises = part.exercises.map { ex -> if (ex.id == exerciseId) transform(ex).normalizeExercise() else ex })
-        })
+    fun updateExercise(partId: String?, exerciseId: String, transform: (Exercise) -> Exercise) = updateSession { session ->
+        if (partId == null) {
+            session.copy(exercises = session.exercises.map { ex -> if (ex.id == exerciseId) transform(ex).normalizeExercise() else ex })
+        } else {
+            session.copy(parts = session.parts.map { part ->
+                if (part.id != partId) part else part.copy(exercises = part.exercises.map { ex -> if (ex.id == exerciseId) transform(ex).normalizeExercise() else ex })
+            })
+        }
     }
 
-    fun addSet(partId: String, exerciseId: String) = updateExercise(partId, exerciseId) { exercise ->
+    fun addSet(partId: String?, exerciseId: String) = updateExercise(partId, exerciseId) { exercise ->
         val template = exercise.sets.lastOrNull()
         val nextSet = template?.let { createNextSetTemplate(exercise, it) } ?: ExerciseSet(
             id = UUID.randomUUID().toString(),
@@ -580,39 +635,117 @@ class SessionEditorViewModel(
         exercise.copy(sets = exercise.sets + nextSet)
     }
 
-    fun removeSet(partId: String, exerciseId: String, setId: String) = updateExercise(partId, exerciseId) { exercise ->
+    fun removeSet(partId: String?, exerciseId: String, setId: String) = updateExercise(partId, exerciseId) { exercise ->
         exercise.copy(sets = exercise.sets.filterNot { it.id == setId })
     }
 
-    fun moveSet(partId: String, exerciseId: String, setId: String, direction: Int) = updateExercise(partId, exerciseId) { exercise ->
+    fun moveSet(partId: String?, exerciseId: String, setId: String, direction: Int) = updateExercise(partId, exerciseId) { exercise ->
         exercise.copy(sets = moveItem(exercise.sets, setId, direction) { it.id })
     }
 
-    fun updateSet(partId: String, exerciseId: String, setId: String, transform: (ExerciseSet) -> ExerciseSet) =
+    fun updateSet(partId: String?, exerciseId: String, setId: String, transform: (ExerciseSet) -> ExerciseSet) =
         updateExercise(partId, exerciseId) { exercise ->
             exercise.copy(sets = exercise.sets.map { if (it.id == setId) transform(it).normalizeSet(exercise) else it })
         }
 
-    fun openWarmup(exerciseId: String) { _uiState.update { it.copy(sheet = SessionEditorSheet.WARMUP, warmupExerciseId = exerciseId) } }
-    fun updateWarmupSets(partId: String, exerciseId: String, sets: List<WarmupSetDefinition>) = updateExercise(partId, exerciseId) { it.copy(warmupSets = sets) }
+    fun openWarmup(exerciseId: String) {
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.WARMUP,
+                warmupExerciseId = exerciseId,
+                quickActionsPartId = null,
+                quickActionsExerciseId = null,
+            )
+        }
+    }
+
+    fun openExerciseQuickActions(partId: String?, exerciseId: String) {
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.QUICK_ACTIONS,
+                quickActionsPartId = partId,
+                quickActionsExerciseId = exerciseId,
+                pickerTargetPartId = null,
+                pickerTargetExerciseId = null,
+                warmupExerciseId = null,
+                searchQuery = "",
+            )
+        }
+    }
+
+    fun triggerQuickActionOpenPicker() {
+        val state = _uiState.value
+        val exerciseId = state.quickActionsExerciseId ?: return
+        openPicker(state.quickActionsPartId, exerciseId)
+    }
+
+    fun triggerQuickActionOpenWarmup() {
+        val exerciseId = _uiState.value.quickActionsExerciseId ?: return
+        openWarmup(exerciseId)
+    }
+
+    fun triggerQuickActionDelete() {
+        val state = _uiState.value
+        val exerciseId = state.quickActionsExerciseId ?: return
+        removeExercise(state.quickActionsPartId, exerciseId)
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.NONE,
+                quickActionsPartId = null,
+                quickActionsExerciseId = null,
+            )
+        }
+    }
+
+    fun triggerQuickActionLinkSuperset() {
+        val state = _uiState.value
+        val exerciseId = state.quickActionsExerciseId ?: return
+        linkExerciseWithNext(state.quickActionsPartId, exerciseId)
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.NONE,
+                quickActionsPartId = null,
+                quickActionsExerciseId = null,
+            )
+        }
+    }
+
+    fun triggerQuickActionUnlinkSuperset() {
+        val state = _uiState.value
+        val exerciseId = state.quickActionsExerciseId ?: return
+        unlinkExerciseFromSuperset(state.quickActionsPartId, exerciseId)
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.NONE,
+                quickActionsPartId = null,
+                quickActionsExerciseId = null,
+            )
+        }
+    }
+    fun updateWarmupSets(partId: String?, exerciseId: String, sets: List<WarmupSetDefinition>) = updateExercise(partId, exerciseId) { it.copy(warmupSets = sets) }
 
     fun applyRuleDefaultsToSession(partId: String? = null) {
         val defaults = _uiState.value.ruleDefaults
         updateSession { session ->
-            session.copy(parts = session.parts.map { part ->
-                if (partId != null && part.id != partId) return@map part
-                part.copy(exercises = part.exercises.map { exercise ->
-                    val sets = List(defaults.setCount) { index ->
-                        val existing = exercise.sets.getOrNull(index)
-                        (existing ?: ExerciseSet(id = UUID.randomUUID().toString())).copy(
-                            targetReps = defaults.reps,
-                            targetRPE = defaults.rpe,
-                            intensityMode = IntensityMode.RPE,
-                        ).normalizeSet(exercise)
-                    }
-                    exercise.copy(sets = sets, restTime = suggestRestSeconds(sets.size, defaults.rpe))
-                })
-            })
+            fun Exercise.applyDefaults(): Exercise {
+                val sets = List(defaults.setCount) { index ->
+                    val existing = this.sets.getOrNull(index)
+                    (existing ?: ExerciseSet(id = UUID.randomUUID().toString())).copy(
+                        targetReps = defaults.reps,
+                        targetRPE = defaults.rpe,
+                        intensityMode = IntensityMode.RPE,
+                    ).normalizeSet(this)
+                }
+                return copy(sets = sets, restTime = suggestRestSeconds(sets.size, defaults.rpe))
+            }
+
+            session.copy(
+                exercises = if (partId == null) session.exercises.map { it.applyDefaults() } else session.exercises,
+                parts = session.parts.map { part ->
+                    if (partId != null && part.id != partId) return@map part
+                    part.copy(exercises = part.exercises.map { it.applyDefaults() })
+                }
+            )
         }
         closeSheet()
     }
@@ -642,12 +775,13 @@ class SessionEditorViewModel(
         }
     }
 
-    fun linkExerciseWithNext(partId: String, exerciseId: String) = updateSession { session ->
-        val targetPart = session.parts.firstOrNull { it.id == partId } ?: return@updateSession session
-        val currentIndex = targetPart.exercises.indexOfFirst { it.id == exerciseId }
-        if (currentIndex < 0 || currentIndex >= targetPart.exercises.lastIndex) return@updateSession session
+    fun linkExerciseWithNext(partId: String?, exerciseId: String) = updateSession { session ->
+        val sourceExercises = if (partId == null) session.exercises else session.parts.firstOrNull { it.id == partId }?.exercises
+            ?: return@updateSession session
+        val currentIndex = sourceExercises.indexOfFirst { it.id == exerciseId }
+        if (currentIndex < 0 || currentIndex >= sourceExercises.lastIndex) return@updateSession session
 
-        val mutableExercises = targetPart.exercises.toMutableList()
+        val mutableExercises = sourceExercises.toMutableList()
         val current = mutableExercises[currentIndex]
         val next = mutableExercises[currentIndex + 1]
         val resolvedSupersetId = current.supersetId ?: next.supersetId ?: UUID.randomUUID().toString()
@@ -655,15 +789,100 @@ class SessionEditorViewModel(
         mutableExercises[currentIndex] = current.copy(supersetId = resolvedSupersetId)
         mutableExercises[currentIndex + 1] = next.copy(supersetId = resolvedSupersetId)
 
-        session.copy(
-            parts = session.parts.map { part ->
-                if (part.id == partId) part.copy(exercises = mutableExercises) else part
-            }
-        )
+        if (partId == null) {
+            session.copy(exercises = mutableExercises)
+        } else {
+            session.copy(
+                parts = session.parts.map { part ->
+                    if (part.id == partId) part.copy(exercises = mutableExercises) else part
+                }
+            )
+        }
     }
 
-    fun unlinkExerciseFromSuperset(partId: String, exerciseId: String) = updateExercise(partId, exerciseId) {
-        it.copy(supersetId = null)
+    fun unlinkExerciseFromSuperset(partId: String?, exerciseId: String) = updateExercise(partId, exerciseId) {
+        it.copy(supersetId = null, supersetRestBetween = null, supersetRestAfter = null)
+    }
+
+    fun linkExercisesAsSuperset(partId: String?, exerciseIds: List<String>) = updateSession { session ->
+        val sourceExercises = if (partId == null) session.exercises
+        else session.parts.firstOrNull { it.id == partId }?.exercises ?: return@updateSession session
+        val supersetId = UUID.randomUUID().toString()
+        val updated = sourceExercises.map { ex ->
+            if (ex.id in exerciseIds) ex.copy(supersetId = supersetId) else ex
+        }
+        if (partId == null) {
+            session.copy(exercises = updated)
+        } else {
+            session.copy(parts = session.parts.map { part ->
+                if (part.id == partId) part.copy(exercises = updated) else part
+            })
+        }
+    }
+
+    fun updateSupersetRestBetween(partId: String?, supersetId: String, restSeconds: Int) = updateSession { session ->
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if (ex.supersetId == supersetId) ex.copy(supersetRestBetween = restSeconds) else ex
+            }
+        }
+        if (partId == null) {
+            session.copy(exercises = updater(session.exercises))
+        } else {
+            session.copy(parts = session.parts.map { part ->
+                if (part.id == partId) part.copy(exercises = updater(part.exercises)) else part
+            })
+        }
+    }
+
+    fun updateSupersetRestAfter(partId: String?, supersetId: String, restSeconds: Int) = updateSession { session ->
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if (ex.supersetId == supersetId) ex.copy(supersetRestAfter = restSeconds) else ex
+            }
+        }
+        if (partId == null) {
+            session.copy(exercises = updater(session.exercises))
+        } else {
+            session.copy(parts = session.parts.map { part ->
+                if (part.id == partId) part.copy(exercises = updater(part.exercises)) else part
+            })
+        }
+    }
+
+    fun removeFromSuperset(partId: String?, exerciseId: String) = updateExercise(partId, exerciseId) {
+        it.copy(supersetId = null, supersetRestBetween = null, supersetRestAfter = null)
+    }
+
+    fun moveExerciseFreely(fromPartId: String?, fromIndex: Int, toPartId: String?, toIndex: Int) = updateSession { session ->
+        val sourceExercises = if (fromPartId == null) session.exercises
+        else session.parts.firstOrNull { it.id == fromPartId }?.exercises ?: return@updateSession session
+        if (fromIndex !in sourceExercises.indices) return@updateSession session
+
+        val exercise = sourceExercises[fromIndex]
+        val sourceWithout = sourceExercises.toMutableList().also { it.removeAt(fromIndex) }
+
+        var updatedSession = if (fromPartId == null) {
+            session.copy(exercises = sourceWithout)
+        } else {
+            session.copy(parts = session.parts.map { part ->
+                if (part.id == fromPartId) part.copy(exercises = sourceWithout) else part
+            })
+        }
+
+        val targetExercises = if (toPartId == null) updatedSession.exercises
+        else updatedSession.parts.firstOrNull { it.id == toPartId }?.exercises ?: return@updateSession session
+        val insertIndex = toIndex.coerceIn(0, targetExercises.size)
+        val targetWith = targetExercises.toMutableList().also { it.add(insertIndex, exercise) }
+
+        updatedSession = if (toPartId == null) {
+            updatedSession.copy(exercises = targetWith)
+        } else {
+            updatedSession.copy(parts = updatedSession.parts.map { part ->
+                if (part.id == toPartId) part.copy(exercises = targetWith) else part
+            })
+        }
+        updatedSession
     }
 
     fun restoreDraftSnapshot(snapshot: Session) {
@@ -1149,11 +1368,7 @@ private fun buildAugeSummary(
     val currentMetrics = computeSessionAugeComputation(currentSession, exerciseIndex, settings)
     val weeklySessions = if (weekSessions.any { it.id == currentSession.id }) weekSessions else weekSessions + currentSession
     val weeklyMetrics = weeklySessions.map { computeSessionAugeComputation(it, exerciseIndex, settings) }
-    val weeklyDrain = PredictedDrain(
-        cns = weeklyMetrics.sumOf { it.drain.cns }.coerceAtMost(100),
-        muscular = weeklyMetrics.sumOf { it.drain.muscular }.coerceAtMost(100),
-        spinal = weeklyMetrics.sumOf { it.drain.spinal }.coerceAtMost(100),
-    )
+    val weeklyDrain = aggregateWeeklyDrain(weeklyMetrics.map { it.drain })
     val weeklySetCount = weeklyMetrics.sumOf { it.setCount }
     val weeklyDurationMinutes = weeklyMetrics.sumOf { it.durationMinutes }
     val weeklyDifficulty = computeDifficulty(
@@ -1162,7 +1377,7 @@ private fun buildAugeSummary(
     )
 
     val sessionLimit = defaultSessionVolumeLimit(settings)
-    val weeklyLimit = defaultWeeklyVolumeLimit()
+    val weeklyLimit = defaultWeeklyVolumeLimit(settings)
     val alerts = mutableListOf<SessionEditorAugeAlert>()
 
     currentMetrics.volumeMap.entries
@@ -1276,6 +1491,49 @@ private fun buildAugeSummary(
         )
     }
 
+    currentMetrics.exerciseInsights.forEach { insight ->
+        val exerciseSets = currentSession.allExercises().find { it.id == insight.exerciseId }?.validAugeSets()?.size ?: 0
+        if (exerciseSets in 1..2) {
+            suggestions += SessionEditorAugeAlert(
+                id = "suggest-margin-series-${insight.exerciseId}",
+                title = "Margen de serie",
+                message = "${insight.name} solo tiene $exerciseSets serie${if (exerciseSets > 1) "s" else ""}. Considera agregar una más para optimizar el estímulo.",
+                severity = SessionEditorAugeAlertSeverity.INFO,
+                source = SessionEditorAugeAlertSource.EXERCISE,
+                exerciseId = insight.exerciseId,
+                exerciseName = insight.name,
+            )
+        }
+    }
+
+    val highRpeOrFailureSets = currentSession.allExercises().flatMap { it.validAugeSets() }.count { set ->
+        set.effectiveTargetRpe() >= 9.5 || set.isFailure || set.intensityMode == IntensityMode.FAILURE
+    }
+    if (highRpeOrFailureSets >= 4) {
+        alerts += SessionEditorAugeAlert(
+            id = "system-high-failure",
+            title = "Al fallo / RPE alto frecuente",
+            message = "Hay $highRpeOrFailureSets series cerca del fallo. Considera dejar margen de recuperación bajando RPE o usando RIR más conservadores.",
+            severity = SessionEditorAugeAlertSeverity.WARNING,
+            source = SessionEditorAugeAlertSource.SYSTEM,
+            correctionType = SessionEditorAugeCorrectionType.REDUCE_RPE,
+        )
+    }
+
+    currentMetrics.volumeMap.entries
+        .filter { (_, data) -> data.effective > sessionLimit * 0.55 && data.effective <= sessionLimit }
+        .take(3)
+        .forEach { (muscle, data) ->
+            suggestions += SessionEditorAugeAlert(
+                id = "warn-series-excedidas-$muscle",
+                title = "Series altas en $muscle",
+                message = "${formatOneDecimal(data.effective)}/$sessionLimit pts. Cerca del límite; una serie más y AUGE sugerirá recortar.",
+                severity = SessionEditorAugeAlertSeverity.WARNING,
+                source = SessionEditorAugeAlertSource.SESSION,
+                muscle = muscle,
+            )
+        }
+
     currentMetrics.volumeMap.entries
         .sortedBy { it.value.effective }
         .take(2)
@@ -1294,6 +1552,36 @@ private fun buildAugeSummary(
 
     val status = computeAugeStatus(currentMetrics.drain, weeklyMetrics.map { it.drain }, currentSession.id, weeklySessions)
 
+    val orderedAlerts = alerts
+        .distinctBy { it.id }
+        .sortedWith(
+            compareByDescending<SessionEditorAugeAlert> {
+                when (it.severity) {
+                    SessionEditorAugeAlertSeverity.CRITICAL -> 3
+                    SessionEditorAugeAlertSeverity.WARNING -> 2
+                    SessionEditorAugeAlertSeverity.INFO -> 1
+                }
+            }.thenBy {
+                when (it.source) {
+                    SessionEditorAugeAlertSource.SYSTEM -> 0
+                    SessionEditorAugeAlertSource.SESSION -> 1
+                    SessionEditorAugeAlertSource.WEEK -> 2
+                    SessionEditorAugeAlertSource.EXERCISE -> 3
+                }
+            }
+        )
+
+    val orderedSuggestions = suggestions
+        .distinctBy { it.id }
+        .sortedBy { suggestion ->
+            when (suggestion.source) {
+                SessionEditorAugeAlertSource.SESSION -> 0
+                SessionEditorAugeAlertSource.SYSTEM -> 1
+                SessionEditorAugeAlertSource.WEEK -> 2
+                SessionEditorAugeAlertSource.EXERCISE -> 3
+            }
+        }
+
     return SessionEditorAugeSummary(
         sessionDrain = currentMetrics.drain,
         weeklyDrain = weeklyDrain,
@@ -1304,9 +1592,12 @@ private fun buildAugeSummary(
         sessionDifficulty = currentMetrics.difficulty,
         weeklyDifficulty = weeklyDifficulty,
         status = status,
-        alerts = alerts.distinctBy { it.id },
-        suggestions = suggestions.distinctBy { it.id },
+        alerts = orderedAlerts,
+        suggestions = orderedSuggestions,
         topExercises = currentMetrics.exerciseInsights.sortedByDescending { it.total }.take(4),
+        muscleDrainProjection = currentMetrics.volumeMap.mapValues { (_, acc) ->
+            (acc.effective / (sessionLimit.coerceAtLeast(1)) * 100.0).roundToInt().coerceIn(0, 100)
+        },
     )
 }
 
@@ -1373,6 +1664,10 @@ private fun computeSessionAugeComputation(
                 tanks = tanks,
                 accumulatedSets = 0,
                 restTime = exercise.restTime ?: 90,
+                densityMultiplier = AugeFatigueEngine.getDensityMultiplierForExercise(
+                    supersetId = exercise.supersetId,
+                    restTime = exercise.restTime ?: 90,
+                ),
             )
             muscular += drain.muscularDrainPct
             cns += drain.cnsDrainPct
@@ -1401,7 +1696,7 @@ private fun computeSessionAugeComputation(
 
     val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(90) }.average().toInt()
     val predictedDrain = runCatching {
-        AugeFatigueEngine.calculatePredictedSessionDrain(session, exerciseIndex, settings)
+        AugeFatigueEngine.calculateAdjustedPredictedDrain(session, exerciseIndex, settings)
     }.getOrDefault(PredictedDrain(0, 0, 0))
 
     return SessionAugeComputation(
@@ -1503,7 +1798,32 @@ private fun defaultSessionVolumeLimit(settings: Settings): Int {
     return base.roundToInt().coerceAtLeast(4)
 }
 
-private fun defaultWeeklyVolumeLimit(): Int = 18
+private fun defaultWeeklyVolumeLimit(settings: Settings): Int = when (settings.calorieGoalObjective) {
+    CalorieGoalObjective.DEFICIT -> 16
+    CalorieGoalObjective.MAINTENANCE -> 18
+    CalorieGoalObjective.SURPLUS -> 20
+}
+
+private fun aggregateWeeklyDrain(drains: List<PredictedDrain>): PredictedDrain {
+    if (drains.isEmpty()) return PredictedDrain(0, 0, 0)
+
+    // Evita saturar a 100 muy pronto: combinación lineal + amortiguación por acumulación.
+    val cnsRaw = drains.sumOf { it.cns.toDouble() }
+    val muscularRaw = drains.sumOf { it.muscular.toDouble() }
+    val spinalRaw = drains.sumOf { it.spinal.toDouble() }
+
+    val dampen = { value: Double ->
+        val scaled = value * 0.72
+        val nonlinear = value * value * 0.0022
+        (scaled - nonlinear).roundToInt().coerceIn(0, 100)
+    }
+
+    return PredictedDrain(
+        cns = dampen(cnsRaw),
+        muscular = dampen(muscularRaw),
+        spinal = dampen(spinalRaw),
+    )
+}
 
 private fun PredictedDrain.combinedDrain(): Double = (cns + muscular + spinal) / 3.0
 
@@ -1574,7 +1894,7 @@ private fun cloneExerciseForTransfer(
 )
 
 private fun normalizeTransferredParts(parts: List<SessionPart>): List<SessionPart> =
-    if (parts.isEmpty()) listOf(defaultPart()) else parts
+    parts
 
 private fun Session.transformExercises(transform: (Exercise) -> Exercise): Session {
     var applied = false
@@ -1650,7 +1970,7 @@ private fun createDraftSession(sessionId: String, dayOfWeek: Int?): Session = Se
     id = sessionId,
     name = "Nueva Sesión",
     description = "",
-    parts = listOf(defaultPart()),
+    parts = emptyList(),
     dayOfWeek = dayOfWeek,
     background = SessionBackground(
         type = SessionBackgroundType.COLOR,
@@ -1694,10 +2014,19 @@ private fun Program.updateWeekSessions(
 private fun Session.normalizeSession(): Session {
     val normalizedBackground = background ?: SessionBackground(SessionBackgroundType.COLOR, DEFAULT_GRADIENT_EMBER, SessionBackgroundStyle(0f, 0.92f))
     val normalizedCoverStyle = coverStyle ?: CoverStyle(filters = CoverFilters(), labelPosition = LabelPosition.BOTTOM_LEFT)
-    val normalizedParts = if (parts.isEmpty()) listOf(defaultPart()) else parts.map { part ->
+    val groupedParts = parts.filterNot { it.isUncategorized() }
+    val uncategorizedExercises = parts.filter { it.isUncategorized() }.flatMap { it.exercises }
+    val normalizedParts = groupedParts.map { part ->
         part.copy(exercises = part.exercises.map { it.normalizeExercise() })
     }
-    return copy(description = description ?: "", parts = normalizedParts, background = normalizedBackground, coverStyle = normalizedCoverStyle)
+    val normalizedLooseExercises = (exercises + uncategorizedExercises).map { it.normalizeExercise() }
+    return copy(
+        description = description ?: "",
+        exercises = normalizedLooseExercises,
+        parts = normalizedParts,
+        background = normalizedBackground,
+        coverStyle = normalizedCoverStyle,
+    )
 }
 
 private fun Exercise.normalizeExercise(): Exercise {
@@ -1722,48 +2051,28 @@ private fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
 
 private fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): ExerciseSet {
     val base = template.copy(id = UUID.randomUUID().toString())
+    // En modo RM se estima reducción de carga por fatiga; el resto mantiene la intensidad elegida
     if (exercise.trainingMode != TrainingMode.PERCENT) return base
+    if ((template.intensityMode ?: IntensityMode.RPE) != IntensityMode.SOLO_RM) return base
 
     val reps = template.targetReps ?: 1
     val fatigueDrop = when {
         reps >= 10 -> 5.0
-        reps >= 6 -> 4.0
-        reps >= 3 -> 3.0
-        else -> 2.0
+        reps >= 6  -> 4.0
+        reps >= 3  -> 3.0
+        else       -> 2.0
     }
-
-    return when (template.intensityMode ?: IntensityMode.RPE) {
-        IntensityMode.SOLO_RM -> base.copy(
-            targetPercentageRM = ((template.targetPercentageRM ?: 100.0) - fatigueDrop).coerceAtLeast(45.0),
-        )
-        IntensityMode.RPE -> base.copy(
-            targetRPE = ((template.targetRPE ?: 8.0) - 0.5).coerceAtLeast(6.0),
-        )
-        IntensityMode.RIR -> base.copy(
-            targetRIR = ((template.targetRIR ?: 2) + 1).coerceAtMost(6),
-        )
-        IntensityMode.FAILURE -> base.copy(
-            intensityMode = IntensityMode.RIR,
-            isFailure = false,
-            targetRIR = 1,
-            targetRPE = null,
-        )
-        IntensityMode.AMRAP -> base.copy(
-            targetReps = (template.targetReps ?: 1) + 1,
-        )
-        IntensityMode.LOAD -> base.copy(
-            weight = template.weight?.let { roundToQuarter(it * (1.0 - fatigueDrop / 100.0)) },
-        )
-    }
+    return base.copy(
+        targetPercentageRM = ((template.targetPercentageRM ?: 100.0) - fatigueDrop).coerceAtLeast(45.0),
+    )
 }
 
-private fun roundToQuarter(value: Double): Double = (value * 4.0).roundToInt() / 4.0
+private fun Session.allExercises(): List<Exercise> = exercises + parts.flatMap { it.exercises }
 
-private fun Session.allExercises(): List<Exercise> = if (parts.isNotEmpty()) parts.flatMap { it.exercises } else exercises
-
-private fun defaultPart() = SessionPart(UUID.randomUUID().toString(), "Sin categoría", color = PART_COLORS.first())
-
-private fun SessionPart.isUncategorized(): Boolean = name.trim().equals("Sin categoría", ignoreCase = true)
+private fun SessionPart.isUncategorized(): Boolean {
+    val normalized = name.trim().lowercase()
+    return normalized == "sin categoría" || normalized == "sin categoria" || normalized == "sin grupo"
+}
 
 private fun List<Double>.averageOrNull(): Double? = if (isEmpty()) null else average()
 

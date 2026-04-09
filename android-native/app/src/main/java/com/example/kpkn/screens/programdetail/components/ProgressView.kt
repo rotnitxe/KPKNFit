@@ -75,7 +75,6 @@ fun ProgressView(
     val progressDetails = remember(program, programLogs, userBodyWeightKg) {
         buildExerciseProgressDetails(program, programLogs, userBodyWeightKg)
     }
-    val starredExercises = remember(progressDetails) { progressDetails.filter { it.isStar } }
 
     var selectedExerciseKey by rememberSaveable(progressDetails.map { it.key }) {
         mutableStateOf(progressDetails.firstOrNull()?.key)
@@ -123,8 +122,11 @@ fun ProgressView(
         WeeklyTrendSection(exercises = progressDetails)
 
         GoalRmSection(
-            starredExercises = starredExercises,
+            allExercises = progressDetails,
             onEditGoal = { goalEditorKey = it },
+            onToggleStar = { key, isStar ->
+                onUpdateProgram(updateStarForExercise(program, key, isStar))
+            },
         )
 
         Spacer(Modifier.height(120.dp))
@@ -300,9 +302,14 @@ private fun WeeklyTrendSection(
 
 @Composable
 private fun GoalRmSection(
-    starredExercises: List<ExerciseProgressDetail>,
+    allExercises: List<ExerciseProgressDetail>,
     onEditGoal: (String) -> Unit,
+    onToggleStar: (String, Boolean) -> Unit,
 ) {
+    val (starredExercises, nonStarredExercises) = remember(allExercises) {
+        allExercises.partition { it.isStar }
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -316,14 +323,14 @@ private fun GoalRmSection(
         ) {
             Text("Metas RM", fontSize = 15.sp, fontWeight = FontWeight.Black)
             Text(
-                "Los ejercicios marcados con estrella en el editor de sesiones aparecen aquí para asignarles o revisar su meta RM.",
+                "Los ejercicios marcados con estrella aparecen aquí con su meta RM. Puedes añadir cualquier ejercicio desde esta vista.",
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 16.sp,
             )
 
             if (starredExercises.isEmpty()) {
-                EmptyInlineHint("Todavía no hay ejercicios estrella. Márcalos desde el editor de sesiones para seguirlos aquí.")
+                EmptyInlineHint("Todavía no hay ejercicios estrella. Márcalos desde el editor de sesiones o añádelos aquí.")
             } else {
                 starredExercises.forEach { exercise ->
                     val progressFraction = exercise.goal1RM?.takeIf { it > 0.0 }?.let {
@@ -345,18 +352,28 @@ private fun GoalRmSection(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                     Text("★", color = Color(0xFFF59E0B), fontWeight = FontWeight.Black)
                                     Spacer(Modifier.width(6.dp))
-                                    Text(exercise.exerciseName, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        exercise.exerciseName,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
                                 }
-                                TextButton(onClick = { onEditGoal(exercise.key) }) {
-                                    Text(if (exercise.goal1RM != null) "Editar meta" else "Definir meta")
+                                Row {
+                                    TextButton(onClick = { onEditGoal(exercise.key) }) {
+                                        Text(if (exercise.goal1RM != null) "Editar meta" else "Definir meta")
+                                    }
+                                    TextButton(onClick = { onToggleStar(exercise.key, false) }) {
+                                        Text("Quitar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
                                 }
                             }
                             Text(
                                 text = if (exercise.goal1RM != null) {
-                                    "Meta actual: ${exercise.goal1RM.toInt()} kg · Mejor eRM: ${exercise.bestEstimated1RM.toInt()} kg"
+                                    "Meta: ${exercise.goal1RM.toInt()} kg · Mejor eRM: ${exercise.bestEstimated1RM.toInt()} kg"
                                 } else {
                                     "Aún no tiene meta RM asignada."
                                 },
@@ -371,6 +388,52 @@ private fun GoalRmSection(
                                         .height(8.dp)
                                         .clip(RoundedCornerShape(999.dp)),
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (nonStarredExercises.isNotEmpty()) {
+                Text(
+                    "Añadir ejercicios",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                nonStarredExercises.forEach { exercise ->
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(
+                                    "☆",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    exercise.exerciseName,
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            TextButton(onClick = { onToggleStar(exercise.key, true) }) {
+                                Text("★ Añadir")
                             }
                         }
                     }
@@ -595,6 +658,53 @@ private fun updateGoalForExercise(
                                                 exercises = session.exercises.map { exercise ->
                                                     if (exerciseStableKey(exercise.exerciseDbId, exercise.name, exercise.id) == exerciseKey) {
                                                         exercise.copy(goal1RM = goal1RM, isStarTarget = true)
+                                                    } else {
+                                                        exercise
+                                                    }
+                                                },
+                                            )
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+        }
+    )
+}
+
+private fun updateStarForExercise(
+    program: Program,
+    exerciseKey: String,
+    isStar: Boolean,
+): Program {
+    return program.copy(
+        macrocycles = program.macrocycles.map { macro ->
+            macro.copy(
+                blocks = macro.blocks.map { block ->
+                    block.copy(
+                        mesocycles = block.mesocycles.map { meso ->
+                            meso.copy(
+                                weeks = meso.weeks.map { week ->
+                                    week.copy(
+                                        sessions = week.sessions.map { session ->
+                                            session.copy(
+                                                parts = session.parts.map { part ->
+                                                    part.copy(
+                                                        exercises = part.exercises.map { exercise ->
+                                                            if (exerciseStableKey(exercise.exerciseDbId, exercise.name, exercise.id) == exerciseKey) {
+                                                                exercise.copy(isStarTarget = isStar)
+                                                            } else {
+                                                                exercise
+                                                            }
+                                                        }
+                                                    )
+                                                },
+                                                exercises = session.exercises.map { exercise ->
+                                                    if (exerciseStableKey(exercise.exerciseDbId, exercise.name, exercise.id) == exerciseKey) {
+                                                        exercise.copy(isStarTarget = isStar)
                                                     } else {
                                                         exercise
                                                     }

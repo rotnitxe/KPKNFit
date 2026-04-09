@@ -4,128 +4,138 @@ import android.content.Context
 import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.KpknDatabase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 /**
- * FoodImporter — Processes USDA CSV files from assets and populates the Room database.
- * 
- * Performance design:
- * - Reads files line-by-line to avoid OOM with 50MB+ files.
- * - Uses a temporary map to join food names with their nutrients.
- * - Batches database inserts to improve speed.
+ * FoodImporter — Soporta USDA y OpenFoodFacts Chile.
  */
 object FoodImporter {
     private const val TAG = "FoodImporter"
-    private const val BATCH_SIZE = 1000
+    private const val BATCH_SIZE = 2000
 
-    // Nutrient IDs from USDA standard
-    private const val NUTRIENT_CALORIES = 1008
-    private const val NUTRIENT_PROTEIN = 1003
-    private const val NUTRIENT_FATS = 1004
-    private const val NUTRIENT_CARBS = 1005
-    private const val NUTRIENT_FIBER = 1079
-    private const val NUTRIENT_SUGAR = 2000
+    private val _importProgress = MutableStateFlow<Float?>(null)
+    val importProgress: StateFlow<Float?> = _importProgress.asStateFlow()
 
-    suspend fun importIfEmpty(context: Context) = withContext(Dispatchers.IO) {
+    suspend fun importIfEmpty(alreadyImported: Boolean, context: Context) = withContext(Dispatchers.IO) {
+        if (alreadyImported) return@withContext
+
+        _importProgress.value = 0.01f
         val dao = KpknDatabase.getInstance(context).nutritionDao()
-        val count = dao.getGlobalFoodCount()
-        
-        if (count > 0) {
-            android.util.Log.d(TAG, "Database already has $count foods. Skipping import.")
-            return@withContext
-        }
-
-        android.util.Log.d(TAG, "Starting massive food import...")
         
         try {
-            // 1. Load Nutrients (Memory-efficient map: FoodID -> Nutrients)
-            val foodNutrients = mutableMapOf<Int, MutableMap<Int, Double>>()
-            
-            context.assets.open("food_data/food_nutrient.csv").bufferedReader().use { reader ->
-                val header = reader.readLine() // Skip header
-                reader.forEachLine { line ->
-                    val parts = parseCsvLine(line)
-                    if (parts.size >= 4) {
-                        val fdcId = parts[1].toIntOrNull() ?: return@forEachLine
-                        val nutrientId = parts[2].toIntOrNull() ?: return@forEachLine
-                        val amount = parts[3].toDoubleOrNull() ?: 0.0
-                        
-                        if (isRelevantNutrient(nutrientId)) {
-                            val map = foodNutrients.getOrPut(fdcId) { mutableMapOf() }
-                            map[nutrientId] = amount
-                        }
+            // --- FASE 1: USDA (Básicos) ---
+            android.util.Log.d(TAG, "Importando USDA...")
+            // Compact storage: FloatArray[6] = [kcal, protein, fat, carbs, fiber, sugar]
+            // Avoids boxing overhead of Map<Int, Map<Int, Double>> which can cost 50-100 MB RAM
+            val nutIdxMap = mapOf(1008 to 0, 1003 to 1, 1004 to 2, 1005 to 3, 1079 to 4, 2000 to 5)
+            val foodNutrients = HashMap<Int, FloatArray>(60_000)
+            context.assets.open("food_data/food_nutrient.csv").bufferedReader().use { r ->
+                r.readLine() // Header
+                for (line in r.lineSequence()) {
+                    val p = parseCsvLine(line)
+                    if (p.size >= 4) {
+                        val fdcId = p[1].toIntOrNull() ?: continue
+                        val nutId = p[2].toIntOrNull() ?: continue
+                        val idx = nutIdxMap[nutId] ?: continue
+                        val amt = p[3].toFloatOrNull() ?: 0f
+                        foodNutrients.getOrPut(fdcId) { FloatArray(6) }[idx] = amt
                     }
                 }
             }
-            android.util.Log.d(TAG, "Loaded nutrients for ${foodNutrients.size} foods")
+            _importProgress.value = 0.15f
 
-            // 2. Load Foods and Join with Nutrients
-            val batch = mutableListOf<GlobalFoodEntity>()
-            context.assets.open("food_data/food.csv").bufferedReader().use { reader ->
-                reader.readLine() // Skip header
-                reader.forEachLine { line ->
-                    val parts = parseCsvLine(line)
-                    if (parts.size >= 3) {
-                        val fdcId = parts[0].toIntOrNull() ?: return@forEachLine
-                        val description = parts[2].trim('"')
-                        
-                        val nutrients = foodNutrients[fdcId] ?: emptyMap()
-                        
-                        batch.add(GlobalFoodEntity(
-                            fdcId = fdcId,
-                            name = description,
-                            calories = nutrients[NUTRIENT_CALORIES] ?: 0.0,
-                            protein = nutrients[NUTRIENT_PROTEIN] ?: 0.0,
-                            carbs = nutrients[NUTRIENT_CARBS] ?: 0.0,
-                            fats = nutrients[NUTRIENT_FATS] ?: 0.0,
-                            fiber = nutrients[NUTRIENT_FIBER] ?: 0.0,
-                            sugar = nutrients[NUTRIENT_SUGAR] ?: 0.0
+            val usdaBatch = mutableListOf<GlobalFoodEntity>()
+            context.assets.open("food_data/food.csv").bufferedReader().use { r ->
+                r.readLine()
+                for (line in r.lineSequence()) {
+                    val p = parseCsvLine(line)
+                    if (p.size >= 3) {
+                        val fdcId = p[0].toIntOrNull() ?: continue
+                        val name = p[2].trim('"')
+                        val nuts = foodNutrients[fdcId]
+                        usdaBatch.add(GlobalFoodEntity(
+                            foodId = "usda_$fdcId",
+                            name = name,
+                            calories = nuts?.get(0)?.toDouble() ?: 0.0,
+                            protein = nuts?.get(1)?.toDouble() ?: 0.0,
+                            fats = nuts?.get(2)?.toDouble() ?: 0.0,
+                            carbs = nuts?.get(3)?.toDouble() ?: 0.0,
+                            fiber = nuts?.get(4)?.toDouble() ?: 0.0,
+                            sugar = nuts?.get(5)?.toDouble() ?: 0.0,
+                            source = "USDA"
                         ))
-
-                        if (batch.size >= BATCH_SIZE) {
-                            dao.insertGlobalFoods(batch)
-                            batch.clear()
+                        if (usdaBatch.size >= BATCH_SIZE) {
+                            dao.insertGlobalFoods(usdaBatch)
+                            usdaBatch.clear()
                         }
                     }
                 }
             }
-            if (batch.isNotEmpty()) {
-                dao.insertGlobalFoods(batch)
+            foodNutrients.clear() // liberar RAM antes de la fase OFF Chile
+            if (usdaBatch.isNotEmpty()) dao.insertGlobalFoods(usdaBatch)
+            _importProgress.value = 0.4f
+
+            // --- FASE 2: OpenFoodFacts Chile ---
+            android.util.Log.d(TAG, "Importando OpenFoodFacts Chile...")
+            runCatching {
+                val offBatch = mutableListOf<GlobalFoodEntity>()
+                context.assets.open("food_data/off_chile.csv").bufferedReader().use { r ->
+                    val header = r.readLine()?.split(",") ?: emptyList()
+                    val idxCode = header.indexOf("code").takeIf { it >= 0 } ?: 0
+                    val idxName = header.indexOf("product_name").takeIf { it >= 0 } ?: 7
+                    val idxBrand = header.indexOf("brands").takeIf { it >= 0 } ?: 12
+                    val idxKcal = header.indexOf("energy-kcal_100g").takeIf { it >= 0 } ?: 64
+                    val idxProt = header.indexOf("proteins_100g").takeIf { it >= 0 } ?: 116
+                    val idxFat = header.indexOf("fat_100g").takeIf { it >= 0 } ?: 66
+                    val idxCarb = header.indexOf("carbohydrates_100g").takeIf { it >= 0 } ?: 102
+
+                    for (line in r.lineSequence()) {
+                        val p = parseCsvLine(line)
+                        if (p.size > idxKcal) {
+                            offBatch.add(GlobalFoodEntity(
+                                foodId = "off_${p.getOrNull(idxCode) ?: ""}",
+                                name = p.getOrNull(idxName)?.trim('"') ?: "Producto OFF",
+                                brand = p.getOrNull(idxBrand)?.trim('"'),
+                                calories = p.getOrNull(idxKcal)?.toDoubleOrNull() ?: 0.0,
+                                protein = p.getOrNull(idxProt)?.toDoubleOrNull() ?: 0.0,
+                                fats = p.getOrNull(idxFat)?.toDoubleOrNull() ?: 0.0,
+                                carbs = p.getOrNull(idxCarb)?.toDoubleOrNull() ?: 0.0,
+                                source = "OFF Chile"
+                            ))
+                            if (offBatch.size >= BATCH_SIZE) {
+                                dao.insertGlobalFoods(offBatch)
+                                offBatch.clear()
+                                _importProgress.value = 0.4f + (0.55f * (System.currentTimeMillis() % 1000 / 1000f)) // Animación simulada
+                            }
+                        }
+                    }
+                }
+                if (offBatch.isNotEmpty()) dao.insertGlobalFoods(offBatch)
             }
-            
-            android.util.Log.d(TAG, "Import finished successfully!")
-            
-        } catch (e: Exception) {
-            android.util.Log.e(TAG, "Error importing food data", e)
+
+            _importProgress.value = 1.0f
+            delay(1000)
+            _importProgress.value = null
+        } catch (t: Throwable) {
+            android.util.Log.e(TAG, "Error importando (${t.javaClass.simpleName})", t)
+            _importProgress.value = null
         }
     }
 
-    private fun isRelevantNutrient(id: Int) = id in listOf(
-        NUTRIENT_CALORIES, NUTRIENT_PROTEIN, NUTRIENT_FATS, 
-        NUTRIENT_CARBS, NUTRIENT_FIBER, NUTRIENT_SUGAR
-    )
-
-    /**
-     * Simple CSV parser that handles quotes.
-     */
     private fun parseCsvLine(line: String): List<String> {
-        val result = mutableListOf<String>()
-        var current = StringBuilder()
-        var inQuotes = false
-        
-        for (char in line) {
-            when {
-                char == '\"' -> inQuotes = !inQuotes
-                char == ',' && !inQuotes -> {
-                    result.add(current.toString())
-                    current = StringBuilder()
-                }
-                else -> current.append(char)
-            }
+        val res = mutableListOf<String>()
+        var cur = StringBuilder()
+        var q = false
+        for (c in line) {
+            if (c == '\"') q = !q
+            else if (c == ',' && !q) { res.add(cur.toString()); cur = StringBuilder() }
+            else cur.append(c)
         }
-        result.add(current.toString())
-        return result
+        res.add(cur.toString())
+        return res
     }
 }

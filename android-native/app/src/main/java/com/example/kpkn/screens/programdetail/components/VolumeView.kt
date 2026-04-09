@@ -58,6 +58,7 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.domain.training.CanonicalMuscleVolumeEntry
 import com.example.kpkn.domain.training.DiscomfortEntry
+import com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.max
 
@@ -264,6 +265,7 @@ fun VolumeView(
     onGoCreateSession: () -> Unit,
     onApplyVolumeCalibration: (ProgramMode, AthleteProfileScore, List<VolumeRecommendation>) -> Unit,
     programDiscomforts: List<DiscomfortEntry>,
+    exerciseDiscomfortAssociations: List<ExerciseDiscomfortAssociationEntry>,
     modifier: Modifier = Modifier,
 ) {
     val canonicalVolumes = remember(program) {
@@ -360,6 +362,10 @@ fun VolumeView(
             CompactDiscomfortWidget(discomforts = programDiscomforts)
         }
 
+        if (exerciseDiscomfortAssociations.isNotEmpty()) {
+            ExerciseDiscomfortAssociationWidget(associations = exerciseDiscomfortAssociations)
+        }
+
         Spacer(Modifier.height(120.dp))
     }
 
@@ -372,6 +378,57 @@ fun VolumeView(
                 showCalibrationSheet = false
             },
         )
+    }
+}
+
+@Composable
+private fun ExerciseDiscomfortAssociationWidget(
+    associations: List<ExerciseDiscomfortAssociationEntry>,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = "Asociación molestias por ejercicio",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+            )
+            associations.take(6).forEach { entry ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = entry.exerciseName,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                        )
+                        Text(
+                            text = entry.discomfortLabel,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        text = "x${entry.count}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
     }
 }
 

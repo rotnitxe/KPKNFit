@@ -117,6 +117,8 @@ data class Exercise(
     val trackHeartRate: Boolean = false,
     val setupDetails: ExerciseSetupDetails? = null,
     val supersetId: String? = null,
+    val supersetRestBetween: Int? = null,
+    val supersetRestAfter: Int? = null,
     val variantName: String? = null,
     val prFor1RM: PrReference? = null,
     val consolidatedWeight: ConsolidatedWeight? = null,
@@ -129,6 +131,8 @@ data class Exercise(
     val isCompetitionLift: Boolean = false,
     val setupCues: List<String> = emptyList(),
     val executionCues: List<String> = emptyList(),
+    val contextProfilesV3: List<WorkoutContextProfile> = emptyList(),
+    val defaultContextProfileIdV3: String? = null,
 )
 
 enum class TrainingMode { REPS, TIME, PERCENT, CUSTOM, DISTANCE }
@@ -164,6 +168,16 @@ data class ExerciseSet(
     val consolidatedWeight: Double? = null,
     val attemptResult: AttemptResult? = null,
     val judgingLights: List<Boolean?> = emptyList(),
+    val loadModeV2: LoadModeV2? = null,
+    val unitModeV2: UnitModeV2? = null,
+    val plannedTargetV2: Double? = null,
+    val tagId: String? = null,
+    val setupId: String? = null,
+    val contextKeyV2: String? = null,
+    val contextProfileIdV3: String? = null,
+    val defaultTagIdV3: String? = null,
+    val defaultSetupProfileIdV3: String? = null,
+    val timeProgressionStrategyV3: TimeProgressionStrategyV3 = TimeProgressionStrategyV3.LOAD_THEN_TIME,
 )
 
 enum class IntensityMode { RPE, RIR, FAILURE, AMRAP, LOAD, SOLO_RM }

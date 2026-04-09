@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.util.UUID
 
 /**
  * AugeViewModel — Central state for the AUGE battery/recovery system.
@@ -37,6 +38,17 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _readiness = MutableStateFlow<AugeReadinessVerdict?>(null)
     val readiness: StateFlow<AugeReadinessVerdict?> = _readiness.asStateFlow()
+
+    private val _dashboard = MutableStateFlow(
+        RecoveryDashboard(
+            overallScore = 100,
+            headline = "Listo para entrenar",
+            summary = "Tu estado está equilibrado.",
+            recommendation = "Hoy puedes entrenar normal.",
+            confidenceLabel = "Baja",
+        )
+    )
+    val dashboard: StateFlow<RecoveryDashboard> = _dashboard.asStateFlow()
 
     private val _pendingQuestionnaire = MutableStateFlow<PendingQuestionnaire?>(null)
     val pendingQuestionnaire: StateFlow<PendingQuestionnaire?> = _pendingQuestionnaire.asStateFlow()
@@ -67,18 +79,26 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         val sleepLogs = augeRepo.getLastNSleepLogs(7)
         val nutritionLogs = nutritionRepo.nutritionLogs.value
 
-        val (batteries, perMuscle, readiness, pending, articular) = withContext(Dispatchers.Default) {
+        val (batteries, perMuscle, dashboard, readiness, pending, articular) = withContext(Dispatchers.Default) {
             val bat = AugeRecoveryEngine.calculateGlobalBatteries(history, wellbeing, settings, exerciseDb, sleepLogs, nutritionLogs)
             val muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, wellbeing, settings, exerciseDb, sleepLogs, nutritionLogs)
-            val (cns, _, _) = AugeRecoveryEngine.calculateSystemicFatigue(history, wellbeing, settings, exerciseDb, sleepLogs)
-            val verdict = AugeRecoveryEngine.calculateDailyReadiness(cns, wellbeing)
-            val pending = AugeRecoveryEngine.checkPendingSurveys(history, feedbacks)
             val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb)
-            Quintuple(bat, muscles, verdict, pending, articular)
+            val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
+                batteries = bat,
+                perMuscle = muscles,
+                articularBatteries = articular,
+                wellbeing = wellbeing,
+                sleepLogs = sleepLogs,
+                recentSessionCount = history.size,
+            )
+            val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing)
+            val pending = AugeRecoveryEngine.checkPendingSurveys(history, feedbacks)
+            Sextuple(bat, muscles, dashboard, verdict, pending, articular)
         }
 
         _batteries.value = batteries
         _perMuscle.value = perMuscle
+        _dashboard.value = dashboard
         _readiness.value = readiness
         _pendingQuestionnaire.value = pending ?: augeRepo.getPendingQuestionnaire()
         _articular.value = articular
@@ -127,7 +147,40 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             recompute(programRepo.history.value, programRepo.settings.value)
         }
     }
+
+    /**
+     * Applies manual battery overrides immediately so Home rings update right away.
+     */
+    fun applyManualBatteries(
+        neural: Int,
+        spinal: Int,
+        perMuscle: Map<String, Int>,
+    ) {
+        viewModelScope.launch {
+            val base = augeRepo.getTodayWellbeing()
+            val updated = DailyWellbeingLog(
+                id = base?.id ?: UUID.randomUUID().toString(),
+                date = LocalDate.now().toString(),
+                sleepQuality = base?.sleepQuality ?: 3,
+                stressLevel = base?.stressLevel ?: 3,
+                doms = base?.doms ?: 1,
+                motivation = base?.motivation ?: 3,
+                sleepHours = base?.sleepHours ?: 7.5,
+                moodState = base?.moodState,
+                workIntensity = base?.workIntensity,
+                studyIntensity = base?.studyIntensity,
+                manualMuscularBattery = null,
+                manualNeuralBattery = neural.coerceIn(0, 100),
+                manualSpinalBattery = spinal.coerceIn(0, 100),
+                manualMuscleBatteries = perMuscle.mapValues { (_, value) -> value.coerceIn(0, 100) },
+                notes = base?.notes,
+            )
+            augeRepo.saveWellbeingLog(updated)
+            recompute(programRepo.history.value, programRepo.settings.value)
+        }
+    }
 }
 
 private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 private data class Quintuple<A, B, C, D, E>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E)
+private data class Sextuple<A, B, C, D, E, F>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F)

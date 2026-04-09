@@ -24,6 +24,7 @@ object AugeTtcEngine {
     private const val TENDON_RECOVERY_STD = 48.0
     private const val CUMULATIVE_PENALTY = 0.1
     private const val IMBALANCE_THRESHOLD = 30
+    private const val DISCOMFORT_ARTICULAR_BASE_PENALTY = 10.0
 
     private fun clamp(v: Double, lo: Double, hi: Double) = min(hi, max(lo, v))
     private fun safeExp(v: Double): Double {
@@ -170,6 +171,36 @@ object AugeTtcEngine {
         val lastDrainTime     = ArticularBattery.entries.associateWith { 0L }.toMutableMap()
         val recoveryWindowMs  = 72L * 3600 * 1000
 
+        val discomfortStress = ArticularBattery.entries.associateWith { 0.0 }.toMutableMap()
+        for (log in relevantLogs) {
+            val logTime = logDateMs(log)
+            val hoursSince = max(0.0, (now - logTime) / 3_600_000.0)
+            val decay = safeExp(-(hoursSince / 96.0))
+            for (report in log.postExerciseReports) {
+                val quality = report.technicalQuality.coerceIn(1, 10)
+                val qualityMult = when {
+                    quality <= 4 -> 1.30
+                    quality <= 6 -> 1.10
+                    quality >= 9 -> 0.85
+                    else -> 1.0
+                }
+                report.discomfortIds
+                    .asSequence()
+                    .filter { it != "none" }
+                    .distinct()
+                    .forEach { discomfortId ->
+                        val entry = DISCOMFORT_CATALOG_BY_ID[discomfortId] ?: return@forEach
+                        val targets = entry.relatedArticular
+                        if (targets.isEmpty()) return@forEach
+                        val split = 1.0 / targets.size
+                        for (ab in targets) {
+                            discomfortStress[ab] = (discomfortStress[ab] ?: 0.0) +
+                                (DISCOMFORT_ARTICULAR_BASE_PENALTY * qualityMult * split * decay)
+                        }
+                    }
+            }
+        }
+
         for (log in relevantLogs) {
             val logTime   = logDateMs(log)
             val hoursSince = max(0.0, (now - logTime) / 3_600_000.0)
@@ -219,7 +250,9 @@ object AugeTtcEngine {
         // Finalizar baterías
         return ArticularBattery.entries.associateWith { ab ->
             val acc     = accumulatedStress[ab] ?: 0.0
-            val battery = clamp(100.0 - (acc / TENDON_CAPACITY_BASE) * 100.0, 0.0, 100.0)
+            val discomfortAcc = discomfortStress[ab] ?: 0.0
+            val totalAcc = acc + discomfortAcc
+            val battery = clamp(100.0 - (totalAcc / TENDON_CAPACITY_BASE) * 100.0, 0.0, 100.0)
             val score   = battery.toInt()
             val status  = when {
                 battery < 40.0 -> ArticularStatus.EXHAUSTED
@@ -229,14 +262,14 @@ object AugeTtcEngine {
             val hoursToRecovery: Int = if (battery < 90.0 && acc > 0.0) {
                 val targetStress = ((100.0 - 90.0) / 100.0) * TENDON_CAPACITY_BASE
                 val kFinal = 2.0 / TENDON_RECOVERY_STD
-                max(0, (-ln(targetStress / acc) / kFinal).toInt())
+                max(0, (-ln(targetStress / totalAcc) / kFinal).toInt())
             } else 0
 
             ArticularBatteryState(
                 recoveryScore = score,
                 estimatedHoursToRecovery = hoursToRecovery,
                 status = status,
-                accumulatedStress = acc,
+                accumulatedStress = totalAcc,
             )
         }
     }

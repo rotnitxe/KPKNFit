@@ -626,7 +626,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         if (!activeSetId && allExercises.length > 0) {
             const firstEx = allExercises[0];
             if (firstEx && firstEx.sets && firstEx.sets.length > 0) {
-                setActiveSetId(firstEx.sets[0].id);
+                setActiveSetId(String(firstEx.sets[0].id));
             }
         }
     }, [allExercises, activeSetId]);
@@ -746,7 +746,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 {/* Sets Section */}
                 <div className="space-y-4">
                     {exercise.sets.map((set, sIdx) => {
-                        const setId = set.id;
+                        const setId = String(set.id);
                         const isLogged = !!completedSets[setId];
 
                         return (
@@ -873,16 +873,18 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
         }, 100);
     }, []);
 
-    const moveToNextSet = useCallback(() => {
-        const currentEx = allExercises.find(e => e.id === activeExerciseId);
+    const moveToNextSet = useCallback((exerciseId: string, currentSetIndex: number, wasWarmup: boolean) => {
+        const currentEx = allExercises.find(e => e.id === exerciseId);
         if (!currentEx) return;
 
         // If current active is a warmup
-        if (activeSetId?.startsWith('warmup-')) {
+        if (wasWarmup) {
             const firstSetId = currentEx.sets[0]?.id;
             if (firstSetId) {
-                setActiveSetId(firstSetId);
-                scrollToId(currentEx.id, `set-card-${firstSetId}`);
+                const nextId = String(firstSetId);
+                setActiveExerciseId(exerciseId);
+                setActiveSetId(nextId);
+                scrollToId(currentEx.id, `set-card-${nextId}`);
             } else {
                 // Feedback if no sets?
                 setActiveSetId(`feedback-${currentEx.id}`);
@@ -891,25 +893,29 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             return;
         }
 
-        const currentSetIndex = currentEx.sets.findIndex(s => s.id === activeSetId);
-
         // If not the last set
-        if (currentSetIndex !== -1 && currentSetIndex < currentEx.sets.length - 1) {
-            const nextSetId = currentEx.sets[currentSetIndex + 1].id;
+        if (currentSetIndex >= 0 && currentSetIndex < currentEx.sets.length - 1) {
+            const nextSetId = String(currentEx.sets[currentSetIndex + 1].id);
+            setActiveExerciseId(exerciseId);
             setActiveSetId(nextSetId);
             scrollToId(currentEx.id, `set-card-${nextSetId}`);
         } else {
             // Last Set Completed -> Move to Feedback Card
+            setActiveExerciseId(exerciseId);
             setActiveSetId(`feedback-${currentEx.id}`);
             scrollToId(currentEx.id, `feedback-card-${currentEx.id}`);
         }
-    }, [activeExerciseId, activeSetId, allExercises, scrollToId]);
+    }, [allExercises, scrollToId]);
 
     const handleLogSet = useCallback((exercise: Exercise, set: ExerciseSet, isCalibrator: boolean = false) => {
         const inputData = setInputs[String(set.id)];
         if (!inputData) return;
         const isUnilateral = 'left' in inputData;
-        const setIndex = exercise.sets.findIndex(s => s.id === set.id);
+        let setIndex = exercise.sets.findIndex(s => s === set);
+        if (setIndex === -1) {
+            setIndex = exercise.sets.findIndex(s => String(s.id) === String(set.id));
+        }
+        if (setIndex === -1) return;
         let setDataToSave: { left: OngoingSetData | null, right: OngoingSetData | null } = { left: null, right: null };
         const processInput = (inp: SetInputState): OngoingSetData | null => {
             const weight = parseFloat(String(inp.weight));
@@ -1023,7 +1029,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
             }
 
             playSound('set-logged-sound');
-            moveToNextSet();
+            moveToNextSet(exercise.id, setIndex, String(set.id).startsWith('warmup-'));
 
             const hasProgrammedRest = (exercise.restTime ?? 0) > 0;
             if (adaptiveRestTime > 0 && !isUnilateral && hasProgrammedRest) handleStartRest(adaptiveRestTime, exercise.name);
@@ -1107,15 +1113,16 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 setActiveSetId(`warmup-${nextEx.id}`);
                 scrollToId(nextEx.id, `warmup-card-${nextEx.id}`);
 } else if (nextEx.sets && nextEx.sets.length > 0) {
-                setActiveSetId(nextEx.sets[0].id);
-                scrollToId(nextEx.id, `set-card-${nextEx.sets[0].id}`);
+                const firstSetId = String(nextEx.sets[0].id);
+                setActiveSetId(firstSetId);
+                scrollToId(nextEx.id, `set-card-${firstSetId}`);
             }
         }
     };
 
     const handleWarmupComplete = (exercise: Exercise) => {
         if (exercise.sets && exercise.sets.length > 0) {
-            const firstSetId = exercise.sets[0].id;
+            const firstSetId = String(exercise.sets[0].id);
             setActiveSetId(firstSetId);
             scrollToId(exercise.id, `set-card-${firstSetId}`);
         }
@@ -1173,7 +1180,14 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                 return ex ? (
                     <WarmupDrawer
                         isOpen={true}
-                        onClose={() => { const firstSetId = ex.sets[0]?.id; if (firstSetId) { setActiveSetId(firstSetId); scrollToId(ex.id, `set-card-${firstSetId}`); } }}
+                        onClose={() => {
+                            const firstSetId = ex.sets[0]?.id;
+                            if (firstSetId) {
+                                const nextId = String(firstSetId);
+                                setActiveSetId(nextId);
+                                scrollToId(ex.id, `set-card-${nextId}`);
+                            }
+                        }}
                         exercise={ex}
                         baseWeight={consolidatedWeights[ex.id] || 0}
                         onBaseWeightChange={(w) => setConsolidatedWeights(prev => ({ ...prev, [ex.id]: w }))}
@@ -1398,7 +1412,7 @@ updatedSession.parts = updatedSession.parts.map(p => ({
                                                                     <span className="w-10" />
                                                                 </div>
                                                                 {ex.sets.map((set: ExerciseSet, setIndex) => {
-                                                                    const setId = set.id;
+                                                                    const setId = String(set.id);
                                                                     const isCompleted = !!completedSets[String(setId)];
                                                                     const isActiveRow = activeExerciseId === ex.id && activeSetId === setId;
                                                                     const inputsRaw = setInputs[String(setId)];

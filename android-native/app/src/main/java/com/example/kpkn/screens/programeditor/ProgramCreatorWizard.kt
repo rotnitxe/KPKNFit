@@ -67,7 +67,7 @@ fun ProgramCreatorWizard(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f),
                         MaterialTheme.colorScheme.surface,
                         MaterialTheme.colorScheme.surface,
                     ),
@@ -82,7 +82,7 @@ fun ProgramCreatorWizard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Row(
@@ -95,8 +95,8 @@ fun ProgramCreatorWizard(
                     }
                     Text(
                         text = wizardStepTitle(step),
-                        fontSize = 24.sp,
-                        lineHeight = 26.sp,
+                        fontSize = 20.sp,
+                        lineHeight = 22.sp,
                         fontWeight = FontWeight.Black,
                     )
                 }
@@ -157,9 +157,9 @@ fun ProgramCreatorWizard(
                 }
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                    tonalElevation = 8.dp,
-                    shadowElevation = 12.dp,
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    tonalElevation = 4.dp,
+                    shadowElevation = 6.dp,
                     color = MaterialTheme.colorScheme.surface,
                 ) {
                     WizardBottomBar(

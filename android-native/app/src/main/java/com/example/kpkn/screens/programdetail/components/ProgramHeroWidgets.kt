@@ -2,6 +2,7 @@ package com.example.kpkn.screens.programdetail.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,14 +34,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxDefaults
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -74,8 +71,8 @@ private enum class HeroWidgetType(
     val accent: Color,
 ) {
     MUSCLE("Músculo", "Promedio general de la batería muscular del programa.", Color(0xFF22C55E)),
-    SNC("SNC", "Estado actual del sistema nervioso central.", Color(0xFF3B82F6)),
-    SPINAL("Espinal", "Estado general de la carga espinal.", Color(0xFFA855F7)),
+    SNC("Sistema", "Estado actual de tu frescura neural y capacidad de producir fuerza.", Color(0xFF3B82F6)),
+    SPINAL("Estructura", "Estado general de tu carga axial y tolerancia conectiva.", Color(0xFFA855F7)),
     VOLUME("Calibrar volumen", "Configura el volumen recomendado por músculo para este programa.", Color(0xFFF59E0B)),
     INCREASE("Aumentar volumen", "Sube 20% el volumen de la semana actual, músculo por músculo.", Color(0xFF14B8A6)),
     REDUCE("Disminuir volumen", "Baja 20% el volumen de la semana actual, músculo por músculo.", Color(0xFFE11D48));
@@ -99,6 +96,7 @@ fun HeroWidgetsSection(
     var showCalibrationRequiredDialog by rememberSaveable { mutableStateOf(false) }
     var showIncreaseConfirmDialog by rememberSaveable { mutableStateOf(false) }
     var showReduceConfirmDialog by rememberSaveable { mutableStateOf(false) }
+    var pendingRemoveWidget by rememberSaveable { mutableStateOf<String?>(null) }
 
     val widgets = HeroWidgetType.entries.mapNotNull { widget ->
         if (widget.name in selectedWidgets) widget else null
@@ -120,27 +118,21 @@ fun HeroWidgetsSection(
                             value = "$muscularBattery%",
                             accent = widget.accent,
                             onInfo = { infoWidget = widget.name },
-                            onRemove = {
-                                selectedWidgets = selectedWidgets.filterNot { it == widget.name }
-                            },
+                            onLongRemove = { pendingRemoveWidget = widget.name },
                         )
                         HeroWidgetType.SNC -> WidgetChip(
                             title = widget.title,
                             value = "$sncBattery%",
                             accent = widget.accent,
                             onInfo = { infoWidget = widget.name },
-                            onRemove = {
-                                selectedWidgets = selectedWidgets.filterNot { it == widget.name }
-                            },
+                            onLongRemove = { pendingRemoveWidget = widget.name },
                         )
                         HeroWidgetType.SPINAL -> WidgetChip(
                             title = widget.title,
                             value = "$spinalBattery%",
                             accent = widget.accent,
                             onInfo = { infoWidget = widget.name },
-                            onRemove = {
-                                selectedWidgets = selectedWidgets.filterNot { it == widget.name }
-                            },
+                            onLongRemove = { pendingRemoveWidget = widget.name },
                         )
                         HeroWidgetType.VOLUME -> WidgetChip(
                             title = widget.title,
@@ -148,9 +140,7 @@ fun HeroWidgetsSection(
                             accent = if (isVolumeCalibrated) Color(0xFF22C55E) else widget.accent,
                             onInfo = { infoWidget = widget.name },
                             onClick = onOpenVolumeSetup,
-                            onRemove = {
-                                selectedWidgets = selectedWidgets.filterNot { it == widget.name }
-                            },
+                            onLongRemove = { pendingRemoveWidget = widget.name },
                         )
                         HeroWidgetType.INCREASE -> WidgetChip(
                             title = widget.title,
@@ -161,9 +151,7 @@ fun HeroWidgetsSection(
                                 if (isVolumeCalibrated) showIncreaseConfirmDialog = true
                                 else showCalibrationRequiredDialog = true
                             },
-                            onRemove = {
-                                selectedWidgets = selectedWidgets.filterNot { it == widget.name }
-                            },
+                            onLongRemove = { pendingRemoveWidget = widget.name },
                         )
                         HeroWidgetType.REDUCE -> WidgetChip(
                             title = widget.title,
@@ -174,12 +162,38 @@ fun HeroWidgetsSection(
                                 if (isVolumeCalibrated) showReduceConfirmDialog = true
                                 else showCalibrationRequiredDialog = true
                             },
-                            onRemove = {
-                                selectedWidgets = selectedWidgets.filterNot { it == widget.name }
-                            },
+                            onLongRemove = { pendingRemoveWidget = widget.name },
                         )
                     }
         }
+    }
+
+    pendingRemoveWidget?.let { widgetName ->
+        val widget = HeroWidgetType.entries.firstOrNull { it.name == widgetName }
+        AlertDialog(
+            onDismissRequest = { pendingRemoveWidget = null },
+            title = { Text("Quitar widget", fontWeight = FontWeight.Black) },
+            text = {
+                Text(
+                    "¿Eliminar ${widget?.title ?: "este widget"} del header?"
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        selectedWidgets = selectedWidgets.filterNot { it == widgetName }
+                        pendingRemoveWidget = null
+                    }
+                ) {
+                    Text("Quitar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRemoveWidget = null }) {
+                    Text("Cancelar")
+                }
+            },
+        )
     }
 
     if (pickerOpen) {
@@ -399,103 +413,70 @@ private fun WidgetChip(
     accent: Color,
     onInfo: () -> Unit,
     onClick: (() -> Unit)? = null,
-    onRemove: (() -> Unit)? = null,
+    onLongRemove: (() -> Unit)? = null,
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        positionalThreshold = { totalDistance -> totalDistance * 0.45f },
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart || value == SwipeToDismissBoxValue.StartToEnd) {
-                onRemove?.invoke()
-                true
-            } else {
-                false
-            }
-        },
-    )
-
-    SwipeToDismissBox(
-        state = dismissState,
-        enableDismissFromStartToEnd = onRemove != null,
-        enableDismissFromEndToStart = false,
-        backgroundContent = {
+    Surface(
+        modifier = Modifier
+            .widthIn(min = 126.dp, max = 142.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .combinedClickable(
+                onClick = { onClick?.invoke() ?: Unit },
+                onLongClick = { onLongRemove?.invoke() ?: Unit },
+            ),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             Box(
                 modifier = Modifier
-                    .widthIn(min = 126.dp, max = 142.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(accent.copy(alpha = 0.18f))
-                    .padding(horizontal = 14.dp),
-                contentAlignment = Alignment.CenterStart,
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(accent.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    "Quitar",
-                    fontSize = 10.sp,
+                    text = value,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.Black,
                     color = accent,
                 )
             }
-        },
-        content = {
-            Surface(
-                modifier = Modifier
-                    .widthIn(min = 126.dp, max = 142.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .clickable(enabled = onClick != null, onClick = { onClick?.invoke() ?: Unit }),
-                shape = RoundedCornerShape(18.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
+
+            Column(
+                modifier = Modifier.weight(1f, fill = false),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(accent.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = value,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            color = accent,
-                        )
-                    }
-
-                    Column(
-                        modifier = Modifier.weight(1f, fill = false),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(
-                            title,
-                            fontWeight = FontWeight.Black,
-                            fontSize = 11.sp,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            lineHeight = 13.sp,
-                        )
-                    }
-
-                    Surface(
-                        modifier = Modifier.clickable(onClick = onInfo),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
-                    ) {
-                        Text(
-                            "(i)",
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                Text(
+                    title,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 11.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 13.sp,
+                )
             }
-        },
-    )
+
+            Surface(
+                modifier = Modifier.clickable(onClick = onInfo),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
+            ) {
+                Text(
+                    "(i)",
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

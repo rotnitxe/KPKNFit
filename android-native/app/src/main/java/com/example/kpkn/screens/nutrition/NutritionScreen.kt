@@ -121,6 +121,13 @@ fun NutritionScreen(
             )
         }
 
+        // ── Distribución calórica — justo sobre el calendario ────────────
+        if (dailyTotals.calories > 0) {
+            item {
+                MacroBarsSection(dailyTotals = dailyTotals, goals = goals)
+            }
+        }
+
         // ── Date Selector ───────────────────────────────────────────────────
         item {
             DateSelector(
@@ -137,13 +144,6 @@ fun NutritionScreen(
                     showFoodLogger = true
                 },
             )
-        }
-
-        // ── Macro Bars (only show if there's data) ────────────────────────
-        if (dailyTotals.calories > 0) {
-            item {
-                MacroBarsSection(dailyTotals = dailyTotals, goals = goals)
-            }
         }
 
         // ── Meal Groups ─────────────────────────────────────────────────────
@@ -289,33 +289,28 @@ private fun NutritionHeroHeader(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Animated macro ring
-                Box(modifier = Modifier.size(140.dp), contentAlignment = Alignment.Center) {
-                    AnimatedMacroRing(
-                        caloriesPct = macroRingPct.calories,
-                        proteinPct = macroRingPct.protein,
-                        carbsPct = macroRingPct.carbs,
-                        fatsPct = macroRingPct.fats,
-                    )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "${dailyTotals.calories.toInt()}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                            color = CALORIES_COLOR,
-                        )
-                        Text(
-                            "/ ${goals.calorieGoal}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            "kcal",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                // Animated macro ring — libre de texto, solo los anillos
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(130.dp)) {
+                        AnimatedMacroRing(
+                            caloriesPct = macroRingPct.calories,
+                            proteinPct = macroRingPct.protein,
+                            carbsPct = macroRingPct.carbs,
+                            fatsPct = macroRingPct.fats,
                         )
                     }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "${dailyTotals.calories.toInt()}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = CALORIES_COLOR,
+                    )
+                    Text(
+                        "/ ${goals.calorieGoal} kcal",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
 
                 Spacer(Modifier.width(16.dp))

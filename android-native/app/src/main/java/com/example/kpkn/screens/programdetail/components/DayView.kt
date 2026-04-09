@@ -4,7 +4,16 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -13,14 +22,35 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Today
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -61,12 +91,15 @@ fun getDynamicDays(startDay: Int, weekDays: Int): List<DayInfo> {
     return week + extras
 }
 
-// ─── Drag State ──────────────────────────────────────────────────────────────
+private data class DaySessionEntry(
+    val session: Session,
+    val dayId: Int,
+)
 
-private data class DragState(
-    val draggedId: String? = null,
-    val draggedOverId: String? = null,
-    val offsetY: Float = 0f,
+private data class DayDragState(
+    val draggedSessionId: String? = null,
+    val draggedDayId: Int? = null,
+    val offset: Offset = Offset.Zero,
 )
 
 @Composable
@@ -78,7 +111,7 @@ fun DayView(
     onAddSession: (Int) -> Unit,
     onDeleteSession: (String) -> Unit,
     onStartWorkout: (Session) -> Unit,
-    onReorderSessions: (Int, Int) -> Unit,   // (fromIndex, toIndex) global week indices
+    onApplySessionsLayout: (List<Session>) -> Unit,
     onUpdateStartDay: (Int) -> Unit,
     onUpdateWeekMetadata: (String, String, String?) -> Unit,
     modifier: Modifier = Modifier,
@@ -86,17 +119,26 @@ fun DayView(
     val startDay = program.startDay ?: 1
     val weekDays = program.weekDays ?: 7
     val days = remember(startDay, weekDays) { getDynamicDays(startDay, weekDays) }
-
     var expandedDays by remember(startDay) { mutableStateOf(setOf(days.firstOrNull()?.id ?: 1)) }
+    var dayLayout by remember(sessions) {
+        mutableStateOf(
+            sessions.map { session ->
+                DaySessionEntry(session = session, dayId = session.dayOfWeek ?: 1)
+            }
+        )
+    }
+    var dragState by remember { mutableStateOf(DayDragState()) }
+    val cardBounds = remember { mutableStateMapOf<String, Rect>() }
+    val dayBounds = remember { mutableStateMapOf<Int, Rect>() }
 
-    // Build global index map: for each day, the list of (session, globalWeekIndex)
-    val dayToGlobalPairs = remember(sessions) {
-        val pairs = mutableMapOf<Int, MutableList<Pair<Session, Int>>>()
-        sessions.forEachIndexed { globalIdx, session ->
-            val dayId = session.dayOfWeek ?: 1
-            pairs.getOrPut(dayId) { mutableListOf() }.add(session to globalIdx)
+    LaunchedEffect(sessions) {
+        dayLayout = sessions.map { session ->
+            val previous = dayLayout.firstOrNull { it.session.id == session.id }
+            DaySessionEntry(session = session, dayId = previous?.dayId ?: (session.dayOfWeek ?: 1))
         }
-        pairs
+        dragState = DayDragState()
+        cardBounds.clear()
+        dayBounds.clear()
     }
 
     Column(
@@ -118,28 +160,114 @@ fun DayView(
         }
 
         days.forEach { day ->
-            val dayPairs = dayToGlobalPairs[day.id] ?: emptyList()
-            val daySessions = dayPairs.map { it.first }
+            val dayEntries = dayLayout.filter { it.dayId == day.id }
             val isExpanded = day.id in expandedDays
 
             DayColumn(
                 day = day,
-                sessions = daySessions,
+                entries = dayEntries,
                 isExpanded = isExpanded,
+                dragState = dragState,
                 onToggleExpand = {
-                    expandedDays = if (isExpanded) expandedDays - day.id
-                    else expandedDays + day.id
+                    expandedDays = if (isExpanded) expandedDays - day.id else expandedDays + day.id
                 },
                 onEditSession = onEditSession,
                 onDeleteSession = onDeleteSession,
                 onStartWorkout = onStartWorkout,
                 onAddSession = { onAddSession(day.id) },
-                onReorderInDay = { fromLocalIdx, toLocalIdx ->
-                    if (fromLocalIdx != toLocalIdx && fromLocalIdx in dayPairs.indices && toLocalIdx in dayPairs.indices) {
-                        val fromGlobal = dayPairs[fromLocalIdx].second
-                        val toGlobal = dayPairs[toLocalIdx].second
-                        onReorderSessions(fromGlobal, toGlobal)
+                onDayBoundsChange = { rect -> dayBounds[day.id] = rect },
+                onCardBoundsChange = { sessionId, rect -> cardBounds[sessionId] = rect },
+                onDragStart = { sessionId ->
+                    dragState = DayDragState(
+                        draggedSessionId = sessionId,
+                        draggedDayId = dayLayout.firstOrNull { it.session.id == sessionId }?.dayId,
+                        offset = Offset.Zero,
+                    )
+                },
+                onDrag = { sessionId, delta ->
+                    if (dragState.draggedSessionId != sessionId) return@DayColumn
+                    val source = dayLayout.firstOrNull { it.session.id == sessionId } ?: return@DayColumn
+                    val activeRect = cardBounds[sessionId] ?: return@DayColumn
+                    val nextOffset = dragState.offset + delta
+                    dragState = dragState.copy(offset = nextOffset)
+
+                    val pointer = Offset(
+                        x = activeRect.center.x + nextOffset.x,
+                        y = activeRect.center.y + nextOffset.y,
+                    )
+
+                    val targetSessionId = cardBounds.entries.firstOrNull { (targetId, rect) ->
+                        targetId != sessionId && rect.contains(pointer)
+                    }?.key
+
+                    if (targetSessionId != null) {
+                        val targetEntry = dayLayout.firstOrNull { it.session.id == targetSessionId } ?: return@DayColumn
+                        val mutable = dayLayout.toMutableList()
+                        val fromIndex = mutable.indexOfFirst { it.session.id == sessionId }
+                        val toIndex = mutable.indexOfFirst { it.session.id == targetSessionId }
+                        if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                            val moved = mutable.removeAt(fromIndex)
+                            mutable.add(toIndex, moved.copy(dayId = targetEntry.dayId))
+                            dayLayout = mutable.toList()
+                            dragState = dragState.copy(
+                                offset = Offset.Zero,
+                                draggedDayId = targetEntry.dayId,
+                            )
+                        }
+                        return@DayColumn
                     }
+
+                    if (source.dayId == day.id) {
+                        val sameDayIds = dayLayout.filter { it.dayId == day.id }.map { it.session.id }
+                        val fromDayIdx = sameDayIds.indexOf(sessionId)
+                        val targetIdInDay = sameDayIds.firstOrNull { candidateId ->
+                            candidateId != sessionId && (cardBounds[candidateId]?.contains(pointer) == true)
+                        }
+                        val toDayIdx = sameDayIds.indexOf(targetIdInDay)
+                        if (fromDayIdx >= 0 && toDayIdx >= 0 && fromDayIdx != toDayIdx) {
+                            val mutable = dayLayout.toMutableList()
+                            val fromGlobalIndex = mutable.indexOfFirst { it.session.id == sessionId }
+                            val toGlobalIndex = mutable.indexOfFirst { it.session.id == targetIdInDay }
+                            if (fromGlobalIndex >= 0 && toGlobalIndex >= 0) {
+                                val moved = mutable.removeAt(fromGlobalIndex)
+                                mutable.add(toGlobalIndex, moved)
+                                dayLayout = mutable.toList()
+                                dragState = dragState.copy(offset = Offset.Zero)
+                            }
+                            return@DayColumn
+                        }
+                    }
+
+                    val targetDay = dayBounds.entries.firstOrNull { (_, rect) -> rect.contains(pointer) }?.key
+
+                    if (targetDay != null && targetDay != source.dayId) {
+                        val mutable = dayLayout.toMutableList()
+                        val index = mutable.indexOfFirst { it.session.id == sessionId }
+                        if (index >= 0) {
+                            mutable[index] = mutable[index].copy(dayId = targetDay)
+                            dayLayout = mutable.toList()
+                            dragState = dragState.copy(draggedDayId = targetDay)
+                        }
+                    }
+                },
+                onDragEnd = { sessionId ->
+                    val updatedSessions = dayLayout.map { entry ->
+                        entry.session.copy(
+                            dayOfWeek = entry.dayId,
+                            assignedDays = listOf(entry.dayId),
+                        )
+                    }
+                    if (updatedSessions.map { it.id } != sessions.map { it.id } ||
+                        updatedSessions.map { it.dayOfWeek } != sessions.map { it.dayOfWeek }) {
+                        onApplySessionsLayout(updatedSessions)
+                    }
+                    dragState = DayDragState()
+                },
+                onDragCancel = {
+                    dayLayout = sessions.map { session ->
+                        DaySessionEntry(session = session, dayId = session.dayOfWeek ?: 1)
+                    }
+                    dragState = DayDragState()
                 },
             )
         }
@@ -328,31 +456,29 @@ private fun WeekIdentityCard(
 @Composable
 private fun DayColumn(
     day: DayInfo,
-    sessions: List<Session>,
+    entries: List<DaySessionEntry>,
     isExpanded: Boolean,
+    dragState: DayDragState,
     onToggleExpand: () -> Unit,
     onEditSession: (String) -> Unit,
     onDeleteSession: (String) -> Unit,
     onStartWorkout: (Session) -> Unit,
     onAddSession: () -> Unit,
-    onReorderInDay: (Int, Int) -> Unit,
+    onDayBoundsChange: (Rect) -> Unit,
+    onCardBoundsChange: (String, Rect) -> Unit,
+    onDragStart: (String) -> Unit,
+    onDrag: (String, Offset) -> Unit,
+    onDragEnd: (String) -> Unit,
+    onDragCancel: () -> Unit,
 ) {
-    // Drag state: track which session is being dragged over which
-    var dragState by remember { mutableStateOf(DragState()) }
-    var localSessions by remember(sessions) { mutableStateOf(sessions) }
-
-    // Sync local sessions when source changes
-    LaunchedEffect(sessions) {
-        localSessions = sessions
-        dragState = DragState()
-    }
-
     Card(
-        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .onGloballyPositioned { onDayBoundsChange(it.boundsInWindow()) },
         shape = MaterialTheme.shapes.medium,
     ) {
         Column {
-            // Day header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -365,10 +491,10 @@ private fun DayColumn(
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .clip(CircleShape)
                             .background(
-                                if (sessions.isNotEmpty()) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceVariant
+                                if (entries.isNotEmpty()) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceVariant,
+                                CircleShape,
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -376,7 +502,7 @@ private fun DayColumn(
                             day.short,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
-                            color = if (sessions.isNotEmpty()) MaterialTheme.colorScheme.onPrimary
+                            color = if (entries.isNotEmpty()) MaterialTheme.colorScheme.onPrimary
                             else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -388,7 +514,7 @@ private fun DayColumn(
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            if (sessions.isEmpty()) "Sin sesiones todavía" else "${sessions.size} sesión${if (sessions.size > 1) "es" else ""}",
+                            if (entries.isEmpty()) "Sin sesiones todavía" else "${entries.size} sesión${if (entries.size > 1) "es" else ""}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -411,9 +537,8 @@ private fun DayColumn(
                 }
             }
 
-            // Sessions list with drag-to-reorder
             if (isExpanded) {
-                if (localSessions.isEmpty()) {
+                if (entries.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -428,46 +553,32 @@ private fun DayColumn(
                     }
                 } else {
                     Column(
-                        modifier = Modifier.padding(horizontal = 14.dp).padding(bottom = 12.dp),
+                        modifier = Modifier
+                            .padding(horizontal = 14.dp)
+                            .padding(bottom = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        localSessions.forEachIndexed { idx, session ->
-                            val isDragging = dragState.draggedId == session.id
-                            val isDragOver = dragState.draggedOverId == session.id
+                        entries.forEachIndexed { idx, entry ->
+                            val session = entry.session
+                            val isDragging = dragState.draggedSessionId == session.id
+                            val isDragOver = dragState.draggedSessionId != null &&
+                                dragState.draggedSessionId != session.id &&
+                                dragState.draggedDayId == day.id
 
                             DraggableSessionCard(
                                 session = session,
                                 index = idx,
                                 isDragging = isDragging,
                                 isDragOver = isDragOver,
+                                dragOffset = if (isDragging) dragState.offset else Offset.Zero,
                                 onStart = { onStartWorkout(session) },
                                 onEdit = { onEditSession(session.id) },
                                 onDelete = { onDeleteSession(session.id) },
-                                onDragStart = {
-                                    dragState = DragState(draggedId = session.id)
-                                },
-                                onDragOver = { overId ->
-                                    if (overId != dragState.draggedId && overId != dragState.draggedOverId) {
-                                        val fromIdx = localSessions.indexOfFirst { it.id == dragState.draggedId }
-                                        val toIdx = localSessions.indexOfFirst { it.id == overId }
-                                        if (fromIdx >= 0 && toIdx >= 0 && fromIdx != toIdx) {
-                                            val mutable = localSessions.toMutableList()
-                                            val item = mutable.removeAt(fromIdx)
-                                            mutable.add(toIdx, item)
-                                            localSessions = mutable
-                                        }
-                                        dragState = dragState.copy(draggedOverId = overId)
-                                    }
-                                },
-                                onDragEnd = {
-                                    val finalIdx = localSessions.indexOfFirst { it.id == dragState.draggedId }
-                                    val originalIdx = sessions.indexOfFirst { it.id == dragState.draggedId }
-                                    if (finalIdx >= 0 && originalIdx >= 0 && finalIdx != originalIdx) {
-                                        onReorderInDay(originalIdx, finalIdx)
-                                    }
-                                    dragState = DragState()
-                                },
-                                onDragCancel = { dragState = DragState() },
+                                onBoundsChange = { rect -> onCardBoundsChange(session.id, rect) },
+                                onDragStart = { onDragStart(session.id) },
+                                onDrag = { delta -> onDrag(session.id, delta) },
+                                onDragEnd = { onDragEnd(session.id) },
+                                onDragCancel = onDragCancel,
                             )
                         }
                     }
@@ -477,54 +588,53 @@ private fun DayColumn(
     }
 }
 
-// ─── Draggable Session Card ──────────────────────────────────────────────────
-
 @Composable
 private fun DraggableSessionCard(
     session: Session,
     index: Int,
     isDragging: Boolean,
     isDragOver: Boolean,
+    dragOffset: Offset,
     onStart: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onBoundsChange: (Rect) -> Unit,
     onDragStart: () -> Unit,
-    onDragOver: (String) -> Unit,
+    onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
     onDragCancel: () -> Unit,
 ) {
     val elevation = if (isDragging) 12.dp else 0.dp
-    val alpha = if (isDragging) 0.9f else 1f
 
-    Box(
+    SessionCard(
+        session = session,
+        index = index,
+        onStart = onStart,
+        onEdit = onEdit,
+        onDelete = { onDelete() },
+        showDragHandle = true,
+        isDragging = isDragging,
         modifier = Modifier
+            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {
-                this.alpha = alpha
-                if (isDragging) this.translationY = 0f
+                translationX = if (isDragging) dragOffset.x else 0f
+                translationY = if (isDragging) dragOffset.y else 0f
+                scaleX = if (isDragging) 1.02f else if (isDragOver) 1.01f else 1f
+                scaleY = if (isDragging) 1.02f else if (isDragOver) 1.01f else 1f
+                alpha = if (isDragging) 0.95f else 1f
+                shadowElevation = elevation.toPx()
             }
-            .zIndex(if (isDragging) 1f else 0f)
-            .shadow(elevation, RoundedCornerShape(16.dp))
-            .pointerInput(Unit) {
+            .zIndex(if (isDragging) 8f else 0f)
+            .pointerInput(session.id) {
                 detectDragGesturesAfterLongPress(
                     onDragStart = { onDragStart() },
                     onDragEnd = { onDragEnd() },
                     onDragCancel = { onDragCancel() },
-                    onDrag = { change, _ ->
+                    onDrag = { change, dragAmount ->
                         change.consume()
-                        // Determine which card we're hovering over based on position
-                        // The container handles the actual reorder via onDragOver
+                        onDrag(Offset(dragAmount.x, dragAmount.y))
                     },
                 )
             },
-    ) {
-        SessionCard(
-            session = session,
-            index = index,
-            onStart = onStart,
-            onEdit = onEdit,
-            onDelete = onDelete,
-            showDragHandle = true,
-            isDragging = isDragging,
-        )
-    }
+    )
 }

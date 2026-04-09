@@ -56,6 +56,8 @@ data class FoodItem(
     val carbs: Double = 0.0,
     val fats: Double = 0.0,
     val isCustom: Boolean = false,
+    /** True si fue inferido por la IA local y guardado en caché. Permite distinguirlo de custom foods del usuario. */
+    val isAiInferred: Boolean = false,
     val image: String? = null,
     val fatBreakdown: FatBreakdown? = null,
     val carbBreakdown: CarbBreakdown? = null,
@@ -178,6 +180,12 @@ data class ParsedMealItem(
     val isFuzzyMatch: Boolean = false,
     val brandHint: String? = null,
     val macroOverrides: MacroOverrides? = null,
+    /**
+     * Macros por 100g inferidos por la IA local. Permite al UI reescalar correctamente cuando
+     * el usuario cambia la cantidad (gramos), sin perder la referencia base del modelo.
+     * Solo presente cuando analysisSource == LOCAL_AI_ESTIMATE y no hay match en la BD.
+     */
+    val basePer100g: MacroOverrides? = null,
     val analysisSource: AnalysisSource = AnalysisSource.RULES,
     val analysisConfidence: Double? = null,
     val reviewRequired: Boolean = false,
@@ -202,6 +210,12 @@ data class ParsedMealDescription(
     val requiresReview: Boolean = false,
     val analysisEngine: String = "deterministic",
     val modelVersion: String? = null,
+    /**
+     * Foods inferred by the AI this call that don't exist in the local database.
+     * The ViewModel/caller should persist these via NutritionRepository.saveAiInferredFood()
+     * so future lookups skip the AI entirely (cache hit in custom foods table).
+     */
+    val aiInferredFoods: List<FoodItem> = emptyList(),
 )
 
 // ─── Daily Stats ─────────────────────────────────────────────────────────────
@@ -243,3 +257,30 @@ data class FoodCandidate(
 
 enum class SearchConfidence { HIGH, MEDIUM, LOW }
 enum class SearchSource { LOCAL, OFF, USDA }
+
+// ─── Body Measurement Entry ─────────────────────────────────────────────────
+
+@Serializable
+data class BodyMeasurementEntry(
+    val id: String,
+    val date: String,              // ISO date "2026-04-06"
+    val weight: Double? = null,    // kg
+    val bodyFat: Double? = null,   // %
+    val muscleMass: Double? = null,// %
+    val waistCm: Double? = null,
+    val hipCm: Double? = null,
+    val chestCm: Double? = null,
+    val armCm: Double? = null,     // brazo derecho
+    val thighCm: Double? = null,   // muslo derecho
+    val neckCm: Double? = null,
+    val notes: String? = null,
+)
+
+@Serializable
+data class MeasurementSchedule(
+    val enabled: Boolean = false,
+    val intervalDays: Int = 7,     // cada cuántos días medir
+    val nextDate: String? = null,  // ISO date de la próxima medición programada
+    val reminderHour: Int = 9,
+    val reminderMinute: Int = 0,
+)

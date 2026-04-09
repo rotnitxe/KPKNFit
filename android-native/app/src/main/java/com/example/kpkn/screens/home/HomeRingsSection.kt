@@ -25,9 +25,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.models.RecoveryChannelId
+import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.RecoveryStatus
 import kotlin.math.*
@@ -35,19 +38,19 @@ import kotlin.math.*
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
 private val RingColors = listOf(Color(0xFFFF5252), Color(0xFF448AFF), Color(0xFFFFD740))
-private val RingLabels = listOf("MÚSCULOS", "SNC", "COLUMNA")
-private val RingLabelsShort = listOf("Músc.", "SNC", "Col.")
+private val RingLabels = listOf("MÚSCULOS", "SISTEMA", "ESTRUCTURA")
+private val RingLabelsShort = listOf("Músc.", "Sist.", "Estr.")
 
 private val RingDescriptions = listOf(
-    "Indica qué tan recuperados están tus músculos. Un nivel bajo significa que tus fibras necesitan descansar para evitar sobrecargas.",
-    "Es tu 'batería' de energía mental y coordinación. Si está baja, puedes sentirte más lento de reflejos o con la mente cansada.",
-    "Mide el impacto acumulado en tu espalda y articulaciones. Te ayuda a saber cuándo es mejor bajar la carga.",
+    "Indica cuánto volumen local toleran hoy tus músculos. Si baja, conviene recortar series duras en la zona más cargada.",
+    "Resume tu frescura neural, tu coordinación y tu capacidad de producir fuerza hoy.",
+    "Mide cómo llegan hoy tu columna, tus tendones y tus articulaciones a la carga.",
 )
 
 private val RingQuestions = listOf(
-    "Cada zona anatómica se recupera a distinto ritmo pos-esfuerzo. Abre 'Batería por zona' para calibrar con precisión.",
-    "¿Sientes el cuerpo inusualmente pesado o la mente nublada al despertar? Puedes recalibrar deslizando el anillo.",
-    "¿Notas rigidez acentuada o la espalda 'comprimida' durante el día? Puedes recalibrar tu columna deslizando el anillo.",
+    "La lectura muscular se interpreta por músculo. El ring global es solo el promedio de tus grupos pilar.",
+    "Corrige este ring solo si tu energía, coordinación o sensación de fuerza no coinciden con la predicción.",
+    "Corrige este ring si la carga axial o la tolerancia de tendones y articulaciones no coinciden con cómo te sientes.",
 )
 
 @Composable
@@ -55,6 +58,7 @@ fun HomeRingsSection(
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
+    recoveryDashboard: RecoveryDashboard? = null,
     ringsViewMode: HomeViewModel.RingsViewMode,
     hasActiveProgram: Boolean = true,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
@@ -77,7 +81,7 @@ fun HomeRingsSection(
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "TUS RINGS",
+            text = "ESTADO DE RECUPERACIÓN",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Black,
             letterSpacing = 1.sp,
@@ -97,7 +101,7 @@ fun HomeRingsSection(
             ) {
                 when (page) {
                     0 -> CombinedRingsView(progressValues, ringColors, onRingSelect, hasActiveProgram)
-                    1 -> IndividualRingsView(progressValues, ringColors, onRingSelect, hasActiveProgram, perMuscle)
+                    1 -> IndividualRingsView(progressValues, ringColors, recoveryDashboard, onRingSelect, hasActiveProgram, perMuscle)
                 }
             }
         }
@@ -132,7 +136,9 @@ private fun CombinedRingsView(
                                 .weight(1f)
                                 .fillMaxHeight()
                                 .pointerInput(Unit) {
-                                    detectTapGestures(onLongPress = { if (hasActiveProgram) onRingSelect(i) })
+                                    detectTapGestures(onLongPress = {
+                                        if (hasActiveProgram && i != 0) onRingSelect(i)
+                                    })
                                 }
                         )
                     }
@@ -163,12 +169,20 @@ private fun CombinedRingsView(
 private fun IndividualRingsView(
     progressValues: List<Float>,
     ringColors: List<Color>,
+    recoveryDashboard: RecoveryDashboard?,
     onRingSelect: (Int) -> Unit,
     hasActiveProgram: Boolean = true,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
     var showMuscleDetail by remember { mutableStateOf(false) }
+    val channelDetails = remember(recoveryDashboard) {
+        listOf(
+            recoveryDashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.MUSCULAR },
+            recoveryDashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.SYSTEM },
+            recoveryDashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.STRUCTURE },
+        )
+    }
 
     Column(
         Modifier.fillMaxSize().padding(vertical = 4.dp),
@@ -184,7 +198,9 @@ private fun IndividualRingsView(
                     Modifier
                         .size(140.dp)
                         .pointerInput(currentIndex) {
-                            detectTapGestures(onLongPress = { if (hasActiveProgram) onRingSelect(currentIndex) })
+                            detectTapGestures(onLongPress = {
+                                if (hasActiveProgram && currentIndex != 0) onRingSelect(currentIndex)
+                            })
                         },
                     contentAlignment = Alignment.Center,
                 ) {
@@ -202,7 +218,7 @@ private fun IndividualRingsView(
                         SingleRingCanvas(
                             value = progressValues[currentIndex],
                             color = ringColors[currentIndex],
-                            size = 110f,
+                            ringDiameter = 110f,
                             strokeWidth = 7f,
                         )
                         InternalCurvedLabel(
@@ -235,7 +251,7 @@ private fun IndividualRingsView(
 
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    RingDescriptions[currentIndex],
+                    channelDetails[currentIndex]?.description ?: RingDescriptions[currentIndex],
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     fontSize = 12.sp,
@@ -251,8 +267,18 @@ private fun IndividualRingsView(
                         )
                         .padding(8.dp),
                 ) {
+                    val channel = channelDetails[currentIndex]
+                    val explanation = buildString {
+                        append(channel?.action ?: RingQuestions[currentIndex])
+                        if (channel != null) {
+                            append("\nConfianza: ${channel.confidence}%")
+                            if (channel.causes.isNotEmpty()) {
+                                append("\n¿Por qué? ${channel.causes.joinToString(" · ")}")
+                            }
+                        }
+                    }
                     Text(
-                        RingQuestions[currentIndex],
+                        explanation,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         fontSize = 11.sp,
@@ -267,7 +293,7 @@ private fun IndividualRingsView(
                         modifier = Modifier.height(32.dp),
                     ) {
                         Text(
-                            if (showMuscleDetail) "Cerrar" else "Batería",
+                            if (showMuscleDetail) "Cerrar" else "Por músculo",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                             fontSize = 10.sp,
@@ -305,12 +331,12 @@ private fun IndividualRingsView(
 private fun SingleRingCanvas(
     value: Float,
     color: Color,
-    size: Float = 140f,
+    ringDiameter: Float = 140f,
     strokeWidth: Float = 8f,
 ) {
     val animatedValue by animateFloatAsState(targetValue = value, label = "ringValue")
     val density = LocalDensity.current.density
-    Canvas(Modifier.size(size.dp)) {
+    Canvas(Modifier.size(ringDiameter.dp)) {
         val strokePx = strokeWidth * density
         val r = (this.size.minDimension - strokePx) / 2f
         val c = Offset(this.size.width / 2f, this.size.height / 2f)
@@ -399,10 +425,7 @@ private fun CurvedLabelsCanvas(labels: List<String>, ringColors: List<Color>) {
                         color = ringColors[i].copy(alpha = 0.7f)
                     ),
                     modifier = Modifier
-                        .offset(
-                            x = (x / density).dp - 4.dp,
-                            y = (y / density).dp - 6.dp
-                        )
+                        .offset { IntOffset((x / density - 4f).toInt(), (y / density - 6f).toInt()) }
                         .graphicsLayer { rotationZ = angle + 90f }
                 )
             }
@@ -434,10 +457,7 @@ private fun InternalCurvedLabel(label: String, color: Color, ringSize: Float) {
                     color = color.copy(alpha = 0.7f)
                 ),
                 modifier = Modifier
-                    .offset(
-                        x = (x / density).dp - 4.dp,
-                        y = (y / density).dp - 6.dp
-                    )
+                    .offset { IntOffset((x / density - 4f).toInt(), (y / density - 6f).toInt()) }
                     .graphicsLayer { rotationZ = angle + 90f }
             )
         }

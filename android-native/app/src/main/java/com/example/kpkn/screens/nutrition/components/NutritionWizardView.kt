@@ -4,10 +4,12 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -24,6 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.*
 import java.time.Instant
 import java.util.UUID
@@ -91,6 +95,8 @@ fun NutritionWizardView(
 ) {
     // -1 = welcome screen, 0..4 = data steps
     var step by remember { mutableIntStateOf(-1) }
+    val programRepo = remember { ProgramRepository.getInstance() }
+    val nutritionRepo = remember { NutritionRepository.getInstance() }
 
     // Step 0: Goal
     var primaryMetric by remember { mutableStateOf(GoalMetric.WEIGHT) }
@@ -117,11 +123,10 @@ fun NutritionWizardView(
     var metabolicConditions by remember { mutableStateOf(emptyList<String>()) }
 
     // Step 4: Summary
-    var manualCalories by remember { mutableStateOf("") }
-    var manualProtein by remember { mutableStateOf("") }
-    var manualCarbs by remember { mutableStateOf("") }
-    var manualFats by remember { mutableStateOf("") }
     var useManualOverrides by remember { mutableStateOf(false) }
+    var customProtein by remember { mutableIntStateOf(0) }
+    var customCarbs by remember { mutableIntStateOf(0) }
+    var customFats by remember { mutableIntStateOf(0) }
 
     // ─── Derived ─────────────────────────────────────────────────────────
     val weightD = weight.toDoubleOrNull() ?: 70.0
@@ -154,6 +159,21 @@ fun NutritionWizardView(
     val recommendedProtein = kotlin.math.round(weightD * 2.0 * dietMultiplier).toInt()
     val recommendedFats = kotlin.math.max(45, kotlin.math.round(weightD * 0.75).toInt())
     val recommendedCarbs = kotlin.math.max(40, kotlin.math.round((targetCalories - recommendedProtein * 4 - recommendedFats * 9) / 4.0).toInt())
+    val proteinRange = (recommendedProtein - 80).coerceAtLeast(40)..(recommendedProtein + 80).coerceAtLeast(60)
+    val carbRange = (recommendedCarbs - 150).coerceAtLeast(40)..(recommendedCarbs + 150).coerceAtLeast(80)
+    val fatRange = (recommendedFats - 35).coerceAtLeast(30)..(recommendedFats + 35).coerceAtLeast(50)
+    val plannedProtein = if (useManualOverrides) customProtein.coerceIn(proteinRange) else recommendedProtein
+    val plannedCarbs = if (useManualOverrides) customCarbs.coerceIn(carbRange) else recommendedCarbs
+    val plannedFats = if (useManualOverrides) customFats.coerceIn(fatRange) else recommendedFats
+    val plannedCalories = plannedProtein * 4 + plannedCarbs * 4 + plannedFats * 9
+
+    LaunchedEffect(recommendedProtein, recommendedCarbs, recommendedFats, useManualOverrides) {
+        if (!useManualOverrides) {
+            customProtein = recommendedProtein
+            customCarbs = recommendedCarbs
+            customFats = recommendedFats
+        }
+    }
 
     val weeklyTrendKg = when (direction) {
         "lose" -> -weeklyChangeKg; "gain" -> weeklyChangeKg; else -> 0.0
@@ -165,7 +185,7 @@ fun NutritionWizardView(
     } else null
 
     val riskInput = RiskInput(
-        settings = nutritionInput, calorieTarget = targetCalories,
+        settings = nutritionInput, calorieTarget = plannedCalories,
         goalMetric = primaryMetric, goalValue = primaryValD,
         weeklyChangeKg = kotlin.math.abs(weeklyTrendKg),
     )
@@ -186,7 +206,7 @@ fun NutritionWizardView(
         1 -> ageI in 10..100 && heightD in 120.0..250.0 && weightD in 30.0..300.0
         2 -> compositionConfirmed || (bodyFatD != null && bodyFatD > 0 && muscleMassD != null && muscleMassD > 0)
         3 -> activityLevel in 1..5
-        4 -> targetCalories > 0 && !hasHardStop
+        4 -> plannedCalories > 0 && !hasHardStop
         else -> false
     }
 
@@ -197,7 +217,12 @@ fun NutritionWizardView(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.surface)
+            .windowInsetsPadding(
+                WindowInsets.safeDrawing.only(
+                    WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
+                )
+            ),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // ─── WELCOME SCREEN ──────────────────────────────────────────
@@ -559,16 +584,16 @@ fun NutritionWizardView(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
-                                    SummaryKpi("Calorías", "$targetCalories", "kcal", Color(0xFF49454F), Modifier.weight(1f))
-                                    SummaryKpi("Proteína", "$recommendedProtein", "g", Color(0xFFB3261E), Modifier.weight(1f))
+                                    SummaryKpi("Calorías", "$plannedCalories", "kcal", Color(0xFF49454F), Modifier.weight(1f))
+                                    SummaryKpi("Proteína", "$plannedProtein", "g", Color(0xFFB3261E), Modifier.weight(1f))
                                 }
                                 Spacer(Modifier.height(10.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
-                                    SummaryKpi("Carbohidratos", "$recommendedCarbs", "g", Color(0xFF6750A4), Modifier.weight(1f))
-                                    SummaryKpi("Grasas", "$recommendedFats", "g", Color(0xFF006A6A), Modifier.weight(1f))
+                                    SummaryKpi("Carbohidratos", "$plannedCarbs", "g", Color(0xFF6750A4), Modifier.weight(1f))
+                                    SummaryKpi("Grasas", "$plannedFats", "g", Color(0xFF006A6A), Modifier.weight(1f))
                                 }
 
                                 Spacer(Modifier.height(16.dp))
@@ -582,7 +607,7 @@ fun NutritionWizardView(
                                 if (tdee != null) {
                                     InfoRow("TDEE (Gasto Total)", "$tdee kcal")
                                 }
-                                val deficit = if (tdee != null) targetCalories - tdee else null
+                                val deficit = if (tdee != null) plannedCalories - tdee else null
                                 if (deficit != null && deficit != 0) {
                                     InfoRow(
                                         if (deficit < 0) "Déficit calórico" else "Superávit calórico",
@@ -603,7 +628,15 @@ fun NutritionWizardView(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(12.dp))
-                                        .clickable { useManualOverrides = !useManualOverrides },
+                                        .clickable {
+                                            val enabling = !useManualOverrides
+                                            useManualOverrides = enabling
+                                            if (enabling) {
+                                                customProtein = recommendedProtein
+                                                customCarbs = recommendedCarbs
+                                                customFats = recommendedFats
+                                            }
+                                        },
                                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                 ) {
                                     Row(
@@ -622,10 +655,36 @@ fun NutritionWizardView(
 
                                 if (useManualOverrides) {
                                     Spacer(Modifier.height(12.dp))
-                                    WizardInput("Calorías", manualCalories, "kcal") { manualCalories = it.filter { c -> c.isDigit() } }
-                                    WizardInput("Proteína", manualProtein, "g") { manualProtein = it.filter { c -> c.isDigit() } }
-                                    WizardInput("Carbohidratos", manualCarbs, "g") { manualCarbs = it.filter { c -> c.isDigit() } }
-                                    WizardInput("Grasas", manualFats, "g") { manualFats = it.filter { c -> c.isDigit() } }
+                                    Text(
+                                        "Partes desde la propuesta del wizard. Si cambias un macro, las calorías totales se recalculan automáticamente.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Spacer(Modifier.height(12.dp))
+                                    MacroSliderCard(
+                                        label = "Proteína",
+                                        value = plannedProtein,
+                                        recommendedValue = recommendedProtein,
+                                        unit = "g",
+                                        color = Color(0xFFB3261E),
+                                        valueRange = proteinRange,
+                                    ) { customProtein = it }
+                                    MacroSliderCard(
+                                        label = "Carbohidratos",
+                                        value = plannedCarbs,
+                                        recommendedValue = recommendedCarbs,
+                                        unit = "g",
+                                        color = Color(0xFF6750A4),
+                                        valueRange = carbRange,
+                                    ) { customCarbs = it }
+                                    MacroSliderCard(
+                                        label = "Grasas",
+                                        value = plannedFats,
+                                        recommendedValue = recommendedFats,
+                                        unit = "g",
+                                        color = Color(0xFF006A6A),
+                                        valueRange = fatRange,
+                                    ) { customFats = it }
                                 }
                             }
                         }
@@ -664,6 +723,7 @@ fun NutritionWizardView(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -691,20 +751,15 @@ fun NutritionWizardView(
                             if (step < TOTAL_DATA_STEPS - 1) {
                                 step++
                             } else {
-                                val finalCalories = manualCalories.toIntOrNull() ?: targetCalories
-                                val finalProtein = manualProtein.toIntOrNull() ?: recommendedProtein
-                                val finalCarbs = manualCarbs.toIntOrNull() ?: recommendedCarbs
-                                val finalFats = manualFats.toIntOrNull() ?: recommendedFats
-
                                 val plan = NutritionPlan(
                                     id = UUID.randomUUID().toString(),
                                     name = "${when (primaryMetric) { GoalMetric.WEIGHT -> "Peso"; GoalMetric.BODY_FAT -> "Grasa"; GoalMetric.MUSCLE_MASS -> "Músculo" }} $primaryValue",
                                     goalType = primaryMetric,
                                     goalValue = primaryValD,
-                                    calorieTarget = finalCalories,
-                                    proteinGoal = finalProtein,
-                                    carbGoal = finalCarbs,
-                                    fatGoal = finalFats,
+                                    calorieTarget = plannedCalories,
+                                    proteinGoal = plannedProtein,
+                                    carbGoal = plannedCarbs,
+                                    fatGoal = plannedFats,
                                     isActive = true,
                                     createdAt = Instant.now().toString(),
                                     primaryGoal = NutritionGoal(
@@ -717,6 +772,47 @@ fun NutritionWizardView(
                                     estimatedEndDate = estimatedEndDate,
                                     weeklyChangeKg = weeklyChangeKg,
                                 )
+
+                                val safeWeight = weightD.takeIf { it > 0 }
+                                val safeHeight = heightD.takeIf { it > 0 }
+                                val safeBodyFat = bodyFatD?.takeIf { it > 0 }
+                                val safeMuscleMass = muscleMassD?.takeIf { it > 0 }
+
+                                programRepo.updateSettings { current ->
+                                    current.copy(
+                                        age = ageI.takeIf { it > 0 } ?: current.age,
+                                        userVitals = current.userVitals.copy(
+                                            age = ageI.takeIf { it > 0 } ?: current.userVitals.age,
+                                            weight = safeWeight ?: current.userVitals.weight,
+                                            height = safeHeight ?: current.userVitals.height,
+                                            gender = gender,
+                                            bodyFatPercentage = safeBodyFat ?: current.userVitals.bodyFatPercentage,
+                                            muscleMassPercentage = safeMuscleMass ?: current.userVitals.muscleMassPercentage,
+                                            targetWeight = if (primaryMetric == GoalMetric.WEIGHT && primaryValD > 0) {
+                                                primaryValD
+                                            } else current.userVitals.targetWeight,
+                                        ),
+                                    )
+                                }
+
+                                if (safeWeight != null || safeBodyFat != null || safeMuscleMass != null) {
+                                    nutritionRepo.addBodyMeasurement(
+                                        BodyMeasurementEntry(
+                                            id = UUID.randomUUID().toString(),
+                                            date = java.time.LocalDate.now().toString(),
+                                            weight = safeWeight,
+                                            bodyFat = safeBodyFat,
+                                            muscleMass = safeMuscleMass,
+                                            notes = buildString {
+                                                append("Wizard nutricional")
+                                                if (bodyFatQuality == "estimated" || muscleMassQuality == "estimated") {
+                                                    append(" · estimado")
+                                                }
+                                            },
+                                        ),
+                                    )
+                                }
+
                                 onComplete(plan)
                             }
                         },
@@ -762,13 +858,15 @@ private fun WelcomeScreen(onStart: () -> Unit, onSkip: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(32.dp),
-            verticalArrangement = Arrangement.Center,
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Hero icon
             Surface(
-                modifier = Modifier.size(100.dp),
+                modifier = Modifier.size(84.dp),
                 shape = CircleShape,
                 color = Color(0xFF006A6A).copy(alpha = 0.1f),
             ) {
@@ -776,13 +874,11 @@ private fun WelcomeScreen(onStart: () -> Unit, onSkip: () -> Unit) {
                     Icon(
                         Icons.Default.Restaurant,
                         null,
-                        modifier = Modifier.size(48.dp),
+                        modifier = Modifier.size(40.dp),
                         tint = Color(0xFF006A6A),
                     )
                 }
             }
-
-            Spacer(Modifier.height(32.dp))
 
             Text(
                 "Nutrición KPKN",
@@ -790,8 +886,6 @@ private fun WelcomeScreen(onStart: () -> Unit, onSkip: () -> Unit) {
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center,
             )
-
-            Spacer(Modifier.height(12.dp))
 
             Text(
                 "Tu plan nutricional personalizado",
@@ -801,8 +895,6 @@ private fun WelcomeScreen(onStart: () -> Unit, onSkip: () -> Unit) {
                 textAlign = TextAlign.Center,
             )
 
-            Spacer(Modifier.height(24.dp))
-
             Text(
                 "Vamos a calcular tus necesidades calóricas y de macronutrientes basándonos en tu cuerpo, tus objetivos y tu nivel de actividad.\n\nEl proceso toma menos de 2 minutos.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -810,8 +902,6 @@ private fun WelcomeScreen(onStart: () -> Unit, onSkip: () -> Unit) {
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp,
             )
-
-            Spacer(Modifier.height(16.dp))
 
             // Feature list
             val features = listOf(
@@ -846,13 +936,11 @@ private fun WelcomeScreen(onStart: () -> Unit, onSkip: () -> Unit) {
                 }
             }
 
-            Spacer(Modifier.height(40.dp))
-
             Button(
                 onClick = onStart,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(52.dp),
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006A6A)),
             ) {
@@ -861,8 +949,6 @@ private fun WelcomeScreen(onStart: () -> Unit, onSkip: () -> Unit) {
                 Icon(Icons.Default.ArrowForward, null, tint = Color.White)
             }
 
-            Spacer(Modifier.height(12.dp))
-
             TextButton(onClick = onSkip) {
                 Text(
                     "Explorar sin plan por ahora",
@@ -870,6 +956,8 @@ private fun WelcomeScreen(onStart: () -> Unit, onSkip: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
@@ -1034,6 +1122,65 @@ private fun SummaryKpi(label: String, value: String, unit: String, color: Color,
             Text(unit, style = MaterialTheme.typography.labelSmall, color = color.copy(alpha = 0.7f))
         }
     }
+}
+
+@Composable
+private fun MacroSliderCard(
+    label: String,
+    value: Int,
+    recommendedValue: Int,
+    unit: String,
+    color: Color,
+    valueRange: IntRange,
+    onValueChange: (Int) -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = color.copy(alpha = 0.08f),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = color)
+                    Text(
+                        "Sugerido: $recommendedValue $unit",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    "$value $unit",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    color = color,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Slider(
+                value = value.toFloat(),
+                onValueChange = { onValueChange(it.toInt()) },
+                valueRange = valueRange.first.toFloat()..valueRange.last.toFloat(),
+                steps = (valueRange.last - valueRange.first - 1).coerceAtLeast(0),
+                colors = SliderDefaults.colors(
+                    thumbColor = color,
+                    activeTrackColor = color,
+                ),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("${valueRange.first} $unit", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("${valueRange.last} $unit", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+    Spacer(Modifier.height(10.dp))
 }
 
 @Composable

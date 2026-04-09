@@ -31,18 +31,24 @@ import java.util.UUID
 @Composable
 fun ReadinessSheet(
     readiness: AugeReadinessVerdict?,
+    dashboard: RecoveryDashboard? = null,
     todayWellbeing: DailyWellbeingLog? = null,
     onDismiss: () -> Unit,
+    dismissOnBackPress: Boolean = true,
+    dismissOnClickOutside: Boolean = true,
     onSave: (DailyWellbeingLog) -> Unit,
 ) {
     ReadinessSheet(
         readiness = readiness,
+        dashboard = dashboard,
         currentMuscularBattery = null,
         currentNeuralBattery = null,
         currentSpinalBattery = null,
         muscleBatteries = emptyMap(),
         todayWellbeing = todayWellbeing,
         onDismiss = onDismiss,
+        dismissOnBackPress = dismissOnBackPress,
+        dismissOnClickOutside = dismissOnClickOutside,
         onSave = { log, _, _, _, _ -> onSave(log) },
     )
 }
@@ -51,21 +57,36 @@ fun ReadinessSheet(
 @Composable
 fun ReadinessSheet(
     readiness: AugeReadinessVerdict?,
+    dashboard: RecoveryDashboard? = null,
     currentMuscularBattery: Int? = null,
     currentNeuralBattery: Int? = null,
     currentSpinalBattery: Int? = null,
     muscleBatteries: Map<String, Int> = emptyMap(),
     todayWellbeing: DailyWellbeingLog? = null,
     onDismiss: () -> Unit,
+    dismissOnBackPress: Boolean = true,
+    dismissOnClickOutside: Boolean = true,
     onSave: (DailyWellbeingLog, Int?, Int?, Int?, Map<String, Int>) -> Unit,
 ) {
     var sleepQuality by remember { mutableIntStateOf(todayWellbeing?.sleepQuality ?: 3) }
     var stressLevel  by remember { mutableIntStateOf(todayWellbeing?.stressLevel  ?: 3) }
     var doms         by remember { mutableIntStateOf(todayWellbeing?.doms         ?: 1) }
     var motivation   by remember { mutableIntStateOf(todayWellbeing?.motivation   ?: 3) }
-    var muscular by remember { mutableIntStateOf(currentMuscularBattery ?: 75) }
-    var neural by remember { mutableIntStateOf(currentNeuralBattery ?: readiness?.score ?: 75) }
-    var spinal by remember { mutableIntStateOf(currentSpinalBattery ?: 75) }
+    var neural by remember {
+        mutableIntStateOf(
+            currentNeuralBattery
+                ?: dashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.SYSTEM }?.score
+                ?: readiness?.score
+                ?: 75
+        )
+    }
+    var spinal by remember {
+        mutableIntStateOf(
+            currentSpinalBattery
+                ?: dashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.STRUCTURE }?.score
+                ?: 75
+        )
+    }
     val muscleAdjustments = remember(muscleBatteries) {
         mutableStateMapOf<String, Int>().also { map ->
             muscleBatteries.forEach { (k, v) -> map[k] = v }
@@ -73,7 +94,9 @@ fun ReadinessSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            if (dismissOnClickOutside) onDismiss()
+        },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = MaterialTheme.shapes.extraLarge,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -96,12 +119,12 @@ fun ReadinessSheet(
             ) {
                 Column {
                     Text(
-                        "¿Cómo te encuentras hoy?",
+                        "Estado de recuperación",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                     )
                     Text(
-                        "Ajusta tus sensaciones antes de empezar",
+                        "Confirma cómo llegas hoy y corrige solo lo que no coincida.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -143,6 +166,30 @@ fun ReadinessSheet(
                 }
             }
 
+            dashboard?.let { state ->
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(state.headline, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
+                        Text(state.summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (readiness?.action?.isNotBlank() == true) {
+                            Text(readiness.action, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                        }
+                        Text(
+                            "Confianza actual: ${readiness?.confidenceLabel ?: state.confidenceLabel}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
             Surface(
                 modifier = Modifier.fillMaxWidth().clickable { showDetails = !showDetails },
                 shape = RoundedCornerShape(14.dp),
@@ -154,8 +201,8 @@ fun ReadinessSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Ajuste avanzado de baterías", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                        Text("Opcional: corrige valores si no representan tu estado", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Corrección avanzada", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        Text("Sistema, estructura y músculos implicados. Nunca músculo global.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(
                         if (showDetails) "Ocultar" else "Mostrar",
@@ -168,9 +215,36 @@ fun ReadinessSheet(
 
             if (showDetails) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    BatteryAdjustRow("Muscular", currentMuscularBattery, muscular) { muscular = it }
-                    BatteryAdjustRow("Neural", currentNeuralBattery, neural) { neural = it }
-                    BatteryAdjustRow("Columna", currentSpinalBattery, spinal) { spinal = it }
+                    BatteryAdjustRow("Sistema", currentNeuralBattery, neural) { neural = it }
+                    BatteryAdjustRow("Estructura", currentSpinalBattery, spinal) { spinal = it }
+                }
+
+                Text(
+                    "La batería muscular global no se edita aquí. Si algo no cuadra, el ajuste es por músculo.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                dashboard?.channels?.takeIf { it.isNotEmpty() }?.let { channels ->
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text("Cómo interpretar los rings", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                            channels.forEach { channel ->
+                                Text(
+                                    "${channel.title}: ${channel.score}% · ${channel.action}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
                 }
 
                 if (muscleAdjustments.isNotEmpty()) {
@@ -239,11 +313,13 @@ fun ReadinessSheet(
                         stressLevel = stressLevel,
                         doms = doms,
                         motivation = motivation,
+                        sleepHours = todayWellbeing?.sleepHours ?: 7.5,
+                        manualMuscularBattery = null,
                     )
                     onSave(
                         log,
                         neural,
-                        muscular,
+                        null,
                         spinal,
                         muscleAdjustments.toMap(),
                     )

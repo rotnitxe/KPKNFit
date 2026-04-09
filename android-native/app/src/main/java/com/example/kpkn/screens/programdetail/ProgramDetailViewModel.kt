@@ -117,6 +117,11 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             ProgramDetailHelpers.computeProgramDiscomforts(h, programId)
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val exerciseDiscomfortAssociations: StateFlow<List<com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry>> =
+        combine(history) { (h) ->
+            ProgramDetailHelpers.computeExerciseDiscomfortAssociations(h, programId)
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     val isActiveProgram: StateFlow<Boolean> = combine(activeProgramState) { (state) ->
         state?.programId == programId && state?.status == ProgramStatus.ACTIVE
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
@@ -355,6 +360,29 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
                                             sessions.add(toIndex, item)
                                             week.copy(sessions = normalizeMainSessions(sessions))
                                         }
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+        repository.updateProgram(updated)
+    }
+
+    fun replaceWeekSessions(weekId: String, sessions: List<Session>) {
+        val current = program.value ?: return
+        val normalized = normalizeMainSessions(sessions)
+        val updated = current.copy(
+            macrocycles = current.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        block.copy(
+                            mesocycles = block.mesocycles.map { meso ->
+                                meso.copy(
+                                    weeks = meso.weeks.map { week ->
+                                        if (week.id == weekId) week.copy(sessions = normalized) else week
                                     }
                                 )
                             }

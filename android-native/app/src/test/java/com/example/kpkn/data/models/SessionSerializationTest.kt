@@ -147,4 +147,37 @@ class SessionSerializationTest {
         assertEquals(true, decoded.parts.first().exercises.first().sets.first().isCalibrator)
         assertEquals(AttemptResult.GOOD, decoded.parts.first().exercises.first().sets.first().attemptResult)
     }
+
+    @Test
+    fun decode_legacy_workout_log_payload_keeps_v2_defaults() {
+        val legacyLog = """
+            {
+              "id": "log-1",
+              "programId": "p-1",
+              "sessionId": "s-1",
+              "sessionName": "Sesion",
+              "date": "2026-01-01T10:00:00Z",
+              "durationMinutes": 55,
+              "completedExercises": [
+                {
+                  "exerciseId": "ex-1",
+                  "exerciseName": "Press",
+                  "sets": [
+                    {
+                      "id": "set-1",
+                      "weight": 80.0,
+                      "reps": 8
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val decoded = json.decodeFromString<WorkoutLog>(legacyLog)
+        assertTrue(decoded.contextualPerformanceStateV2.isEmpty())
+        assertTrue(decoded.replacementDecisionsV2.isEmpty())
+        assertNotNull(decoded.completedExercises.first().sets.first())
+        assertTrue(decoded.completedExercises.first().sets.first().setOutcomeV2 == null)
+    }
 }

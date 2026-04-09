@@ -102,8 +102,8 @@ fun SettingsScreen(
                     )
                     SettingsCategoryRow(
                         icon = Icons.Default.Psychology,
-                        title = "Sistema AUGE",
-                        subtitle = "Fatiga, recuperacion y sensibilidad del algoritmo",
+                        title = "Estado de recuperación",
+                        subtitle = "Fatiga, recuperación y sensibilidad del motor AUGE",
                         onClick = onNavigateToAuge,
                     )
                     SettingsCategoryRow(

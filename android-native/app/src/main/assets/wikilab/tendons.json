@@ -8,7 +8,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía del supraespinoso", "description": "Degeneración del tendón por sobreuso o impingement.", "riskExercises": ["db_bench_press_tng", "db_overhead_press", "db_dips"], "contraindications": ["Evitar elevaciones repetitivas por encima de 90°"], "returnProgressions": ["Rotaciones externas", "Face pulls", "Progresión a press"]}
     ],
-    "protectiveExercises": ["db_exp_face_pull", "db_lateral_raise", "db_seated_cable_row", "db_overhead_press"]
+    "protectiveExercises": ["db_exp_face_pull", "db_lateral_raise", "db_seated_cable_row", "db_overhead_press", "tren_superior_face_pull_polea", "tren_superior_press_hombros_sentado_mancuernas", "tren_superior_remo_sentado_polea_baja"]
   },
   {
     "id": "tendon-infraespinoso",
@@ -19,7 +19,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía del infraespinoso", "description": "Suele asociarse a desbalances de rotadores.", "riskExercises": ["db_bench_press_tng"], "returnProgressions": ["Rotaciones externas", "Estiramiento de pectoral", "Face pulls"]}
     ],
-    "protectiveExercises": ["db_exp_face_pull", "db_seated_cable_row"]
+    "protectiveExercises": ["db_exp_face_pull", "db_seated_cable_row", "tren_superior_face_pull_polea", "tren_superior_remo_sentado_polea_baja"]
   },
   {
     "id": "tendon-bíceps-largo",
@@ -30,7 +30,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía de la cabeza larga del bíceps", "description": "Dolor en la parte anterior del hombro.", "riskExercises": ["db_bench_press_tng", "Curl con barra"], "contraindications": ["Evitar curl con barra en agarre supino en fase aguda"], "returnProgressions": ["Curl martillo", "Rotaciones externas", "Progresión a curl"]}
     ],
-    "protectiveExercises": ["db_exp_hammer_curl", "db_exp_face_pull"]
+    "protectiveExercises": ["db_exp_hammer_curl", "db_exp_face_pull", "tren_superior_curl_martillo_mancuernas", "tren_superior_face_pull_polea"]
   },
   {
     "id": "tendon-bíceps",
@@ -41,7 +41,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía del bíceps distal", "description": "Dolor en la parte anterior del codo.", "riskExercises": ["Curl con barra", "Chin-ups"], "contraindications": ["Evitar cargas máximas en flexión de codo"], "returnProgressions": ["Curl excéntrico", "Curl martillo", "Progresión a curl con barra"]}
     ],
-    "protectiveExercises": ["db_exp_hammer_curl", "db_seated_cable_row"]
+    "protectiveExercises": ["db_exp_hammer_curl", "db_seated_cable_row", "tren_superior_curl_martillo_mancuernas", "tren_superior_remo_sentado_polea_baja"]
   },
   {
     "id": "tendon-tríceps",
@@ -52,7 +52,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía del tríceps", "description": "Dolor en la parte posterior del codo.", "riskExercises": ["Extensión de tríceps", "Fondos"], "contraindications": ["Evitar extensiones con carga pesada"], "returnProgressions": ["Extensión excéntrica", "Progresión gradual"]}
     ],
-    "protectiveExercises": ["db_triceps_pushdown", "db_plank"]
+    "protectiveExercises": ["db_triceps_pushdown", "db_plank", "tren_superior_extension_triceps_polea_cuerda", "ultimo_plancha_frontal"]
   },
   {
     "id": "tendon-rotuliano",
@@ -63,7 +63,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía rotuliana (rodilla del saltador)", "description": "Dolor en el tendón por debajo de la rótula.", "riskExercises": ["Sentadilla", "Salto", "Estocadas"], "contraindications": ["Evitar saltos y sentadillas profundas en fase aguda"], "returnProgressions": ["Sentadilla isométrica", "Excéntricos de cuádriceps", "Progresión a sentadilla"]}
     ],
-    "protectiveExercises": ["db_goblet_squat", "db_romanian_deadlift", "db_squat_high_bar", "db_plank"]
+    "protectiveExercises": ["db_goblet_squat", "db_romanian_deadlift", "db_squat_high_bar", "db_plank", "tren_inferior_sentadilla_goblet_mancuerna", "tren_inferior_peso_muerto_rumano", "tren_inferior_sentadilla_barra_alta"]
   },
   {
     "id": "tendon-cuádriceps",
@@ -74,7 +74,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía del cuádriceps", "description": "Dolor por encima de la rótula.", "riskExercises": ["Sentadilla", "Extensión de cuádriceps"], "returnProgressions": ["Extensión isométrica", "Excéntricos", "Progresión a sentadilla"]}
     ],
-    "protectiveExercises": ["db_goblet_squat", "db_squat_high_bar"]
+    "protectiveExercises": ["db_goblet_squat", "db_squat_high_bar", "tren_inferior_sentadilla_goblet_mancuerna", "tren_inferior_sentadilla_barra_alta", "tren_inferior_extension_cuadriceps"]
   },
   {
     "id": "tendon-aquiles",
@@ -85,7 +85,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía aquílea", "description": "Degeneración del tendón de Aquiles, común en corredores y deportes de salto.", "riskExercises": ["Elevación de talones", "Salto", "Sentadilla"], "contraindications": ["Evitar saltos y carreras en fase aguda"], "returnProgressions": ["Excéntricos de sóleo", "Elevaciones bilaterales", "Progresión a pliometría"]}
     ],
-    "protectiveExercises": ["db_plank", "db_goblet_squat", "db_romanian_deadlift"]
+    "protectiveExercises": ["db_plank", "db_goblet_squat", "db_romanian_deadlift", "ultimo_plancha_frontal", "tren_inferior_elevacion_talones_pie_maquina", "tren_inferior_elevacion_talones_sentado"]
   },
   {
     "id": "tendon-flexores-muñeca",
@@ -96,7 +96,7 @@
     "commonInjuries": [
       {"name": "Tendinitis de flexores", "description": "Inflamación por sobreuso o agarre repetitivo.", "riskExercises": ["Peso muerto", "Remo"], "contraindications": ["Evitar agarres extremos"], "returnProgressions": ["Movilidad de muñeca", "Fortalecimiento de antebrazo"]}
     ],
-    "protectiveExercises": ["db_exp_hammer_curl", "db_seated_cable_row"]
+    "protectiveExercises": ["db_exp_hammer_curl", "db_seated_cable_row", "tren_superior_curl_martillo_mancuernas", "tren_superior_remo_sentado_polea_baja"]
   },
   {
     "id": "tendon-extensores-muñeca",
@@ -107,7 +107,7 @@
     "commonInjuries": [
       {"name": "Epicondilitis lateral (codo de tenista)", "description": "Afecta principalmente al extensor radial corto del carpo.", "riskExercises": ["Curl con barra", "Extensión de tríceps"], "contraindications": ["Evitar agarre prono repetitivo"], "returnProgressions": ["Ejercicios excéntricos", "Curl martillo", "Progresión gradual"]}
     ],
-    "protectiveExercises": ["db_exp_hammer_curl", "db_triceps_pushdown"]
+    "protectiveExercises": ["db_exp_hammer_curl", "db_triceps_pushdown", "tren_superior_curl_martillo_mancuernas", "tren_superior_extension_triceps_polea_cuerda"]
   },
   {
     "id": "tendon-iliopsoas",
@@ -118,7 +118,7 @@
     "commonInjuries": [
       {"name": "Tendinopatía del iliopsoas", "description": "Dolor en la parte anterior de la cadera.", "riskExercises": ["Sentadilla", "Estocadas"], "returnProgressions": ["Estiramiento de flexores", "Fortalecimiento de glúteos", "Progresión a sentadilla"]}
     ],
-    "protectiveExercises": ["db_goblet_squat", "db_romanian_deadlift", "db_plank"]
+    "protectiveExercises": ["db_goblet_squat", "db_romanian_deadlift", "db_plank", "tren_inferior_sentadilla_goblet_mancuerna", "tren_inferior_peso_muerto_rumano", "ultimo_plancha_frontal"]
   },
   {
     "id": "tendon-isquiotibiales",
@@ -129,6 +129,6 @@
     "commonInjuries": [
       {"name": "Tirón de isquiosurales", "description": "Lesión muscular o tendinosa en la parte posterior del muslo.", "riskExercises": ["Peso muerto rumano", "Curl nórdico"], "contraindications": ["Evitar estiramiento máximo bajo carga"], "returnProgressions": ["Curl nórdico excéntrico", "Puente de glúteo", "Progresión a RDL"]}
     ],
-    "protectiveExercises": ["db_romanian_deadlift", "db_goblet_squat"]
+    "protectiveExercises": ["db_romanian_deadlift", "db_goblet_squat", "tren_inferior_peso_muerto_rumano", "tren_inferior_curl_femoral_sentado", "tren_inferior_curl_nordico"]
   }
 ]

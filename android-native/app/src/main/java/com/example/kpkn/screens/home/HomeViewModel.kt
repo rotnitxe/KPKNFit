@@ -3,14 +3,16 @@ package com.example.kpkn.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.MuscleRecoveryStatus
+import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
+import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.nutrition.deriveMacroGoals
-import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.domain.calculations.IpfEquipment
 import com.example.kpkn.domain.calculations.calculateBrzycki1RM
 import com.example.kpkn.domain.calculations.calculateIPFGLPoints
@@ -52,18 +54,13 @@ class HomeViewModel : ViewModel() {
 
     // The actual battery values come from AugeViewModel (AndroidViewModel) which
     // requires Application context. HomeScreen passes them in via collectAsState().
-    // These manual overrides remain for the calibration long-press gesture.
+    // Home no longer keeps shadow overrides for the rings because that masked
+    // real AUGE updates after training logs and readiness saves.
 
-    private val _muscularProgress = MutableStateFlow(1.0f)
-    private val _sncProgress = MutableStateFlow(1.0f)
-    private val _columnaProgress = MutableStateFlow(1.0f)
     private val _selectedRingIndex = MutableStateFlow(-1)
 
     // ─── Ring Progress State (Public StateFlow) ────────────────────────────
 
-    val muscularProgress: StateFlow<Float> = _muscularProgress.asStateFlow()
-    val sncProgress: StateFlow<Float> = _sncProgress.asStateFlow()
-    val columnaProgress: StateFlow<Float> = _columnaProgress.asStateFlow()
     val selectedRingIndex: StateFlow<Int> = _selectedRingIndex.asStateFlow()
 
     // ─── User Data (Derived StateFlow) ─────────────────────────────────────
@@ -83,32 +80,121 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    fun updateMuscularProgress(value: Float) {
-        _muscularProgress.value = value
-    }
-
-    fun updateSncProgress(value: Float) {
-        _sncProgress.value = value
-    }
-
-    fun updateColumnaProgress(value: Float) {
-        _columnaProgress.value = value
-    }
-
-    fun updateProgress(index: Int, value: Float) {
-        when (index) {
-            0 -> updateMuscularProgress(value)
-            1 -> updateSncProgress(value)
-            2 -> updateColumnaProgress(value)
-        }
-    }
-
     fun selectRing(index: Int) {
+        if (index == 0) return
         _selectedRingIndex.value = index
     }
 
     fun clearSelection() {
         _selectedRingIndex.value = -1
+    }
+
+    private data class WeekLocation(
+        val macroIndex: Int,
+        val blockIndex: Int,
+        val mesocycleIndex: Int,
+        val week: ProgramWeek,
+    )
+
+    private fun Program.allWeekLocations(): List<WeekLocation> {
+        val locations = mutableListOf<WeekLocation>()
+        var mesoIndex = 0
+        macrocycles.forEachIndexed { macroIndex, macro ->
+            macro.blocks.forEachIndexed { blockIndex, block ->
+                block.mesocycles.forEach { meso ->
+                    meso.weeks.forEach { week ->
+                        locations += WeekLocation(
+                            macroIndex = macroIndex,
+                            blockIndex = blockIndex,
+                            mesocycleIndex = mesoIndex,
+                            week = week,
+                        )
+                    }
+                    mesoIndex++
+                }
+            }
+        }
+        return locations
+    }
+
+    private fun Session.matchesDay(dayOfWeek: Int): Boolean =
+        this.dayOfWeek == dayOfWeek || assignedDays.contains(dayOfWeek)
+
+    private fun currentDayOfWeek(): Int {
+        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        return if (today == Calendar.SUNDAY) 7 else today - 1
+    }
+
+    private fun resolveWeekLocation(
+        program: Program,
+        active: ActiveProgramState?,
+        dayOfWeek: Int,
+    ): WeekLocation? {
+        val locations = program.allWeekLocations()
+        if (locations.isEmpty()) return null
+
+        val exactMatch = active?.takeIf { it.programId == program.id }?.let { state ->
+            locations.firstOrNull { location ->
+                location.macroIndex == state.currentMacrocycleIndex &&
+                    location.blockIndex == state.currentBlockIndex &&
+                    location.mesocycleIndex == state.currentMesocycleIndex &&
+                    location.week.id == state.currentWeekId
+            }
+        }
+        if (exactMatch != null) return exactMatch
+
+        val sameContainer = active?.takeIf { it.programId == program.id }?.let { state ->
+            locations.firstOrNull { location ->
+                location.macroIndex == state.currentMacrocycleIndex &&
+                    location.blockIndex == state.currentBlockIndex &&
+                    location.mesocycleIndex == state.currentMesocycleIndex
+            }
+        }
+        if (sameContainer != null) return sameContainer
+
+        return locations.firstOrNull { location ->
+            location.week.sessions.any { it.matchesDay(dayOfWeek) }
+        } ?: locations.first()
+    }
+
+    private fun resolveTodaySessions(
+        program: Program,
+        active: ActiveProgramState?,
+        currentDayOfWeek: Int,
+        history: List<com.example.kpkn.data.models.WorkoutLog>,
+        ongoing: com.example.kpkn.data.models.OngoingWorkoutState?,
+    ): List<TodaySessionItem> {
+        val weekLocation = resolveWeekLocation(program, active, currentDayOfWeek) ?: return emptyList()
+        val sessions = weekLocation.week.sessions
+        val todaySessions = sessions.filter { it.matchesDay(currentDayOfWeek) }
+            .ifEmpty { sessions }
+
+        return todaySessions.map { session ->
+            val logForToday = history.find { log ->
+                log.sessionId == session.id &&
+                    log.date.startsWith(java.time.LocalDate.now().toString())
+            }
+            TodaySessionItem(
+                session = session,
+                program = program,
+                location = com.example.kpkn.data.models.SessionLocation(
+                    macroIndex = weekLocation.macroIndex,
+                    mesoIndex = weekLocation.mesocycleIndex,
+                    weekId = weekLocation.week.id,
+                ),
+                isCompleted = logForToday != null,
+                dayOfWeek = session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: currentDayOfWeek,
+                log = logForToday,
+                isOngoing = ongoing?.programId == program.id && ongoing.session.id == session.id,
+            )
+        }.sortedWith(
+            compareBy<TodaySessionItem>(
+                { if (it.isOngoing) 0 else 1 },
+                { if (it.dayOfWeek == currentDayOfWeek) 0 else 1 },
+                { it.dayOfWeek },
+                { if (it.session.isMainSession) 0 else 1 },
+            )
+        )
     }
 
     // ─── Today Sessions (from Active Program) ──────────────────────────────
@@ -121,41 +207,8 @@ class HomeViewModel : ViewModel() {
     ) { programs, active, history, ongoing ->
         if (active == null) return@combine emptyList()
         val program = programs.find { it.id == active.programId } ?: return@combine emptyList()
-        val macro = program.macrocycles.getOrNull(active.currentMacrocycleIndex) ?: return@combine emptyList()
-        val block = macro.blocks.getOrNull(active.currentBlockIndex) ?: return@combine emptyList()
-        val meso = block.mesocycles.getOrNull(active.currentMesocycleIndex) ?: return@combine emptyList()
-        val week = meso.weeks.find { it.id == active.currentWeekId } ?: return@combine emptyList()
-
-        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-        // Map Java Calendar (1=Sun..7=Sat) to model (1=Mon..7=Sun)
-        val currentDay = if (today == Calendar.SUNDAY) 7 else today - 1
-
-        week.sessions.map { session ->
-            val logForToday = history.find { log ->
-                log.sessionId == session.id &&
-                log.date.startsWith(java.time.LocalDate.now().toString())
-            }
-            TodaySessionItem(
-                session = session,
-                program = program,
-                location = com.example.kpkn.data.models.SessionLocation(
-                    macroIndex = active.currentMacrocycleIndex,
-                    mesoIndex = active.currentMesocycleIndex,
-                    weekId = active.currentWeekId,
-                ),
-                isCompleted = logForToday != null,
-                dayOfWeek = session.dayOfWeek ?: 1,
-                log = logForToday,
-                isOngoing = ongoing?.programId == program.id && ongoing.session.id == session.id,
-            )
-        }.sortedWith(
-            compareBy<TodaySessionItem>(
-                { if (it.isOngoing) 0 else 1 },
-                { if (it.dayOfWeek == currentDay) 0 else 1 },
-                { it.dayOfWeek },
-                { if (it.session.isMainSession) 0 else 1 },
-            )
-        )
+        val today = currentDayOfWeek()
+        resolveTodaySessions(program, active, today, history, ongoing)
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Rings View Mode ───────────────────────────────────────────────────────
@@ -240,18 +293,31 @@ class HomeViewModel : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeNutritionSnapshot())
 
     // ─── Body Metrics ────────────────────────────────────────────────────────────
+    // Priority: settings.userVitals (manually entered in profile) → latest bodyMeasurements entry
 
-    val lastWeight: StateFlow<Double?> = repository.settings
-        .map { it.userVitals.weight }
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    val lastWeight: StateFlow<Double?> = combine(
+        repository.settings,
+        nutritionRepository.bodyMeasurements,
+    ) { settings, measurements ->
+        settings.userVitals.weight
+            ?: measurements.maxByOrNull { it.date }?.weight
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val lastBodyFat: StateFlow<Double?> = repository.settings
-        .map { it.userVitals.bodyFatPercentage }
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    val lastBodyFat: StateFlow<Double?> = combine(
+        repository.settings,
+        nutritionRepository.bodyMeasurements,
+    ) { settings, measurements ->
+        settings.userVitals.bodyFatPercentage
+            ?: measurements.maxByOrNull { it.date }?.bodyFat
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val lastMusclePct: StateFlow<Double?> = repository.settings
-        .map { it.userVitals.muscleMassPercentage }
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    val lastMusclePct: StateFlow<Double?> = combine(
+        repository.settings,
+        nutritionRepository.bodyMeasurements,
+    ) { settings, measurements ->
+        settings.userVitals.muscleMassPercentage
+            ?: measurements.maxByOrNull { it.date }?.muscleMass
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val heightCm: StateFlow<Double> = repository.settings
         .map { it.userVitals.height ?: 170.0 }

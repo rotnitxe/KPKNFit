@@ -21,7 +21,7 @@
     "cap:add": "npx cap add android",
     "cap:sync": "npm run build:android && node scripts/copyRestSoundToAndroid.cjs && npx cap sync android && node scripts/cleanupAndroidWebModels.cjs",
     "cap:open": "npx cap open android",
-"local-ai:check-model": "node scripts/checkLocalAiModel.cjs",
+    "local-ai:check-model": "node scripts/checkLocalAiModel.cjs",
     "local-ai:stage-model": "node scripts/stageLocalAiModel.cjs",
     "audit:fix-plugin": "npm --prefix plugins/capacitor-widget-bridge update minimatch",
     "assets:generate": "npx @capacitor/assets generate --android --iconBackgroundColor \"#FFFFFF\" --iconBackgroundColorDark \"#FFFFFF\" --splashBackgroundColor \"#000000\" --splashBackgroundColorDark \"#000000\"",

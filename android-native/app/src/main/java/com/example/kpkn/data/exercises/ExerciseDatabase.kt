@@ -40,6 +40,7 @@ fun initializeExerciseDatabase(context: Context) {
         val aliasesJson = assets.open(EXERCISE_ALIASES_ASSET).bufferedReader().use { it.readText() }
 
         val exercises = exerciseCatalogJson.decodeFromString<List<ExerciseMuscleInfo>>(exercisesJson)
+            .map(::normalizeExerciseLabels)
         val aliases = exerciseCatalogJson.decodeFromString<Map<String, String>>(aliasesJson)
 
         exerciseDatabaseCache = exercises
@@ -71,3 +72,23 @@ fun resolveExerciseId(rawId: String?): String? {
 
 fun resolveExercise(rawId: String?): ExerciseMuscleInfo? =
     resolveExerciseId(rawId)?.let { exerciseDatabaseByIdCache[it] }
+
+private fun normalizeExerciseLabels(exercise: ExerciseMuscleInfo): ExerciseMuscleInfo =
+    exercise.copy(
+        name = normalizeInlineUppercaseP(exercise.name),
+        alias = exercise.alias?.let(::normalizeInlineUppercaseP),
+    )
+
+private fun normalizeInlineUppercaseP(value: String): String {
+    val chars = value.toCharArray()
+    for (index in 1 until chars.lastIndex) {
+        if (
+            chars[index] == 'P' &&
+            chars[index - 1].isLetter() &&
+            chars[index + 1].isLowerCase()
+        ) {
+            chars[index] = 'p'
+        }
+    }
+    return String(chars)
+}

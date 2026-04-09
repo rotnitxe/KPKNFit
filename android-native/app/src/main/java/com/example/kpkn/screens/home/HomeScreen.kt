@@ -1,17 +1,21 @@
 package com.example.kpkn.screens.home
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.animation.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,10 +24,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -33,14 +37,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
+import com.example.kpkn.data.models.MuscleFeedbackEntry
+import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.RecoveryDashboard
+import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.screens.auge.AugeViewModel
-import com.example.kpkn.screens.auge.PostSessionSheet
 import com.example.kpkn.ui.theme.AppThemeMode
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // ─── Home Screen ────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     themeMode: AppThemeMode,
@@ -57,20 +68,17 @@ fun HomeScreen(
     augeViewModel: AugeViewModel = viewModel(),
 ) {
     // AUGE batteries (0-100) → ring progress (0-1)
-    val augeBatteries by augeViewModel.batteries.collectAsState()
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
     val augePending by augeViewModel.pendingQuestionnaire.collectAsState()
+    val augeDashboard by augeViewModel.dashboard.collectAsState()
+    val augeBatteries by augeViewModel.batteries.collectAsState()
 
-    // Manual calibration overrides; if not calibrated, use AUGE values
-    val manualMuscular by viewModel.muscularProgress.collectAsState()
-    val manualSnc by viewModel.sncProgress.collectAsState()
-    val manualColumna by viewModel.columnaProgress.collectAsState()
     val selectedRingIndex by viewModel.selectedRingIndex.collectAsState()
 
-    // Use AUGE values unless user has manually calibrated (manualX != 1.0)
-    val muscularProgress = if (manualMuscular < 1.0f) manualMuscular else augeBatteries.muscular / 100f
-    val sncProgress = if (manualSnc < 1.0f) manualSnc else augeBatteries.cnc / 100f
-    val columnaProgress = if (manualColumna < 1.0f) manualColumna else augeBatteries.spinal / 100f
+    // Rings are rendered straight from AUGE so they react immediately to new logs.
+    val muscularProgress = augeBatteries.muscular / 100f
+    val sncProgress = (augeDashboard.channels.firstOrNull { it.id == RecoveryChannelId.SYSTEM }?.score ?: augeBatteries.cnc) / 100f
+    val columnaProgress = (augeDashboard.channels.firstOrNull { it.id == RecoveryChannelId.STRUCTURE }?.score ?: augeBatteries.spinal) / 100f
     val userName by viewModel.userName.collectAsState()
     val ringsViewMode by viewModel.ringsViewMode.collectAsState()
     val programs by viewModel.programs.collectAsState()
@@ -179,6 +187,7 @@ fun HomeScreen(
                 muscularProgress = muscularProgress,
                 sncProgress = sncProgress,
                 columnaProgress = columnaProgress,
+                recoveryDashboard = augeDashboard,
                 perMuscle = augePerMuscle,
                 ringsViewMode = ringsViewMode,
                 todaySessions = todaySessions,
@@ -200,17 +209,30 @@ fun HomeScreen(
             )
         }
 
-        // PostSessionSheet — shown 2-48h after workout if questionnaire is pending
-        if (augePending != null) {
-            PostSessionSheet(
-                questionnaire = augePending!!,
-                onDismiss = { augeViewModel.dismissPendingQuestionnaire() },
-                onSave = { fb -> augeViewModel.savePostSessionFeedback(fb) },
+        var showPostSessionSheet by remember { mutableStateOf(false) }
+        LaunchedEffect(augePending?.logId) {
+            if (augePending != null) {
+                showPostSessionSheet = true
+            }
+        }
+        if (showPostSessionSheet && augePending != null) {
+            PostSessionFeedbackSheet(
+                sessionName = augePending!!.sessionName,
+                muscleGroups = augePending!!.muscleGroups,
+                logId = augePending!!.logId,
+                onSave = { fb ->
+                    augeViewModel.savePostSessionFeedback(fb)
+                    showPostSessionSheet = false
+                },
+                onDismiss = {
+                    augeViewModel.dismissPendingQuestionnaire()
+                    showPostSessionSheet = false
+                },
             )
         }
 
         AnimatedVisibility(
-            visible = selectedRingIndex != -1,
+            visible = selectedRingIndex in setOf(1, 2),
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
@@ -221,7 +243,7 @@ fun HomeScreen(
                     1 -> sncProgress
                     else -> columnaProgress
                 },
-                onProgressChange = { viewModel.updateProgress(selectedRingIndex, it) },
+                onProgressChange = {},
                 onDismiss = { viewModel.clearSelection() },
             )
         }
@@ -234,6 +256,7 @@ private fun HomeWithProgram(
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
+    recoveryDashboard: RecoveryDashboard,
     perMuscle: Map<String, com.example.kpkn.data.models.MuscleRecoveryStatus> = emptyMap(),
     ringsViewMode: HomeViewModel.RingsViewMode,
     todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
@@ -276,6 +299,7 @@ private fun HomeWithProgram(
                 muscularProgress = muscularProgress,
                 sncProgress = sncProgress,
                 columnaProgress = columnaProgress,
+                recoveryDashboard = recoveryDashboard,
                 ringsViewMode = ringsViewMode,
                 hasActiveProgram = hasActiveProgram,
                 perMuscle = perMuscle,
@@ -512,14 +536,14 @@ private fun CalibrationOverlay(
         else -> Color(0xFFFFD740)
     }
     val name = when (index) {
-        0 -> "MUSCULAR"
-        1 -> "SNC"
-        else -> "COLUMNA"
+        0 -> "MÚSCULOS"
+        1 -> "SISTEMA"
+        else -> "ESTRUCTURA"
     }
     val msg = when (index) {
-        0 -> "Lectura automática."
-        1 -> "¿Cómo te sientes mentalmente?"
-        else -> "¿Fatiga en espalda?"
+        0 -> "Lectura automática basada en músculos y tendones."
+        1 -> "¿Cómo llegas hoy de energía y coordinación?"
+        else -> "¿Cómo toleras hoy la carga axial y articular?"
     }
 
     Box(
@@ -787,6 +811,125 @@ private fun MiniNutritionCard(
                 contentDescription = "Agregar comida",
                 modifier = Modifier.size(18.dp),
             )
+        }
+    }
+}
+
+// ─── Post-Session Feedback Sheet ────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PostSessionFeedbackSheet(
+    sessionName: String,
+    muscleGroups: List<String>,
+    logId: String,
+    onSave: (PostSessionFeedback) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var cnsRecovery by remember { mutableIntStateOf(7) }
+    val muscleDoms = remember(muscleGroups) {
+        mutableStateMapOf<String, Int>().also { m -> muscleGroups.forEach { m[it] = 1 } }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        shape = MaterialTheme.shapes.extraLarge,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        "¿Cómo quedaste tras «$sessionName»?",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                    )
+                    Text(
+                        "Feedback post-sesión — ayuda a AUGE a calibrar tu recuperación",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Recuperación del sistema (1 = agotado · 10 = fresco)", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                Slider(
+                    value = cnsRecovery.toFloat(),
+                    onValueChange = { cnsRecovery = it.toInt().coerceIn(1, 10) },
+                    valueRange = 1f..10f,
+                    steps = 8,
+                )
+                Text("${cnsRecovery}/10", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+            }
+
+            if (muscleGroups.isNotEmpty()) {
+                Text("Agujetas por músculo", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                muscleGroups.take(6).forEach { muscle ->
+                    val doms = muscleDoms[muscle] ?: 1
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(muscle, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            (1..5).forEach { level ->
+                                val active = level <= doms
+                                val color = when (level) {
+                                    1, 2 -> Color(0xFF22C55E)
+                                    3 -> Color(0xFFFACC15)
+                                    else -> MaterialTheme.colorScheme.error
+                                }
+                                androidx.compose.foundation.layout.Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(androidx.compose.foundation.shape.CircleShape)
+                                        .background(if (active) color else MaterialTheme.colorScheme.surfaceVariant)
+                                        .clickable { muscleDoms[muscle] = level },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text("$level", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black,
+                                        color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = {
+                    onSave(
+                        PostSessionFeedback(
+                            logId = logId,
+                            date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
+                            cnsRecovery = cnsRecovery,
+                            muscleFeedback = muscleDoms.mapValues { (_, v) -> MuscleFeedbackEntry(doms = v) },
+                        )
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge,
+            ) {
+                Text("Guardar feedback", fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 4.dp))
+            }
+
+            Spacer(Modifier.height(8.dp))
         }
     }
 }

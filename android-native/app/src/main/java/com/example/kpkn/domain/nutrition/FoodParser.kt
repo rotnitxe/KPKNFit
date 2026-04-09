@@ -34,11 +34,14 @@ private val LITERAL_QUANTITIES = mapOf(
 private val PORTION_PATTERNS = listOf(
     Triple(Regex("""\b(grande|generoso|generosa)\b""", RegexOption.IGNORE_CASE), PortionPreset.EXTRA, "extra"),
     Triple(Regex("""\bplato\s+grande\b""", RegexOption.IGNORE_CASE), PortionPreset.LARGE, "large"),
+    Triple(Regex("""\bplato\s+mediano\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
+    Triple(Regex("""\bplato\s+(?:chico|pequeño|pequeña)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
     Triple(Regex("""\b(mediano|mediana)\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
     Triple(Regex("""\b(pequeño|chico|chica)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
 )
 
 private val COOKING_PATTERNS = listOf(
+    Pair(Regex("""\b(apanado|apanada|apanados|apanadas|empanizado|empanizada)\b""", RegexOption.IGNORE_CASE), CookingMethod.EMPANIZADO_FRITO),
     Pair(Regex("""\b(a\s+la\s+)?plancha\b""", RegexOption.IGNORE_CASE), CookingMethod.PLANCHA),
     Pair(Regex("""\b(hornead[oa]|al\s+horno|horno)\b""", RegexOption.IGNORE_CASE), CookingMethod.HORNO),
     Pair(Regex("""\b(frit[oa]|frito|fritos)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
@@ -60,6 +63,11 @@ private val REFERENCE_PATTERNS = listOf(
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(latas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "can"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(scoops?|medidas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "scoop"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(porciones?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "portion"),
+    // Indicadores subjetivos de cantidad
+    Pair(Regex("""\b(un\s+poco)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "little"),
+    Pair(Regex("""\b(poquito|poquita)\s+(?:de\s+)?(.+)""", RegexOption.IGNORE_CASE), "little"),
+    Pair(Regex("""\b(una?\s+pizca)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "pinch"),
+    Pair(Regex("""\b(un\s+chorrito)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "splash"),
 )
 
 // ─── Main Parser ─────────────────────────────────────────────────────────────
@@ -289,17 +297,17 @@ private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
         val qty = numMatch.groupValues[1].toDoubleOrNull() ?: 1.0
         val rest = numMatch.groupValues[2].trim()
         if (rest.length >= 2) {
-            return Pair(qty.toInt().coerceIn(1, 50), rest)
+            return Pair(kotlin.math.round(qty).toInt().coerceIn(1, 50), rest)
         }
     }
 
-    // Literal: "dos huevos"
+    // Literal: "dos huevos", "media manzana"
     val literalMatch = Regex("""^(un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|medio|mitad|cuarto|tercio|doble|triple)\s+(.+)$""", RegexOption.IGNORE_CASE).find(trimmed)
     if (literalMatch != null) {
         val qty = LITERAL_QUANTITIES[literalMatch.groupValues[1].lowercase()]
         val rest = literalMatch.groupValues[2].trim()
         if (qty != null && rest.length >= 2) {
-            return Pair(qty.toInt().coerceIn(1, 50), rest)
+            return Pair(kotlin.math.max(1, kotlin.math.round(qty).toInt()).coerceIn(1, 50), rest)
         }
     }
 

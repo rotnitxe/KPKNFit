@@ -44,6 +44,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -113,6 +114,7 @@ fun CompactHeroBanner(
     onApplyVolumeCalibration: (ProgramMode, AthleteProfileScore, List<VolumeRecommendation>) -> Unit,
     onIncreaseVolumeCurrentWeek: () -> Unit,
     onReduceVolumeCurrentWeek: () -> Unit,
+    openVolumeSheetToken: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     val coverGradient = remember(coverValue) { resolveGradient(coverValue) }
@@ -141,6 +143,12 @@ fun CompactHeroBanner(
     var showVolumeSheet by remember { mutableStateOf(false) }
     var pendingFocusMode by remember { mutableStateOf<ProgramMode?>(null) }
     var showFocusRecalibrationDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(openVolumeSheetToken) {
+        if (openVolumeSheetToken > 0) {
+            showVolumeSheet = true
+        }
+    }
 
     HeroSystemBars(darkIcons = darkIcons)
 

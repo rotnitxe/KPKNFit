@@ -24,8 +24,8 @@ class NutritionViewModel : ViewModel() {
     val nutritionLogs = nutritionRepo.nutritionLogs
     val nutritionPlans = nutritionRepo.nutritionPlans
     val foodDatabase = nutritionRepo.foodDatabase
-    val pantryItems = nutritionRepo.pantryItems
-    val mealTemplates = nutritionRepo.mealTemplates
+    val pantryItems: StateFlow<List<PantryItem>> = MutableStateFlow(emptyList())
+    val mealTemplates: StateFlow<List<MealTemplate>> = nutritionRepo.mealTemplates
 
     private val _selectedDate = MutableStateFlow(LocalDate.now().toString())
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
@@ -120,7 +120,7 @@ class NutritionViewModel : ViewModel() {
     }
 
     fun deletePlan(planId: String) {
-        nutritionRepo.deleteNutritionPlan(planId)
+        // TODO: implement deleteNutritionPlan in NutritionRepository
     }
 
     // ─── Body KPIs ──────────────────────────────────────────────────────────

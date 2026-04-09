@@ -187,8 +187,12 @@ class ProgramEditorViewModel(private val programId: String) : ViewModel() {
         if (draft.name.isBlank()) return null
 
         val final = draft.copy(isDraft = false)
+        val hadRealProgramsBefore = repository.programs.value.any { !it.isDraft }
         if (programId == "new") {
             repository.addProgram(final)
+            if (!hadRealProgramsBefore) {
+                repository.startProgram(final.id)
+            }
         } else {
             repository.updateProgram(final)
         }

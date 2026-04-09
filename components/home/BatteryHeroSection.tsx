@@ -19,6 +19,7 @@ import SkeletonLoader from '../ui/SkeletonLoader';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
 type BatteryId = 'muscular' | 'cns' | 'spinal';
+type CalibratableBatteryId = 'cns' | 'spinal';
 type BatteryView = 'entwined' | 'carousel';
 
 const getStatusColor = (value: number): string => {
@@ -239,9 +240,9 @@ export const BatteryHeroSection: React.FC<{ compact?: boolean }> = ({ compact = 
     const [articularBatteries, setArticularBatteries] = useState<Record<string, ArticularBatteryState> | null>(null);
     const [spinalDrain, setSpinalDrain] = useState<SpinalDrainEntry[]>([]);
 
-    const [calibratingId, setCalibratingId] = useState<BatteryId | null>(null);
+    const [calibratingId, setCalibratingId] = useState<CalibratableBatteryId | null>(null);
     const [selectedRingId, setSelectedRingId] = useState<BatteryId | null>(null);
-    const [calibValues, setCalibValues] = useState<Record<BatteryId, number>>({ muscular: 0, cns: 0, spinal: 0 });
+    const [calibValues, setCalibValues] = useState<Record<CalibratableBatteryId, number>>({ cns: 0, spinal: 0 });
 
     const [muscularExpanded, setMuscularExpanded] = useState(false);
 
@@ -310,15 +311,14 @@ export const BatteryHeroSection: React.FC<{ compact?: boolean }> = ({ compact = 
     const handleSaveCalibration = () => {
         if (!batteries || !calibratingId) return;
         const calib = settings.batteryCalibration || { cnsDelta: 0, muscularDelta: 0, spinalDelta: 0 };
-        let { cnsDelta, muscularDelta, spinalDelta } = calib;
+        let { cnsDelta, spinalDelta } = calib;
         const val = calibValues[calibratingId];
 
         if (calibratingId === 'cns') cnsDelta = val - (batteries.cns - (calib.cnsDelta || 0));
-        else if (calibratingId === 'muscular') muscularDelta = val - (muscularValueTotal - (calib.muscularDelta || 0));
         else if (calibratingId === 'spinal') spinalDelta = val - (batteries.spinal - (calib.spinalDelta || 0));
 
         setSettings({
-            batteryCalibration: { cnsDelta, muscularDelta, spinalDelta, lastCalibrated: new Date().toISOString() },
+            batteryCalibration: { ...calib, cnsDelta, spinalDelta, lastCalibrated: new Date().toISOString() },
             hasPrecalibratedBattery: true,
         });
         addToast('Calibración guardada', 'success');
@@ -382,7 +382,8 @@ export const BatteryHeroSection: React.FC<{ compact?: boolean }> = ({ compact = 
                                         faded={selectedRingId !== null && selectedRingId !== id}
                                         onTap={() => setSelectedRingId(selectedRingId === id ? null : id)}
                                         onLongPress={() => {
-                                            setCalibValues(v => ({ ...v, [id]: id === 'muscular' ? muscularValueTotal : batteries[id] }));
+                                            if (id === 'muscular') return;
+                                            setCalibValues(v => ({ ...v, [id]: batteries[id] }));
                                             setCalibratingId(id);
                                         }}
                                     />
@@ -516,7 +517,7 @@ export const BatteryHeroSection: React.FC<{ compact?: boolean }> = ({ compact = 
                 {calibratingId && (
                     <CalibrationModal
                         id={calibratingId}
-                        currentValue={calibratingId === 'muscular' ? muscularValueTotal : batteries[calibratingId]}
+                        currentValue={batteries[calibratingId]}
                         calibValue={calibValues[calibratingId]}
                         onCalibChange={v => setCalibValues(prev => ({ ...prev, [calibratingId]: v }))}
                         onSave={handleSaveCalibration}

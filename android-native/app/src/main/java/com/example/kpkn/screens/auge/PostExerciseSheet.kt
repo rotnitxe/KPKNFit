@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * PostExerciseSheet — Optional per-exercise feedback during workout.
- * Captures RPE, technical quality, mood, and discomfort tags.
+ * Legacy experimental sheet; no longer used by the default workout flow.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,7 +23,6 @@ fun PostExerciseSheet(
     onDismiss: () -> Unit,
     onSave: (PostExerciseResult) -> Unit,
 ) {
-    var rpe by remember { mutableIntStateOf(7) }
     var technicalQuality by remember { mutableIntStateOf(8) }
     var mood by remember { mutableIntStateOf(3) }
     val selectedTags = remember { mutableStateListOf<String>() }
@@ -67,17 +66,6 @@ fun PostExerciseSheet(
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            // ─── RPE ──────────────────────────────────────────────────────────
-
-            LabeledSlider(
-                label = "Fatiga neural de este ejercicio",
-                value = rpe,
-                range = 1..10,
-                onChange = { rpe = it },
-                lowLabel = "Baja",
-                highLabel = "Muy alta",
-            )
 
             // ─── Technical quality ────────────────────────────────────────────
 
@@ -157,7 +145,6 @@ fun PostExerciseSheet(
                 Button(
                     onClick = {
                         onSave(PostExerciseResult(
-                            rpe = rpe,
                             technicalQuality = technicalQuality,
                             mood = mood,
                             discomforts = selectedTags.toList(),
@@ -214,7 +201,6 @@ private fun LabeledSlider(
 // ─── Data types ───────────────────────────────────────────────────────────────
 
 data class PostExerciseResult(
-    val rpe: Int,
     val technicalQuality: Int,
     val mood: Int,
     val discomforts: List<String>,

@@ -25,7 +25,6 @@ import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
 import com.example.kpkn.navigation.KpknRoute
 import kotlinx.coroutines.delay
 import java.time.LocalDate
-import kotlin.math.abs
 
 @Composable
 fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
@@ -44,8 +43,7 @@ fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
     }
 
     val dailyConcept = remember(today) {
-        val seed = today.toEpochDay() * 1_103_515_245L + 12_345L
-        val index = abs((seed % TRAINING_CONCEPTS_DATABASE.size).toInt())
+        val index = Math.floorMod(today.toEpochDay().toInt(), TRAINING_CONCEPTS_DATABASE.size)
         TRAINING_CONCEPTS_DATABASE[index]
     }
 

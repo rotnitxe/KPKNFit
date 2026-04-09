@@ -27,6 +27,10 @@ fun scaleFoodByPortion(
 
     val effectiveRatio = ratio * cookingFactor
 
+    // Si se proporcionaron gramos explícitos, el portionPreset no es autorativo — se anula para
+    // evitar que el UI lo lea y reescale los macros de forma incorrecta al mostrar el item.
+    val effectivePortion = if (amountGrams != null) null else portion
+
     return LoggedFood(
         id = java.util.UUID.randomUUID().toString(),
         foodName = food.name,
@@ -40,7 +44,7 @@ fun scaleFoodByPortion(
         micronutrients = food.micronutrients.map {
             it.copy(amount = kotlin.math.round(it.amount * effectiveRatio * 10) / 10.0)
         },
-        portionPreset = portion,
+        portionPreset = effectivePortion,
         cookingMethod = cookingMethod,
         quantity = quantity,
     )

@@ -53,6 +53,9 @@ data class Settings(
     val defaultVolumeSystem: VolumeSystem = VolumeSystem.KPNK,
     val gymName: String? = null,
 
+    val workoutFeatureFlags: WorkoutFeatureFlags = WorkoutFeatureFlags(),
+    val workoutV2HeaderWidgetsBySession: Map<String, WorkoutHeaderWidgets> = emptyMap(),
+
     val aiFallbackEnabled: Boolean = true,
     val aiMaxTokens: Int = 512,
 

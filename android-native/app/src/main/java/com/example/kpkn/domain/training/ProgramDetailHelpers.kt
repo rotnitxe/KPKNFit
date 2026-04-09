@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
@@ -31,6 +32,13 @@ data class WeekWithMeta(
 
 data class DiscomfortEntry(
     val name: String,
+    val count: Int,
+)
+
+data class ExerciseDiscomfortAssociationEntry(
+    val exerciseDbId: String?,
+    val exerciseName: String,
+    val discomfortLabel: String,
     val count: Int,
 )
 
@@ -126,6 +134,40 @@ object ProgramDetailHelpers {
             }
         return map.entries
             .map { DiscomfortEntry(it.key, it.value) }
+            .sortedByDescending { it.count }
+    }
+
+    fun computeExerciseDiscomfortAssociations(
+        history: List<WorkoutLog>,
+        programId: String,
+    ): List<ExerciseDiscomfortAssociationEntry> {
+        val map = mutableMapOf<Triple<String?, String, String>, Int>()
+        history
+            .filter { it.programId == programId }
+            .forEach { log ->
+                log.postExerciseReports.forEach { report ->
+                    report.discomfortIds
+                        .filter { it != "none" }
+                        .forEach { discomfortId ->
+                            val key = Triple(
+                                report.exerciseDbId,
+                                report.exerciseName,
+                                discomfortLabel(discomfortId),
+                            )
+                            map[key] = (map[key] ?: 0) + 1
+                        }
+                }
+            }
+
+        return map.entries
+            .map { (key, count) ->
+                ExerciseDiscomfortAssociationEntry(
+                    exerciseDbId = key.first,
+                    exerciseName = key.second,
+                    discomfortLabel = key.third,
+                    count = count,
+                )
+            }
             .sortedByDescending { it.count }
     }
 

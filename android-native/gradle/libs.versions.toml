@@ -16,10 +16,12 @@ kotlinxSerializationJson = "1.8.1"
 coil = "2.7.0"
 room = "2.7.1"
 ksp = "2.0.21-1.0.28"
-mediaPipeTasksGenAi = "0.10.20"
+litertLm = "0.10.0"
+desugarJdkLibs = "2.1.4"
 
 [libraries]
-mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediaPipeTasksGenAi" }
+litert-lm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertLm" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
