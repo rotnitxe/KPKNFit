@@ -1966,32 +1966,31 @@ private fun ExerciseEditorCard(
                     }
                 }
 
-                // Sets section
-                Text("Series", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    exercise.sets.forEachIndexed { setIndex, set ->
-                        InlineSetRow(
-                            set = set,
-                            index = setIndex,
-                            reference1RM = resolved1RM,
-                            predictedWeight = predictedWeights[set.id],
-                            trainingMode = exercise.trainingMode,
-                            customUnit = exercise.customUnit,
-                            accentColor = accentColor,
-                            canMoveUp = setIndex > 0,
-                            canMoveDown = setIndex < exercise.sets.lastIndex,
-                            onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                            onRemove = { onRemoveSet(set.id) },
-                            onMoveUp = { onMoveSet(set.id, -1) },
-                            onMoveDown = { onMoveSet(set.id, 1) },
-                        )
-                    }
-                    FilledTonalButton(onClick = onAddSet) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Serie", fontWeight = FontWeight.Bold)
-                    }
+                // Series carousel section
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        "Series",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    ExerciseSetsCarousel(
+                        exercise = exercise,
+                        reference1RM = resolved1RM,
+                        trainingMode = exercise.trainingMode,
+                        customUnit = exercise.customUnit,
+                        accentColor = accentColor,
+                        modifier = Modifier.fillMaxWidth(),
+                        onAddSet = onAddSet,
+                        onUpdateSet = onUpdateSet,
+                        onRemoveSet = onRemoveSet,
+                        onMoveSet = onMoveSet,
+                    )
                 }
+
             }
         }
     }
@@ -4701,6 +4700,139 @@ private fun CompactGoalTrackingButton(
                 tint = if (isActive) Color(0xFFFFB300) else accentColor,
                 modifier = Modifier.size(24.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun ExerciseSetsCarousel(
+    exercise: Exercise,
+    reference1RM: Double?,
+    trainingMode: TrainingMode,
+    customUnit: String?,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    onAddSet: () -> Unit,
+    onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
+    onRemoveSet: (String) -> Unit,
+    onMoveSet: (String, Int) -> Unit,
+) {
+    if (exercise.sets.isEmpty()) {
+        // Empty state
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                "No hay series añadidas",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            FilledTonalButton(
+                onClick = onAddSet,
+                modifier = Modifier.height(40.dp),
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text("Añadir serie", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+        return
+    }
+
+    var currentSetIndex by remember { mutableStateOf(0) }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        // Carousel using LazyRow
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(280.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp),
+            state = rememberLazyListState(initialFirstVisibleItemIndex = currentSetIndex),
+        ) {
+            itemsIndexed(exercise.sets) { index, set ->
+                key(set.id) {
+                    val predictedWeight = remember(exercise.reference1RM, set) {
+                        exercise.reference1RM?.let { reference ->
+                            calculateWeightFrom1RMAndIntensity(reference, set)
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .width(300.dp)
+                            .fillMaxHeight(),
+                    ) {
+                        InlineSetRow(
+                            set = set,
+                            index = index,
+                            reference1RM = reference1RM,
+                            predictedWeight = predictedWeight,
+                            trainingMode = trainingMode,
+                            customUnit = customUnit,
+                            accentColor = accentColor,
+                            canMoveUp = index > 0,
+                            canMoveDown = index < exercise.sets.size - 1,
+                            onUpdate = { updater -> onUpdateSet(set.id, updater) },
+                            onRemove = { onRemoveSet(set.id) },
+                            onMoveUp = { onMoveSet(set.id, -1) },
+                            onMoveDown = { onMoveSet(set.id, 1) },
+                        )
+                    }
+                }
+            }
+        }
+
+        // Dot stepper indicator
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            exercise.sets.forEachIndexed { index, _ ->
+                Box(
+                    modifier = Modifier
+                        .size(if (index == currentSetIndex) 10.dp else 8.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (index == currentSetIndex) accentColor else accentColor.copy(alpha = 0.35f),
+                        )
+                        .clickable { currentSetIndex = index },
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            // Set counter and add button
+            Text(
+                "${currentSetIndex + 1}/${exercise.sets.size}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            FilledTonalButton(
+                onClick = onAddSet,
+                modifier = Modifier.height(32.dp),
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
         }
     }
 }
