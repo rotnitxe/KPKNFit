@@ -7,6 +7,10 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -130,13 +134,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
@@ -1608,7 +1616,6 @@ private fun ExerciseEditorCard(
     onAutoExpandHandled: () -> Unit,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
-    var showModeMenu by remember { mutableStateOf(false) }
 
     val resolved1RM = remember(exercise.reference1RM, exercise.prFor1RM) {
         when {
@@ -1783,43 +1790,32 @@ private fun ExerciseEditorCard(
                     }
                 }
 
-                // Compact rest + mode
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
-                    DurationPickerField(
-                        label = "Descanso",
+                // Compact rest + mode + goal tracking
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Rest picker with timer icon only
+                    CompactRestPickerButton(
                         totalSeconds = restSelectionSeconds,
-                        modifier = Modifier.weight(1f),
                         accentColor = accentColor,
+                        modifier = Modifier.weight(1f),
                     ) { totalSeconds ->
                         restSelectionSeconds = totalSeconds
                         onUpdateExercise { draft -> draft.copy(restTime = totalSeconds) }
                     }
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Modo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                        Box {
-                            OutlinedButton(onClick = { showModeMenu = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
-                                Text(trainingModeLabel(exercise.trainingMode), maxLines = 1)
-                                Spacer(Modifier.width(6.dp))
-                                Icon(Icons.Default.KeyboardArrowDown, null)
-                            }
-                            DropdownMenu(expanded = showModeMenu, onDismissRequest = { showModeMenu = false }) {
-                                listOf(
-                                    TrainingMode.REPS to "Reps",
-                                    TrainingMode.PERCENT to "RM",
-                                    TrainingMode.TIME to "Tiempo",
-                                    TrainingMode.DISTANCE to "Distancia",
-                                    TrainingMode.CUSTOM to "Personalizado",
-                                ).forEach { (mode, label) ->
-                                    DropdownMenuItem(
-                                        text = { Text(label) },
-                                        onClick = {
-                                            showModeMenu = false
-                                            onUpdateExercise { current -> current.copy(trainingMode = mode) }
-                                        },
-                                    )
-                                }
-                            }
-                        }
+                    
+                    // Mode selector (compact, no label)
+                    CompactModeSelector(
+                        currentMode = exercise.trainingMode,
+                        accentColor = accentColor,
+                    ) { mode ->
+                        onUpdateExercise { current -> current.copy(trainingMode = mode) }
+                    }
+                    
+                    // Goal tracking star button
+                    CompactGoalTrackingButton(
+                        isActive = exercise.isStarTarget,
+                        accentColor = accentColor,
+                    ) {
+                        onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) }
                     }
                 }
 
@@ -1919,52 +1915,33 @@ private fun ExerciseEditorCard(
                     }
                 }
 
-                // Star / goal RM
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.weight(1f),
+                // Goal tracking details - only visible when star is active
+                AnimatedVisibility(exercise.isStarTarget) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(
-                            imageVector = if (exercise.isStarTarget) Icons.Default.Star else Icons.Default.StarBorder,
-                            contentDescription = null,
-                            tint = if (exercise.isStarTarget) Color(0xFFFFB300) else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Column {
-                            Text("Seguimiento de metas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        EditorMiniField(
+                            label = "Meta 1RM kg (opcional)",
+                            value = goalRmInput,
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { input ->
+                            goalRmInput = input
+                            onUpdateExercise { ex -> ex.copy(goal1RM = input.safeDoubleOrNull()) }
+                        }
+                        // Show PR and goal info
+                        if (exercise.prFor1RM != null || exercise.goal1RM != null) {
                             Text(
                                 buildString {
-                                    append("Meta 1RM")
-                                    val prText = exercise.prFor1RM?.let { " · PR: ${formatEditableNumber(it.weight)} kg × ${it.reps}" }
-                                    val goalText = exercise.goal1RM?.let { " · Meta: ${formatEditableNumber(it)} kg" }
-                                    append(prText ?: "")
-                                    append(goalText ?: "")
-                                }.ifBlank { "Configura tu objetivo" },
-                                style = MaterialTheme.typography.bodySmall,
+                                    val prText = exercise.prFor1RM?.let { "PR: ${formatEditableNumber(it.weight)} kg × ${it.reps}" }
+                                    val goalText = exercise.goal1RM?.let { "Meta: ${formatEditableNumber(it)} kg" }
+                                    append(listOfNotNull(prText, goalText).joinToString(" · "))
+                                },
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                    }
-                    Switch(
-                        checked = exercise.isStarTarget,
-                        onCheckedChange = { checked -> onUpdateExercise { ex -> ex.copy(isStarTarget = checked) } },
-                    )
-                }
-                AnimatedVisibility(exercise.isStarTarget) {
-                    EditorMiniField(
-                        label = "Meta 1RM kg (opcional)",
-                        value = goalRmInput,
-                        keyboardType = KeyboardType.Decimal,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { input ->
-                        goalRmInput = input
-                        onUpdateExercise { ex -> ex.copy(goal1RM = input.safeDoubleOrNull()) }
                     }
                 }
 
@@ -4517,3 +4494,150 @@ private fun suggestWarmupReps(percentage: Double): Int = when {
 
 private fun String.safeIntOrNull(): Int? = toIntOrNull()
 private fun String.safeDoubleOrNull(): Double? = replace(",", ".").toDoubleOrNull()
+
+// ===== COMPACT COMPONENTS FOR OPTIMIZED EXERCISE EDITOR =====
+
+@Composable
+private fun CompactRestPickerButton(
+    totalSeconds: Int,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    onConfirm: (Int) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    
+    Surface(
+        modifier = modifier
+            .height(48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { showPicker = true },
+        color = accentColor.copy(alpha = 0.12f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.3f)),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.Timer,
+                contentDescription = "Descanso",
+                tint = accentColor,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                formatRestSummary(totalSeconds),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = accentColor,
+            )
+        }
+    }
+    
+    if (showPicker) {
+        DurationPickerDialog(
+            initialTotalSeconds = totalSeconds,
+            accentColor = accentColor,
+            onDismiss = { showPicker = false },
+            onConfirm = {
+                onConfirm(it)
+                showPicker = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun CompactModeSelector(
+    currentMode: TrainingMode,
+    accentColor: Color,
+    onModeSelected: (TrainingMode) -> Unit,
+) {
+    var showMenu by remember { mutableStateOf(false) }
+    
+    Box {
+        Surface(
+            modifier = Modifier
+                .height(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable { showMenu = true },
+            color = accentColor.copy(alpha = 0.12f),
+            border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.3f)),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    trainingModeLabel(currentMode),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor,
+                    maxLines = 1,
+                )
+                Spacer(Modifier.width(4.dp))
+                Icon(
+                    Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = accentColor,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+        
+        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+            listOf(
+                TrainingMode.REPS to "Reps",
+                TrainingMode.PERCENT to "RM",
+                TrainingMode.TIME to "Tiempo",
+                TrainingMode.DISTANCE to "Distancia",
+                TrainingMode.CUSTOM to "Personalizado",
+            ).forEach { (mode, label) ->
+                DropdownMenuItem(
+                    text = { Text(label) },
+                    onClick = {
+                        showMenu = false
+                        onModeSelected(mode)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompactGoalTrackingButton(
+    isActive: Boolean,
+    accentColor: Color,
+    onToggle: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onToggle() },
+        color = if (isActive) accentColor.copy(alpha = 0.24f) else accentColor.copy(alpha = 0.08f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (isActive) accentColor.copy(alpha = 0.5f) else accentColor.copy(alpha = 0.2f),
+        ),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = if (isActive) Icons.Default.Star else Icons.Default.StarBorder,
+                contentDescription = "Seguimiento de metas",
+                tint = if (isActive) Color(0xFFFFB300) else accentColor,
+                modifier = Modifier.size(24.dp),
+            )
+        }
+    }
+}
